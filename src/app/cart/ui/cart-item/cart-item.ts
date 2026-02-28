@@ -7,7 +7,7 @@ import { CurrencyPipe } from '@angular/common';
   standalone: true,
   imports: [CurrencyPipe],
   templateUrl: './cart-item.html',
-  styleUrl: './cart-item.scss',
+  styleUrls: ['./cart-item.css'],
 })
 export class CartItem {
   productCartItem = input.required<ProductItemCart>();

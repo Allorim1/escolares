@@ -1,8 +1,19 @@
 <header class="app-header" role="banner">
-  <div class="brand">Escolares</div>
+  <a class="brand" routerLink="/">
+    <img src="/ESCOLARES RR PNG BLANCO.png" alt="Escolares logo" class="brand-logo" />
+  </a>
   
   <nav class="controls" role="navigation" aria-label="Principal">
-    <button class="nav-btn">Productos</button>
-    <button class="nav-btn primary">Inicio</button>
+    <a class="nav-btn" routerLink="/products">Productos</a>
+    <a class="nav-btn primary" routerLink="/">Inicio</a>
   </nav>
+
+  <div class="header-icons">
+    <a class="cart-btn" routerLink="/cart">
+      <img src="/cart.png" alt="Carrito" />
+    </a>
+    <a class="user-btn" routerLink="/panel">
+      <img src="/usuario.png" alt="Usuario" />
+    </a>
+  </div>
 </header>

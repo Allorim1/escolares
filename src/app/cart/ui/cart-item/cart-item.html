@@ -73,7 +73,7 @@
         </button>
       </div>
       <div class="text-end md:order-4 md:w-32">
-        <p class="text-base font-bold text-gray-900 dark:text-white">
+        <p class="text-base font-bold text-gray-900 dark:text-white product-price">
           {{ productCartItem().product.price | currency }}
         </p>
       </div>
@@ -82,14 +82,14 @@
     <div class="w-full min-w-0 flex-1 space-y-4 md:order-2 md:max-w-md">
       <a
         href="#"
-        class="text-base font-medium text-gray-900 hover:underline dark:text-white"
+        class="text-base font-medium text-gray-900 hover:underline dark:text-white product-title"
         >{{ productCartItem().product.title }}</a
       >
 
       <div class="flex items-center gap-4">
         <button
           type="button"
-          class="inline-flex items-center text-sm font-medium text-red-600 hover:underline dark:text-red-500"
+          class="inline-flex items-center text-sm font-medium text-red-600 hover:underline dark:text-red-500 remove-button"
           (click)="onRemove.emit(productCartItem().product.id)"
         >
           <svg

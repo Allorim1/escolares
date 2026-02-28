@@ -1,0 +1,48 @@
+:host {
+  display: block;
+}
+
+/* override Tailwind container colors */
+:host .rounded-lg {
+  border-color: #007bff !important;
+  background-color: #ffffff !important;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+:host .rounded-lg:hover {
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+:host img {
+  border-radius: 4px;
+}
+
+:host .product-title {
+  color: #0056b3;
+}
+
+:host .product-price {
+  color: #007bff;
+}
+
+:host .remove-button {
+  color: #dc3545;
+}
+
+:host .remove-button:hover {
+  text-decoration: underline;
+}
+
+/* Buttons used for increment/decrement */
+:host button:not(.remove-button) {
+  background-color: #007bff;
+  color: #ffffff;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+}
+
+:host button:not(.remove-button):hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}

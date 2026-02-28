@@ -22,7 +22,7 @@ export class ProductsStateService {
     }
 
     private pageSize = 8;
-    private allProducts = signal<Product[]>([]);
+    allProducts = signal<Product[]>([]);
 
     // computed signals to drive button disabled state
     hasNext = computed(() => {

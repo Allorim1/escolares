@@ -1,0 +1,11 @@
+<section class="pedidos-container">
+  <h3>Pedidos</h3>
+  <ng-container *ngIf="cartState.count() === 0; else hasItems">
+    <p>Aún no tienes ningún pedido.</p>
+    <p>Ve a la tienda para realizar un pedido.</p>
+  </ng-container>
+
+  <ng-template #hasItems>
+    <p>Tienes {{ cartState.count() }} producto(s) en el carrito. ¡Haz tu pedido!</p>
+  </ng-template>
+</section>

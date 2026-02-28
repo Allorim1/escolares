@@ -7,7 +7,14 @@ header.app-header {
   justify-content: space-between;
 }
 
-.brand { font-weight: 700; font-size: 1.1rem; }
+.brand {
+  display: inline-block;
+}
+
+.brand-logo {
+  height: 32px;
+  width: auto;
+}
 .controls { display: flex; gap: 10px; }
 
 .nav-btn {
@@ -25,4 +32,15 @@ header.app-header {
   background: var(--white);
   color: var(--blue);
   border-color: rgba(0, 0, 0, 0.08);
+}
+
+.user-btn img, .cart-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+.header-icons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }

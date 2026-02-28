@@ -1,1 +1,23 @@
-<p>cart works!</p>
+<section class="cart-container">
+  <h2>Tu carrito</h2>
+
+  @if (state().products.length > 0) {
+    @for (item of state().products; track item) {
+      <app-cart-item
+        [productCartItem]="item"
+        (onRemove)="onRemove($event)"
+        (onIncrease)="onIncrease($event)"
+        (onDecrease)="onDecrease($event)"
+      ></app-cart-item>
+    }
+
+    <p class="total">
+      Total: {{ price() | currency }}
+    </p>
+  } @else {
+    <div class="empty">
+      <p>El carrito está vacío.</p>
+      <a routerLink="/products">Ir a la tienda</a>
+    </div>
+  }
+</section>

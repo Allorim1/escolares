@@ -1,0 +1,20 @@
+
+<div class="product-cards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; justify-items: center;">
+    @for (product of productsState.state.products(); track product) {
+        <div class="card" style="max-width: 320px; width: 100%; background: #fff; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); overflow: hidden; transition: transform 0.2s; display: flex; flex-direction: column;">
+            <img [src]="product.image" alt="{{product.title}}" class="card-img" style="width: 100%; height: 200px; object-fit: cover;">
+            <div class="card-body" style="padding: 1.5rem;">
+                <h5 class="card-title" style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #333;">{{product.title}}</h5>
+                <p class="card-text" style="font-size: 1rem; color: #666; margin-bottom: 1rem;">{{product.description}}</p>
+                <p class="card-price" style="font-size: 1.1rem; font-weight: 700; color: #1976d2; margin-bottom: 1.5rem;">${{product.price}}</p>
+                <button class="btn btn-primary" style="background: #1976d2; color: #fff; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-size: 1rem; cursor: pointer; transition: background 0.2s;">Ver más</button>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="pagination" style="display:flex;justify-content:center;gap:1rem;margin:2rem 0;">
+    <button  class="btn btn-secondary" style="padding:0.75rem 1.5rem;border-radius:8px;" type="button" (click)="changePage(-1)" [disabled]="!productsState.hasPrev()">Anterior</button>
+    <span>Página {{ productsState.state.page() }}</span>
+    <button class="btn btn-secondary" style="padding:0.75rem 1.5rem;border-radius:8px;" type="button" (click)="changePage(1)" [disabled]="!productsState.hasNext()">Siguiente</button>
+</div>

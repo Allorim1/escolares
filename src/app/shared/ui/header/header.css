@@ -1,0 +1,28 @@
+header.app-header {
+  background: var(--blue); /* Esto ahora funcionará porque es global */
+  color: var(--white);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand { font-weight: 700; font-size: 1.1rem; }
+.controls { display: flex; gap: 10px; }
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--white);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.nav-btn:hover { background: rgba(255, 255, 255, 0.06); }
+.nav-btn.primary {
+  background: var(--white);
+  color: var(--blue);
+  border-color: rgba(0, 0, 0, 0.08);
+}

@@ -1,0 +1,36 @@
+/* src/app/app.css */
+:root {
+    --blue: #0d6efd;
+    --white: #fff;
+}
+
+button.nav-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: var(--white);
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+
+    /* transición suave */
+    transition: background .2s ease, color .2s ease;
+}
+
+/* estado normal del primario */
+button.nav-btn.primary {
+    background: var(--white);
+    color: var(--blue);
+    border-color: rgba(0,0,0,0.08);
+}
+
+/* estilos al pasar el ratón */
+button.nav-btn:hover {
+    background: var(--white);
+    color: var(--blue);
+}
+
+button.nav-btn.primary:hover {
+    background: var(--blue);
+    color: var(--white);
+}

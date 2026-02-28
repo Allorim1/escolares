@@ -1,0 +1,10 @@
+:root {
+  --blue: #0d6efd;
+  --white: #fff;
+}
+
+/* Opcional: Pon aquí estilos que afecten a toda la app, como el body */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}

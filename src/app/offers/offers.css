@@ -1,0 +1,43 @@
+.offers-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  color: #333;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.offers-content {
+  text-align: center;
+  padding: 3rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.offers-content p {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.offers-btn {
+  display: inline-block;
+  padding: 1rem 2rem;
+  background: white;
+  color: #ff6b35;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
+}
+
+.offers-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

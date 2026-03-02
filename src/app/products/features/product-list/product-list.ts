@@ -100,6 +100,13 @@ export default class ProductList implements OnInit {
         this.filterCategory.set(brand);
       }
     });
+
+    this.route.queryParamMap.subscribe((queryParams) => {
+      const search = queryParams.get('search');
+      if (search) {
+        this.filterText.set(search);
+      }
+    });
   }
 
   // compute unique categories from products

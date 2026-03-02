@@ -3,6 +3,11 @@ import { Routes } from '@angular/router';
 import HomeComponent from './home/home';
 import Panel from './panel/panel';
 import { Marcas } from './marcas/marcas';
+import { AboutMe } from './about-me/about-me';
+import { HowBuy } from './how-buy/how-buy';
+import { Feedback } from './feedback/feedback';
+import { Lineas } from './lineas/lineas';
+import { Offers } from './offers/offers';
 import { adminGuard } from './shared/guards/admin.guard';
 
 export const routes: Routes = [
@@ -21,6 +26,26 @@ export const routes: Routes = [
   {
     path: 'marcas',
     component: Marcas,
+  },
+  {
+    path: 'about-me',
+    component: AboutMe,
+  },
+  {
+    path: 'how-buy',
+    component: HowBuy,
+  },
+  {
+    path: 'feedback',
+    component: Feedback,
+  },
+  {
+    path: 'lineas',
+    component: Lineas,
+  },
+  {
+    path: 'offers',
+    component: Offers,
   },
   {
     path: 'panel',

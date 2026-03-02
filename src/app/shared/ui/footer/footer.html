@@ -1,13 +1,21 @@
 <footer class="footer">
   <div class="footer-container">
     <div class="footer-section nuestra-tienda">
-      <div class="tienda-content">
-        <img src="/ubicacion.jpg" alt="Ubicación" class="location-image" />
-        <div class="tienda-links">
+      <div class="tienda-row">
+        <a
+          href="https://www.google.com/maps/place/ESCOLARES+C.A./@10.1794147,-68.0063827,17z/data=!3m1!4b1!4m6!3m5!1s0x8e8067ae92674563:0x91b4d01485340a94!8m2!3d10.1794094!4d-68.0038078!16s%2Fg%2F11lrjgsr0j?entry=ttu&g_ep=EgoyMDI1MDcyMC4wIKXMDSoASAFQAw%3D%3D"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src="/ubicacion.jpg" alt="Ubicación" class="location-image" />
+        </a>
+        <div class="tienda-info">
           <h3 class="section-title">Nuestra tienda</h3>
-          <a routerLink="/about-me" class="footer-link">¿Quiénes somos?</a>
-          <a routerLink="/how-buy" class="footer-link">¿Cómo comprar?</a>
-          <a routerLink="/feedback" class="footer-link">Danos tu opinión</a>
+          <div class="tienda-links">
+            <a routerLink="/about-me" class="footer-link">¿Quiénes somos?</a>
+            <a routerLink="/how-buy" class="footer-link">¿Cómo comprar?</a>
+            <a routerLink="/feedback" class="footer-link">Danos tu opinión</a>
+          </div>
         </div>
       </div>
     </div>
@@ -87,6 +95,16 @@
         Entre constitución y Díaz Moreno, C. Girardot, Valencia 2001, Carabobo
       </p>
       <p class="contact-text">contactenos@escolaresonline.com</p>
+    </div>
+
+    <div class="footer-section">
+      <h3 class="section-title">Visitantes</h3>
+      <p class="visitor-text">
+        Este mes: <strong>{{ visitorService.currentMonthVisitors() }}</strong>
+      </p>
+      <p class="visitor-text">
+        Total: <strong>{{ visitorService.totalVisitors() }}</strong>
+      </p>
     </div>
   </div>
 </footer>

@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { VisitorCounterService } from '../../data-access/visitor-counter.service';
 
 @Component({
   selector: 'app-footer',
@@ -7,4 +8,6 @@ import { RouterLink } from '@angular/router';
   templateUrl: './footer.html',
   styleUrl: './footer.css',
 })
-export class Footer {}
+export class Footer {
+  visitorService = inject(VisitorCounterService);
+}

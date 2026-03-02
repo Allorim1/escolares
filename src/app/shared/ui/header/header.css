@@ -1,17 +1,17 @@
 header.app-header {
-  background: var(--blue); /* Esto ahora funcionará porque es global */
+  background: var(--blue);
   color: var(--white);
   padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .announcement-bar {
-  /* 1. Color de fondo (un azul oscuro similar al de tu imagen) */
   background-color: #1a407d;
-
-  /* 2. Color del texto y estilo */
   color: #ffffff;
   text-transform: uppercase; /* Para que siempre esté en mayúsculas */
   font-family: sans-serif; /* Usa la fuente que prefieras */
@@ -41,6 +41,98 @@ header.app-header {
   height: 32px;
   width: auto;
 }
+
+.header-search {
+  position: relative;
+  width: 300px;
+}
+
+.search-form {
+  display: flex;
+  gap: 0;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px 0 0 6px;
+  outline: none;
+}
+
+.search-btn {
+  padding: 8px 12px;
+  background: #1a407d;
+  color: white;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.search-btn:hover {
+  background: #e55a2b;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1001;
+  margin-top: 4px;
+}
+
+.search-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  color: #333;
+}
+
+.search-dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.search-dropdown-item img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.search-dropdown-item .item-info {
+  flex: 1;
+  text-align: left;
+}
+
+.search-dropdown-item .item-title {
+  font-weight: 500;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-dropdown-item .item-price {
+  color: #ff6b35;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .controls {
   display: flex;
   gap: 10px;

@@ -1,0 +1,12 @@
+<div class="lineas-container">
+  <h1 class="page-title">Nuestras Líneas</h1>
+
+  <div class="lineas-grid">
+    @for (linea of lineas; track linea.name) {
+      <div class="linea-card">
+        <img [src]="linea.image" [alt]="linea.name" class="linea-image" />
+        <p class="linea-name">{{ linea.name }}</p>
+      </div>
+    }
+  </div>
+</div>

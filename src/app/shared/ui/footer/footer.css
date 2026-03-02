@@ -1,37 +1,43 @@
 .footer {
   background-color: #1a1a1a;
   color: #ffffff;
-  padding: 2rem 1rem;
+  padding: 3rem 2rem;
   margin-top: auto;
 }
 
 .footer-container {
   max-width: 1200px;
   margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
   gap: 2rem;
+  align-items: start;
 }
 
 .footer-section {
-  flex: 1;
-  min-width: 200px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  padding-left: 1rem;
 }
 
 .nuestra-tienda {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
 }
 
-.tienda-content {
+.tienda-row {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: 2rem;
+}
+
+.tienda-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-left: 1rem;
 }
 
 .tienda-links {
@@ -41,32 +47,23 @@
 }
 
 .location-image {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 200px;
   object-fit: cover;
   border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.location-image:hover {
+  transform: scale(1.05);
 }
 
 .section-title {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin: 0.5rem 0;
+  margin: 0;
   color: #ffffff;
-}
-
-.footer-button {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background-color: #ff6b35;
-  color: #ffffff;
-  text-decoration: none;
-  border-radius: 4px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-}
-
-.footer-button:hover {
-  background-color: #e55a2b;
 }
 
 .footer-link {
@@ -89,8 +86,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   color: #ffffff;
@@ -108,12 +105,29 @@
   color: #cccccc;
   font-size: 0.95rem;
   margin: 0;
+  line-height: 1.5;
 }
 
-@media (max-width: 768px) {
+.visitor-text {
+  color: #cccccc;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.visitor-text strong {
+  color: #ff6b35;
+}
+
+@media (max-width: 1024px) {
   .footer-container {
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-container {
+    grid-template-columns: 1fr;
     text-align: center;
   }
 
@@ -121,12 +135,7 @@
     align-items: center;
   }
 
-  .nuestra-tienda {
-    align-items: center;
-  }
-
-  .tienda-content {
-    flex-direction: column;
+  .tienda-row {
     align-items: center;
   }
 

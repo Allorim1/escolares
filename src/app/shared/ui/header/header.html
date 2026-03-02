@@ -6,10 +6,59 @@
     <img src="/ESCOLARES RR PNG BLANCO.png" alt="Escolares logo" class="brand-logo" />
   </a>
 
+  <div class="header-search">
+    <form (ngSubmit)="search()" class="search-form">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        name="search"
+        placeholder="Buscar productos..."
+        class="search-input"
+        (input)="onSearchInput()"
+        (focus)="onSearchInput()"
+        (blur)="hideDropdown()"
+      />
+      <button type="submit" class="search-btn">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+      </button>
+    </form>
+
+    @if (showDropdown()) {
+      <div class="search-dropdown">
+        @for (product of suggestions(); track product.id) {
+          <a class="search-dropdown-item" (mousedown)="selectProduct(product)">
+            <img [src]="product.image" [alt]="product.title" />
+            <div class="item-info">
+              <div class="item-title">{{ product.title }}</div>
+              <div class="item-price">${{ product.price.toFixed(2) }}</div>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </div>
+
   <nav class="controls" role="navigation" aria-label="Principal">
     <a class="nav-btn liquid" routerLink="/products">Productos</a>
+    <a class="nav-btn liquid" routerLink="/lineas">Líneas</a>
     <a class="nav-btn liquid" routerLink="/marcas">Marcas</a>
-    <a class="nav-btn primary liquid" routerLink="/">Inicio</a>
+    <a class="nav-btn liquid" routerLink="/about-me">¿Quiénes somos?</a>
+    <a class="nav-btn liquid" routerLink="/how-buy">¿Cómo comprar?</a>
+    <a class="nav-btn liquid" routerLink="/offers">Ofertas</a>
+    <a class="nav-btn liquid" routerLink="/feedback">Contáctanos</a>
   </nav>
 
   <div class="header-icons">

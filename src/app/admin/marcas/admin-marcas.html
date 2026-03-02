@@ -4,40 +4,101 @@
     <button class="add-btn" (click)="showAddForm()">+ Agregar Marca</button>
   </div>
 
+  @if (message()) {
+    <div class="message" [class.error]="messageType() === 'error'">
+      {{ message() }}
+    </div>
+  }
+
   @if (isAdding()) {
     <div class="add-form">
-      <input
-        type="text"
-        [ngModel]="newMarcaName()"
-        (ngModelChange)="newMarcaName.set($event)"
-        placeholder="Nombre de la marca"
-        (keyup.enter)="agregarMarca()"
-      />
-      <button class="save-btn" (click)="agregarMarca()">Agregar</button>
-      <button class="cancel-btn" (click)="cancelarEdicion()">Cancelar</button>
+      <div class="form-group">
+        <label>Nombre de la marca</label>
+        <input
+          type="text"
+          [ngModel]="newMarcaName()"
+          (ngModelChange)="newMarcaName.set($event)"
+          placeholder="Nombre de la marca"
+          class="marca-input"
+        />
+      </div>
+      <div class="form-group">
+        <label>Imagen de la marca</label>
+        <div class="image-upload">
+          <input
+            type="file"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            class="file-input"
+            #fileInput
+          />
+          <button type="button" class="upload-btn" (click)="fileInput.click()">
+            📎 Subir imagen
+          </button>
+          @if (newMarcaImage()) {
+            <div class="image-preview">
+              <img [src]="newMarcaImage()" alt="Preview" />
+            </div>
+          }
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="save-btn" (click)="agregarMarca()">Agregar</button>
+        <button class="cancel-btn" (click)="cancelarEdicion()">Cancelar</button>
+      </div>
     </div>
   }
 
   <div class="marcas-list">
-    @for (marca of marcas(); track $index) {
+    @for (marca of marcas(); track marca.id) {
       <div class="marca-item">
-        @if (editingIndex() === $index) {
-          <input
-            #editInput
-            type="text"
-            [value]="marca"
-            (keyup.enter)="guardarEdicion($index, editInput.value)"
-            class="edit-input"
-          />
-          <div class="actions">
-            <button class="save-btn" (click)="guardarEdicion($index, editInput.value)">💾</button>
-            <button class="cancel-btn" (click)="cancelarEdicion()">✖</button>
+        @if (editingIndex() === marca.id) {
+          <div class="edit-form">
+            <input
+              type="text"
+              #editName
+              [value]="marca.name"
+              placeholder="Nombre"
+              class="edit-input"
+            />
+            <div class="image-upload">
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onFileSelectedEdit($event, marca.id)"
+                class="file-input"
+                #fileInputEdit
+              />
+              <button type="button" class="upload-btn" (click)="fileInputEdit.click()">
+                📎 Cambiar imagen
+              </button>
+              @if (editImagePreview()) {
+                <div class="image-preview">
+                  <img [src]="editImagePreview()" alt="Preview" />
+                </div>
+              } @else if (marca.image) {
+                <div class="image-preview">
+                  <img [src]="marca.image" alt="Preview" />
+                </div>
+              }
+            </div>
+            <div class="actions">
+              <button class="save-btn" (click)="guardarEdicion(marca.id, editName.value)">
+                💾
+              </button>
+              <button class="cancel-btn" (click)="cancelarEdicion()">✖</button>
+            </div>
           </div>
         } @else {
-          <span class="marca-name">{{ marca }}</span>
+          <div class="marca-info">
+            @if (marca.image) {
+              <img [src]="marca.image" [alt]="marca.name" class="marca-thumb" />
+            }
+            <span class="marca-name">{{ marca.name }}</span>
+          </div>
           <div class="actions">
-            <button class="edit-btn" (click)="activarEdicion($index)">✎</button>
-            <button class="delete-btn" (click)="eliminarMarca($index)">&times;</button>
+            <button class="edit-btn" (click)="activarEdicion(marca.id)">✎</button>
+            <button class="delete-btn" (click)="eliminarMarca(marca.id)">&times;</button>
           </div>
         }
       </div>

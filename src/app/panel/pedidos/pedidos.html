@@ -1,11 +1,49 @@
 <section class="pedidos-container">
-  <h3>Pedidos</h3>
-  <ng-container *ngIf="cartState.count() === 0; else hasItems">
-    <p>Aún no tienes ningún pedido.</p>
-    <p>Ve a la tienda para realizar un pedido.</p>
-  </ng-container>
+  <h3>Mis Pedidos</h3>
 
-  <ng-template #hasItems>
-    <p>Tienes {{ cartState.count() }} producto(s) en el carrito. ¡Haz tu pedido!</p>
-  </ng-template>
+  @if (cartState().products.length === 0) {
+    <div class="empty-orders">
+      <p>Aún no tienes ningún pedido.</p>
+      <a routerLink="/products" class="shop-btn">Ir a la tienda</a>
+    </div>
+  } @else {
+    <div class="orders-list">
+      <h4>Tu carrito actual ({{ cartState().products.length }} producto(s))</h4>
+
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of cartState().products; track item.product.id) {
+            <tr>
+              <td class="product-cell">
+                <img [src]="item.product.image" [alt]="item.product.title" class="product-img" />
+                <span class="product-name">{{ item.product.title }}</span>
+              </td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.product.price | currency }}</td>
+              <td>{{ item.product.price * item.quantity | currency }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="total-label">Total:</td>
+            <td class="total-value">{{ getTotal() | currency }}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="order-actions">
+        <a routerLink="/cart" class="cart-btn">Ver carrito completo</a>
+        <button class="checkout-btn">Finalizar pedido</button>
+      </div>
+    </div>
+  }
 </section>

@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-feedback',
-  imports: [RouterLink],
+  standalone: true,
   templateUrl: './feedback.html',
   styleUrl: './feedback.css',
 })

@@ -1,49 +1,18 @@
 <div class="marcas-container">
-  <h2>Gestión de Marcas</h2>
+  <h2 class="page-title">Marcas</h2>
 
-  <div class="add-marca-form">
-    <input
-      #marcaInput
-      type="text"
-      placeholder="Nueva marca..."
-      (keyup.enter)="agregarMarca(marcaInput.value); marcaInput.value = ''"
-    />
-    <button (click)="agregarMarca(marcaInput.value); marcaInput.value = ''">Agregar</button>
-  </div>
-
-  <ul class="marcas-list">
-    @for (marca of marcas(); track $index) {
-      <li>
-        @if (editingIndex() === $index) {
-          <input
-            #editInput
-            type="text"
-            [value]="marca"
-            (keyup.enter)="guardarEdicion($index, editInput.value)"
-            class="edit-input"
-          />
-          <div class="actions">
-            <button
-              class="save-btn"
-              (click)="guardarEdicion($index, editInput.value)"
-              title="Guardar"
-            >
-              💾
-            </button>
-            <button class="cancel-btn" (click)="cancelarEdicion()" title="Cancelar">✖</button>
-          </div>
+  <div class="marcas-grid">
+    @for (marca of marcas(); track marca.id) {
+      <a [routerLink]="['/products/collection', marca.name]" class="marca-card">
+        @if (marca.image) {
+          <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
         } @else {
-          <a [routerLink]="['/products/collection', marca]" class="marca-link">{{ marca }}</a>
-          <div class="actions">
-            <button class="edit-btn" (click)="activarEdicion($index)" title="Editar">✎</button>
-            <button class="delete-btn" (click)="eliminarMarca($index)" title="Eliminar">
-              &times;
-            </button>
-          </div>
+          <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
         }
-      </li>
+        <span class="marca-name">{{ marca.name }}</span>
+      </a>
     } @empty {
-      <li class="empty">No hay marcas registradas.</li>
+      <div class="empty">No hay marcas registradas.</div>
     }
-  </ul>
+  </div>
 </div>

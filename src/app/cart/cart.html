@@ -1,23 +1,34 @@
 <section class="cart-container">
-  <h2>Tu carrito</h2>
+  <h2>Tu Carrito de Compras</h2>
 
   @if (state().products.length > 0) {
-    @for (item of state().products; track item) {
-      <app-cart-item
-        [productCartItem]="item"
-        (onRemove)="onRemove($event)"
-        (onIncrease)="onIncrease($event)"
-        (onDecrease)="onDecrease($event)"
-      ></app-cart-item>
-    }
+    <div class="cart-items">
+      @for (item of state().products; track item) {
+        <app-cart-item
+          [productCartItem]="item"
+          (onRemove)="onRemove($event)"
+          (onIncrease)="onIncrease($event)"
+          (onDecrease)="onDecrease($event)"
+        ></app-cart-item>
+      }
+    </div>
 
-    <p class="total">
-      Total: {{ price() | currency }}
-    </p>
+    <div class="cart-summary">
+      <div class="summary-row total">
+        <span>Total:</span>
+        <span class="total-price">{{ price() | currency }}</span>
+      </div>
+      <div class="cart-actions">
+        <a routerLink="/products" class="continue-btn">Continuar comprando</a>
+        <button class="checkout-btn">Finalizar Compra</button>
+      </div>
+    </div>
   } @else {
-    <div class="empty">
-      <p>El carrito está vacío.</p>
-      <a routerLink="/products">Ir a la tienda</a>
+    <div class="empty-cart">
+      <div class="empty-icon">🛒</div>
+      <h3>Tu carrito está vacío</h3>
+      <p>¡Explora nuestros productos y encuentra lo que necesitas!</p>
+      <a routerLink="/products" class="shop-btn">Ver Productos</a>
     </div>
   }
 </section>

@@ -18,6 +18,14 @@ import { RouterLink } from '@angular/router';
         padding: 2rem;
       }
 
+      .main-banner {
+        width: 100%;
+        max-width: 1200px;
+        height: auto;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+      }
+
       h1 {
         font-size: 3rem;
         color: #007bff;

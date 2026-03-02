@@ -1,5 +1,5 @@
-import { Component, inject, signal, computed } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductsStateService } from '../../data-access/products-state.service';
 
@@ -81,11 +81,11 @@ import { ProductsStateService } from '../../data-access/products-state.service';
       margin-top: 1rem;
     }
   `,
-  providers: [ProductsStateService]
+  providers: [ProductsStateService],
 })
-export default class ProductList {
-
+export default class ProductList implements OnInit {
   productsState = inject(ProductsStateService);
+  private route = inject(ActivatedRoute);
 
   // filter signals
   filterText = signal('');
@@ -93,12 +93,21 @@ export default class ProductList {
   filterPriceMin = signal<number | null>(null);
   filterPriceMax = signal<number | null>(null);
 
+  ngOnInit() {
+    this.route.paramMap.subscribe((params) => {
+      const brand = params.get('brand');
+      if (brand) {
+        this.filterCategory.set(brand);
+      }
+    });
+  }
+
   // compute unique categories from products
   categories = computed(() => {
     const products = this.productsState.state.products();
     const allProducts = this.productsState.allProducts();
     const cats = new Set<string>();
-    allProducts.forEach(p => {
+    allProducts.forEach((p) => {
       if (p.category) cats.add(p.category);
     });
     return Array.from(cats).sort();
@@ -108,10 +117,10 @@ export default class ProductList {
   priceRange = computed(() => {
     const allProducts = this.productsState.allProducts();
     if (allProducts.length === 0) return { min: 0, max: 1000 };
-    const prices = allProducts.map(p => p.price);
+    const prices = allProducts.map((p) => p.price);
     return {
       min: Math.floor(Math.min(...prices)),
-      max: Math.ceil(Math.max(...prices))
+      max: Math.ceil(Math.max(...prices)),
     };
   });
 
@@ -122,10 +131,13 @@ export default class ProductList {
     const minPrice = this.filterPriceMin();
     const maxPrice = this.filterPriceMax();
 
-    return list.filter(p => {
+    return list.filter((p) => {
       // text filter
-      if (text && !p.title.toLowerCase().includes(text) && 
-          !p.description.toLowerCase().includes(text)) {
+      if (
+        text &&
+        !p.title.toLowerCase().includes(text) &&
+        !p.description.toLowerCase().includes(text)
+      ) {
         return false;
       }
       // category filter
@@ -159,7 +171,7 @@ export default class ProductList {
     this.productsState.changePage$.next(1);
   }
 
-  changePage(delta: number){
+  changePage(delta: number) {
     const current = this.productsState.state.page();
     const next = Math.max(1, current + delta);
     this.productsState.changePage$.next(next);

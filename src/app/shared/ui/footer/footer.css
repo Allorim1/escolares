@@ -1,0 +1,140 @@
+.footer {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 2rem 1rem;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.nuestra-tienda {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.tienda-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.tienda-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.location-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+  color: #ffffff;
+}
+
+.footer-button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #ff6b35;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.footer-button:hover {
+  background-color: #e55a2b;
+}
+
+.footer-link {
+  color: #cccccc;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #ffffff;
+}
+
+.social-icons {
+  display: flex;
+  gap: 1rem;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: #ffffff;
+  transition:
+    background-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.social-icon:hover {
+  background-color: #ff6b35;
+  transform: translateY(-3px);
+}
+
+.contact-text {
+  color: #cccccc;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-section {
+    align-items: center;
+  }
+
+  .nuestra-tienda {
+    align-items: center;
+  }
+
+  .tienda-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tienda-links {
+    align-items: center;
+  }
+
+  .social-icons {
+    justify-content: center;
+  }
+}

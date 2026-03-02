@@ -1,0 +1,48 @@
+<div class="marcas-admin">
+  <div class="header">
+    <h2>Gestión de Marcas</h2>
+    <button class="add-btn" (click)="showAddForm()">+ Agregar Marca</button>
+  </div>
+
+  @if (isAdding()) {
+    <div class="add-form">
+      <input
+        type="text"
+        [ngModel]="newMarcaName()"
+        (ngModelChange)="newMarcaName.set($event)"
+        placeholder="Nombre de la marca"
+        (keyup.enter)="agregarMarca()"
+      />
+      <button class="save-btn" (click)="agregarMarca()">Agregar</button>
+      <button class="cancel-btn" (click)="cancelarEdicion()">Cancelar</button>
+    </div>
+  }
+
+  <div class="marcas-list">
+    @for (marca of marcas(); track $index) {
+      <div class="marca-item">
+        @if (editingIndex() === $index) {
+          <input
+            #editInput
+            type="text"
+            [value]="marca"
+            (keyup.enter)="guardarEdicion($index, editInput.value)"
+            class="edit-input"
+          />
+          <div class="actions">
+            <button class="save-btn" (click)="guardarEdicion($index, editInput.value)">💾</button>
+            <button class="cancel-btn" (click)="cancelarEdicion()">✖</button>
+          </div>
+        } @else {
+          <span class="marca-name">{{ marca }}</span>
+          <div class="actions">
+            <button class="edit-btn" (click)="activarEdicion($index)">✎</button>
+            <button class="delete-btn" (click)="eliminarMarca($index)">&times;</button>
+          </div>
+        }
+      </div>
+    } @empty {
+      <div class="empty">No hay marcas registradas.</div>
+    }
+  </div>
+</div>

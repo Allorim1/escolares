@@ -1,19 +1,39 @@
+<div class="announcement-bar">
+  <p>Hacemos envíos al nivel nacional</p>
+</div>
 <header class="app-header" role="banner">
   <a class="brand" routerLink="/">
     <img src="/ESCOLARES RR PNG BLANCO.png" alt="Escolares logo" class="brand-logo" />
   </a>
-  
+
   <nav class="controls" role="navigation" aria-label="Principal">
-    <a class="nav-btn" routerLink="/products">Productos</a>
-    <a class="nav-btn primary" routerLink="/">Inicio</a>
+    <a class="nav-btn liquid" routerLink="/products">Productos</a>
+    <a class="nav-btn liquid" routerLink="/marcas">Marcas</a>
+    <a class="nav-btn primary liquid" routerLink="/">Inicio</a>
   </nav>
 
   <div class="header-icons">
     <a class="cart-btn" routerLink="/cart">
       <img src="/cart.png" alt="Carrito" />
     </a>
-    <a class="user-btn" routerLink="/panel">
-      <img src="/usuario.png" alt="Usuario" />
-    </a>
+    @if (authService.isLoggedIn()) {
+      <div class="user-dropdown">
+        <a class="user-btn" routerLink="/panel">
+          <img src="/usuario.png" alt="Usuario" />
+        </a>
+        <div class="dropdown-menu">
+          <a routerLink="/panel/perfil">Perfil</a>
+          <a routerLink="/panel/pedidos">Mis pedidos</a>
+          @if (authService.isAdmin()) {
+            <a routerLink="/admin">Panel Admin</a>
+          }
+          <button (click)="logout()">Cerrar sesión</button>
+        </div>
+      </div>
+    } @else {
+      <a class="user-btn" routerLink="/login">
+        <img src="/usuario.png" alt="Usuario" />
+      </a>
+    }
   </div>
 </header>

@@ -8,3 +8,102 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
 }
+
+/* Estilos para el componente de Marcas */
+.marcas-container {
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.add-marca-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.add-marca-form input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.add-marca-form button {
+  background-color: var(--blue);
+  color: var(--white);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.marcas-list {
+  list-style: none;
+  padding: 0;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.marcas-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.marcas-list li:last-child {
+  border-bottom: none;
+}
+
+.marcas-list li .actions {
+  display: flex;
+  gap: 5px;
+}
+
+.edit-input {
+  flex: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.edit-btn, .save-btn, .cancel-btn {
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.edit-btn {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.save-btn {
+  background-color: #198754;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

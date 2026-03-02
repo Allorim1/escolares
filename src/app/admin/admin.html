@@ -1,0 +1,17 @@
+<div class="admin-container">
+  <aside class="admin-sidebar">
+    <h2>Panel Admin</h2>
+    <nav class="admin-nav">
+      <a routerLink="productos" routerLinkActive="active">Productos</a>
+      <a routerLink="marcas" routerLinkActive="active">Marcas</a>
+    </nav>
+    <div class="admin-footer">
+      <span>Bienvenido, {{ authService.user()?.username }}</span>
+      <button (click)="logout()" class="logout-btn">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

@@ -1,10 +1,27 @@
 <div class="offers-container">
   <h1 class="page-title">Ofertas Especiales</h1>
 
-  <div class="offers-content">
-    <p>
-      Visita nuestra sección de productos para ver las últimas ofertas y promociones disponibles.
-    </p>
-    <a routerLink="/products" class="offers-btn">Ver Productos en Oferta</a>
-  </div>
+  @if (productsEnOferta().length > 0) {
+    <div class="offers-grid">
+      @for (product of productsEnOferta(); track product.id) {
+        <div class="offer-card">
+          <img [src]="product.image" [alt]="product.title" class="offer-image" />
+          <div class="offer-content">
+            <h3 class="offer-title">{{ product.title }}</h3>
+            <p class="offer-description">{{ product.description }}</p>
+            <div class="offer-prices">
+              <span class="original-price">${{ product.price.toFixed(2) }}</span>
+              <span class="discount-price">${{ getOfertaPrice(product.id).toFixed(2) }}</span>
+            </div>
+            <a [routerLink]="['/products', product.id]" class="offer-btn">Ver Producto</a>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="offers-content">
+      <p>No hay ofertas disponibles en este momento.</p>
+      <a routerLink="/products" class="offers-btn">Ver Productos</a>
+    </div>
+  }
 </div>

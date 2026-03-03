@@ -90,14 +90,20 @@ export default class ProductList implements OnInit {
   // filter signals
   filterText = signal('');
   filterCategory = signal('');
+  filterBrand = signal('');
   filterPriceMin = signal<number | null>(null);
   filterPriceMax = signal<number | null>(null);
+  currentBrand = signal('');
 
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
       const brand = params.get('brand');
       if (brand) {
-        this.filterCategory.set(brand);
+        this.filterBrand.set(brand);
+        this.currentBrand.set(brand);
+      } else {
+        this.filterBrand.set('');
+        this.currentBrand.set('');
       }
     });
 
@@ -135,6 +141,7 @@ export default class ProductList implements OnInit {
     const list = this.productsState.allProducts();
     const text = this.filterText().toLowerCase();
     const category = this.filterCategory();
+    const brand = this.filterBrand();
     const minPrice = this.filterPriceMin();
     const maxPrice = this.filterPriceMax();
 
@@ -149,6 +156,10 @@ export default class ProductList implements OnInit {
       }
       // category filter
       if (category && p.category !== category) {
+        return false;
+      }
+      // brand filter
+      if (brand && p.marca !== brand) {
         return false;
       }
       // price range filter
@@ -173,6 +184,7 @@ export default class ProductList implements OnInit {
   clearFilters() {
     this.filterText.set('');
     this.filterCategory.set('');
+    this.filterBrand.set('');
     this.filterPriceMin.set(null);
     this.filterPriceMax.set(null);
     this.productsState.changePage$.next(1);

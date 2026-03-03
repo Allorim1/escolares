@@ -1,9 +1,88 @@
 <section>
-  <img src="/banner principal.jpg" alt="Banner principal" class="main-banner" />
+  <div class="banner-carousel">
+    <button class="banner-btn prev" (click)="prevBanner()">‹</button>
+    <div class="banner-slide active">
+      <img src="/banner principal.jpg" alt="Banner principal" class="main-banner" />
+    </div>
+    <button class="banner-btn next" (click)="nextBanner()">›</button>
+  </div>
 
+  @if (marcas().length > 0) {
+    <div class="marcas-carousel">
+      <div class="carousel-container">
+        <!--  <button class="carousel-btn prev" (click)="prev()">‹</button> -->
+        <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
+          @for (marca of marcas(); track marca.id) {
+            <div class="marca-slide">
+              @if (marca.image) {
+                <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
+              } @else {
+                <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
+              }
+              <span class="marca-name">{{ marca.name }}</span>
+            </div>
+          }
+        </div>
+        <!--  <button class="carousel-btn next" (click)="next()">›</button> -->
+      </div>
+    </div>
+  }
+
+  <div class="newsletter-section">
+    <div class="newsletter-content">
+      <h2>Suscríbete a nuestro Newsletter</h2>
+      <p>Recibe ofertas exclusivas y las últimas noticias directamente en tu correo</p>
+      <form class="newsletter-form" (ngSubmit)="suscribirse()">
+        <input
+          type="email"
+          [(ngModel)]="emailSuscrito"
+          name="email"
+          placeholder="Ingresa tu correo electrónico"
+          required
+        />
+        <button type="submit">Suscribirse</button>
+      </form>
+      @if (mensajeSuscrito()) {
+        <p
+          class="newsletter-message"
+          [class.success]="mensajeSuscrito() === '¡Gracias por suscribirte!'"
+        >
+          {{ mensajeSuscrito() }}
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="features-section">
+    <div class="feature-card">
+      <div class="feature-icon">🚚</div>
+      <h3>Envíos a Domicilio</h3>
+      <p>Entrega en Valencia y toda Venezuela</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏪</div>
+      <h3>Solo los Mejores Productos</h3>
+      <p>La mejor calidad del mercado</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💳</div>
+      <h3>Pagos Seguros</h3>
+      <p>Zelle, efectivo y transferencias</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📞</div>
+      <h3>Atención Personalizada</h3>
+      <p>Te asesoramos en lo que necesites</p>
+    </div>
+  </div>
+<!--
   <h1>Escolares</h1>
 
   <div class="home-buttons">
     <button class="btn-products" routerLink="/products">Productos</button>
   </div>
+-->
+  <a href="https://wa.me/584241234567" target="_blank" class="whatsapp-float">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
+  </a>
 </section>

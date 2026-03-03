@@ -1,0 +1,75 @@
+<div class="lineas-admin">
+  <a routerLink="/admin" class="back-link">← Volver al panel</a>
+  <div class="header">
+    <h2>Gestión de Líneas</h2>
+  </div>
+
+  @if (!selectedLinea()) {
+    <div class="lineas-list">
+      @for (linea of lineas(); track linea.id) {
+        <div class="linea-item">
+          <div class="linea-info">
+            <span class="linea-name">{{ linea.name }}</span>
+            <span class="linea-count">{{ linea.productIds.length }} productos</span>
+          </div>
+          <div class="actions">
+            <button class="view-btn" (click)="openLinea(linea)">Ver productos</button>
+            <button class="delete-btn" (click)="deleteLinea(linea.id)">×</button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty">No hay líneas registradas.</div>
+      }
+    </div>
+  } @else {
+    <div class="linea-detail">
+      <button class="back-btn" (click)="closeLinea()">← Volver a líneas</button>
+      <h3>{{ selectedLinea()?.name }}</h3>
+
+      <div class="products-section">
+        <h4>Productos en esta línea</h4>
+        @if (getProductsForLinea(selectedLinea()!).length > 0) {
+          <div class="products-grid">
+            @for (product of getProductsForLinea(selectedLinea()!); track product.id) {
+              <div class="product-chip">
+                <img [src]="product.image" [alt]="product.title" class="product-thumb" />
+                <span class="product-name">{{ product.title }}</span>
+                <button class="remove-btn" (click)="removeProductFromLinea(product.id)">×</button>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-text">No hay productos en esta línea.</p>
+        }
+      </div>
+
+      <div class="add-section">
+        <button class="toggle-btn" (click)="toggleAddProduct()">
+          {{ showAddProduct() ? '− Ocultar agregar producto' : '+ Agregar producto' }}
+        </button>
+
+        @if (showAddProduct()) {
+          <div class="filter-input">
+            <input
+              type="text"
+              [ngModel]="productFilter()"
+              (ngModelChange)="productFilter.set($event)"
+              placeholder="Buscar productos..."
+            />
+          </div>
+          <div class="available-products">
+            @for (product of getAvailableProducts(selectedLinea()!); track product.id) {
+              <div class="product-chip add">
+                <img [src]="product.image" [alt]="product.title" class="product-thumb" />
+                <span class="product-name">{{ product.title }}</span>
+                <button class="add-btn" (click)="addProductToLinea(product.id)">+</button>
+              </div>
+            } @empty {
+              <p class="empty-text">No hay productos disponibles para agregar.</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

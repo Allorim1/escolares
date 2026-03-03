@@ -1,0 +1,79 @@
+<div class="ofertas-admin">
+  <a routerLink="/admin" class="back-link">← Volver al panel</a>
+  <div class="header">
+    <h2>Gestión de Ofertas</h2>
+  </div>
+
+  @if (showAddForm() && selectedProduct()) {
+    <div class="form-card">
+      <button class="back-btn" (click)="closeForm()">← Volver</button>
+      <h3>Agregar Oferta</h3>
+      <div class="product-preview">
+        <img [src]="selectedProduct()!.image" [alt]="selectedProduct()!.title" />
+        <div class="product-info">
+          <span class="product-title">{{ selectedProduct()!.title }}</span>
+          <span class="product-price"
+            >Precio original: ${{ selectedProduct()!.price.toFixed(2) }}</span
+          >
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Precio de oferta</label>
+        <input type="number" [(ngModel)]="ofertaPrice" step="0.01" min="0" />
+      </div>
+      <div class="form-actions">
+        <button class="save-btn" (click)="saveOferta()">Guardar Oferta</button>
+        <button class="cancel-btn" (click)="closeForm()">Cancelar</button>
+      </div>
+    </div>
+  }
+
+  <div class="section">
+    <h3>Productos en Oferta ({{ productsEnOferta().length }})</h3>
+    @if (productsEnOferta().length > 0) {
+      <div class="products-grid">
+        @for (product of productsEnOferta(); track product.id) {
+          <div class="product-chip oferta">
+            <img [src]="product.image" [alt]="product.title" class="product-thumb" />
+            <div class="product-details">
+              <span class="product-name">{{ product.title }}</span>
+              <div class="prices">
+                <span class="original-price">${{ product.price.toFixed(2) }}</span>
+                <span class="offer-price">${{ getOfertaPrice(product.id).toFixed(2) }}</span>
+              </div>
+            </div>
+            <button class="remove-btn" (click)="removeOferta(product.id)">×</button>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="empty-text">No hay productos en oferta.</p>
+    }
+  </div>
+
+  <div class="section">
+    <h3>Agregar Producto en Oferta</h3>
+    <div class="filter-input">
+      <input
+        type="text"
+        [ngModel]="filterText()"
+        (ngModelChange)="filterText.set($event)"
+        placeholder="Buscar productos..."
+      />
+    </div>
+    @if (productsSinOferta().length > 0) {
+      <div class="products-grid">
+        @for (product of productsSinOferta(); track product.id) {
+          <div class="product-chip">
+            <img [src]="product.image" [alt]="product.title" class="product-thumb" />
+            <span class="product-name">{{ product.title }}</span>
+            <span class="product-price">${{ product.price.toFixed(2) }}</span>
+            <button class="add-btn" (click)="openAddForm(product)">+</button>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="empty-text">No hay productos disponibles.</p>
+    }
+  </div>
+</div>

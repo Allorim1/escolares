@@ -1,4 +1,22 @@
 <div class="filter-section">
+  @if (currentBrand()) {
+    <a
+      routerLink="/marcas"
+      class="back-link"
+      style="
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #1976d2;
+        text-decoration: none;
+        margin-bottom: 1rem;
+        font-weight: 500;
+      "
+    >
+      ← Volver a Marcas
+    </a>
+    <h3 style="margin: 0 0 1rem 0; color: #333">Productos de {{ currentBrand() }}</h3>
+  }
   <div class="filter-row">
     <div class="filter-group">
       <label for="search">Buscar</label>

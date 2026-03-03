@@ -87,6 +87,14 @@ export const routes: Routes = [
         path: 'marcas',
         loadComponent: () => import('./admin/marcas/admin-marcas').then((m) => m.AdminMarcas),
       },
+      {
+        path: 'lineas',
+        loadComponent: () => import('./admin/lineas/admin-lineas').then((m) => m.AdminLineas),
+      },
+      {
+        path: 'ofertas',
+        loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
+      },
     ],
   },
   {

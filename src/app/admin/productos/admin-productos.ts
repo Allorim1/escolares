@@ -1,7 +1,9 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
+import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
 
 interface ProductFormData {
   title: string;
@@ -9,17 +11,19 @@ interface ProductFormData {
   description: string;
   category: string;
   image: string;
+  marca: string;
 }
 
 @Component({
   selector: 'app-admin-productos',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './admin-productos.html',
   styleUrl: './admin-productos.css',
 })
 export class AdminProductos implements OnInit {
   private productsService = inject(ProductsService);
+  private marcasService = inject(MarcasService);
 
   products = signal<Product[]>([]);
   editingProduct = signal<Product | null>(null);
@@ -31,9 +35,14 @@ export class AdminProductos implements OnInit {
     description: '',
     category: '',
     image: '',
+    marca: '',
   });
 
   categories = ['electronics', 'jewelery', "men's clothing", "women's clothing"];
+
+  get marcas(): Marca[] {
+    return this.marcasService.marcas();
+  }
 
   ngOnInit() {
     this.loadProducts();
@@ -59,6 +68,7 @@ export class AdminProductos implements OnInit {
       description: '',
       category: 'electronics',
       image: 'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg',
+      marca: '',
     });
   }
 
@@ -71,6 +81,7 @@ export class AdminProductos implements OnInit {
       description: product.description,
       category: product.category,
       image: product.image,
+      marca: product.marca || '',
     });
   }
 
@@ -91,6 +102,7 @@ export class AdminProductos implements OnInit {
         category: data.category,
         image: data.image,
         rating: { rate: 0, count: 0 },
+        marca: data.marca || undefined,
       };
       this.products.update((p) => [...p, newProduct]);
     } else if (this.editingProduct()) {
@@ -101,6 +113,7 @@ export class AdminProductos implements OnInit {
         description: data.description,
         category: data.category,
         image: data.image,
+        marca: data.marca || undefined,
       };
       this.products.update((products) => products.map((p) => (p.id === updated.id ? updated : p)));
     }

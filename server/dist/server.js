@@ -17,7 +17,8 @@ const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 const swaggerSpec = (0, swagger_jsdoc_1.default)(swagger_1.swaggerConfig);
 app.use((0, cors_1.default)());
-app.use(express_1.default.json());
+app.use(express_1.default.json({ limit: '10mb' }));
+app.use(express_1.default.urlencoded({ limit: '10mb', extended: true }));
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: 'API Escolares - Swagger',

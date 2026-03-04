@@ -1,6 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
@@ -9,7 +8,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 @Component({
   selector: 'app-admin-lineas',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule],
   templateUrl: './admin-lineas.html',
   styleUrl: './admin-lineas.css',
 })

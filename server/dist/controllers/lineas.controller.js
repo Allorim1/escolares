@@ -27,6 +27,11 @@ class LineasController {
     }
     async create(req, res) {
         try {
+            const userRol = req.userRol;
+            if (userRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede crear líneas' });
+                return;
+            }
             const { name, image } = req.body;
             if (!name) {
                 res.status(400).json({ error: 'El nombre es requerido' });
@@ -47,6 +52,11 @@ class LineasController {
     }
     async update(req, res) {
         try {
+            const userRol = req.userRol;
+            if (userRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede modificar líneas' });
+                return;
+            }
             const { name, image, productIds } = req.body;
             const result = await database_1.database
                 .getCollection('lineas')
@@ -63,6 +73,11 @@ class LineasController {
     }
     async delete(req, res) {
         try {
+            const userRol = req.userRol;
+            if (userRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede eliminar líneas' });
+                return;
+            }
             const result = await database_1.database.getCollection('lineas').deleteOne({ id: req.params.id });
             if (result.deletedCount === 0) {
                 res.status(404).json({ error: 'Línea no encontrada' });
@@ -76,6 +91,11 @@ class LineasController {
     }
     async addProduct(req, res) {
         try {
+            const userRol = req.userRol;
+            if (userRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede añadir productos a líneas' });
+                return;
+            }
             const { productId } = req.body;
             const result = await database_1.database
                 .getCollection('lineas')
@@ -92,6 +112,11 @@ class LineasController {
     }
     async removeProduct(req, res) {
         try {
+            const userRol = req.userRol;
+            if (userRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede eliminar productos de líneas' });
+                return;
+            }
             const { productId } = req.body;
             const result = await database_1.database
                 .getCollection('lineas')

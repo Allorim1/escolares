@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MarcasService } from '../shared/data-access/marcas.service';
 
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -9,6 +10,7 @@ import { MarcasService } from '../shared/data-access/marcas.service';
   templateUrl: './home.html',
   styles: [
     `
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
       :host {
         display: flex;
         flex-direction: column;
@@ -193,7 +195,7 @@ import { MarcasService } from '../shared/data-access/marcas.service';
         border-radius: 12px;
         background: #f8f9fa;
         padding: 1rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
         transition: transform 0.2s;
       }
 
@@ -251,17 +253,38 @@ import { MarcasService } from '../shared/data-access/marcas.service';
       }
 
       .newsletter-section {
+        font-family: 'Montserrat', sans-serif;
         width: 100%;
-        max-width: 800px;
+        max-width: 1200px;
         margin: 2rem auto;
         padding: 2.5rem;
+        gap: 1.5rem;
         background: linear-gradient(135deg, #1d63c1 0%, #1565c0 100%);
         border-radius: 16px;
         text-align: center;
         box-shadow: 0 8px 24px rgba(29, 99, 193, 0.3);
       }
 
+      .custom-input {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.98); /* Borde sutil como tu imagen */
+  border-radius: 50px; /* Bordes muy redondeados */
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  outline: none;
+
+  /* Estilo específico del PLACEHOLDER */
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.8); /* Blanco con transparencia */
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+  }
+}
       .newsletter-content h2 {
+
         color: white;
         font-size: 1.8rem;
         margin: 0 0 0.75rem;
@@ -274,6 +297,7 @@ import { MarcasService } from '../shared/data-access/marcas.service';
       }
 
       .newsletter-form {
+
         display: flex;
         gap: 0.75rem;
         max-width: 500px;
@@ -334,6 +358,7 @@ import { MarcasService } from '../shared/data-access/marcas.service';
       }
 
       .features-section {
+        background: #f8f8f8;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 1.5rem;

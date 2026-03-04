@@ -1,6 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { OfertasService } from '../../shared/data-access/ofertas.service';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
@@ -8,7 +7,7 @@ import { Product } from '../../shared/interfaces/product.interface';
 @Component({
   selector: 'app-admin-ofertas',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule],
   templateUrl: './admin-ofertas.html',
   styleUrl: './admin-ofertas.css',
 })

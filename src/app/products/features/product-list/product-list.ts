@@ -47,7 +47,7 @@ import { LoadingComponent } from '../../../shared/ui/loading/loading';
     }
     .clear-filters-btn {
       padding: 0.5rem 1rem;
-      background: #6c757d;
+      background: #1d63c1;
       color: white;
       border: none;
       border-radius: 8px;
@@ -56,7 +56,7 @@ import { LoadingComponent } from '../../../shared/ui/loading/loading';
       transition: background 0.2s;
     }
     .clear-filters-btn:hover {
-      background: #5a6268;
+      background: #1d63c1;
     }
     .page-indicator {
       font-weight: 600;

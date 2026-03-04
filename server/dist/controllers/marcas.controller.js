@@ -27,6 +27,11 @@ class MarcasController {
     }
     async create(req, res) {
         try {
+            const userRol = req.userRol;
+            if (userRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede crear marcas' });
+                return;
+            }
             const { name, image } = req.body;
             if (!name) {
                 res.status(400).json({ error: 'El nombre es requerido' });
@@ -46,6 +51,11 @@ class MarcasController {
     }
     async update(req, res) {
         try {
+            const userRol = req.userRol;
+            if (userRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede modificar marcas' });
+                return;
+            }
             const { name, image } = req.body;
             const result = await database_1.database
                 .getCollection('marcas')
@@ -62,6 +72,11 @@ class MarcasController {
     }
     async delete(req, res) {
         try {
+            const userRol = req.userRol;
+            if (userRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede eliminar marcas' });
+                return;
+            }
             const result = await database_1.database.getCollection('marcas').deleteOne({ id: req.params.id });
             if (result.deletedCount === 0) {
                 res.status(404).json({ error: 'Marca no encontrada' });

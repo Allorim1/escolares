@@ -23,6 +23,8 @@ export interface User {
     email: string;
     password?: string;
     isAdmin: boolean;
+    isOwner?: boolean;
+    rol?: 'owner' | 'admin' | 'empleado' | 'usuario';
     nombreCompleto?: string;
     direccion?: string;
     telefono?: string;

@@ -122,5 +122,6 @@ router.get('/profile', (req, res) => auth_controller_1.authController.getProfile
  *         description: Perfil actualizado
  */
 router.put('/profile', (req, res) => auth_controller_1.authController.update(req, res));
+router.put('/users/rol', (req, res) => auth_controller_1.authController.updateRol(req, res));
 exports.default = router;
 //# sourceMappingURL=auth.routes.js.map

@@ -75,7 +75,7 @@ header.app-header {
 }
 
 .search-btn:hover {
-  background: #e55a2b;
+  background: #1d63c1;
 }
 
 .search-dropdown {
@@ -128,7 +128,7 @@ header.app-header {
 }
 
 .search-dropdown-item .item-price {
-  color: #ff6b35;
+  color: #1d63c1;
   font-weight: 600;
   font-size: 0.85rem;
 }

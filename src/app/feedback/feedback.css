@@ -6,7 +6,7 @@
 
 .page-title {
   font-size: 2.5rem;
-  color: #333;
+  color: #1d63c1;
   text-align: center;
   margin-bottom: 2rem;
 }
@@ -14,7 +14,7 @@
 .newsletter {
   text-align: center;
   padding: 2rem;
-  background: #1a1a1a;
+  background: #1d63c1;
   border-radius: 12px;
   color: white;
   margin-bottom: 2rem;
@@ -25,7 +25,7 @@
 }
 
 .newsletter > p {
-  color: #aaa;
+  color: #1d63c1;
   margin-bottom: 1.5rem;
 }
 
@@ -47,7 +47,7 @@
 
 .newsletter-form button {
   padding: 0.75rem 1.5rem;
-  background: #ff6b35;
+  background: #1d63c1;
   color: white;
   border: none;
   border-radius: 6px;
@@ -56,7 +56,7 @@
 }
 
 .newsletter-form button:hover {
-  background: #e55a2b;
+  background: #1d63c1;
 }
 
 .contact-form {
@@ -67,12 +67,12 @@
 }
 
 .contact-form h2 {
-  color: #333;
+  color: #1d63c1;
   margin-bottom: 0.5rem;
 }
 
 .contact-form > p {
-  color: #666;
+  color: #1d63c1;
   margin-bottom: 1.5rem;
 }
 
@@ -94,7 +94,7 @@
 
 .contact-form button {
   padding: 0.75rem 1.5rem;
-  background: #ff6b35;
+  background: #1d63c1;
   color: white;
   border: none;
   border-radius: 6px;
@@ -104,5 +104,5 @@
 }
 
 .contact-form button:hover {
-  background: #e55a2b;
+  background: #1d63c1;
 }

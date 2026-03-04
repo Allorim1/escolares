@@ -1,13 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { MarcasService } from '../../shared/data-access/marcas.service';
 import { AuthService } from '../../shared/data-access/auth.service';
 
 @Component({
   selector: 'app-admin-marcas',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule],
   templateUrl: './admin-marcas.html',
   styleUrl: './admin-marcas.css',
 })

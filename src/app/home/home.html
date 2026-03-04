@@ -30,14 +30,14 @@
 
   <div class="newsletter-section">
     <div class="newsletter-content">
-      <h2>Suscríbete a nuestro Newsletter</h2>
-      <p>Recibe ofertas exclusivas y las últimas noticias directamente en tu correo</p>
+      <h2>Suscribirse a nuestros correos electrónicos</h2>
+      <p>Conoce las nuevas colecciones y ofertas exclusivas antes que nadie.</p>
       <form class="newsletter-form" (ngSubmit)="suscribirse()">
         <input
           type="email"
           [(ngModel)]="emailSuscrito"
           name="email"
-          placeholder="Ingresa tu correo electrónico"
+          placeholder="Ingresa tu correo electrónico" class="custom-input"
           required
         />
         <button type="submit">Suscribirse</button>

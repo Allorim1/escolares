@@ -22,6 +22,7 @@ class AuthController {
                 email,
                 password,
                 isAdmin: false,
+                rol: 'usuario',
             };
             await database_1.database.getCollection('users').insertOne(newUser);
             const { password: _, ...userWithoutPassword } = newUser;
@@ -110,6 +111,44 @@ class AuthController {
         }
         catch (error) {
             res.status(500).json({ error: 'Error al actualizar usuario' });
+        }
+    }
+    async updateRol(req, res) {
+        try {
+            const { targetUserId, rol } = req.body;
+            const solicitanteRol = req.userRol;
+            if (!targetUserId || !rol) {
+                res.status(400).json({ error: 'ID de usuario y rol requeridos' });
+                return;
+            }
+            if (rol === 'owner') {
+                res.status(403).json({ error: 'No se puede asignar rol de owner' });
+                return;
+            }
+            if (rol === 'admin' && solicitanteRol !== 'owner') {
+                res.status(403).json({ error: 'Solo el owner puede asignar rol de admin' });
+                return;
+            }
+            if (rol === 'empleado' && solicitanteRol === 'usuario') {
+                res.status(403).json({ error: 'No tienes permisos para asignar roles' });
+                return;
+            }
+            if (solicitanteRol === 'admin' && rol === 'admin') {
+                res.status(403).json({ error: 'Un admin no puede asignar rol de admin' });
+                return;
+            }
+            const result = await database_1.database
+                .getCollection('users')
+                .findOneAndUpdate({ id: targetUserId }, { $set: { rol, isAdmin: rol === 'admin' } }, { returnDocument: 'after' });
+            if (!result) {
+                res.status(404).json({ error: 'Usuario no encontrado' });
+                return;
+            }
+            const { password: _, ...userWithoutPassword } = result;
+            res.json(userWithoutPassword);
+        }
+        catch (error) {
+            res.status(500).json({ error: 'Error al actualizar rol' });
         }
     }
 }

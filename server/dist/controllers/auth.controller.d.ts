@@ -5,6 +5,7 @@ export declare class AuthController {
     getProfile(req: Request, res: Response): Promise<void>;
     getAll(req: Request, res: Response): Promise<void>;
     update(req: Request, res: Response): Promise<void>;
+    updateRol(req: Request, res: Response): Promise<void>;
 }
 export declare const authController: AuthController;
 //# sourceMappingURL=auth.controller.d.ts.map

@@ -1,14 +1,19 @@
 <div class="marcas-admin">
-  <a routerLink="/admin" class="back-link">← Volver al panel</a>
   <div class="header">
     <h2>Gestión de Marcas</h2>
-    <button class="add-btn" (click)="showAddForm()">+ Agregar Marca</button>
+    @if (isOwner()) {
+      <button class="add-btn" (click)="showAddForm()">+ Agregar Marca</button>
+    }
   </div>
 
   @if (message()) {
     <div class="message" [class.error]="messageType() === 'error'">
       {{ message() }}
     </div>
+  }
+
+  @if (!isOwner()) {
+    <div class="message">Solo el owner puede modificar las marcas</div>
   }
 
   @if (isAdding()) {
@@ -99,10 +104,12 @@
             }
             <span class="marca-name">{{ marca.name }}</span>
           </div>
-          <div class="actions">
-            <button class="edit-btn" (click)="activarEdicion(marca.id)">✎</button>
-            <button class="delete-btn" (click)="eliminarMarca(marca.id)">&times;</button>
-          </div>
+          @if (isOwner()) {
+            <div class="actions">
+              <button class="edit-btn" (click)="activarEdicion(marca.id)">✎</button>
+              <button class="delete-btn" (click)="eliminarMarca(marca.id)">&times;</button>
+            </div>
+          }
         }
       </div>
     } @empty {

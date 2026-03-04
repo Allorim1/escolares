@@ -1,69 +1,66 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { AuthBackend } from '../../backend/data-access/auth.backend';
 
 export interface User {
   id: string;
   username: string;
   email: string;
   isAdmin: boolean;
+  isOwner?: boolean;
+  rol?: 'owner' | 'admin' | 'empleado' | 'usuario';
+  nombreCompleto?: string;
+  direccion?: string;
+  telefono?: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private currentUser = signal<User | null>(null);
+  private backend = inject(AuthBackend);
 
-  readonly user = this.currentUser.asReadonly();
-  readonly isLoggedIn = signal(false);
-  readonly isAdmin = signal(false);
+  user = this.backend.currentUser.asReadonly();
+  isLoggedIn = this.backend.isLoggedIn;
+  isAdmin = this.backend.isAdmin;
+  loginLoading = this.backend.loginLoading;
 
-  private readonly ADMIN_USER: User = {
-    id: 'admin-001',
-    username: 'admin',
-    email: 'admin@escolares.com',
-    isAdmin: true,
-  };
-
-  constructor() {
-    this.loadFromStorage();
+  register(username: string, email: string, password: string) {
+    this.backend.register(username, email, password);
   }
 
-  private loadFromStorage() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const stored = localStorage.getItem('user');
-      if (stored) {
-        const user = JSON.parse(stored);
-        this.currentUser.set(user);
-        this.isLoggedIn.set(true);
-        this.isAdmin.set(user.isAdmin || false);
-      }
-    }
-  }
-
-  login(username: string, password: string): boolean {
-    if (username === 'admin' && password === 'admin123') {
-      const user = this.ADMIN_USER;
-      this.currentUser.set(user);
-      this.isLoggedIn.set(true);
-      this.isAdmin.set(true);
-      this.saveToStorage(user);
-      return true;
-    }
-    return false;
+  login(username: string, password: string) {
+    this.backend.login(username, password);
   }
 
   logout() {
-    this.currentUser.set(null);
-    this.isLoggedIn.set(false);
-    this.isAdmin.set(false);
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem('user');
-    }
+    this.backend.logout();
   }
 
-  private saveToStorage(user: User) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('user', JSON.stringify(user));
-    }
+  currentUser() {
+    return this.backend.currentUser();
+  }
+
+  updateProfile(profileData: Partial<User>) {
+    this.backend.updateProfile(profileData);
+  }
+
+  getAllUsers() {
+    return this.backend.getAllUsers();
+  }
+
+  updateUserRol(targetUserId: string, rol: 'admin' | 'empleado' | 'usuario') {
+    return this.backend.updateUserRol(targetUserId, rol);
+  }
+
+  get registerError() {
+    return this.backend.registerError;
+  }
+
+  get registerSuccess() {
+    return this.backend.registerSuccess;
+  }
+
+  get loginError() {
+    return this.backend.loginError;
   }
 }

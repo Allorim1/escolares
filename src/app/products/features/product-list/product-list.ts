@@ -2,10 +2,11 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductsStateService } from '../../data-access/products-state.service';
+import { LoadingComponent } from '../../../shared/ui/loading/loading';
 
 @Component({
   selector: 'app-product-list',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, LoadingComponent],
   templateUrl: './product-list.html',
   styles: `
     .filter-section {

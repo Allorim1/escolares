@@ -1,9 +1,55 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../shared/data-access/auth.service';
 
 @Component({
   selector: 'app-perfil',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
-export class Perfil {}
+export class Perfil {
+  authService = inject(AuthService);
+
+  editando = signal(false);
+  guardando = signal(false);
+
+  nombreCompleto = signal('');
+  direccion = signal('');
+  telefono = signal('');
+
+  constructor() {
+    this.cargarDatos();
+  }
+
+  cargarDatos() {
+    const user = this.authService.currentUser();
+    if (user) {
+      this.nombreCompleto.set(user.nombreCompleto || '');
+      this.direccion.set(user.direccion || '');
+      this.telefono.set(user.telefono || '');
+    }
+  }
+
+  editar() {
+    this.editando.set(true);
+  }
+
+  cancelar() {
+    this.cargarDatos();
+    this.editando.set(false);
+  }
+
+  guardar() {
+    this.guardando.set(true);
+    this.authService.updateProfile({
+      nombreCompleto: this.nombreCompleto(),
+      direccion: this.direccion(),
+      telefono: this.telefono(),
+    });
+    setTimeout(() => {
+      this.guardando.set(false);
+      this.editando.set(false);
+    }, 1000);
+  }
+}

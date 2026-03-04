@@ -1,61 +1,80 @@
-<section class="product-detail-card py-8 bg-white md:py-16 dark:bg-gray-900 antialiased">
-  <div class="max-w-screen-xl px-4 mx-auto 2xl:px-0">
+<section class="product-detail-section">
+  <div class="detail-container">
     <a routerLink="/products" class="back-link">← Volver a productos</a>
-    <div class="lg:grid lg:grid-cols-2 lg:gap-8 xl:gap-16 items-center">
-      <div class="shrink-0 max-w-md lg:max-w-lg mx-auto">
-        <img
-          class="w-full product-detail-image"
-          [src]="productDetailState.product()?.image"
-          alt="{{ productDetailState.product()?.title }}"
-        />
-      </div>
 
-      <div class="mt-6 sm:mt-8 lg:mt-0">
-        <h1 class="product-detail-title text-2xl font-semibold sm:text-3xl dark:text-white">
-          {{ productDetailState.product()?.title }}
-        </h1>
-        <div class="mt-4 sm:items-center sm:gap-4 sm:flex">
-          <p class="product-detail-price text-2xl font-extrabold sm:text-3xl dark:text-white">
-            {{ productDetailState.product()?.price | currency }}
-          </p>
+    @if (productDetailState.product(); as product) {
+      <div class="product-detail-card">
+        <div class="product-image-col">
+          <div class="image-wrapper">
+            <img class="product-detail-image" [src]="product.image" [alt]="product.title" />
+          </div>
         </div>
 
-        <div class="mt-6 sm:gap-4 sm:items-center sm:flex sm:mt-8">
-          <button
-            title=""
-            class="add-to-cart-btn text-white mt-4 sm:mt-0 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center"
-            role="button"
-            [disabled]="!productDetailState.product()"
-            (click)="addToCart()"
-          >
-            <svg
-              class="w-5 h-5 -ms-2 me-2"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-              viewBox="0 0 24 24"
+        <div class="product-info-col">
+          <div class="product-badge" *ngIf="isEnOferta">OFERTA</div>
+
+          <h1 class="product-detail-title">
+            {{ product.title }}
+          </h1>
+
+          <div class="product-rating">
+            <span class="stars">★ ★ ★ ★ ★</span>
+            <span class="rating-text"
+              >{{ product.rating.rate }} ({{ product.rating.count }} reseñas)</span
             >
-              <path
+          </div>
+
+          <div class="price-section">
+            @if (precioOferta) {
+              <span class="original-price">{{ product.price | currency }}</span>
+              <span class="discount-price">{{ precioOferta | currency }}</span>
+              <span class="discount-badge"
+                >{{ calcularDescuento(product.price, precioOferta) }}% OFF</span
+              >
+            } @else {
+              <span class="product-detail-price">{{ product.price | currency }}</span>
+            }
+          </div>
+
+          <p class="product-description">
+            {{ product.description }}
+          </p>
+
+          <div class="product-meta">
+            <div class="meta-item">
+              <span class="meta-label">Categoría</span>
+              <span class="meta-value">{{ product.category }}</span>
+            </div>
+            @if (product.marca) {
+              <div class="meta-item">
+                <span class="meta-label">Marca</span>
+                <span class="meta-value">{{ product.marca }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="action-buttons">
+            <button class="add-to-cart-btn" (click)="addToCart()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
                 stroke="currentColor"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4h1.5L8 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm.75-3H7.5M11 7H6.312M17 4v6m-3-3h6"
-              />
-            </svg>
-
-            Agregar al carrito
-          </button>
+              >
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="m1 1 4 4v11a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V6H7"></path>
+              </svg>
+              Agregar al carrito
+            </button>
+          </div>
         </div>
-
-        <hr class="my-6 md:my-8 border-gray-200 dark:border-gray-800" />
-
-        <p class="mb-6 text-gray-700 dark:text-gray-400">
-          {{ productDetailState.product()?.description }}
-        </p>
       </div>
-    </div>
+    }
   </div>
 </section>

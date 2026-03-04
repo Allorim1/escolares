@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../shared/data-access/auth.service';
 
 @Component({
@@ -11,27 +11,26 @@ import { AuthService } from '../shared/data-access/auth.service';
   styleUrl: './login.css',
 })
 export class Login {
-  private authService = inject(AuthService);
-  private router = inject(Router);
+  authService = inject(AuthService);
 
   username = signal('');
   password = signal('');
-  error = signal('');
-  loading = signal(false);
+
+  get error() {
+    return this.authService.loginError;
+  }
 
   onSubmit() {
-    this.error.set('');
-    this.loading.set(true);
+    this.authService.loginError.set(null);
 
-    setTimeout(() => {
-      const success = this.authService.login(this.username(), this.password());
-      this.loading.set(false);
+    const user = this.username();
+    const pass = this.password();
 
-      if (success) {
-        this.router.navigate(['/admin']);
-      } else {
-        this.error.set('Credenciales inválidas');
-      }
-    }, 500);
+    if (!user || !pass) {
+      this.authService.loginError.set('Por favor ingresa usuario y contraseña');
+      return;
+    }
+
+    this.authService.login(user, pass);
   }
 }

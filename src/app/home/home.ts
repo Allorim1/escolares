@@ -1,12 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MarcasService } from '../shared/data-access/marcas.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [FormsModule],
   templateUrl: './home.html',
   styles: [
     `

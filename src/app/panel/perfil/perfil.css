@@ -16,17 +16,104 @@
   color: #007bff;
 }
 
+.perfil-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.perfil-header h3 {
+  margin-bottom: 0;
+}
+
+.btn-editar {
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-editar:hover {
+  background: #218838;
+}
+
 .perfil-field {
+  
   display: flex;
   justify-content: space-between;
   margin-bottom: 0.75rem;
+  align-items: center;
 }
 
 .perfil-field label {
   font-weight: 600;
   color: #333;
+  flex: 0 0 170px;
 }
 
 .perfil-field span {
   color: #555;
+}
+
+.perfil-field input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.perfil-field input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.btn-guardar {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-guardar:hover {
+  background: #0056b3;
+}
+
+.btn-guardar:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.perfil-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.perfil-actions button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-cancelar {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-cancelar:hover {
+  background: #5a6268;
 }

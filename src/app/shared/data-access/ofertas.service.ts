@@ -1,5 +1,5 @@
-import { Injectable, signal } from '@angular/core';
-import { Product } from '../interfaces/product.interface';
+import { Injectable, inject } from '@angular/core';
+import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
 
 export interface Oferta {
   productId: number;
@@ -10,66 +10,27 @@ export interface Oferta {
   providedIn: 'root',
 })
 export class OfertasService {
-  private readonly STORAGE_KEY = 'ofertas';
+  private backend = inject(OfertasBackend);
 
-  ofertas = signal<Oferta[]>([]);
-
-  constructor() {
-    this.loadFromStorage();
-  }
-
-  private loadFromStorage() {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const stored = localStorage.getItem(this.STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            this.ofertas.set(parsed);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading ofertas from storage:', error);
-    }
-  }
-
-  private saveToStorage() {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.ofertas()));
-      }
-    } catch (error) {
-      console.error('Error saving ofertas to storage:', error);
-    }
-  }
+  ofertas = this.backend.ofertas;
 
   agregarOferta(productId: number, precioOferta: number) {
-    this.ofertas.update((ofertas) => {
-      const existing = ofertas.find((o) => o.productId === productId);
-      if (existing) {
-        return ofertas.map((o) => (o.productId === productId ? { ...o, precioOferta } : o));
-      }
-      return [...ofertas, { productId, precioOferta }];
-    });
-    this.saveToStorage();
+    this.backend.agregarOferta(productId, precioOferta);
   }
 
   eliminarOferta(productId: number) {
-    this.ofertas.update((ofertas) => ofertas.filter((o) => o.productId !== productId));
-    this.saveToStorage();
+    this.backend.eliminarOferta(productId);
   }
 
   getOferta(productId: number): Oferta | undefined {
-    return this.ofertas().find((o) => o.productId === productId);
+    return this.backend.getOferta(productId);
   }
 
   isEnOferta(productId: number): boolean {
-    return this.ofertas().some((o) => o.productId === productId);
+    return this.backend.isEnOferta(productId);
   }
 
   getOfertaPrice(productId: number): number | null {
-    const oferta = this.getOferta(productId);
-    return oferta ? oferta.precioOferta : null;
+    return this.backend.getOfertaPrice(productId);
   }
 }

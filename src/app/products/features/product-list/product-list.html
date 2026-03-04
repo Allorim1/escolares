@@ -1,164 +1,168 @@
-<div class="filter-section">
-  @if (currentBrand()) {
-    <a
-      routerLink="/marcas"
-      class="back-link"
-      style="
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #1976d2;
-        text-decoration: none;
-        margin-bottom: 1rem;
-        font-weight: 500;
-      "
-    >
-      ← Volver a Marcas
-    </a>
-    <h3 style="margin: 0 0 1rem 0; color: #333">Productos de {{ currentBrand() }}</h3>
-  }
-  <div class="filter-row">
-    <div class="filter-group">
-      <label for="search">Buscar</label>
-      <input
-        type="text"
-        id="search"
-        [ngModel]="filterText()"
-        (ngModelChange)="filterText.set($event)"
-        placeholder="Buscar productos..."
-      />
-    </div>
-    <div class="filter-group">
-      <label for="category">Categoría</label>
-      <select
-        id="category"
-        [ngModel]="filterCategory()"
-        (ngModelChange)="filterCategory.set($event)"
+@if (productsState.state.status() === 'loading') {
+  <app-loading message="Cargando productos..."></app-loading>
+} @else {
+  <div class="filter-section">
+    @if (currentBrand()) {
+      <a
+        routerLink="/marcas"
+        class="back-link"
+        style="
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #1976d2;
+          text-decoration: none;
+          margin-bottom: 1rem;
+          font-weight: 500;
+        "
       >
-        <option value="">Todas las categorías</option>
-        @for (cat of categories(); track cat) {
-          <option [value]="cat">{{ cat }}</option>
-        }
-      </select>
+        ← Volver a Marcas
+      </a>
+      <h3 style="margin: 0 0 1rem 0; color: #333">Productos de {{ currentBrand() }}</h3>
+    }
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="search">Buscar</label>
+        <input
+          type="text"
+          id="search"
+          [ngModel]="filterText()"
+          (ngModelChange)="filterText.set($event)"
+          placeholder="Buscar productos..."
+        />
+      </div>
+      <div class="filter-group">
+        <label for="category">Categoría</label>
+        <select
+          id="category"
+          [ngModel]="filterCategory()"
+          (ngModelChange)="filterCategory.set($event)"
+        >
+          <option value="">Todas las categorías</option>
+          @for (cat of categories(); track cat) {
+            <option [value]="cat">{{ cat }}</option>
+          }
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="priceMin">Precio mínimo</label>
+        <input
+          type="number"
+          id="priceMin"
+          [ngModel]="filterPriceMin()"
+          (ngModelChange)="filterPriceMin.set($event ? $event : null)"
+          [min]="priceRange().min"
+          [max]="priceRange().max"
+          placeholder="Min"
+        />
+      </div>
+      <div class="filter-group">
+        <label for="priceMax">Precio máximo</label>
+        <input
+          type="number"
+          id="priceMax"
+          [ngModel]="filterPriceMax()"
+          (ngModelChange)="filterPriceMax.set($event ? $event : null)"
+          [min]="priceRange().min"
+          [max]="priceRange().max"
+          placeholder="Max"
+        />
+      </div>
+      <button class="clear-filters-btn" type="button" (click)="clearFilters()">
+        Limpiar filtros
+      </button>
     </div>
-    <div class="filter-group">
-      <label for="priceMin">Precio mínimo</label>
-      <input
-        type="number"
-        id="priceMin"
-        [ngModel]="filterPriceMin()"
-        (ngModelChange)="filterPriceMin.set($event ? $event : null)"
-        [min]="priceRange().min"
-        [max]="priceRange().max"
-        placeholder="Min"
-      />
-    </div>
-    <div class="filter-group">
-      <label for="priceMax">Precio máximo</label>
-      <input
-        type="number"
-        id="priceMax"
-        [ngModel]="filterPriceMax()"
-        (ngModelChange)="filterPriceMax.set($event ? $event : null)"
-        [min]="priceRange().min"
-        [max]="priceRange().max"
-        placeholder="Max"
-      />
-    </div>
-    <button class="clear-filters-btn" type="button" (click)="clearFilters()">
-      Limpiar filtros
+    <p class="results-count">
+      Mostrando {{ paginatedProducts().length }} de {{ filteredProducts().length }} productos
+    </p>
+  </div>
+
+  <div
+    class="product-cards"
+    style="
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2rem;
+      justify-items: center;
+    "
+  >
+    @for (product of paginatedProducts(); track product) {
+      <div
+        class="card"
+        style="
+          max-width: 320px;
+          width: 100%;
+          background: #fff;
+          border-radius: 16px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+          overflow: hidden;
+          transition: transform 0.2s;
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <img
+          [src]="product.image"
+          alt="{{ product.title }}"
+          class="card-img"
+          style="width: 100%; height: 200px; object-fit: contain; background: #f8f8f8"
+        />
+        <div class="card-body" style="padding: 1.5rem">
+          <h5
+            class="card-title"
+            style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #333"
+          >
+            {{ product.title }}
+          </h5>
+          <p class="card-text" style="font-size: 1rem; color: #666; margin-bottom: 1rem">
+            {{ product.description }}
+          </p>
+          <p
+            class="card-price"
+            style="font-size: 1.1rem; font-weight: 700; color: #1976d2; margin-bottom: 1.5rem"
+          >
+            ${{ product.price }}
+          </p>
+          <button
+            class="btn btn-primary"
+            style="
+              background: #1976d2;
+              color: #fff;
+              border: none;
+              border-radius: 8px;
+              padding: 0.75rem 1.5rem;
+              font-size: 1rem;
+              cursor: pointer;
+              transition: background 0.2s;
+            "
+            [routerLink]="[product.id]"
+          >
+            Ver más
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="pagination" style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0">
+    <button
+      class="btn btn-secondary"
+      style="padding: 0.75rem 1.5rem; border-radius: 8px"
+      type="button"
+      (click)="changePage(-1)"
+      [disabled]="!productsState.hasPrev()"
+    >
+      Anterior
+    </button>
+    <span class="page-indicator">Página {{ productsState.state.page() }}</span>
+    <button
+      class="btn btn-secondary"
+      style="padding: 0.75rem 1.5rem; border-radius: 8px"
+      type="button"
+      (click)="changePage(1)"
+      [disabled]="!productsState.hasNext()"
+    >
+      Siguiente
     </button>
   </div>
-  <p class="results-count">
-    Mostrando {{ paginatedProducts().length }} de {{ filteredProducts().length }} productos
-  </p>
-</div>
-
-<div
-  class="product-cards"
-  style="
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
-    justify-items: center;
-  "
->
-  @for (product of paginatedProducts(); track product) {
-    <div
-      class="card"
-      style="
-        max-width: 320px;
-        width: 100%;
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-        transition: transform 0.2s;
-        display: flex;
-        flex-direction: column;
-      "
-    >
-      <img
-        [src]="product.image"
-        alt="{{ product.title }}"
-        class="card-img"
-        style="width: 100%; height: 200px; object-fit: contain; background: #f8f8f8"
-      />
-      <div class="card-body" style="padding: 1.5rem">
-        <h5
-          class="card-title"
-          style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #333"
-        >
-          {{ product.title }}
-        </h5>
-        <p class="card-text" style="font-size: 1rem; color: #666; margin-bottom: 1rem">
-          {{ product.description }}
-        </p>
-        <p
-          class="card-price"
-          style="font-size: 1.1rem; font-weight: 700; color: #1976d2; margin-bottom: 1.5rem"
-        >
-          ${{ product.price }}
-        </p>
-        <button
-          class="btn btn-primary"
-          style="
-            background: #1976d2;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-          "
-          [routerLink]="[product.id]"
-        >
-          Ver más
-        </button>
-      </div>
-    </div>
-  }
-</div>
-
-<div class="pagination" style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0">
-  <button
-    class="btn btn-secondary"
-    style="padding: 0.75rem 1.5rem; border-radius: 8px"
-    type="button"
-    (click)="changePage(-1)"
-    [disabled]="!productsState.hasPrev()"
-  >
-    Anterior
-  </button>
-  <span class="page-indicator">Página {{ productsState.state.page() }}</span>
-  <button
-    class="btn btn-secondary"
-    style="padding: 0.75rem 1.5rem; border-radius: 8px"
-    type="button"
-    (click)="changePage(1)"
-    [disabled]="!productsState.hasNext()"
-  >
-    Siguiente
-  </button>
-</div>
+}

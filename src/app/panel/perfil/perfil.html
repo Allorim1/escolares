@@ -1,16 +1,54 @@
 <section class="perfil-container">
-  <h3>Mi Perfil</h3>
+  <div class="perfil-header">
+    <h3>Mi Perfil</h3>
+    @if (!editando()) {
+      <button class="btn-editar" (click)="editar()">Editar perfil</button>
+    }
+  </div>
 
   <div class="perfil-field">
-    <label>Nombre:</label>
-    <span>Juan Pérez</span>
+    <label>Nombre de usuario:</label>
+    <span>{{ authService.user()?.username }}</span>
   </div>
+
   <div class="perfil-field">
     <label>Correo electrónico:</label>
-    <span>juan.perez@example.com</span>
+    <span>{{ authService.user()?.email }}</span>
   </div>
+
+  <div class="perfil-field">
+    <label>Nombre completo:</label>
+    @if (editando()) {
+      <input type="text" [(ngModel)]="nombreCompleto" placeholder="Ingresa tu nombre completo" />
+    } @else {
+      <span>{{ nombreCompleto() || 'No especificado' }}</span>
+    }
+  </div>
+
   <div class="perfil-field">
     <label>Dirección:</label>
-    <span>Calle Falsa 123, Ciudad</span>
+    @if (editando()) {
+      <input type="text" [(ngModel)]="direccion" placeholder="Ingresa tu dirección" />
+    } @else {
+      <span>{{ direccion() || 'No especificado' }}</span>
+    }
   </div>
+
+  <div class="perfil-field">
+    <label>Número telefónico:</label>
+    @if (editando()) {
+      <input type="tel" [(ngModel)]="telefono" placeholder="Ingresa tu número telefónico" />
+    } @else {
+      <span>{{ telefono() || 'No especificado' }}</span>
+    }
+  </div>
+
+  @if (editando()) {
+    <div class="perfil-actions">
+      <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+      <button class="btn-guardar" (click)="guardar()" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+  }
 </section>

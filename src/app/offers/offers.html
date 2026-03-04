@@ -1,7 +1,9 @@
 <div class="offers-container">
   <h1 class="page-title">Ofertas Especiales</h1>
 
-  @if (productsEnOferta().length > 0) {
+  @if (loading()) {
+    <app-loading message="Cargando ofertas..."></app-loading>
+  } @else if (productsEnOferta().length > 0) {
     <div class="offers-grid">
       @for (product of productsEnOferta(); track product.id) {
         <div class="offer-card">

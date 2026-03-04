@@ -1,0 +1,136 @@
+.usuarios-container {
+  padding: 20px;
+}
+
+.usuarios-container h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.error {
+  color: #dc3545;
+  padding: 10px;
+  background: #f8d7da;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+.cargando {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.usuarios-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.usuarios-table th,
+.usuarios-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.usuarios-table th {
+  background: #007bff;
+  color: white;
+  font-weight: 600;
+}
+
+.usuarios-table tr:hover {
+  background: #f8f9fa;
+}
+
+.rol-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rol-badge.owner {
+  background: #6f42c1;
+  color: white;
+}
+
+.rol-badge.admin {
+  background: #dc3545;
+  color: white;
+}
+
+.rol-badge.empleado {
+  background: #28a745;
+  color: white;
+}
+
+.rol-badge.usuario {
+  background: #6c757d;
+  color: white;
+}
+
+.rol-badge.sin-rol {
+  background: #6c757d;
+  color: white;
+}
+
+.rol-select {
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.rol-select:hover {
+  border-color: #007bff;
+}
+
+.rol-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.rol-select option {
+  padding: 8px;
+  font-weight: 500;
+}
+
+.btn-admin,
+.btn-empleado {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-right: 5px;
+}
+
+.btn-admin {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-admin:hover {
+  background: #c82333;
+}
+
+.btn-empleado {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-empleado:hover {
+  background: #5a6268;
+}

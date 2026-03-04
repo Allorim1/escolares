@@ -1,8 +1,11 @@
 <div class="lineas-admin">
-  <a routerLink="/admin" class="back-link">← Volver al panel</a>
   <div class="header">
     <h2>Gestión de Líneas</h2>
   </div>
+
+  @if (!isOwner()) {
+    <div class="message">Solo el owner puede modificar las líneas</div>
+  }
 
   @if (!selectedLinea()) {
     <div class="lineas-list">
@@ -14,7 +17,9 @@
           </div>
           <div class="actions">
             <button class="view-btn" (click)="openLinea(linea)">Ver productos</button>
-            <button class="delete-btn" (click)="deleteLinea(linea.id)">×</button>
+            @if (isOwner()) {
+              <button class="delete-btn" (click)="deleteLinea(linea.id)">×</button>
+            }
           </div>
         </div>
       } @empty {
@@ -34,7 +39,9 @@
               <div class="product-chip">
                 <img [src]="product.image" [alt]="product.title" class="product-thumb" />
                 <span class="product-name">{{ product.title }}</span>
-                <button class="remove-btn" (click)="removeProductFromLinea(product.id)">×</button>
+                @if (isOwner()) {
+                  <button class="remove-btn" (click)="removeProductFromLinea(product.id)">×</button>
+                }
               </div>
             }
           </div>
@@ -44,9 +51,11 @@
       </div>
 
       <div class="add-section">
-        <button class="toggle-btn" (click)="toggleAddProduct()">
-          {{ showAddProduct() ? '− Ocultar agregar producto' : '+ Agregar producto' }}
-        </button>
+        @if (isOwner()) {
+          <button class="toggle-btn" (click)="toggleAddProduct()">
+            {{ showAddProduct() ? '− Ocultar agregar producto' : '+ Agregar producto' }}
+          </button>
+        }
 
         @if (showAddProduct()) {
           <div class="filter-input">

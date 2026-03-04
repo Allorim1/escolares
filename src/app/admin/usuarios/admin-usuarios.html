@@ -1,0 +1,59 @@
+<section class="usuarios-container">
+  <h3>Control de Usuarios</h3>
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (cargando()) {
+    <div class="cargando">Cargando usuarios...</div>
+  } @else {
+    <table class="usuarios-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Rol</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (usuario of usuarios(); track usuario.id) {
+          <tr>
+            <td>{{ usuario.username }}</td>
+            <td>{{ usuario.email }}</td>
+            <td>
+              @if (usuario.rol !== 'owner') {
+                @if (esOwner()) {
+                  <select
+                    class="rol-select"
+                    [value]="usuario.rol || 'usuario'"
+                    (change)="cambiarRol(usuario, $any($event.target).value)"
+                  >
+                    <option value="usuario">Usuario</option>
+                    <option value="empleado">Empleado</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                } @else if (esAdmin()) {
+                  <select
+                    class="rol-select"
+                    [value]="usuario.rol || 'usuario'"
+                    (change)="cambiarRol(usuario, $any($event.target).value)"
+                  >
+                    <option value="usuario">Usuario</option>
+                    <option value="empleado">Empleado</option>
+                  </select>
+                } @else {
+                  <span class="rol-badge" [class]="usuario.rol || 'usuario'">
+                    {{ getRolLabel(usuario.rol) }}
+                  </span>
+                }
+              } @else {
+                <span class="rol-badge owner">Owner</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

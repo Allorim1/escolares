@@ -9,6 +9,7 @@ import { Feedback } from './feedback/feedback';
 import { Lineas } from './lineas/lineas';
 import { Offers } from './offers/offers';
 import { adminGuard } from './shared/guards/admin.guard';
+import { Admin } from './admin/admin';
 
 export const routes: Routes = [
   {
@@ -71,12 +72,18 @@ export const routes: Routes = [
     loadComponent: () => import('./login/login').then((m) => m.Login),
   },
   {
+    path: 'register',
+    loadComponent: () => import('./register/register').then((m) => m.Register),
+  },
+  {
     path: 'admin',
+    component: Admin,
     canActivate: [adminGuard],
     children: [
       {
         path: '',
-        loadComponent: () => import('./admin/admin').then((m) => m.Admin),
+        redirectTo: 'productos',
+        pathMatch: 'full',
       },
       {
         path: 'productos',
@@ -94,6 +101,10 @@ export const routes: Routes = [
       {
         path: 'ofertas',
         loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
+      },
+      {
+        path: 'usuarios',
+        loadComponent: () => import('./admin/usuarios/admin-usuarios').then((m) => m.AdminUsuarios),
       },
     ],
   },

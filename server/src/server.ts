@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import cookieParser from 'cookie-parser';
 import { database } from './config/database';
 import { swaggerConfig } from './config/swagger';
 
@@ -18,6 +19,7 @@ const swaggerSpec = swaggerJsdoc(swaggerConfig);
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(cookieParser());
 
 app.use(
   '/api-docs',

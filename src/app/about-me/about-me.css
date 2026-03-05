@@ -7,6 +7,17 @@
   padding: 3rem 2rem;
 }
 
+.reveal-init {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
+}
+
+.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .about-title {
   font-size: 2.5rem;
   color: #1d63c1;
@@ -79,7 +90,7 @@
 }
 
 .zona-card.nacional {
-  background: linear-gradient(135deg, #28a745 0%, #34ce57 100%);
+  background: linear-gradient(135deg, white 0%, white 100%);
 }
 
 .zona-card.nacional span {

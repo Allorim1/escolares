@@ -1,12 +1,15 @@
 import { Request, Response } from 'express';
+import argon2 from 'argon2';
 import { database } from '../config/database';
 import { User } from '../models';
+import { jwtConfig } from '../config/jwt';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 export class AuthController {
   async register(req: Request, res: Response): Promise<void> {
     try {
       const { username, email, password } = req.body;
-      console.log('Register request:', { username, email, password });
+
       if (!username || !email || !password) {
         res.status(400).json({ error: 'Todos los campos son requeridos' });
         return;
@@ -18,16 +21,44 @@ export class AuthController {
         return;
       }
 
+      const hashedPassword = await argon2.hash(password, {
+        type: argon2.argon2id,
+        memoryCost: 65536,
+        timeCost: 3,
+        parallelism: 4,
+      });
+
       const newUser: User = {
         id: Date.now().toString(),
         username,
         email,
-        password,
+        password: hashedPassword,
         isAdmin: false,
         rol: 'usuario',
       };
 
       await database.getCollection<User>('users').insertOne(newUser);
+
+      const tokens = jwtConfig.generateTokens({
+        userId: newUser.id,
+        email: newUser.email,
+        rol: newUser.rol || 'usuario',
+      });
+
+      res.cookie('accessToken', tokens.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000,
+      });
+
+      res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
       const { password: _, ...userWithoutPassword } = newUser;
       res.status(201).json(userWithoutPassword);
     } catch (error) {
@@ -48,23 +79,131 @@ export class AuthController {
 
       const user = await database.getCollection<User>('users').findOne({
         $or: [{ email: identifier }, { username: identifier }],
-        password,
       });
-      if (!user) {
+
+      if (!user || !user.password) {
         res.status(401).json({ error: 'Credenciales inválidas' });
         return;
       }
 
+      let validPassword = false;
+
+      if (user.password.startsWith('$argon2')) {
+        validPassword = await argon2.verify(user.password, password);
+      } else {
+        validPassword = user.password === password;
+        if (validPassword && password.length >= 6) {
+          const hashedPassword = await argon2.hash(password, {
+            type: argon2.argon2id,
+            memoryCost: 65536,
+            timeCost: 3,
+            parallelism: 4,
+          });
+          await database
+            .getCollection<User>('users')
+            .updateOne({ id: user.id }, { $set: { password: hashedPassword } });
+        }
+      }
+
+      if (!validPassword) {
+        res.status(401).json({ error: 'Credenciales inválidas' });
+        return;
+      }
+
+      const tokens = jwtConfig.generateTokens({
+        userId: user.id,
+        email: user.email,
+        rol: user.rol || 'usuario',
+      });
+
+      res.cookie('accessToken', tokens.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000,
+      });
+
+      res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
       const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
+      console.error('Error en login:', error);
       res.status(500).json({ error: 'Error al iniciar sesión' });
     }
   }
 
-  async getProfile(req: Request, res: Response): Promise<void> {
+  async logout(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).userId;
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+
+      res.json({ message: 'Sesión cerrada correctamente' });
+    } catch (error) {
+      res.status(500).json({ error: 'Error al cerrar sesión' });
+    }
+  }
+
+  async refreshToken(req: Request, res: Response): Promise<void> {
+    try {
+      const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+      if (!refreshToken) {
+        res.status(401).json({ error: 'Refresh token requerido' });
+        return;
+      }
+
+      const payload = jwtConfig.verifyRefreshToken(refreshToken);
+      if (!payload) {
+        res.status(401).json({ error: 'Refresh token inválido o expirado' });
+        return;
+      }
+
+      const user = await database.getCollection<User>('users').findOne({ id: payload.userId });
+      if (!user) {
+        res.status(401).json({ error: 'Usuario no encontrado' });
+        return;
+      }
+
+      const tokens = jwtConfig.generateTokens({
+        userId: user.id,
+        email: user.email,
+        rol: user.rol || 'usuario',
+      });
+
+      res.cookie('accessToken', tokens.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000,
+      });
+
+      res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      res.json({ accessToken: tokens.accessToken });
+    } catch (error) {
+      res.status(500).json({ error: 'Error al refresh token' });
+    }
+  }
+
+  async getProfile(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ error: 'No autorizado' });
+        return;
+      }
+
       const user = await database.getCollection<User>('users').findOne({ id: userId });
       if (!user) {
         res.status(404).json({ error: 'Usuario no encontrado' });

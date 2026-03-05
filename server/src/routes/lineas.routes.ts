@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { lineasController } from '../controllers/lineas.controller';
+import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -64,7 +65,9 @@ router.get('/:id', (req: Request, res: Response) => lineasController.getById(req
  *       201:
  *         description: Línea creada
  */
-router.post('/', (req: Request, res: Response) => lineasController.create(req, res));
+router.post('/', authenticateToken, (req: Request, res: Response) =>
+  lineasController.create(req, res),
+);
 
 /**
  * @swagger
@@ -84,7 +87,9 @@ router.post('/', (req: Request, res: Response) => lineasController.create(req, r
  *       404:
  *         description: Línea no encontrada
  */
-router.put('/:id', (req: Request, res: Response) => lineasController.update(req, res));
+router.put('/:id', authenticateToken, (req: Request, res: Response) =>
+  lineasController.update(req, res),
+);
 
 /**
  * @swagger
@@ -102,7 +107,9 @@ router.put('/:id', (req: Request, res: Response) => lineasController.update(req,
  *       204:
  *         description: Línea eliminada
  */
-router.delete('/:id', (req: Request, res: Response) => lineasController.delete(req, res));
+router.delete('/:id', authenticateToken, (req: Request, res: Response) =>
+  lineasController.delete(req, res),
+);
 
 /**
  * @swagger
@@ -129,7 +136,7 @@ router.delete('/:id', (req: Request, res: Response) => lineasController.delete(r
  *       200:
  *         description: Producto añadido
  */
-router.post('/:id/products', (req: Request, res: Response) =>
+router.post('/:id/products', authenticateToken, (req: Request, res: Response) =>
   lineasController.addProduct(req, res),
 );
 
@@ -158,7 +165,7 @@ router.post('/:id/products', (req: Request, res: Response) =>
  *       200:
  *         description: Producto eliminado
  */
-router.delete('/:id/products', (req: Request, res: Response) =>
+router.delete('/:id/products', authenticateToken, (req: Request, res: Response) =>
   lineasController.removeProduct(req, res),
 );
 

@@ -1,5 +1,5 @@
 <section>
-  <div class="banner-carousel">
+  <div class="banner-carousel reveal-init" #revealElement>
     <button class="banner-btn prev" (click)="prevBanner()">‹</button>
     <div class="banner-slide active">
       <img src="/banner principal.jpg" alt="Banner principal" class="main-banner" />
@@ -8,7 +8,7 @@
   </div>
 
   @if (marcas().length > 0) {
-    <div class="marcas-carousel">
+    <div class="marcas-carousel reveal-init" #revealElement>
       <div class="carousel-container">
         <!--  <button class="carousel-btn prev" (click)="prev()">‹</button> -->
         <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
@@ -28,7 +28,7 @@
     </div>
   }
 
-  <div class="newsletter-section">
+  <div class="newsletter-section reveal-init" #revealElement>
     <div class="newsletter-content">
       <h2>Suscribirse a nuestros correos electrónicos</h2>
       <p>Conoce las nuevas colecciones y ofertas exclusivas antes que nadie.</p>
@@ -37,7 +37,8 @@
           type="email"
           [(ngModel)]="emailSuscrito"
           name="email"
-          placeholder="Ingresa tu correo electrónico" class="custom-input"
+          placeholder="Ingresa tu correo electrónico"
+          class="custom-input"
           required
         />
         <button type="submit">Suscribirse</button>
@@ -53,29 +54,29 @@
     </div>
   </div>
 
-  <div class="features-section">
-    <div class="feature-card">
+  <div class="features-section reveal-init" #revealElement>
+    <div class="feature-card" style="transition-delay: 0ms">
       <div class="feature-icon">🚚</div>
       <h3>Envíos a Domicilio</h3>
       <p>Entrega en Valencia y toda Venezuela</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card" style="transition-delay: 150ms">
       <div class="feature-icon">🏪</div>
       <h3>Solo los Mejores Productos</h3>
       <p>La mejor calidad del mercado</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card" style="transition-delay: 300ms">
       <div class="feature-icon">💳</div>
       <h3>Pagos Seguros</h3>
       <p>Zelle, efectivo y transferencias</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card" style="transition-delay: 450ms">
       <div class="feature-icon">📞</div>
       <h3>Atención Personalizada</h3>
       <p>Te asesoramos en lo que necesites</p>
     </div>
   </div>
-<!--
+  <!--
   <h1>Escolares</h1>
 
   <div class="home-buttons">

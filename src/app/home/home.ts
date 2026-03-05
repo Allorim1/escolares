@@ -1,16 +1,37 @@
-import { Component, inject, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  AfterViewInit,
+  ElementRef,
+  ViewChildren,
+  QueryList,
+  Inject,
+  PLATFORM_ID,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MarcasService } from '../shared/data-access/marcas.service';
-
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './home.html',
   styles: [
     `
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
+
+      .reveal-init {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out;
+      }
+
+      .reveal-active {
+        opacity: 1;
+        transform: translateY(0);
+      }
       :host {
         display: flex;
         flex-direction: column;
@@ -266,25 +287,24 @@ import { MarcasService } from '../shared/data-access/marcas.service';
       }
 
       .custom-input {
-  width: 100%;
-  padding: 12px 20px;
-  background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.98); /* Borde sutil como tu imagen */
-  border-radius: 50px; /* Bordes muy redondeados */
-  color: white;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 16px;
-  outline: none;
+        width: 100%;
+        padding: 12px 20px;
+        background-color: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.98); /* Borde sutil como tu imagen */
+        border-radius: 50px; /* Bordes muy redondeados */
+        color: white;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 16px;
+        outline: none;
 
-  /* Estilo específico del PLACEHOLDER */
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.8); /* Blanco con transparencia */
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
-  }
-}
+        /* Estilo específico del PLACEHOLDER */
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.8); /* Blanco con transparencia */
+          font-family: 'Montserrat', sans-serif;
+          font-weight: 500;
+        }
+      }
       .newsletter-content h2 {
-
         color: white;
         font-size: 1.8rem;
         margin: 0 0 0.75rem;
@@ -297,7 +317,6 @@ import { MarcasService } from '../shared/data-access/marcas.service';
       }
 
       .newsletter-form {
-
         display: flex;
         gap: 0.75rem;
         max-width: 500px;
@@ -411,15 +430,36 @@ import { MarcasService } from '../shared/data-access/marcas.service';
     `,
   ],
 })
-export default class HomeComponent {
+export default class HomeComponent implements AfterViewInit {
   private marcasService = inject(MarcasService);
   marcas = this.marcasService.marcas;
   currentIndex = 0;
   visibleCount = 4;
   bannerIndex = 0;
 
+  @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+
   emailSuscrito = '';
   mensajeSuscrito = signal('');
+
+  ngAfterViewInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => this.revealAll(), 100);
+      setTimeout(() => this.revealAll(), 300);
+      setTimeout(() => this.revealAll(), 500);
+    }
+  }
+
+  private revealAll() {
+    if (!this.revealElements?.length) return;
+    this.revealElements.forEach((el) => {
+      if (el?.nativeElement) {
+        el.nativeElement.classList.add('reveal-active');
+      }
+    });
+  }
 
   prevBanner() {
     // Por ahora solo hay un banner, aquí iría la lógica cuando hayan más

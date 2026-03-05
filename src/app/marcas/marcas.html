@@ -1,9 +1,14 @@
 <div class="marcas-container">
-  <h2 class="page-title">Marcas</h2>
+  <h2 class="page-title reveal-init" #revealElement>Marcas</h2>
 
   <div class="marcas-grid">
-    @for (marca of marcas(); track marca.id) {
-      <a [routerLink]="['/products/collection', marca.name]" class="marca-card">
+    @for (marca of marcas(); track marca.id; let i = $index) {
+      <a
+        [routerLink]="['/products/collection', marca.name]"
+        class="marca-card reveal-init"
+        #revealElement
+        [style.transition-delay.ms]="i * 100"
+      >
         @if (marca.image) {
           <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
         } @else {
@@ -12,7 +17,7 @@
         <span class="marca-name">{{ marca.name }}</span>
       </a>
     } @empty {
-      <div class="empty">No hay marcas registradas.</div>
+      <div class="empty reveal-init" #revealElement>No hay marcas registradas.</div>
     }
   </div>
 </div>

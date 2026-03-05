@@ -1,29 +1,13 @@
 <div class="how-buy-container">
-  <h1 class="page-title">¿Cómo Comprar?</h1>
+  <h1 class="page-title reveal-init" #revealElement>¿Cómo Comprar?</h1>
 
   <div class="steps">
-    <div class="step">
-      <div class="step-number">1</div>
-      <h3>Explora nuestros productos</h3>
-      <p>Navega por nuestro catálogo y encuentra los productos que necesitas.</p>
-    </div>
-
-    <div class="step">
-      <div class="step-number">2</div>
-      <h3>Agrega al carrito</h3>
-      <p>Selecciona los productos deseados y agrégalos a tu carrito de compras.</p>
-    </div>
-
-    <div class="step">
-      <div class="step-number">3</div>
-      <h3>Finaliza tu pedido</h3>
-      <p>Revisa tu carrito y procede con el checkout de forma segura.</p>
-    </div>
-
-    <div class="step">
-      <div class="step-number">4</div>
-      <h3>Recibe tu pedido</h3>
-      <p>Te entregamos en la comodidad de tu hogar o puedes retirar en tienda.</p>
-    </div>
+    @for (step of steps; track step.number; let i = $index) {
+      <div class="step reveal-init" #revealElement [style.transition-delay.ms]="i * 150">
+        <div class="step-number">{{ step.number }}</div>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.description }}</p>
+      </div>
+    }
   </div>
 </div>

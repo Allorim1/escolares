@@ -23,10 +23,14 @@ export class Register {
   success = this.authService.registerSuccess;
 
   constructor() {
+    this.authService.registerError.set(null);
+    this.authService.registerSuccess.set(false);
+
     effect(() => {
       if (this.authService.registerSuccess()) {
         this.loading.set(false);
         setTimeout(() => {
+          this.authService.registerSuccess.set(false);
           this.router.navigate(['/login']);
         }, 1500);
       }
@@ -41,6 +45,7 @@ export class Register {
 
   onSubmit() {
     this.authService.registerError.set(null);
+    this.authService.registerSuccess.set(false);
 
     const user = this.username();
     const mail = this.email();

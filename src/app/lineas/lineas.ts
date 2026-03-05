@@ -1,4 +1,14 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  effect,
+  ElementRef,
+  ViewChildren,
+  QueryList,
+  Inject,
+  PLATFORM_ID,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 interface Linea {
   image: string;
@@ -7,11 +17,13 @@ interface Linea {
 
 @Component({
   selector: 'app-lineas',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './lineas.html',
   styleUrl: './lineas.css',
 })
-export class Lineas {
+export class Lineas implements AfterViewInit {
+  @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
+
   lineas: Linea[] = [
     { image: '/lineas/BOLSOS-Y-CARTUCHERA.png', name: 'Bolsos y Cartuchera' },
     { image: '/lineas/manchas-LINEA-DE-PAPELERIA.png', name: 'Línea de Papelería' },
@@ -22,4 +34,25 @@ export class Lineas {
     { image: '/lineas/MANCHA-LINEA-DE-PFICINA.png', name: 'Línea de Oficina' },
     { image: '/lineas/MANCHA-LINEA-DE-ESCRITURA-V1.png', name: 'Línea de Escritura' },
   ];
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => this.revealAll(), 100);
+    }
+  }
+
+  ngAfterViewInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => this.revealAll(), 100);
+    }
+  }
+
+  private revealAll() {
+    if (!this.revealElements?.length) return;
+    this.revealElements.forEach((el) => {
+      if (el?.nativeElement) {
+        el.nativeElement.classList.add('reveal-active');
+      }
+    });
+  }
 }

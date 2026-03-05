@@ -4,6 +4,17 @@
   padding: 3rem 2rem;
 }
 
+.reveal-init {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
+}
+
+.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .page-title {
   font-size: 2.5rem;
   color: #1d63c1;

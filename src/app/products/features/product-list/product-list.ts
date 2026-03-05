@@ -1,14 +1,24 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { ProductsStateService } from '../../data-access/products-state.service';
 import { LoadingComponent } from '../../../shared/ui/loading/loading';
 
 @Component({
   selector: 'app-product-list',
-  imports: [RouterLink, FormsModule, LoadingComponent],
+  imports: [RouterLink, FormsModule, LoadingComponent, CommonModule],
   templateUrl: './product-list.html',
   styles: `
+    .reveal-init {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s ease-out;
+    }
+    .reveal-active {
+      opacity: 1;
+      transform: translateY(0);
+    }
     .filter-section {
       background: #f8f9fa;
       padding: 1.5rem;
@@ -88,7 +98,6 @@ export default class ProductList implements OnInit {
   productsState = inject(ProductsStateService);
   private route = inject(ActivatedRoute);
 
-  // filter signals
   filterText = signal('');
   filterCategory = signal('');
   filterBrand = signal('');

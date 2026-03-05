@@ -86,7 +86,7 @@
       justify-items: center;
     "
   >
-    @for (product of paginatedProducts(); track product) {
+    @for (product of paginatedProducts(); track product; let i = $index) {
       <div
         class="card"
         style="

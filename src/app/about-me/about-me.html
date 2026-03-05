@@ -1,7 +1,7 @@
 <div class="about-container">
-  <h1 class="about-title">Escolares C.A</h1>
+  <h1 class="about-title reveal-init" #revealElement>Escolares C.A</h1>
 
-  <div class="about-content">
+  <div class="about-content reveal-init" #revealElement>
     <div class="about-image">
       <img src="/ubicacion.jpg" alt="Ubicación de nuestra tienda" />
     </div>
@@ -30,14 +30,18 @@
       </p>
     </div>
   </div>
-  <h1 class="about-subtitle">Nuestras Zonas de Despacho</h1>
+  <h1 class="about-subtitle reveal-init" #revealElement>Nuestras Zonas de Despacho</h1>
 
   <div class="zonas-grid">
-    <div class="zona-card">Valencia</div>
-    <div class="zona-card">Naguanagua</div>
-    <div class="zona-card">San Diego</div>
-    <div class="zona-card">Guacara</div>
-    <div class="zona-card">Los Guayos</div>
-    <div class="zona-card">Despacho a nivel nacional<br /><span>consúltenos</span></div>
+    @for (zona of zonas; track zona; let i = $index) {
+      <div
+        class="zona-card reveal-init"
+        #revealElement
+        [class.nacional]="zona.includes('nacional')"
+        [style.transition-delay.ms]="i * 100"
+      >
+        {{ zona }}
+      </div>
+    }
   </div>
 </div>

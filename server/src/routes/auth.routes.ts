@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authController } from '../controllers/auth.controller';
+import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -70,6 +71,30 @@ router.post('/login', (req: Request, res: Response) => authController.login(req,
 
 /**
  * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Cerrar sesión
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Sesión cerrada
+ */
+router.post('/logout', (req: Request, res: Response) => authController.logout(req, res));
+
+/**
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Renovación de token de acceso
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Nuevo token de acceso
+ */
+router.post('/refresh', (req: Request, res: Response) => authController.refreshToken(req, res));
+
+/**
+ * @swagger
  * /api/auth/users:
  *   get:
  *     summary: Obtener todos los usuarios
@@ -80,7 +105,9 @@ router.post('/login', (req: Request, res: Response) => authController.login(req,
  *       200:
  *         description: Lista de usuarios
  */
-router.get('/users', (req: Request, res: Response) => authController.getAll(req, res));
+router.get('/users', authenticateToken, (req: Request, res: Response) =>
+  authController.getAll(req, res),
+);
 
 /**
  * @swagger
@@ -94,7 +121,9 @@ router.get('/users', (req: Request, res: Response) => authController.getAll(req,
  *       200:
  *         description: Perfil del usuario
  */
-router.get('/profile', (req: Request, res: Response) => authController.getProfile(req, res));
+router.get('/profile', authenticateToken, (req: Request, res: Response) =>
+  authController.getProfile(req, res),
+);
 
 /**
  * @swagger
@@ -125,8 +154,12 @@ router.get('/profile', (req: Request, res: Response) => authController.getProfil
  *       200:
  *         description: Perfil actualizado
  */
-router.put('/profile', (req: Request, res: Response) => authController.update(req, res));
+router.put('/profile', authenticateToken, (req: Request, res: Response) =>
+  authController.update(req, res),
+);
 
-router.put('/users/rol', (req: Request, res: Response) => authController.updateRol(req, res));
+router.put('/users/rol', authenticateToken, (req: Request, res: Response) =>
+  authController.updateRol(req, res),
+);
 
 export default router;

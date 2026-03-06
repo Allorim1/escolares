@@ -16,7 +16,7 @@
       <div class="tasa-error">{{ tasaError() }}</div>
     }
     <div class="tasas-display">
-      <div class="tasa-item">
+      <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'dolar'">
         <label class="tasa-radio">
           <input
             type="radio"
@@ -29,7 +29,7 @@
           <span class="tasa-value">Bs {{ dolar().toFixed(2) }}</span>
         </label>
       </div>
-      <div class="tasa-item">
+      <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'euro'">
         <label class="tasa-radio">
           <input
             type="radio"
@@ -42,7 +42,7 @@
           <span class="tasa-value">Bs {{ euro().toFixed(2) }}</span>
         </label>
       </div>
-      <div class="tasa-item">
+      <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'binance'">
         <label class="tasa-radio">
           <input
             type="radio"
@@ -62,12 +62,13 @@
     <div class="input-group">
       <label>Costo ($)</label>
       <input
+        #costoInput
         type="number"
         [ngModel]="costo()"
         (ngModelChange)="onCostoChange($event)"
         (focus)="onCostoFocus($event)"
         (blur)="onCostoBlur($event)"
-        (keydown.enter)="onEnterBlur($event)"
+        (keydown.enter)="guardarEnReporteSeleccionado(); costoInput.value = ''; costoInput.focus()"
         step="0.01"
         min="0"
       />
@@ -137,16 +138,6 @@
     </div>
   </div>
 
-  <div class="button-center">
-    <button class="save-btn" (click)="guardarCosto()" [disabled]="saving()">
-      @if (saving()) {
-        <span class="spinner"></span> Guardando...
-      } @else {
-        💾
-      }
-    </button>
-  </div>
-
   <div class="table-section">
     <table class="tasa-table">
       <thead>
@@ -163,14 +154,14 @@
       </thead>
       <tbody>
         <tr class="current-row">
-          <td>${{ tasa().costo.toFixed(2) }}</td>
-          <td>${{ tasa().iva.toFixed(2) }}</td>
-          <td>Bs {{ tasa().dolar.toFixed(2) }}</td>
-          <td>Bs {{ tasa().euro.toFixed(2) }}</td>
-          <td>Bs {{ tasa().binance.toFixed(2) }}</td>
-          <td>${{ tasa().cargoPersonalizado.toFixed(2) }}</td>
-          <td>Bs {{ tasa().pvpBsf.toFixed(2) }}</td>
-          <td>${{ tasa().pvpDolar.toFixed(2) }}</td>
+          <td>${{ formatearMoneda(tasa().costo) }}</td>
+          <td>${{ formatearMoneda(tasa().iva) }}</td>
+          <td>Bs {{ formatearMoneda(tasa().dolar) }}</td>
+          <td>Bs {{ formatearMoneda(tasa().euro) }}</td>
+          <td>Bs {{ formatearMoneda(tasa().binance) }}</td>
+          <td>${{ formatearMoneda(tasa().cargoPersonalizado) }}</td>
+          <td>Bs {{ formatearMoneda(tasa().pvpBsf) }}</td>
+          <td>${{ formatearMoneda(tasa().pvpDolar) }}</td>
         </tr>
       </tbody>
     </table>
@@ -178,54 +169,224 @@
 
   <div class="table-section">
     <div class="table-header">
-      <h3>Costos Guardados</h3>
+      <h3>Reportes</h3>
       <div class="header-buttons">
-        <button class="print-btn" (click)="imprimirCostos()">🖨️ Imprimir</button>
-        <button class="pdf-btn" (click)="generarPdf()">📄 PDF</button>
+        <button class="print-btn" (click)="imprimirReporte()" [disabled]="!reporteSeleccionadoId">
+          🖨️ Imprimir
+        </button>
+        <button class="pdf-btn" (click)="descargarPdf()" [disabled]="!reporteSeleccionadoId">
+          📥 Descargar PDF
+        </button>
       </div>
     </div>
-    <table class="tasa-table" #tablaCostos>
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Costo</th>
-          <th>IVA</th>
-          <th>Tasa PVP</th>
-          <th>Utilidad $</th>
-          <th>PVP Bs</th>
-          <th>PVP $</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (item of costosGuardados(); track item._id) {
-          <tr>
-            <td>{{ item.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
-            <td>${{ item.costo.toFixed(2) }}</td>
-            <td>
-              <label class="iva-checkbox">
-                <input
-                  type="checkbox"
-                  [checked]="item.ivaActivo"
-                  (change)="toggleIva(item, $event)"
-                />
-                <span class="iva-value">${{ item.iva.toFixed(2) }}</span>
-              </label>
-            </td>
-            <td>{{ item.tasaPvp | uppercase }}</td>
-            <td>${{ item.cargoPersonalizado.toFixed(2) }}</td>
-            <td>Bs {{ item.pvpBsf.toFixed(2) }}</td>
-            <td>${{ item.pvpDolar.toFixed(2) }}</td>
-            <td>
-              <button class="delete-btn" (click)="eliminarCosto(item._id)">🗑️</button>
-            </td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="8" class="empty-message">No hay costos guardados</td>
-          </tr>
+
+    <div class="filtro-grupo">
+      <input
+        type="text"
+        [(ngModel)]="filtroNombre"
+        (ngModelChange)="filtrarReportes()"
+        (keydown.enter)="abrirPopupReporte()"
+        placeholder="Buscar o crear reporte (Enter para crear)..."
+        class="input-filtro"
+      />
+      <input
+        type="date"
+        [(ngModel)]="filtroFecha"
+        (ngModelChange)="filtrarReportes()"
+        class="input-fecha"
+      />
+      <button class="save-btn" (click)="abrirPopupReporte()">+</button>
+    </div>
+
+    @if (mostrarPopup) {
+      <div class="popup-overlay" (click)="cerrarPopup()">
+        <div class="popup-content" (click)="$event.stopPropagation()">
+          <h3>Crear Nuevo Reporte</h3>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select [(ngModel)]="tipoReporte" class="input-grupo">
+              <option value="Nota">Nota</option>
+              <option value="Factura">Factura</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nombre del Reporte</label>
+            <input
+              type="text"
+              [(ngModel)]="nombreReporte"
+              placeholder="Ej: Nieves"
+              class="input-grupo"
+              (keydown.enter)="$event.preventDefault(); buttonCrear.focus()"
+            />
+          </div>
+          <div class="popup-buttons">
+            <button
+              #buttonCancelar
+              (keydown.arrowright)="$event.preventDefault(); buttonCrear.focus()"
+              class="cancel-btn"
+              (click)="cerrarPopup()"
+            >
+              Cancelar
+            </button>
+            <button
+              #buttonCrear
+              (keydown.arrowleft)="$event.preventDefault(); buttonCancelar.focus()"
+              class="save-btn"
+              (click)="crearReporte()"
+              [disabled]="saving()"
+            >
+              @if (saving()) {
+                <span class="spinner"></span> Guardando...
+              } @else {
+                Crear Reporte
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @for (reporte of reportesPaginados(); track reporte._id) {
+      <div class="grupo-costos" [class.seleccionado]="reporte._id === reporteSeleccionadoId">
+        <div class="grupo-header" (click)="seleccionarReporte(reporte._id)">
+          <span class="tipo-badge" [class.factura]="reporte.tipo === 'Factura'">{{
+            reporte.tipo
+          }}</span>
+          <h4>{{ reporte.nombre }} - #{{ formatNumero(reporte.numero) }}</h4>
+          <span class="grupo-fecha">{{ reporte.fecha | date: 'dd/MM/yyyy' }}</span>
+          @if (reporte._id === reporteSeleccionadoId) {
+            <span class="badge-seleccionado">✓ Editando</span>
+          }
+          <button
+            class="delete-btn"
+            (click)="eliminarReporte(reporte._id); $event.stopPropagation()"
+          >
+            🗑️
+          </button>
+        </div>
+
+        @if (reporte._id === reporteSeleccionadoId) {
+          <div class="reporte-seleccionado">
+            <table class="tasa-table" #tablaCostos>
+              <thead>
+                <tr>
+                  <th>Costo</th>
+                  <th>IVA</th>
+                  <th>Tasa PVP</th>
+                  <th>Utilidad %</th>
+                  <th>Utilidad $</th>
+                  <th>PVP Bs</th>
+                  <th>PVP $</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of reporte.data; track $index) {
+                  <tr>
+                    <td>${{ item.costo.toFixed(2) }}</td>
+                    <td>
+                      <label class="iva-checkbox">
+                        <input
+                          type="checkbox"
+                          [checked]="item.ivaActivo"
+                          (change)="toggleIva(reporte._id, $index, item, $event)"
+                        />
+                        <span class="iva-value">${{ item.iva.toFixed(2) }}</span>
+                      </label>
+                    </td>
+                    <td>{{ item.tasaPvp | uppercase }}</td>
+                    <td>{{ item.cargoPersonalizadoPorcentaje || 0 }}%</td>
+                    <td>${{ item.cargoPersonalizado.toFixed(2) }}</td>
+                    <td>Bs {{ formatearMoneda(item.pvpBsf) }}</td>
+                    <td>
+                      @if (editingPvpDolar[$index]) {
+                        <div class="pvp-edit">
+                          <input
+                            type="number"
+                            class="input-pvp"
+                            [ngModel]="pvpDolarTemp[$index]"
+                            (ngModelChange)="setPvpDolarTemp($index, $event)"
+                            (keydown.enter)="guardarPvpDolar(reporte._id, $index)"
+                            (blur)="guardarPvpDolar(reporte._id, $index)"
+                            step="0.01"
+                            min="0"
+                          />
+                          <button
+                            class="edit-btn"
+                            (click)="guardarPvpDolar(reporte._id, $index)"
+                            title="Guardar"
+                          >
+                            ✓
+                          </button>
+                        </div>
+                      } @else {
+                        <div class="pvp-view">
+                          <span>${{ formatearMoneda(item.pvpDolar) }}</span>
+                          <button
+                            class="edit-btn"
+                            (click)="toggleEditPvpDolar($index, item.pvpDolar)"
+                            title="Editar"
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                      }
+                    </td>
+                    <td class="acciones-cell">
+                      <div class="acciones-edit">
+                        <button
+                          class="delete-btn"
+                          (click)="eliminarCosto(reporte._id, $index)"
+                          title="Eliminar"
+                        >
+                          🗑️
+                        </button>
+                        <input
+                          type="number"
+                          class="input-utilidad"
+                          [ngModel]="utilidadesTemp[$index]"
+                          (ngModelChange)="setUtilidadTemp($index, $event)"
+                          (keydown.enter)="guardarUtilidad(reporte._id, $index)"
+                          step="0.01"
+                          min="0"
+                          placeholder="Utilidad"
+                        />
+                        <button
+                          class="edit-btn"
+                          (click)="guardarUtilidad(reporte._id, $index)"
+                          title="Guardar"
+                        >
+                          ✓
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         }
-      </tbody>
-    </table>
+      </div>
+    }
+
+    @if (totalPaginas > 1) {
+      <div class="paginacion">
+        <button
+          class="page-btn"
+          (click)="cambiarPagina(paginaActual - 1)"
+          [disabled]="paginaActual === 1"
+        >
+          ‹ Anterior
+        </button>
+        <span class="page-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <button
+          class="page-btn"
+          (click)="cambiarPagina(paginaActual + 1)"
+          [disabled]="paginaActual === totalPaginas"
+        >
+          Siguiente ›
+        </button>
+      </div>
+    }
   </div>
 </div>

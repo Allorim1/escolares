@@ -87,9 +87,16 @@ h2 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(232, 243, 191, 0.15);
   padding: 0.75rem 1.25rem;
   border-radius: 8px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.tasa-item.seleccionado {
+  border-color: #ebf195;
+  background: rgba(29, 99, 193, 0.1);
 }
 
 .tasa-label {
@@ -362,11 +369,279 @@ h2 {
   font-weight: 500;
 }
 
+.filtro-grupo {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.input-filtro {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  min-width: 400px;
+  max-width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.popup-content h3 {
+  margin: 0 0 1.5rem 0;
+  color: #1d63c1;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.popup-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.cancel-btn {
+  padding: 0.6rem 1.2rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+}
+
+.grupo-costos.seleccionado {
+  border: 2px solid #1d63c1;
+}
+
+.badge-seleccionado {
+  background: #1d63c1;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.reporte-seleccionado {
+  padding: 1rem;
+  background: #f8f9fa;
+}
+
+.guardar-en-reporte {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.tipo-badge {
+  background: #6c757d;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.tipo-badge.factura {
+  background: #28a745;
+}
+
+.input-utilidad {
+  width: 80px;
+  padding: 0.4rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.input-utilidad:focus {
+  outline: none;
+  border-color: #1d63c1;
+}
+
+.acciones-cell {
+  min-width: 180px;
+}
+
+.acciones-edit {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.acciones-edit .input-utilidad {
+  width: 80px;
+}
+
+.pvp-edit {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pvp-edit .input-pvp {
+  width: 80px;
+  padding: 0.4rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.pvp-edit .input-pvp:focus {
+  outline: none;
+  border-color: #1d63c1;
+}
+
+.pvp-view {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pvp-view span {
+  font-weight: 500;
+}
+
+.edit-btn {
+  background: #1d63c1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.edit-btn:hover {
+  background: #218838;
+}
+
 .empty-message {
   text-align: center;
   color: #6c757d;
   font-style: italic;
   padding: 2rem !important;
+}
+
+.nuevo-grupo {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.input-grupo {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.input-numero {
+  width: 100px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.input-fecha {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.grupo-costos {
+  margin-bottom: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.grupo-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.grupo-header:hover {
+  background: #e9ecef;
+}
+
+.grupo-header h4 {
+  margin: 0;
+  color: #1d63c1;
+  flex: 1;
+}
+
+.grupo-fecha {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.guardar-grupo-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.select-grupo {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 200px;
+  background: white;
 }
 
 .tasa-table {
@@ -412,4 +687,38 @@ h2 {
   font-weight: 700;
   color: #1d63c1;
   font-size: 1.1rem;
+}
+
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+}
+
+.page-btn {
+  padding: 0.5rem 1rem;
+  background: #1d63c1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #1565c0;
+}
+
+.page-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: #333;
+  font-weight: 500;
 }

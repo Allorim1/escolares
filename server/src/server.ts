@@ -55,9 +55,6 @@ app.get('/api/tasas', async (req: Request, res: Response) => {
     const bcvData: any = bcvRes.ok ? await bcvRes.json() : null;
     const usdtData: any = usdtRes.ok ? await usdtRes.json() : null;
 
-    console.log('BCV Response:', bcvData);
-    console.log('USDT Response:', usdtData);
-
     const result: any = {};
 
     if (bcvData?.current) {
@@ -108,27 +105,116 @@ app.get('/health', (req: Request, res: Response) => {
 
 app.post('/api/costos', async (req: Request, res: Response) => {
   try {
-    const costo = req.body;
-    costo.fecha = new Date();
+    const { nombre, numero, data } = req.body;
+
+    const grupo = {
+      nombre,
+      numero,
+      fecha: new Date(),
+      data: data || [],
+    };
 
     const collection = database.getCollection('costos');
-    const result = await collection.insertOne(costo);
+    const result = await collection.insertOne(grupo);
 
     res.json({ success: true, id: result.insertedId });
   } catch (error) {
-    console.error('Error guardando costo:', error);
-    res.status(500).json({ error: 'Error al guardar costo' });
+    console.error('Error guardando grupo:', error);
+    res.status(500).json({ error: 'Error al guardar grupo' });
   }
 });
 
 app.get('/api/costos', async (req: Request, res: Response) => {
   try {
     const collection = database.getCollection('costos');
-    const costos = await collection.find().sort({ fecha: -1 }).toArray();
-    res.json(costos);
+    const grupos = await collection.find().sort({ fecha: -1 }).toArray();
+    res.json(grupos);
   } catch (error) {
-    console.error('Error obteniendo costos:', error);
-    res.status(500).json({ error: 'Error al obtener costos' });
+    console.error('Error obteniendo grupos:', error);
+    res.status(500).json({ error: 'Error al obtener grupos' });
+  }
+});
+
+app.post('/api/costos/:id/costo', async (req: Request, res: Response) => {
+  try {
+    const { ObjectId } = await import('mongodb');
+    const collection = database.getCollection('costos');
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    const costoData = req.body;
+    costoData.fecha = new Date();
+
+    await collection.updateOne({ _id: new ObjectId(id) }, { $push: { data: costoData } });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error agregando costo al grupo:', error);
+    res.status(500).json({ error: 'Error al agregar costo al grupo' });
+  }
+});
+
+app.put('/api/costos/:id/costo', async (req: Request, res: Response) => {
+  try {
+    const { ObjectId } = await import('mongodb');
+    const collection = database.getCollection('costos');
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    await collection.updateOne({ _id: new ObjectId(id) }, { $set: req.body });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error actualizando costo:', error);
+    res.status(500).json({ error: 'Error al actualizar costo' });
+  }
+});
+
+app.put('/api/costos/:id/costo/:index', async (req: Request, res: Response) => {
+  try {
+    const { ObjectId } = await import('mongodb');
+    const collection = database.getCollection('costos');
+    const idParam = req.params.id;
+    const id = Array.isArray(idParam) ? idParam[0] : idParam;
+    const indexParam = req.params.index;
+    const index = Array.isArray(indexParam) ? parseInt(indexParam[0]) : parseInt(indexParam);
+
+    const grupo = await collection.findOne({ _id: new ObjectId(id) });
+    if (!grupo || !grupo.data || index < 0 || index >= grupo.data.length) {
+      res.status(404).json({ error: 'Costo no encontrado' });
+      return;
+    }
+
+    grupo.data[index] = { ...grupo.data[index], ...req.body };
+    await collection.updateOne({ _id: new ObjectId(id) }, { $set: { data: grupo.data } });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error actualizando costo:', error);
+    res.status(500).json({ error: 'Error al actualizar costo' });
+  }
+});
+
+app.delete('/api/costos/:id/costo/:index', async (req: Request, res: Response) => {
+  try {
+    const { ObjectId } = await import('mongodb');
+    const collection = database.getCollection('costos');
+    const idParam = req.params.id;
+    const id = Array.isArray(idParam) ? idParam[0] : idParam;
+    const indexParam = req.params.index;
+    const index = Array.isArray(indexParam) ? parseInt(indexParam[0]) : parseInt(indexParam);
+
+    const grupo = await collection.findOne({ _id: new ObjectId(id) });
+    if (!grupo || !grupo.data || index < 0 || index >= grupo.data.length) {
+      res.status(404).json({ error: 'Costo no encontrado' });
+      return;
+    }
+
+    grupo.data.splice(index, 1);
+    await collection.updateOne({ _id: new ObjectId(id) }, { $set: { data: grupo.data } });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error eliminando costo:', error);
+    res.status(500).json({ error: 'Error al eliminar costo' });
   }
 });
 
@@ -140,21 +226,8 @@ app.delete('/api/costos/:id', async (req: Request, res: Response) => {
     await collection.deleteOne({ _id: new ObjectId(id) });
     res.json({ success: true });
   } catch (error) {
-    console.error('Error eliminando costo:', error);
-    res.status(500).json({ error: 'Error al eliminar costo' });
-  }
-});
-
-app.put('/api/costos/:id', async (req: Request, res: Response) => {
-  try {
-    const { ObjectId } = await import('mongodb');
-    const collection = database.getCollection('costos');
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    await collection.updateOne({ _id: new ObjectId(id) }, { $set: req.body });
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error actualizando costo:', error);
-    res.status(500).json({ error: 'Error al actualizar costo' });
+    console.error('Error eliminando grupo:', error);
+    res.status(500).json({ error: 'Error al eliminar grupo' });
   }
 });
 

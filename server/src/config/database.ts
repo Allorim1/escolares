@@ -23,7 +23,6 @@ class Database {
       dbInstance = this.db;
       console.log('Conectado a MongoDB');
 
-      
       await this.initCollections();
       return true;
     } catch (error) {
@@ -39,7 +38,7 @@ class Database {
     const collections = await this.db.listCollections().toArray();
     const collectionNames = collections.map((c) => c.name);
 
-    const requiredCollections = ['marcas', 'lineas', 'ofertas', 'users', 'products'];
+    const requiredCollections = ['marcas', 'lineas', 'ofertas', 'users', 'products', 'costos'];
 
     for (const name of requiredCollections) {
       if (!collectionNames.includes(name)) {

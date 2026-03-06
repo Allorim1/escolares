@@ -106,6 +106,10 @@ export const routes: Routes = [
         path: 'usuarios',
         loadComponent: () => import('./admin/usuarios/admin-usuarios').then((m) => m.AdminUsuarios),
       },
+      {
+        path: 'costo-tasa',
+        loadComponent: () => import('./admin/costo-tasa/costo-tasa').then((m) => m.CostoTasa),
+      },
     ],
   },
   {

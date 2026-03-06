@@ -63,17 +63,6 @@ export class AuthBackend {
     this.loginError.set(null);
     this.loginLoading.set(true);
 
-    if (usernameOrEmail === 'admin' && password === 'admin123') {
-      const user = this.ADMIN_USER;
-      this.currentUser.set(user);
-      this.isLoggedIn.set(true);
-      this.isAdmin.set(true);
-      this.saveToStorage(user);
-      this.loginLoading.set(false);
-      this.router.navigate(['/admin']);
-      return;
-    }
-
     const isEmail = usernameOrEmail.includes('@');
     const payload = isEmail
       ? { email: usernameOrEmail, password }
@@ -85,6 +74,9 @@ export class AuthBackend {
         this.isLoggedIn.set(true);
         this.isAdmin.set(response.isAdmin || response.rol === 'admin' || response.rol === 'owner');
         this.saveToStorage(response);
+        if (response.accessToken) {
+          this.saveToken(response.accessToken);
+        }
         this.loginLoading.set(false);
         if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner') {
           this.router.navigate(['/admin']);
@@ -124,7 +116,25 @@ export class AuthBackend {
   }
 
   getAllUsers() {
-    return this.http.get<any[]>(`${this.API_URL}/users`);
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.get<any[]>(`${this.API_URL}/users`, { headers });
+  }
+
+  private getToken(): string | null {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem('accessToken');
+    }
+    return null;
+  }
+
+  private saveToken(token: string) {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('accessToken', token);
+    }
   }
 
   updateUserRol(targetUserId: string, rol: 'admin' | 'empleado' | 'usuario') {

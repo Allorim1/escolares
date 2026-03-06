@@ -131,7 +131,7 @@ export class AuthController {
       });
 
       const { password: _, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.json({ ...userWithoutPassword, accessToken: tokens.accessToken });
     } catch (error) {
       console.error('Error en login:', error);
       res.status(500).json({ error: 'Error al iniciar sesión' });

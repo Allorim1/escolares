@@ -1,0 +1,231 @@
+<div class="tasa-container">
+  <h2>Costos y Tasas</h2>
+
+  <div class="tasas-bcv-section">
+    <div class="tasas-header">
+      <h3>Tasas del BCV</h3>
+      <button class="refresh-btn" (click)="loadTasas()" [disabled]="loadingTasa()">
+        @if (loadingTasa()) {
+          <span class="spinner"></span> Cargando...
+        } @else {
+          ↻ Actualizar Tasas
+        }
+      </button>
+    </div>
+    @if (tasaError()) {
+      <div class="tasa-error">{{ tasaError() }}</div>
+    }
+    <div class="tasas-display">
+      <div class="tasa-item">
+        <label class="tasa-radio">
+          <input
+            type="radio"
+            name="tasaPvp"
+            [value]="'dolar'"
+            [ngModel]="tasaPvp()"
+            (ngModelChange)="onTasaPvpChange($event)"
+          />
+          <span class="tasa-label">USD:</span>
+          <span class="tasa-value">Bs {{ dolar().toFixed(2) }}</span>
+        </label>
+      </div>
+      <div class="tasa-item">
+        <label class="tasa-radio">
+          <input
+            type="radio"
+            name="tasaPvp"
+            [value]="'euro'"
+            [ngModel]="tasaPvp()"
+            (ngModelChange)="onTasaPvpChange($event)"
+          />
+          <span class="tasa-label">EUR:</span>
+          <span class="tasa-value">Bs {{ euro().toFixed(2) }}</span>
+        </label>
+      </div>
+      <div class="tasa-item">
+        <label class="tasa-radio">
+          <input
+            type="radio"
+            name="tasaPvp"
+            [value]="'binance'"
+            [ngModel]="tasaPvp()"
+            (ngModelChange)="onTasaPvpChange($event)"
+          />
+          <span class="tasa-label">Binance:</span>
+          <span class="tasa-value">$ {{ binance().toFixed(2) }}</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <div class="input-group">
+      <label>Costo ($)</label>
+      <input
+        type="number"
+        [ngModel]="costo()"
+        (ngModelChange)="onCostoChange($event)"
+        (focus)="onCostoFocus($event)"
+        (blur)="onCostoBlur($event)"
+        (keydown.enter)="onEnterBlur($event)"
+        step="0.01"
+        min="0"
+      />
+    </div>
+
+    <div class="input-group checkbox-group">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [ngModel]="ivaActivo()"
+          (ngModelChange)="onIvaActivoChange($event)"
+        />
+        <span class="checkbox-custom"></span>
+        <span>IVA (16%)</span>
+      </label>
+    </div>
+
+    <div class="input-group">
+      <label>Utilidad (%)</label>
+      <input
+        type="number"
+        [ngModel]="cargoPersonalizadoPorcentaje()"
+        (ngModelChange)="onCargoPersonalizadoPorcentajeChange($event)"
+        (focus)="onUtilidadFocus($event)"
+        (blur)="onUtilidadBlur($event)"
+        (keydown.enter)="onEnterBlur($event)"
+        step="1"
+        min="0"
+        max="100"
+      />
+    </div>
+
+    <div class="input-group">
+      <label>Tasa Dólar BCV ($)</label>
+      <input
+        type="number"
+        [ngModel]="dolar().toFixed(2)"
+        (ngModelChange)="onDolarChange($event)"
+        (keydown.enter)="onEnterBlur($event)"
+        step="0.01"
+        min="0"
+      />
+    </div>
+
+    <div class="input-group">
+      <label>Tasa Euro BCV (€)</label>
+      <input
+        type="number"
+        [ngModel]="euro().toFixed(2)"
+        (ngModelChange)="onEuroChange($event)"
+        (keydown.enter)="onEnterBlur($event)"
+        step="0.01"
+        min="0"
+      />
+    </div>
+
+    <div class="input-group">
+      <label>Tasa Binance (USDT)</label>
+      <input
+        type="number"
+        [ngModel]="binance().toFixed(2)"
+        (ngModelChange)="onBinanceChange($event)"
+        (keydown.enter)="onEnterBlur($event)"
+        step="0.01"
+        min="0"
+      />
+    </div>
+  </div>
+
+  <div class="button-center">
+    <button class="save-btn" (click)="guardarCosto()" [disabled]="saving()">
+      @if (saving()) {
+        <span class="spinner"></span> Guardando...
+      } @else {
+        💾
+      }
+    </button>
+  </div>
+
+  <div class="table-section">
+    <table class="tasa-table">
+      <thead>
+        <tr>
+          <th>Costo</th>
+          <th>IVA</th>
+          <th>Dólar</th>
+          <th>Euro</th>
+          <th>Binance</th>
+          <th>Utilidad $</th>
+          <th>PVP Bs</th>
+          <th>PVP $</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="current-row">
+          <td>${{ tasa().costo.toFixed(2) }}</td>
+          <td>${{ tasa().iva.toFixed(2) }}</td>
+          <td>Bs {{ tasa().dolar.toFixed(2) }}</td>
+          <td>Bs {{ tasa().euro.toFixed(2) }}</td>
+          <td>Bs {{ tasa().binance.toFixed(2) }}</td>
+          <td>${{ tasa().cargoPersonalizado.toFixed(2) }}</td>
+          <td>Bs {{ tasa().pvpBsf.toFixed(2) }}</td>
+          <td>${{ tasa().pvpDolar.toFixed(2) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-section">
+    <div class="table-header">
+      <h3>Costos Guardados</h3>
+      <div class="header-buttons">
+        <button class="print-btn" (click)="imprimirCostos()">🖨️ Imprimir</button>
+        <button class="pdf-btn" (click)="generarPdf()">📄 PDF</button>
+      </div>
+    </div>
+    <table class="tasa-table" #tablaCostos>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Costo</th>
+          <th>IVA</th>
+          <th>Tasa PVP</th>
+          <th>Utilidad $</th>
+          <th>PVP Bs</th>
+          <th>PVP $</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of costosGuardados(); track item._id) {
+          <tr>
+            <td>{{ item.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>${{ item.costo.toFixed(2) }}</td>
+            <td>
+              <label class="iva-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="item.ivaActivo"
+                  (change)="toggleIva(item, $event)"
+                />
+                <span class="iva-value">${{ item.iva.toFixed(2) }}</span>
+              </label>
+            </td>
+            <td>{{ item.tasaPvp | uppercase }}</td>
+            <td>${{ item.cargoPersonalizado.toFixed(2) }}</td>
+            <td>Bs {{ item.pvpBsf.toFixed(2) }}</td>
+            <td>${{ item.pvpDolar.toFixed(2) }}</td>
+            <td>
+              <button class="delete-btn" (click)="eliminarCosto(item._id)">🗑️</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="empty-message">No hay costos guardados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

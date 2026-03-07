@@ -87,6 +87,15 @@ export class CostoTasa implements OnInit {
   filtroFecha = '';
   reporteSeleccionadoId: any = null;
   mostrarPopup = false;
+  mostrarConsultaUnica = false;
+  consultaCosto = 0;
+  consultaIva = false;
+  consultaUtilidad = 10;
+  consultaTasaPvp: 'dolar' | 'euro' | 'binance' = 'dolar';
+  consultaIvaAmount = 0;
+  consultaCostoConIva = 0;
+  consultaUtilidadAmount = 0;
+  consultaPvpDolar = 0;
   saving = signal(false);
   utilidadesTemp: { [key: string]: number } = {};
   pvpDolarTemp: { [key: string]: number } = {};
@@ -94,8 +103,8 @@ export class CostoTasa implements OnInit {
   paginaActual = 1;
   reportesPorPagina = 5;
 
-  private readonly API_DOLAR = 'http://localhost:3000/api/tasas';
-  private readonly API_COSTOS = 'http://localhost:3000/api/costos';
+  private readonly API_DOLAR = '/api/tasas';
+  private readonly API_COSTOS = '/api/costos';
 
   ngOnInit() {
     this.loadTasas();
@@ -789,5 +798,28 @@ export class CostoTasa implements OnInit {
       return;
     }
     this.agregarCostoAGrupo(this.reporteSeleccionadoId);
+  }
+
+  consultaUnica() {
+    this.consultaCosto = this.costo() || 0;
+    this.consultaIva = this.ivaActivo();
+    this.consultaUtilidad = this.cargoPersonalizadoPorcentaje() || 10;
+    this.consultaTasaPvp = this.tasaPvp();
+    this.calcularConsultaUnica();
+    this.mostrarConsultaUnica = true;
+  }
+
+  calcularConsultaUnica() {
+    const costoBase = this.consultaCosto || 0;
+    this.consultaIvaAmount = this.consultaIva ? costoBase * 0.16 : 0;
+    this.consultaCostoConIva = costoBase + this.consultaIvaAmount;
+
+    const cargoPorcentaje = this.consultaUtilidad / 100;
+    this.consultaPvpDolar = this.consultaCostoConIva * (1 + cargoPorcentaje);
+    this.consultaUtilidadAmount = this.consultaPvpDolar - this.consultaCostoConIva;
+  }
+
+  cerrarConsultaUnica() {
+    this.mostrarConsultaUnica = false;
   }
 }

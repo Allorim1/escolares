@@ -6,7 +6,7 @@ import { Linea } from '../models';
   providedIn: 'root',
 })
 export class LineasBackend {
-  private readonly API_URL = 'http://localhost:3000/api/lineas';
+  private readonly API_URL = '/api/lineas';
 
   lineas = signal<Linea[]>([]);
   isInitialized = signal(false);

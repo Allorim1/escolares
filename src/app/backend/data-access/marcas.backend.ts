@@ -6,7 +6,7 @@ import { Marca } from '../models';
   providedIn: 'root',
 })
 export class MarcasBackend {
-  private readonly API_URL = 'http://localhost:3000/api/marcas';
+  private readonly API_URL = '/api/marcas';
 
   marcas = signal<Marca[]>([]);
   isInitialized = signal(false);

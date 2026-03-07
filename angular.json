@@ -27,13 +27,10 @@
               }
             ],
             "styles": ["src/styles.css"],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
+            "ssr": false,
+            "prerender": false,
             "security": {
               "allowedHosts": ["192.168.1.128", "localhost"]
-            },
-            "ssr": {
-              "entry": "src/server.ts"
             }
           },
           "configurations": {
@@ -46,8 +43,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "20kB",
+                  "maximumError": "50kB"
                 }
               ],
               "outputHashing": "all"

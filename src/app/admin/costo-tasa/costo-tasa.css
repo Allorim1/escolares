@@ -29,6 +29,49 @@ h2 {
   font-size: 1.2rem;
 }
 
+.consulta-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  color: #1d63c1;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.consulta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.consulta-btn-small {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  color: #1d63c1;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  margin-left: 7.5rem;
+}
+
+.consulta-btn-small:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 .refresh-btn {
   display: flex;
   align-items: center;
@@ -80,7 +123,9 @@ h2 {
 
 .tasas-display {
   display: flex;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
 }
 
 .tasa-item {
@@ -442,6 +487,114 @@ h2 {
 
 .cancel-btn:hover {
   background: #5a6268;
+}
+
+.consulta-detalle {
+  margin-bottom: 1.5rem;
+}
+
+.consulta-tasas {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.consulta-tasas .tasa-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  background: #1d63c1;
+  border-color: #1d63c1;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.consulta-tasas .tasa-radio:hover {
+  background: #e9ecef;
+}
+
+.consulta-tasas .tasa-radio:has(input:checked) {
+  background: #e3f2fd;
+  border-color: #d4e769;
+  color: #1d63c1;
+  font-weight: 600;
+}
+
+.consulta-tasas .tasa-radio input[type='radio'] {
+  display: none;
+}
+
+.consulta-inputs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.consulta-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.consulta-input-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.input-consulta {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100px;
+}
+
+.input-consulta:focus {
+  outline: none;
+  border-color: #1d63c1;
+}
+
+.consulta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.consulta-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.consulta-value {
+  color: #333;
+  font-weight: 600;
+}
+
+.consulta-divider {
+  height: 2px;
+  background: #1d63c1;
+  margin: 0.5rem 0;
+}
+
+.consulta-row.total-row {
+  background: #e3f2fd;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+.consulta-row.total-row .consulta-label,
+.consulta-row.total-row .consulta-value {
+  color: #1d63c1;
+  font-size: 1.1rem;
 }
 
 .grupo-costos.seleccionado {

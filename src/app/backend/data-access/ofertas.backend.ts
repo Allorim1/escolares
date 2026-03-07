@@ -6,7 +6,7 @@ import { Oferta } from '../models';
   providedIn: 'root',
 })
 export class OfertasBackend {
-  private readonly API_URL = 'http://localhost:3000/api/ofertas';
+  private readonly API_URL = '/api/ofertas';
 
   ofertas = signal<Oferta[]>([]);
 

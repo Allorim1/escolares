@@ -7,7 +7,7 @@ import { User } from '../models';
   providedIn: 'root',
 })
 export class AuthBackend {
-  private readonly API_URL = 'http://localhost:3000/api/auth';
+  private readonly API_URL = '/api/auth';
   private readonly STORAGE_KEY_SESSION = 'user';
 
   currentUser = signal<User | null>(null);

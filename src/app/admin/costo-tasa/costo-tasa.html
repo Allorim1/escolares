@@ -55,7 +55,133 @@
           <span class="tasa-value">$ {{ binance().toFixed(2) }}</span>
         </label>
       </div>
+      <button class="consulta-btn-small" (click)="consultaUnica()">🔍 Consulta Única</button>
     </div>
+
+    @if (mostrarConsultaUnica) {
+      <div class="popup-overlay" (click)="cerrarConsultaUnica()">
+        <div class="popup-content" (click)="$event.stopPropagation()">
+          <h3>Consulta Única</h3>
+          <div class="consulta-inputs">
+            <div class="consulta-input-group">
+              <label>Costo ($)</label>
+              <input
+                #consultaCostoInput
+                type="number"
+                [(ngModel)]="consultaCosto"
+                (ngModelChange)="calcularConsultaUnica()"
+                (focus)="consultaCostoInput.value = ''; consultaCosto = 0"
+                (keydown.enter)="
+                  consultaCostoInput.value = ''; consultaCostoInput.focus();
+                "
+                step="0.01"
+                min="0"
+                class="input-consulta"
+              />
+            </div>
+            <div class="consulta-input-group checkbox-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="consultaIva"
+                  (change)="calcularConsultaUnica()"
+                />
+                <span class="checkbox-custom"></span>
+                <span>IVA (16%)</span>
+              </label>
+            </div>
+            <div class="consulta-input-group">
+              <label>Utilidad (%)</label>
+              <input
+                type="number"
+                [(ngModel)]="consultaUtilidad"
+                (ngModelChange)="calcularConsultaUnica()"
+                step="1"
+                min="0"
+                max="100"
+                class="input-consulta"
+              />
+            </div>
+          </div>
+          <div class="consulta-tasas">
+            <label class="tasa-radio">
+              <input
+                type="radio"
+                name="consultaTasaPvp"
+                [value]="'dolar'"
+                [(ngModel)]="consultaTasaPvp"
+                (ngModelChange)="calcularConsultaUnica()"
+              />
+              <span class="tasa-label">USD: Bs {{ dolar().toFixed(2) }}</span>
+            </label>
+            <label class="tasa-radio">
+              <input
+                type="radio"
+                name="consultaTasaPvp"
+                [value]="'euro'"
+                [(ngModel)]="consultaTasaPvp"
+                (ngModelChange)="calcularConsultaUnica()"
+              />
+              <span class="tasa-label">EUR: Bs {{ euro().toFixed(2) }}</span>
+            </label>
+            <label class="tasa-radio">
+              <input
+                type="radio"
+                name="consultaTasaPvp"
+                [value]="'binance'"
+                [(ngModel)]="consultaTasaPvp"
+                (ngModelChange)="calcularConsultaUnica()"
+              />
+              <span class="tasa-label">Binance: $ {{ binance().toFixed(2) }}</span>
+            </label>
+          </div>
+          <div class="consulta-detalle">
+            <div class="consulta-row">
+              <span class="consulta-label">IVA (16%):</span>
+              <span class="consulta-value">${{ consultaIvaAmount.toFixed(2) }}</span>
+            </div>
+            <div class="consulta-row">
+              <span class="consulta-label">Utilidad ({{ consultaUtilidad }}%):</span>
+              <span class="consulta-value">${{ consultaUtilidadAmount.toFixed(2) }}</span>
+            </div>
+            <div class="consulta-divider"></div>
+            <div class="consulta-row">
+              <span class="consulta-label">Tasa ({{ consultaTasaPvp | uppercase }}):</span>
+              <span class="consulta-value"
+                >Bs
+                @if (consultaTasaPvp === 'dolar') {
+                  {{ dolar().toFixed(2) }}
+                } @else if (consultaTasaPvp === 'euro') {
+                  {{ euro().toFixed(2) }}
+                } @else {
+                  {{ binance().toFixed(2) }}
+                }
+              </span>
+            </div>
+            <div class="consulta-row total-row">
+              <span class="consulta-label">PVP Bs:</span>
+              <span class="consulta-value"
+                >Bs
+                @if (consultaTasaPvp === 'dolar') {
+                  {{ (consultaPvpDolar * dolar()).toFixed(2) }}
+                } @else if (consultaTasaPvp === 'euro') {
+                  {{ (consultaPvpDolar * euro()).toFixed(2) }}
+                } @else if (consultaTasaPvp === 'binance') {
+                  {{ (consultaPvpDolar * binance()).toFixed(2) }}
+                }
+              </span>
+            </div>
+            <div class="consulta-row total-row">
+              <span class="consulta-label">PVP $:</span>
+              <span class="consulta-value">${{ consultaPvpDolar.toFixed(2) }}</span>
+            </div>
+          </div>
+          <div class="popup-buttons">
+            <button class="cancel-btn" (click)="cerrarConsultaUnica()">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    }
   </div>
 
   <div class="input-section">

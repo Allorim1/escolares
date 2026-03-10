@@ -617,6 +617,11 @@
             reporte.tipo
           }}</span>
           <h4>{{ reporte.nombre }} - #{{ formatNumero(reporte.numero) }}</h4>
+          @if (reporte._id === reporteSeleccionadoId) {
+            <div class="guardar-seleccion-bar">
+              <button class="guardar-btn" (click)="deseleccionarReporte(); $event.stopPropagation()">💾 Guardar</button>
+            </div>
+          }
           <span class="grupo-fecha">{{ reporte.fecha | date: 'dd/MM/yyyy' }}</span>
           @if (reporte._id === reporteSeleccionadoId) {
             <span class="badge-seleccionado">✓ Editando</span>

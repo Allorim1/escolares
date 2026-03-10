@@ -397,6 +397,10 @@ export class CostoTasa implements OnInit {
     }
   }
 
+  deseleccionarReporte() {
+    this.reporteSeleccionadoId = null;
+  }
+
   eliminarReporte(id: any) {
     this.http
       .delete(`${this.API_COSTOS}/${id}`)

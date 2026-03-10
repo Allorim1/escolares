@@ -1,0 +1,370 @@
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+
+export interface CuentaBancaria {
+  banco: string;
+  numero: string;
+  tipo: string;
+  titular?: string;
+}
+
+export interface FacturaProveedor {
+  numero: string;
+  fecha: Date;
+  baseImponible: number;
+  baseExenta: number;
+  porcentajeIva: number;
+  iva: number;
+  iva75: number;
+  iva25: number;
+  abonos: number;
+  abonosIva: number;
+  abonosArray?: { monto: number; fecha: Date }[];
+  totalPagar: number;
+  deudaActual: number;
+  deudaIva: number;
+}
+
+export interface Proveedor {
+  _id?: string;
+  nombre: string;
+  rif: string;
+  direccion: string;
+  cuentasBancarias: CuentaBancaria[];
+  facturas: FacturaProveedor[];
+  fechaCreacion?: Date;
+}
+
+@Component({
+  selector: 'app-cuentas-por-pagar',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './cuentas-por-pagar.html',
+  styleUrl: './cuentas-por-pagar.css',
+})
+export class CuentasPorPagar implements OnInit {
+  private http = inject(HttpClient);
+  
+  private API = '/api/proveedores';
+
+  proveedores = signal<Proveedor[]>([]);
+  proveedorExpandido = signal<string | null>(null);
+  proveedorEditando = signal<string | null>(null);
+  proveedorConFactura = signal<string | null>(null);
+
+  showModalProveedor = false;
+  showModalFactura = false;
+  showModalAbono = false;
+  showModalDetalleFactura = false;
+  showModalIva = false;
+  editingProveedor: Proveedor | null = null;
+  editingFactura: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
+  facturaConAbono: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
+  facturaDetalle: { proveedor: Proveedor; factura: FacturaProveedor; index: number } | null = null;
+  facturaIva: { proveedor: Proveedor; factura: FacturaProveedor; index: number } | null = null;
+
+  newProveedor = {
+    nombre: '',
+    rif: '',
+    direccion: '',
+    cuentasBancarias: [] as CuentaBancaria[],
+  };
+
+  newFactura = {
+    numero: '',
+    fecha: '',
+    baseImponible: 0,
+    baseExenta: 0,
+    porcentajeIva: 16,
+  };
+
+  newAbono = {
+    monto: 0,
+    fecha: new Date().toISOString().split('T')[0],
+  };
+
+  newCuentaBancaria = {
+    banco: '',
+    numero: '',
+    tipo: 'corriente',
+    titular: '',
+  };
+
+  ngOnInit() {
+    this.loadProveedores();
+  }
+
+  loadProveedores() {
+    this.http.get<Proveedor[]>(this.API).subscribe({
+      next: (data) => this.proveedores.set(data),
+      error: (err) => console.error('Error cargando proveedores:', err),
+    });
+  }
+
+  toggleExpand(proveedorId: string) {
+    if (this.proveedorExpandido() === proveedorId) {
+      this.proveedorExpandido.set(null);
+    } else {
+      this.proveedorExpandido.set(proveedorId);
+    }
+  }
+
+  abrirModalProveedor(proveedor?: Proveedor) {
+    if (proveedor) {
+      this.editingProveedor = proveedor;
+      this.newProveedor = {
+        nombre: proveedor.nombre,
+        rif: proveedor.rif || '',
+        direccion: proveedor.direccion || '',
+        cuentasBancarias: [...proveedor.cuentasBancarias],
+      };
+    } else {
+      this.editingProveedor = null;
+      this.newProveedor = { nombre: '', rif: '', direccion: '', cuentasBancarias: [] };
+    }
+    this.showModalProveedor = true;
+  }
+
+  cerrarModalProveedor() {
+    this.showModalProveedor = false;
+    this.editingProveedor = null;
+  }
+
+  guardarProveedor() {
+    if (!this.newProveedor.nombre.trim()) return;
+
+    if (this.editingProveedor) {
+      this.http
+        .put(`${this.API}/${this.editingProveedor._id}`, {
+          nombre: this.newProveedor.nombre,
+          rif: this.newProveedor.rif,
+          direccion: this.newProveedor.direccion,
+          cuentasBancarias: this.newProveedor.cuentasBancarias,
+        })
+        .subscribe({
+          next: () => {
+            this.loadProveedores();
+            this.cerrarModalProveedor();
+          },
+          error: (err) => console.error('Error actualizando proveedor:', err),
+        });
+    } else {
+      this.http
+        .post(this.API, {
+          nombre: this.newProveedor.nombre,
+          rif: this.newProveedor.rif,
+          direccion: this.newProveedor.direccion,
+          cuentasBancarias: this.newProveedor.cuentasBancarias,
+        })
+        .subscribe({
+          next: () => {
+            this.loadProveedores();
+            this.cerrarModalProveedor();
+          },
+          error: (err) => console.error('Error creando proveedor:', err),
+        });
+    }
+  }
+
+  eliminarProveedor(id: string) {
+    if (!confirm('¿Está seguro de eliminar este proveedor?')) return;
+    this.http.delete(`${this.API}/${id}`).subscribe({
+      next: () => this.loadProveedores(),
+      error: (err) => console.error('Error eliminando proveedor:', err),
+    });
+  }
+
+  agregarCuentaBancaria() {
+    if (!this.newCuentaBancaria.banco.trim() || !this.newCuentaBancaria.numero.trim()) return;
+    this.newProveedor.cuentasBancarias = [
+      ...this.newProveedor.cuentasBancarias,
+      { ...this.newCuentaBancaria },
+    ];
+    this.newCuentaBancaria = { banco: '', numero: '', tipo: 'corriente', titular: '' };
+  }
+
+  eliminarCuentaBancaria(index: number) {
+    this.newProveedor.cuentasBancarias = this.newProveedor.cuentasBancarias.filter((_, i) => i !== index);
+  }
+
+  abrirModalFactura(proveedorId: string, factura?: FacturaProveedor, index?: number) {
+    if (factura && index !== undefined) {
+      this.editingFactura = { proveedorId, index, factura };
+      this.newFactura = {
+        numero: factura.numero,
+        fecha: factura.fecha instanceof Date ? factura.fecha.toISOString().split('T')[0] : new Date(factura.fecha).toISOString().split('T')[0],
+        baseImponible: factura.baseImponible,
+        baseExenta: factura.baseExenta,
+        porcentajeIva: factura.porcentajeIva || 16,
+      };
+    } else {
+      this.editingFactura = null;
+      this.newFactura = {
+        numero: '',
+        fecha: new Date().toISOString().split('T')[0],
+        baseImponible: 0,
+        baseExenta: 0,
+        porcentajeIva: 16,
+      };
+    }
+    this.proveedorConFactura.set(proveedorId);
+    this.showModalFactura = true;
+  }
+
+  cerrarModalFactura() {
+    this.showModalFactura = false;
+    this.editingFactura = null;
+  }
+
+  guardarFactura() {
+    const proveedorId = this.proveedorConFactura();
+    if (!proveedorId) return;
+
+    if (this.editingFactura) {
+      this.http
+        .put(`${this.API}/${proveedorId}/facturas/${this.editingFactura.index}`, this.newFactura)
+        .subscribe({
+          next: () => {
+            this.loadProveedores();
+            this.cerrarModalFactura();
+          },
+          error: (err) => console.error('Error actualizando factura:', err),
+        });
+    } else {
+      this.http
+        .post(`${this.API}/${proveedorId}/facturas`, this.newFactura)
+        .subscribe({
+          next: () => {
+            this.loadProveedores();
+            this.cerrarModalFactura();
+          },
+          error: (err) => console.error('Error agregando factura:', err),
+        });
+    }
+  }
+
+  eliminarFactura(proveedorId: string, index: number) {
+    if (!confirm('¿Está seguro de eliminar esta factura?')) return;
+    this.http.delete(`${this.API}/${proveedorId}/facturas/${index}`).subscribe({
+      next: () => this.loadProveedores(),
+      error: (err) => console.error('Error eliminando factura:', err),
+    });
+  }
+
+  abrirModalAbono(proveedorId: string, index: number, factura: FacturaProveedor) {
+    this.facturaConAbono = { proveedorId, index, factura };
+    this.newAbono = {
+      monto: 0,
+      fecha: new Date().toISOString().split('T')[0],
+    };
+    this.showModalAbono = true;
+  }
+
+  cerrarModalAbono() {
+    this.showModalAbono = false;
+    this.facturaConAbono = null;
+  }
+
+  abrirDetalleFactura(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
+    this.facturaDetalle = { proveedor, factura, index };
+    this.showModalDetalleFactura = true;
+  }
+
+  cerrarDetalleFactura() {
+    this.showModalDetalleFactura = false;
+    this.facturaDetalle = null;
+  }
+
+  abrirModalIva(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
+    this.facturaIva = { proveedor, factura, index };
+    this.showModalIva = true;
+  }
+
+  cerrarModalIva() {
+    this.showModalIva = false;
+    this.facturaIva = null;
+  }
+
+  guardarAbonoIva() {
+    if (!this.facturaIva || this.newAbono.monto <= 0) return;
+
+    this.http
+      .post(`${this.API}/${this.facturaIva.proveedor._id}/facturas/${this.facturaIva.index}/abonos-iva`, this.newAbono)
+      .subscribe({
+        next: () => {
+          this.loadProveedores();
+          this.cerrarModalIva();
+          if (this.facturaDetalle) {
+            const prov = this.proveedores().find(p => p._id === this.facturaDetalle?.proveedor._id);
+            if (prov && this.facturaDetalle.index >= 0 && this.facturaDetalle.index < (prov.facturas?.length || 0)) {
+              this.facturaDetalle = {
+                proveedor: prov,
+                factura: prov.facturas[this.facturaDetalle.index],
+                index: this.facturaDetalle.index
+              };
+            }
+          }
+        },
+        error: (err) => console.error('Error agregando abono IVA:', err),
+      });
+  }
+
+  guardarAbono() {
+    if (!this.facturaConAbono || this.newAbono.monto <= 0) return;
+
+    console.log('Enviando abono:', {
+      url: `${this.API}/${this.facturaConAbono.proveedorId}/facturas/${this.facturaConAbono.index}/abonos`,
+      data: this.newAbono
+    });
+
+    this.http
+      .post(`${this.API}/${this.facturaConAbono.proveedorId}/facturas/${this.facturaConAbono.index}/abonos`, this.newAbono)
+      .subscribe({
+        next: () => {
+          this.loadProveedores();
+          this.cerrarModalAbono();
+        },
+        error: (err) => {
+          console.error('Error agregando abono:', err);
+          if (err.error?.details) {
+            alert('Error: ' + err.error.details);
+          }
+        },
+      });
+  }
+
+  calcularDeuda(proveedor: Proveedor): number {
+    return proveedor.facturas?.reduce((sum, f) => sum + (f.deudaActual || 0), 0) || 0;
+  }
+
+  calcularTotalBaseImponible(proveedor: Proveedor): number {
+    return proveedor.facturas?.reduce((sum, f) => sum + (f.baseImponible || 0), 0) || 0;
+  }
+
+  calcularTotalBaseExenta(proveedor: Proveedor): number {
+    return proveedor.facturas?.reduce((sum, f) => sum + (f.baseExenta || 0), 0) || 0;
+  }
+
+  calcularTotalAbonos(proveedor: Proveedor): number {
+    return proveedor.facturas?.reduce((sum, f) => sum + (f.abonos || 0), 0) || 0;
+  }
+
+  calcularTotalPagar(proveedor: Proveedor): number {
+    return proveedor.facturas?.reduce((sum, f) => sum + (f.totalPagar || 0), 0) || 0;
+  }
+
+  getTotalDeuda(): number {
+    return this.proveedores().reduce((sum, p) => sum + this.calcularDeuda(p), 0);
+  }
+
+  formatMoneda(value: number): string {
+    return value.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  formatFecha(date: Date | string): string {
+    const d = new Date(date);
+    return d.toLocaleDateString('es-VE');
+  }
+}

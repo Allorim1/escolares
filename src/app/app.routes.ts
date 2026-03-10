@@ -119,6 +119,10 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/facturacion/facturacion').then((m) => m.AdminFacturacion),
       },
       {
+        path: 'cuentas-por-pagar',
+        loadComponent: () => import('./admin/cuentas-por-pagar/cuentas-por-pagar').then((m) => m.CuentasPorPagar),
+      },
+      {
         path: 'historico-costos',
         loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
       },

@@ -1,0 +1,89 @@
+<div class="historico-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; display: block; margin: 0 auto 10px;">
+  <h2>Histórico de Costos</h2>
+
+  <div class="filtro-section">
+    <input
+      type="text"
+      [(ngModel)]="filtroNombre"
+      placeholder="Buscar por producto, proveedor o ID..."
+      class="input-filtro"
+    />
+  </div>
+
+  @if (loading()) {
+    <div class="loading">
+      <span class="spinner"></span> Cargando...
+    </div>
+  } @else if (productosFiltrados.length === 0) {
+    <div class="no-data">
+      <p>No hay productos en el histórico</p>
+    </div>
+  } @else {
+    <div class="table-section">
+      <table class="historico-table">
+        <thead>
+          <tr>
+            <th>ID Producto</th>
+            <th>Nombre Producto</th>
+            <th>Mejor Proveedor (Menor Costo)</th>
+            <th>Menor Costo ($)</th>
+            <th>Mayor Ganancia ($)</th>
+            <th>Mayor Ganancia (%)</th>
+            <th>Proveedores</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (producto of productosFiltrados; track producto.nombreProducto) {
+            <tr>
+              <td>{{ formatNumero(producto.idProducto) }}</td>
+              <td>{{ producto.nombreProducto }}</td>
+              <td class="mejor-proveedor">{{ producto.mejorProveedor }}</td>
+              <td class="costo-menor">${{ producto.menorCosto.toFixed(2) }}</td>
+              <td class="utilidad-mayor">${{ producto.mayorUtilidad.toFixed(2) }}</td>
+              <td>{{ producto.mayorUtilidadPorcentaje.toFixed(2) }}%</td>
+              <td>
+                <button class="view-btn" (click)="toggleRegistros(producto.nombreProducto)">
+                  {{ producto.registros.length }} proveedor(es)
+                </button>
+              </td>
+            </tr>
+            @if (productosExpandidos.has(producto.nombreProducto.toLowerCase())) {
+              <tr class="registros-row">
+                <td colspan="7">
+                  <div class="registros-detalle">
+                    <h4>Detalle de Proveedores - {{ producto.nombreProducto }}</h4>
+                    <table class="detalle-table">
+                      <thead>
+                        <tr>
+                          <th>Proveedor</th>
+                          <th>Costo</th>
+                          <th>Utilidad $</th>
+                          <th>Utilidad %</th>
+                          <th>PVP $</th>
+                          <th>Tasa</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (registro of producto.registros; track $index) {
+                          <tr [class.best-cost]="registro.costo === producto.menorCosto" [class.best-utility]="registro.utilidad === producto.mayorUtilidad">
+                            <td>{{ registro.proveedor }} - #{{ formatNumero(registro.numeroReporte) }}</td>
+                            <td>${{ registro.costo.toFixed(2) }}</td>
+                            <td>${{ registro.utilidad.toFixed(2) }}</td>
+                            <td>{{ registro.utilidadPorcentaje.toFixed(2) }}%</td>
+                            <td>${{ registro.pvpDolar.toFixed(2) }}</td>
+                            <td>{{ registro.tasaPvp | uppercase }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

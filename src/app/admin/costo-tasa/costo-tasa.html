@@ -1,5 +1,6 @@
 <div class="tasa-container">
-  <h2>Costos y Tasas</h2>
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; display: block; margin: 0 auto 10px;">
+  <h2>Consultas</h2>
 
   <div class="tasas-bcv-section">
     <div class="tasas-header">
@@ -177,7 +178,7 @@
             </div>
           </div>
           <div class="popup-buttons">
-            <button class="cancel-btn" (click)="cerrarConsultaUnica()">Cerrar</button>
+            <button class="cancel-btn" (click)="cerrarConsultaUnica()">❌</button>
           </div>
         </div>
       </div>
@@ -297,6 +298,9 @@
     <div class="table-header">
       <h3>Reportes</h3>
       <div class="header-buttons">
+        <button class="view-btn" (click)="abrirPopupVerReportes()">
+          📋 Ver Reportes
+        </button>
         <button class="print-btn" (click)="imprimirReporte()" [disabled]="!reporteSeleccionadoId">
           🖨️ Imprimir
         </button>
@@ -321,6 +325,15 @@
         (ngModelChange)="filtrarReportes()"
         class="input-fecha"
       />
+      <select
+        [(ngModel)]="filtroTipo"
+        (change)="filtrarReportes()"
+        class="input-tipo"
+      >
+        <option value="">Todos los tipos</option>
+        <option value="Nota">Nota</option>
+        <option value="Factura">Factura</option>
+      </select>
       <button class="save-btn" (click)="abrirPopupReporte()">+</button>
     </div>
 
@@ -352,7 +365,7 @@
               class="cancel-btn"
               (click)="cerrarPopup()"
             >
-              Cancelar
+              ❌
             </button>
             <button
               #buttonCrear
@@ -364,9 +377,234 @@
               @if (saving()) {
                 <span class="spinner"></span> Guardando...
               } @else {
-                Crear Reporte
+                ✓
               }
             </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (mostrarPopupVerReportes) {
+      <div class="popup-overlay" (click)="cerrarPopupVerReportes()">
+        <div class="popup-content popup-large" (click)="$event.stopPropagation()">
+          <h3>Seleccionar Reporte</h3>
+          <div class="reporte-list">
+            @for (reporte of reportes(); track reporte._id) {
+              <div 
+                class="reporte-item" 
+                (click)="verDatosReporte(reporte)"
+              >
+                <span class="tipo-badge" [class.factura]="reporte.tipo === 'Factura'">{{ reporte.tipo }}</span>
+                <div class="reporte-info">
+                  <h4>{{ reporte.nombre }} - #{{ formatNumero(reporte.numero) }}</h4>
+                  <span class="reporte-fecha">{{ reporte.fecha | date: 'dd/MM/yyyy' }}</span>
+                  <span class="reporte-items">{{ reporte.data.length }} items</span>
+                </div>
+                <span class="reporte-total">
+                  Bs {{ formatearMoneda(calcularTotalBs(reporte)) }} / $ {{ formatearMoneda(calcularTotalDolar(reporte)) }}
+                </span>
+              </div>
+            } @empty {
+              <p class="no-reportes">No hay reportes disponibles</p>
+            }
+          </div>
+          <div class="popup-buttons">
+            <button class="cancel-btn" (click)="cerrarPopupVerReportes()">
+              ❌
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (mostrarPopupDatosReporte) {
+      <div class="popup-overlay" (click)="cerrarPopupDatosReporte()">
+        <div class="popup-content popup-large" (click)="$event.stopPropagation()">
+          <div class="popup-header">
+            <h3>{{ reporteSeleccionadoVer?.nombre }} - #{{ formatNumero(reporteSeleccionadoVer?.numero || 0) }}</h3>
+            <div class="header-actions">
+              <button class="quote-btn" (click)="verCotizacion(); $event.stopPropagation()">
+                📄 Ver Cotización
+              </button>
+              <button class="close-btn" (click)="cerrarPopupDatosReporte()">✕</button>
+            </div>
+          </div>
+          <p class="reporte-fecha">{{ reporteSeleccionadoVer?.fecha | date: 'dd/MM/yyyy' }} - {{ reporteSeleccionadoVer?.tipo }}</p>
+          
+          @if (reporteSeleccionadoVer && reporteSeleccionadoVer.data.length > 0) {
+            <table class="tasa-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Costo</th>
+                  <th>IVA</th>
+                  <th>Tasa PVP</th>
+                  <th>Utilidad %</th>
+                  <th>Utilidad $</th>
+                  <th>PVP Bs</th>
+                  <th>PVP $</th>
+                  <th>Unit. $</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of reporteSeleccionadoVer.data; track $index) {
+                  <tr>
+                    <td>
+                      @if (item.idProducto) {
+                        <span class="id-producto">{{ item.idProducto }}</span>
+                      } @else {
+                        <span class="sin-id">Sin ID</span>
+                      }
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        [ngModel]="nombresProductos[$index]"
+                        (ngModelChange)="setNombreProducto($event, $index)"
+                        (blur)="guardarNombreProducto(reporteSeleccionadoVer._id, $index)"
+                        (keydown.enter)="guardarNombreProducto(reporteSeleccionadoVer._id, $index)"
+                        class="input-producto"
+                        placeholder="Nombre producto"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        [ngModel]="cantidadesProductos[$index]"
+                        (ngModelChange)="setCantidad($event, $index)"
+                        (blur)="guardarCantidad(reporteSeleccionadoVer._id, $index)"
+                        (keydown.enter)="guardarCantidad(reporteSeleccionadoVer._id, $index)"
+                        class="input-cantidad"
+                        min="1"
+                      />
+                    </td>
+                    <td>${{ item.costo.toFixed(2) }}</td>
+                    <td>{{ item.ivaActivo ? '$' + item.iva.toFixed(2) : '-' }}</td>
+                    <td>{{ item.tasaPvp | uppercase }}</td>
+                    <td>{{ item.cargoPersonalizadoPorcentaje || 0 }}%</td>
+                    <td>${{ item.cargoPersonalizado.toFixed(2) }}</td>
+                    <td>Bs {{ formatearMoneda(item.pvpBsf) }}</td>
+                    <td>${{ formatearMoneda(item.pvpDolar) }}</td>
+                    <td class="precio-unitario">${{ getPrecioUnitario($index).toFixed(2) }}</td>
+                  </tr>
+                }
+                <tr class="current-row">
+                  <td colspan="8" style="text-align: right; font-weight: bold;">TOTALES:</td>
+                  <td>Bs {{ formatearMoneda(calcularTotalBs(reporteSeleccionadoVer)) }}</td>
+                  <td>${{ formatearMoneda(calcularTotalDolar(reporteSeleccionadoVer)) }}</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          } @else {
+            <p class="no-reportes">Este reporte no tiene datos</p>
+          }
+        </div>
+      </div>
+    }
+
+    @if (mostrarPopupCotizacion) {
+      <div class="popup-overlay" (click)="cerrarPopupCotizacion()">
+        <div class="popup-content popup-cotizacion" (click)="$event.stopPropagation()">
+          <div class="popup-header">
+            <h3>COTIZACIÓN</h3>
+            <button class="close-btn" (click)="cerrarPopupCotizacion()">✕</button>
+          </div>
+          <div class="cotizacion-container">
+            <div class="factura-header">
+              <div class="factura-logo">
+                <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 50px;">
+              </div>
+              <div class="factura-info">
+                <div class="factura-titulo">COTIZACIÓN</div>
+                <div class="factura-num">N° {{ formatNumero(reporteSeleccionadoVer?.numero || 0) }}</div>
+              </div>
+            </div>
+            
+            <div class="factura-datos">
+              <div class="dato-row">
+                <div class="dato-field">
+                  <label>Fecha:</label>
+                  <span>{{ getFechaActual() }}</span>
+                </div>
+                <div class="dato-field">
+                  <label>Validez:</label>
+                  <span>15 días ({{ getFechaValidez() }})</span>
+                </div>
+                <div class="dato-field">
+                  <label>Vendedor:</label>
+                  <input type="text" [(ngModel)]="cotizacionVendedor" placeholder="Nombre del vendedor" class="input-cotizacion">
+                </div>
+              </div>
+              <div class="dato-row">
+                <div class="dato-field">
+                  <label>Cliente:</label>
+                  <input type="text" [(ngModel)]="cotizacionCliente" placeholder="Nombre del cliente" class="input-cotizacion">
+                </div>
+                <div class="dato-field">
+                  <label>RIF/CI:</label>
+                  <input type="text" [(ngModel)]="cotizacionRif" placeholder="J-00000000-0" class="input-cotizacion">
+                </div>
+                <div class="dato-field">
+                  <label>Teléfono:</label>
+                  <input type="text" [(ngModel)]="cotizacionTelefono" placeholder="0412-123-4567" class="input-cotizacion">
+                </div>
+              </div>
+              <div class="dato-row">
+                <div class="dato-field full-width">
+                  <label>Dirección:</label>
+                  <input type="text" [(ngModel)]="cotizacionDireccion" placeholder="Dirección del cliente" class="input-cotizacion">
+                </div>
+              </div>
+            </div>
+
+            <table class="cotizacion-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>PVP Unit. $</th>
+                  <th>PVP Unit. Bs</th>
+                  <th>Subtotal $</th>
+                  <th>Subtotal Bs</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of reporteSeleccionadoVer?.data; track $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ nombresProductos[$index] || 'Sin nombre' }}</td>
+                    <td>{{ cantidadesProductos[$index] || 1 }}</td>
+                    <td>${{ getPrecioUnitario($index).toFixed(2) }}</td>
+                    <td>Bs {{ getPrecioUnitarioBs($index).toFixed(2) }}</td>
+                    <td>${{ (getPrecioUnitario($index) * (cantidadesProductos[$index] || 1)).toFixed(2) }}</td>
+                    <td>Bs {{ (getPrecioUnitarioBs($index) * (cantidadesProductos[$index] || 1)).toFixed(2) }}</td>
+                  </tr>
+                }
+                @if (reporteSeleccionadoVer) {
+                  <tr class="total-row">
+                    <td colspan="5" style="text-align: right; font-weight: bold;">TOTALES:</td>
+                    <td style="font-weight: bold;">${{ calcularTotalDolar(reporteSeleccionadoVer).toFixed(2) }}</td>
+                    <td style="font-weight: bold;">Bs {{ calcularTotalBs(reporteSeleccionadoVer).toFixed(2) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+
+            <div class="factura-firmas">
+              <div class="firma-box">
+                <div class="firma-linea"></div>
+                <div class="firma-label">Elaborado por</div>
+              </div>
+              <div class="firma-box">
+                <div class="firma-linea"></div>
+                <div class="firma-label">Recibido por</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

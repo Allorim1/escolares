@@ -1,0 +1,118 @@
+<div class="registro-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; display: block; margin: 0 auto 10px;">
+  <div class="header">
+    <h2>Registro de Actividad</h2>
+    <button class="btn-limpiar" (click)="limpiarRegistros()">
+      Limpiar Registros
+    </button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtro-botones">
+      <button 
+        class="btn-filtro" 
+        [class.active]="filtroModulo === ''"
+        (click)="limpiarFiltro()">
+        Todos
+      </button>
+      @for (modulo of modulos; track modulo) {
+        <button 
+          class="btn-filtro"
+          [class.active]="filtroModulo === modulo"
+          (click)="filtrarPorModulo(modulo)">
+          {{ modulo }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="tabla-container">
+    <table class="tabla-registros">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Módulo</th>
+          <th>Acción</th>
+          <th>Descripción</th>
+          <th>Usuario</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (registro of registrosFiltrados; track registro._id) {
+          <tr>
+            <td>{{ formatearFecha(registro.fecha) }}</td>
+            <td>
+              <span class="badge modulo">{{ registro.modulo }}</span>
+            </td>
+            <td>
+              <span class="badge" [class.text-green-600]="registro.accion.toLowerCase() === 'crear'"
+                    [class.text-blue-600]="registro.accion.toLowerCase() === 'editar'"
+                    [class.text-red-600]="registro.accion.toLowerCase() === 'eliminar'"
+                    [class.text-purple-600]="registro.accion.toLowerCase() === 'login'"
+                    [class.text-orange-600]="registro.accion.toLowerCase() === 'logout'">
+                {{ registro.accion }}
+              </span>
+            </td>
+            <td>{{ registro.descripcion }}</td>
+            <td>{{ registro.usuario }}</td>
+            <td>
+              <button class="btn-ver" (click)="verDetalle(registro)">
+                Ver
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="sin-registros">
+              No hay registros para mostrar
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (mostrarModal && registroSeleccionado) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Detalles del Registro</h3>
+        <button class="btn-cerrar" (click)="cerrarModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="detalle-row">
+          <label>Fecha:</label>
+          <span>{{ formatearFecha(registroSeleccionado.fecha) }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Módulo:</label>
+          <span>{{ registroSeleccionado.modulo }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Acción:</label>
+          <span [class.text-green-600]="registroSeleccionado.accion.toLowerCase() === 'crear'"
+                [class.text-blue-600]="registroSeleccionado.accion.toLowerCase() === 'editar'"
+                [class.text-red-600]="registroSeleccionado.accion.toLowerCase() === 'eliminar'">
+            {{ registroSeleccionado.accion }}
+          </span>
+        </div>
+        <div class="detalle-row">
+          <label>Usuario:</label>
+          <span>{{ registroSeleccionado.usuario }}</span>
+        </div>
+        <div class="detalle-row">
+          <label>Descripción:</label>
+          <span>{{ registroSeleccionado.descripcion }}</span>
+        </div>
+        @if (registroSeleccionado.datos && (registroSeleccionado.datos | json) !== '{}') {
+          <div class="detalle-row">
+            <label>Datos:</label>
+            <pre class="datos-json">{{ registroSeleccionado.datos | json }}</pre>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

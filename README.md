@@ -1,59 +1,64 @@
-# Escolares
+# Escolares - Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+Frontend de la aplicación Escolares desarrollado con Angular 21.
 
-## Development server
+## Requisitos
 
-To start a local development server, run:
+- Node.js 20+
+- npm 10+
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Desarrollo local
 
 ```bash
-ng generate component component-name
+cd escolares
+npm install
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+La aplicación estará disponible en `http://localhost:4200`
+
+## Build para producción
 
 ```bash
-ng generate --help
+npm run build
 ```
 
-## Building
+El build se genera en `dist/escolares/browser`
 
-To build the project run:
+## Docker
+
+### Build de imagen
 
 ```bash
-ng build
+docker build -t escolares-frontend .
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Run con Docker Compose
 
 ```bash
-ng test
+docker-compose up frontend
 ```
 
-## Running end-to-end tests
+La aplicación estará disponible en `http://localhost`
 
-For end-to-end (e2e) testing, run:
+## Configuración
 
-```bash
-ng e2e
+El frontend usa rutas relativas (`/api/...`) para las llamadas a la API. En desarrollo, debe estar corriendo la API en el puerto 3000. En producción, el proxy de nginx redirige las peticiones a la API.
+
+## Estructura
+
 ```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+escolares/
+├── src/
+│   └── app/
+│       ├── admin/          # Panel de administración
+│       ├── backend/       # Servicios de datos
+│       ├── cart/          # Carrito de compras
+│       ├── home/          # Página principal
+│       ├── login/         # Autenticación
+│       ├── panel/         # Panel de usuario
+│       ├── products/      # Catálogo de productos
+│       └── shared/        # Componentes compartidos
+├── public/                # Archivos estáticos
+└── nginx.conf            # Configuración de nginx
+```

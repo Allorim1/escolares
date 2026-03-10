@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MarcasService } from '../../shared/data-access/marcas.service';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { RegistroService } from '../../shared/data-access/registro.service';
 
 @Component({
   selector: 'app-admin-marcas',
@@ -13,6 +14,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 export class AdminMarcas {
   marcasService = inject(MarcasService);
   authService = inject(AuthService);
+  registroService = inject(RegistroService);
 
   marcas = this.marcasService.marcas;
   editingIndex = signal<string | null>(null);
@@ -101,6 +103,7 @@ export class AdminMarcas {
     }
 
     this.marcasService.agregarMarca(name, this.newMarcaImage());
+    this.registroService.registrar('crear', 'Marcas', `Marca "${name}" creada`, { nombre: name });
     this.newMarcaName.set('');
     this.newMarcaImage.set('');
     this.isAdding.set(false);
@@ -109,7 +112,9 @@ export class AdminMarcas {
 
   eliminarMarca(id: string) {
     if (confirm('¿Estás seguro de eliminar esta marca?')) {
+      const marca = this.marcas().find((m) => m.id === id);
       this.marcasService.eliminarMarca(id);
+      this.registroService.registrar('eliminar', 'Marcas', `Marca "${marca?.name}" eliminada`, { id, nombre: marca?.name });
       this.showMessage('Marca eliminada correctamente');
     }
   }
@@ -127,6 +132,7 @@ export class AdminMarcas {
 
     const imagen = this.editImagePreview() || this.marcas().find((m) => m.id === id)?.image || '';
     this.marcasService.actualizarMarca(id, nombre, imagen);
+    this.registroService.registrar('editar', 'Marcas', `Marca "${nombre}" actualizada`, { id, nombre });
     this.editingIndex.set(null);
     this.editImagePreview.set('');
     this.showMessage('Marca actualizada correctamente');

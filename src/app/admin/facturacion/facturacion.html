@@ -1,0 +1,108 @@
+<div class="facturacion-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; display: block; margin: 0 auto 10px;">
+  <div class="header">
+    <h2>Facturación</h2>
+    <button class="btn-primary" (click)="openModal()">
+      + Nueva Factura
+    </button>
+  </div>
+
+  @if (resumen) {
+    <div class="stats-grid">
+      <div class="stat-card entrante">
+        <div class="stat-label">Dinero Entrante</div>
+        <div class="stat-value">{{ formatCurrency(resumen.dineroEntrante) }}</div>
+        <div class="stat-sub">{{ resumen.pendientes }} facturas pendientes</div>
+      </div>
+      <div class="stat-card real">
+        <div class="stat-label">Dinero Real</div>
+        <div class="stat-value">{{ formatCurrency(resumen.dineroReal) }}</div>
+        <div class="stat-sub">{{ resumen.pagadas }} facturas pagadas</div>
+      </div>
+      <div class="stat-card brecha">
+        <div class="stat-label">Brecha</div>
+        <div class="stat-value">{{ formatCurrency(resumen.brecha) }}</div>
+        <div class="stat-sub">Dinero atrapado</div>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <h3>Evolución por Mes</h3>
+      <div class="chart-wrapper">
+        <canvas baseChart
+          [data]="getChartData()"
+          [options]="chartOptions"
+          type="bar">
+        </canvas>
+      </div>
+    </div>
+  }
+
+  <div class="facturas-list">
+    <h3>Facturas Recientes</h3>
+    <table class="facturas-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (factura of facturas; track factura._id) {
+          <tr>
+            <td>{{ formatearFecha(factura.fecha) }}</td>
+            <td>{{ factura.cliente }}</td>
+            <td>{{ formatCurrency(factura.total) }}</td>
+            <td>
+              <span class="badge" [class.pendiente]="factura.estado === 'pendiente'" [class.pagado]="factura.estado === 'pagado'">
+                {{ factura.estado === 'pendiente' ? 'Pendiente' : 'Pagado' }}
+              </span>
+            </td>
+            <td>
+              @if (factura.estado === 'pendiente') {
+                <button class="btn-action btn-pagar" (click)="marcarPagada(factura)">
+                  Pagar
+                </button>
+              }
+              <button class="btn-action btn-eliminar" (click)="eliminarFactura(factura)">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="sin-datos">No hay facturas</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingFactura ? 'Editar' : 'Nueva' }} Factura</h3>
+        <button class="btn-cerrar" (click)="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Cliente</label>
+          <input type="text" [(ngModel)]="newFactura.cliente" placeholder="Nombre del cliente">
+        </div>
+        <div class="form-group">
+          <label>Total (Bs)</label>
+          <input type="number" [(ngModel)]="newFactura.total" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button class="btn-primary" (click)="saveFactura()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

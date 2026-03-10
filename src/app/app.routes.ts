@@ -110,6 +110,18 @@ export const routes: Routes = [
         path: 'costo-tasa',
         loadComponent: () => import('./admin/costo-tasa/costo-tasa').then((m) => m.CostoTasa),
       },
+      {
+        path: 'registro',
+        loadComponent: () => import('./admin/registro/registro').then((m) => m.AdminRegistro),
+      },
+      {
+        path: 'facturacion',
+        loadComponent: () => import('./admin/facturacion/facturacion').then((m) => m.AdminFacturacion),
+      },
+      {
+        path: 'historico-costos',
+        loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
+      },
     ],
   },
   {

@@ -19,6 +19,9 @@ interface Tasa {
 
 interface CostoGuardado {
   _id?: any;
+  nombre?: string;
+  idProducto?: number;
+  cantidad?: number;
   costo: number;
   iva: number;
   cargoPersonalizado: number;
@@ -85,9 +88,19 @@ export class CostoTasa implements OnInit {
   tipoReporte: 'Nota' | 'Factura' = 'Nota';
   filtroNombre = '';
   filtroFecha = '';
+  filtroTipo: '' | 'Nota' | 'Factura' = '';
   reporteSeleccionadoId: any = null;
+  reporteSeleccionadoVer: Reporte | null = null;
   mostrarPopup = false;
+  mostrarPopupVerReportes = false;
+  mostrarPopupDatosReporte = false;
+  mostrarPopupCotizacion = false;
   mostrarConsultaUnica = false;
+  cotizacionCliente = '';
+  cotizacionDireccion = '';
+  cotizacionRif = '';
+  cotizacionTelefono = '';
+  cotizacionVendedor = '';
   consultaCosto = 0;
   consultaIva = false;
   consultaUtilidad = 10;
@@ -100,6 +113,8 @@ export class CostoTasa implements OnInit {
   utilidadesTemp: { [key: string]: number } = {};
   pvpDolarTemp: { [key: string]: number } = {};
   editingPvpDolar: { [key: string]: boolean } = {};
+  nombresProductos: { [key: string]: string } = {};
+  cantidadesProductos: { [key: string]: number } = {};
   paginaActual = 1;
   reportesPorPagina = 5;
 
@@ -137,9 +152,10 @@ export class CostoTasa implements OnInit {
   filtrarReportes() {
     const filtro = this.filtroNombre.toLowerCase().trim();
     const filtroFecha = this.filtroFecha ? this.filtroFecha : null;
+    const filtroTipo = this.filtroTipo || null;
     let reportesFiltrados: Reporte[];
 
-    if (!filtro && !filtroFecha) {
+    if (!filtro && !filtroFecha && !filtroTipo) {
       reportesFiltrados = this.reportes();
     } else {
       reportesFiltrados = this.reportes().filter((r) => {
@@ -150,7 +166,12 @@ export class CostoTasa implements OnInit {
           const fechaReporteStr = fechaReporte.toISOString().split('T')[0];
           coincideFecha = fechaReporteStr === filtroFecha;
         }
-        return coincideNombre && coincideFecha;
+        let coincideTipo = true;
+        if (filtroTipo) {
+          const tipoReporte = r.tipo ? String(r.tipo).trim() : '';
+          coincideTipo = tipoReporte.toLowerCase() === filtroTipo.toLowerCase();
+        }
+        return coincideNombre && coincideFecha && coincideTipo;
       });
     }
     this.reportesFiltrados.set(reportesFiltrados);
@@ -184,6 +205,153 @@ export class CostoTasa implements OnInit {
 
   cerrarPopup() {
     this.mostrarPopup = false;
+  }
+
+  abrirPopupVerReportes() {
+    this.mostrarPopupVerReportes = true;
+  }
+
+  cerrarPopupVerReportes() {
+    this.mostrarPopupVerReportes = false;
+  }
+
+  verDatosReporte(reporte: Reporte) {
+    this.reporteSeleccionadoVer = reporte;
+    this.nombresProductos = {};
+    this.cantidadesProductos = {};
+    reporte.data.forEach((item, index) => {
+      this.nombresProductos[index] = item.nombre || '';
+      this.cantidadesProductos[index] = item.cantidad || 1;
+    });
+    this.mostrarPopupVerReportes = false;
+    this.mostrarPopupDatosReporte = true;
+  }
+
+  cerrarPopupDatosReporte() {
+    this.mostrarPopupDatosReporte = false;
+    this.reporteSeleccionadoVer = null;
+    this.nombresProductos = {};
+    this.cantidadesProductos = {};
+  }
+
+  verCotizacion() {
+    this.mostrarPopupCotizacion = true;
+  }
+
+  cerrarPopupCotizacion() {
+    this.mostrarPopupCotizacion = false;
+    this.cotizacionCliente = '';
+    this.cotizacionDireccion = '';
+    this.cotizacionRif = '';
+    this.cotizacionTelefono = '';
+    this.cotizacionVendedor = '';
+  }
+
+  getFechaActual(): string {
+    return new Date().toLocaleDateString('es-VE');
+  }
+
+  getFechaValidez(): string {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() + 15);
+    return fecha.toLocaleDateString('es-VE');
+  }
+
+  setNombreProducto(nombre: string, index: number) {
+    this.nombresProductos[index] = nombre;
+  }
+
+  setCantidad(cantidad: number, index: number) {
+    this.cantidadesProductos[index] = cantidad > 0 ? cantidad : 1;
+  }
+
+  getPrecioUnitario(index: number): number {
+    const reporte = this.reporteSeleccionadoVer;
+    if (!reporte || !reporte.data[index]) return 0;
+    const item = reporte.data[index];
+    const cantidad = this.cantidadesProductos[index] || 1;
+    return item.pvpDolar / cantidad;
+  }
+
+  getPrecioUnitarioBs(index: number): number {
+    const reporte = this.reporteSeleccionadoVer;
+    if (!reporte || !reporte.data[index]) return 0;
+    const item = reporte.data[index];
+    const cantidad = this.cantidadesProductos[index] || 1;
+    return item.pvpBsf / cantidad;
+  }
+
+  guardarNombreProducto(reporteId: any, index: number) {
+    if (!reporteId || this.nombresProductos[index] === undefined) {
+      return;
+    }
+
+    const nombre = this.nombresProductos[index];
+    if (!nombre.trim()) {
+      return;
+    }
+
+    let idProductoExistente: number | null = null;
+
+    for (const reporte of this.reportes()) {
+      for (const item of reporte.data) {
+        if (item.nombre && item.nombre.toLowerCase() === nombre.toLowerCase() && item.idProducto) {
+          idProductoExistente = item.idProducto;
+          break;
+        }
+      }
+      if (idProductoExistente) break;
+    }
+
+    const idProducto = idProductoExistente || Date.now();
+
+    this.http
+      .put(`${this.API_COSTOS}/${reporteId}/costo/${index}`, {
+        nombre: nombre,
+        idProducto: idProducto,
+      })
+      .pipe(
+        catchError((err) => {
+          console.error('Error guardando nombre del producto:', err);
+          return of(null);
+        }),
+      )
+      .subscribe(() => {
+        this.loadReportes();
+      });
+  }
+
+  guardarCantidad(reporteId: any, index: number) {
+    if (!reporteId || this.cantidadesProductos[index] === undefined) {
+      return;
+    }
+
+    const cantidad = this.cantidadesProductos[index];
+    if (cantidad < 1) {
+      return;
+    }
+
+    this.http
+      .put(`${this.API_COSTOS}/${reporteId}/costo/${index}`, {
+        cantidad: cantidad,
+      })
+      .pipe(
+        catchError((err) => {
+          console.error('Error guardando cantidad:', err);
+          return of(null);
+        }),
+      )
+      .subscribe(() => {
+        this.loadReportes();
+      });
+  }
+
+  calcularTotalBs(reporte: Reporte): number {
+    return reporte.data.reduce((sum, item) => sum + item.pvpBsf, 0);
+  }
+
+  calcularTotalDolar(reporte: Reporte): number {
+    return reporte.data.reduce((sum, item) => sum + item.pvpDolar, 0);
   }
 
   crearReporte() {
@@ -439,12 +607,16 @@ export class CostoTasa implements OnInit {
   }
 
   imprimirReporte() {
+    console.log('imprimirReporte llamado', this.reporteSeleccionadoId);
     if (!this.reporteSeleccionadoId) {
+      console.log('No hay reporte seleccionado');
       return;
     }
 
-    const reporte = this.reportes().find((r) => r._id === this.reporteSeleccionadoId);
+    const reporte = this.reportes().find((r) => String(r._id) === String(this.reporteSeleccionadoId));
+    console.log('Reporte encontrado:', reporte);
     if (!reporte || !reporte.data || reporte.data.length === 0) {
+      console.log('Reporte sin datos');
       return;
     }
 
@@ -524,11 +696,12 @@ export class CostoTasa implements OnInit {
   }
 
   descargarPdf() {
+    console.log('descargarPdf llamado', this.reporteSeleccionadoId);
     if (!this.reporteSeleccionadoId) {
       return;
     }
 
-    const reporte = this.reportes().find((r) => r._id === this.reporteSeleccionadoId);
+    const reporte = this.reportes().find((r) => String(r._id) === String(this.reporteSeleccionadoId));
     if (!reporte || !reporte.data || reporte.data.length === 0) {
       return;
     }
@@ -803,7 +976,7 @@ export class CostoTasa implements OnInit {
   consultaUnica() {
     this.consultaCosto = this.costo() || 0;
     this.consultaIva = this.ivaActivo();
-    this.consultaUtilidad = this.cargoPersonalizadoPorcentaje() || 10;
+    this.consultaUtilidad = 0;
     this.consultaTasaPvp = this.tasaPvp();
     this.calcularConsultaUnica();
     this.mostrarConsultaUnica = true;

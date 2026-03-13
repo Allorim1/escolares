@@ -5,7 +5,7 @@
   <div class="cp-summary">
     <div class="summary-item total-deuda">
       <span class="label">Total Deuda:</span>
-      <span class="value">${{ formatMoneda(getTotalDeuda()) }}</span>
+      <span class="value">Bs {{ formatMoneda(getTotalDeuda()) }}</span>
     </div>
   </div>
 
@@ -32,7 +32,7 @@
             <span class="factura-count">{{ proveedor.facturas?.length || 0 }} facturas</span>
           </div>
           <div class="proveedor-summary">
-            <span class="deuda">Deuda: ${{ formatMoneda(calcularDeuda(proveedor)) }}</span>
+            <span class="deuda">Deuda: Bs {{ formatMoneda(calcularDeuda(proveedor)) }}</span>
           </div>
           <div class="proveedor-actions">
             <button class="btn-icon" (click)="abrirModalProveedor(proveedor); $event.stopPropagation()" title="Editar">✏️</button>
@@ -85,8 +85,8 @@
                       <tr (click)="abrirDetalleFactura(proveedor, factura, $index)" class="factura-row">
                         <td>{{ factura.numero }}</td>
                         <td>{{ formatFecha(factura.fecha) }}</td>
-                        <td>${{ formatMoneda(factura.totalPagar) }}</td>
-                        <td class="deuda-cell">${{ formatMoneda(factura.deudaActual) }}</td>
+                        <td>Bs {{ formatMoneda(factura.totalPagar) }}</td>
+                        <td class="deuda-cell">Bs {{ formatMoneda(factura.deudaActual) }}</td>
                         <td>
                           @if (factura.deudaActual === 0) {
                             <span class="badge-pagada">Pagada</span>
@@ -104,8 +104,8 @@
                   <tfoot>
                     <tr>
                       <td colspan="2"><strong>Totales:</strong></td>
-                      <td><strong>${{ formatMoneda(calcularTotalPagar(proveedor)) }}</strong></td>
-                      <td class="deuda-cell"><strong>${{ formatMoneda(calcularDeuda(proveedor)) }}</strong></td>
+                      <td><strong>Bs {{ formatMoneda(calcularTotalPagar(proveedor)) }}</strong></td>
+                      <td class="deuda-cell"><strong>Bs {{ formatMoneda(calcularDeuda(proveedor)) }}</strong></td>
                       <td colspan="2"></td>
                     </tr>
                   </tfoot>
@@ -124,7 +124,7 @@
 </div>
 
 @if (showModalProveedor) {
-  <div class="modal-overlay" (click)="cerrarModalProveedor()">
+  <div class="modal-overlay">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingProveedor ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h3>
@@ -148,26 +148,47 @@
         </div>
 
         <div class="cuentas-form">
-          <h5>Cuentas Bancarias</h5>
-          <div class="cuenta-inputs">
-            <select [(ngModel)]="newCuentaBancaria.tipo" class="input-tipo">
-              <option value="corriente">Corriente</option>
-              <option value="ahorro">Ahorro</option>
-            </select>
-            <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular de la cuenta" class="input-titular" />
+          <h5>Cuentas Bancarias / Pago Móvil</h5>
+          <div class="cuenta-checkbox">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="newCuentaBancaria.pagoMovil" />
+              <span>Es pago móvil</span>
+            </label>
           </div>
+          @if (!newCuentaBancaria.pagoMovil) {
+            <div class="cuenta-inputs">
+              <select [(ngModel)]="newCuentaBancaria.tipo" class="input-tipo">
+                <option value="corriente">Corriente</option>
+                <option value="ahorro">Ahorro</option>
+              </select>
+              <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
+            </div>
+          }
           <div class="cuenta-inputs">
-            <input type="text" [(ngModel)]="newCuentaBancaria.banco" placeholder="Banco" class="input-banco" />
-            <input type="text" [(ngModel)]="newCuentaBancaria.numero" placeholder="Número de cuenta" class="input-numero" />
-            <button class="btn-add" (click)="agregarCuentaBancaria()">➕ Agregar</button>
+            <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="newCuentaBancaria.pagoMovil ? 'Banco (ej: Banesco)' : 'Banco'" class="input-banco" />
+            <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="newCuentaBancaria.pagoMovil ? 'Número de teléfono' : 'Número de cuenta'" class="input-numero" />
           </div>
+          @if (newCuentaBancaria.pagoMovil) {
+            <div class="cuenta-inputs">
+              <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" />
+              <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
+            </div>
+          }
+          <button class="btn-add" (click)="agregarCuentaBancaria()">➕ Agregar</button>
           @if (newProveedor.cuentasBancarias.length > 0) {
             <div class="cuentas-agregadas">
               <h6>Cuentas agregadas:</h6>
               <div class="cuentas-list">
                 @for (cuenta of newProveedor.cuentasBancarias; track $index) {
                   <div class="cuenta-item">
-                    <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
+                    @if (cuenta.pagoMovil) {
+                      <span class="cuenta-tipo cuenta-pm">PAGO MÓVIL</span>
+                    } @else {
+                      <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
+                    }
+                    @if (cuenta.pagoMovil && cuenta.cedulaRif) {
+                      <span class="cuenta-cedula">{{ cuenta.cedulaRif }}</span>
+                    }
                     @if (cuenta.titular) {
                       <span class="cuenta-titular">{{ cuenta.titular }}</span>
                     }
@@ -190,7 +211,7 @@
 }
 
 @if (showModalFactura) {
-  <div class="modal-overlay" (click)="cerrarModalFactura()">
+  <div class="modal-overlay">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingFactura ? 'Editar Factura' : 'Nueva Factura' }}</h3>
@@ -227,19 +248,19 @@
           <div class="factura-preview">
             <div class="preview-row">
               <span>Base Imponible:</span>
-              <span>${{ formatMoneda(newFactura.baseImponible) }}</span>
+              <span>Bs {{ formatMoneda(newFactura.baseImponible) }}</span>
             </div>
             <div class="preview-row">
               <span>IVA ({{ newFactura.porcentajeIva || 0 }}%):</span>
-              <span>${{ formatMoneda(newFactura.baseImponible * ((newFactura.porcentajeIva || 0) / 100)) }}</span>
+              <span>Bs {{ formatMoneda(newFactura.baseImponible * ((newFactura.porcentajeIva || 0) / 100)) }}</span>
             </div>
             <div class="preview-row">
               <span>Base Exenta:</span>
-              <span>${{ formatMoneda(newFactura.baseExenta) }}</span>
+              <span>Bs {{ formatMoneda(newFactura.baseExenta) }}</span>
             </div>
             <div class="preview-row total">
               <span>Total a Pagar:</span>
-              <span>${{ formatMoneda(newFactura.baseImponible + newFactura.baseExenta + (newFactura.baseImponible * ((newFactura.porcentajeIva || 0) / 100))) }}</span>
+              <span>Bs {{ formatMoneda(newFactura.baseImponible + newFactura.baseExenta + (newFactura.baseImponible * ((newFactura.porcentajeIva || 0) / 100))) }}</span>
             </div>
           </div>
         }
@@ -253,7 +274,7 @@
 }
 
 @if (showModalAbono) {
-  <div class="modal-overlay" (click)="cerrarModalAbono()">
+  <div class="modal-overlay">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Agregar Abono</h3>
@@ -263,9 +284,9 @@
         <div class="abono-info">
           @if (facturaConAbono) {
             <p><strong>Factura:</strong> {{ facturaConAbono.factura.numero }}</p>
-            <p><strong>Total:</strong> ${{ formatMoneda(facturaConAbono.factura.totalPagar || 0) }}</p>
-            <p><strong>Abonado:</strong> ${{ formatMoneda(facturaConAbono.factura.abonos || 0) }}</p>
-            <p><strong>Deuda:</strong> ${{ formatMoneda(facturaConAbono.factura.deudaActual || 0) }}</p>
+            <p><strong>Total:</strong> Bs {{ formatMoneda(facturaConAbono.factura.totalPagar || 0) }}</p>
+            <p><strong>Abonado:</strong> Bs {{ formatMoneda(facturaConAbono.factura.abonos || 0) }}</p>
+            <p><strong>Deuda:</strong> Bs {{ formatMoneda(facturaConAbono.factura.deudaActual || 0) }}</p>
           }
         </div>
         <div class="form-row">
@@ -288,7 +309,7 @@
 }
 
 @if (showModalDetalleFactura && facturaDetalle) {
-  <div class="modal-overlay" (click)="cerrarDetalleFactura()">
+  <div class="modal-overlay">
     <div class="popup-content popup-factura" (click)="$event.stopPropagation()">
       <div class="popup-header">
         <h3>FACTURA</h3>
@@ -335,12 +356,12 @@
           </thead>
           <tbody>
             <tr>
-              <td>${{ formatMoneda(facturaDetalle.factura.baseImponible) }}</td>
-              <td>${{ formatMoneda(facturaDetalle.factura.iva || 0) }}</td>
-              <td>${{ formatMoneda(facturaDetalle.factura.baseExenta) }}</td>
-              <td><strong>${{ formatMoneda(facturaDetalle.factura.totalPagar) }}</strong></td>
-              <td>-${{ formatMoneda(facturaDetalle.factura.abonos) }}</td>
-              <td><strong>${{ formatMoneda(facturaDetalle.factura.deudaActual) }}</strong></td>
+              <td>Bs {{ formatMoneda(facturaDetalle.factura.baseImponible) }}</td>
+              <td>Bs {{ formatMoneda(facturaDetalle.factura.iva || 0) }}</td>
+              <td>Bs {{ formatMoneda(facturaDetalle.factura.baseExenta) }}</td>
+              <td><strong>Bs {{ formatMoneda(facturaDetalle.factura.totalPagar) }}</strong></td>
+              <td>-Bs {{ formatMoneda(facturaDetalle.factura.abonos) }}</td>
+              <td><strong>Bs {{ formatMoneda(facturaDetalle.factura.deudaActual) }}</strong></td>
             </tr>
           </tbody>
         </table>
@@ -361,7 +382,7 @@
                   <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ formatFecha(abono.fecha) }}</td>
-                    <td>${{ formatMoneda(abono.monto) }}</td>
+                    <td>Bs {{ formatMoneda(abono.monto) }}</td>
                   </tr>
                 }
               </tbody>
@@ -371,9 +392,18 @@
 
         @if ((facturaDetalle.factura.iva75 ?? 0) > 0) {
           <div class="iva-info">
-            <p>IVA por pagar: <strong>${{ formatMoneda(facturaDetalle.factura.deudaIva || 0) }}</strong></p>
+            <p>IVA 75% por pagar: <strong>Bs {{ formatMoneda(facturaDetalle.factura.deudaIva || 0) }}</strong></p>
             <button class="btn-iva" (click)="abrirModalIva(facturaDetalle.proveedor, facturaDetalle.factura, facturaDetalle.index)">
-              Gestionar IVA
+              Gestionar IVA 75%
+            </button>
+          </div>
+        }
+
+        @if ((facturaDetalle.factura.iva25 ?? 0) > 0) {
+          <div class="iva-info">
+            <p>IVA 25% por pagar: <strong>Bs {{ formatMoneda(facturaDetalle.factura.deudaIva25 || 0) }}</strong></p>
+            <button class="btn-iva btn-iva25" (click)="abrirModalIva25(facturaDetalle.proveedor, facturaDetalle.factura, facturaDetalle.index)">
+              Gestionar IVA 25%
             </button>
           </div>
         }
@@ -383,7 +413,11 @@
             <h5>Datos de Pago</h5>
             @for (cuenta of facturaDetalle.proveedor.cuentasBancarias; track $index) {
               <div class="cuenta-pago">
-                <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
+                @if (cuenta.pagoMovil) {
+                  <span class="cuenta-tipo cuenta-pm">PAGO MÓVIL</span>
+                } @else {
+                  <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
+                }
                 @if (cuenta.titular) {
                   <span class="cuenta-titular">{{ cuenta.titular }} - </span>
                 }
@@ -399,7 +433,7 @@
 }
 
 @if (showModalIva && facturaIva) {
-  <div class="modal-overlay" (click)="cerrarModalIva()">
+  <div class="modal-overlay">
     <div class="popup-content popup-factura" (click)="$event.stopPropagation()">
       <div class="popup-header">
         <h3>GESTIÓN IVA</h3>
@@ -420,15 +454,15 @@
           <div class="dato-row">
             <div class="dato-field">
               <label>IVA Total:</label>
-              <span>${{ formatMoneda(facturaIva.factura.iva || 0) }}</span>
+              <span>Bs {{ formatMoneda(facturaIva.factura.iva || 0) }}</span>
             </div>
             <div class="dato-field">
               <label>Retención (75%):</label>
-              <span>${{ formatMoneda(facturaIva.factura.iva75 || 0) }}</span>
+              <span>Bs {{ formatMoneda(facturaIva.factura.iva75 || 0) }}</span>
             </div>
             <div class="dato-field">
               <label>25%:</label>
-              <span>${{ formatMoneda(facturaIva.factura.iva25 || 0) }}</span>
+              <span>Bs {{ formatMoneda(facturaIva.factura.iva25 || 0) }}</span>
             </div>
           </div>
         </div>
@@ -445,18 +479,42 @@
           <tbody>
             <tr>
               <td>Retención IVA (75%)</td>
-              <td>${{ formatMoneda(facturaIva.factura.iva75 || 0) }}</td>
-              <td>-${{ formatMoneda(facturaIva.factura.abonosIva || 0) }}</td>
-              <td><strong>${{ formatMoneda(facturaIva.factura.deudaIva || 0) }}</strong></td>
+              <td>Bs {{ formatMoneda(facturaIva.factura.iva75 || 0) }}</td>
+              <td>-Bs {{ formatMoneda(facturaIva.factura.abonosIva || 0) }}</td>
+              <td><strong>Bs {{ formatMoneda(facturaIva.factura.deudaIva || 0) }}</strong></td>
             </tr>
           </tbody>
         </table>
+
+        @if ((facturaIva.factura.abonosIvaArray?.length ?? 0) > 0) {
+          <div class="abonos-detalle">
+            <h5>Detalle de Abonos IVA</h5>
+            <table class="cotizacion-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (abono of facturaIva.factura.abonosIvaArray; track $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ formatFecha(abono.fecha) }}</td>
+                    <td>Bs {{ formatMoneda(abono.monto) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
 
         <div class="abono-iva-section">
           <h5>Agregar Abono a IVA</h5>
           <div class="form-row">
             <div class="form-group">
-              <label>Monto ($)</label>
+              <label>Monto (Bs)</label>
               <input type="number" [(ngModel)]="newAbono.monto" step="0.01" min="0" />
             </div>
             <div class="form-group">
@@ -464,6 +522,103 @@
               <input type="date" [(ngModel)]="newAbono.fecha" />
             </div>
             <button class="btn-primary" (click)="guardarAbonoIva()">Agregar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showModalIva25 && facturaIva25) {
+  <div class="modal-overlay">
+    <div class="popup-content popup-factura" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h3>GESTIÓN IVA 25%</h3>
+        <button class="close-btn" (click)="cerrarModalIva25()">✕</button>
+      </div>
+      <div class="factura-container">
+        <div class="factura-header">
+          <div class="factura-logo">
+            <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 50px;">
+          </div>
+          <div class="factura-info">
+            <div class="factura-titulo">IVA 25% - FACTURA</div>
+            <div class="factura-num">N° {{ facturaIva25.factura.numero }}</div>
+          </div>
+        </div>
+
+        <div class="factura-datos">
+          <div class="dato-row">
+            <div class="dato-field">
+              <label>IVA Total:</label>
+              <span>Bs {{ formatMoneda(facturaIva25.factura.iva || 0) }}</span>
+            </div>
+            <div class="dato-field">
+              <label>Retención (75%):</label>
+              <span>Bs {{ formatMoneda(facturaIva25.factura.iva75 || 0) }}</span>
+            </div>
+            <div class="dato-field">
+              <label>25%:</label>
+              <span>Bs {{ formatMoneda(facturaIva25.factura.iva25 || 0) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <table class="cotizacion-table">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th>Monto</th>
+              <th>Abonado</th>
+              <th>Deuda</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>IVA 25%</td>
+              <td>Bs {{ formatMoneda(facturaIva25.factura.iva25 || 0) }}</td>
+              <td>-Bs {{ formatMoneda(facturaIva25.factura.abonosIva25 || 0) }}</td>
+              <td><strong>Bs {{ formatMoneda(facturaIva25.factura.deudaIva25 || 0) }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        @if ((facturaIva25.factura.abonosIva25Array?.length ?? 0) > 0) {
+          <div class="abonos-detalle">
+            <h5>Detalle de Abonos IVA 25%</h5>
+            <table class="cotizacion-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (abono of facturaIva25.factura.abonosIva25Array; track $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ formatFecha(abono.fecha) }}</td>
+                    <td>Bs {{ formatMoneda(abono.monto) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <div class="abono-iva-section">
+          <h5>Agregar Abono a IVA 25%</h5>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Monto (Bs)</label>
+              <input type="number" [(ngModel)]="newAbono.monto" step="0.01" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" [(ngModel)]="newAbono.fecha" />
+            </div>
+            <button class="btn-primary" (click)="guardarAbonoIva25()">Agregar</button>
           </div>
         </div>
       </div>

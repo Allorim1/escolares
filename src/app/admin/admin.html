@@ -1,17 +1,22 @@
 <div class="admin-container">
   <aside class="admin-sidebar">
-    <h2>Panel Admin</h2>
+    <h2>Panel</h2>
     <nav class="admin-nav">
-      <a routerLink="productos" routerLinkActive="active">Productos</a>
-      <a routerLink="marcas" routerLinkActive="active">Marcas</a>
-      <a routerLink="lineas" routerLinkActive="active">Líneas</a>
-      <a routerLink="ofertas" routerLinkActive="active">Ofertas</a>
-      <a routerLink="usuarios" routerLinkActive="active">Usuarios</a>
-      <a routerLink="costo-tasa" routerLinkActive="active">Costos y Tasas</a>
-      <a routerLink="historico-costos" routerLinkActive="active">Histórico Costos</a>
-      <a routerLink="registro" routerLinkActive="active">Registro</a>
-      <a routerLink="facturacion" routerLinkActive="active">Facturación</a>
-      <a routerLink="cuentas-por-pagar" routerLinkActive="active">Cuentas por Pagar</a>
+      @for (categoria of categorias(); track categoria.name; let i = $index) {
+        <div class="menu-categoria">
+          <button class="categoria-header" (click)="toggleCategoria(i)">
+            <span>{{ categoria.name }}</span>
+            <span class="toggle-icon">{{ categoria.expanded ? '▼' : '▶' }}</span>
+          </button>
+          @if (categoria.expanded) {
+            <div class="categoria-items">
+              @for (item of categoria.items; track item.route) {
+                <a [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
+              }
+            </div>
+          }
+        </div>
+      }
     </nav>
     <div class="admin-footer">
       <span>Bienvenido, {{ authService.user()?.username }}</span>

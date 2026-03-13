@@ -1,0 +1,231 @@
+<div class="ret-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; display: block; margin: 0 auto 10px;">
+  <h2>Retenciones de IVA</h2>
+
+  <div class="ret-panel">
+    <div class="ret-section">
+      <h3>Seleccionar Proveedor</h3>
+      <div class="buscador-container">
+        <input 
+          type="text" 
+          [(ngModel)]="busquedaProveedor" 
+          (input)="filtrarProveedores()"
+          placeholder="Buscar proveedor por nombre..."
+          class="buscador-input"
+        />
+      </div>
+      <div class="proveedores-grid">
+        @for (proveedor of proveedoresFiltrados(); track proveedor._id) {
+          <div 
+            class="proveedor-card" 
+            [class.selected]="proveedorSeleccionado()?._id === proveedor._id"
+            (click)="seleccionarProveedor(proveedor)">
+            <span class="proveedor-nombre">{{ proveedor.nombre }}</span>
+            <span class="proveedor-rif">{{ proveedor.rif }}</span>
+            <span class="factura-count">{{ proveedor.facturas?.length || 0 }} facturas</span>
+          </div>
+        }
+      </div>
+      @if (proveedores().length === 0) {
+        <p class="no-data">No hay proveedores registrados</p>
+      }
+    </div>
+
+    <div class="ret-section">
+      <h3>Seleccionar Factura</h3>
+      
+      @if (proveedorSeleccionado()) {
+        <div class="facturas-list">
+          @for (factura of proveedorSeleccionado()?.facturas; track $index) {
+            <div 
+              class="factura-card"
+              [class.selected]="facturaSeleccionada()?.numero === factura.numero"
+              (click)="seleccionarFactura(factura)">
+              <div class="factura-info">
+                <span class="factura-num">Factura: {{ factura.numero }}</span>
+                <span class="factura-fecha">{{ factura.fecha | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="factura-montos">
+                <span>Base: {{ factura.baseImponible | number:'1.2-2' }}</span>
+                <span>IVA: {{ factura.iva | number:'1.2-2' }}</span>
+                <span>Retención: {{ factura.iva75 | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          }
+          @if ((proveedorSeleccionado()?.facturas?.length ?? 0) === 0) {
+            <p class="no-data">No hay facturas para este proveedor</p>
+          }
+        </div>
+      } @else {
+        <p class="no-data">Seleccione un proveedor primero</p>
+      }
+    </div>
+
+    <div class="ret-section">
+      <h3>Generar Comprobante</h3>
+      
+      <div class="form-group">
+        <label>Número de Comprobante</label>
+        <input type="text" [(ngModel)]="comprobanteNumero" />
+      </div>
+
+      @if (facturaSeleccionada()) {
+        <div class="resumen">
+          <h4>Resumen</h4>
+          <p><strong>Proveedor:</strong> {{ proveedorSeleccionado()?.nombre }}</p>
+          <p><strong>RIF:</strong> {{ proveedorSeleccionado()?.rif }}</p>
+          <p><strong>Factura:</strong> {{ facturaSeleccionada()?.numero }}</p>
+          <p><strong>Fecha:</strong> {{ facturaSeleccionada()?.fecha | date:'dd/MM/yyyy' }}</p>
+          <hr>
+          <p><strong>Base Imponible:</strong> {{ facturaSeleccionada()?.baseImponible | number:'1.2-2' }}</p>
+          <p><strong>Base Exenta:</strong> {{ facturaSeleccionada()?.baseExenta | number:'1.2-2' }}</p>
+          <p><strong>IVA ({{ facturaSeleccionada()?.porcentajeIva }}%):</strong> {{ facturaSeleccionada()?.iva | number:'1.2-2' }}</p>
+          <p><strong>Retención (75%):</strong> {{ facturaSeleccionada()?.iva75 | number:'1.2-2' }}</p>
+        </div>
+      }
+
+      <button class="btn-primary" (click)="generarComprobante()" [disabled]="!facturaSeleccionada()">
+        Generar Retención
+      </button>
+    </div>
+  </div>
+
+  @if (mostrarModalAccion()) {
+    <div class="modal-overlay">
+      <div class="modal-content modal-small">
+        <div class="modal-header">
+          <h3>Seleccionar Acción</h3>
+        </div>
+        <div class="modal-body accion-buttons">
+          <button class="btn-accion" (click)="ejecutarAccion(1)">🖨️ Imprimir</button>
+          <button class="btn-accion" (click)="ejecutarAccion(2)">📄 Descargar PDF</button>
+          <button class="btn-accion" (click)="ejecutarAccion(3)">📊 Descargar Excel</button>
+          <button class="btn-accion" (click)="ejecutarAccion(4)">✅ Todas las anteriores</button>
+          <button class="btn-cancelar" (click)="mostrarModalAccion.set(false)">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (mostrarComprobantePdf()) {
+    <div class="comprobante-pdf">
+      <div class="comprobante-toolbar">
+        <button class="btn-toolbar" (click)="imprimirComprobante()">🖨️ Imprimir</button>
+        <button class="btn-toolbar" (click)="guardarPdfComprobante()">📄 Guardar PDF</button>
+        <button class="btn-cerrar-comprobante" (click)="mostrarComprobantePdf.set(false)">✕ Cerrar</button>
+      </div>
+      <div id="comprobante-content" class="form-container" style="width: 21.59cm; min-height: 27.94cm; padding: 0.5cm; font-family: 'Helvetica', 'Arial', sans-serif; box-sizing: border-box; background: #fff; color: #000; margin: 0 auto;">
+    
+        <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <div style="width: 250px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="max-width: 200px; max-height: 60px;">
+                </div>
+                <div style="font-size: 7.5pt; line-height: 1.2; margin-top: 5px;">
+                    <strong>Agente de Retención: ESCOLARES, C.A.</strong><br>
+                    <strong>R.I.F.: J-30488367-6</strong><br>
+                    Dirección Fiscal: Calle Girardot entre Diaz Moreno y Constitución, Local 100-51<br>
+                    Teléfonos: 0241-858.0281 &nbsp;&nbsp; Fax: 0241-858.70.50
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div style="border: 1.5px solid #000; width: 130px; text-align: center;">
+                    <div style="border-bottom: 1.5px solid #000; font-size: 8pt; font-weight: bold; padding: 2px;">Nro. Comprobante</div>
+                    <div style="height: 35px; font-size: 10pt;">{{ comprobanteNumero }}</div>
+                </div>
+                <div style="border: 1.5px solid #000; width: 100px; text-align: center;">
+                    <div style="border-bottom: 1.5px solid #000; font-size: 8pt; font-weight: bold; padding: 2px;">Fecha</div>
+                    <div style="height: 35px; font-size: 10pt;">{{ today | date:'dd/MM/yyyy' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px; text-align: left;">
+            <h2 style="font-size: 10pt; margin: 0; text-transform: uppercase;">Comprobante de Retención del Impuesto al Valor Agregado</h2>
+            <p style="font-size: 7pt; margin: 2px 0; line-height: 1.1; max-width: 500px;">
+                (Ley IVA-Art.11 "Seran responsables del pago del impuesto en calidad de agente de retención, los compradores o adquirientes de determinados bienes muebles y los receptores de ciertos servicios, a quienes la Administración tributaria designe como tal")
+            </p>
+        </div>
+
+        <table style="width: 100%; border-collapse: separate; border-spacing: 10px 5px; margin-bottom: 15px; table-layout: fixed;">
+            <tr>
+                <td style="border: 1.5px solid #000; padding: 3px; width: 40%;">
+                    <label style="font-size: 7.5pt; font-weight: bold; display: block;">Nombre o Razón Social del Sujeto Retenido</label>
+                    <div style="height: 25px; font-size: 9pt;">{{ proveedorSeleccionado()?.nombre }}</div>
+                </td>
+                <td style="border: 1.5px solid #000; padding: 3px; width: 45%;">
+                    <label style="font-size: 7.5pt; font-weight: bold; display: block;">Registro de Información Fiscal del Sujeto Retenido (RIF)</label>
+                    <div style="height: 25px; font-size: 9pt;">{{ proveedorSeleccionado()?.rif }}</div>
+                </td>
+                <td style="border: 1.5px solid #000; padding: 3px; width: 15%;">
+                    <label style="font-size: 7.5pt; font-weight: bold; display: block;">Periodo Fiscal</label>
+                    <div style="height: 25px; font-size: 9pt;">{{ facturaSeleccionada()?.fecha | date:'MM/yyyy' }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="border: 1.5px solid #000; padding: 3px; padding-top: 8px;">
+                    <label style="font-size: 7.5pt; font-weight: bold; display: block; text-align: center;">Dirección Fiscal del Sujeto Retenido</label>
+                    <div style="height: 20px; font-size: 9pt;"></div>
+                </td>
+            </tr>
+        </table>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 6.5pt; text-align: center;">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 30px;">Oper.<br>Nro.</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 55px;">Fecha de la Factura</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 50px;">Nro. Factura</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 40px;">Nro. Control</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 35px;">Nota Débito</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 35px;">Nota Crédito</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 40px;">Fact. Afectada</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 50px;">Total Compras</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 50px;">Exento</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 50px;">Base Imponible</th>
+                    <th colspan="2" style="border: 1.5px solid #000; font-weight: bold; font-size: 6pt;">COMPRAS INTERNAS O IMPORTACIONES</th>
+                    <th rowspan="2" style="border: 1.5px solid #000; width: 50px;">Impuesto Retenido</th>
+                </tr>
+                <tr>
+                    <th style="border: 1.5px solid #000; width: 30px;">% <br> Alicuota</th>
+                    <th style="border: 1.5px solid #000; width: 50px;">IVA</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1.5px solid #000; height: 30px;">1</td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.fecha | date:'dd/MM/yyyy' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.numero }}</td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.numeroControl }}</td>
+                    <td style="border: 1.5px solid #000;"></td>
+                    <td style="border: 1.5px solid #000;"></td>
+                    <td style="border: 1.5px solid #000;"></td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.totalPagar | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.baseExenta | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.baseImponible | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.porcentajeIva }}%</td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.iva | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.iva75 | number:'1.2-2' }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 120px; display: flex; justify-content: space-around; font-size: 8pt; font-weight: bold;">
+            <div style="text-align: center; width: 250px; position: relative;">
+                <img src="/firma.png" alt="Firma" style="max-width: 180px; height: auto; display: block; margin: 0 auto; position: absolute; bottom: 0px; left: 60%; transform: translateX(-50%);">
+                <img src="/sello.png" alt="Firma" style="max-width: 150px; height: auto; display: block; margin: 0 auto; position: absolute; bottom: 45px; left: 75%; transform: rotate(-30deg);">
+                <div style="border-top: 1.5px solid #000;"></div>
+                <div style="margin-top: 5px;">Agente de Retención<br>Firma y Sello</div>
+                <div style="margin-top: 10px; font-weight: normal;">Fecha de Entrega: {{ today | date:'dd/MM/yyyy' }}</div>
+            </div>
+            <div style="text-align: center; width: 250px;">
+                <div style="border-top: 1.5px solid #000; margin-bottom: 5px;"></div>
+                Recibido Por<br>Firma y Sello
+            </div>
+        </div>
+        
+      </div>
+    </div>
+  }
+</div> 

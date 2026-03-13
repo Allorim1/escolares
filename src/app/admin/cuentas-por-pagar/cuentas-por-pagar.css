@@ -233,9 +233,19 @@
   font-weight: 600;
 }
 
+.cuenta-tipo.cuenta-pm {
+  background: #fd7e14;
+}
+
 .cuenta-titular {
   color: #28a745;
   font-weight: 500;
+}
+
+.cuenta-cedula {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .cuenta-banco {
@@ -353,11 +363,22 @@
 }
 
 .close-btn {
-  background: none;
+  background: #dc3545;
+  color: white;
   border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   font-size: 1.2rem;
   cursor: pointer;
-  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: #c82333;
 }
 
 .modal-body {
@@ -433,17 +454,61 @@
   flex-wrap: wrap;
 }
 
+.cuenta-checkbox {
+  margin-bottom: 0.8rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
 .cuenta-inputs .input-tipo {
   width: 110px;
+}
+
+.cuenta-inputs .input-cedula {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
 }
 
 .cuenta-inputs .input-titular {
   flex: 1;
   min-width: 150px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
 }
 
 .cuenta-inputs .input-banco, 
 .cuenta-inputs .input-numero {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.cuenta-inputs .input-operador {
+  width: 140px;
+}
+
+.cuenta-inputs .input-telefono {
   flex: 1;
   min-width: 120px;
   padding: 0.6rem 0.75rem;
@@ -626,6 +691,39 @@
   flex-direction: column;
 }
 
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.popup-header h3 {
+  margin: 0;
+  color: #1d63c1;
+}
+
+.popup-header .close-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.popup-header .close-btn:hover {
+  background: #c82333;
+}
+
 .factura-container {
   flex: 1;
   overflow-y: auto;
@@ -794,7 +892,7 @@
 }
 
 .iva-info {
-  background: #fff3cd;
+  background: #ffffff;
   padding: 1rem;
   border-radius: 8px;
   margin: 1rem 0;
@@ -805,7 +903,7 @@
 
 .iva-info p {
   margin: 0;
-  color: #856404;
+  color: #164f99;
 }
 
 .iva-info strong {
@@ -813,7 +911,7 @@
 }
 
 .btn-iva {
-  background: #fd7e14;
+  background: #1d63c1;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -824,6 +922,14 @@
 
 .btn-iva:hover {
   background: #e96d02;
+}
+
+.btn-iva.btn-iva25 {
+  background: #1d63c1;
+}
+
+.btn-iva.btn-iva25:hover {
+  background: #5a6268;
 }
 
 .abono-iva-section {

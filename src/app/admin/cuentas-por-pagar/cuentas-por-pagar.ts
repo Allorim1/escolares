@@ -8,6 +8,8 @@ export interface CuentaBancaria {
   numero: string;
   tipo: string;
   titular?: string;
+  pagoMovil?: boolean;
+  cedulaRif?: string;
 }
 
 export interface FacturaProveedor {
@@ -21,10 +23,14 @@ export interface FacturaProveedor {
   iva25: number;
   abonos: number;
   abonosIva: number;
+  abonosIva25: number;
   abonosArray?: { monto: number; fecha: Date }[];
+  abonosIvaArray?: { monto: number; fecha: Date }[];
+  abonosIva25Array?: { monto: number; fecha: Date }[];
   totalPagar: number;
   deudaActual: number;
   deudaIva: number;
+  deudaIva25: number;
 }
 
 export interface Proveedor {
@@ -59,11 +65,13 @@ export class CuentasPorPagar implements OnInit {
   showModalAbono = false;
   showModalDetalleFactura = false;
   showModalIva = false;
+  showModalIva25 = false;
   editingProveedor: Proveedor | null = null;
   editingFactura: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
   facturaConAbono: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
   facturaDetalle: { proveedor: Proveedor; factura: FacturaProveedor; index: number } | null = null;
   facturaIva: { proveedor: Proveedor; factura: FacturaProveedor; index: number } | null = null;
+  facturaIva25: { proveedor: Proveedor; factura: FacturaProveedor; index: number } | null = null;
 
   newProveedor = {
     nombre: '',
@@ -90,6 +98,8 @@ export class CuentasPorPagar implements OnInit {
     numero: '',
     tipo: 'corriente',
     titular: '',
+    pagoMovil: false,
+    cedulaRif: '',
   };
 
   ngOnInit() {
@@ -182,7 +192,7 @@ export class CuentasPorPagar implements OnInit {
       ...this.newProveedor.cuentasBancarias,
       { ...this.newCuentaBancaria },
     ];
-    this.newCuentaBancaria = { banco: '', numero: '', tipo: 'corriente', titular: '' };
+    this.newCuentaBancaria = { banco: '', numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '' };
   }
 
   eliminarCuentaBancaria(index: number) {
@@ -287,6 +297,16 @@ export class CuentasPorPagar implements OnInit {
     this.facturaIva = null;
   }
 
+  abrirModalIva25(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
+    this.facturaIva25 = { proveedor, factura, index };
+    this.showModalIva25 = true;
+  }
+
+  cerrarModalIva25() {
+    this.showModalIva25 = false;
+    this.facturaIva25 = null;
+  }
+
   guardarAbonoIva() {
     if (!this.facturaIva || this.newAbono.monto <= 0) return;
 
@@ -308,6 +328,30 @@ export class CuentasPorPagar implements OnInit {
           }
         },
         error: (err) => console.error('Error agregando abono IVA:', err),
+      });
+  }
+
+  guardarAbonoIva25() {
+    if (!this.facturaIva25 || this.newAbono.monto <= 0) return;
+
+    this.http
+      .post(`${this.API}/${this.facturaIva25.proveedor._id}/facturas/${this.facturaIva25.index}/abonos-iva25`, this.newAbono)
+      .subscribe({
+        next: () => {
+          this.loadProveedores();
+          this.cerrarModalIva25();
+          if (this.facturaDetalle) {
+            const prov = this.proveedores().find(p => p._id === this.facturaDetalle?.proveedor._id);
+            if (prov && this.facturaDetalle.index >= 0 && this.facturaDetalle.index < (prov.facturas?.length || 0)) {
+              this.facturaDetalle = {
+                proveedor: prov,
+                factura: prov.facturas[this.facturaDetalle.index],
+                index: this.facturaDetalle.index
+              };
+            }
+          }
+        },
+        error: (err) => console.error('Error agregando abono IVA 25%:', err),
       });
   }
 

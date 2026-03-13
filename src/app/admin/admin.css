@@ -24,20 +24,58 @@
   flex: 1;
 }
 
-.admin-nav a {
-  padding: 0.875rem 1rem;
-  color: #ccc;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.3s;
+.menu-categoria {
+  margin-bottom: 0.5rem;
 }
 
-.admin-nav a:hover {
+.categoria-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.categoria-header:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.toggle-icon {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.categoria-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-left: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.categoria-items a {
+  padding: 0.625rem 1rem 0.625rem 1.5rem;
+  color: #ccc;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.categoria-items a:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
-.admin-nav a.active {
+.categoria-items a.active {
   background: #ff6b35;
   color: white;
 }

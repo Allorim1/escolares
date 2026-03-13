@@ -126,6 +126,10 @@ export const routes: Routes = [
         path: 'historico-costos',
         loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
       },
+      {
+        path: 'retenciones',
+        loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
+      },
     ],
   },
   {

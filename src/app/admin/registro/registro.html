@@ -8,6 +8,14 @@
   </div>
 
   <div class="filtros">
+    <div class="busqueda">
+      <input 
+        type="text" 
+        [(ngModel)]="filtroBusqueda" 
+        placeholder="Buscar por cualquier campo..."
+        class="input-busqueda"
+      />
+    </div>
     <div class="filtro-botones">
       <button 
         class="btn-filtro" 
@@ -109,7 +117,21 @@
         @if (registroSeleccionado.datos && (registroSeleccionado.datos | json) !== '{}') {
           <div class="detalle-row">
             <label>Datos:</label>
-            <pre class="datos-json">{{ registroSeleccionado.datos | json }}</pre>
+            @if (registroSeleccionado.datos.modificaciones) {
+              <div class="modificaciones-list">
+                @for (mod of registroSeleccionado.datos.modificaciones; track $index) {
+                  <div class="mod-item">
+                    <span class="mod-campo"><strong>Campo:</strong> {{ mod.campo }}</span>
+                    <span class="mod-anterior"><strong>Antes:</strong> {{ mod.valorAnterior }}</span>
+                    <span class="mod-nuevo"><strong>Ahora:</strong> {{ mod.valorNuevo }}</span>
+                    <span class="mod-usuario">Por: {{ mod.usuario }}</span>
+                    <span class="mod-fecha">{{ formatearFecha(mod.fecha) }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <pre class="datos-json">{{ registroSeleccionado.datos | json }}</pre>
+            }
           </div>
         }
       </div>

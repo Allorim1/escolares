@@ -199,19 +199,81 @@
   border-top: 1px solid #dee2e6;
 }
 
-.cuentas-section, .facturas-section, .contacto-section {
+.cuentas-section, .facturas-section, .contacto-section, .auditoria-section {
   margin-bottom: 1.5rem;
 }
 
-.cuentas-section h5, .facturas-section h5, .contacto-section h5 {
+.cuentas-section h5, .facturas-section h5, .contacto-section h5, .auditoria-section h5 {
   color: #333;
   margin-bottom: 0.8rem;
 }
 
-.contacto-section {
+.contacto-section, .auditoria-section {
   background: #f8f9fa;
   padding: 1rem;
   border-radius: 8px;
+}
+
+.auditoria-section {
+  background: #e9ecef;
+}
+
+.auditoria-item {
+  display: inline-block;
+  margin-right: 1.5rem;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+.modificaciones-section {
+  background: #fff3cd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.modificaciones-section h5 {
+  color: #333;
+  margin-bottom: 0.8rem;
+}
+
+.modificaciones-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.modificacion-item {
+  background: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.mod-campo {
+  display: block;
+  color: #1d63c1;
+  font-weight: 600;
+}
+
+.mod-anterior {
+  color: #dc3545;
+  margin-right: 1rem;
+}
+
+.mod-nuevo {
+  color: #28a745;
+  margin-right: 1rem;
+}
+
+.mod-usuario, .mod-fecha {
+  color: #6c757d;
+  font-size: 0.75rem;
+}
+
+.mod-fecha {
+  display: block;
+  margin-top: 0.25rem;
 }
 
 .contacto-item {
@@ -652,6 +714,37 @@
 }
 
 .radio-circle:hover .radio-btn {
+  border-color: #1d63c1;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.checkbox-circle input {
+  display: none;
+}
+
+.checkbox-btn {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+
+.checkbox-circle input:checked + .checkbox-btn {
+  background: #1d63c1;
+  border-color: #1d63c1;
+  color: #fff;
+}
+
+.checkbox-circle:hover .checkbox-btn {
   border-color: #1d63c1;
 }
 

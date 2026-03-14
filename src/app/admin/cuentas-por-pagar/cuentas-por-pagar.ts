@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 
 export interface CuentaBancaria {
   banco: string;
-  bancoAfliado?: string;
+  bancosAfiliados?: string[];
   numero: string;
   tipo: string;
   titular?: string;
@@ -45,7 +45,11 @@ export interface Proveedor {
   vendedor?: string;
   cuentasBancarias: CuentaBancaria[];
   facturas: FacturaProveedor[];
+  creadoPor?: string;
   fechaCreacion?: Date;
+  modificadoPor?: string;
+  fechaModificacion?: Date;
+  modificaciones?: { campo: string; valorAnterior: string; valorNuevo: string; fecha: Date; usuario: string }[];
 }
 
 @Component({
@@ -65,6 +69,7 @@ export class CuentasPorPagar implements OnInit {
   proveedorEditando = signal<string | null>(null);
   proveedorConFactura = signal<string | null>(null);
   cuentaExpandida = signal<{proveedorId: string, index: number} | null>(null);
+  usuarioActual = 'Admin';
 
   showModalProveedor = false;
   showModalFactura = false;
@@ -104,7 +109,7 @@ export class CuentasPorPagar implements OnInit {
 
   newCuentaBancaria = {
     banco: '',
-    bancoAfliado: '',
+    bancosAfiliados: [] as string[],
     numero: '',
     tipo: 'corriente',
     titular: '',
@@ -178,6 +183,7 @@ export class CuentasPorPagar implements OnInit {
           telefono: this.newProveedor.telefono,
           vendedor: this.newProveedor.vendedor,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
+          modificadoPor: this.usuarioActual,
         })
         .subscribe({
           next: () => {
@@ -196,6 +202,7 @@ export class CuentasPorPagar implements OnInit {
           telefono: this.newProveedor.telefono,
           vendedor: this.newProveedor.vendedor,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
+          creadoPor: this.usuarioActual,
         })
         .subscribe({
           next: () => {
@@ -215,13 +222,25 @@ export class CuentasPorPagar implements OnInit {
     });
   }
 
+  toggleBancoAfliado(banco: string) {
+    if (!this.newCuentaBancaria.bancosAfiliados) {
+      this.newCuentaBancaria.bancosAfiliados = [];
+    }
+    const index = this.newCuentaBancaria.bancosAfiliados.indexOf(banco);
+    if (index > -1) {
+      this.newCuentaBancaria.bancosAfiliados.splice(index, 1);
+    } else {
+      this.newCuentaBancaria.bancosAfiliados.push(banco);
+    }
+  }
+
   agregarCuentaBancaria() {
     if (!this.newCuentaBancaria.banco.trim() || !this.newCuentaBancaria.numero.trim()) return;
     this.newProveedor.cuentasBancarias = [
       ...this.newProveedor.cuentasBancarias,
       { ...this.newCuentaBancaria },
     ];
-    this.newCuentaBancaria = { banco: '', bancoAfliado: '', numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '', tipoPersona: 'personal' };
+    this.newCuentaBancaria = { banco: '', bancosAfiliados: [] as string[], numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '', tipoPersona: 'personal' };
   }
 
   eliminarCuentaBancaria(index: number) {

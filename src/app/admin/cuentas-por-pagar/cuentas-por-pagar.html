@@ -56,6 +56,39 @@
                 }
               </div>
             }
+            @if (proveedor.creadoPor || proveedor.fechaCreacion || proveedor.modificadoPor || proveedor.fechaModificacion) {
+              <div class="auditoria-section">
+                <h5>Información de Auditoría</h5>
+                @if (proveedor.creadoPor) {
+                  <span class="auditoria-item"><strong>Creado por:</strong> {{ proveedor.creadoPor }}</span>
+                }
+                @if (proveedor.fechaCreacion) {
+                  <span class="auditoria-item"><strong>Fecha de creación:</strong> {{ formatFecha(proveedor.fechaCreacion) }}</span>
+                }
+                @if (proveedor.modificadoPor) {
+                  <span class="auditoria-item"><strong>Última modificación por:</strong> {{ proveedor.modificadoPor }}</span>
+                }
+                @if (proveedor.fechaModificacion) {
+                  <span class="auditoria-item"><strong>Última modificación:</strong> {{ formatFecha(proveedor.fechaModificacion) }}</span>
+                }
+              </div>
+            }
+            @if (proveedor.modificaciones && proveedor.modificaciones.length > 0) {
+              <div class="modificaciones-section">
+                <h5>Historial de Modificaciones</h5>
+                <div class="modificaciones-list">
+                  @for (mod of proveedor.modificaciones; track $index) {
+                    <div class="modificacion-item">
+                      <span class="mod-campo"><strong>Campo:</strong> {{ mod.campo }}</span>
+                      <span class="mod-anterior"><strong>Antes:</strong> {{ mod.valorAnterior }}</span>
+                      <span class="mod-nuevo"><strong>Ahora:</strong> {{ mod.valorNuevo }}</span>
+                      <span class="mod-usuario">Por: {{ mod.usuario }}</span>
+                      <span class="mod-fecha">{{ formatFecha(mod.fecha) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
             <div class="cuentas-section">
               <h5>Cuentas Bancarias</h5>
               @if ((proveedor.cuentasBancarias?.length ?? 0) > 0) {
@@ -74,7 +107,7 @@
                         <span class="cuenta-titular">{{ cuenta.titular }}</span>
                       }
                       <span class="cuenta-banco">Banco: {{ cuenta.banco }}</span>
-                      @if (cuenta['bancoAfliado'] || cuenta['tipoPersona']) {
+                      @if (cuenta['bancosAfiliados']?.length || cuenta['tipoPersona']) {
                         <button class="btn-ver-mas" (click)="toggleCuentaExpandida(proveedor._id || '', $index)">
                           {{ cuentaExpandida()?.proveedorId === proveedor._id && cuentaExpandida()?.index === $index ? 'Ver menos' : 'Ver más' }}
                         </button>
@@ -100,7 +133,7 @@
                                 <td>{{ cuenta.banco || '-' }}</td>
                                 <td>{{ cuenta.tipo | uppercase }}</td>
                                 <td>{{ cuenta.numero }}</td>
-                                <td>{{ cuenta['bancoAfliado'] || '-' }}</td>
+                                <td>{{ cuenta['bancosAfiliados']?.join(', ') || '-' }}</td>
                                 <td>
                                   @if (cuenta['tipoPersona'] === 'personal') {
                                     Personal
@@ -253,22 +286,22 @@
           }
           <div class="cuenta-options">
             <label class="option-label">Afiliado en:</label>
-            <div class="radio-group">
-              <label class="radio-circle">
-                <input type="radio" name="bancoAfliado" value="BNC" [(ngModel)]="newCuentaBancaria.bancoAfliado" />
-                <span class="radio-btn">BNC</span>
+            <div class="checkbox-group">
+              <label class="checkbox-circle">
+                <input type="checkbox" (change)="toggleBancoAfliado('BNC')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BNC')" />
+                <span class="checkbox-btn">BNC</span>
               </label>
-              <label class="radio-circle">
-                <input type="radio" name="bancoAfliado" value="BANESCO" [(ngModel)]="newCuentaBancaria.bancoAfliado" />
-                <span class="radio-btn">BANESCO</span>
+              <label class="checkbox-circle">
+                <input type="checkbox" (change)="toggleBancoAfliado('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANESCO')" />
+                <span class="checkbox-btn">BANESCO</span>
               </label>
-              <label class="radio-circle">
-                <input type="radio" name="bancoAfliado" value="BANCARIBE" [(ngModel)]="newCuentaBancaria.bancoAfliado" />
-                <span class="radio-btn">BANCARIBE</span>
+              <label class="checkbox-circle">
+                <input type="checkbox" (change)="toggleBancoAfliado('BANCARIBE')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANCARIBE')" />
+                <span class="checkbox-btn">BANCARIBE</span>
               </label>
-              <label class="radio-circle">
-                <input type="radio" name="bancoAfliado" value="BDV" [(ngModel)]="newCuentaBancaria.bancoAfliado" />
-                <span class="radio-btn">BDV</span>
+              <label class="checkbox-circle">
+                <input type="checkbox" (change)="toggleBancoAfliado('BDV')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BDV')" />
+                <span class="checkbox-btn">BDV</span>
               </label>
             </div>
           </div>
@@ -297,8 +330,8 @@
                     } @else {
                       <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
                     }
-                    @if (cuenta.bancoAfliado) {
-                      <span class="cuenta-banco-afiliado">{{ cuenta.bancoAfliado }}</span>
+                    @if (cuenta.bancosAfiliados && cuenta.bancosAfiliados.length) {
+                      <span class="cuenta-banco-afiliado">{{ cuenta.bancosAfiliados.join(', ') }}</span>
                     }
                     @if (cuenta.tipoPersona === 'personal') {
                       <span class="cuenta-persona">Personal</span>

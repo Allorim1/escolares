@@ -1,12 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { RegistroService, Registro } from '../../shared/data-access/registro.service';
 
 @Component({
   selector: 'app-admin-registro',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './registro.html',
   styleUrl: './registro.css',
 })
@@ -14,6 +15,7 @@ export class AdminRegistro implements OnInit {
   registroService = inject(RegistroService);
 
   filtroModulo = '';
+  filtroBusqueda = '';
   mostrarModal = false;
   registroSeleccionado: Registro | null = null;
 
@@ -22,12 +24,27 @@ export class AdminRegistro implements OnInit {
   }
 
   get registrosFiltrados() {
-    if (!this.filtroModulo) {
-      return this.registroService.registros();
+    let registros = this.registroService.registros();
+    
+    if (this.filtroModulo) {
+      registros = registros.filter(
+        (r) => r.modulo.toLowerCase().includes(this.filtroModulo.toLowerCase())
+      );
     }
-    return this.registroService.registros().filter(
-      (r) => r.modulo.toLowerCase().includes(this.filtroModulo.toLowerCase())
-    );
+    
+    if (this.filtroBusqueda) {
+      const busqueda = this.filtroBusqueda.toLowerCase();
+      registros = registros.filter((r) => {
+        if (r.descripcion.toLowerCase().includes(busqueda)) return true;
+        if (r.usuario.toLowerCase().includes(busqueda)) return true;
+        if (r.modulo.toLowerCase().includes(busqueda)) return true;
+        if (r.accion.toLowerCase().includes(busqueda)) return true;
+        if (r.datos && JSON.stringify(r.datos).toLowerCase().includes(busqueda)) return true;
+        return false;
+      });
+    }
+    
+    return registros;
   }
 
   get modulos() {

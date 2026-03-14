@@ -16,6 +16,24 @@
   color: #333;
 }
 
+.busqueda {
+  margin-bottom: 15px;
+}
+
+.input-busqueda {
+  width: 100%;
+  padding: 10px 15px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.input-busqueda:focus {
+  outline: none;
+  border-color: #1d63c1;
+}
+
 .btn-limpiar {
   background: #dc2626;
   color: white;
@@ -230,4 +248,43 @@
   font-size: 12px;
   margin: 0;
   width: 100%;
+}
+
+.modificaciones-list {
+  flex: 1;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.mod-item {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.mod-campo {
+  display: block;
+  color: #1d63c1;
+  font-weight: 600;
+}
+
+.mod-anterior {
+  display: block;
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+.mod-nuevo {
+  display: block;
+  color: #16a34a;
+  font-size: 0.85rem;
+}
+
+.mod-usuario, .mod-fecha {
+  display: block;
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 4px;
 }

@@ -199,13 +199,25 @@
   border-top: 1px solid #dee2e6;
 }
 
-.cuentas-section, .facturas-section {
+.cuentas-section, .facturas-section, .contacto-section {
   margin-bottom: 1.5rem;
 }
 
-.cuentas-section h5, .facturas-section h5 {
+.cuentas-section h5, .facturas-section h5, .contacto-section h5 {
   color: #333;
   margin-bottom: 0.8rem;
+}
+
+.contacto-section {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.contacto-item {
+  display: inline-block;
+  margin-right: 1.5rem;
+  color: #555;
 }
 
 .cuentas-list {

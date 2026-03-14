@@ -42,6 +42,20 @@
 
         @if (proveedorExpandido() === proveedor._id) {
           <div class="proveedor-details">
+            @if (proveedor.vendedor || proveedor.telefono || proveedor.correo || proveedor['vendedor'] || proveedor['telefono'] || proveedor['correo']) {
+              <div class="contacto-section">
+                <h5>Información de Contacto</h5>
+                @if (proveedor.vendedor) {
+                  <span class="contacto-item"><strong>Vendedor:</strong> {{ proveedor.vendedor }}</span>
+                }
+                @if (proveedor.telefono) {
+                  <span class="contacto-item"><strong>Teléfono:</strong> {{ proveedor.telefono }}</span>
+                }
+                @if (proveedor.correo) {
+                  <span class="contacto-item"><strong>Correo:</strong> {{ proveedor.correo }}</span>
+                }
+              </div>
+            }
             <div class="cuentas-section">
               <h5>Cuentas Bancarias</h5>
               @if ((proveedor.cuentasBancarias?.length ?? 0) > 0) {
@@ -145,6 +159,20 @@
             <label>Dirección</label>
             <input type="text" [(ngModel)]="newProveedor.direccion" placeholder="Dirección fiscal" />
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Correo Electrónico</label>
+              <input type="email" [(ngModel)]="newProveedor.correo" placeholder="correo@ejemplo.com" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Vendedor</label>
+            <input type="text" [(ngModel)]="newProveedor.vendedor" placeholder="Nombre del vendedor" />
+          </div>
+          <div class="form-group">
+              <label>Teléfono del Vendedor</label>
+              <input type="text" [(ngModel)]="newProveedor.telefono" placeholder="0412-1234567" (keydown.enter)="guardarProveedor()" />
+            </div>
         </div>
 
         <div class="cuentas-form">
@@ -168,9 +196,11 @@
             <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="newCuentaBancaria.pagoMovil ? 'Banco (ej: Banesco)' : 'Banco'" class="input-banco" />
             <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="newCuentaBancaria.pagoMovil ? 'Número de teléfono' : 'Número de cuenta'" class="input-numero" />
           </div>
+          <div class="cuenta-inputs">
+            <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" />
+          </div>
           @if (newCuentaBancaria.pagoMovil) {
             <div class="cuenta-inputs">
-              <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" />
               <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
             </div>
           }
@@ -186,7 +216,7 @@
                     } @else {
                       <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
                     }
-                    @if (cuenta.pagoMovil && cuenta.cedulaRif) {
+                    @if (cuenta.cedulaRif) {
                       <span class="cuenta-cedula">{{ cuenta.cedulaRif }}</span>
                     }
                     @if (cuenta.titular) {

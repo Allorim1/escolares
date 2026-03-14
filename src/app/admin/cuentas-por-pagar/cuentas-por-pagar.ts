@@ -38,6 +38,9 @@ export interface Proveedor {
   nombre: string;
   rif: string;
   direccion: string;
+  correo?: string;
+  telefono?: string;
+  vendedor?: string;
   cuentasBancarias: CuentaBancaria[];
   facturas: FacturaProveedor[];
   fechaCreacion?: Date;
@@ -77,6 +80,9 @@ export class CuentasPorPagar implements OnInit {
     nombre: '',
     rif: '',
     direccion: '',
+    correo: '',
+    telefono: '',
+    vendedor: '',
     cuentasBancarias: [] as CuentaBancaria[],
   };
 
@@ -128,11 +134,14 @@ export class CuentasPorPagar implements OnInit {
         nombre: proveedor.nombre,
         rif: proveedor.rif || '',
         direccion: proveedor.direccion || '',
+        correo: proveedor.correo || '',
+        telefono: proveedor.telefono || '',
+        vendedor: proveedor.vendedor || '',
         cuentasBancarias: [...proveedor.cuentasBancarias],
       };
     } else {
       this.editingProveedor = null;
-      this.newProveedor = { nombre: '', rif: '', direccion: '', cuentasBancarias: [] };
+      this.newProveedor = { nombre: '', rif: '', direccion: '', correo: '', telefono: '', vendedor: '', cuentasBancarias: [] };
     }
     this.showModalProveedor = true;
   }
@@ -151,6 +160,9 @@ export class CuentasPorPagar implements OnInit {
           nombre: this.newProveedor.nombre,
           rif: this.newProveedor.rif,
           direccion: this.newProveedor.direccion,
+          correo: this.newProveedor.correo,
+          telefono: this.newProveedor.telefono,
+          vendedor: this.newProveedor.vendedor,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
         })
         .subscribe({
@@ -166,6 +178,9 @@ export class CuentasPorPagar implements OnInit {
           nombre: this.newProveedor.nombre,
           rif: this.newProveedor.rif,
           direccion: this.newProveedor.direccion,
+          correo: this.newProveedor.correo,
+          telefono: this.newProveedor.telefono,
+          vendedor: this.newProveedor.vendedor,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
         })
         .subscribe({

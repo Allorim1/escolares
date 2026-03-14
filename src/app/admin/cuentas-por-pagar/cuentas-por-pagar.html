@@ -372,7 +372,14 @@
       <div class="modal-body">
         <div class="form-row">
           <div class="form-group">
-            <label>Número de Factura</label>
+            <label>Tipo</label>
+            <select [(ngModel)]="newFactura.tipo" class="input-tipo">
+              <option value="factura">Factura</option>
+              <option value="nota">Nota</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Número</label>
             <input type="text" [(ngModel)]="newFactura.numero" placeholder="Número" />
           </div>
           <div class="form-group">
@@ -380,39 +387,51 @@
             <input type="date" [(ngModel)]="newFactura.fecha" />
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Base Imponible ($)</label>
-            <input type="number" [(ngModel)]="newFactura.baseImponible" step="0.01" min="0" />
+        @if (newFactura.tipo === 'factura') {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Monto ($)</label>
+              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Monto IVA ($)</label>
+              <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
+            </div>
           </div>
-          <div class="form-group">
-            <label>Base Exenta ($)</label>
-            <input type="number" [(ngModel)]="newFactura.baseExenta" step="0.01" min="0" />
+        }
+        @if (newFactura.tipo === 'nota') {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Monto ($)</label>
+              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
+            </div>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Porcentaje IVA (%)</label>
-            <input type="number" [(ngModel)]="newFactura.porcentajeIva" step="0.01" min="0" max="100" />
-          </div>
-        </div>
-        @if (newFactura.baseImponible > 0 || newFactura.baseExenta > 0) {
+        }
+        @if (newFactura.tipo === 'factura' && (newFactura.monto > 0 || newFactura.montoIva > 0)) {
           <div class="factura-preview">
             <div class="preview-row">
-              <span>Base Imponible:</span>
-              <span>Bs {{ formatMoneda(newFactura.baseImponible) }}</span>
+              <span>Monto:</span>
+              <span>Bs {{ formatMoneda(newFactura.monto) }}</span>
             </div>
             <div class="preview-row">
-              <span>IVA ({{ newFactura.porcentajeIva || 0 }}%):</span>
-              <span>Bs {{ formatMoneda(newFactura.baseImponible * ((newFactura.porcentajeIva || 0) / 100)) }}</span>
-            </div>
-            <div class="preview-row">
-              <span>Base Exenta:</span>
-              <span>Bs {{ formatMoneda(newFactura.baseExenta) }}</span>
+              <span>IVA:</span>
+              <span>Bs {{ formatMoneda(newFactura.montoIva) }}</span>
             </div>
             <div class="preview-row total">
               <span>Total a Pagar:</span>
-              <span>Bs {{ formatMoneda(newFactura.baseImponible + newFactura.baseExenta + (newFactura.baseImponible * ((newFactura.porcentajeIva || 0) / 100))) }}</span>
+              <span>Bs {{ formatMoneda(newFactura.monto + newFactura.montoIva) }}</span>
+            </div>
+          </div>
+        }
+        @if (newFactura.tipo === 'nota' && newFactura.monto > 0) {
+          <div class="factura-preview">
+            <div class="preview-row">
+              <span>Monto:</span>
+              <span>Bs {{ formatMoneda(newFactura.monto) }}</span>
+            </div>
+            <div class="preview-row total">
+              <span>Total a Pagar:</span>
+              <span>Bs {{ formatMoneda(newFactura.monto) }}</span>
             </div>
           </div>
         }

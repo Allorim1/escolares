@@ -17,6 +17,9 @@ export interface CuentaBancaria {
 export interface FacturaProveedor {
   numero: string;
   fecha: Date;
+  tipo: 'factura' | 'nota';
+  monto: number;
+  montoIva: number;
   baseImponible: number;
   baseExenta: number;
   porcentajeIva: number;
@@ -97,6 +100,9 @@ export class CuentasPorPagar implements OnInit {
   newFactura = {
     numero: '',
     fecha: '',
+    tipo: 'factura',
+    monto: 0,
+    montoIva: 0,
     baseImponible: 0,
     baseExenta: 0,
     porcentajeIva: 16,
@@ -253,6 +259,9 @@ export class CuentasPorPagar implements OnInit {
       this.newFactura = {
         numero: factura.numero,
         fecha: factura.fecha instanceof Date ? factura.fecha.toISOString().split('T')[0] : new Date(factura.fecha).toISOString().split('T')[0],
+        tipo: factura.tipo || 'factura',
+        monto: factura.monto || 0,
+        montoIva: factura.montoIva || 0,
         baseImponible: factura.baseImponible,
         baseExenta: factura.baseExenta,
         porcentajeIva: factura.porcentajeIva || 16,
@@ -262,6 +271,9 @@ export class CuentasPorPagar implements OnInit {
       this.newFactura = {
         numero: '',
         fecha: new Date().toISOString().split('T')[0],
+        tipo: 'factura',
+        monto: 0,
+        montoIva: 0,
         baseImponible: 0,
         baseExenta: 0,
         porcentajeIva: 16,

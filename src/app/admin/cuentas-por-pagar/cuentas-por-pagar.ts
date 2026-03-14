@@ -64,6 +64,7 @@ export class CuentasPorPagar implements OnInit {
   proveedorExpandido = signal<string | null>(null);
   proveedorEditando = signal<string | null>(null);
   proveedorConFactura = signal<string | null>(null);
+  cuentaExpandida = signal<{proveedorId: string, index: number} | null>(null);
 
   showModalProveedor = false;
   showModalFactura = false;
@@ -128,6 +129,15 @@ export class CuentasPorPagar implements OnInit {
       this.proveedorExpandido.set(null);
     } else {
       this.proveedorExpandido.set(proveedorId);
+    }
+  }
+
+  toggleCuentaExpandida(proveedorId: string, index: number) {
+    const key = { proveedorId, index };
+    if (this.cuentaExpandida()?.proveedorId === proveedorId && this.cuentaExpandida()?.index === index) {
+      this.cuentaExpandida.set(null);
+    } else {
+      this.cuentaExpandida.set(key);
     }
   }
 

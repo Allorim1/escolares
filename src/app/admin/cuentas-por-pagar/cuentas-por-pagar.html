@@ -61,19 +61,11 @@
               @if ((proveedor.cuentasBancarias?.length ?? 0) > 0) {
                 <div class="cuentas-list">
                   @for (cuenta of proveedor.cuentasBancarias; track $index) {
-                    <div class="cuenta-item">
+                    <div class="cuenta-item" [class.cuenta-expanded]="cuentaExpandida()?.proveedorId === proveedor._id && cuentaExpandida()?.index === $index">
                       @if (cuenta.pagoMovil) {
                         <span class="cuenta-tipo cuenta-pm">PAGO MÓVIL</span>
                       } @else {
                         <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
-                      }
-                      @if (cuenta['bancoAfliado']) {
-                        <span class="cuenta-banco-afiliado">{{ cuenta['bancoAfliado'] }}</span>
-                      }
-                      @if (cuenta['tipoPersona'] === 'personal') {
-                        <span class="cuenta-persona">Personal</span>
-                      } @else if (cuenta['tipoPersona'] === 'juridica') {
-                        <span class="cuenta-persona">Jurídica</span>
                       }
                       @if (cuenta.cedulaRif) {
                         <span class="cuenta-cedula">{{ cuenta.cedulaRif }}</span>
@@ -81,8 +73,48 @@
                       @if (cuenta.titular) {
                         <span class="cuenta-titular">{{ cuenta.titular }}</span>
                       }
-                      <span class="cuenta-banco">{{ cuenta.banco }}</span>
-                      <span class="cuenta-num">{{ cuenta.numero }}</span>
+                      <span class="cuenta-banco">Banco: {{ cuenta.banco }}</span>
+                      @if (cuenta['bancoAfliado'] || cuenta['tipoPersona']) {
+                        <button class="btn-ver-mas" (click)="toggleCuentaExpandida(proveedor._id || '', $index)">
+                          {{ cuentaExpandida()?.proveedorId === proveedor._id && cuentaExpandida()?.index === $index ? 'Ver menos' : 'Ver más' }}
+                        </button>
+                      }
+                      @if (cuentaExpandida()?.proveedorId === proveedor._id && cuentaExpandida()?.index === $index) {
+                        <div class="cuenta-detalle">
+                          <table class="cuenta-detalle-tabla">
+                            <thead>
+                              <tr>
+                                <th>Titular</th>
+                                <th>C.I/RIF</th>
+                                <th>Banco</th>
+                                <th>Tipo</th>
+                                <th>Número</th>
+                                <th>Afiliado en</th>
+                                <th>Personal o Juridica</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>{{ cuenta.titular || '-' }}</td>
+                                <td>{{ cuenta.cedulaRif || '-' }}</td>
+                                <td>{{ cuenta.banco || '-' }}</td>
+                                <td>{{ cuenta.tipo | uppercase }}</td>
+                                <td>{{ cuenta.numero }}</td>
+                                <td>{{ cuenta['bancoAfliado'] || '-' }}</td>
+                                <td>
+                                  @if (cuenta['tipoPersona'] === 'personal') {
+                                    Personal
+                                  } @else if (cuenta['tipoPersona'] === 'juridica') {
+                                    Jurídica
+                                  } @else {
+                                    -
+                                  }
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      }
                     </div>
                   }
                 </div>

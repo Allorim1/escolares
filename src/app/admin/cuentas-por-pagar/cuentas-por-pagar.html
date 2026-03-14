@@ -166,9 +166,12 @@
                 <table class="facturas-table">
                   <thead>
                     <tr>
+                      <th>Tipo</th>
                       <th>Número</th>
                       <th>Fecha</th>
-                      <th>Total</th>
+                      <th>Monto</th>
+                      <th>Base Exenta</th>
+                      <th>IVA</th>
                       <th>Deuda</th>
                       <th>Estado</th>
                       <th>Acciones</th>
@@ -177,10 +180,19 @@
                   <tbody>
                     @for (factura of proveedor.facturas; track $index) {
                       <tr (click)="abrirDetalleFactura(proveedor, factura, $index)" class="factura-row">
+                        <td>
+                          @if (factura.tipo === 'nota') {
+                            <span class="badge-nota">NOTA</span>
+                          } @else {
+                            <span class="badge-factura">FACTURA</span>
+                          }
+                        </td>
                         <td>{{ factura.numero }}</td>
                         <td>{{ formatFecha(factura.fecha) }}</td>
-                        <td>Bs {{ formatMoneda(factura.totalPagar) }}</td>
-                        <td class="deuda-cell">Bs {{ formatMoneda(factura.deudaActual) }}</td>
+                        <td>$ {{ factura.monto | number:'1.2-2' }}</td>
+                        <td>$ {{ (factura.baseExenta || 0) | number:'1.2-2' }}</td>
+                        <td>Bs {{ formatMoneda(factura.iva || 0) }}</td>
+                        <td class="deuda-cell">$ {{ formatMoneda(factura.deudaActual) }}</td>
                         <td>
                           @if (factura.deudaActual === 0) {
                             <span class="badge-pagada">Pagada</span>
@@ -197,10 +209,9 @@
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="2"><strong>Totales:</strong></td>
-                      <td><strong>Bs {{ formatMoneda(calcularTotalPagar(proveedor)) }}</strong></td>
-                      <td class="deuda-cell"><strong>Bs {{ formatMoneda(calcularDeuda(proveedor)) }}</strong></td>
-                      <td colspan="2"></td>
+                      <td colspan="3"><strong>Totales:</strong></td>
+                      <td class="deuda-cell"><strong>$ {{ formatMoneda(calcularDeuda(proveedor)) }}</strong></td>
+                      <td colspan="5"></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -394,6 +405,12 @@
               <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
             </div>
             <div class="form-group">
+              <label>Base Exenta ($)</label>
+              <input type="number" [(ngModel)]="newFactura.baseExenta" step="0.01" min="0" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
               <label>Monto IVA ($)</label>
               <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
             </div>
@@ -407,19 +424,19 @@
             </div>
           </div>
         }
-        @if (newFactura.tipo === 'factura' && (newFactura.monto > 0 || newFactura.montoIva > 0)) {
+        @if (newFactura.tipo === 'factura' && (newFactura.monto > 0 || newFactura.montoIva > 0 || newFactura.baseExenta > 0)) {
           <div class="factura-preview">
             <div class="preview-row">
               <span>Monto:</span>
-              <span>Bs {{ formatMoneda(newFactura.monto) }}</span>
+              <span>$ {{ newFactura.monto | number:'1.2-2' }}</span>
+            </div>
+            <div class="preview-row">
+              <span>Base Exenta:</span>
+              <span>$ {{ newFactura.baseExenta | number:'1.2-2' }}</span>
             </div>
             <div class="preview-row">
               <span>IVA:</span>
               <span>Bs {{ formatMoneda(newFactura.montoIva) }}</span>
-            </div>
-            <div class="preview-row total">
-              <span>Total a Pagar:</span>
-              <span>Bs {{ formatMoneda(newFactura.monto + newFactura.montoIva) }}</span>
             </div>
           </div>
         }
@@ -427,11 +444,11 @@
           <div class="factura-preview">
             <div class="preview-row">
               <span>Monto:</span>
-              <span>Bs {{ formatMoneda(newFactura.monto) }}</span>
+              <span>$ {{ newFactura.monto | number:'1.2-2' }}</span>
             </div>
             <div class="preview-row total">
               <span>Total a Pagar:</span>
-              <span>Bs {{ formatMoneda(newFactura.monto) }}</span>
+              <span>$ {{ formatMoneda(newFactura.monto) }}</span>
             </div>
           </div>
         }
@@ -517,22 +534,28 @@
         <table class="cotizacion-table">
           <thead>
             <tr>
-              <th>Base Imponible</th>
-              <th>IVA ({{ facturaDetalle.factura.porcentajeIva || 16 }}%)</th>
+              <th>Tipo</th>
+              <th>Monto</th>
               <th>Base Exenta</th>
-              <th>Total Factura</th>
+              <th>IVA</th>
               <th>Abonos</th>
               <th>Deuda Actual</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Bs {{ formatMoneda(facturaDetalle.factura.baseImponible) }}</td>
+              <td>
+                @if (facturaDetalle.factura.tipo === 'nota') {
+                  <span class="badge-nota">NOTA</span>
+                } @else {
+                  <span class="badge-factura">FACTURA</span>
+                }
+              </td>
+              <td>$ {{ facturaDetalle.factura.monto | number:'1.2-2' }}</td>
+              <td>$ {{ (facturaDetalle.factura.baseExenta || 0) | number:'1.2-2' }}</td>
               <td>Bs {{ formatMoneda(facturaDetalle.factura.iva || 0) }}</td>
-              <td>Bs {{ formatMoneda(facturaDetalle.factura.baseExenta) }}</td>
-              <td><strong>Bs {{ formatMoneda(facturaDetalle.factura.totalPagar) }}</strong></td>
-              <td>-Bs {{ formatMoneda(facturaDetalle.factura.abonos) }}</td>
-              <td><strong>Bs {{ formatMoneda(facturaDetalle.factura.deudaActual) }}</strong></td>
+              <td>-$ {{ formatMoneda(facturaDetalle.factura.abonos) }}</td>
+              <td><strong>$ {{ formatMoneda(facturaDetalle.factura.deudaActual) }}</strong></td>
             </tr>
           </tbody>
         </table>

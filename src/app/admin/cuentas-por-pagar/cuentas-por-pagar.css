@@ -451,6 +451,24 @@
   font-weight: 600;
 }
 
+.badge-factura {
+  background: #1d63c1;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.badge-nota {
+  background: #6c757d;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
 .badge-pendiente {
   background: #ffc107;
   color: #333;

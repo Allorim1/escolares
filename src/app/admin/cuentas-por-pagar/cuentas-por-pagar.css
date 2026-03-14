@@ -545,6 +545,48 @@
   background: #218838;
 }
 
+.cuenta-options {
+  margin-bottom: 0.8rem;
+}
+
+.option-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.3rem;
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.radio-circle input {
+  display: none;
+}
+
+.radio-btn {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid #ddd;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+
+.radio-circle input:checked + .radio-btn {
+  background: #1d63c1;
+  border-color: #1d63c1;
+  color: #fff;
+}
+
+.radio-circle:hover .radio-btn {
+  border-color: #1d63c1;
+}
+
 .cuentas-agregadas {
   margin-top: 1rem;
 }

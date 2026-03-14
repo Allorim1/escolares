@@ -5,11 +5,13 @@ import { HttpClient } from '@angular/common/http';
 
 export interface CuentaBancaria {
   banco: string;
+  bancoAfliado?: string;
   numero: string;
   tipo: string;
   titular?: string;
   pagoMovil?: boolean;
   cedulaRif?: string;
+  tipoPersona?: string;
 }
 
 export interface FacturaProveedor {
@@ -101,11 +103,13 @@ export class CuentasPorPagar implements OnInit {
 
   newCuentaBancaria = {
     banco: '',
+    bancoAfliado: '',
     numero: '',
     tipo: 'corriente',
     titular: '',
     pagoMovil: false,
     cedulaRif: '',
+    tipoPersona: 'personal',
   };
 
   ngOnInit() {
@@ -207,7 +211,7 @@ export class CuentasPorPagar implements OnInit {
       ...this.newProveedor.cuentasBancarias,
       { ...this.newCuentaBancaria },
     ];
-    this.newCuentaBancaria = { banco: '', numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '' };
+    this.newCuentaBancaria = { banco: '', bancoAfliado: '', numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '', tipoPersona: 'personal' };
   }
 
   eliminarCuentaBancaria(index: number) {

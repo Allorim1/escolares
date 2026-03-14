@@ -62,7 +62,22 @@
                 <div class="cuentas-list">
                   @for (cuenta of proveedor.cuentasBancarias; track $index) {
                     <div class="cuenta-item">
-                      <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
+                      @if (cuenta.pagoMovil) {
+                        <span class="cuenta-tipo cuenta-pm">PAGO MÓVIL</span>
+                      } @else {
+                        <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
+                      }
+                      @if (cuenta['bancoAfliado']) {
+                        <span class="cuenta-banco-afiliado">{{ cuenta['bancoAfliado'] }}</span>
+                      }
+                      @if (cuenta['tipoPersona'] === 'personal') {
+                        <span class="cuenta-persona">Personal</span>
+                      } @else if (cuenta['tipoPersona'] === 'juridica') {
+                        <span class="cuenta-persona">Jurídica</span>
+                      }
+                      @if (cuenta.cedulaRif) {
+                        <span class="cuenta-cedula">{{ cuenta.cedulaRif }}</span>
+                      }
                       @if (cuenta.titular) {
                         <span class="cuenta-titular">{{ cuenta.titular }}</span>
                       }
@@ -171,7 +186,7 @@
           </div>
           <div class="form-group">
               <label>Teléfono del Vendedor</label>
-              <input type="text" [(ngModel)]="newProveedor.telefono" placeholder="0412-1234567" (keydown.enter)="guardarProveedor()" />
+              <input type="text" [(ngModel)]="newProveedor.telefono" placeholder="0000-0000000" (keydown.enter)="guardarProveedor()" />
             </div>
         </div>
 
@@ -204,6 +219,40 @@
               <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
             </div>
           }
+          <div class="cuenta-options">
+            <label class="option-label">Afiliado en:</label>
+            <div class="radio-group">
+              <label class="radio-circle">
+                <input type="radio" name="bancoAfliado" value="BNC" [(ngModel)]="newCuentaBancaria.bancoAfliado" />
+                <span class="radio-btn">BNC</span>
+              </label>
+              <label class="radio-circle">
+                <input type="radio" name="bancoAfliado" value="BANESCO" [(ngModel)]="newCuentaBancaria.bancoAfliado" />
+                <span class="radio-btn">BANESCO</span>
+              </label>
+              <label class="radio-circle">
+                <input type="radio" name="bancoAfliado" value="BANCARIBE" [(ngModel)]="newCuentaBancaria.bancoAfliado" />
+                <span class="radio-btn">BANCARIBE</span>
+              </label>
+              <label class="radio-circle">
+                <input type="radio" name="bancoAfliado" value="BDV" [(ngModel)]="newCuentaBancaria.bancoAfliado" />
+                <span class="radio-btn">BDV</span>
+              </label>
+            </div>
+          </div>
+          <div class="cuenta-options">
+            <label class="option-label">Tipo:</label>
+            <div class="radio-group">
+              <label class="radio-circle">
+                <input type="radio" name="tipoPersona" value="personal" [(ngModel)]="newCuentaBancaria.tipoPersona" />
+                <span class="radio-btn">Personal</span>
+              </label>
+              <label class="radio-circle">
+                <input type="radio" name="tipoPersona" value="juridica" [(ngModel)]="newCuentaBancaria.tipoPersona" />
+                <span class="radio-btn">Jurídica</span>
+              </label>
+            </div>
+          </div>
           <button class="btn-add" (click)="agregarCuentaBancaria()">➕ Agregar</button>
           @if (newProveedor.cuentasBancarias.length > 0) {
             <div class="cuentas-agregadas">
@@ -215,6 +264,14 @@
                       <span class="cuenta-tipo cuenta-pm">PAGO MÓVIL</span>
                     } @else {
                       <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
+                    }
+                    @if (cuenta.bancoAfliado) {
+                      <span class="cuenta-banco-afiliado">{{ cuenta.bancoAfliado }}</span>
+                    }
+                    @if (cuenta.tipoPersona === 'personal') {
+                      <span class="cuenta-persona">Personal</span>
+                    } @else if (cuenta.tipoPersona === 'juridica') {
+                      <span class="cuenta-persona">Jurídica</span>
                     }
                     @if (cuenta.cedulaRif) {
                       <span class="cuenta-cedula">{{ cuenta.cedulaRif }}</span>

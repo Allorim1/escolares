@@ -418,8 +418,12 @@ export class CuentasPorPagar implements OnInit {
           this.imagenesFactura = response.imagenes || [];
         },
         error: (err) => {
-          console.error('Error loading images:', err);
-          this.imagenesFactura = [];
+          if (err.status === 404) {
+            this.imagenesFactura = [];
+          } else {
+            console.error('Error loading images:', err);
+            this.imagenesFactura = [];
+          }
         },
       });
   }

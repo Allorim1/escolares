@@ -352,9 +352,7 @@ export class CuentasPorPagar implements OnInit {
         next: (response) => {
           this.qrCodeUrl = response.qrCode;
           this.qrLoading = false;
-          if (facturaIndex >= 0) {
-            this.iniciarPollingImagenes(proveedorId, facturaIndex);
-          }
+          this.iniciarPollingImagenes(proveedorId, facturaIndex);
         },
         error: (err) => {
           console.error('Error generating QR:', err);
@@ -387,6 +385,7 @@ export class CuentasPorPagar implements OnInit {
         },
         error: (err) => {
           console.error('Error loading images:', err);
+          this.imagenesFactura = [];
         },
       });
   }
@@ -657,10 +656,30 @@ export class CuentasPorPagar implements OnInit {
       this.http
         .post(`${this.API}/${proveedorId}/facturas`, this.newFactura)
         .subscribe({
-          next: () => {
-            this.loadProveedores();
-            this.detenerPollingImagenes();
-            this.cerrarModalFactura();
+          next: (response: any) => {
+            if (this.imagenesFactura.length > 0 && response.index !== undefined) {
+              const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+              this.http.post(`${apiUrl}/api/facturas/save-temp-image`, {
+                proveedorId,
+                facturaIndex: response.index
+              }).subscribe({
+                next: () => {
+                  this.loadProveedores();
+                  this.detenerPollingImagenes();
+                  this.cerrarModalFactura();
+                },
+                error: (err) => {
+                  console.error('Error saving temp image:', err);
+                  this.loadProveedores();
+                  this.detenerPollingImagenes();
+                  this.cerrarModalFactura();
+                }
+              });
+            } else {
+              this.loadProveedores();
+              this.detenerPollingImagenes();
+              this.cerrarModalFactura();
+            }
           },
           error: (err) => console.error('Error agregando factura:', err),
         });

@@ -370,9 +370,13 @@ export class CuentasPorPagar implements OnInit {
     const proveedorId = this.proveedorConFactura();
     if (!proveedorId) return;
 
-    this.qrLoading = true;
-    const facturaIndex = this.editingFactura?.index ?? -1;
+    const facturaIndex = this.editingFactura?.index;
+    if (facturaIndex === undefined || facturaIndex < 0) {
+      console.error('No hay factura seleccionada');
+      return;
+    }
 
+    this.qrLoading = true;
     const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
     const token = localStorage.getItem('accessToken');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);

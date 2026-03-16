@@ -315,21 +315,49 @@ export class CuentasPorPagar implements OnInit {
       };
       this.imagenesFactura = factura.imagenes ? [...factura.imagenes] : [];
     } else {
-      this.editingFactura = null;
-      this.newFactura = {
-        numero: '',
-        fecha: new Date().toISOString().split('T')[0],
-        tipo: 'factura',
-        monto: 0,
-        montoIva: 0,
-        baseImponible: 0,
-        baseExenta: 0,
-        porcentajeIva: 16,
-      };
-      this.imagenesFactura = [];
+      this.crearNuevaFacturaYAbrirModal(proveedorId);
+      return;
     }
     this.proveedorConFactura.set(proveedorId);
     this.showModalFactura = true;
+  }
+
+  crearNuevaFacturaYAbrirModal(proveedorId: string) {
+    const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+    const token = localStorage.getItem('accessToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.post<any>(`${apiUrl}/api/proveedores/${proveedorId}/facturas`, {
+      numero: '',
+      fecha: new Date().toISOString().split('T')[0],
+      tipo: 'factura',
+      monto: 0,
+      montoIva: 0,
+      baseImponible: 0,
+      baseExenta: 0,
+      porcentajeIva: 16
+    }, { headers }).subscribe({
+      next: (response) => {
+        const nuevoIndex = response.index;
+        this.editingFactura = { proveedorId, index: nuevoIndex, factura: {} as FacturaProveedor };
+        this.newFactura = {
+          numero: '',
+          fecha: new Date().toISOString().split('T')[0],
+          tipo: 'factura',
+          monto: 0,
+          montoIva: 0,
+          baseImponible: 0,
+          baseExenta: 0,
+          porcentajeIva: 16,
+        };
+        this.imagenesFactura = [];
+        this.proveedorConFactura.set(proveedorId);
+        this.showModalFactura = true;
+      },
+      error: (err) => {
+        console.error('Error creating new invoice:', err);
+      }
+    });
   }
 
   cerrarModalFactura() {

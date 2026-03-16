@@ -5,7 +5,7 @@
   <div class="cp-summary">
     <div class="summary-item total-deuda">
       <span class="label">Total Deuda:</span>
-      <span class="value">Bs {{ formatMoneda(getTotalDeuda()) }}</span>
+      <span class="value">$ {{ formatMoneda(getTotalDeuda()) }}</span>
     </div>
   </div>
 
@@ -32,7 +32,7 @@
             <span class="factura-count">{{ proveedor.facturas?.length || 0 }} facturas</span>
           </div>
           <div class="proveedor-summary">
-            <span class="deuda">Deuda: Bs {{ formatMoneda(calcularDeuda(proveedor)) }}</span>
+            <span class="deuda">Deuda: $ {{ formatMoneda(calcularDeuda(proveedor)) }}</span>
           </div>
           <div class="proveedor-actions">
             <button class="btn-icon" (click)="abrirModalProveedor(proveedor); $event.stopPropagation()" title="Editar">✏️</button>
@@ -141,7 +141,27 @@
                                     Jurídica
                                   } @else {
                                     -
-                                  }
+}
+
+@if (imagenZoom) {
+  <div class="zoom-overlay" (click)="cerrarImagenZoom()">
+    <div class="zoom-container" (click)="$event.stopPropagation()">
+      <button class="zoom-close" (click)="cerrarImagenZoom()">✕</button>
+      <div class="zoom-controls">
+        <button (click)="zoomOut()" class="zoom-btn">➖</button>
+        <span class="zoom-level">{{ (zoomLevel * 100) | number:'1.0-0' }}%</span>
+        <button (click)="zoomIn()" class="zoom-btn">➕</button>
+        <button (click)="resetZoom()" class="zoom-btn reset">↺</button>
+        @if (facturaDetalle) {
+          <button (click)="abrirEditorDesdeZoom()" class="zoom-btn edit" title="Editar">✂</button>
+        }
+      </div>
+      <div class="zoom-image-container">
+        <img [src]="imagenZoom" [style.transform]="'scale(' + zoomLevel + ')'" alt="Factura" class="zoom-image" />
+      </div>
+    </div>
+  </div>
+}
                                 </td>
                               </tr>
                             </tbody>
@@ -244,7 +264,14 @@
           </div>
           <div class="form-group">
             <label>RIF</label>
-            <input type="text" [(ngModel)]="newProveedor.rif" placeholder="J-XXXXXXXX-X" />
+            <div class="rif-input-group">
+              <select [(ngModel)]="newProveedor.rifTipo" class="rif-tipo-select">
+                @for (tipo of rifTipos; track tipo) {
+                  <option [value]="tipo">{{ tipo }}</option>
+                }
+              </select>
+              <input type="text" [(ngModel)]="newProveedor.rif" placeholder="XXXXXXXX-X" />
+            </div>
           </div>
           <div class="form-group">
             <label>Dirección</label>
@@ -287,9 +314,14 @@
             <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="newCuentaBancaria.pagoMovil ? 'Banco (ej: Banesco)' : 'Banco'" class="input-banco" />
             <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="newCuentaBancaria.pagoMovil ? 'Número de teléfono' : 'Número de cuenta'" class="input-numero" />
           </div>
-          <div class="cuenta-inputs">
-            <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" />
-          </div>
+            <div class="cuenta-inputs">
+              <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" />
+              <select [(ngModel)]="newCuentaBancaria.cedulaRifTipo" class="rif-tipo-select-small">
+                @for (tipo of rifTipos; track tipo) {
+                  <option [value]="tipo">{{ tipo }}</option>
+                }
+              </select>
+            </div>
           @if (newCuentaBancaria.pagoMovil) {
             <div class="cuenta-inputs">
               <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
@@ -459,6 +491,20 @@
           </button>
         </div>
         
+        @if (imagenesFactura.length > 0) {
+          <div class="imagenes-container">
+            <h4>Fotos de la factura ({{ imagenesFactura.length }})</h4>
+            <div class="imagenes-grid">
+              @for (img of imagenesFactura; track $index) {
+                <div class="imagen-item">
+                  <img [src]="img" alt="Factura" class="factura-img" />
+                  <button class="btn-eliminar-img" (click)="eliminarImagen($index)" title="Eliminar">✕</button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        
         @if (qrCodeUrl) {
           <div class="qr-container">
             <p>Escanea este código QR con tu teléfono:</p>
@@ -487,9 +533,9 @@
         <div class="abono-info">
           @if (facturaConAbono) {
             <p><strong>Factura:</strong> {{ facturaConAbono.factura.numero }}</p>
-            <p><strong>Total:</strong> Bs {{ formatMoneda(facturaConAbono.factura.totalPagar || 0) }}</p>
-            <p><strong>Abonado:</strong> Bs {{ formatMoneda(facturaConAbono.factura.abonos || 0) }}</p>
-            <p><strong>Deuda:</strong> Bs {{ formatMoneda(facturaConAbono.factura.deudaActual || 0) }}</p>
+            <p><strong>Total:</strong> $ {{ formatMoneda(facturaConAbono.factura.totalPagar || 0) }}</p>
+            <p><strong>Abonado:</strong> $ {{ formatMoneda(facturaConAbono.factura.abonos || 0) }}</p>
+            <p><strong>Deuda:</strong> $ {{ formatMoneda(facturaConAbono.factura.deudaActual || 0) }}</p>
           }
         </div>
         <div class="form-row">
@@ -591,7 +637,7 @@
                   <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ formatFecha(abono.fecha) }}</td>
-                    <td>Bs {{ formatMoneda(abono.monto) }}</td>
+                    <td>$ {{ formatMoneda(abono.monto) }}</td>
                   </tr>
                 }
               </tbody>
@@ -634,6 +680,22 @@
                 <span class="cuenta-num">/{{ cuenta.numero }}</span>
               </div>
             }
+          </div>
+        }
+
+        @if ((facturaDetalle.factura.imagenes?.length ?? 0) > 0) {
+          <div class="factura-imagenes">
+            <h5>Fotos de la Factura</h5>
+            <div class="imagenes-grid">
+              @for (img of facturaDetalle.factura.imagenes; track $index) {
+                @if (img) {
+                  <div class="imagen-thumb">
+                    <img [src]="img" alt="Factura" (click)="abrirImagenZoom(img)" />
+                    <button class="btn-editar-img" (click)="abrirEditarImagen(img, $index, facturaDetalle.proveedor._id || '', facturaDetalle.index)" title="Editar">✏️</button>
+                  </div>
+                }
+              }
+            </div>
           </div>
         }
       </div>
@@ -830,6 +892,40 @@
             <button class="btn-primary" (click)="guardarAbonoIva25()">Agregar</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (imagenEditar) {
+  <div class="zoom-overlay" (click)="cerrarEditarImagen()">
+    <div class="editor-container" (click)="$event.stopPropagation()">
+      <div class="editor-header">
+        <h3>Editar Imagen</h3>
+        <button class="close-btn" (click)="cerrarEditarImagen()">✕</button>
+      </div>
+      <div class="editor-content">
+        <canvas #editorCanvas 
+          class="editor-canvas"
+          [class.crop-mode]="cropMode"
+          (mousedown)="iniciarCrop($event)"
+          (mousemove)="actualizarCrop($event)"
+          (mouseup)="terminarCrop()"
+          (mouseleave)="terminarCrop()">
+        </canvas>
+        @if (cropMode) {
+          <p class="crop-hint">Haz clic y arrastra para seleccionar el área a recortar</p>
+        }
+      </div>
+      <div class="editor-controls">
+        <button class="btn-secondary" (click)="rotarImagen(-90)">↺ Rotar</button>
+        <button class="btn-secondary" (click)="rotarImagen(90)">↻ Rotar</button>
+        @if (!cropMode) {
+          <button class="btn-secondary" (click)="recortarImagen()">✂ Recortar</button>
+        } @else {
+          <button class="btn-secondary" (click)="cancelarCrop()">✕ Cancelar</button>
+        }
+        <button class="btn-primary" (click)="guardarRecorte()" [disabled]="!cropMode">Guardar</button>
       </div>
     </div>
   </div>

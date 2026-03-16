@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 export interface CuentaBancaria {
   banco: string;
@@ -300,7 +300,10 @@ export class CuentasPorPagar implements OnInit {
     const facturaIndex = this.editingFactura?.index ?? -1;
 
     const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
-    this.http.post<any>(`${apiUrl}/api/facturas/generate-qr`, { proveedorId, facturaIndex })
+    const token = localStorage.getItem('accessToken');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    
+    this.http.post<any>(`${apiUrl}/api/facturas/generate-qr`, { proveedorId, facturaIndex }, { headers })
       .subscribe({
         next: (response) => {
           this.qrCodeUrl = response.qrCode;

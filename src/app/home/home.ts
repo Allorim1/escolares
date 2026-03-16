@@ -190,12 +190,17 @@ import { MarcasService } from '../shared/data-access/marcas.service';
 
       .carousel-container {
         position: relative;
-        overflow: hidden;
-        padding: 0 3rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 0 1rem;
       }
 
       .carousel-track {
         display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 1.5rem;
         transition: transform 0.5s ease-in-out;
       }

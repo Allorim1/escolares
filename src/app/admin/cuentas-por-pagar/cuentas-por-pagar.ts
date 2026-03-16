@@ -352,7 +352,9 @@ export class CuentasPorPagar implements OnInit {
         next: (response) => {
           this.qrCodeUrl = response.qrCode;
           this.qrLoading = false;
-          this.iniciarPollingImagenes(proveedorId, facturaIndex);
+          if (facturaIndex >= 0) {
+            this.iniciarPollingImagenes(proveedorId, facturaIndex);
+          }
         },
         error: (err) => {
           console.error('Error generating QR:', err);

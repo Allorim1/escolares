@@ -452,6 +452,21 @@
             </div>
           </div>
         }
+        
+        <div class="form-group" style="margin-top: 15px;">
+          <button type="button" class="btn-camera" (click)="generarQrCode()">
+            📷 Subir foto por cámara
+          </button>
+        </div>
+        
+        @if (qrCodeUrl) {
+          <div class="qr-container">
+            <p>Escanea este código QR con tu teléfono:</p>
+            <img [src]="qrCodeUrl" alt="QR Code" class="qr-image" />
+            <p class="qr-expire">Expira en 15 minutos</p>
+            <button class="btn-secondary" (click)="cerrarQrCode()">Cerrar</button>
+          </div>
+        }
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" (click)="cerrarModalFactura()">Cancelar</button>

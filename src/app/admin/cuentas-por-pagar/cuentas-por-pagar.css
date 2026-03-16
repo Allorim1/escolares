@@ -1204,3 +1204,46 @@
   font-size: 0.9rem;
   box-sizing: border-box;
 }
+
+.btn-camera {
+  width: 100%;
+  padding: 12px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-camera:hover {
+  background: #218838;
+}
+
+.qr-container {
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.qr-container p {
+  margin: 10px 0;
+  color: #333;
+}
+
+.qr-image {
+  max-width: 250px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}
+
+.qr-expire {
+  font-size: 0.85rem;
+  color: #dc3545 !important;
+}

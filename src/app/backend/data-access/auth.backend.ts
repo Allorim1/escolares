@@ -76,6 +76,9 @@ export class AuthBackend {
         this.saveToStorage(response);
         if (response.accessToken) {
           this.saveToken(response.accessToken);
+          if (response.refreshToken) {
+            localStorage.setItem('refreshToken', response.refreshToken);
+          }
         }
         this.loginLoading.set(false);
         if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner') {
@@ -97,6 +100,7 @@ export class AuthBackend {
     this.isAdmin.set(false);
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.removeItem(this.STORAGE_KEY_SESSION);
+      localStorage.removeItem('refreshToken');
     }
   }
 

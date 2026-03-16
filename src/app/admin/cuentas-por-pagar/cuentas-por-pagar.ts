@@ -82,6 +82,9 @@ export class CuentasPorPagar implements OnInit {
   showModalIva25 = false;
   editingProveedor: Proveedor | null = null;
   editingFactura: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
+  
+  qrCodeUrl: string | null = null;
+  qrLoading = false;
   facturaConAbono: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
   facturaDetalle: { proveedor: Proveedor; factura: FacturaProveedor; index: number } | null = null;
   facturaIva: { proveedor: Proveedor; factura: FacturaProveedor; index: number } | null = null;
@@ -286,6 +289,32 @@ export class CuentasPorPagar implements OnInit {
   cerrarModalFactura() {
     this.showModalFactura = false;
     this.editingFactura = null;
+    this.cerrarQrCode();
+  }
+
+  generarQrCode() {
+    const proveedorId = this.proveedorConFactura();
+    if (!proveedorId) return;
+
+    this.qrLoading = true;
+    const facturaIndex = this.editingFactura?.index ?? -1;
+
+    const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+    this.http.post<any>(`${apiUrl}/api/facturas/generate-qr`, { proveedorId, facturaIndex })
+      .subscribe({
+        next: (response) => {
+          this.qrCodeUrl = response.qrCode;
+          this.qrLoading = false;
+        },
+        error: (err) => {
+          console.error('Error generating QR:', err);
+          this.qrLoading = false;
+        },
+      });
+  }
+
+  cerrarQrCode() {
+    this.qrCodeUrl = null;
   }
 
   guardarFactura() {

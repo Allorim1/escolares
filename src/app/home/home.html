@@ -8,19 +8,23 @@
   </div>
 
   @if (marcas().length > 0) {
-    <div class="marcas-carousel">
-      <div class="carousel-container">
-        @for (marca of marcas(); track marca.id) {
-          <div class="marca-slide">
-            @if (marca.image) {
-              <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
-            } @else {
-              <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
-            }
-            <span class="marca-name">{{ marca.name }}</span>
-          </div>
-        }
+    <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">
+      <button class="carousel-btn prev" (click)="prev()">‹</button>
+      <div class="carousel-viewport">
+        <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
+          @for (marca of marcas(); track marca.id) {
+            <div class="marca-slide">
+              @if (marca.image) {
+                <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
+              } @else {
+                <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
+              }
+              <span class="marca-name">{{ marca.name }}</span>
+            </div>
+          }
+        </div>
       </div>
+      <button class="carousel-btn next" (click)="next()">›</button>
     </div>
   }
 

@@ -3,6 +3,7 @@ import {
   inject,
   signal,
   AfterViewInit,
+  OnDestroy,
   ElementRef,
   ViewChildren,
   QueryList,
@@ -177,9 +178,13 @@ import { MarcasService } from '../shared/data-access/marcas.service';
 
       .marcas-carousel {
         width: 100%;
-        max-width: 1200px;
+        max-width: 100%;
         margin-top: 2rem;
-        padding: 2rem 0;
+        padding: 2rem 40px;
+        display: flex;
+        align-items: center;
+        position: relative;
+        box-sizing: border-box;
       }
 
       .marcas-title {
@@ -188,21 +193,48 @@ import { MarcasService } from '../shared/data-access/marcas.service';
         margin-bottom: 1.5rem;
       }
 
-      .carousel-container {
-        position: relative;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 1.5rem;
-        padding: 0 1rem;
+      .carousel-viewport {
+        overflow: hidden;
+        flex: 1;
+        width: calc(200px * 4 + 24px * 3);
+        margin: 0 auto;
       }
 
       .carousel-track {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
         gap: 1.5rem;
         transition: transform 0.5s ease-in-out;
+      }
+
+      .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.5rem;
+        z-index: 2;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .carousel-btn:hover {
+        background: rgba(0, 0, 0, 0.7);
+      }
+
+      .carousel-btn.prev {
+        left: 0;
+      }
+
+      .carousel-btn.next {
+        right: 0;
       }
 
       .marca-slide {
@@ -435,7 +467,7 @@ import { MarcasService } from '../shared/data-access/marcas.service';
     `,
   ],
 })
-export default class HomeComponent implements AfterViewInit {
+export default class HomeComponent implements AfterViewInit, OnDestroy {
   private marcasService = inject(MarcasService);
   marcas = this.marcasService.marcas;
   currentIndex = 0;
@@ -449,11 +481,23 @@ export default class HomeComponent implements AfterViewInit {
   emailSuscrito = '';
   mensajeSuscrito = signal('');
 
+  private autoScrollInterval: any;
+
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
       setTimeout(() => this.revealAll(), 100);
       setTimeout(() => this.revealAll(), 300);
       setTimeout(() => this.revealAll(), 500);
+      
+      this.autoScrollInterval = setInterval(() => {
+        this.next();
+      }, 3000);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
     }
   }
 
@@ -489,15 +533,30 @@ export default class HomeComponent implements AfterViewInit {
     if (this.currentIndex > 0) {
       this.currentIndex--;
     } else {
-      this.currentIndex = Math.max(0, this.marcas().length - this.visibleCount);
+      this.currentIndex = this.marcas().length - 1;
     }
   }
 
   next() {
-    if (this.currentIndex < this.marcas().length - this.visibleCount) {
+    if (this.currentIndex < this.marcas().length - 1) {
       this.currentIndex++;
     } else {
       this.currentIndex = 0;
+    }
+  }
+
+  pauseAutoScroll() {
+    if (this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
+      this.autoScrollInterval = null;
+    }
+  }
+
+  resumeAutoScroll() {
+    if (!this.autoScrollInterval && isPlatformBrowser(this.platformId)) {
+      this.autoScrollInterval = setInterval(() => {
+        this.next();
+      }, 3000);
     }
   }
 }

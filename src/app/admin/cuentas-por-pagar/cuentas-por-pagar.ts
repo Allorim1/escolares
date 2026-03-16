@@ -313,6 +313,7 @@ export class CuentasPorPagar implements OnInit {
         baseExenta: factura.baseExenta,
         porcentajeIva: factura.porcentajeIva || 16,
       };
+      this.imagenesFactura = factura.imagenes ? [...factura.imagenes] : [];
     } else {
       this.editingFactura = null;
       this.newFactura = {
@@ -325,6 +326,7 @@ export class CuentasPorPagar implements OnInit {
         baseExenta: 0,
         porcentajeIva: 16,
       };
+      this.imagenesFactura = [];
     }
     this.proveedorConFactura.set(proveedorId);
     this.showModalFactura = true;
@@ -648,7 +650,18 @@ export class CuentasPorPagar implements OnInit {
           next: () => {
             this.loadProveedores();
             this.detenerPollingImagenes();
+            const detalleAnterior = this.facturaDetalle;
             this.cerrarModalFactura();
+            setTimeout(() => {
+              this.loadProveedores();
+              if (detalleAnterior && detalleAnterior.proveedor._id === proveedorId) {
+                const proveedores = this.proveedores();
+                const prov = proveedores.find(p => p._id === proveedorId);
+                if (prov && prov.facturas && prov.facturas[detalleAnterior.index]) {
+                  this.abrirDetalleFactura(prov, prov.facturas[detalleAnterior.index], detalleAnterior.index);
+                }
+              }
+            }, 200);
           },
           error: (err) => console.error('Error actualizando factura:', err),
         });

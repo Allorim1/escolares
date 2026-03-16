@@ -143,25 +143,6 @@
                                     -
 }
 
-@if (imagenZoom) {
-  <div class="zoom-overlay" (click)="cerrarImagenZoom()">
-    <div class="zoom-container" (click)="$event.stopPropagation()">
-      <button class="zoom-close" (click)="cerrarImagenZoom()">✕</button>
-      <div class="zoom-controls">
-        <button (click)="zoomOut()" class="zoom-btn">➖</button>
-        <span class="zoom-level">{{ (zoomLevel * 100) | number:'1.0-0' }}%</span>
-        <button (click)="zoomIn()" class="zoom-btn">➕</button>
-        <button (click)="resetZoom()" class="zoom-btn reset">↺</button>
-        @if (facturaDetalle) {
-          <button (click)="abrirEditorDesdeZoom()" class="zoom-btn edit" title="Editar">✂</button>
-        }
-      </div>
-      <div class="zoom-image-container">
-        <img [src]="imagenZoom" [style.transform]="'scale(' + zoomLevel + ')'" alt="Factura" class="zoom-image" />
-      </div>
-    </div>
-  </div>
-}
                                 </td>
                               </tr>
                             </tbody>
@@ -484,35 +465,6 @@
             </div>
           </div>
         }
-        
-        <div class="form-group" style="margin-top: 15px;">
-          <button type="button" class="btn-camera" (click)="generarQrCode()">
-            📷 Subir foto por cámara
-          </button>
-        </div>
-        
-        @if (imagenesFactura.length > 0) {
-          <div class="imagenes-container">
-            <h4>Fotos de la factura ({{ imagenesFactura.length }})</h4>
-            <div class="imagenes-grid">
-              @for (img of imagenesFactura; track $index) {
-                <div class="imagen-item">
-                  <img [src]="img" alt="Factura" class="factura-img" />
-                  <button class="btn-eliminar-img" (click)="eliminarImagen($index)" title="Eliminar">✕</button>
-                </div>
-              }
-            </div>
-          </div>
-        }
-        
-        @if (qrCodeUrl) {
-          <div class="qr-container">
-            <p>Escanea este código QR con tu teléfono:</p>
-            <img [src]="qrCodeUrl" alt="QR Code" class="qr-image" />
-            <p class="qr-expire">Expira en 15 minutos</p>
-            <button class="btn-secondary" (click)="cerrarQrCode()">Cerrar</button>
-          </div>
-        }
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" (click)="cerrarModalFactura()">Cancelar</button>
@@ -680,22 +632,6 @@
                 <span class="cuenta-num">/{{ cuenta.numero }}</span>
               </div>
             }
-          </div>
-        }
-
-        @if ((facturaDetalle.factura.imagenes?.length ?? 0) > 0) {
-          <div class="factura-imagenes">
-            <h5>Fotos de la Factura</h5>
-            <div class="imagenes-grid">
-              @for (img of facturaDetalle.factura.imagenes; track $index) {
-                @if (img) {
-                  <div class="imagen-thumb">
-                    <img [src]="img" alt="Factura" (click)="abrirImagenZoom(img)" />
-                    <button class="btn-editar-img" (click)="abrirEditarImagen(img, $index, facturaDetalle.proveedor._id || '', facturaDetalle.index)" title="Editar">✏️</button>
-                  </div>
-                }
-              }
-            </div>
           </div>
         }
       </div>
@@ -897,36 +833,3 @@
   </div>
 }
 
-@if (imagenEditar) {
-  <div class="zoom-overlay" (click)="cerrarEditarImagen()">
-    <div class="editor-container" (click)="$event.stopPropagation()">
-      <div class="editor-header">
-        <h3>Editar Imagen</h3>
-        <button class="close-btn" (click)="cerrarEditarImagen()">✕</button>
-      </div>
-      <div class="editor-content">
-        <canvas #editorCanvas 
-          class="editor-canvas"
-          [class.crop-mode]="cropMode"
-          (mousedown)="iniciarCrop($event)"
-          (mousemove)="actualizarCrop($event)"
-          (mouseup)="terminarCrop()"
-          (mouseleave)="terminarCrop()">
-        </canvas>
-        @if (cropMode) {
-          <p class="crop-hint">Haz clic y arrastra para seleccionar el área a recortar</p>
-        }
-      </div>
-      <div class="editor-controls">
-        <button class="btn-secondary" (click)="rotarImagen(-90)">↺ Rotar</button>
-        <button class="btn-secondary" (click)="rotarImagen(90)">↻ Rotar</button>
-        @if (!cropMode) {
-          <button class="btn-secondary" (click)="recortarImagen()">✂ Recortar</button>
-        } @else {
-          <button class="btn-secondary" (click)="cancelarCrop()">✕ Cancelar</button>
-        }
-        <button class="btn-primary" (click)="guardarRecorte()" [disabled]="!cropMode">Guardar</button>
-      </div>
-    </div>
-  </div>
-}

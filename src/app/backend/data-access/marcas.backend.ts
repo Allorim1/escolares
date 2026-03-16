@@ -18,6 +18,7 @@ export class MarcasBackend {
   private loadFromApi() {
     this.http.get<Marca[]>(this.API_URL).subscribe({
       next: (marcas) => {
+        console.log('Marcas loaded:', marcas);
         this.marcas.set(marcas);
         this.isInitialized.set(true);
       },

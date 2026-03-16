@@ -214,9 +214,9 @@ import { MarcasService } from '../shared/data-access/marcas.service';
         height: 150px;
         object-fit: contain;
         border-radius: 12px;
-        background: #f8f9fa;
+        background: #ffffff;
         padding: 1rem;
-        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         transition: transform 0.2s;
       }
 

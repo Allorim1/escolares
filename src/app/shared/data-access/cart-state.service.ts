@@ -40,7 +40,7 @@ export class CartStateService {
     actionSources: {
       add: (state, action$: Observable<ProductItemCart>) =>
         action$.pipe(map((product) => this.add(state, product))),
-      remove: (state, action$: Observable<number>) =>
+      remove: (state, action$: Observable<number | string>) =>
         action$.pipe(map((id) => this.remove(state, id))),
       udpate: (state, action$: Observable<ProductItemCart>) =>
         action$.pipe(map((product) => this.update(state, product))),

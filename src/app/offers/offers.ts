@@ -38,7 +38,7 @@ export class Offers implements OnInit, AfterViewInit {
     this.productsService.getProducts().subscribe({
       next: (products) => {
         const ofertaIds = this.ofertasService.ofertas().map((o) => o.productId);
-        this.productsEnOferta.set(products.filter((p) => ofertaIds.includes(p.id)));
+        this.productsEnOferta.set(products.filter((p) => ofertaIds.includes(p.id as any)));
         this.loading.set(false);
       },
       error: (err) => {
@@ -78,7 +78,11 @@ export class Offers implements OnInit, AfterViewInit {
     });
   }
 
-  getOfertaPrice(productId: number): number {
+  getOfertaPriceForProduct(product: Product): number {
+    return this.ofertasService.getOfertaPrice(product.id as any) || 0;
+  }
+
+  getOfertaPrice(productId: number | string): number {
     return this.ofertasService.getOfertaPrice(productId) || 0;
   }
 }

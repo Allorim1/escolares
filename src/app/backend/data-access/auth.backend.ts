@@ -82,7 +82,7 @@ export class AuthBackend {
         }
         this.loginLoading.set(false);
         if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner') {
-          this.router.navigate(['/admin']);
+          this.router.navigate(['/admin/inicio']);
         } else {
           this.router.navigate(['/panel/perfil']);
         }

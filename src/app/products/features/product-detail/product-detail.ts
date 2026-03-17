@@ -22,12 +22,12 @@ export default class ProductDetail {
 
   get isEnOferta(): boolean {
     const product = this.productDetailState.product();
-    return product ? this.ofertasService.isEnOferta(product.id) : false;
+    return product ? this.ofertasService.isEnOferta(product.id as any) : false;
   }
 
   get precioOferta(): number | null {
     const product = this.productDetailState.product();
-    return product ? this.ofertasService.getOfertaPrice(product.id) : null;
+    return product ? this.ofertasService.getOfertaPrice(product.id as any) : null;
   }
 
   constructor() {

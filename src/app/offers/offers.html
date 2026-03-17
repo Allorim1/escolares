@@ -13,7 +13,7 @@
             <p class="offer-description">{{ product.description }}</p>
             <div class="offer-prices">
               <span class="original-price">${{ product.price.toFixed(2) }}</span>
-              <span class="discount-price">${{ getOfertaPrice(product.id).toFixed(2) }}</span>
+              <span class="discount-price">${{ getOfertaPriceForProduct(product).toFixed(2) }}</span>
             </div>
             <a [routerLink]="['/products', product.id]" class="offer-btn">Ver Producto</a>
           </div>

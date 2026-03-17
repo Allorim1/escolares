@@ -25,7 +25,7 @@ export class OfertasBackend {
     });
   }
 
-  agregarOferta(productId: number, precioOferta: number) {
+  agregarOferta(productId: number | string, precioOferta: number) {
     this.http.post<Oferta>(this.API_URL, { productId, precioOferta }).subscribe({
       next: (newOferta) => {
         this.ofertas.update((ofertas) => {
@@ -42,7 +42,7 @@ export class OfertasBackend {
     });
   }
 
-  eliminarOferta(productId: number) {
+  eliminarOferta(productId: number | string) {
     this.http.delete(`${this.API_URL}/product/${productId}`).subscribe({
       next: () => {
         this.ofertas.update((ofertas) => ofertas.filter((o) => o.productId !== productId));
@@ -53,15 +53,15 @@ export class OfertasBackend {
     });
   }
 
-  getOferta(productId: number): Oferta | undefined {
+  getOferta(productId: number | string): Oferta | undefined {
     return this.ofertas().find((o) => o.productId === productId);
   }
 
-  isEnOferta(productId: number): boolean {
+  isEnOferta(productId: number | string): boolean {
     return this.ofertas().some((o) => o.productId === productId);
   }
 
-  getOfertaPrice(productId: number): number | null {
+  getOfertaPrice(productId: number | string): number | null {
     const oferta = this.getOferta(productId);
     return oferta ? oferta.precioOferta : null;
   }

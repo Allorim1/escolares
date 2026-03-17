@@ -1,7 +1,7 @@
 export interface Product {
   category: string;
   description: string;
-  id: number;
+  id: number | string;
   image: string;
   price: number;
   rating: {
@@ -13,6 +13,7 @@ export interface Product {
   linea?: string;
   enOferta?: boolean;
   precioOferta?: number;
+  createdAt?: Date;
 }
 
 export interface ProductItemCart {

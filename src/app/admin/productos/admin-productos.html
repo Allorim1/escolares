@@ -1,86 +1,147 @@
 <div class="productos-admin">
-  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; display: block; margin: 0 auto 10px;">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="header">
     <h2>Gestión de Productos</h2>
     <button class="add-btn" (click)="showAddForm()">+ Agregar Producto</button>
   </div>
 
+  <div class="filters">
+    <div class="filter-group">
+      <label>Nombre</label>
+      <input
+        type="text"
+        [(ngModel)]="filtroNombre"
+        name="filtroNombre"
+        placeholder="Buscar..."
+        class="filter-input"
+      />
+    </div>
+    <div class="filter-group">
+      <label>Categoría</label>
+      <select [(ngModel)]="filtroCategoria" name="filtroCategoria" class="filter-select">
+        <option value="">Todas</option>
+        @for (cat of categories; track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Marca</label>
+      <select [(ngModel)]="filtroMarca" name="filtroMarca" class="filter-select">
+        <option value="">Todas</option>
+        @for (marca of marcas; track marca.id) {
+          <option [value]="marca.name">{{ marca.name }}</option>
+        }
+      </select>
+    </div>
+    <button class="clear-filters-btn" (click)="filtroNombre=''; filtroCategoria=''; filtroMarca=''">
+      ✕ Limpiar
+    </button>
+  </div>
+
   @if (isAdding() || editingProduct()) {
-    <div class="form-card">
-      <button type="button" class="back-btn" (click)="cancelEdit()">← Volver</button>
-      <h3>{{ isAdding() ? 'Nuevo Producto' : 'Editar Producto' }}</h3>
-      <form (ngSubmit)="saveProduct()">
-        <div class="form-group">
-          <label>Nombre</label>
-          <input
-            type="text"
-            [ngModel]="formData().title"
-            name="title"
-            (ngModelChange)="updateFormField('title', $event)"
-            required
-          />
+    <div class="modal-overlay" (click)="cancelEdit()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ isAdding() ? 'Nuevo Producto' : 'Editar Producto' }}</h3>
+          <button class="close-btn" (click)="cancelEdit()">&times;</button>
         </div>
-        <div class="form-group">
-          <label>Precio</label>
-          <input
-            type="number"
-            [ngModel]="formData().price"
-            name="price"
-            (ngModelChange)="updateFormField('price', $event)"
-            step="0.01"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label>Descripción</label>
-          <textarea
-            [ngModel]="formData().description"
-            name="description"
-            (ngModelChange)="updateFormField('description', $event)"
-            rows="3"
-            required
-          ></textarea>
-        </div>
-        <div class="form-group">
-          <label>Categoría</label>
-          <select
-            [ngModel]="formData().category"
-            name="category"
-            (ngModelChange)="updateFormField('category', $event)"
-          >
-            @for (cat of categories; track cat) {
-              <option [value]="cat">{{ cat }}</option>
-            }
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Marca (opcional)</label>
-          <select
-            [ngModel]="formData().marca"
-            name="marca"
-            (ngModelChange)="updateFormField('marca', $event)"
-          >
-            <option value="">Sin marca</option>
-            @for (marca of marcas; track marca.id) {
-              <option [value]="marca.name">{{ marca.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="form-group">
-          <label>URL de Imagen</label>
-          <input
-            type="text"
-            [ngModel]="formData().image"
-            name="image"
-            (ngModelChange)="updateFormField('image', $event)"
-            required
-          />
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="save-btn">Guardar</button>
-          <button type="button" class="cancel-btn" (click)="cancelEdit()">&times;</button>
-        </div>
-      </form>
+        <form (ngSubmit)="saveProduct()">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input
+              type="text"
+              [ngModel]="formData().title"
+              name="title"
+              (ngModelChange)="updateFormField('title', $event)"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Precio</label>
+            <input
+              type="number"
+              [ngModel]="formData().price"
+              name="price"
+              (ngModelChange)="updateFormField('price', $event)"
+              step="0.01"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea
+              [ngModel]="formData().description"
+              name="description"
+              (ngModelChange)="updateFormField('description', $event)"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Categoría</label>
+            <select
+              [ngModel]="formData().category"
+              name="category"
+              (ngModelChange)="updateFormField('category', $event)"
+            >
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Marca (opcional)</label>
+            <select
+              [ngModel]="formData().marca"
+              name="marca"
+              (ngModelChange)="updateFormField('marca', $event)"
+            >
+              <option value="">Sin marca</option>
+              @for (marca of marcas; track marca.id) {
+                <option [value]="marca.name">{{ marca.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Imagen</label>
+            <div class="image-upload-container">
+              @if (uploadingImage()) {
+                <div class="uploading">Subiendo imagen...</div>
+              }
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                class="file-input"
+                #fileInput
+              />
+              <button type="button" class="upload-btn" (click)="fileInput.click()">
+                📁 Seleccionar imagen
+              </button>
+              <div class="url-input-group">
+                <span class="url-separator">o pega una URL:</span>
+                <input
+                  type="text"
+                  [ngModel]="formData().image"
+                  name="image"
+                  (ngModelChange)="updateFormField('image', $event)"
+                  placeholder="https://..."
+                />
+              </div>
+              @if (formData().image) {
+                <div class="image-preview">
+                  <img [src]="formData().image" alt="Preview" />
+                </div>
+              }
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="save-btn">Guardar</button>
+            <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancelar</button>
+          </div>
+        </form>
+      </div>
     </div>
   }
 
@@ -97,7 +158,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (product of products(); track product.id) {
+        @for (product of filteredProducts; track product.id) {
           <tr>
             <td><img [src]="product.image" [alt]="product.title" class="product-thumb" /></td>
             <td>{{ product.title }}</td>

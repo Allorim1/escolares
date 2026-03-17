@@ -23,14 +23,14 @@ export class AdminOfertas implements OnInit {
 
   productsEnOferta = computed(() => {
     const ofertaIds = this.ofertasService.ofertas().map((o) => o.productId);
-    return this.allProducts().filter((p) => ofertaIds.includes(p.id));
+    return this.allProducts().filter((p) => ofertaIds.includes(p.id as any));
   });
 
   productsSinOferta = computed(() => {
     const filter = this.filterText().toLowerCase();
     const ofertaIds = this.ofertasService.ofertas().map((o) => o.productId);
     return this.allProducts().filter((p) => {
-      const notInOferta = !ofertaIds.includes(p.id);
+      const notInOferta = !ofertaIds.includes(p.id as any);
       const matchesFilter =
         !filter ||
         p.title.toLowerCase().includes(filter) ||
@@ -48,7 +48,7 @@ export class AdminOfertas implements OnInit {
 
   openAddForm(product: Product) {
     this.selectedProduct.set(product);
-    const oferta = this.ofertasService.getOferta(product.id);
+    const oferta = this.ofertasService.getOferta(product.id as any);
     this.ofertaPrice.set(oferta?.precioOferta || product.price * 0.9);
     this.showAddForm.set(true);
   }
@@ -61,18 +61,22 @@ export class AdminOfertas implements OnInit {
   saveOferta() {
     const product = this.selectedProduct();
     if (product && this.ofertaPrice() > 0) {
-      this.ofertasService.agregarOferta(product.id, this.ofertaPrice());
+      this.ofertasService.agregarOferta(product.id as any, this.ofertaPrice());
       this.closeForm();
     }
   }
 
-  removeOferta(productId: number) {
+  removeOferta(productId: number | string) {
     if (confirm('¿Eliminar esta oferta?')) {
-      this.ofertasService.eliminarOferta(productId);
+      this.ofertasService.eliminarOferta(productId as any);
     }
   }
 
-  getOfertaPrice(productId: number): number {
-    return this.ofertasService.getOfertaPrice(productId) || 0;
+  getOfertaPriceForProduct(product: Product): number {
+    return this.ofertasService.getOfertaPrice(product.id as any) || 0;
+  }
+
+  getOfertaPrice(productId: number | string): number {
+    return this.ofertasService.getOfertaPrice(productId as any) || 0;
   }
 }

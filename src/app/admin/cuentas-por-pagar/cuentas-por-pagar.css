@@ -1813,7 +1813,6 @@
 .modal-overlay.foto-maximizada {
   background: rgba(0,0,0,0.95);
 }
-}
 
 .foto-viewer-modal.modal-maximizada {
   width: 100vw;
@@ -1860,6 +1859,13 @@
   display: block;
   max-width: 90vw;
   max-height: 75vh;
+  object-fit: contain;
+}
+
+.foto-viewer-image-container.crop-active {
+  cursor: crosshair !important;
+  outline: 3px solid #ff6600;
+  outline-offset: -3px;
 }
 
 .crop-overlay {
@@ -1878,9 +1884,26 @@
 
 .crop-selection {
   position: absolute;
-  border: 2px dashed #ff0000;
-  background: rgba(255, 0, 0, 0.1);
+  border: 3px dashed #ff0000;
+  background: rgba(255, 0, 0, 0.15);
   pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.crop-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 101;
+  white-space: nowrap;
 }
 
 .foto-viewer-controls {

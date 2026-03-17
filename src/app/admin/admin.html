@@ -2,6 +2,9 @@
   <aside class="admin-sidebar">
     <h2>Panel</h2>
     <nav class="admin-nav">
+      <a routerLink="inicio" routerLinkActive="active" class="inicio-link">
+        🏠 Inicio
+      </a>
       @for (categoria of categorias(); track categoria.name; let i = $index) {
         <div class="menu-categoria">
           <button class="categoria-header" (click)="toggleCategoria(i)">

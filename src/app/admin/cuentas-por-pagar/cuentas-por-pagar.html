@@ -1,5 +1,5 @@
 <div class="cp-container">
-  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; display: block; margin: 0 auto 10px;">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <h2>Cuentas por Pagar</h2>
 
   <div class="cp-summary">
@@ -929,7 +929,8 @@
       <div 
         class="foto-viewer-image-container" 
         [class.modo-recorte]="fotoViewerModoRecorte"
-        [style.overflow]="fotoViewerZoom > 1 ? 'auto' : 'visible'"
+        [class.crop-active]="fotoViewerModoRecorte"
+        [style.overflow]="fotoViewerZoom > 1 ? 'auto' : 'hidden'"
         (wheel)="onWheelZoom($event)"
       >
         <img 
@@ -951,6 +952,9 @@
             [style.width.%]="Math.abs(fotoViewerCropEnd.x - fotoViewerCropStart.x)"
             [style.height.%]="Math.abs(fotoViewerCropEnd.y - fotoViewerCropStart.y)"
           ></div>
+        }
+        @if (fotoViewerModoRecorte) {
+          <div class="crop-hint">Clic y arrastra para seleccionar el área a recortar</div>
         }
       </div>
       <div class="foto-viewer-controls">

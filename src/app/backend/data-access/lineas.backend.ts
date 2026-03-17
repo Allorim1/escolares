@@ -55,7 +55,7 @@ export class LineasBackend {
     });
   }
 
-  agregarProductoALinea(lineaId: string, productId: number) {
+  agregarProductoALinea(lineaId: string, productId: number | string) {
     this.http.post<Linea>(`${this.API_URL}/${lineaId}/products`, { productId }).subscribe({
       next: (updatedLinea) => {
         this.lineas.update((lineas) => lineas.map((l) => (l.id === lineaId ? updatedLinea : l)));
@@ -66,7 +66,7 @@ export class LineasBackend {
     });
   }
 
-  eliminarProductoDeLinea(lineaId: string, productId: number) {
+  eliminarProductoDeLinea(lineaId: string, productId: number | string) {
     this.http
       .delete<Linea>(`${this.API_URL}/${lineaId}/products`, { body: { productId } })
       .subscribe({

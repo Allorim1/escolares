@@ -5,7 +5,7 @@ export interface Linea {
   id: string;
   name: string;
   image: string;
-  productIds: number[];
+  productIds: (number | string)[];
 }
 
 @Injectable({
@@ -25,11 +25,11 @@ export class LineasService {
     this.backend.eliminarLinea(id);
   }
 
-  agregarProductoALinea(lineaId: string, productId: number) {
+  agregarProductoALinea(lineaId: string, productId: number | string) {
     this.backend.agregarProductoALinea(lineaId, productId);
   }
 
-  eliminarProductoDeLinea(lineaId: string, productId: number) {
+  eliminarProductoDeLinea(lineaId: string, productId: number | string) {
     this.backend.eliminarProductoDeLinea(lineaId, productId);
   }
 

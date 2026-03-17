@@ -56,7 +56,7 @@ export class CartStateService {
 
   private add(state: Signal<State>, product: ProductItemCart) {
     const isInCart = state().products.find(
-      (productInCart) => productInCart.product.id === product.product.id,
+      (productInCart) => productInCart.product.id == product.product.id,
     );
 
     if (!isInCart) {
@@ -71,15 +71,15 @@ export class CartStateService {
     };
   }
 
-  private remove(state: Signal<State>, id: number) {
+  private remove(state: Signal<State>, id: number | string) {
     return {
-      products: state().products.filter((product) => product.product.id !== id),
+      products: state().products.filter((product) => product.product.id != id),
     };
   }
 
   private update(state: Signal<State>, product: ProductItemCart) {
     const products = state().products.map((productInCart) => {
-      if (productInCart.product.id === product.product.id) {
+      if (productInCart.product.id == product.product.id) {
         return { ...productInCart, quantity: product.quantity };
       }
 

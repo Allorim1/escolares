@@ -35,13 +35,13 @@ export class AdminLineas implements OnInit {
   }
 
   getProductsForLinea(linea: Linea): Product[] {
-    return this.allProducts().filter((p) => linea.productIds.includes(p.id));
+    return this.allProducts().filter((p) => linea.productIds.includes(p.id as any));
   }
 
   getAvailableProducts(linea: Linea): Product[] {
     const filter = this.productFilter().toLowerCase();
     return this.allProducts().filter((p) => {
-      const notInLinea = !linea.productIds.includes(p.id);
+      const notInLinea = !linea.productIds.includes(p.id as any);
       const matchesFilter =
         !filter ||
         p.title.toLowerCase().includes(filter) ||
@@ -69,7 +69,7 @@ export class AdminLineas implements OnInit {
     }
   }
 
-  addProductToLinea(productId: number) {
+  addProductToLinea(productId: number | string) {
     const linea = this.selectedLinea();
     if (linea) {
       this.lineasService.agregarProductoALinea(linea.id, productId);
@@ -77,7 +77,7 @@ export class AdminLineas implements OnInit {
     }
   }
 
-  removeProductFromLinea(productId: number) {
+  removeProductFromLinea(productId: number | string) {
     const linea = this.selectedLinea();
     if (linea) {
       this.lineasService.eliminarProductoDeLinea(linea.id, productId);

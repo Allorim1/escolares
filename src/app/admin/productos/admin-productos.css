@@ -27,6 +27,68 @@
   color: #333;
 }
 
+.filters {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 1.25rem;
+  border-radius: 8px;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-group:first-child {
+  flex: 2;
+  min-width: 280px;
+}
+
+.filter-group label {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.filter-input,
+.filter-select {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: #1d63c1;
+}
+
+.clear-filters-btn {
+  padding: 0.625rem 1rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.clear-filters-btn:hover {
+  background: #5a6268;
+}
+
 .add-btn {
   padding: 0.75rem 1.5rem;
   background: #1d63c1;
@@ -75,6 +137,7 @@
 
 .form-group {
   margin-bottom: 1rem;
+  word-break: break-word;
 }
 
 .form-group label {
@@ -82,6 +145,62 @@
   margin-bottom: 0.5rem;
   color: #555;
   font-weight: 500;
+}
+
+.image-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-btn {
+  padding: 0.75rem 1rem;
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+  text-align: center;
+}
+
+.upload-btn:hover {
+  background: #138496;
+}
+
+.url-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.url-separator {
+  font-size: 0.85rem;
+  color: #888;
+  text-align: center;
+}
+
+.uploading {
+  text-align: center;
+  color: #17a2b8;
+  font-size: 0.9rem;
+}
+
+.image-preview {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 150px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
 }
 
 .form-group input,
@@ -106,6 +225,16 @@
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.form-actions button {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+  white-space: normal;
+  text-align: center;
 }
 
 .save-btn {
@@ -200,4 +329,62 @@ td {
 
 .delete-btn:hover {
   background: #c82333;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.modal-content form {
+  padding: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }

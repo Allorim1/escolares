@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
 
 export interface Oferta {
-  productId: number;
+  productId: number | string;
   precioOferta: number;
 }
 
@@ -14,23 +14,23 @@ export class OfertasService {
 
   ofertas = this.backend.ofertas;
 
-  agregarOferta(productId: number, precioOferta: number) {
+  agregarOferta(productId: number | string, precioOferta: number) {
     this.backend.agregarOferta(productId, precioOferta);
   }
 
-  eliminarOferta(productId: number) {
+  eliminarOferta(productId: number | string) {
     this.backend.eliminarOferta(productId);
   }
 
-  getOferta(productId: number): Oferta | undefined {
+  getOferta(productId: number | string): Oferta | undefined {
     return this.backend.getOferta(productId);
   }
 
-  isEnOferta(productId: number): boolean {
+  isEnOferta(productId: number | string): boolean {
     return this.backend.isEnOferta(productId);
   }
 
-  getOfertaPrice(productId: number): number | null {
+  getOfertaPrice(productId: number | string): number | null {
     return this.backend.getOfertaPrice(productId);
   }
 }

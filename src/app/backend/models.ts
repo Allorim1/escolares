@@ -8,11 +8,11 @@ export interface Linea {
   id: string;
   name: string;
   image: string;
-  productIds: number[];
+  productIds: (number | string)[];
 }
 
 export interface Oferta {
-  productId: number;
+  productId: number | string;
   precioOferta: number;
 }
 

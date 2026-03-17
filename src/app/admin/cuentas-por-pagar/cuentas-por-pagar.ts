@@ -716,18 +716,21 @@ export class CuentasPorPagar implements OnInit {
   }
 
   zoomIn() {
+    if (this.fotoViewerModoRecorte) return;
     if (this.fotoViewerZoom < 3) {
       this.fotoViewerZoom += 0.25;
     }
   }
 
   zoomOut() {
+    if (this.fotoViewerModoRecorte) return;
     if (this.fotoViewerZoom > 0.5) {
       this.fotoViewerZoom -= 0.25;
     }
   }
 
   onWheelZoom(event: WheelEvent) {
+    if (this.fotoViewerModoRecorte) return;
     event.preventDefault();
     if (event.deltaY < 0) {
       this.zoomIn();
@@ -752,9 +755,8 @@ export class CuentasPorPagar implements OnInit {
     if (this.fotoViewerModoRecorte) {
       event.preventDefault();
       event.stopPropagation();
-      const container = document.querySelector('.foto-viewer-image-container') as HTMLElement;
-      if (!container) return;
-      const rect = container.getBoundingClientRect();
+      const img = event.target as HTMLElement;
+      const rect = img.getBoundingClientRect();
       const x = ((event.clientX - rect.left) / rect.width) * 100;
       const y = ((event.clientY - rect.top) / rect.height) * 100;
       this.fotoViewerCropStart = { x, y };
@@ -770,9 +772,8 @@ export class CuentasPorPagar implements OnInit {
     if (this.fotoViewerModoRecorte && this.fotoViewerCropStart) {
       event.preventDefault();
       event.stopPropagation();
-      const container = document.querySelector('.foto-viewer-image-container') as HTMLElement;
-      if (!container) return;
-      const rect = container.getBoundingClientRect();
+      const img = event.target as HTMLElement;
+      const rect = img.getBoundingClientRect();
       const x = Math.min(100, Math.max(0, ((event.clientX - rect.left) / rect.width) * 100));
       const y = Math.min(100, Math.max(0, ((event.clientY - rect.top) / rect.height) * 100));
       this.fotoViewerCropEnd = { x, y };

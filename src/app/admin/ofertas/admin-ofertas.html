@@ -1,6 +1,6 @@
 <div class="ofertas-admin">
   <div class="header">
-    <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; display: block; margin: 0 auto 10px;">
+    <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
     <h2>Gestión de Ofertas</h2>
   </div>
 
@@ -39,7 +39,7 @@
               <span class="product-name">{{ product.title }}</span>
               <div class="prices">
                 <span class="original-price">${{ product.price.toFixed(2) }}</span>
-                <span class="offer-price">${{ getOfertaPrice(product.id).toFixed(2) }}</span>
+                <span class="offer-price">${{ getOfertaPriceForProduct(product).toFixed(2) }}</span>
               </div>
             </div>
             <button class="remove-btn" (click)="removeOferta(product.id)">×</button>

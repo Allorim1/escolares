@@ -135,6 +135,7 @@ export class CuentasPorPagar implements OnInit {
   qrFacturaIndex: number = -1;
   qrInterval: any = null;
   qrFotoRecibida = false;
+  qrImagenesIniciales: string[] = [];
 
   newAbono = {
     monto: 0,
@@ -794,6 +795,7 @@ export class CuentasPorPagar implements OnInit {
     this.qrCodeData = '';
     this.qrExpiracion = '';
     this.qrFotoRecibida = false;
+    this.qrImagenesIniciales = this.facturaDetalle?.factura.imagenes ? [...this.facturaDetalle.factura.imagenes] : [];
     this.showQRModal = true;
     this.cdr.detectChanges();
     
@@ -821,8 +823,11 @@ export class CuentasPorPagar implements OnInit {
     this.qrInterval = setInterval(() => {
       this.http.get<{ imagenes: string[] }>(`/api/facturas/imagenes/${proveedorId}/${facturaIndex}`).subscribe({
         next: (res) => {
-          const imagenesActuales = this.facturaDetalle?.factura.imagenes || [];
-          if (res.imagenes && res.imagenes.length > imagenesActuales.length) {
+          console.log('Polling - Imagenes del servidor:', res.imagenes?.length);
+          console.log('Polling - Imagenes iniciales guardadas:', this.qrImagenesIniciales.length);
+          
+          if (res.imagenes && res.imagenes.length > this.qrImagenesIniciales.length) {
+            console.log('Polling - Nueva foto detectada!');
             this.qrFotoRecibida = true;
             this.cdr.detectChanges();
             setTimeout(() => {
@@ -842,12 +847,14 @@ export class CuentasPorPagar implements OnInit {
                   }
                 }
               }, 300);
-            }, 1500);
+            }, 2000);
           }
         },
-        error: () => {}
+        error: (err) => {
+          console.error('Polling error:', err);
+        }
       });
-    }, 3000);
+    }, 2000);
   }
 
   cerrarQRModal() {
@@ -859,6 +866,7 @@ export class CuentasPorPagar implements OnInit {
     this.qrCodeData = '';
     this.qrExpiracion = '';
     this.qrFotoRecibida = false;
+    this.qrImagenesIniciales = [];
   }
 
   private convertToBase64(file: File, callback: (base64: string) => void) {

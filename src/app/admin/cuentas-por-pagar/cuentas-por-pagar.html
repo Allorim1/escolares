@@ -465,6 +465,27 @@
             </div>
           </div>
         }
+        <div class="fotos-section">
+          <h5>Fotos de Factura</h5>
+          <div class="fotos-buttons">
+            <button type="button" class="btn-camera" (click)="abrirCamera()">📷 Foto</button>
+            <button type="button" class="btn-qr" (click)="abrirCameraQR()">📱 Escanear QR</button>
+            <label class="btn-upload">
+              📁 Subir
+              <input type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+            </label>
+          </div>
+          @if (newFactura.imagenes.length > 0) {
+            <div class="fotos-preview">
+              @for (img of newFactura.imagenes; track $index) {
+                <div class="foto-item">
+                  <img [src]="img" alt="Foto factura">
+                  <button class="btn-delete-foto" (click)="eliminarFoto($index)">✕</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" (click)="cerrarModalFactura()">Cancelar</button>
@@ -633,6 +654,40 @@
               </div>
             }
           </div>
+        }
+
+        @if (facturaDetalle) {
+          @if ((facturaDetalle.factura.imagenes?.length ?? 0) > 0) {
+            <div class="factura-fotos">
+              <div class="factura-fotos-header">
+                <h5>Fotos de Factura</h5>
+                <div class="factura-fotos-actions">
+                  <button class="btn-add-foto" (click)="agregarFotoDetalle()">+ Agregar</button>
+                  <button class="btn-camera-small" (click)="abrirCameraDetalle()">📷</button>
+                  <button class="btn-qr-small" (click)="abrirQRModal(facturaDetalle.proveedor._id || '', facturaDetalle.index)">📱 QR</button>
+                </div>
+              </div>
+              <div class="fotos-grid">
+                @for (img of facturaDetalle.factura.imagenes; track $index) {
+                  <div class="foto-viewer-item">
+                    <img [src]="img" alt="Foto factura" (click)="abrirFotoViewer($index)">
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="factura-fotos">
+              <h5>Fotos de Factura</h5>
+              <div class="factura-fotos-empty">
+                <p>No hay fotos de esta factura</p>
+                <div class="factura-fotos-actions">
+                  <button class="btn-add-foto" (click)="agregarFotoDetalle()">+ Agregar</button>
+                  <button class="btn-camera-small" (click)="abrirCameraDetalle()">📷</button>
+                  <button class="btn-qr-small" (click)="abrirQRModal(facturaDetalle.proveedor._id || '', facturaDetalle.index)">📱 QR</button>
+                </div>
+              </div>
+            </div>
+          }
         }
       </div>
     </div>
@@ -828,6 +883,68 @@
             <button class="btn-primary" (click)="guardarAbonoIva25()">Agregar</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showCameraModal) {
+  <div class="modal-overlay" (click)="cerrarCamera()">
+    <div class="camera-modal" (click)="$event.stopPropagation()">
+      <div class="camera-header">
+        <h3>{{ modoQR ? 'Escanear QR' : 'Tomar Foto' }}</h3>
+        <button class="close-btn" (click)="cerrarCamera()">✕</button>
+      </div>
+      <div class="camera-body">
+        <video id="cameraVideo" autoplay playsinline></video>
+        @if (modoQR) {
+          <div class="qr-overlay">
+            <div class="qr-scanner-line"></div>
+          </div>
+        }
+      </div>
+      <div class="camera-footer">
+        <button class="btn-secondary" (click)="cerrarCamera()">Cancelar</button>
+        @if (!modoQR) {
+          <button class="btn-primary" (click)="tomarFoto()">Capturar</button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (showFotoViewer) {
+  <div class="modal-overlay" (click)="cerrarFotoViewer()">
+    <div class="foto-viewer-modal" (click)="$event.stopPropagation()">
+      <button class="close-btn" (click)="cerrarFotoViewer()">✕</button>
+      <button class="btn-eliminar-foto-viewer" (click)="eliminarFotoDetalle(fotoViewerIndex)">🗑️ Eliminar</button>
+      @if (fotoViewerIndex > 0) {
+        <button class="nav-btn nav-prev" (click)="anteriorFoto()">❮</button>
+      }
+      <img [src]="fotoViewerImagenes[fotoViewerIndex]" alt="Foto factura">
+      <div class="foto-counter">{{ fotoViewerIndex + 1 }} / {{ fotoViewerImagenes.length }}</div>
+      @if (fotoViewerIndex < fotoViewerImagenes.length - 1) {
+        <button class="nav-btn nav-next" (click)="siguienteFoto()">❯</button>
+      }
+    </div>
+  </div>
+}
+
+@if (showQRModal) {
+  <div class="modal-overlay" (click)="cerrarQRModal()">
+    <div class="qr-modal" (click)="$event.stopPropagation()">
+      <div class="qr-modal-header">
+        <h3>Subir foto desde móvil</h3>
+        <button class="close-btn" (click)="cerrarQRModal()">✕</button>
+      </div>
+      <div class="qr-modal-body">
+        <p>Escanea este código QR con tu celular para subir una foto de la factura</p>
+        @if (qrCodeData) {
+          <img [src]="qrCodeData" alt="QR Code" class="qr-code-image">
+        } @else {
+          <div class="qr-loading">Generando código QR...</div>
+        }
+        <p class="qr-expire">Expira: {{ qrExpiracion | date:'HH:mm:ss' }}</p>
       </div>
     </div>
   </div>

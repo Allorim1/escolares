@@ -12,7 +12,7 @@ import { CurrencyPipe } from '@angular/common';
 export class CartItem {
   productCartItem = input.required<ProductItemCart>();
 
-  onRemove = output<number>();
+  onRemove = output<number | string>();
 
   onIncrease = output<ProductItemCart>();
 

@@ -23,7 +23,7 @@ export default class CartComponent {
     return products.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   };
 
-  onRemove(id: number) {
+  onRemove(id: number | string) {
     this.state.remove(id);
   }
 

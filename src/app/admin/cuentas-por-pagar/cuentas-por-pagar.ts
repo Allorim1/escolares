@@ -134,6 +134,7 @@ export class CuentasPorPagar implements OnInit {
   qrProveedorId: string = '';
   qrFacturaIndex: number = -1;
   qrInterval: any = null;
+  qrFotoRecibida = false;
 
   newAbono = {
     monto: 0,
@@ -792,6 +793,7 @@ export class CuentasPorPagar implements OnInit {
     this.qrFacturaIndex = facturaIndex;
     this.qrCodeData = '';
     this.qrExpiracion = '';
+    this.qrFotoRecibida = false;
     this.showQRModal = true;
     this.cdr.detectChanges();
     
@@ -821,21 +823,26 @@ export class CuentasPorPagar implements OnInit {
         next: (res) => {
           const imagenesActuales = this.facturaDetalle?.factura.imagenes || [];
           if (res.imagenes && res.imagenes.length > imagenesActuales.length) {
-            this.cerrarQRModal();
-            this.loadProveedores();
+            this.qrFotoRecibida = true;
+            this.cdr.detectChanges();
             setTimeout(() => {
-              const fd = this.facturaDetalle;
-              if (fd) {
-                const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-                if (prov && prov.facturas && prov.facturas[fd.index]) {
-                  this.facturaDetalle = {
-                    proveedor: prov,
-                    factura: prov.facturas[fd.index],
-                    index: fd.index
-                  };
+              this.cerrarQRModal();
+              this.loadProveedores();
+              setTimeout(() => {
+                const fd = this.facturaDetalle;
+                if (fd) {
+                  const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
+                  if (prov && prov.facturas && prov.facturas[fd.index]) {
+                    this.facturaDetalle = {
+                      proveedor: prov,
+                      factura: prov.facturas[fd.index],
+                      index: fd.index
+                    };
+                    this.cdr.detectChanges();
+                  }
                 }
-              }
-            }, 300);
+              }, 300);
+            }, 1500);
           }
         },
         error: () => {}
@@ -851,6 +858,7 @@ export class CuentasPorPagar implements OnInit {
     this.showQRModal = false;
     this.qrCodeData = '';
     this.qrExpiracion = '';
+    this.qrFotoRecibida = false;
   }
 
   private convertToBase64(file: File, callback: (base64: string) => void) {

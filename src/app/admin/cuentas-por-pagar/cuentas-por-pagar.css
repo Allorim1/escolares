@@ -1966,3 +1966,35 @@
   color: #dc3545 !important;
   margin-top: 1rem !important;
 }
+
+.qr-success {
+  text-align: center;
+  padding: 2rem;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #28a745;
+  color: white;
+  border-radius: 50%;
+  font-size: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.qr-success p {
+  font-size: 1.2rem;
+  color: #28a745;
+  font-weight: bold;
+  margin: 0;
+}
+
+.success-subtitle {
+  color: #6c757d !important;
+  font-size: 0.9rem !important;
+  font-weight: normal !important;
+  margin-top: 0.5rem !important;
+}

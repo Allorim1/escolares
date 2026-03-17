@@ -938,13 +938,21 @@
         <button class="close-btn" (click)="cerrarQRModal()">✕</button>
       </div>
       <div class="qr-modal-body">
-        <p>Escanea este código QR con tu celular para subir una foto de la factura</p>
-        @if (qrCodeData) {
-          <img [src]="qrCodeData" alt="QR Code" class="qr-code-image">
+        @if (qrFotoRecibida) {
+          <div class="qr-success">
+            <div class="success-icon">✓</div>
+            <p>¡Foto recibida exitosamente!</p>
+            <p class="success-subtitle">Actualizando...</p>
+          </div>
         } @else {
-          <div class="qr-loading">Generando código QR...</div>
+          <p>Escanea este código QR con tu celular para subir una foto de la factura</p>
+          @if (qrCodeData) {
+            <img [src]="qrCodeData" alt="QR Code" class="qr-code-image">
+          } @else {
+            <div class="qr-loading">Generando código QR...</div>
+          }
+          <p class="qr-expire">Expira: {{ qrExpiracion | date:'HH:mm:ss' }}</p>
         }
-        <p class="qr-expire">Expira: {{ qrExpiracion | date:'HH:mm:ss' }}</p>
       </div>
     </div>
   </div>

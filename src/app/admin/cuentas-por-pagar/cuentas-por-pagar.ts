@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -66,6 +66,7 @@ export interface Proveedor {
 })
 export class CuentasPorPagar implements OnInit {
   private http = inject(HttpClient);
+  private cdr = inject(ChangeDetectorRef);
   
   private API = '/api/proveedores';
 
@@ -789,15 +790,21 @@ export class CuentasPorPagar implements OnInit {
   abrirQRModal(proveedorId: string, facturaIndex: number) {
     this.qrProveedorId = proveedorId;
     this.qrFacturaIndex = facturaIndex;
+    this.qrCodeData = '';
+    this.qrExpiracion = '';
     this.showQRModal = true;
+    this.cdr.detectChanges();
     
-    this.http.post<{ qrCode: string; uploadUrl: string; expiresAt: string }>('/api/facturas/generate-qr', {
+    this.http.post<{ uploadUrl: string; expiresAt: string }>('/api/facturas/generate-qr', {
       proveedorId,
       facturaIndex
     }).subscribe({
       next: (res) => {
-        this.qrCodeData = res.qrCode;
+        console.log('QR Response:', res);
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=${encodeURIComponent(res.uploadUrl)}`;
+        this.qrCodeData = qrApiUrl;
         this.qrExpiracion = res.expiresAt;
+        this.cdr.detectChanges();
         this.iniciarPollingQR(proveedorId, facturaIndex);
       },
       error: (err) => {

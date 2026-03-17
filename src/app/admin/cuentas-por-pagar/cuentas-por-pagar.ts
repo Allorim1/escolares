@@ -1,7 +1,9 @@
-import { Component, inject, OnInit, signal, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+declare const Math: any;
 
 export interface CuentaBancaria {
   banco: string;
@@ -65,6 +67,17 @@ export interface Proveedor {
   styleUrl: './cuentas-por-pagar.css',
 })
 export class CuentasPorPagar implements OnInit {
+  @HostListener('document:keydown.escape')
+  onEscapeKey() {
+    if (this.showFotoViewer) {
+      if (this.fotoViewerMaximizada) {
+        this.fotoViewerMaximizada = false;
+      } else {
+        this.cerrarFotoViewer();
+      }
+    }
+  }
+  
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
   
@@ -75,6 +88,7 @@ export class CuentasPorPagar implements OnInit {
   proveedorEditando = signal<string | null>(null);
   cuentaExpandida = signal<{proveedorId: string, index: number} | null>(null);
   usuarioActual = 'Admin';
+  Math = Math;
 
   showModalProveedor = false;
   showModalFactura = false;
@@ -127,6 +141,14 @@ export class CuentasPorPagar implements OnInit {
   showFotoViewer = false;
   fotoViewerIndex = 0;
   fotoViewerImagenes: string[] = [];
+  fotoViewerZoom = 1;
+  fotoViewerModoRecorte = false;
+  fotoViewerCropStart: { x: number; y: number } | null = null;
+  fotoViewerCropEnd: { x: number; y: number } | null = null;
+  fotoViewerMaximizada = false;
+  fotoViewerPosition = { x: 0, y: 0 };
+  fotoViewerIsDragging = false;
+  fotoViewerDragStart = { x: 0, y: 0 };
 
   showQRModal = false;
   qrCodeData: string = '';
@@ -675,6 +697,9 @@ export class CuentasPorPagar implements OnInit {
 
   cerrarFotoViewer() {
     this.showFotoViewer = false;
+    this.fotoViewerMaximizada = false;
+    this.fotoViewerPosition = { x: 0, y: 0 };
+    this.fotoViewerIsDragging = false;
   }
 
   siguienteFoto() {
@@ -686,7 +711,221 @@ export class CuentasPorPagar implements OnInit {
   anteriorFoto() {
     if (this.fotoViewerIndex > 0) {
       this.fotoViewerIndex--;
+      this.resetZoom();
     }
+  }
+
+  zoomIn() {
+    if (this.fotoViewerZoom < 3) {
+      this.fotoViewerZoom += 0.25;
+    }
+  }
+
+  zoomOut() {
+    if (this.fotoViewerZoom > 0.5) {
+      this.fotoViewerZoom -= 0.25;
+    }
+  }
+
+  onWheelZoom(event: WheelEvent) {
+    event.preventDefault();
+    if (event.deltaY < 0) {
+      this.zoomIn();
+    } else {
+      this.zoomOut();
+    }
+  }
+
+  resetZoom() {
+    this.fotoViewerZoom = 1;
+    this.fotoViewerModoRecorte = false;
+    this.fotoViewerCropStart = null;
+    this.fotoViewerCropEnd = null;
+    this.fotoViewerPosition = { x: 0, y: 0 };
+  }
+
+  toggleMaximizar() {
+    this.fotoViewerMaximizada = !this.fotoViewerMaximizada;
+  }
+
+  iniciarDrag(event: MouseEvent) {
+    if (this.fotoViewerModoRecorte) {
+      event.preventDefault();
+      event.stopPropagation();
+      const container = document.querySelector('.foto-viewer-image-container') as HTMLElement;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 100;
+      const y = ((event.clientY - rect.top) / rect.height) * 100;
+      this.fotoViewerCropStart = { x, y };
+      this.fotoViewerCropEnd = { x, y };
+      console.log('Iniciar recorte:', x, y);
+      return;
+    }
+    this.fotoViewerIsDragging = true;
+    this.fotoViewerDragStart = { x: event.clientX - this.fotoViewerPosition.x, y: event.clientY - this.fotoViewerPosition.y };
+  }
+
+  moverDrag(event: MouseEvent) {
+    if (this.fotoViewerModoRecorte && this.fotoViewerCropStart) {
+      event.preventDefault();
+      event.stopPropagation();
+      const container = document.querySelector('.foto-viewer-image-container') as HTMLElement;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const x = Math.min(100, Math.max(0, ((event.clientX - rect.left) / rect.width) * 100));
+      const y = Math.min(100, Math.max(0, ((event.clientY - rect.top) / rect.height) * 100));
+      this.fotoViewerCropEnd = { x, y };
+      return;
+    }
+    if (!this.fotoViewerIsDragging) return;
+    this.fotoViewerPosition = {
+      x: event.clientX - this.fotoViewerDragStart.x,
+      y: event.clientY - this.fotoViewerDragStart.y
+    };
+  }
+
+  terminarDrag() {
+    if (this.fotoViewerModoRecorte && this.fotoViewerCropStart && this.fotoViewerCropEnd) {
+      console.log('Terminar recorte, guardando...');
+      this.guardarRecorte();
+      this.fotoViewerModoRecorte = false;
+      this.fotoViewerCropStart = null;
+      this.fotoViewerCropEnd = null;
+      return;
+    }
+    this.fotoViewerIsDragging = false;
+  }
+
+  guardarRecorte() {
+    if (!this.fotoViewerCropStart || !this.fotoViewerCropEnd) return;
+    
+    const img = document.querySelector('.foto-viewer-modal img') as HTMLImageElement;
+    if (!img || !img.naturalWidth) return;
+
+    const startX = Math.min(this.fotoViewerCropStart.x, this.fotoViewerCropEnd.x) / 100;
+    const startY = Math.min(this.fotoViewerCropStart.y, this.fotoViewerCropEnd.y) / 100;
+    const endX = Math.max(this.fotoViewerCropStart.x, this.fotoViewerCropEnd.x) / 100;
+    const endY = Math.max(this.fotoViewerCropStart.y, this.fotoViewerCropEnd.y) / 100;
+
+    const canvas = document.createElement('canvas');
+    const cropWidth = (endX - startX) * img.naturalWidth;
+    const cropHeight = (endY - startY) * img.naturalHeight;
+    
+    if (cropWidth < 10 || cropHeight < 10) return;
+    
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(
+        img,
+        startX * img.naturalWidth, startY * img.naturalHeight,
+        cropWidth, cropHeight,
+        0, 0,
+        cropWidth, cropHeight
+      );
+      
+      const croppedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      this.guardarFotoRecortada(croppedBase64);
+    }
+  }
+
+  toggleModoRecorte() {
+    this.fotoViewerModoRecorte = !this.fotoViewerModoRecorte;
+    if (!this.fotoViewerModoRecorte) {
+      this.fotoViewerCropStart = null;
+      this.fotoViewerCropEnd = null;
+    }
+  }
+
+  iniciarRecorte(event: MouseEvent) {
+    if (!this.fotoViewerModoRecorte) return;
+    const img = event.target as HTMLElement;
+    const rect = img.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    this.fotoViewerCropStart = { x, y };
+    this.fotoViewerCropEnd = { x, y };
+  }
+
+  actualizarRecorte(event: MouseEvent) {
+    if (!this.fotoViewerModoRecorte || !this.fotoViewerCropStart) return;
+    const img = event.target as HTMLElement;
+    const rect = img.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    this.fotoViewerCropEnd = { x: Math.min(100, Math.max(0, x)), y: Math.min(100, Math.max(0, y)) };
+  }
+
+  terminarRecorte() {
+    if (!this.fotoViewerModoRecorte || !this.fotoViewerCropStart || !this.fotoViewerCropEnd) return;
+    
+    const img = document.querySelector('.foto-viewer-modal img') as HTMLImageElement;
+    if (!img || !img.naturalWidth) return;
+
+    const scaleX = img.naturalWidth / (img.clientWidth * this.fotoViewerZoom);
+    const scaleY = img.naturalHeight / (img.clientHeight * this.fotoViewerZoom);
+
+    const startX = Math.min(this.fotoViewerCropStart.x, this.fotoViewerCropEnd.x) / 100;
+    const startY = Math.min(this.fotoViewerCropStart.y, this.fotoViewerCropEnd.y) / 100;
+    const endX = Math.max(this.fotoViewerCropStart.x, this.fotoViewerCropEnd.x) / 100;
+    const endY = Math.max(this.fotoViewerCropStart.y, this.fotoViewerCropEnd.y) / 100;
+
+    const canvas = document.createElement('canvas');
+    const cropWidth = (endX - startX) * img.naturalWidth;
+    const cropHeight = (endY - startY) * img.naturalHeight;
+    
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(
+        img,
+        startX * img.naturalWidth, startY * img.naturalHeight,
+        cropWidth, cropHeight,
+        0, 0,
+        cropWidth, cropHeight
+      );
+      
+      const croppedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      this.guardarFotoRecortada(croppedBase64);
+    }
+  }
+
+  guardarFotoRecortada(base64: string) {
+    if (!this.facturaDetalle) return;
+    
+    const proveedorId = this.facturaDetalle.proveedor._id;
+    const facturaIndex = this.facturaDetalle.index;
+    const imagenes = [...(this.facturaDetalle.factura.imagenes || [])];
+    imagenes[this.fotoViewerIndex] = base64;
+    
+    this.http
+      .put(`${this.API}/${proveedorId}/facturas/${facturaIndex}`, { imagenes })
+      .subscribe({
+        next: () => {
+          this.loadProveedores();
+          const fd = this.facturaDetalle;
+          if (fd) {
+            setTimeout(() => {
+              const proveedores = this.proveedores();
+              const prov = proveedores.find(p => p._id === fd.proveedor._id);
+              if (prov && prov.facturas && prov.facturas[fd.index]) {
+                this.facturaDetalle = {
+                  proveedor: prov,
+                  factura: prov.facturas[fd.index],
+                  index: fd.index
+                };
+                this.fotoViewerImagenes = prov.facturas[fd.index].imagenes || [];
+              }
+            }, 200);
+          }
+        },
+        error: (err) => console.error('Error guardando foto recortada:', err),
+      });
   }
 
   eliminarFotoDetalle(index: number) {

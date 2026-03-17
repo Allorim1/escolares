@@ -914,14 +914,59 @@
 }
 
 @if (showFotoViewer) {
-  <div class="modal-overlay" (click)="cerrarFotoViewer()">
-    <div class="foto-viewer-modal" (click)="$event.stopPropagation()">
-      <button class="close-btn" (click)="cerrarFotoViewer()">✕</button>
-      <button class="btn-eliminar-foto-viewer" (click)="eliminarFotoDetalle(fotoViewerIndex)">🗑️ Eliminar</button>
+  <div class="modal-overlay" [class.foto-maximizada]="fotoViewerMaximizada" (click)="cerrarFotoViewer()">
+    <div class="foto-viewer-modal" [class.modal-maximizada]="fotoViewerMaximizada" (click)="$event.stopPropagation()">
+      <div class="foto-viewer-top-buttons" (click)="$event.stopPropagation()">
+        <button class="btn-eliminar-foto-viewer" (click)="eliminarFotoDetalle(fotoViewerIndex); $event.stopPropagation()">🗑️ Eliminar</button>
+        <button class="btn-maximizar" (click)="toggleMaximizar(); $event.stopPropagation()">
+          {{ fotoViewerMaximizada ? '❐' : '⛶' }}
+        </button>
+        <button class="close-btn" (click)="cerrarFotoViewer()">✕</button>
+      </div>
       @if (fotoViewerIndex > 0) {
         <button class="nav-btn nav-prev" (click)="anteriorFoto()">❮</button>
       }
-      <img [src]="fotoViewerImagenes[fotoViewerIndex]" alt="Foto factura">
+      <div 
+        class="foto-viewer-image-container" 
+        [class.modo-recorte]="fotoViewerModoRecorte"
+        [style.overflow]="fotoViewerZoom > 1 ? 'auto' : 'visible'"
+        (wheel)="onWheelZoom($event)"
+      >
+        <img 
+          #viewerImg
+          [src]="fotoViewerImagenes[fotoViewerIndex]" 
+          alt="Foto factura"
+          [style.transform]="'translate(' + fotoViewerPosition.x + 'px, ' + fotoViewerPosition.y + 'px) scale(' + fotoViewerZoom + ')'"
+          [style.cursor]="fotoViewerModoRecorte ? 'crosshair' : (fotoViewerZoom > 1 ? 'grab' : 'default')"
+          (mousedown)="iniciarDrag($event)"
+          (mousemove)="moverDrag($event)"
+          (mouseup)="terminarDrag()"
+          (mouseleave)="terminarDrag()"
+        >
+        @if (fotoViewerModoRecorte && fotoViewerCropStart && fotoViewerCropEnd) {
+          <div 
+            class="crop-selection"
+            [style.left.%]="Math.min(fotoViewerCropStart.x, fotoViewerCropEnd.x)"
+            [style.top.%]="Math.min(fotoViewerCropStart.y, fotoViewerCropEnd.y)"
+            [style.width.%]="Math.abs(fotoViewerCropEnd.x - fotoViewerCropStart.x)"
+            [style.height.%]="Math.abs(fotoViewerCropEnd.y - fotoViewerCropStart.y)"
+          ></div>
+        }
+      </div>
+      <div class="foto-viewer-controls">
+        <button class="zoom-btn" (click)="zoomOut()" [disabled]="fotoViewerZoom <= 0.5">➖</button>
+        <span class="zoom-level">{{ fotoViewerZoom * 100 | number:'1.0-0' }}%</span>
+        <button class="zoom-btn" (click)="zoomIn()" [disabled]="fotoViewerZoom >= 3">➕</button>
+        <button class="zoom-btn reset" (click)="resetZoom()">🔄</button>
+        <button 
+          class="zoom-btn crop" 
+          [class.active]="fotoViewerModoRecorte" 
+          (click)="toggleModoRecorte()"
+          [title]="fotoViewerModoRecorte ? 'Clic y arrastra para seleccionar' : 'Activar recorte'"
+        >
+          ✂️
+        </button>
+      </div>
       <div class="foto-counter">{{ fotoViewerIndex + 1 }} / {{ fotoViewerImagenes.length }}</div>
       @if (fotoViewerIndex < fotoViewerImagenes.length - 1) {
         <button class="nav-btn nav-next" (click)="siguienteFoto()">❯</button>

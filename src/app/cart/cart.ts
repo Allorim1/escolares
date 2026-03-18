@@ -30,6 +30,7 @@ export default class CartComponent {
   authService = inject(AuthService);
 
   showCheckoutModal = signal(false);
+  checkoutStep = signal(1);
   selectedAddressId = signal<string>('');
   showAddAddress = signal(false);
   newAddressNombre = '';
@@ -123,6 +124,7 @@ export default class CartComponent {
       referencia: '',
     });
     this.showCheckoutModal.set(true);
+    this.checkoutStep.set(1);
   }
 
   onAddressChange(addressId: string) {
@@ -183,6 +185,7 @@ export default class CartComponent {
     this.selectedAddressId.set('');
     this.newAddressNombre = '';
     this.newAddressDireccion = '';
+    this.checkoutStep.set(1);
     if (this.orderPlaced()) {
       this.orderPlaced.set(false);
       this.paymentData.set({
@@ -193,6 +196,18 @@ export default class CartComponent {
         metodoPago: 'zelle',
         referencia: '',
       });
+    }
+  }
+
+  nextStep() {
+    if (this.checkoutStep() < 3) {
+      this.checkoutStep.update(s => s + 1);
+    }
+  }
+
+  prevStep() {
+    if (this.checkoutStep() > 1) {
+      this.checkoutStep.update(s => s - 1);
     }
   }
 

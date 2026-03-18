@@ -1,0 +1,139 @@
+<div class="roles-container">
+  <div class="roles-header">
+    <h2>Gestión de Roles</h2>
+    <button class="btn-primary" (click)="openAddModal()">+ Nuevo Rol</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando roles...</div>
+  } @else {
+    <div class="roles-list">
+      @for (rol of roles(); track rol.id) {
+        <div class="rol-card">
+          <div class="rol-header">
+            <div class="rol-info">
+              <h3>{{ rol.nombre }}</h3>
+              @if (rol.descripcion) {
+                <p class="rol-desc">{{ rol.descripcion }}</p>
+              }
+              @if (rol.esDefault) {
+                <span class="badge-default">Por defecto</span>
+              }
+              @if (rol.esVendedor) {
+                <span class="badge-vendedor">Vendedor ({{ rol.comision }}%)</span>
+              }
+            </div>
+            <div class="rol-actions">
+              <button class="btn-edit" (click)="openEditModal(rol)">Editar</button>
+              @if (!rol.esDefault && rol.nombre !== 'owner') {
+                <button class="btn-delete" (click)="deleteRol(rol.id, rol.nombre)">Eliminar</button>
+              }
+            </div>
+          </div>
+          
+          <div class="rol-permisos">
+            <span class="permisos-label">Permisos:</span>
+            @if (rol.permisos.length === 0) {
+              <span class="no-permisos">Sin permisos asignados</span>
+            } @else {
+              <div class="permisos-tags">
+                @for (permisoId of rol.permisos; track permisoId) {
+                  <span class="permiso-tag">{{ getPermisoNombre(permisoId) }}</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (roles().length === 0) {
+        <div class="empty">
+          <p>No hay roles configurados.</p>
+          <p>Crea el primer rol usando el botón de arriba.</p>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditing() ? 'Editar Rol' : 'Nuevo Rol' }}</h3>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre del Rol</label>
+          <input type="text" [(ngModel)]="formNombre" placeholder="Ej: Editor" [disabled]="isEditing() && formNombre === 'owner'" />
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="formDescripcion" placeholder="Descripción del rol..." rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="formEsDefault" />
+            <span>Rol por defecto para nuevos usuarios</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="formEsVendedor" />
+            <span>Es vendedor (recibe comisión)</span>
+          </label>
+        </div>
+
+        @if (formEsVendedor) {
+          <div class="form-group">
+            <label>Porcentaje de comisión (%)</label>
+            <input type="number" [(ngModel)]="formComision" min="0" max="100" placeholder="Ej: 10" />
+          </div>
+        }
+
+        <div class="permisos-section">
+          <h4>Permisos</h4>
+          
+          @for (moduloGroup of permisosPorModulo(); track moduloGroup.modulo) {
+            <div class="modulo-group">
+              <div class="modulo-header">
+                <span class="modulo-name">{{ moduloGroup.modulo | titlecase }}</span>
+                <div class="modulo-actions">
+                  <button type="button" class="link-btn" (click)="selectAllInModulo(moduloGroup.modulo)">Todos</button>
+                  <button type="button" class="link-btn" (click)="deselectAllInModulo(moduloGroup.modulo)">Ninguno</button>
+                </div>
+              </div>
+              
+              <div class="permisos-grid">
+                @for (permiso of moduloGroup.permisos; track permiso.id) {
+                  <label class="permiso-checkbox">
+                    <input 
+                      type="checkbox" 
+                      [checked]="formPermisos.includes(permiso.id)"
+                      (change)="togglePermiso(permiso.id)"
+                    />
+                    <span class="permiso-info">
+                      <span class="permiso-nombre">{{ permiso.nombre }}</span>
+                    </span>
+                  </label>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button type="button" class="btn-primary" (click)="saveRol()">
+          {{ isEditing() ? 'Guardar Cambios' : 'Crear Rol' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

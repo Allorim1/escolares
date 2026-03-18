@@ -115,6 +115,10 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/usuarios/admin-usuarios').then((m) => m.AdminUsuarios),
       },
       {
+        path: 'roles',
+        loadComponent: () => import('./admin/roles/admin-roles').then((m) => m.AdminRoles),
+      },
+      {
         path: 'costo-tasa',
         loadComponent: () => import('./admin/costo-tasa/costo-tasa').then((m) => m.CostoTasa),
       },

@@ -65,6 +65,9 @@
   <div class="header-icons">
     <a class="cart-btn" routerLink="/cart">
       <img src="/cart.png" alt="Carrito" />
+      @if (cartCount() > 0) {
+        <span class="cart-count">{{ cartCount() }}</span>
+      }
     </a>
     @if (authService.isLoggedIn()) {
       <div class="user-dropdown">
@@ -177,6 +180,56 @@
                 name="confirmPassword" 
                 placeholder="Repite tu contraseña"
               />
+            </div>
+            <div class="form-group">
+              <label>Tipo de Persona</label>
+              <select [(ngModel)]="registerTipoPersona" name="tipoPersona">
+                <option value="natural">Persona Natural</option>
+                <option value="juridica">Persona Jurídica</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Rif o C.I</label>
+              <div class="rif-input-group">
+                <select [(ngModel)]="registerRifTipo" name="registerRifTipo" class="rif-select">
+                  @for (tipo of rifTipos; track tipo) {
+                    <option [value]="tipo">{{ tipo }}</option>
+                  }
+                </select>
+                <input 
+                  type="text" 
+                  [(ngModel)]="registerRif" 
+                  name="registerRif" 
+                  [placeholder]="registerTipoPersona === 'juridica' ? '12345678-9' : '12345678'"
+                  class="rif-input"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <div class="telefono-input-group">
+                <select [(ngModel)]="registerTelefonoPrefijo" name="registerTelefonoPrefijo" class="telefono-select">
+                  @for (pre of telefonoPrefijos; track pre) {
+                    <option [value]="pre">{{ pre }}</option>
+                  }
+                </select>
+                <input 
+                  type="tel" 
+                  [(ngModel)]="registerTelefono" 
+                  name="registerTelefono" 
+                  placeholder="1234567"
+                  class="telefono-input"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Dirección</label>
+              <textarea 
+                [(ngModel)]="registerDireccion" 
+                name="direccion" 
+                placeholder="Dirección de entrega"
+                rows="2"
+              ></textarea>
             </div>
             <button type="submit" class="submit-btn">
               Crear Cuenta

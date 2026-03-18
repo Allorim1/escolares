@@ -18,6 +18,15 @@ export class Register {
   email = signal('');
   password = signal('');
   confirmPassword = signal('');
+  rif = signal('');
+  rifTipo = signal('V');
+  telefono = signal('');
+  telefonoPrefijo = signal('0412');
+  direccion = signal('');
+  tipoPersona = signal<'natural' | 'juridica'>('natural');
+
+  rifTipos = ['V', 'E', 'J', 'G', 'P'];
+  telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
   loading = signal(false);
   error = this.authService.registerError;
   success = this.authService.registerSuccess;
@@ -51,8 +60,17 @@ export class Register {
     const mail = this.email();
     const pass = this.password();
     const confirm = this.confirmPassword();
+    const rifValue = this.rif();
+    const rifTipoValue = this.rifTipo();
+    const telefonoValue = this.telefono();
+    const telefonoPrefijoValue = this.telefonoPrefijo();
+    const direccionValue = this.direccion();
+    const tipoPersonaValue = this.tipoPersona();
 
-    if (!user || !mail || !pass || !confirm) {
+    const rifCompleto = rifTipoValue + '-' + rifValue;
+    const telefonoCompleto = telefonoPrefijoValue + '-' + telefonoValue;
+
+    if (!user || !mail || !pass || !confirm || !rifValue || !telefonoValue || !direccionValue) {
       this.authService.registerError.set('Todos los campos son obligatorios');
       return;
     }
@@ -68,6 +86,11 @@ export class Register {
     }
 
     this.loading.set(true);
-    this.authService.register(user, mail, pass);
+    this.authService.register(user, mail, pass, {
+      rif: rifCompleto,
+      telefono: telefonoCompleto,
+      direccion: direccionValue,
+      tipoPersona: tipoPersonaValue,
+    });
   }
 }

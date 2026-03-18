@@ -23,6 +23,10 @@ interface MenuCategory {
 export class Admin {
   authService = inject(AuthService);
 
+  isRoot(): boolean {
+    return this.authService.user()?.rol === 'root';
+  }
+
   categorias = signal<MenuCategory[]>([
     {
       name: 'Panel Admin',

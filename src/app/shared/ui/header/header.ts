@@ -3,6 +3,7 @@ import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../data-access/auth.service';
 import { ProductsService } from '../../../products/data-access/products.service';
+import { CartStateService } from '../../data-access/cart-state.service';
 import { Product } from '../../../shared/interfaces/product.interface';
 
 @Component({
@@ -15,6 +16,9 @@ export class Header {
   authService = inject(AuthService);
   private router = inject(Router);
   private productsService = inject(ProductsService);
+  private cartState = inject(CartStateService);
+
+  cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
 
   searchQuery = '';
   suggestions = signal<Product[]>([]);
@@ -29,7 +33,16 @@ export class Header {
   registerEmail = '';
   registerPassword = '';
   registerConfirmPassword = '';
+  registerRif = '';
+  registerRifTipo = 'V';
+  registerTelefono = '';
+  registerTelefonoPrefijo = '0412';
+  registerDireccion = '';
+  registerTipoPersona = 'natural';
   registerError = signal('');
+
+  rifTipos = ['V', 'E', 'J', 'G', 'P'];
+  telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
 
   constructor() {
     this.productsService.getProducts().subscribe((products) => {
@@ -96,6 +109,12 @@ export class Header {
     this.registerEmail = '';
     this.registerPassword = '';
     this.registerConfirmPassword = '';
+    this.registerRif = '';
+    this.registerRifTipo = 'V';
+    this.registerTelefono = '';
+    this.registerTelefonoPrefijo = '0412';
+    this.registerDireccion = '';
+    this.registerTipoPersona = 'natural';
     this.registerError.set('');
   }
 
@@ -115,7 +134,7 @@ export class Header {
   }
 
   doRegister() {
-    if (!this.registerUsername || !this.registerEmail || !this.registerPassword) {
+    if (!this.registerUsername || !this.registerEmail || !this.registerPassword || !this.registerRif || !this.registerTelefono || !this.registerDireccion) {
       this.registerError.set('Todos los campos son requeridos');
       return;
     }
@@ -123,7 +142,14 @@ export class Header {
       this.registerError.set('Las contraseñas no coinciden');
       return;
     }
-    this.authService.register(this.registerUsername, this.registerEmail, this.registerPassword);
+    const rifCompleto = this.registerRifTipo + '-' + this.registerRif;
+    const telefonoCompleto = this.registerTelefonoPrefijo + '-' + this.registerTelefono;
+    this.authService.register(this.registerUsername, this.registerEmail, this.registerPassword, {
+      rif: rifCompleto,
+      telefono: telefonoCompleto,
+      direccion: this.registerDireccion,
+      tipoPersona: this.registerTipoPersona,
+    });
     const checkRegister = setInterval(() => {
       if (this.authService.registerSuccess()) {
         this.closeModals();

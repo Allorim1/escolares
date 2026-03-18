@@ -24,30 +24,12 @@
             <td>{{ usuario.email }}</td>
             <td>
               @if (usuario.rol !== 'owner') {
-                @if (esOwner()) {
-                  <select
-                    class="rol-select"
-                    [value]="usuario.rol || 'usuario'"
-                    (change)="cambiarRol(usuario, $any($event.target).value)"
-                  >
-                    <option value="usuario">Usuario</option>
-                    <option value="empleado">Empleado</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                } @else if (esAdmin()) {
-                  <select
-                    class="rol-select"
-                    [value]="usuario.rol || 'usuario'"
-                    (change)="cambiarRol(usuario, $any($event.target).value)"
-                  >
-                    <option value="usuario">Usuario</option>
-                    <option value="empleado">Empleado</option>
-                  </select>
-                } @else {
+                <button class="rol-btn" (click)="openAssignRole(usuario)">
                   <span class="rol-badge" [class]="usuario.rol || 'usuario'">
-                    {{ getRolLabel(usuario.rol) }}
+                    {{ usuario.rolName || getRolLabel(usuario.rol) }}
                   </span>
-                }
+                  <span class="edit-icon">✏️</span>
+                </button>
               } @else {
                 <span class="rol-badge owner">Owner</span>
               }
@@ -58,3 +40,49 @@
     </table>
   }
 </section>
+
+@if (selectedUserRol()) {
+  <div class="modal-overlay" (click)="closeAssignRole()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Asignar Rol</h3>
+        <button class="close-btn" (click)="closeAssignRole()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Seleccionar Rol</label>
+          <select [(ngModel)]="selectedUserRol()!.rol" class="rol-select">
+            <optgroup label="Roles del Sistema">
+              <option value="usuario">Usuario</option>
+              @if (esRoot()) {
+                <option value="owner">Owner</option>
+              }
+            </optgroup>
+            @if (roles().length > 0) {
+              <optgroup label="Roles Personalizados">
+                @for (rol of roles(); track rol.id) {
+                  <option [value]="'usuario:' + rol.id">{{ rol.nombre }}</option>
+                }
+              </optgroup>
+            }
+          </select>
+        </div>
+        
+        @if (selectedUserRol()!.rol.startsWith('usuario:')) {
+          <div class="rol-info">
+            @if (getSelectedRol()) {
+              <p><strong>Descripción:</strong> {{ getSelectedRol()?.descripcion || 'Sin descripción' }}</p>
+              <p><strong>Permisos:</strong> {{ getSelectedRol()?.permisos?.length || 0 }}</p>
+            }
+          </div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeAssignRole()">Cancelar</button>
+        <button class="btn-primary" (click)="saveUserRole()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}

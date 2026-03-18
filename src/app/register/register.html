@@ -60,6 +60,100 @@
         />
       </div>
 
+      <div class="form-group">
+        <label for="tipoPersona">Tipo de Persona</label>
+        <select
+          id="tipoPersona"
+          [ngModel]="tipoPersona()"
+          name="tipoPersona"
+          (ngModelChange)="tipoPersona.set($event)"
+          required
+        >
+          <option value="natural">Persona Natural</option>
+          <option value="juridica">Persona Jurídica</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="rif">Rif o C.I</label>
+        <div class="rif-input-group">
+          <select
+            id="rifTipo"
+            [ngModel]="rifTipo()"
+            name="rifTipo"
+            (ngModelChange)="rifTipo.set($event)"
+            class="rif-select"
+          >
+            @for (tipo of rifTipos; track tipo) {
+              <option [value]="tipo">{{ tipo }}</option>
+            }
+          </select>
+          <input
+            type="text"
+            id="rif"
+            [ngModel]="rif()"
+            name="rif"
+            (ngModelChange)="rif.set($event)"
+            [placeholder]="tipoPersona() === 'juridica' ? '12345678-9' : '12345678'"
+            class="rif-input"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        <div class="telefono-input-group">
+          <select
+            id="telefonoPrefijo"
+            [ngModel]="telefonoPrefijo()"
+            name="telefonoPrefijo"
+            (ngModelChange)="telefonoPrefijo.set($event)"
+            class="telefono-select"
+          >
+            @for (pre of telefonoPrefijos; track pre) {
+              <option [value]="pre">{{ pre }}</option>
+            }
+          </select>
+          <input
+            type="tel"
+            id="telefono"
+            [ngModel]="telefono()"
+            name="telefono"
+            (ngModelChange)="telefono.set($event)"
+            placeholder="1234567"
+            class="telefono-input"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">Teléfono</label>
+        <input
+          type="tel"
+          id="telefono"
+          [ngModel]="telefono()"
+          name="telefono"
+          (ngModelChange)="telefono.set($event)"
+          placeholder="Ej: 0412-1234567"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="direccion">Dirección</label>
+        <textarea
+          id="direccion"
+          [ngModel]="direccion()"
+          name="direccion"
+          (ngModelChange)="direccion.set($event)"
+          placeholder="Dirección de entrega"
+          rows="2"
+          required
+        ></textarea>
+      </div>
+
       <button type="submit" class="btn-register" [disabled]="loading()">
         {{ loading() ? 'Registrando...' : 'Registrarse' }}
       </button>

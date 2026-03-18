@@ -1,49 +1,137 @@
 <section class="pedidos-container">
   <h3>Mis Pedidos</h3>
 
-  @if (cartState().products.length === 0) {
+  @if (loading()) {
+    <div class="loading">Cargando pedidos...</div>
+  } @else if (orders().length === 0) {
     <div class="empty-orders">
+      <div class="empty-icon">📦</div>
       <p>Aún no tienes ningún pedido.</p>
       <a routerLink="/products" class="shop-btn">Ir a la tienda</a>
     </div>
   } @else {
     <div class="orders-list">
-      <h4>Tu carrito actual ({{ cartState().products.length }} producto(s))</h4>
+      @for (order of orders(); track order.id) {
+        <div class="order-card" (click)="selectOrder(order)">
+          <div class="order-header">
+            <div class="order-id">
+              <span class="label">Pedido #</span>
+              <span class="value">{{ order.id }}</span>
+            </div>
+            <div class="order-date">
+              {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
+            </div>
+          </div>
+          
+          <div class="order-status-tracker">
+            @for (step of statusSteps; track step.status; let i = $index) {
+              <div class="tracker-step" [class.completed]="getStatusIndex(order.status) > i" [class.active]="order.status === step.status">
+                <div class="step-icon">{{ step.icon }}</div>
+                <div class="step-label">{{ step.label }}</div>
+              </div>
+              @if (i < statusSteps.length - 1) {
+                <div class="tracker-line" [class.completed]="getStatusIndex(order.status) > i"></div>
+              }
+            }
+          </div>
 
-      <table class="orders-table">
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Precio</th>
-            <th>Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of cartState().products; track item.product.id) {
-            <tr>
-              <td class="product-cell">
-                <img [src]="item.product.image" [alt]="item.product.title" class="product-img" />
-                <span class="product-name">{{ item.product.title }}</span>
-              </td>
-              <td>{{ item.quantity }}</td>
-              <td>{{ item.product.price | currency }}</td>
-              <td>{{ item.product.price * item.quantity | currency }}</td>
-            </tr>
-          }
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3" class="total-label">Total:</td>
-            <td class="total-value">{{ getTotal() | currency }}</td>
-          </tr>
-        </tfoot>
-      </table>
-
-      <div class="order-actions">
-        <a routerLink="/cart" class="cart-btn">Ver carrito completo</a>
-        <button class="checkout-btn">Finalizar pedido</button>
-      </div>
+          <div class="order-summary">
+            <div class="order-items">
+              {{ order.items.length }} producto(s)
+            </div>
+            <div class="order-total">
+              {{ order.total | currency }}
+            </div>
+          </div>
+        </div>
+      }
     </div>
   }
 </section>
+
+@if (selectedOrder()) {
+  <div class="modal-overlay" (click)="closeDetail()">
+    <div class="order-detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Detalle del Pedido #{{ selectedOrder()?.id }}</h3>
+        <button class="close-btn" (click)="closeDetail()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-status-tracker">
+          @for (step of statusSteps; track step.status; let i = $index) {
+            <div class="detail-step" [class.completed]="getStatusIndex(selectedOrder()!.status) > i" [class.active]="selectedOrder()!.status === step.status">
+              <div class="detail-step-icon">{{ step.icon }}</div>
+              <div class="detail-step-info">
+                <div class="detail-step-label">{{ step.label }}</div>
+                @if (selectedOrder()!.status === step.status) {
+                  <div class="detail-step-date">
+                    {{ selectedOrder()!.historial[getStatusIndex(selectedOrder()!.status)]?.fecha | date:'dd/MM/yyyy HH:mm' }}
+                  </div>
+                }
+              </div>
+            </div>
+            @if (i < statusSteps.length - 1) {
+              <div class="detail-step-line" [class.completed]="getStatusIndex(selectedOrder()!.status) > i"></div>
+            }
+          }
+        </div>
+
+        <div class="detail-section">
+          <h4>Productos</h4>
+          <div class="detail-items">
+            @for (item of selectedOrder()?.items; track item.productId) {
+              <div class="detail-item">
+                <img [src]="item.image" [alt]="item.title" class="item-image" />
+                <div class="item-info">
+                  <div class="item-title">{{ item.title }}</div>
+                  <div class="item-qty">Cantidad: {{ item.quantity }}</div>
+                  <div class="item-price">{{ item.price | currency }} c/u</div>
+                </div>
+                <div class="item-total">{{ item.price * item.quantity | currency }}</div>
+              </div>
+            }
+          </div>
+          <div class="detail-total">
+            <span>Total:</span>
+            <span>{{ selectedOrder()?.total | currency }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>Datos de Envío</h4>
+          <p><strong>Nombre:</strong> {{ selectedOrder()?.nombre }}</p>
+          <p><strong>Cédula:</strong> {{ selectedOrder()?.cedula }}</p>
+          <p><strong>Teléfono:</strong> {{ selectedOrder()?.telefono }}</p>
+          <p><strong>Dirección:</strong> {{ selectedOrder()?.direccion }}</p>
+        </div>
+
+        <div class="detail-section">
+          <h4>Información de Pago</h4>
+          <p><strong>Método:</strong> {{ selectedOrder()?.metodoPago }}</p>
+          @if (selectedOrder()?.referencia) {
+            <p><strong>Referencia:</strong> {{ selectedOrder()?.referencia }}</p>
+          }
+        </div>
+
+        <div class="detail-section">
+          <h4>Historial</h4>
+          <div class="historial-list">
+            @for (h of selectedOrder()?.historial; track h.status) {
+              <div class="historial-item">
+                <div class="historial-icon">{{ getStatusIcon(h.status) }}</div>
+                <div class="historial-info">
+                  <div class="historial-status">{{ getStatusLabel(h.status) }}</div>
+                  @if (h.observaciones) {
+                    <div class="historial-obs">{{ h.observaciones }}</div>
+                  }
+                  <div class="historial-date">{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

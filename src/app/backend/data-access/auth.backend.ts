@@ -41,16 +41,16 @@ export class AuthBackend {
         const user = JSON.parse(stored);
         this.currentUser.set(user);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(user.isAdmin || user.rol === 'admin' || user.rol === 'owner');
+        this.isAdmin.set(user.isAdmin || user.rol === 'admin' || user.rol === 'owner' || user.rol === 'root');
       }
     }
   }
 
-  register(username: string, email: string, password: string) {
+  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string }) {
     this.registerError.set(null);
     this.registerSuccess.set(false);
 
-    this.http.post<any>(`${this.API_URL}/register`, { username, email, password }).subscribe({
+    this.http.post<any>(`${this.API_URL}/register`, { username, email, password, ...extraData }).subscribe({
       next: (response) => {
         this.registerSuccess.set(true);
       },
@@ -144,8 +144,8 @@ export class AuthBackend {
     }
   }
 
-  updateUserRol(targetUserId: string, rol: 'admin' | 'empleado' | 'usuario') {
-    return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol });
+  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario', rolId?: string) {
+    return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
   }
 
   private saveToStorage(user: User) {

@@ -16,6 +16,9 @@
               @for (item of categoria.items; track item.route) {
                 <a [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
               }
+              @if (categoria.name === 'Panel Web' && isRoot()) {
+                <a routerLink="roles" routerLinkActive="active">Roles</a>
+              }
             </div>
           }
         </div>

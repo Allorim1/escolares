@@ -6,6 +6,7 @@ import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, User, Direccion } from '../shared/data-access/auth.service';
+import { OrdersBackend, OrderItem } from '../backend/data-access/orders.backend';
 
 const CART_IMPORTS = [CartItem, CurrencyPipe, RouterLink, FormsModule];
 
@@ -28,6 +29,7 @@ interface PaymentData {
 export default class CartComponent {
   state = inject(CartStateService).state;
   authService = inject(AuthService);
+  private ordersBackend = inject(OrdersBackend);
 
   showCheckoutModal = signal(false);
   checkoutStep = signal(1);
@@ -212,17 +214,37 @@ export default class CartComponent {
   }
 
   placeOrder() {
-    console.log('Order placed:', {
-      items: this.state().products,
+    const items: OrderItem[] = this.state().products.map(item => ({
+      productId: item.product.id,
+      title: item.product.title,
+      price: item.product.price,
+      quantity: item.quantity,
+      image: item.product.image,
+    }));
+
+    const orderData = {
+      items,
       total: this.price(),
-      user: this.user,
-      payment: this.paymentData(),
-    });
+      nombre: this.paymentData().nombre,
+      cedula: this.paymentData().cedula,
+      telefono: this.paymentData().telefono,
+      direccion: this.paymentData().direccion,
+      metodoPago: this.paymentData().metodoPago,
+      referencia: this.paymentData().referencia,
+    };
 
-    this.state().products.forEach(item => {
-      this.state.remove(item.product.id);
+    this.ordersBackend.createOrder(orderData).subscribe({
+      next: (order) => {
+        console.log('Order created:', order);
+        this.state().products.forEach(item => {
+          this.state.remove(item.product.id);
+        });
+        this.orderPlaced.set(true);
+      },
+      error: (err) => {
+        console.error('Error creating order:', err);
+        alert('Error al crear el pedido. Por favor intenta de nuevo.');
+      }
     });
-
-    this.orderPlaced.set(true);
   }
 }

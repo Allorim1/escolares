@@ -8,11 +8,13 @@ export interface User {
   email: string;
   isAdmin: boolean;
   isOwner?: boolean;
-  rol?: 'owner' | 'admin' | 'empleado' | 'usuario';
+  rol?: 'root' | 'owner' | 'usuario';
+  rolId?: string;
   nombreCompleto?: string;
   direccion?: string;
   telefono?: string;
   cedula?: string;
+  tipoPersona?: 'natural' | 'juridica';
   direcciones?: Direccion[];
 }
 
@@ -33,8 +35,8 @@ export class AuthService {
   isAdmin = this.backend.isAdmin;
   loginLoading = this.backend.loginLoading;
 
-  register(username: string, email: string, password: string) {
-    this.backend.register(username, email, password);
+  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string }) {
+    this.backend.register(username, email, password, extraData);
   }
 
   login(username: string, password: string) {
@@ -57,8 +59,8 @@ export class AuthService {
     return this.backend.getAllUsers();
   }
 
-  updateUserRol(targetUserId: string, rol: 'admin' | 'empleado' | 'usuario') {
-    return this.backend.updateUserRol(targetUserId, rol);
+  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario', rolId?: string) {
+    return this.backend.updateUserRol(targetUserId, rol, rolId);
   }
 
   get registerError() {

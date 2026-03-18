@@ -17,6 +17,7 @@ export class Perfil {
   nombreCompleto = signal('');
   direccion = signal('');
   telefono = signal('');
+  cedula = signal('');
 
   constructor() {
     this.cargarDatos();
@@ -28,6 +29,7 @@ export class Perfil {
       this.nombreCompleto.set(user.nombreCompleto || '');
       this.direccion.set(user.direccion || '');
       this.telefono.set(user.telefono || '');
+      this.cedula.set(user.cedula || '');
     }
   }
 
@@ -46,6 +48,7 @@ export class Perfil {
       nombreCompleto: this.nombreCompleto(),
       direccion: this.direccion(),
       telefono: this.telefono(),
+      cedula: this.cedula(),
     });
     setTimeout(() => {
       this.guardando.set(false);

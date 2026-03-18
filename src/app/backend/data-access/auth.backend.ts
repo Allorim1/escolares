@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
 import { User } from '../models';
 
 @Injectable({
@@ -108,15 +109,17 @@ export class AuthBackend {
     const userId = this.currentUser()?.id;
     if (!userId) return;
 
-    this.http.put<any>(`${this.API_URL}/profile`, { userId, ...profileData }).subscribe({
-      next: (response) => {
-        this.currentUser.set(response);
-        this.saveToStorage(response);
-      },
-      error: (error) => {
-        console.error('Error al actualizar perfil:', error);
-      },
-    });
+    return this.http.put<any>(`${this.API_URL}/profile`, { ...profileData }).pipe(
+      tap({
+        next: (response) => {
+          this.currentUser.set(response);
+          this.saveToStorage(response);
+        },
+        error: (error) => {
+          console.error('Error al actualizar perfil:', error);
+        },
+      }),
+    );
   }
 
   getAllUsers() {

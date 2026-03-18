@@ -40,7 +40,7 @@
   </div>
 
   @if (isAdding() || editingProduct()) {
-    <div class="modal-overlay" (click)="cancelEdit()">
+    <div class="modal-overlay">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ isAdding() ? 'Nuevo Producto' : 'Editar Producto' }}</h3>

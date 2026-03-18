@@ -53,8 +53,30 @@
             }
           </div>
 
+          <div class="quantity-selector">
+            <label class="quantity-label">Cantidad:</label>
+            <div class="quantity-controls">
+              <button 
+                type="button" 
+                class="qty-btn" 
+                (click)="decreaseQuantity()"
+                [disabled]="quantity() <= 1"
+              >-</button>
+              <span class="qty-value">{{ quantity() }}</span>
+              <button 
+                type="button" 
+                class="qty-btn" 
+                (click)="increaseQuantity()"
+              >+</button>
+            </div>
+          </div>
+
           <div class="action-buttons">
-            <button class="add-to-cart-btn" (click)="addToCart()">
+            <button 
+              class="add-to-cart-btn" 
+              [class.added]="showAddedMessage()"
+              (click)="addToCart()"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -70,9 +92,16 @@
                 <circle cx="20" cy="21" r="1"></circle>
                 <path d="m1 1 4 4v11a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V6H7"></path>
               </svg>
-              Agregar al carrito
+              @if (showAddedMessage()) {
+                ¡Agregado al carrito!
+              } @else {
+                Agregar al carrito
+              }
             </button>
           </div>
+          @if (showAddedMessage()) {
+            <div class="added-message">✓ Producto agregado al carrito</div>
+          }
         </div>
       </div>
     }

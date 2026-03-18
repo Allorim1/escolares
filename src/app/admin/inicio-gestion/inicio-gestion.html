@@ -1,0 +1,229 @@
+<div class="inicio-gestion-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 50px; margin-bottom: 10px;">
+  <h2>Gestión de Inicio</h2>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <div class="tabs">
+      <button [class.active]="activeTab() === 'banners'" (click)="setTab('banners')">Banners</button>
+      <button [class.active]="activeTab() === 'features'" (click)="setTab('features')">Características</button>
+      <button [class.active]="activeTab() === 'featured'" (click)="setTab('featured')">Productos Destacados</button>
+      <button [class.active]="activeTab() === 'settings'" (click)="setTab('settings')">Configuración</button>
+    </div>
+
+    @if (activeTab() === 'banners') {
+      <div class="tab-content">
+        <div class="section-header">
+          <h3>Banners del Inicio</h3>
+          <button class="add-btn" (click)="openBannerModal()">+ Agregar Banner</button>
+        </div>
+
+        @if (settings().banners.length === 0) {
+          <div class="empty-state">No hay banners configurados</div>
+        } @else {
+          <div class="items-list">
+            @for (banner of settings().banners; track banner.id) {
+              <div class="item-card">
+                <img [src]="banner.image || '/placeholder.png'" alt="Banner" class="item-image" />
+                <div class="item-info">
+                  <h4>{{ banner.title || 'Sin título' }}</h4>
+                  <p>{{ banner.subtitle || 'Sin subtítulo' }}</p>
+                  <span class="badge" [class.active]="banner.active">{{ banner.active ? 'Activo' : 'Inactivo' }}</span>
+                </div>
+                <div class="item-actions">
+                  <button class="edit-btn" (click)="openBannerModal(banner)">✎</button>
+                  <button class="delete-btn" (click)="deleteBanner(banner.id)">🗑️</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (activeTab() === 'features') {
+      <div class="tab-content">
+        <div class="section-header">
+          <h3>Características</h3>
+          <button class="add-btn" (click)="openFeatureModal()">+ Agregar</button>
+        </div>
+
+        @if (settings().features.length === 0) {
+          <div class="empty-state">No hay características configuradas</div>
+        } @else {
+          <div class="items-list">
+            @for (feature of settings().features; track feature.id) {
+              <div class="item-card feature-card">
+                <div class="feature-icon">{{ feature.icon }}</div>
+                <div class="item-info">
+                  <h4>{{ feature.title }}</h4>
+                  <p>{{ feature.description }}</p>
+                  <span class="badge" [class.active]="feature.active">{{ feature.active ? 'Activo' : 'Inactivo' }}</span>
+                </div>
+                <div class="item-actions">
+                  <button class="edit-btn" (click)="openFeatureModal(feature)">✎</button>
+                  <button class="delete-btn" (click)="deleteFeature(feature.id)">🗑️</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (activeTab() === 'featured') {
+      <div class="tab-content">
+        <div class="section-header">
+          <h3>Productos Destacados</h3>
+          <button class="save-btn" (click)="saveSettings()" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar Cambios' }}
+          </button>
+        </div>
+
+        <p class="help-text">Selecciona los productos que aparecerán en la sección "Productos Destacados" del inicio</p>
+
+        <div class="products-grid">
+          @for (product of allProducts(); track product.id) {
+            <div 
+              class="product-select-card" 
+              [class.selected]="isProductFeatured(product)"
+              (click)="toggleFeaturedProduct(product)"
+            >
+              <img [src]="product.image" [alt]="product.title" />
+              <h4>{{ product.title }}</h4>
+              <p>${{ product.price }}</p>
+              @if (isProductFeatured(product)) {
+                <span class="selected-badge">✓ Seleccionado</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (activeTab() === 'settings') {
+      <div class="tab-content">
+        <div class="section-header">
+          <h3>Configuración del Inicio</h3>
+          <button class="save-btn" (click)="saveSettings()" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar Cambios' }}
+          </button>
+        </div>
+
+        <div class="settings-form">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="settings().showNewsletter" />
+            Mostrar sección de Newsletter
+          </label>
+
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="settings().showMarcas" />
+            Mostrar carrusel de Marcas
+          </label>
+
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="settings().showLineas" />
+            Mostrar sección de Líneas/Categorías
+          </label>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+@if (showBannerModal()) {
+  <div class="modal-overlay" (click)="closeBannerModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingBanner()?.id ? 'Editar Banner' : 'Nuevo Banner' }}</h3>
+        <button class="close-btn" (click)="closeBannerModal()">&times;</button>
+      </div>
+      <form (ngSubmit)="saveBanner()">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" [(ngModel)]="editingBanner()!.title" name="title" />
+        </div>
+        <div class="form-group">
+          <label>Subtítulo</label>
+          <input type="text" [(ngModel)]="editingBanner()!.subtitle" name="subtitle" />
+        </div>
+        <div class="form-group">
+          <label>Imagen</label>
+          <input type="file" accept="image/*" (change)="onBannerFileSelected($event)" />
+          @if (editingBanner()?.image) {
+            <img [src]="editingBanner()!.image" alt="Preview" class="image-preview" />
+          }
+        </div>
+        <div class="form-group">
+          <label>Enlace (URL)</label>
+          <input type="text" [(ngModel)]="editingBanner()!.link" name="link" placeholder="/products" />
+        </div>
+        <div class="form-group">
+          <label>Orden</label>
+          <input type="number" [(ngModel)]="editingBanner()!.order" name="order" />
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="editingBanner()!.active" />
+            Activo
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="save-btn">Guardar</button>
+          <button type="button" class="cancel-btn" (click)="closeBannerModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showFeatureModal()) {
+  <div class="modal-overlay" (click)="closeFeatureModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingFeature()?.id ? 'Editar Característica' : 'Nueva Característica' }}</h3>
+        <button class="close-btn" (click)="closeFeatureModal()">&times;</button>
+      </div>
+      <form (ngSubmit)="saveFeature()">
+        <div class="form-group">
+          <label>Icono</label>
+          <div class="icon-selector">
+            @for (icon of icons; track icon) {
+              <button 
+                type="button" 
+                class="icon-btn" 
+                [class.selected]="editingFeature()?.icon === icon"
+                (click)="editingFeature()!.icon = icon"
+              >
+                {{ icon }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" [(ngModel)]="editingFeature()!.title" name="title" required />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="editingFeature()!.description" name="description" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Orden</label>
+          <input type="number" [(ngModel)]="editingFeature()!.order" name="order" />
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="editingFeature()!.active" />
+            Activo
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="save-btn">Guardar</button>
+          <button type="button" class="cancel-btn" (click)="closeFeatureModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

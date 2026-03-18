@@ -43,6 +43,15 @@
     }
   </div>
 
+  <div class="perfil-field">
+    <label>Cédula:</label>
+    @if (editando()) {
+      <input type="text" [(ngModel)]="cedula" placeholder="Ingresa tu número de cédula" />
+    } @else {
+      <span>{{ cedula() || 'No especificado' }}</span>
+    }
+  </div>
+
   @if (editando()) {
     <div class="perfil-actions">
       <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>

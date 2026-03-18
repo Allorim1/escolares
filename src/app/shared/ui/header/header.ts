@@ -21,6 +21,16 @@ export class Header {
   showDropdown = signal(false);
   allProducts: Product[] = [];
 
+  showLoginModal = signal(false);
+  showRegisterModal = signal(false);
+  loginUsername = '';
+  loginPassword = '';
+  registerUsername = '';
+  registerEmail = '';
+  registerPassword = '';
+  registerConfirmPassword = '';
+  registerError = signal('');
+
   constructor() {
     this.productsService.getProducts().subscribe((products) => {
       this.allProducts = products;
@@ -65,5 +75,61 @@ export class Header {
   logout() {
     this.authService.logout();
     this.router.navigate(['/']);
+  }
+
+  openLogin() {
+    this.showLoginModal.set(true);
+    this.showRegisterModal.set(false);
+  }
+
+  openRegister() {
+    this.showRegisterModal.set(true);
+    this.showLoginModal.set(false);
+  }
+
+  closeModals() {
+    this.showLoginModal.set(false);
+    this.showRegisterModal.set(false);
+    this.loginUsername = '';
+    this.loginPassword = '';
+    this.registerUsername = '';
+    this.registerEmail = '';
+    this.registerPassword = '';
+    this.registerConfirmPassword = '';
+    this.registerError.set('');
+  }
+
+  doLogin() {
+    if (this.loginUsername && this.loginPassword) {
+      this.authService.login(this.loginUsername, this.loginPassword);
+      const checkLogin = setInterval(() => {
+        if (this.authService.isLoggedIn()) {
+          this.closeModals();
+          clearInterval(checkLogin);
+        }
+        if (!this.authService.loginLoading() && !this.authService.isLoggedIn()) {
+          clearInterval(checkLogin);
+        }
+      }, 100);
+    }
+  }
+
+  doRegister() {
+    if (!this.registerUsername || !this.registerEmail || !this.registerPassword) {
+      this.registerError.set('Todos los campos son requeridos');
+      return;
+    }
+    if (this.registerPassword !== this.registerConfirmPassword) {
+      this.registerError.set('Las contraseñas no coinciden');
+      return;
+    }
+    this.authService.register(this.registerUsername, this.registerEmail, this.registerPassword);
+    const checkRegister = setInterval(() => {
+      if (this.authService.registerSuccess()) {
+        this.closeModals();
+        this.openLogin();
+        clearInterval(checkRegister);
+      }
+    }, 100);
   }
 }

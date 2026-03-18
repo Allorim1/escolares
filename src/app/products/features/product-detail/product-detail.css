@@ -174,6 +174,92 @@
   padding-top: 1.5rem;
 }
 
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.quantity-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #1d63c1;
+}
+
+.qty-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #1d63c1;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover:not(:disabled) {
+  background: #155a9e;
+}
+
+.qty-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.qty-value {
+  width: 50px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  background: white;
+  border-left: 1px solid #1d63c1;
+  border-right: 1px solid #1d63c1;
+}
+
+.added-message {
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .add-to-cart-btn {
   display: flex;
   align-items: center;
@@ -199,6 +285,11 @@
 
 .add-to-cart-btn:active {
   transform: translateY(0);
+}
+
+.add-to-cart-btn.added {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3) !important;
 }
 
 @media (max-width: 900px) {

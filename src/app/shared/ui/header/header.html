@@ -81,9 +81,113 @@
         </div>
       </div>
     } @else {
-      <a class="user-btn" routerLink="/login">
+      <a class="user-btn" (click)="openLogin()" style="cursor: pointer">
         <img src="/usuario.png" alt="Usuario" />
       </a>
     }
   </div>
 </header>
+
+@if (showLoginModal() || showRegisterModal()) {
+  <div class="modal-overlay" (click)="closeModals()">
+    <div class="auth-modal" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeModals()">&times;</button>
+      
+      @if (showLoginModal()) {
+        <div class="modal-content">
+          <h2>Iniciar Sesión</h2>
+          <p class="modal-subtitle">Bienvenido de nuevo</p>
+          
+          @if (authService.loginError()) {
+            <div class="error-message">{{ authService.loginError() }}</div>
+          }
+          
+          <form (ngSubmit)="doLogin()">
+            <div class="form-group">
+              <label>Usuario o Email</label>
+              <input 
+                type="text" 
+                [(ngModel)]="loginUsername" 
+                name="username" 
+                placeholder="Ingresa tu usuario"
+              />
+            </div>
+            <div class="form-group">
+              <label>Contraseña</label>
+              <input 
+                type="password" 
+                [(ngModel)]="loginPassword" 
+                name="password" 
+                placeholder="Ingresa tu contraseña"
+              />
+            </div>
+            <button type="submit" class="submit-btn" [disabled]="authService.loginLoading()">
+              {{ authService.loginLoading() ? 'Iniciando...' : 'Iniciar Sesión' }}
+            </button>
+          </form>
+          
+          <p class="modal-footer">
+            ¿No tienes cuenta? <button type="button" (click)="openRegister()">Regístrate</button>
+          </p>
+        </div>
+      }
+      
+      @if (showRegisterModal()) {
+        <div class="modal-content">
+          <h2>Crear Cuenta</h2>
+          <p class="modal-subtitle">Únete a nuestra tienda</p>
+          
+          @if (registerError()) {
+            <div class="error-message">{{ registerError() }}</div>
+          }
+          
+          <form (ngSubmit)="doRegister()">
+            <div class="form-group">
+              <label>Usuario</label>
+              <input 
+                type="text" 
+                [(ngModel)]="registerUsername" 
+                name="username" 
+                placeholder="Elige un usuario"
+              />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input 
+                type="email" 
+                [(ngModel)]="registerEmail" 
+                name="email" 
+                placeholder="Tu correo electrónico"
+              />
+            </div>
+            <div class="form-group">
+              <label>Contraseña</label>
+              <input 
+                type="password" 
+                [(ngModel)]="registerPassword" 
+                name="password" 
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <div class="form-group">
+              <label>Confirmar Contraseña</label>
+              <input 
+                type="password" 
+                [(ngModel)]="registerConfirmPassword" 
+                name="confirmPassword" 
+                placeholder="Repite tu contraseña"
+              />
+            </div>
+            <button type="submit" class="submit-btn">
+              Crear Cuenta
+            </button>
+          </form>
+          
+          <p class="modal-footer">
+            ¿Ya tienes cuenta? <button type="button" (click)="openLogin()">Inicia Sesión</button>
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+}

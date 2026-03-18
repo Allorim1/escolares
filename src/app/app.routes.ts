@@ -90,6 +90,10 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/inicio/inicio').then((m) => m.AdminInicio),
       },
       {
+        path: 'inicio-gestion',
+        loadComponent: () => import('./admin/inicio-gestion/inicio-gestion').then((m) => m.AdminInicioGestion),
+      },
+      {
         path: 'productos',
         loadComponent: () =>
           import('./admin/productos/admin-productos').then((m) => m.AdminProductos),

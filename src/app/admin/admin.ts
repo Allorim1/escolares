@@ -36,10 +36,11 @@ export class Admin {
         { label: 'Retenciones', route: 'retenciones' },
       ]
     },
-    {
+{
       name: 'Panel Web',
       expanded: true,
       items: [
+        { label: 'Inicio', route: 'inicio-gestion' },
         { label: 'Productos', route: 'productos' },
         { label: 'Marcas', route: 'marcas' },
         { label: 'Líneas', route: 'lineas' },

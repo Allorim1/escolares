@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthBackend } from '../../backend/data-access/auth.backend';
+import { Observable } from 'rxjs';
 
 export interface User {
   id: string;
@@ -11,6 +12,14 @@ export interface User {
   nombreCompleto?: string;
   direccion?: string;
   telefono?: string;
+  cedula?: string;
+  direcciones?: Direccion[];
+}
+
+export interface Direccion {
+  id: string;
+  nombre: string;
+  direccion: string;
 }
 
 @Injectable({
@@ -40,8 +49,8 @@ export class AuthService {
     return this.backend.currentUser();
   }
 
-  updateProfile(profileData: Partial<User>) {
-    this.backend.updateProfile(profileData);
+  updateProfile(profileData: Partial<User>): Observable<any> | undefined {
+    return this.backend.updateProfile(profileData);
   }
 
   getAllUsers() {

@@ -279,17 +279,6 @@
   font-size: 14px;
   z-index: 2001;
 }
-  top: 20px;
-  right: 20px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  z-index: 2001;
-}
 
 .btn-secondary {
   width: 100%;

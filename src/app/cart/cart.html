@@ -20,7 +20,7 @@
       </div>
       <div class="cart-actions">
         <a routerLink="/products" class="continue-btn">Continuar comprando</a>
-        <button class="checkout-btn">Finalizar Compra</button>
+        <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
       </div>
     </div>
   } @else {
@@ -32,3 +32,112 @@
     </div>
   }
 </section>
+
+@if (showCheckoutModal()) {
+  <div class="modal-overlay">
+    <div class="checkout-modal">
+      @if (orderPlaced()) {
+        <div class="order-success">
+          <div class="success-icon">✓</div>
+          <h3>¡Pedido Confirmado!</h3>
+          <p>Tu pedido ha sido recibido exitosamente.</p>
+          <p class="success-detail">Nos contactaremos contigo pronto para coordinar la entrega.</p>
+          <button class="btn-primary" (click)="closeCheckout()">Aceptar</button>
+        </div>
+      } @else {
+        <div class="modal-header">
+          <h3>Finalizar Compra</h3>
+          <button class="close-btn" (click)="closeCheckout()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="order-summary">
+            <h4>Resumen del Pedido</h4>
+            <div class="summary-items">
+              @for (item of state().products; track item) {
+                <div class="summary-item">
+                  <span>{{ item.quantity }}x {{ item.product.title }}</span>
+                  <span>{{ (item.product.price * item.quantity) | currency }}</span>
+                </div>
+              }
+            </div>
+            <div class="summary-total">
+              <span>Total:</span>
+              <span>{{ price() | currency }}</span>
+            </div>
+          </div>
+
+          <form class="payment-form" (ngSubmit)="placeOrder()">
+            <h4>Datos del Cliente</h4>
+            
+            @if (user) {
+              <p class="user-info">Datos de: {{ userName }} ({{ userEmail }})</p>
+            }
+            
+            <div class="form-group">
+              <label>Nombre completo</label>
+              <input type="text" [value]="userName" readonly class="readonly-field" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Cédula</label>
+                <input type="text" [value]="userCedula" readonly class="readonly-field" />
+              </div>
+              <div class="form-group">
+                <label>Teléfono</label>
+                <input type="tel" [value]="userPhone" readonly class="readonly-field" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Dirección de envío</label>
+              @if (userAddresses.length > 0) {
+                <select [ngModel]="selectedAddressId()" (ngModelChange)="onAddressChange($event)" name="direccion">
+                  @for (addr of userAddresses; track addr.id) {
+                    <option [value]="addr.id">{{ addr.nombre }} - {{ addr.direccion }}</option>
+                  }
+                </select>
+              } @else {
+                <input type="text" [value]="userAddress" readonly class="readonly-field" />
+              }
+              <button type="button" class="add-address-btn" (click)="toggleAddAddress()">
+                {{ showAddAddress() ? 'Cancelar' : '+ Agregar otra dirección' }}
+              </button>
+            </div>
+
+            @if (showAddAddress()) {
+              <div class="new-address-form">
+                <div class="form-group">
+                  <label>Nombre de esta dirección (ej: Casa, Oficina)</label>
+                  <input type="text" [(ngModel)]="newAddressNombre" placeholder="Ej: Casa" />
+                </div>
+                <div class="form-group">
+                  <label>Dirección completa</label>
+                  <input type="text" [(ngModel)]="newAddressDireccion" placeholder="Calle, ciudad, estado..." />
+                </div>
+                <button type="button" class="btn-secondary" (click)="addNewAddress()">Guardar dirección</button>
+              </div>
+            }
+
+            <h4>Método de Pago</h4>
+
+            <div class="form-group">
+              <select [(ngModel)]="paymentData().metodoPago" name="metodoPago">
+                @for (method of paymentMethods; track method.value) {
+                  <option [value]="method.value">{{ method.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Número de referencia</label>
+              <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" />
+            </div>
+
+            <button type="submit" class="btn-primary">Confirmar Pedido</button>
+          </form>
+        </div>
+      }
+    </div>
+  </div>
+}

@@ -142,6 +142,10 @@ export const routes: Routes = [
         path: 'retenciones',
         loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
       },
+      {
+        path: 'pedidos',
+        loadComponent: () => import('./admin/pedidos/admin-pedidos').then((m) => m.AdminPedidos),
+      },
     ],
   },
   {

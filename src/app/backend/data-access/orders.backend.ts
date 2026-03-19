@@ -27,7 +27,7 @@ export interface Order {
   updatedAt: Date;
 }
 
-export type OrderStatus = 'pendiente' | 'procesando' | 'enviado' | 'entregado' | 'cancelado';
+export type OrderStatus = 'confirmar' | 'pendiente' | 'procesando' | 'enviado' | 'entregado' | 'cancelado';
 
 export interface OrderHistorial {
   status: OrderStatus;
@@ -44,6 +44,8 @@ export interface CreateOrderData {
   direccion: string;
   metodoPago: string;
   referencia: string;
+  fotoComprobante?: string;
+  status?: OrderStatus;
 }
 
 @Injectable({
@@ -68,5 +70,9 @@ export class OrdersBackend {
 
   updateOrderStatus(id: string, status: OrderStatus, observaciones?: string): Observable<Order> {
     return this.http.put<Order>(`${this.API_URL}/${id}/status`, { status, observaciones });
+  }
+
+  deleteOrder(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}`);
   }
 }

@@ -285,6 +285,71 @@
   background: #218838;
 }
 
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.confirm-order-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: #e8f5e9;
+  border-radius: 8px;
+  border: 2px solid #4caf50;
+}
+
+.confirm-text {
+  text-align: center;
+  color: #2e7d32;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.confirm-text-paid {
+  text-align: center;
+  color: #1565c0;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-cancelar {
+  flex: 1;
+  padding: 0.875rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancelar:hover {
+  background: #c82333;
+}
+
+.btn-confirmar {
+  flex: 2;
+  padding: 0.875rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-confirmar:hover {
+  background: #218838;
+}
+
 /* Order Success */
 .order-success {
   padding: 3rem 2rem;
@@ -447,4 +512,346 @@
 
 .btn-secondary:hover {
   background: #5a6268;
+}
+
+/* Pago Móvil Info */
+.pago-movil-info {
+  background: #e8f5e9;
+  border: 2px solid #4caf50;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.info-title {
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid #c8e6c9;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row span {
+  color: #555;
+}
+
+.info-row strong {
+  color: #1b5e20;
+}
+
+/* Comprobante Preview */
+.comprobante-preview {
+  position: relative;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+.comprobante-preview img {
+  max-width: 200px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}
+
+.btn-eliminar {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.foto-opciones {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btn-foto-comprobante {
+  flex: 1;
+  padding: 1rem;
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.btn-foto-comprobante:hover {
+  background: #138496;
+}
+
+.btn-qr-comprobante {
+  flex: 1;
+  padding: 1rem;
+  background: #6f42c1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.btn-qr-comprobante:hover {
+  background: #5a32a3;
+}
+
+.btn-foto-comprobante:hover {
+  background: #138496;
+}
+
+.btn-archivo-comprobante {
+  flex: 1;
+  padding: 1rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-align: center;
+  display: inline-block;
+}
+
+.btn-archivo-comprobante:hover {
+  background: #5a6268;
+}
+
+/* WhatsApp Section */
+.whatsapp-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.btn-whatsapp {
+  width: 100%;
+  padding: 0.875rem;
+  background: #25D366;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-whatsapp:hover {
+  background: #20BD5A;
+}
+
+.whatsapp-hint {
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* Camera Modal */
+.camera-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.camera-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+}
+
+.camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #333;
+  color: white;
+}
+
+.camera-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.camera-header .close-btn {
+  color: white;
+}
+
+.camera-body {
+  background: #000;
+  padding: 0;
+}
+
+.camera-body video {
+  width: 100%;
+  display: block;
+}
+
+.camera-footer {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+}
+
+.camera-footer .btn-cancel {
+  flex: 1;
+  padding: 0.75rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.camera-footer .btn-capture {
+  flex: 2;
+  padding: 0.75rem;
+  background: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* QR Modal */
+.qr-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.qr-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #6f42c1;
+  color: white;
+}
+
+.qr-modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.qr-modal-header .close-btn {
+  color: white;
+}
+
+.qr-modal-body {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.qr-instructions {
+  color: #555;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.qr-code-image {
+  max-width: 250px;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.qr-loading {
+  padding: 2rem;
+  color: #666;
+}
+
+.qr-expire {
+  font-size: 0.85rem;
+  color: #dc3545;
+  margin-top: 0.5rem;
+}
+
+.qr-success {
+  padding: 1.5rem;
+}
+
+.qr-success-icon {
+  width: 60px;
+  height: 60px;
+  background: #28a745;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1rem;
+}
+
+.qr-success p {
+  color: #28a745;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.qr-preview-image {
+  max-width: 200px;
+  border-radius: 8px;
+  border: 2px solid #28a745;
+}
+
+.qr-polling {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.btn-debug {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin: 5px;
+}
+
+.debug-buttons {
+  margin-top: 10px;
 }

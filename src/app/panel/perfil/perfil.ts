@@ -49,10 +49,17 @@ export class Perfil {
       direccion: this.direccion(),
       telefono: this.telefono(),
       cedula: this.cedula(),
+    })?.subscribe({
+      next: (user) => {
+        this.guardando.set(false);
+        this.editando.set(false);
+        alert('Perfil actualizado correctamente');
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        console.error('Error guardando perfil:', err);
+        alert('Error al guardar el perfil');
+      }
     });
-    setTimeout(() => {
-      this.guardando.set(false);
-      this.editando.set(false);
-    }, 1000);
   }
 }

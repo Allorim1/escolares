@@ -32,6 +32,7 @@ export class Admin {
       name: 'Panel Admin',
       expanded: true,
       items: [
+        { label: 'Pedidos', route: 'pedidos' },
         { label: 'Costos y Tasas', route: 'costo-tasa' },
         { label: 'Histórico Costos', route: 'historico-costos' },
         { label: 'Registro', route: 'registro' },

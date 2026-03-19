@@ -167,20 +167,134 @@
                   </select>
                 </div>
 
+                @if (paymentData().metodoPago === 'pago_movil') {
+                  <div class="pago-movil-info">
+                    <div class="info-title">Datos para Pago Móvil:</div>
+                    <div class="info-row"><span>Banco:</span> <strong>{{ getPagoMovilInfo().banco }}</strong></div>
+                    <div class="info-row"><span>Titular:</span> <strong>{{ getPagoMovilInfo().titular }}</strong></div>
+                    <div class="info-row"><span>RIF:</span> <strong>{{ getPagoMovilInfo().rif }}</strong></div>
+                    <div class="info-row"><span>Teléfono:</span> <strong>{{ getPagoMovilInfo().telefono }}</strong></div>
+                  </div>
+                }
+
                 <div class="form-group">
                   <label>Número de referencia</label>
-                  <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" />
+                  <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Últimos 4 dígitos o número de referencia" />
                 </div>
 
-                <div class="step-actions">
-                  <button type="button" class="btn-secondary" (click)="prevStep()">Atrás</button>
-                  <button type="submit" class="btn-primary">Confirmar Pedido</button>
-                </div>
+                @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia') {
+                  <div class="form-group">
+                    <label>Foto del comprobante</label>
+                    
+                    @if (paymentData().fotoComprobante) {
+                      <div class="comprobante-preview">
+                        <img [src]="paymentData().fotoComprobante" alt="Comprobante" />
+                        <button type="button" class="btn-eliminar" (click)="eliminarComprobante()">✕</button>
+                      </div>
+                    } @else {
+                      <div class="foto-opciones">
+                        <button type="button" class="btn-foto-comprobante" (click)="abrirCamera()">
+                          📷 Cámara
+                        </button>
+                        <button type="button" class="btn-qr-comprobante" (click)="abrirQRModal()">
+                          📱 QR desde mi celular
+                        </button>
+                        <label class="btn-archivo-comprobante">
+                          📁 Archivo
+                          <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
+                        </label>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia') {
+                  <div class="whatsapp-section">
+                    <button type="button" class="btn-whatsapp" (click)="enviarComprobanteWhatsApp()">
+                      📱 Enviar comprobante por WhatsApp
+                    </button>
+                    <p class="whatsapp-hint">Después de enviar, adjunta la foto en WhatsApp</p>
+                  </div>
+                }
+
+                @if (currentOrderId()) {
+                  <div class="confirm-order-section">
+                    @if (tieneComprobantePago()) {
+                      <p class="confirm-text-paid">✅ Pago registrado - Esperando confirmación</p>
+                      <div class="confirm-actions">
+                        <button type="button" class="btn-confirmar" (click)="confirmarPedido()">Confirmar Pedido</button>
+                      </div>
+                    } @else {
+                      <p class="confirm-text">Tu pedido está listo. ¿Deseas confirmarlo?</p>
+                      <div class="confirm-actions">
+                        <button type="button" class="btn-cancelar" (click)="cancelarPedido()">Cancelar</button>
+                        <button type="button" class="btn-confirmar" (click)="confirmarPedido()">Confirmar Pedido</button>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="step-actions">
+                    <button type="button" class="btn-secondary" (click)="prevStep()">Atrás</button>
+                    <button type="button" class="btn-primary" disabled>Cargando...</button>
+                  </div>
+                }
               </div>
             }
           </form>
         </div>
       }
+    </div>
+  </div>
+}
+
+@if (showCamera()) {
+  <div class="camera-modal" (click)="cerrarCamera()">
+    <div class="camera-content" (click)="$event.stopPropagation()">
+      <div class="camera-header">
+        <h3>Capturar Comprobante</h3>
+        <button class="close-btn" (click)="cerrarCamera()">&times;</button>
+      </div>
+      <div class="camera-body">
+        <video id="cameraVideoPago" autoplay playsinline></video>
+      </div>
+      <div class="camera-footer">
+        <button class="btn-cancel" (click)="cerrarCamera()">Cancelar</button>
+        <button class="btn-capture" (click)="capturarComprobante()">📸 Capturar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showQRModal()) {
+  <div class="modal-overlay" (click)="cerrarQRModal()">
+    <div class="qr-modal" (click)="$event.stopPropagation()">
+      <div class="qr-modal-header">
+        <h3>📱 Escanear desde Celular</h3>
+        <button class="close-btn" (click)="cerrarQRModal()">✕</button>
+      </div>
+      <div class="qr-modal-body">
+        <p class="qr-instructions">Escanea este código QR con tu celular para subir una foto del comprobante de pago</p>
+        
+        @if (qrLoading()) {
+          <div class="qr-loading">Generando código QR...</div>
+        }
+        
+        @if (qrFotoRecibida()) {
+          <div class="qr-success">
+            <div class="qr-success-icon">✓</div>
+            <p>¡Foto recibida!</p>
+            <img [src]="paymentData().fotoComprobante" alt="Comprobante" class="qr-preview-image">
+          </div>
+        } @else {
+          @if (qrCodeData()) {
+            <img [src]="qrCodeData()" alt="QR Code" class="qr-code-image">
+            <p class="qr-expire">Expira: {{ qrExpiracion() | date:'HH:mm:ss' }}</p>
+            <p class="qr-polling">⏳ Esperando foto del celular...</p>
+          }
+        }
+        
+        <button class="btn-secondary" (click)="cerrarQRModal()">Cerrar</button>
+      </div>
     </div>
   </div>
 }

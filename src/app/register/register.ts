@@ -31,6 +31,16 @@ export class Register {
   error = this.authService.registerError;
   success = this.authService.registerSuccess;
 
+  showCamera = signal(false);
+  cameraType = signal<'frente' | 'atras'>('frente');
+  frenteFoto = signal<string>('');
+  atrasFoto = signal<string>('');
+  videoElement: HTMLVideoElement | null = null;
+  cameraStream: MediaStream | null = null;
+  canvasElement: HTMLCanvasElement | null = null;
+
+  whatsappNumber = '584241234567';
+
   constructor() {
     this.authService.registerError.set(null);
     this.authService.registerSuccess.set(false);
@@ -50,6 +60,86 @@ export class Register {
         this.loading.set(false);
       }
     });
+  }
+
+  abrirCameraFrente() {
+    this.cameraType.set('frente');
+    this.showCamera.set(true);
+    setTimeout(() => this.iniciarCamera(), 100);
+  }
+
+  abrirCameraAtras() {
+    this.cameraType.set('atras');
+    this.showCamera.set(true);
+    setTimeout(() => this.iniciarCamera(), 100);
+  }
+
+  async iniciarCamera() {
+    try {
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      this.videoElement = document.getElementById('cameraVideo') as HTMLVideoElement;
+      if (this.videoElement) {
+        this.videoElement.srcObject = this.cameraStream;
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      alert('No se pudo acceder a la cámara');
+    }
+  }
+
+  capturarFoto() {
+    if (!this.videoElement) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = this.videoElement.videoWidth;
+    canvas.height = this.videoElement.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(this.videoElement, 0, 0);
+      const foto = canvas.toDataURL('image/jpeg', 0.8);
+
+      if (this.cameraType() === 'frente') {
+        this.frenteFoto.set(foto);
+      } else {
+        this.atrasFoto.set(foto);
+      }
+
+      this.cerrarCamera();
+    }
+  }
+
+  cerrarCamera() {
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(track => track.stop());
+      this.cameraStream = null;
+    }
+    this.showCamera.set(false);
+  }
+
+  eliminarFoto(tipo: 'frente' | 'atras') {
+    if (tipo === 'frente') {
+      this.frenteFoto.set('');
+    } else {
+      this.atrasFoto.set('');
+    }
+  }
+
+  enviarWhatsApp() {
+    if (!this.frenteFoto() && !this.atrasFoto()) {
+      alert('Toma al menos una foto de tu cédula o RIF');
+      return;
+    }
+
+    const mensaje = `Hola, me acabo de registrar en Escolares y te envío las fotos de mi identificación.\n\n` +
+      `Usuario: ${this.username()}\n` +
+      `Email: ${this.email()}\n` +
+      `Tipo: ${this.tipoPersona()}\n` +
+      `Cédula/RIF: ${this.rifTipo()}-${this.rif()}`;
+
+    const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
   }
 
   onSubmit() {

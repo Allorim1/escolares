@@ -154,6 +154,45 @@
         ></textarea>
       </div>
 
+      <div class="form-group">
+        <label>Foto de Cédula/RIF</label>
+        <p class="help-text">Toma fotos de tu identificación para verificación</p>
+        
+        <div class="foto-cedula-container">
+          <div class="foto-item">
+            @if (frenteFoto()) {
+              <div class="foto-preview">
+                <img [src]="frenteFoto()" alt="Frente de cédula" />
+                <button type="button" class="btn-eliminar" (click)="eliminarFoto('frente')">✕</button>
+              </div>
+            } @else {
+              <button type="button" class="btn-foto" (click)="abrirCameraFrente()">
+                📷 Frente de Cédula
+              </button>
+            }
+          </div>
+          
+          <div class="foto-item">
+            @if (atrasFoto()) {
+              <div class="foto-preview">
+                <img [src]="atrasFoto()" alt="Reverso de cédula" />
+                <button type="button" class="btn-eliminar" (click)="eliminarFoto('atras')">✕</button>
+              </div>
+            } @else {
+              <button type="button" class="btn-foto" (click)="abrirCameraAtras()">
+                📷 Reverso de Cédula
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (frenteFoto() || atrasFoto()) {
+          <button type="button" class="btn-whatsapp" (click)="enviarWhatsApp()">
+            📱 Enviar fotos por WhatsApp
+          </button>
+        }
+      </div>
+
       <button type="submit" class="btn-register" [disabled]="loading()">
         {{ loading() ? 'Registrando...' : 'Registrarse' }}
       </button>
@@ -162,3 +201,21 @@
     <p class="login-link">¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
   </div>
 </div>
+
+@if (showCamera()) {
+  <div class="camera-modal" (click)="cerrarCamera()">
+    <div class="camera-content" (click)="$event.stopPropagation()">
+      <div class="camera-header">
+        <h3>{{ cameraType() === 'frente' ? 'Frente de Cédula' : 'Reverso de Cédula' }}</h3>
+        <button class="close-btn" (click)="cerrarCamera()">&times;</button>
+      </div>
+      <div class="camera-body">
+        <video id="cameraVideo" autoplay playsinline></video>
+      </div>
+      <div class="camera-footer">
+        <button class="btn-cancel" (click)="cerrarCamera()">Cancelar</button>
+        <button class="btn-capture" (click)="capturarFoto()">📸 Capturar</button>
+      </div>
+    </div>
+  </div>
+}

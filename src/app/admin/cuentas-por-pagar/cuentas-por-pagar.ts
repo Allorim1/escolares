@@ -15,6 +15,9 @@ export interface CuentaBancaria {
   cedulaRif?: string;
   cedulaRifTipo?: string;
   tipoPersona?: string;
+  alias?: string;
+  comentario?: string;
+  esZelle?: boolean;
 }
 
 export interface FacturaProveedor {
@@ -45,6 +48,7 @@ export interface FacturaProveedor {
 export interface Proveedor {
   _id?: string;
   nombre: string;
+  alias?: string;
   rif: string;
   direccion: string;
   correo?: string;
@@ -109,6 +113,7 @@ export class CuentasPorPagar implements OnInit {
 
   newProveedor = {
     nombre: '',
+    alias: '',
     rif: '',
     rifTipo: 'J',
     direccion: '',
@@ -174,6 +179,9 @@ export class CuentasPorPagar implements OnInit {
     cedulaRif: '',
     cedulaRifTipo: 'V',
     tipoPersona: 'personal',
+    alias: '',
+    comentario: '',
+    esZelle: false,
   };
 
   ngOnInit() {
@@ -220,6 +228,7 @@ export class CuentasPorPagar implements OnInit {
       });
       this.newProveedor = {
         nombre: proveedor.nombre,
+        alias: proveedor.alias || '',
         rif: rifParts.length > 1 ? rifParts.slice(1).join('-') : rifCompleto,
         rifTipo: rifParts.length > 1 ? rifParts[0] : 'J',
         direccion: proveedor.direccion || '',
@@ -230,7 +239,7 @@ export class CuentasPorPagar implements OnInit {
       };
     } else {
       this.editingProveedor = null;
-      this.newProveedor = { nombre: '', rif: '', rifTipo: 'J', direccion: '', correo: '', telefono: '', vendedor: '', cuentasBancarias: [] };
+      this.newProveedor = { nombre: '', alias: '', rif: '', rifTipo: 'J', direccion: '', correo: '', telefono: '', vendedor: '', cuentasBancarias: [] };
     }
     this.showModalProveedor = true;
   }
@@ -319,7 +328,7 @@ export class CuentasPorPagar implements OnInit {
       ...this.newProveedor.cuentasBancarias,
       { ...this.newCuentaBancaria, cedulaRif: cedulaRifCompleta },
     ];
-    this.newCuentaBancaria = { banco: '', bancosAfiliados: [] as string[], numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '', cedulaRifTipo: 'V', tipoPersona: 'personal' };
+    this.newCuentaBancaria = { banco: '', bancosAfiliados: [] as string[], numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '', cedulaRifTipo: 'V', tipoPersona: 'personal', alias: '', comentario: '', esZelle: false };
   }
 
   eliminarCuentaBancaria(index: number) {
@@ -1150,5 +1159,25 @@ export class CuentasPorPagar implements OnInit {
   formatFecha(date: Date | string): string {
     const d = new Date(date);
     return d.toLocaleDateString('es-VE');
+  }
+
+  getBancoPlaceholder(): string {
+    if (this.newCuentaBancaria.pagoMovil) return 'Banco (ej: Banesco)';
+    if (this.newCuentaBancaria.tipo === 'zelle') return 'Banco emisor (ej: Bank of America)';
+    return 'Banco';
+  }
+
+  getNumeroPlaceholder(): string {
+    if (this.newCuentaBancaria.pagoMovil) return 'Número de teléfono';
+    if (this.newCuentaBancaria.tipo === 'zelle') return 'Teléfono asociado';
+    return 'Número de cuenta';
+  }
+
+  onTipoCuentaChange() {
+    if (this.newCuentaBancaria.tipo === 'zelle') {
+      this.newCuentaBancaria.esZelle = true;
+    } else {
+      this.newCuentaBancaria.esZelle = false;
+    }
   }
 }

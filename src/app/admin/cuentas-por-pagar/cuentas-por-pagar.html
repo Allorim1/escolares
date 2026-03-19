@@ -21,7 +21,7 @@
           <div class="proveedor-info">
             <span class="expand-icon">{{ proveedorExpandido() === proveedor._id ? '▼' : '▶' }}</span>
             <div class="proveedor-nombre-rif">
-              <h4>{{ proveedor.nombre }}</h4>
+              <h4>{{ proveedor.nombre }} @if (proveedor.alias) { <span class="proveedor-alias">({{ proveedor.alias }})</span> }</h4>
               @if (proveedor.rif) {
                 <span class="proveedor-rif">{{ proveedor.rif }}</span>
               }
@@ -244,6 +244,10 @@
             <input type="text" [(ngModel)]="newProveedor.nombre" placeholder="Nombre o razón social" />
           </div>
           <div class="form-group">
+            <label>Alias</label>
+            <input type="text" [(ngModel)]="newProveedor.alias" placeholder="Alias o nombre corto" />
+          </div>
+          <div class="form-group">
             <label>RIF</label>
             <div class="rif-input-group">
               <select [(ngModel)]="newProveedor.rifTipo" class="rif-tipo-select">
@@ -284,16 +288,24 @@
           </div>
           @if (!newCuentaBancaria.pagoMovil) {
             <div class="cuenta-inputs">
-              <select [(ngModel)]="newCuentaBancaria.tipo" class="input-tipo">
+              <select [(ngModel)]="newCuentaBancaria.tipo" class="input-tipo" (change)="onTipoCuentaChange()">
                 <option value="corriente">Corriente</option>
                 <option value="ahorro">Ahorro</option>
+                <option value="zelle">Zelle</option>
               </select>
-              <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
+              @if (newCuentaBancaria.tipo !== 'zelle') {
+                <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
+              }
+            </div>
+          }
+          @if (newCuentaBancaria.tipo === 'zelle') {
+            <div class="cuenta-inputs">
+              <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Email Zelle" class="input-titular" />
             </div>
           }
           <div class="cuenta-inputs">
-            <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="newCuentaBancaria.pagoMovil ? 'Banco (ej: Banesco)' : 'Banco'" class="input-banco" />
-            <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="newCuentaBancaria.pagoMovil ? 'Número de teléfono' : 'Número de cuenta'" class="input-numero" />
+            <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="getBancoPlaceholder()" class="input-banco" />
+            <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="getNumeroPlaceholder()" class="input-numero" />
           </div>
             <div class="cuenta-inputs">
               <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" />
@@ -308,6 +320,10 @@
               <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
             </div>
           }
+          <div class="cuenta-inputs">
+            <input type="text" [(ngModel)]="newCuentaBancaria.alias" placeholder="Alias (opcional)" class="input-alias" />
+            <input type="text" [(ngModel)]="newCuentaBancaria.comentario" placeholder="Comentario (opcional)" class="input-comentario" />
+          </div>
           <div class="cuenta-options">
             <label class="option-label">Afiliado en:</label>
             <div class="checkbox-group">
@@ -347,12 +363,17 @@
             <div class="cuentas-agregadas">
               <h6>Cuentas agregadas:</h6>
               <div class="cuentas-list">
-                @for (cuenta of newProveedor.cuentasBancarias; track $index) {
+                  @for (cuenta of newProveedor.cuentasBancarias; track $index) {
                   <div class="cuenta-item">
                     @if (cuenta.pagoMovil) {
                       <span class="cuenta-tipo cuenta-pm">PAGO MÓVIL</span>
+                    } @else if (cuenta.tipo === 'zelle') {
+                      <span class="cuenta-tipo cuenta-zelle">ZELLE</span>
                     } @else {
                       <span class="cuenta-tipo">{{ cuenta.tipo | uppercase }}</span>
+                    }
+                    @if (cuenta.alias) {
+                      <span class="cuenta-alias">{{ cuenta.alias }}</span>
                     }
                     @if (cuenta.bancosAfiliados && cuenta.bancosAfiliados.length) {
                       <span class="cuenta-banco-afiliado">{{ cuenta.bancosAfiliados.join(', ') }}</span>
@@ -370,6 +391,9 @@
                     }
                     <span class="cuenta-banco">{{ cuenta.banco }}</span>
                     <span class="cuenta-num">{{ cuenta.numero }}</span>
+                    @if (cuenta.comentario) {
+                      <span class="cuenta-comentario" [title]="cuenta.comentario">💬</span>
+                    }
                     <button class="btn-remove" (click)="eliminarCuentaBancaria($index)">✕</button>
                   </div>
                 }

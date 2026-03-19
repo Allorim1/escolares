@@ -155,6 +155,12 @@
   font-size: 0.75rem;
 }
 
+.proveedor-alias {
+  color: #007bff;
+  font-weight: normal;
+  font-size: 0.9em;
+}
+
 .proveedor-direccion {
   color: #6c757d;
   font-size: 0.85rem;
@@ -311,6 +317,10 @@
   background: #fd7e14;
 }
 
+.cuenta-tipo.cuenta-zelle {
+  background: #6f42c1;
+}
+
 .cuenta-titular {
   color: #28a745;
   font-weight: 500;
@@ -320,6 +330,20 @@
   color: #6c757d;
   font-weight: 500;
   font-size: 0.85rem;
+}
+
+.cuenta-alias {
+  background: #17a2b8;
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.cuenta-comentario {
+  cursor: help;
+  font-size: 0.9rem;
 }
 
 .cuenta-banco-afiliado {
@@ -685,6 +709,16 @@
   border: 1px solid #ced4da;
   border-radius: 6px;
   font-size: 0.9rem;
+}
+
+.cuenta-inputs .input-alias,
+.cuenta-inputs .input-comentario {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.85rem;
 }
 
 .cuenta-inputs .input-banco, 

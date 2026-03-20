@@ -161,6 +161,13 @@
   font-size: 0.9em;
 }
 
+.proveedor-nombre-real {
+  color: #6c757d;
+  font-weight: normal;
+  font-size: 0.85em;
+  font-style: italic;
+}
+
 .proveedor-direccion {
   color: #6c757d;
   font-size: 0.85rem;

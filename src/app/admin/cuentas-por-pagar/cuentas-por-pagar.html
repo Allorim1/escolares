@@ -21,7 +21,7 @@
           <div class="proveedor-info">
             <span class="expand-icon">{{ proveedorExpandido() === proveedor._id ? '▼' : '▶' }}</span>
             <div class="proveedor-nombre-rif">
-              <h4>{{ proveedor.nombre }} @if (proveedor.alias) { <span class="proveedor-alias">({{ proveedor.alias }})</span> }</h4>
+              <h4>{{ proveedor.alias }} @if (proveedor.nombre && proveedor.nombre !== proveedor.alias) { <span class="proveedor-nombre-real">({{ proveedor.nombre }})</span> }</h4>
               @if (proveedor.rif) {
                 <span class="proveedor-rif">{{ proveedor.rif }}</span>
               }
@@ -240,12 +240,12 @@
         <div class="form-section">
           <h5>Datos del Proveedor</h5>
           <div class="form-group">
-            <label>Nombre del Proveedor *</label>
-            <input type="text" [(ngModel)]="newProveedor.nombre" placeholder="Nombre o razón social" />
+            <label>Alias *</label>
+            <input type="text" [(ngModel)]="newProveedor.alias" placeholder="Alias o nombre corto" />
           </div>
           <div class="form-group">
-            <label>Alias</label>
-            <input type="text" [(ngModel)]="newProveedor.alias" placeholder="Alias o nombre corto" />
+            <label>Nombre del Proveedor</label>
+            <input type="text" [(ngModel)]="newProveedor.nombre" placeholder="Nombre o razón social" />
           </div>
           <div class="form-group">
             <label>RIF</label>

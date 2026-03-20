@@ -250,7 +250,10 @@ export class CuentasPorPagar implements OnInit {
   }
 
   guardarProveedor() {
-    if (!this.newProveedor.nombre.trim()) return;
+    if (!this.newProveedor.alias.trim()) {
+      alert('El alias es requerido');
+      return;
+    }
 
     const rifCompleto = this.newProveedor.rif.trim() 
       ? `${this.newProveedor.rifTipo}-${this.newProveedor.rif.trim()}`
@@ -260,6 +263,7 @@ export class CuentasPorPagar implements OnInit {
       this.http
         .put(`${this.API}/${this.editingProveedor._id}`, {
           nombre: this.newProveedor.nombre,
+          alias: this.newProveedor.alias,
           rif: rifCompleto,
           direccion: this.newProveedor.direccion,
           correo: this.newProveedor.correo,
@@ -279,6 +283,7 @@ export class CuentasPorPagar implements OnInit {
       this.http
         .post(this.API, {
           nombre: this.newProveedor.nombre,
+          alias: this.newProveedor.alias,
           rif: rifCompleto,
           direccion: this.newProveedor.direccion,
           correo: this.newProveedor.correo,

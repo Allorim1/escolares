@@ -57,6 +57,10 @@ export const routes: Routes = [
         loadComponent: () => import('./panel/perfil/perfil').then((m) => m.Perfil),
       },
       {
+        path: 'ajustes',
+        loadComponent: () => import('./panel/ajustes').then((m) => m.Ajustes),
+      },
+      {
         path: 'pedidos',
         loadComponent: () => import('./panel/pedidos/pedidos').then((m) => m.default),
       },

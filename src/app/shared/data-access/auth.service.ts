@@ -16,6 +16,7 @@ export interface User {
   cedula?: string;
   tipoPersona?: 'natural' | 'juridica';
   direcciones?: Direccion[];
+  comentarios?: string;
 }
 
 export interface Direccion {

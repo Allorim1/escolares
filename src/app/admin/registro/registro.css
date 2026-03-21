@@ -16,6 +16,26 @@
   color: #333;
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.select-pdf {
+  padding: 8px 12px;
+  border: 2px solid #1d63c1;
+  border-radius: 6px;
+  background: white;
+  color: #1d63c1;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.select-pdf:hover {
+  background: #e3f2fd;
+}
+
 .busqueda {
   margin-bottom: 15px;
 }
@@ -27,6 +47,40 @@
   border-radius: 6px;
   font-size: 14px;
   box-sizing: border-box;
+}
+
+.filtros-fecha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.filtros-fecha label {
+  font-weight: 600;
+  color: #333;
+}
+
+.input-fecha {
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn-limpiar-fecha {
+  padding: 8px 12px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-limpiar-fecha:hover {
+  background: #c82333;
 }
 
 .input-busqueda:focus {
@@ -287,4 +341,39 @@
   color: #6b7280;
   font-size: 0.75rem;
   margin-top: 4px;
+}
+
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.btn-pagina {
+  padding: 0.5rem 1rem;
+  background: #1d63c1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-pagina:hover:not(:disabled) {
+  background: #164f99;
+}
+
+.btn-pagina:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.info-pagina {
+  color: #6c757d;
+  font-size: 0.9rem;
 }

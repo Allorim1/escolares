@@ -95,6 +95,25 @@ export class CuentasPorPagar implements OnInit {
   usuarioActual = 'Admin';
   Math = Math;
 
+  paginaActual = 1;
+  proveedoresPorPagina = 10;
+
+  get proveedoresPaginados() {
+    const inicio = (this.paginaActual - 1) * this.proveedoresPorPagina;
+    const fin = inicio + this.proveedoresPorPagina;
+    return this.proveedores().slice(inicio, fin);
+  }
+
+  get totalPaginasProveedores() {
+    return Math.ceil(this.proveedores().length / this.proveedoresPorPagina);
+  }
+
+  cambiarPaginaProveedores(pagina: number) {
+    if (pagina >= 1 && pagina <= this.totalPaginasProveedores) {
+      this.paginaActual = pagina;
+    }
+  }
+
   showModalProveedor = false;
   showModalFactura = false;
   showModalAbono = false;

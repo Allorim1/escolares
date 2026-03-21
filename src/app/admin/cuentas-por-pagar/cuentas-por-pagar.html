@@ -15,7 +15,7 @@
   </div>
 
   <div class="proveedores-list">
-    @for (proveedor of proveedores(); track proveedor._id) {
+    @for (proveedor of proveedoresPaginados; track proveedor._id) {
       <div class="proveedor-card">
         <div class="proveedor-header" (click)="toggleExpand(proveedor._id || '')">
           <div class="proveedor-info">
@@ -228,6 +228,13 @@
       </div>
     } @empty {
       <p class="no-proveedores">No hay proveedores registrados</p>
+    }
+    @if (totalPaginasProveedores > 1) {
+      <div class="paginacion">
+        <button class="btn-pagina" (click)="cambiarPaginaProveedores(paginaActual - 1)" [disabled]="paginaActual === 1">← Anterior</button>
+        <span class="info-pagina">Página {{ paginaActual }} de {{ totalPaginasProveedores }}</span>
+        <button class="btn-pagina" (click)="cambiarPaginaProveedores(paginaActual + 1)" [disabled]="paginaActual === totalPaginasProveedores">Siguiente →</button>
+      </div>
     }
   </div>
 </div>

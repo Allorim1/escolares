@@ -2,9 +2,17 @@
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="header">
     <h2>Registro de Actividad</h2>
-    <button class="btn-limpiar" (click)="limpiarRegistros()">
-      Limpiar Registros
-    </button>
+    <div class="header-actions">
+      <select (change)="generarPdfModulo($event)" class="select-pdf">
+        <option value="">Generar PDF por Módulo</option>
+        @for (modulo of modulos; track modulo) {
+          <option [value]="modulo">{{ modulo }}</option>
+        }
+      </select>
+      <button class="btn-limpiar" (click)="limpiarRegistros()">
+        Limpiar Registros
+      </button>
+    </div>
   </div>
 
   <div class="filtros">
@@ -15,6 +23,15 @@
         placeholder="Buscar por cualquier campo..."
         class="input-busqueda"
       />
+    </div>
+    <div class="filtros-fecha">
+      <label>Desde:</label>
+      <input type="date" [(ngModel)]="fechaDesde" class="input-fecha" />
+      <label>Hasta:</label>
+      <input type="date" [(ngModel)]="fechaHasta" class="input-fecha" />
+      @if (fechaDesde || fechaHasta) {
+        <button class="btn-limpiar-fecha" (click)="fechaDesde = ''; fechaHasta = ''">Limpiar fechas</button>
+      }
     </div>
     <div class="filtro-botones">
       <button 
@@ -47,7 +64,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (registro of registrosFiltrados; track registro._id) {
+        @for (registro of registrosPaginados; track registro._id) {
           <tr>
             <td>{{ formatearFecha(registro.fecha) }}</td>
             <td>
@@ -79,6 +96,13 @@
         }
       </tbody>
     </table>
+    @if (totalPaginasRegistros > 1) {
+      <div class="paginacion">
+        <button class="btn-pagina" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">← Anterior</button>
+        <span class="info-pagina">Página {{ paginaActual }} de {{ totalPaginasRegistros }}</span>
+        <button class="btn-pagina" (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginasRegistros">Siguiente →</button>
+      </div>
+    }
   </div>
 </div>
 

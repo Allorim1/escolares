@@ -1,6 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { AuthService, User } from '../../shared/data-access/auth.service';
 import { RolesBackend, Rol } from '../../backend/data-access/roles.backend';
 
@@ -18,6 +20,8 @@ interface UserWithRol extends User {
 export class AdminUsuarios implements OnInit {
   authService = inject(AuthService);
   private rolesBackend = inject(RolesBackend);
+  private http = inject(HttpClient);
+  private router = inject(Router);
 
   usuarios = signal<UserWithRol[]>([]);
   roles = signal<Rol[]>([]);
@@ -25,8 +29,15 @@ export class AdminUsuarios implements OnInit {
   error = signal<string | null>(null);
 
   selectedUserRol = signal<{userId: string, rol: string, rolId: string} | null>(null);
+  selectedUser = signal<UserWithRol | null>(null);
+  editingUser = signal<UserWithRol | null>(null);
+  newComentario = '';
 
   ngOnInit() {
+    if (!this.esRoot()) {
+      this.router.navigate(['/admin/inicio']);
+      return;
+    }
     this.cargarDatos();
   }
 
@@ -143,5 +154,66 @@ export class AdminUsuarios implements OnInit {
       default:
         return 'Usuario';
     }
+  }
+
+  openUserDetails(user: UserWithRol) {
+    this.selectedUser.set(user);
+    this.editingUser.set({ ...user });
+  }
+
+  closeUserDetails() {
+    this.selectedUser.set(null);
+    this.editingUser.set(null);
+  }
+
+  saveUserDetails() {
+    const user = this.editingUser();
+    if (!user) return;
+
+    this.http.put(`/api/auth/users/${user.id}`, {
+      username: user.username,
+      email: user.email,
+      nombreCompleto: user.nombreCompleto,
+      telefono: user.telefono,
+      direccion: user.direccion,
+      cedula: user.cedula,
+      tipoPersona: user.tipoPersona,
+      comentarios: user.comentarios,
+    }).subscribe({
+      next: () => {
+        this.cargarUsuarios();
+        this.closeUserDetails();
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Error al guardar usuario');
+      },
+    });
+  }
+
+  agregarComentario() {
+    const user = this.editingUser();
+    const comentario = this.newComentario.trim();
+    if (!user || !comentario) return;
+
+    const comentariosActuales = user.comentarios || '';
+    const nuevoComentario = comentariosActuales 
+      ? `${comentariosActuales}\n${new Date().toLocaleDateString('es-VE')}: ${comentario}`
+      : `${new Date().toLocaleDateString('es-VE')}: ${comentario}`;
+
+    this.http.put(`/api/auth/users/${user.id}`, {
+      comentarios: nuevoComentario,
+    }).subscribe({
+      next: () => {
+        this.cargarUsuarios();
+        const updatedUser = this.usuarios().find(u => u.id === user.id);
+        if (updatedUser) {
+          this.editingUser.set({ ...updatedUser, comentarios: nuevoComentario });
+        }
+        this.newComentario = '';
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Error al agregar comentario');
+      },
+    });
   }
 }

@@ -271,3 +271,110 @@
 .btn-secondary:hover {
   background: #5a6268;
 }
+
+.btn-ver-detalles {
+  padding: 6px 12px;
+  background: #1d63c1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-ver-detalles:hover {
+  background: #164f99;
+}
+
+.modal-large {
+  max-width: 600px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-grid .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-grid .form-group label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.form-grid .form-group input,
+.form-grid .form-group select {
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-grid .form-group input:disabled {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-grid .form-group textarea {
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-grid .form-group textarea:disabled {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+.agregar-comentario {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.agregar-comentario input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn-agregar-comentario {
+  padding: 8px 16px;
+  background: #1d63c1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-agregar-comentario:hover {
+  background: #164f99;
+}
+
+.no-access {
+  text-align: center;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #6c757d;
+}
+
+.no-access p {
+  font-size: 16px;
+  margin: 0;
+}

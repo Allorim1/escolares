@@ -70,7 +70,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
                 localStorage.removeItem('refreshToken');
                 localStorage.removeItem('user');
                 router.navigate(['/login']);
-                return throwError(() => new Error('No se pudo renovar el token'));
+                return throwError(() => new Error('Token expirado'));
               }
             }),
             catchError((error: any) => {
@@ -79,7 +79,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
               router.navigate(['/login']);
-              return throwError(() => error);
+              return throwError(() => new Error('Sesión expirada'));
             })
           );
         }
@@ -113,7 +113,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
               router.navigate(['/login']);
-              return throwError(() => new Error('No se pudo renovar el token'));
+              return throwError(() => new Error('Token expirado'));
             }
           }),
           catchError(() => {
@@ -121,7 +121,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
             router.navigate(['/login']);
-            return throwError(() => error);
+            return throwError(() => new Error('Sesión expirada'));
           })
         );
       }

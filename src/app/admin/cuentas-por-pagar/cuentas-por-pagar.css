@@ -47,6 +47,40 @@
   color: #333;
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-filtro {
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 200px;
+}
+
+.input-filtro:focus {
+  outline: none;
+  border-color: #1d63c1;
+}
+
+.btn-pdf {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.btn-pdf:hover {
+  background: #218838;
+}
+
 .btn-primary {
   background: #1d63c1;
   color: white;

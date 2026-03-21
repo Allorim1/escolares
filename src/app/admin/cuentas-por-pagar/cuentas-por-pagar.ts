@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal, ChangeDetectorRef, HostListener } fr
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { jsPDF } from 'jspdf';
 
 declare const Math: any;
 
@@ -97,21 +98,37 @@ export class CuentasPorPagar implements OnInit {
 
   paginaActual = 1;
   proveedoresPorPagina = 10;
+  filtroProveedor = '';
+
+  get proveedoresFiltrados() {
+    if (!this.filtroProveedor.trim()) {
+      return this.proveedores();
+    }
+    const filtro = this.filtroProveedor.toLowerCase();
+    return this.proveedores().filter(p => 
+      (p.nombre?.toLowerCase().includes(filtro)) || 
+      (p.alias?.toLowerCase().includes(filtro))
+    );
+  }
 
   get proveedoresPaginados() {
     const inicio = (this.paginaActual - 1) * this.proveedoresPorPagina;
     const fin = inicio + this.proveedoresPorPagina;
-    return this.proveedores().slice(inicio, fin);
+    return this.proveedoresFiltrados.slice(inicio, fin);
   }
 
   get totalPaginasProveedores() {
-    return Math.ceil(this.proveedores().length / this.proveedoresPorPagina);
+    return Math.ceil(this.proveedoresFiltrados.length / this.proveedoresPorPagina);
   }
 
   cambiarPaginaProveedores(pagina: number) {
     if (pagina >= 1 && pagina <= this.totalPaginasProveedores) {
       this.paginaActual = pagina;
     }
+  }
+
+  onFiltroProveedorChange() {
+    this.paginaActual = 1;
   }
 
   showModalProveedor = false;
@@ -1298,5 +1315,66 @@ export class CuentasPorPagar implements OnInit {
     } else {
       this.newCuentaBancaria.esZelle = false;
     }
+  }
+
+  generarPdfProveedores() {
+    const proveedors = this.proveedores();
+    if (proveedors.length === 0) {
+      alert('No hay proveedores para generar el PDF');
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    doc.setFontSize(16);
+    doc.setTextColor(29, 99, 193);
+    doc.text('Lista de Proveedores', pageWidth / 2, 15, { align: 'center' });
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')} | Total: ${proveedors.length}`, pageWidth / 2, 22, { align: 'center' });
+
+    let y = 30;
+    const lineHeight = 6;
+
+    doc.setFontSize(7);
+    doc.setTextColor(0);
+    doc.setFillColor(230, 240, 250);
+    doc.rect(14, y - 3, pageWidth - 28, 6, 'F');
+    doc.setFont(undefined as any, 'bold');
+    doc.text('Alias', 16, y);
+    doc.text('Nombre/RIF', 40, y);
+    doc.text('Teléfono', 95, y);
+    doc.text('Dirección', 125, y);
+    
+    y += lineHeight;
+    doc.setFont(undefined as any, 'normal');
+
+    proveedors.forEach((proveedor) => {
+      if (y > 280) {
+        doc.addPage();
+        y = 15;
+        doc.setFillColor(230, 240, 250);
+        doc.rect(14, y - 3, pageWidth - 28, 6, 'F');
+        doc.setFont(undefined as any, 'bold');
+        doc.text('Alias', 16, y);
+        doc.text('Nombre/RIF', 40, y);
+        doc.text('Teléfono', 95, y);
+        doc.text('Dirección', 125, y);
+        y += lineHeight;
+        doc.setFont(undefined as any, 'normal');
+      }
+
+      doc.text((proveedor.alias || '').substring(0, 12), 16, y);
+      const nombreRif = `${proveedor.nombre || ''} ${proveedor.rif || ''}`.substring(0, 22);
+      doc.text(nombreRif, 40, y);
+      doc.text((proveedor.telefono || '-').substring(0, 12), 95, y);
+      doc.text((proveedor.direccion || '-').substring(0, 30), 125, y);
+      
+      y += lineHeight;
+    });
+
+    doc.save(`proveedores_${new Date().toISOString().split('T')[0]}.pdf`);
   }
 }

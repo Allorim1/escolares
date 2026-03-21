@@ -11,7 +11,17 @@
 
   <div class="cp-header">
     <h3>Proveedores</h3>
-    <button class="btn-primary" (click)="abrirModalProveedor()">+ Nuevo Proveedor</button>
+    <div class="header-actions">
+      <input 
+        type="text" 
+        [(ngModel)]="filtroProveedor" 
+        (ngModelChange)="onFiltroProveedorChange()"
+        placeholder="Buscar por nombre o alias..." 
+        class="input-filtro"
+      />
+      <button class="btn-pdf" (click)="generarPdfProveedores()">📄 Generar PDF</button>
+      <button class="btn-primary" (click)="abrirModalProveedor()">+ Nuevo Proveedor</button>
+    </div>
   </div>
 
   <div class="proveedores-list">

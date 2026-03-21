@@ -54,6 +54,7 @@ export interface Proveedor {
   correo?: string;
   telefono?: string;
   vendedor?: string;
+  tasaPreferida?: 'dolar' | 'euro' | 'binance';
   cuentasBancarias: CuentaBancaria[];
   facturas: FacturaProveedor[];
   creadoPor?: string;
@@ -120,6 +121,7 @@ export class CuentasPorPagar implements OnInit {
     correo: '',
     telefono: '',
     vendedor: '',
+    tasaPreferida: 'dolar' as 'dolar' | 'euro' | 'binance',
     cuentasBancarias: [] as CuentaBancaria[],
   };
 
@@ -235,11 +237,12 @@ export class CuentasPorPagar implements OnInit {
         correo: proveedor.correo || '',
         telefono: proveedor.telefono || '',
         vendedor: proveedor.vendedor || '',
+        tasaPreferida: proveedor.tasaPreferida || 'dolar',
         cuentasBancarias: cuentasConTipo,
       };
     } else {
       this.editingProveedor = null;
-      this.newProveedor = { nombre: '', alias: '', rif: '', rifTipo: 'J', direccion: '', correo: '', telefono: '', vendedor: '', cuentasBancarias: [] };
+      this.newProveedor = { nombre: '', alias: '', rif: '', rifTipo: 'J', direccion: '', correo: '', telefono: '', vendedor: '', tasaPreferida: 'dolar', cuentasBancarias: [] };
     }
     this.showModalProveedor = true;
   }
@@ -269,6 +272,7 @@ export class CuentasPorPagar implements OnInit {
           correo: this.newProveedor.correo,
           telefono: this.newProveedor.telefono,
           vendedor: this.newProveedor.vendedor,
+          tasaPreferida: this.newProveedor.tasaPreferida,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
           modificadoPor: this.usuarioActual,
         })
@@ -289,6 +293,7 @@ export class CuentasPorPagar implements OnInit {
           correo: this.newProveedor.correo,
           telefono: this.newProveedor.telefono,
           vendedor: this.newProveedor.vendedor,
+          tasaPreferida: this.newProveedor.tasaPreferida,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
           creadoPor: this.usuarioActual,
         })
@@ -539,6 +544,96 @@ export class CuentasPorPagar implements OnInit {
             alert('Error: ' + err.error.details);
           }
         },
+      });
+  }
+
+  editarAbono(proveedorId: string, facturaIndex: number, abonoIndex: number, abono: { monto: number; fecha: Date }) {
+    const nuevoMonto = prompt('Ingrese el nuevo monto:', abono.monto.toString());
+    if (nuevoMonto === null || parseFloat(nuevoMonto) <= 0) return;
+    
+    const fecha = prompt('Ingrese la fecha (YYYY-MM-DD):', new Date(abono.fecha).toISOString().split('T')[0]);
+    if (!fecha) return;
+
+    this.http
+      .put(`${this.API}/${proveedorId}/facturas/${facturaIndex}/abonos/${abonoIndex}`, { monto: parseFloat(nuevoMonto), fechaAbono: fecha })
+      .subscribe({
+        next: () => this.loadProveedores(),
+        error: (err) => console.error('Error actualizando abono:', err),
+      });
+  }
+
+  eliminarAbono(proveedorId: string, facturaIndex: number, abonoIndex: number) {
+    if (!confirm('¿Está seguro de eliminar este abono?')) return;
+
+    this.http
+      .delete(`${this.API}/${proveedorId}/facturas/${facturaIndex}/abonos/${abonoIndex}`)
+      .subscribe({
+        next: () => this.loadProveedores(),
+        error: (err) => console.error('Error eliminando abono:', err),
+      });
+  }
+
+  editarAbonoIva(proveedorId: string, facturaIndex: number, abonoIndex: number, abono: { monto: number; fecha: Date }) {
+    const nuevoMonto = prompt('Ingrese el nuevo monto:', abono.monto.toString());
+    if (nuevoMonto === null || parseFloat(nuevoMonto) <= 0) return;
+    
+    const fecha = prompt('Ingrese la fecha (YYYY-MM-DD):', new Date(abono.fecha).toISOString().split('T')[0]);
+    if (!fecha) return;
+
+    this.http
+      .put(`${this.API}/${proveedorId}/facturas/${facturaIndex}/abonos-iva/${abonoIndex}`, { monto: parseFloat(nuevoMonto), fechaAbono: fecha })
+      .subscribe({
+        next: () => {
+          this.loadProveedores();
+          this.cerrarModalIva();
+        },
+        error: (err) => console.error('Error actualizando abono IVA:', err),
+      });
+  }
+
+  eliminarAbonoIva(proveedorId: string, facturaIndex: number, abonoIndex: number) {
+    if (!confirm('¿Está seguro de eliminar este abono IVA?')) return;
+
+    this.http
+      .delete(`${this.API}/${proveedorId}/facturas/${facturaIndex}/abonos-iva/${abonoIndex}`)
+      .subscribe({
+        next: () => {
+          this.loadProveedores();
+          this.cerrarModalIva();
+        },
+        error: (err) => console.error('Error eliminando abono IVA:', err),
+      });
+  }
+
+  editarAbonoIva25(proveedorId: string, facturaIndex: number, abonoIndex: number, abono: { monto: number; fecha: Date }) {
+    const nuevoMonto = prompt('Ingrese el nuevo monto:', abono.monto.toString());
+    if (nuevoMonto === null || parseFloat(nuevoMonto) <= 0) return;
+    
+    const fecha = prompt('Ingrese la fecha (YYYY-MM-DD):', new Date(abono.fecha).toISOString().split('T')[0]);
+    if (!fecha) return;
+
+    this.http
+      .put(`${this.API}/${proveedorId}/facturas/${facturaIndex}/abonos-iva25/${abonoIndex}`, { monto: parseFloat(nuevoMonto), fechaAbono: fecha })
+      .subscribe({
+        next: () => {
+          this.loadProveedores();
+          this.cerrarModalIva25();
+        },
+        error: (err) => console.error('Error actualizando abono IVA 25%:', err),
+      });
+  }
+
+  eliminarAbonoIva25(proveedorId: string, facturaIndex: number, abonoIndex: number) {
+    if (!confirm('¿Está seguro de eliminar este abono IVA 25%?')) return;
+
+    this.http
+      .delete(`${this.API}/${proveedorId}/facturas/${facturaIndex}/abonos-iva25/${abonoIndex}`)
+      .subscribe({
+        next: () => {
+          this.loadProveedores();
+          this.cerrarModalIva25();
+        },
+        error: (err) => console.error('Error eliminando abono IVA 25%:', err),
       });
   }
 

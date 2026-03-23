@@ -45,7 +45,7 @@ export class AdminProductos implements OnInit {
     marca: '',
   });
 
-  categories = ['electronics', 'jewelery', "men's clothing", "women's clothing"];
+  categories = ['Lapices', 'Mochilas', "", "women's clothing"];
 
   get marcas(): Marca[] {
     return this.marcasService.marcas();

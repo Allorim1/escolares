@@ -491,6 +491,10 @@ export class CuentasPorPagar implements OnInit {
 
   abrirModalIva(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
     this.facturaIva = { proveedor, factura, index };
+    this.newAbono = {
+      monto: 0,
+      fecha: new Date().toISOString().split('T')[0],
+    };
     this.showModalIva = true;
   }
 
@@ -501,6 +505,10 @@ export class CuentasPorPagar implements OnInit {
 
   abrirModalIva25(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
     this.facturaIva25 = { proveedor, factura, index };
+    this.newAbono = {
+      monto: 0,
+      fecha: new Date().toISOString().split('T')[0],
+    };
     this.showModalIva25 = true;
   }
 

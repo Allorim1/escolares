@@ -186,6 +186,7 @@
                       <th>Monto</th>
                       <th>Base Exenta</th>
                       <th>IVA</th>
+                      <th>IVA</th>
                       <th>Deuda</th>
                       <th>Estado</th>
                       <th>Acciones</th>
@@ -206,6 +207,17 @@
                         <td>$ {{ factura.monto | number:'1.2-2' }}</td>
                         <td>$ {{ (factura.baseExenta || 0) | number:'1.2-2' }}</td>
                         <td>Bs {{ formatMoneda(factura.iva || 0) }}</td>
+                        @if (factura.tipo === 'factura') {
+                          <td>
+                            <span class="iva-status-circle" 
+                                  [class.iva-pagado]="(factura.iva75 - (factura.abonosIva || 0)) <= 0 && (factura.iva25 - (factura.abonosIva25 || 0)) <= 0"
+                                  [class.iva-pendiente]="(factura.iva75 - (factura.abonosIva || 0)) > 0 || (factura.iva25 - (factura.abonosIva25 || 0)) > 0"
+                                  title="IVA: {{ (factura.iva75 - (factura.abonosIva || 0)) > 0 || (factura.iva25 - (factura.abonosIva25 || 0)) > 0 ? 'Pendiente' : 'Pagado' }}">
+                            </span>
+                          </td>
+                        } @else {
+                          <td></td>
+                        }
                         <td class="deuda-cell">$ {{ formatMoneda(calcularDeudaFactura(factura)) }}</td>
                         <td>
                           @if (calcularDeudaFactura(factura) === 0) {

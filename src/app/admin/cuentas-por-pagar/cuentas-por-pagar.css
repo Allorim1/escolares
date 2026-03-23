@@ -2316,3 +2316,19 @@
   color: #6c757d;
   font-size: 0.9rem;
 }
+
+.iva-status-circle {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.iva-status-circle.iva-pagado {
+  background-color: #28a745;
+}
+
+.iva-status-circle.iva-pendiente {
+  background-color: #dc3545;
+}

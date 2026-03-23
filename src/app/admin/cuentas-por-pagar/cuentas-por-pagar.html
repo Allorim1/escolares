@@ -206,16 +206,16 @@
                         <td>$ {{ factura.monto | number:'1.2-2' }}</td>
                         <td>$ {{ (factura.baseExenta || 0) | number:'1.2-2' }}</td>
                         <td>Bs {{ formatMoneda(factura.iva || 0) }}</td>
-                        <td class="deuda-cell">$ {{ formatMoneda(factura.deudaActual) }}</td>
+                        <td class="deuda-cell">$ {{ formatMoneda(calcularDeudaFactura(factura)) }}</td>
                         <td>
-                          @if (factura.deudaActual === 0) {
+                          @if (calcularDeudaFactura(factura) === 0) {
                             <span class="badge-pagada">Pagada</span>
                           } @else {
                             <span class="badge-pendiente">Pendiente</span>
                           }
                         </td>
                         <td>
-                          <button class="btn-abono" (click)="abrirModalAbono(proveedor._id || '', $index, factura); $event.stopPropagation()" title="Agregar Abono" [disabled]="factura.deudaActual === 0">+ Abono</button>
+                          <button class="btn-abono" (click)="abrirModalAbono(proveedor._id || '', $index, factura); $event.stopPropagation()" title="Agregar Abono" [disabled]="calcularDeudaFactura(factura) === 0">+ Abono</button>
                           <button class="btn-icon-small" (click)="eliminarFactura(proveedor._id || '', $index); $event.stopPropagation()" title="Eliminar">🗑️</button>
                         </td>
                       </tr>
@@ -560,7 +560,7 @@
             <p><strong>Factura:</strong> {{ facturaConAbono.factura.numero }}</p>
             <p><strong>Total:</strong> $ {{ formatMoneda(facturaConAbono.factura.totalPagar || 0) }}</p>
             <p><strong>Abonado:</strong> $ {{ formatMoneda(facturaConAbono.factura.abonos || 0) }}</p>
-            <p><strong>Deuda:</strong> $ {{ formatMoneda(facturaConAbono.factura.deudaActual || 0) }}</p>
+            <p><strong>Deuda:</strong> $ {{ formatMoneda(calcularDeudaFactura(facturaConAbono.factura)) }}</p>
           }
         </div>
         <div class="form-row">
@@ -641,7 +641,7 @@
               <td>$ {{ (facturaDetalle.factura.baseExenta || 0) | number:'1.2-2' }}</td>
               <td>Bs {{ formatMoneda(facturaDetalle.factura.iva || 0) }}</td>
               <td>-$ {{ formatMoneda(facturaDetalle.factura.abonos) }}</td>
-              <td><strong>$ {{ formatMoneda(facturaDetalle.factura.deudaActual) }}</strong></td>
+              <td><strong>$ {{ formatMoneda(calcularDeudaFactura(facturaDetalle.factura)) }}</strong></td>
             </tr>
           </tbody>
         </table>

@@ -525,21 +525,24 @@ export class CuentasPorPagar implements OnInit {
       .subscribe({
         next: () => {
           this.loadProveedores();
+          this.actualizarFacturaIva();
           this.cerrarModalIva();
-          const fd = this.facturaDetalle;
-          if (fd) {
-            const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-            if (prov && fd.index >= 0 && fd.index < (prov.facturas?.length || 0)) {
-              this.facturaDetalle = {
-                proveedor: prov,
-                factura: prov.facturas[fd.index],
-                index: fd.index
-              };
-            }
-          }
         },
         error: (err) => console.error('Error agregando abono IVA:', err),
       });
+  }
+
+  actualizarFacturaIva() {
+    const fi = this.facturaIva;
+    if (!fi) return;
+    const prov = this.proveedores().find(p => p._id === fi.proveedor._id);
+    if (prov && fi.index >= 0 && fi.index < (prov.facturas?.length || 0)) {
+      this.facturaIva = {
+        proveedor: prov,
+        factura: prov.facturas[fi.index],
+        index: fi.index
+      };
+    }
   }
 
   guardarAbonoIva25() {
@@ -550,21 +553,24 @@ export class CuentasPorPagar implements OnInit {
       .subscribe({
         next: () => {
           this.loadProveedores();
+          this.actualizarFacturaIva25();
           this.cerrarModalIva25();
-          const fd = this.facturaDetalle;
-          if (fd) {
-            const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-            if (prov && fd.index >= 0 && fd.index < (prov.facturas?.length || 0)) {
-              this.facturaDetalle = {
-                proveedor: prov,
-                factura: prov.facturas[fd.index],
-                index: fd.index
-              };
-            }
-          }
         },
         error: (err) => console.error('Error agregando abono IVA 25%:', err),
       });
+  }
+
+  actualizarFacturaIva25() {
+    const fi25 = this.facturaIva25;
+    if (!fi25) return;
+    const prov = this.proveedores().find(p => p._id === fi25.proveedor._id);
+    if (prov && fi25.index >= 0 && fi25.index < (prov.facturas?.length || 0)) {
+      this.facturaIva25 = {
+        proveedor: prov,
+        factura: prov.facturas[fi25.index],
+        index: fi25.index
+      };
+    }
   }
 
   guardarAbono() {
@@ -629,6 +635,7 @@ export class CuentasPorPagar implements OnInit {
       .subscribe({
         next: () => {
           this.loadProveedores();
+          this.actualizarFacturaIva();
           this.cerrarModalIva();
         },
         error: (err) => console.error('Error actualizando abono IVA:', err),
@@ -643,6 +650,7 @@ export class CuentasPorPagar implements OnInit {
       .subscribe({
         next: () => {
           this.loadProveedores();
+          this.actualizarFacturaIva();
           this.cerrarModalIva();
         },
         error: (err) => console.error('Error eliminando abono IVA:', err),
@@ -661,6 +669,7 @@ export class CuentasPorPagar implements OnInit {
       .subscribe({
         next: () => {
           this.loadProveedores();
+          this.actualizarFacturaIva25();
           this.cerrarModalIva25();
         },
         error: (err) => console.error('Error actualizando abono IVA 25%:', err),
@@ -675,6 +684,7 @@ export class CuentasPorPagar implements OnInit {
       .subscribe({
         next: () => {
           this.loadProveedores();
+          this.actualizarFacturaIva25();
           this.cerrarModalIva25();
         },
         error: (err) => console.error('Error eliminando abono IVA 25%:', err),

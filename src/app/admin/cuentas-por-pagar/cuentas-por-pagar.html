@@ -824,8 +824,10 @@
                     <td>{{ formatFecha(abono.fecha) }}</td>
                     <td>Bs {{ formatMoneda(abono.monto) }}</td>
                     <td class="abono-actions">
-                      <button class="btn-edit-abono" (click)="editarAbonoIva(facturaIva.proveedor._id || '', facturaIva.index, $index, abono)" title="Editar">✏️</button>
-                      <button class="btn-delete-abono" (click)="eliminarAbonoIva(facturaIva.proveedor._id || '', facturaIva.index, $index)" title="Eliminar">🗑️</button>
+                      @if (facturaIva) {
+                        <button class="btn-edit-abono" (click)="editarAbonoIva(facturaIva.proveedor._id || '', facturaIva.index, $index, abono)" title="Editar">✏️</button>
+                        <button class="btn-delete-abono" (click)="eliminarAbonoIva(facturaIva.proveedor._id || '', facturaIva.index, $index)" title="Eliminar">🗑️</button>
+                      }
                     </td>
                   </tr>
                 }
@@ -926,8 +928,10 @@
                     <td>{{ formatFecha(abono.fecha) }}</td>
                     <td>Bs {{ formatMoneda(abono.monto) }}</td>
                     <td class="abono-actions">
-                      <button class="btn-edit-abono" (click)="editarAbonoIva25(facturaIva25.proveedor._id || '', facturaIva25.index, $index, abono)" title="Editar">✏️</button>
-                      <button class="btn-delete-abono" (click)="eliminarAbonoIva25(facturaIva25.proveedor._id || '', facturaIva25.index, $index)" title="Eliminar">🗑️</button>
+                      @if (facturaIva25) {
+                        <button class="btn-edit-abono" (click)="editarAbonoIva25(facturaIva25.proveedor._id || '', facturaIva25.index, $index, abono)" title="Editar">✏️</button>
+                        <button class="btn-delete-abono" (click)="eliminarAbonoIva25(facturaIva25.proveedor._id || '', facturaIva25.index, $index)" title="Eliminar">🗑️</button>
+                      }
                     </td>
                   </tr>
                 }

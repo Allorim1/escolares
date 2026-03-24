@@ -1517,3 +1517,45 @@ h2 {
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+.header-actions-tasa {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-dolarvzla {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-dolarvzla:hover {
+  background: #d97706;
+}
+
+.api-key-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.input-api-key {
+  padding: 6px 10px;
+  border: 2px solid #dc3545;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 180px;
+  background: white;
+  color: #333;
+}
+
+.input-api-key:focus {
+  outline: none;
+  border-color: #c82333;
+}

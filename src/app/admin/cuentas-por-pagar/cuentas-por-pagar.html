@@ -209,10 +209,12 @@
                         <td>Bs {{ formatMoneda(factura.iva || 0) }}</td>
                         @if (factura.tipo === 'factura') {
                           <td>
+                            @let ivaColor = getIvaColor(factura);
                             <span class="iva-status-circle" 
-                                  [class.iva-pagado]="(factura.iva75 - (factura.abonosIva || 0)) <= 0 && (factura.iva25 - (factura.abonosIva25 || 0)) <= 0"
-                                  [class.iva-pendiente]="(factura.iva75 - (factura.abonosIva || 0)) > 0 || (factura.iva25 - (factura.abonosIva25 || 0)) > 0"
-                                  title="IVA: {{ (factura.iva75 - (factura.abonosIva || 0)) > 0 || (factura.iva25 - (factura.abonosIva25 || 0)) > 0 ? 'Pendiente' : 'Pagado' }}">
+                                  [style.backgroundColor]="ivaColor"
+                                  [style.background]="ivaColor"
+                                  [title]="getIvaTitle(factura)"
+                                  style="display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:middle;">
                             </span>
                           </td>
                         } @else {

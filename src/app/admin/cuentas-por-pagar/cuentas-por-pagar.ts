@@ -1319,6 +1319,51 @@ export class CuentasPorPagar implements OnInit {
     return d.toLocaleDateString('es-VE');
   }
 
+  getIvaColor(factura: FacturaProveedor): string {
+    const parseNum = (val: any): number => {
+      if (typeof val === 'number') return val;
+      if (typeof val === 'string') return parseFloat(val) || 0;
+      return 0;
+    };
+    
+    const iva75 = parseNum(factura.iva75);
+    const iva25 = parseNum(factura.iva25);
+    const abIva = parseNum(factura.abonosIva);
+    const abIva25 = parseNum(factura.abonosIva25);
+    const tieneIva75 = iva75 > 0;
+    const tieneIva25 = iva25 > 0;
+    const deudaIva75 = iva75 - abIva;
+    const deudaIva25 = iva25 - abIva25;
+    const isPagado = (!tieneIva75 || deudaIva75 <= 0.01) && (!tieneIva25 || deudaIva25 <= 0.01);
+    
+    console.log('IVA Debug:', {
+      numero: factura.numero,
+      iva75, iva25, abIva, abIva25,
+      tieneIva75, tieneIva25,
+      deudaIva75, deudaIva25,
+      isPagado,
+      result: isPagado ? '#28a745' : '#dc3545'
+    });
+    
+    return isPagado ? '#28a745' : '#dc3545';
+  }
+
+  getIvaTitle(factura: FacturaProveedor): string {
+    const parseNum = (val: any): number => {
+      if (typeof val === 'number') return val;
+      if (typeof val === 'string') return parseFloat(val) || 0;
+      return 0;
+    };
+    
+    const iva75 = parseNum(factura.iva75);
+    const iva25 = parseNum(factura.iva25);
+    const abIva = parseNum(factura.abonosIva);
+    const abIva25 = parseNum(factura.abonosIva25);
+    const deudaIva75 = iva75 - abIva;
+    const deudaIva25 = iva25 - abIva25;
+    return 'IVA 75: ' + deudaIva75.toFixed(2) + ' | IVA 25: ' + deudaIva25.toFixed(2);
+  }
+
   getBancoPlaceholder(): string {
     if (this.newCuentaBancaria.pagoMovil) return 'Banco (ej: Banesco)';
     if (this.newCuentaBancaria.tipo === 'zelle') return 'Banco emisor (ej: Bank of America)';

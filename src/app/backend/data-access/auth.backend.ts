@@ -73,7 +73,7 @@ export class AuthBackend {
       next: (response) => {
         this.currentUser.set(response);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(response.isAdmin || response.rol === 'admin' || response.rol === 'owner');
+        this.isAdmin.set(response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root');
         this.saveToStorage(response);
         if (response.accessToken) {
           this.saveToken(response.accessToken);
@@ -82,7 +82,7 @@ export class AuthBackend {
           }
         }
         this.loginLoading.set(false);
-        if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner') {
+        if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root') {
           this.router.navigate(['/admin/inicio']);
         } else {
           this.router.navigate(['/panel/perfil']);

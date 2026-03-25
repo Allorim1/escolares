@@ -28,10 +28,25 @@ export class AdminUsuarios implements OnInit {
   cargando = signal(true);
   error = signal<string | null>(null);
 
-  selectedUserRol = signal<{userId: string, rol: string, rolId: string} | null>(null);
   selectedUser = signal<UserWithRol | null>(null);
   editingUser = signal<UserWithRol | null>(null);
   newComentario = '';
+  
+  showCreateModal = signal(false);
+  newUser = {
+    username: '',
+    email: '',
+    nombreCompleto: '',
+    apellido: '',
+    telefono: '',
+    direccion: '',
+    comentarios: '',
+    password: ''
+  };
+
+  userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
+  selectedUserRolData = '';
+  newPassword = '';
 
   ngOnInit() {
     if (!this.esRoot()) {
@@ -80,48 +95,6 @@ export class AdminUsuarios implements OnInit {
     return this.getRolLabel(user.rol);
   }
 
-  openAssignRole(user: UserWithRol) {
-    this.selectedUserRol.set({
-      userId: user.id,
-      rol: user.rol || 'usuario',
-      rolId: user.rolId || ''
-    });
-  }
-
-  closeAssignRole() {
-    this.selectedUserRol.set(null);
-  }
-
-  saveUserRole() {
-    const data = this.selectedUserRol();
-    if (!data) return;
-
-    const rolParts = data.rol.split(':');
-    const rol = rolParts[0] as 'owner' | 'usuario';
-    const rolId = rolParts[1] || undefined;
-
-    this.authService.updateUserRol(data.userId, rol, rolId).subscribe({
-      next: () => {
-        this.cargarUsuarios();
-        this.closeAssignRole();
-      },
-      error: (err) => {
-        this.error.set(err.error?.error || 'Error al cambiar rol');
-      },
-    });
-  }
-
-  cambiarRol(usuario: UserWithRol, nuevoRol: 'owner' | 'usuario') {
-    this.authService.updateUserRol(usuario.id, nuevoRol).subscribe({
-      next: () => {
-        this.cargarUsuarios();
-      },
-      error: (err) => {
-        this.error.set(err.error?.error || 'Error al cambiar rol');
-      },
-    });
-  }
-
   esOwner(): boolean {
     return this.authService.user()?.rol === 'owner' || this.authService.user()?.rol === 'root';
   }
@@ -132,15 +105,6 @@ export class AdminUsuarios implements OnInit {
 
   esAdmin(): boolean {
     return this.esOwner();
-  }
-
-  getSelectedRol(): Rol | undefined {
-    const data = this.selectedUserRol();
-    if (data && data.rol.startsWith('usuario:')) {
-      const rolId = data.rol.split(':')[1];
-      return this.roles().find(r => r.id === rolId);
-    }
-    return undefined;
   }
 
   getRolLabel(rol?: string): string {
@@ -159,11 +123,78 @@ export class AdminUsuarios implements OnInit {
   openUserDetails(user: UserWithRol) {
     this.selectedUser.set(user);
     this.editingUser.set({ ...user });
+    this.userDetailsTab.set('info');
+    this.selectedUserRolData = user.rol || 'usuario';
+    this.newPassword = '';
   }
 
   closeUserDetails() {
     this.selectedUser.set(null);
     this.editingUser.set(null);
+    this.userDetailsTab.set('info');
+  }
+
+  getSelectedRolFromId(): Rol | undefined {
+    if (this.selectedUserRolData.startsWith('usuario:')) {
+      const rolId = this.selectedUserRolData.split(':')[1];
+      return this.roles().find(r => r.id === rolId);
+    }
+    return undefined;
+  }
+
+  saveUserRoleFromDetails() {
+    const user = this.selectedUser();
+    if (!user) return;
+
+    const rolParts = this.selectedUserRolData.split(':');
+    const rol = rolParts[0] as 'owner' | 'usuario';
+    const rolId = rolParts[1] || undefined;
+
+    this.authService.updateUserRol(user.id, rol, rolId).subscribe({
+      next: () => {
+        this.cargarUsuarios();
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Error al cambiar rol');
+      },
+    });
+  }
+
+  changePasswordFromDetails() {
+    const user = this.selectedUser();
+    if (!user || !this.newPassword) {
+      this.error.set('La contraseña es requerida');
+      return;
+    }
+
+    this.http.put(`/api/auth/users/${user.id}/password`, {
+      newPassword: this.newPassword,
+    }).subscribe({
+      next: () => {
+        this.newPassword = '';
+        this.userDetailsTab.set('info');
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Error al cambiar contraseña');
+      },
+    });
+  }
+
+  confirmDeleteUserFromDetails() {
+    const user = this.selectedUser();
+    if (!user) return;
+
+    if (confirm(`¿Estás seguro de eliminar al usuario "${user.username}"?`)) {
+      this.http.delete(`/api/auth/users/${user.id}`).subscribe({
+        next: () => {
+          this.closeUserDetails();
+          this.cargarUsuarios();
+        },
+        error: (err) => {
+          this.error.set(err.error?.error || 'Error al eliminar usuario');
+        },
+      });
+    }
   }
 
   saveUserDetails() {
@@ -213,6 +244,51 @@ export class AdminUsuarios implements OnInit {
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al agregar comentario');
+      },
+    });
+  }
+
+  openCreateUser() {
+    this.showCreateModal.set(true);
+    this.newUser = {
+      username: '',
+      email: '',
+      nombreCompleto: '',
+      apellido: '',
+      telefono: '',
+      direccion: '',
+      comentarios: '',
+      password: ''
+    };
+  }
+
+  closeCreateUser() {
+    this.showCreateModal.set(false);
+  }
+
+  createUser() {
+    const userData = this.newUser;
+    if (!userData.username || !userData.password || !userData.email) {
+      this.error.set('Usuario, email y contraseña son requeridos');
+      return;
+    }
+
+    this.http.post('/api/auth/register-simple', {
+      username: userData.username,
+      email: userData.email,
+      password: userData.password,
+      nombreCompleto: userData.nombreCompleto,
+      apellido: userData.apellido,
+      telefono: userData.telefono,
+      direccion: userData.direccion,
+      comentarios: userData.comentarios,
+    }).subscribe({
+      next: () => {
+        this.cargarUsuarios();
+        this.closeCreateUser();
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Error al crear usuario');
       },
     });
   }

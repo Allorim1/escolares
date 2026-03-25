@@ -692,10 +692,18 @@ export class CuentasPorPagar implements OnInit {
   }
 
   calcularDeuda(proveedor: Proveedor): number {
-    return proveedor.facturas?.reduce((sum, f) => sum + ((f.monto || 0) + (f.baseExenta || 0) - (f.abonos || 0)), 0) || 0;
+    return proveedor.facturas?.reduce((sum, f) => {
+      if (f.tipo === 'nota') {
+        return sum + ((f.monto || 0) - (f.abonos || 0));
+      }
+      return sum + ((f.monto || 0) + (f.baseExenta || 0) - (f.abonos || 0));
+    }, 0) || 0;
   }
 
   calcularDeudaFactura(factura: FacturaProveedor): number {
+    if (factura.tipo === 'nota') {
+      return (factura.monto || 0) - (factura.abonos || 0);
+    }
     return (factura.monto || 0) + (factura.baseExenta || 0) - (factura.abonos || 0);
   }
 

@@ -13,6 +13,7 @@
   @if (cargando()) {
     <div class="cargando">Cargando usuarios...</div>
   } @else {
+    <button class="btn-crear-usuario" (click)="openCreateUser()">+ Crear Usuario</button>
     <table class="usuarios-table">
       <thead>
         <tr>
@@ -28,16 +29,9 @@
             <td>{{ usuario.username }}</td>
             <td>{{ usuario.email }}</td>
             <td>
-              @if (usuario.rol !== 'owner') {
-                <button class="rol-btn" (click)="openAssignRole(usuario)">
-                  <span class="rol-badge" [class]="usuario.rol || 'usuario'">
-                    {{ usuario.rolName || getRolLabel(usuario.rol) }}
-                  </span>
-                  <span class="edit-icon">✏️</span>
-                </button>
-              } @else {
-                <span class="rol-badge owner">Owner</span>
-              }
+              <span class="rol-badge" [class]="usuario.rol || 'usuario'">
+                {{ usuario.rolName || getRolLabel(usuario.rol) }}
+              </span>
             </td>
             <td>
               <button class="btn-ver-detalles" (click)="openUserDetails(usuario)">Ver</button>
@@ -49,115 +43,54 @@
   }
 </section>
 
-@if (selectedUserRol()) {
-  <div class="modal-overlay" (click)="closeAssignRole()">
+@if (showCreateModal()) {
+  <div class="modal-overlay" (click)="closeCreateUser()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Asignar Rol</h3>
-        <button class="close-btn" (click)="closeAssignRole()">&times;</button>
+        <h3>Crear Nuevo Usuario</h3>
+        <button class="close-btn" (click)="closeCreateUser()">&times;</button>
       </div>
       
       <div class="modal-body">
-        <div class="form-group">
-          <label>Seleccionar Rol</label>
-          <select [(ngModel)]="selectedUserRol()!.rol" class="rol-select">
-            <optgroup label="Roles del Sistema">
-              <option value="usuario">Usuario</option>
-              @if (esRoot()) {
-                <option value="owner">Owner</option>
-              }
-            </optgroup>
-            @if (roles().length > 0) {
-              <optgroup label="Roles Personalizados">
-                @for (rol of roles(); track rol.id) {
-                  <option [value]="'usuario:' + rol.id">{{ rol.nombre }}</option>
-                }
-              </optgroup>
-            }
-          </select>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Usuario *</label>
+            <input type="text" [(ngModel)]="newUser.username" placeholder="Nombre de usuario" />
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" [(ngModel)]="newUser.email" placeholder="correo@ejemplo.com" />
+          </div>
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="newUser.nombreCompleto" placeholder="Nombre completo" />
+          </div>
+          <div class="form-group">
+            <label>Apellido</label>
+            <input type="text" [(ngModel)]="newUser.apellido" placeholder="Apellido" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="newUser.telefono" placeholder="Número de teléfono" />
+          </div>
+          <div class="form-group">
+            <label>Dirección</label>
+            <input type="text" [(ngModel)]="newUser.direccion" placeholder="Dirección" />
+          </div>
+          <div class="form-group full-width">
+            <label>Comentarios</label>
+            <textarea [(ngModel)]="newUser.comentarios" rows="3" placeholder="Comentarios"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Contraseña *</label>
+            <input type="password" [(ngModel)]="newUser.password" placeholder="Contraseña" />
+          </div>
         </div>
-        
-        @if (selectedUserRol()!.rol.startsWith('usuario:')) {
-          <div class="rol-info">
-            @if (getSelectedRol()) {
-              <p><strong>Descripción:</strong> {{ getSelectedRol()?.descripcion || 'Sin descripción' }}</p>
-              <p><strong>Permisos:</strong> {{ getSelectedRol()?.permisos?.length || 0 }}</p>
-            }
-          </div>
-        }
       </div>
       
       <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeAssignRole()">Cancelar</button>
-        <button class="btn-primary" (click)="saveUserRole()">Guardar</button>
-      </div>
-    </div>
-  </div>
-}
-
-@if (selectedUser()) {
-  <div class="modal-overlay" (click)="closeUserDetails()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Detalles del Usuario</h3>
-        <button class="close-btn" (click)="closeUserDetails()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        @if (editingUser()) {
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Usuario</label>
-              <input type="text" [(ngModel)]="editingUser()!.username" [disabled]="!esRoot()" />
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" [(ngModel)]="editingUser()!.email" [disabled]="!esRoot()" />
-            </div>
-            <div class="form-group">
-              <label>Nombre Completo</label>
-              <input type="text" [(ngModel)]="editingUser()!.nombreCompleto" [disabled]="!esRoot()" />
-            </div>
-            <div class="form-group">
-              <label>Teléfono</label>
-              <input type="text" [(ngModel)]="editingUser()!.telefono" [disabled]="!esRoot()" />
-            </div>
-            <div class="form-group">
-              <label>Dirección</label>
-              <input type="text" [(ngModel)]="editingUser()!.direccion" [disabled]="!esRoot()" />
-            </div>
-            <div class="form-group">
-              <label>Cédula/RIF</label>
-              <input type="text" [(ngModel)]="editingUser()!.cedula" [disabled]="!esRoot()" />
-            </div>
-            <div class="form-group">
-              <label>Tipo de Persona</label>
-              <select [(ngModel)]="editingUser()!.tipoPersona" [disabled]="!esRoot()">
-                <option value="natural">Natural</option>
-                <option value="juridica">Jurídica</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Rol</label>
-              <input type="text" [value]="selectedUser()?.rolName || getRolLabel(selectedUser()?.rol)" disabled />
-            </div>
-            <div class="form-group full-width">
-              <label>Comentarios (solo visible para root)</label>
-              <textarea [(ngModel)]="editingUser()!.comentarios" rows="4" [disabled]="!esRoot()" placeholder="Agregar comentarios sobre el usuario..."></textarea>
-              @if (esRoot()) {
-                <div class="agregar-comentario">
-                  <input type="text" [(ngModel)]="newComentario" placeholder="Nuevo comentario rápido" (keydown.enter)="agregarComentario()" />
-                  <button class="btn-agregar-comentario" (click)="agregarComentario()">Agregar</button>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeUserDetails()">Cancelar</button>
-        <button class="btn-primary" (click)="saveUserDetails()">Guardar Cambios</button>
+        <button class="btn-secondary" (click)="closeCreateUser()">Cancelar</button>
+        <button class="btn-primary" (click)="createUser()">Crear Usuario</button>
       </div>
     </div>
   </div>

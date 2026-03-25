@@ -5,13 +5,30 @@
   <div class="tasas-bcv-section">
     <div class="tasas-header">
       <h3>Tasas del BCV</h3>
-      <button class="refresh-btn" (click)="loadTasas()" [disabled]="loadingTasa()">
-        @if (loadingTasa()) {
-          <span class="spinner"></span> Cargando...
-        } @else {
-          ↻ Actualizar Tasas
+      <div class="header-actions-tasa">
+        @if (isRoot()) {
+          <button class="btn-dolarvzla" (click)="abrirDolarVzla()">💵 Api Key</button>
+          @if (showApiKeyInput) {
+            <div class="api-key-container">
+              <input 
+                type="text" 
+                [(ngModel)]="dolarApiKey" 
+                placeholder="API Key"
+                class="input-api-key"
+                (keydown.enter)="guardarApiKey()"
+              />
+              <button class="btn-small" (click)="guardarApiKey()">Guardar</button>
+            </div>
+          }
         }
-      </button>
+        <button class="refresh-btn" (click)="loadTasas()" [disabled]="loadingTasa()">
+          @if (loadingTasa()) {
+            <span class="spinner"></span> Cargando...
+          } @else {
+            ↻ Actualizar Tasas
+          }
+        </button>
+      </div>
     </div>
     @if (tasaError()) {
       <div class="tasa-error">{{ tasaError() }}</div>

@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, of, timeout } from 'rxjs';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { AuthService } from '../../shared/data-access/auth.service';
 
 interface Tasa {
   costo: number;
@@ -57,6 +58,20 @@ export class CostoTasa implements OnInit {
   @ViewChild('tablaCostos') tablaCostos!: ElementRef;
 
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
+
+  private readonly API_DOLAR = '/api/tasas';
+  private readonly API_COSTOS = '/api/costos';
+  private readonly API_SETTINGS = '/api/settings';
+
+  showApiKeyInput = false;
+  dolarApiKey = '';
+  apiKeyLoaded = false;
+  hasApiKey = false;
+
+  isRoot(): boolean {
+    return this.authService.user()?.rol === 'root';
+  }
 
   tasa = signal<Tasa>({
     costo: 0,
@@ -118,12 +133,73 @@ export class CostoTasa implements OnInit {
   paginaActual = 1;
   reportesPorPagina = 5;
 
-  private readonly API_DOLAR = '/api/tasas';
-  private readonly API_COSTOS = '/api/costos';
-
   ngOnInit() {
     this.loadTasas();
     this.loadReportes();
+    if (this.isRoot()) {
+      this.loadApiKeyStatus();
+    }
+  }
+
+  loadApiKeyStatus() {
+    this.http.get<{ hasApiKey: boolean; apiKey: string }>(`${this.API_SETTINGS}/dolar-api-key`).subscribe({
+      next: (data) => {
+        this.hasApiKey = data.hasApiKey;
+        this.apiKeyLoaded = true;
+      },
+      error: (err) => {
+        this.apiKeyLoaded = true;
+      }
+    });
+  }
+
+  abrirDolarVzla() {
+    if (this.showApiKeyInput) {
+      this.showApiKeyInput = false;
+      this.dolarApiKey = '';
+      return;
+    }
+
+    if (!this.hasApiKey) {
+      this.showApiKeyInput = true;
+      this.dolarApiKey = '';
+      window.open('https://www.dolarvzla.com/settings/api/', '_blank');
+      return;
+    }
+
+    this.http.get<any>('/api/tasas').subscribe({
+      next: (data) => {
+        window.open('https://www.dolarvzla.com/settings/api/', '_blank');
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.showApiKeyInput = true;
+          this.dolarApiKey = '';
+        } else {
+          window.open('https://www.dolarvzla.com/settings/api/', '_blank');
+        }
+      }
+    });
+  }
+
+  guardarApiKey() {
+    if (!this.dolarApiKey.trim()) {
+      alert('Ingresa una API key válida');
+      return;
+    }
+    
+    this.http.put(`${this.API_SETTINGS}/dolar-api-key`, { apiKey: this.dolarApiKey.trim() }).subscribe({
+      next: (res) => {
+        console.log('API key guardada:', res);
+        this.showApiKeyInput = false;
+        this.hasApiKey = true;
+        this.dolarApiKey = '';
+      },
+      error: (err) => {
+        console.error('Error guardando API key:', err);
+        alert('Error al guardar la API key: ' + (err.error?.error || 'Error desconocido'));
+      }
+    });
   }
 
   formatNumero(numero: number): string {

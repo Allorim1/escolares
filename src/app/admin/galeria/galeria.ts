@@ -37,9 +37,10 @@ export class Galeria {
   qrExpiracion = '';
   qrFotoRecibida = false;
   qrInterval: any = null;
+  qrDocId = '';
 
   editando: Documento | null = null;
-  newDoc = { nombre: '', descripcion: '' };
+  newDoc = { nombre: '', descripcion: '', imagenes: [] as string[] };
   busqueda = '';
 
   abrirGaleria(tipo: string) {
@@ -95,7 +96,7 @@ export class Galeria {
 
   abrirNuevoDoc() {
     this.editando = null;
-    this.newDoc = { nombre: '', descripcion: '' };
+    this.newDoc = { nombre: '', descripcion: '', imagenes: [] };
     this.showDocModal = true;
     this.cdr.detectChanges();
   }
@@ -120,9 +121,6 @@ export class Galeria {
         next: (doc) => {
           this.cerrarDocModal();
           this.loadDocumentos(this.tipoActual);
-          this.docSeleccionado = { ...doc, imagenes: [] };
-          this.imagenesActuales = [];
-          this.cdr.detectChanges();
         },
       });
     }
@@ -134,6 +132,7 @@ export class Galeria {
     this.newDoc = {
       nombre: doc.nombre,
       descripcion: doc.descripcion || '',
+      imagenes: doc.imagenes ? [...doc.imagenes] : [],
     };
     this.showDocModal = true;
     this.cdr.detectChanges();
@@ -160,6 +159,103 @@ export class Galeria {
     this.imagenesActuales = [];
     this.showQRModal = false;
     this.cdr.detectChanges();
+  }
+
+  agregarFotoDoc() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.resizeImage(reader.result as string, 1200, (resized) => {
+          this.newDoc.imagenes = [...this.newDoc.imagenes, resized];
+          this.cdr.detectChanges();
+        });
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  abrirCamaraDoc() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.setAttribute('capture', 'environment');
+    input.onchange = (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.resizeImage(reader.result as string, 1200, (resized) => {
+          this.newDoc.imagenes = [...this.newDoc.imagenes, resized];
+          this.cdr.detectChanges();
+        });
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  eliminarImagenDoc(index: number) {
+    this.newDoc.imagenes = this.newDoc.imagenes.filter((_, i) => i !== index);
+    this.cdr.detectChanges();
+  }
+
+  abrirQRDoc() {
+    const docId = this.editando?._id || '';
+    if (!docId) {
+      alert('Primero guarda el documento para usar QR');
+      return;
+    }
+    this.qrCodeData = '';
+    this.qrExpiracion = '';
+    this.qrFotoRecibida = false;
+    this.qrDocId = docId;
+    this.showQRModal = true;
+    this.showDocModal = false;
+    this.cdr.detectChanges();
+
+    const imagenesIniciales = [...this.newDoc.imagenes];
+
+    this.http.post<{ qrCode: string; uploadUrl: string; expiresAt: string }>(
+      `/api/galeria/${this.tipoActual}/generate-qr`, { docId }
+    ).subscribe({
+      next: (res) => {
+        this.qrCodeData = res.qrCode;
+        this.qrExpiracion = res.expiresAt;
+        this.cdr.detectChanges();
+
+        this.qrInterval = setInterval(() => {
+          this.http.get<{ imagenes: string[] }>(`/api/galeria/${this.tipoActual}/imagenes/${docId}`).subscribe({
+            next: (pollRes) => {
+              if (pollRes.imagenes && pollRes.imagenes.length > imagenesIniciales.length) {
+                this.qrFotoRecibida = true;
+                this.cdr.detectChanges();
+                clearInterval(this.qrInterval);
+                this.qrInterval = null;
+                setTimeout(() => {
+                  this.newDoc.imagenes = pollRes.imagenes;
+                  this.showQRModal = false;
+                  this.showDocModal = true;
+                  this.loadDocumentos(this.tipoActual);
+                  this.cdr.detectChanges();
+                }, 2000);
+              }
+            },
+          });
+        }, 2000);
+      },
+      error: () => {
+        alert('Error al generar código QR');
+        this.showQRModal = false;
+        this.showDocModal = true;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   agregarFoto() {
@@ -226,6 +322,7 @@ export class Galeria {
     this.qrCodeData = '';
     this.qrExpiracion = '';
     this.qrFotoRecibida = false;
+    this.qrDocId = doc._id || '';
     this.showQRModal = true;
     this.cdr.detectChanges();
 
@@ -269,6 +366,9 @@ export class Galeria {
   cerrarQR() {
     if (this.qrInterval) { clearInterval(this.qrInterval); this.qrInterval = null; }
     this.showQRModal = false;
+    if (this.qrDocId && !this.docSeleccionado) {
+      this.showDocModal = true;
+    }
     this.cdr.detectChanges();
   }
 

@@ -83,7 +83,7 @@
 
 @if (showDocModal) {
   <div class="modal-overlay" (click)="cerrarDocModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-content modal-doc" (click)="$event.stopPropagation()">
       <h3>{{ editando ? 'Editar' : 'Nuevo' }} Documento</h3>
       <div class="form-group">
         <label>Nombre</label>
@@ -91,7 +91,27 @@
       </div>
       <div class="form-group">
         <label>Descripción</label>
-        <textarea [(ngModel)]="newDoc.descripcion" placeholder="Descripción" rows="3"></textarea>
+        <textarea [(ngModel)]="newDoc.descripcion" placeholder="Descripción" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Imágenes</label>
+        <div class="doc-imagenes-actions">
+          <button class="btn-action" (click)="agregarFotoDoc()">📁 Agregar</button>
+          <button class="btn-action" (click)="abrirCamaraDoc()">📷 Cámara</button>
+          @if (editando) {
+            <button class="btn-action btn-qr" (click)="abrirQRDoc()">📱 QR</button>
+          }
+        </div>
+        @if (newDoc.imagenes.length > 0) {
+          <div class="miniaturas-grid">
+            @for (img of newDoc.imagenes; track $index) {
+              <div class="miniatura-item">
+                <img [src]="img" alt="Imagen">
+                <button class="btn-delete-mini" (click)="eliminarImagenDoc($index)">✕</button>
+              </div>
+            }
+          </div>
+        }
       </div>
       <div class="modal-actions">
         <button class="btn-secondary" (click)="cerrarDocModal()">Cancelar</button>

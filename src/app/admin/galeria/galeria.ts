@@ -9,7 +9,6 @@ interface Documento {
   descripcion: string;
   imagenes: string[];
   fechaSubida: Date;
-  fechaVencimiento?: Date;
   categoria?: string;
 }
 
@@ -41,7 +40,7 @@ export class Galeria {
   qrInterval: any = null;
 
   editando: Documento | null = null;
-  newDoc = { nombre: '', descripcion: '', fechaVencimiento: '', categoria: 'otro' };
+  newDoc = { nombre: '', descripcion: '', categoria: 'otro' };
 
   categorias = [
     { value: 'contrato', label: 'Contratos' },
@@ -80,11 +79,6 @@ export class Galeria {
     return this.tipoActual === 'temporales' ? 'Documentos Temporales' : 'Documentos Legales';
   }
 
-  estaVencido(doc: Documento): boolean {
-    if (!doc.fechaVencimiento) return false;
-    return new Date(doc.fechaVencimiento) < new Date();
-  }
-
   formatearFecha(fecha: Date | string | undefined): string {
     if (!fecha) return 'Sin fecha';
     return new Date(fecha).toLocaleDateString('es-VE');
@@ -96,7 +90,7 @@ export class Galeria {
 
   abrirNuevoDoc() {
     this.editando = null;
-    this.newDoc = { nombre: '', descripcion: '', fechaVencimiento: '', categoria: 'otro' };
+    this.newDoc = { nombre: '', descripcion: '', categoria: 'otro' };
     this.showDocModal = true;
     this.cdr.detectChanges();
   }
@@ -114,8 +108,13 @@ export class Galeria {
         next: () => { this.loadDocumentos(this.tipoActual); this.cerrarDocModal(); },
       });
     } else {
-      this.http.post(`/api/galeria/${this.tipoActual}`, this.newDoc).subscribe({
-        next: () => { this.loadDocumentos(this.tipoActual); this.cerrarDocModal(); },
+      this.http.post<any>(`/api/galeria/${this.tipoActual}`, this.newDoc).subscribe({
+        next: (doc) => {
+          this.cerrarDocModal();
+          this.docSeleccionado = { ...doc, imagenes: [] };
+          this.imagenesActuales = [];
+          this.cdr.detectChanges();
+        },
       });
     }
   }
@@ -126,7 +125,6 @@ export class Galeria {
     this.newDoc = {
       nombre: doc.nombre,
       descripcion: doc.descripcion || '',
-      fechaVencimiento: doc.fechaVencimiento ? new Date(doc.fechaVencimiento).toISOString().split('T')[0] : '',
       categoria: doc.categoria || 'otro',
     };
     this.showDocModal = true;

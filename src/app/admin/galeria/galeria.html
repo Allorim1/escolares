@@ -28,14 +28,14 @@
           <div class="doc-actions">
             <button class="btn-primary" (click)="abrirNuevoDoc()">+ Nuevo Documento</button>
           </div>
+          <div class="search-bar">
+            <input type="text" [(ngModel)]="busqueda" placeholder="Buscar documento..." />
+          </div>
           <div class="documentos-grid">
-            @for (doc of documentos; track doc._id) {
+            @for (doc of getDocumentosFiltrados(); track doc._id) {
               <div class="doc-card" (click)="abrirDocImagenes(doc)">
                 <div class="doc-card-header">
                   <span class="doc-icon">{{ tipoActual === 'temporales' ? '📄' : '⚖️' }}</span>
-                  @if (tipoActual === 'legales' && doc.categoria) {
-                    <span class="badge-categoria">{{ getCategoriaLabel(doc.categoria) }}</span>
-                  }
                 </div>
                 <h4>{{ doc.nombre }}</h4>
                 <p class="doc-desc">{{ doc.descripcion || 'Sin descripción' }}</p>
@@ -48,8 +48,8 @@
                 </div>
               </div>
             }
-            @if (documentos.length === 0) {
-              <p class="no-data">No hay documentos registrados. Crea uno nuevo.</p>
+            @if (getDocumentosFiltrados().length === 0) {
+              <p class="no-data">{{ busqueda ? 'No se encontraron resultados' : 'No hay documentos registrados. Crea uno nuevo.' }}</p>
             }
           </div>
         } @else {
@@ -93,16 +93,6 @@
         <label>Descripción</label>
         <textarea [(ngModel)]="newDoc.descripcion" placeholder="Descripción" rows="3"></textarea>
       </div>
-      @if (tipoActual === 'legales') {
-        <div class="form-group">
-          <label>Categoría</label>
-          <select [(ngModel)]="newDoc.categoria">
-            @for (cat of categorias; track cat.value) {
-              <option [value]="cat.value">{{ cat.label }}</option>
-            }
-          </select>
-        </div>
-      }
       <div class="modal-actions">
         <button class="btn-secondary" (click)="cerrarDocModal()">Cancelar</button>
         <button class="btn-primary" (click)="guardarDoc()">Guardar</button>

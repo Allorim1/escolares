@@ -9,7 +9,6 @@ interface Documento {
   descripcion: string;
   imagenes: string[];
   fechaSubida: Date;
-  categoria?: string;
 }
 
 @Component({
@@ -40,21 +39,14 @@ export class Galeria {
   qrInterval: any = null;
 
   editando: Documento | null = null;
-  newDoc = { nombre: '', descripcion: '', categoria: 'otro' };
-
-  categorias = [
-    { value: 'contrato', label: 'Contratos' },
-    { value: 'constitucion', label: 'Acta Constitutiva' },
-    { value: 'registro', label: 'Registro' },
-    { value: 'poder', label: 'Poder' },
-    { value: 'certificado', label: 'Certificados' },
-    { value: 'otro', label: 'Otros' },
-  ];
+  newDoc = { nombre: '', descripcion: '' };
+  busqueda = '';
 
   abrirGaleria(tipo: string) {
     this.tipoActual = tipo;
     this.showModal = true;
     this.docSeleccionado = null;
+    this.busqueda = '';
     this.cdr.detectChanges();
     this.loadDocumentos(tipo);
   }
@@ -70,8 +62,16 @@ export class Galeria {
 
   loadDocumentos(tipo: string) {
     this.http.get<Documento[]>(`/api/galeria/${tipo}`).subscribe({
-      next: (data) => { this.documentos = data || []; this.cdr.detectChanges(); },
-      error: () => { this.documentos = []; this.cdr.detectChanges(); },
+      next: (data) => {
+        this.documentos = [];
+        this.cdr.detectChanges();
+        this.documentos = [...(data || [])];
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.documentos = [];
+        this.cdr.detectChanges();
+      },
     });
   }
 
@@ -79,18 +79,23 @@ export class Galeria {
     return this.tipoActual === 'temporales' ? 'Documentos Temporales' : 'Documentos Legales';
   }
 
+  getDocumentosFiltrados(): Documento[] {
+    if (!this.busqueda.trim()) return this.documentos;
+    const term = this.busqueda.toLowerCase().trim();
+    return this.documentos.filter(d =>
+      d.nombre.toLowerCase().includes(term) ||
+      (d.descripcion || '').toLowerCase().includes(term)
+    );
+  }
+
   formatearFecha(fecha: Date | string | undefined): string {
     if (!fecha) return 'Sin fecha';
     return new Date(fecha).toLocaleDateString('es-VE');
   }
 
-  getCategoriaLabel(valor: string | undefined): string {
-    return this.categorias.find(c => c.value === valor)?.label || valor || '';
-  }
-
   abrirNuevoDoc() {
     this.editando = null;
-    this.newDoc = { nombre: '', descripcion: '', categoria: 'otro' };
+    this.newDoc = { nombre: '', descripcion: '' };
     this.showDocModal = true;
     this.cdr.detectChanges();
   }
@@ -105,12 +110,16 @@ export class Galeria {
     if (!this.newDoc.nombre.trim()) return;
     if (this.editando) {
       this.http.put(`/api/galeria/${this.tipoActual}/${this.editando._id}`, this.newDoc).subscribe({
-        next: () => { this.loadDocumentos(this.tipoActual); this.cerrarDocModal(); },
+        next: () => {
+          this.cerrarDocModal();
+          this.loadDocumentos(this.tipoActual);
+        },
       });
     } else {
       this.http.post<any>(`/api/galeria/${this.tipoActual}`, this.newDoc).subscribe({
         next: (doc) => {
           this.cerrarDocModal();
+          this.loadDocumentos(this.tipoActual);
           this.docSeleccionado = { ...doc, imagenes: [] };
           this.imagenesActuales = [];
           this.cdr.detectChanges();
@@ -125,7 +134,6 @@ export class Galeria {
     this.newDoc = {
       nombre: doc.nombre,
       descripcion: doc.descripcion || '',
-      categoria: doc.categoria || 'otro',
     };
     this.showDocModal = true;
     this.cdr.detectChanges();
@@ -136,6 +144,7 @@ export class Galeria {
     if (!confirm(`¿Eliminar "${doc.nombre}"?`)) return;
     this.http.delete(`/api/galeria/${this.tipoActual}/${doc._id}`).subscribe({
       next: () => this.loadDocumentos(this.tipoActual),
+      error: () => alert('Error al eliminar'),
     });
   }
 

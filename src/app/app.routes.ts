@@ -154,14 +154,6 @@ export const routes: Routes = [
         path: 'galeria',
         loadComponent: () => import('./admin/galeria/galeria').then((m) => m.Galeria),
       },
-      {
-        path: 'documentos-temporales',
-        loadComponent: () => import('./admin/documentos-temporales/documentos-temporales').then((m) => m.DocumentosTemporales),
-      },
-      {
-        path: 'documentos-legales',
-        loadComponent: () => import('./admin/documentos-legales/documentos-legales').then((m) => m.DocumentosLegales),
-      },
     ],
   },
   {

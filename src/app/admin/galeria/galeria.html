@@ -3,12 +3,163 @@
   <p class="galeria-subtitle">Seleccione una categoría para ver y administrar sus documentos</p>
 
   <div class="subcategorias-grid">
-    @for (sub of subcategorias; track sub.route) {
-      <a [routerLink]="sub.route" class="subcategoria-card">
-        <span class="subcategoria-icon">{{ sub.icon }}</span>
-        <h3>{{ sub.label }}</h3>
-        <p>{{ sub.descripcion }}</p>
-      </a>
-    }
+    <div class="subcategoria-card" (click)="abrirGaleria('temporales')">
+      <span class="subcategoria-icon">📄</span>
+      <h3>Documentos Temporales</h3>
+      <p>Documentos con vigencia temporal limitada</p>
+    </div>
+    <div class="subcategoria-card" (click)="abrirGaleria('legales')">
+      <span class="subcategoria-icon">⚖️</span>
+      <h3>Documentos Legales</h3>
+      <p>Documentos legales y permanentes</p>
+    </div>
   </div>
 </div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-galeria" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ getTitulo() }}</h3>
+        <button class="close-btn" (click)="cerrarModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        @if (!docSeleccionado()) {
+          <div class="doc-actions">
+            <button class="btn-primary" (click)="abrirNuevoDoc()">+ Nuevo Documento</button>
+          </div>
+
+          <div class="documentos-grid">
+            @for (doc of documentos(); track doc._id) {
+              <div class="doc-card" [class.vencido]="tipoActual() === 'temporales' && estaVencido(doc)" (click)="abrirDocImagenes(doc)">
+                <div class="doc-card-header">
+                  <span class="doc-icon">{{ tipoActual() === 'temporales' ? '📄' : '⚖️' }}</span>
+                  @if (tipoActual() === 'temporales' && estaVencido(doc)) {
+                    <span class="badge-vencido">Vencido</span>
+                  }
+                  @if (tipoActual() === 'legales' && doc.categoria) {
+                    <span class="badge-categoria">{{ getCategoriaLabel(doc.categoria) }}</span>
+                  }
+                </div>
+                <h4>{{ doc.nombre }}</h4>
+                <p class="doc-desc">{{ doc.descripcion || 'Sin descripción' }}</p>
+                <div class="doc-info">
+                  <span>{{ doc.imagenes?.length || 0 }} imagen(es)</span>
+                  @if (tipoActual() === 'temporales' && doc.fechaVencimiento) {
+                    <span>Vence: {{ formatearFecha(doc.fechaVencimiento) }}</span>
+                  }
+                </div>
+                <div class="doc-card-actions" (click)="$event.stopPropagation()">
+                  <button class="btn-sm btn-edit" (click)="editarDoc(doc, $event)">✏️</button>
+                  <button class="btn-sm btn-delete" (click)="eliminarDoc(doc, $event)">🗑️</button>
+                </div>
+              </div>
+            }
+            @if (documentos().length === 0) {
+              <p class="no-data">No hay documentos registrados</p>
+            }
+          </div>
+        } @else {
+          <div class="doc-imagenes-view">
+            <div class="doc-imagenes-header">
+              <button class="btn-back" (click)="cerrarDocImagenes()">← Volver</button>
+              <h4>{{ docSeleccionado()?.nombre }}</h4>
+            </div>
+            <div class="doc-imagenes-actions">
+              <button class="btn-action" (click)="agregarFoto()">📁 Agregar</button>
+              <button class="btn-action" (click)="abrirCamara()">📷 Cámara</button>
+              <button class="btn-action btn-qr" (click)="abrirQR()">📱 QR</button>
+            </div>
+            <div class="imagenes-grid">
+              @for (img of imagenesActuales(); track $index) {
+                <div class="imagen-item">
+                  <img [src]="img" alt="Documento" (click)="verImagen($index)">
+                  <button class="btn-delete-img" (click)="eliminarImagen($index)">✕</button>
+                </div>
+              }
+              @if (imagenesActuales().length === 0) {
+                <p class="no-data">No hay imágenes. Usa los botones de arriba para subir.</p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (showDocModal()) {
+  <div class="modal-overlay" (click)="cerrarDocModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>{{ editando() ? 'Editar' : 'Nuevo' }} Documento</h3>
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" [(ngModel)]="newDoc.nombre" placeholder="Nombre del documento" />
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea [(ngModel)]="newDoc.descripcion" placeholder="Descripción" rows="3"></textarea>
+      </div>
+      @if (tipoActual() === 'temporales') {
+        <div class="form-group">
+          <label>Fecha de Vencimiento</label>
+          <input type="date" [(ngModel)]="newDoc.fechaVencimiento" />
+        </div>
+      }
+      @if (tipoActual() === 'legales') {
+        <div class="form-group">
+          <label>Categoría</label>
+          <select [(ngModel)]="newDoc.categoria">
+            @for (cat of categorias; track cat.value) {
+              <option [value]="cat.value">{{ cat.label }}</option>
+            }
+          </select>
+        </div>
+      }
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarDocModal()">Cancelar</button>
+        <button class="btn-primary" (click)="guardarDoc()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showQRModal()) {
+  <div class="modal-overlay" (click)="cerrarQR()">
+    <div class="qr-modal" (click)="$event.stopPropagation()">
+      <div class="qr-modal-header">
+        <h3>Subir desde móvil</h3>
+        <button class="close-btn" (click)="cerrarQR()">✕</button>
+      </div>
+      <div class="qr-modal-body">
+        @if (qrFotoRecibida()) {
+          <div class="qr-success">
+            <div class="success-icon">✓</div>
+            <p>¡Foto recibida exitosamente!</p>
+            <p class="success-subtitle">Actualizando...</p>
+          </div>
+        } @else {
+          <p>Escanea este código QR con tu celular para subir una foto</p>
+          @if (qrCodeData()) {
+            <img [src]="qrCodeData()" alt="QR Code" class="qr-code-image">
+          } @else {
+            <div class="qr-loading">Generando código QR...</div>
+          }
+          <p class="qr-expire">Expira: {{ qrExpiracion() | date:'HH:mm:ss' }}</p>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (showImageViewer()) {
+  <div class="image-viewer-overlay" (click)="cerrarImageViewer()">
+    <div class="image-viewer" (click)="$event.stopPropagation()">
+      <button class="viewer-close" (click)="cerrarImageViewer()">✕</button>
+      <button class="viewer-nav viewer-prev" (click)="imagenAnterior()" [disabled]="imagenViewerIndex() === 0">‹</button>
+      <img [src]="imagenesActuales()[imagenViewerIndex()]" alt="Vista previa">
+      <button class="viewer-nav viewer-next" (click)="imagenSiguiente()" [disabled]="imagenViewerIndex() >= imagenesActuales().length - 1">›</button>
+      <div class="viewer-counter">{{ imagenViewerIndex() + 1 }} / {{ imagenesActuales().length }}</div>
+    </div>
+  </div>
+}

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -20,27 +20,27 @@ interface Documento {
   templateUrl: './galeria.html',
   styleUrl: './galeria.css',
 })
-export class Galeria implements OnInit {
+export class Galeria {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
 
-  tipoActual = signal<'temporales' | 'legales' | null>(null);
-  documentos = signal<Documento[]>([]);
-  showModal = signal(false);
-  showDocModal = signal(false);
-  showQRModal = signal(false);
-  showImageViewer = signal(false);
+  tipoActual: 'temporales' | 'legales' | null = null;
+  documentos: Documento[] = [];
+  showModal = false;
+  showDocModal = false;
+  showQRModal = false;
+  showImageViewer = false;
 
-  docSeleccionado = signal<Documento | null>(null);
-  imagenesActuales = signal<string[]>([]);
-  imagenViewerIndex = signal(0);
+  docSeleccionado: Documento | null = null;
+  imagenesActuales: string[] = [];
+  imagenViewerIndex = 0;
 
-  qrCodeData = signal('');
-  qrExpiracion = signal('');
-  qrFotoRecibida = signal(false);
+  qrCodeData = '';
+  qrExpiracion = '';
+  qrFotoRecibida = false;
   qrInterval: any = null;
 
-  editando = signal<Documento | null>(null);
+  editando: Documento | null = null;
   newDoc = { nombre: '', descripcion: '', fechaVencimiento: '', categoria: 'otro' };
 
   categorias = [
@@ -52,29 +52,36 @@ export class Galeria implements OnInit {
     { value: 'otro', label: 'Otros' },
   ];
 
-  ngOnInit() {}
-
   abrirGaleria(tipo: 'temporales' | 'legales') {
-    this.tipoActual.set(tipo);
+    this.tipoActual = tipo;
+    this.showModal = true;
     this.loadDocumentos(tipo);
-    this.showModal.set(true);
+    this.cdr.detectChanges();
   }
 
   cerrarModal() {
-    this.showModal.set(false);
-    this.tipoActual.set(null);
-    this.documentos.set([]);
+    this.showModal = false;
+    this.tipoActual = null;
+    this.documentos = [];
+    this.docSeleccionado = null;
+    this.cdr.detectChanges();
   }
 
   loadDocumentos(tipo: string) {
     this.http.get<Documento[]>(`/api/galeria/${tipo}`).subscribe({
-      next: (data) => this.documentos.set(data),
-      error: (err) => console.error('Error cargando documentos:', err),
+      next: (data) => {
+        this.documentos = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando documentos:', err);
+        this.cdr.detectChanges();
+      },
     });
   }
 
   getTitulo(): string {
-    return this.tipoActual() === 'temporales' ? 'Documentos Temporales' : 'Documentos Legales';
+    return this.tipoActual === 'temporales' ? 'Documentos Temporales' : 'Documentos Legales';
   }
 
   estaVencido(doc: Documento): boolean {
@@ -92,21 +99,23 @@ export class Galeria implements OnInit {
   }
 
   abrirNuevoDoc() {
-    this.editando.set(null);
+    this.editando = null;
     this.newDoc = { nombre: '', descripcion: '', fechaVencimiento: '', categoria: 'otro' };
-    this.showDocModal.set(true);
+    this.showDocModal = true;
+    this.cdr.detectChanges();
   }
 
   cerrarDocModal() {
-    this.showDocModal.set(false);
-    this.editando.set(null);
+    this.showDocModal = false;
+    this.editando = null;
+    this.cdr.detectChanges();
   }
 
   guardarDoc() {
     if (!this.newDoc.nombre.trim()) return;
-    const tipo = this.tipoActual()!;
-    if (this.editando()) {
-      this.http.put(`/api/galeria/${tipo}/${this.editando()!._id}`, this.newDoc).subscribe({
+    const tipo = this.tipoActual!;
+    if (this.editando) {
+      this.http.put(`/api/galeria/${tipo}/${this.editando._id}`, this.newDoc).subscribe({
         next: () => { this.loadDocumentos(tipo); this.cerrarDocModal(); },
         error: (err) => console.error('Error actualizando:', err),
       });
@@ -120,20 +129,21 @@ export class Galeria implements OnInit {
 
   editarDoc(doc: Documento, e: Event) {
     e.stopPropagation();
-    this.editando.set(doc);
+    this.editando = doc;
     this.newDoc = {
       nombre: doc.nombre,
       descripcion: doc.descripcion || '',
       fechaVencimiento: doc.fechaVencimiento ? new Date(doc.fechaVencimiento).toISOString().split('T')[0] : '',
       categoria: doc.categoria || 'otro',
     };
-    this.showDocModal.set(true);
+    this.showDocModal = true;
+    this.cdr.detectChanges();
   }
 
   eliminarDoc(doc: Documento, e: Event) {
     e.stopPropagation();
     if (!confirm(`¿Eliminar "${doc.nombre}"?`)) return;
-    const tipo = this.tipoActual()!;
+    const tipo = this.tipoActual!;
     this.http.delete(`/api/galeria/${tipo}/${doc._id}`).subscribe({
       next: () => this.loadDocumentos(tipo),
       error: (err) => console.error('Error eliminando:', err),
@@ -141,10 +151,11 @@ export class Galeria implements OnInit {
   }
 
   abrirDocImagenes(doc: Documento) {
-    this.docSeleccionado.set(doc);
-    this.imagenesActuales.set(doc.imagenes ? [...doc.imagenes] : []);
-    this.showQRModal.set(false);
-    this.qrFotoRecibida.set(false);
+    this.docSeleccionado = doc;
+    this.imagenesActuales = doc.imagenes ? [...doc.imagenes] : [];
+    this.showQRModal = false;
+    this.qrFotoRecibida = false;
+    this.cdr.detectChanges();
   }
 
   cerrarDocImagenes() {
@@ -152,9 +163,10 @@ export class Galeria implements OnInit {
       clearInterval(this.qrInterval);
       this.qrInterval = null;
     }
-    this.docSeleccionado.set(null);
-    this.imagenesActuales.set([]);
-    this.showQRModal.set(false);
+    this.docSeleccionado = null;
+    this.imagenesActuales = [];
+    this.showQRModal = false;
+    this.cdr.detectChanges();
   }
 
   agregarFoto() {
@@ -180,7 +192,7 @@ export class Galeria implements OnInit {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.capture = 'environment';
+    input.capture = 'environment' as any;
     input.onchange = (e: any) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -211,49 +223,50 @@ export class Galeria implements OnInit {
   }
 
   private subirImagen(base64: string) {
-    const doc = this.docSeleccionado();
-    const tipo = this.tipoActual()!;
+    const doc = this.docSeleccionado;
+    const tipo = this.tipoActual!;
     if (!doc) return;
     this.http.post(`/api/galeria/${tipo}/${doc._id}/upload`, { imagen: base64 }).subscribe({
       next: () => {
-        this.imagenesActuales.update(imgs => [...imgs, base64]);
+        this.imagenesActuales = [...this.imagenesActuales, base64];
         this.loadDocumentos(tipo);
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error subiendo imagen:', err),
     });
   }
 
   abrirQR() {
-    const doc = this.docSeleccionado();
-    const tipo = this.tipoActual()!;
+    const doc = this.docSeleccionado;
+    const tipo = this.tipoActual!;
     if (!doc) return;
-    this.qrCodeData.set('');
-    this.qrExpiracion.set('');
-    this.qrFotoRecibida.set(false);
-    this.showQRModal.set(true);
+    this.qrCodeData = '';
+    this.qrExpiracion = '';
+    this.qrFotoRecibida = false;
+    this.showQRModal = true;
     this.cdr.detectChanges();
 
-    const imagenesIniciales = [...this.imagenesActuales()];
+    const imagenesIniciales = [...this.imagenesActuales];
 
     this.http.post<{ qrCode: string; uploadUrl: string; expiresAt: string }>(`/api/galeria/${tipo}/generate-qr`, {
       docId: doc._id
     }).subscribe({
       next: (res) => {
-        this.qrCodeData.set(res.qrCode);
-        this.qrExpiracion.set(res.expiresAt);
+        this.qrCodeData = res.qrCode;
+        this.qrExpiracion = res.expiresAt;
         this.cdr.detectChanges();
 
         this.qrInterval = setInterval(() => {
           this.http.get<{ imagenes: string[] }>(`/api/galeria/${tipo}/imagenes/${doc._id}`).subscribe({
             next: (pollRes) => {
               if (pollRes.imagenes && pollRes.imagenes.length > imagenesIniciales.length) {
-                this.qrFotoRecibida.set(true);
+                this.qrFotoRecibida = true;
                 this.cdr.detectChanges();
                 clearInterval(this.qrInterval);
                 this.qrInterval = null;
                 setTimeout(() => {
-                  this.imagenesActuales.set(pollRes.imagenes);
-                  this.showQRModal.set(false);
+                  this.imagenesActuales = pollRes.imagenes;
+                  this.showQRModal = false;
                   this.loadDocumentos(tipo);
                   this.cdr.detectChanges();
                 }, 2000);
@@ -266,7 +279,8 @@ export class Galeria implements OnInit {
       error: (err) => {
         console.error('Error generating QR:', err);
         alert('Error al generar código QR');
-        this.showQRModal.set(false);
+        this.showQRModal = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -276,37 +290,43 @@ export class Galeria implements OnInit {
       clearInterval(this.qrInterval);
       this.qrInterval = null;
     }
-    this.showQRModal.set(false);
+    this.showQRModal = false;
+    this.cdr.detectChanges();
   }
 
   eliminarImagen(index: number) {
     if (!confirm('¿Eliminar esta imagen?')) return;
-    const doc = this.docSeleccionado();
-    const tipo = this.tipoActual()!;
+    const doc = this.docSeleccionado;
+    const tipo = this.tipoActual!;
     if (!doc) return;
     this.http.delete(`/api/galeria/${tipo}/imagenes/${doc._id}/${index}`).subscribe({
       next: () => {
-        this.imagenesActuales.update(imgs => imgs.filter((_, i) => i !== index));
+        this.imagenesActuales = this.imagenesActuales.filter((_, i) => i !== index);
         this.loadDocumentos(tipo);
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error eliminando imagen:', err),
     });
   }
 
   verImagen(index: number) {
-    this.imagenViewerIndex.set(index);
-    this.showImageViewer.set(true);
+    this.imagenViewerIndex = index;
+    this.showImageViewer = true;
+    this.cdr.detectChanges();
   }
 
   cerrarImageViewer() {
-    this.showImageViewer.set(false);
+    this.showImageViewer = false;
+    this.cdr.detectChanges();
   }
 
   imagenAnterior() {
-    this.imagenViewerIndex.update(i => Math.max(0, i - 1));
+    this.imagenViewerIndex = Math.max(0, this.imagenViewerIndex - 1);
+    this.cdr.detectChanges();
   }
 
   imagenSiguiente() {
-    this.imagenViewerIndex.update(i => Math.min(this.imagenesActuales().length - 1, i + 1));
+    this.imagenViewerIndex = Math.min(this.imagenesActuales.length - 1, this.imagenViewerIndex + 1);
+    this.cdr.detectChanges();
   }
 }

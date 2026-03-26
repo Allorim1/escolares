@@ -39,6 +39,7 @@ export class Admin {
         { label: 'Facturación', route: 'facturacion' },
         { label: 'Cuentas por Pagar', route: 'cuentas-por-pagar' },
         { label: 'Retenciones', route: 'retenciones' },
+        { label: 'Galería', route: 'galeria' },
       ]
     },
 {

@@ -1,0 +1,14 @@
+<div class="galeria-container">
+  <h2>Galería de Documentos</h2>
+  <p class="galeria-subtitle">Seleccione una categoría para ver y administrar sus documentos</p>
+
+  <div class="subcategorias-grid">
+    @for (sub of subcategorias; track sub.route) {
+      <a [routerLink]="sub.route" class="subcategoria-card">
+        <span class="subcategoria-icon">{{ sub.icon }}</span>
+        <h3>{{ sub.label }}</h3>
+        <p>{{ sub.descripcion }}</p>
+      </a>
+    }
+  </div>
+</div>

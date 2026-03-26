@@ -206,11 +206,24 @@ export class Galeria {
   }
 
   abrirQRDoc() {
-    const docId = this.editando?._id || '';
-    if (!docId) {
-      alert('Primero guarda el documento para usar QR');
-      return;
+    if (this.editando) {
+      this.generarQRParaDoc(this.editando._id!);
+    } else {
+      if (!this.newDoc.nombre.trim()) {
+        alert('Primero ingresa un nombre para el documento');
+        return;
+      }
+      this.http.post<any>(`/api/galeria/${this.tipoActual}`, this.newDoc).subscribe({
+        next: (doc) => {
+          this.editando = doc;
+          this.generarQRParaDoc(doc._id);
+        },
+        error: () => alert('Error al crear documento'),
+      });
     }
+  }
+
+  private generarQRParaDoc(docId: string) {
     this.qrCodeData = '';
     this.qrExpiracion = '';
     this.qrFotoRecibida = false;

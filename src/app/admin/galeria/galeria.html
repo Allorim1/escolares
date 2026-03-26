@@ -98,9 +98,7 @@
         <div class="doc-imagenes-actions">
           <button class="btn-action" (click)="agregarFotoDoc()">📁 Agregar</button>
           <button class="btn-action" (click)="abrirCamaraDoc()">📷 Cámara</button>
-          @if (editando) {
-            <button class="btn-action btn-qr" (click)="abrirQRDoc()">📱 QR</button>
-          }
+          <button class="btn-action btn-qr" (click)="abrirQRDoc()">📱 QR</button>
         </div>
         @if (newDoc.imagenes.length > 0) {
           <div class="miniaturas-grid">

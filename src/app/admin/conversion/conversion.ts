@@ -30,8 +30,8 @@ interface FilaResultado {
   styleUrl: './conversion.css',
 })
 export class Conversion {
-  ventasFile = signal<File | null>(null);
-  tasasFile = signal<File | null>(null);
+  ventasFile = signal<any[][] | null>(null);
+  tasasFile = signal<any[][] | null>(null);
   ventasNombre = signal('');
   tasasNombre = signal('');
 

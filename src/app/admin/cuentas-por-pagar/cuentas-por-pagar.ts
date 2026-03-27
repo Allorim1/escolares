@@ -472,6 +472,11 @@ export class CuentasPorPagar implements OnInit {
       .filter(item => item.factura.facturaVinculadaIndex === facturaIndex);
   }
 
+  getProveedorPorId(id: string | null): Proveedor | undefined {
+    if (!id) return undefined;
+    return this.proveedores().find(p => p._id === id);
+  }
+
   guardarFactura() {
     const proveedorId = this.editingFactura?.proveedorId || this.proveedorIdActual;
     if (!proveedorId) return;

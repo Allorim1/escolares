@@ -616,7 +616,7 @@
                   <td>{{ item.factura.numero }}</td>
                   <td>{{ formatFecha(item.factura.fecha) }}</td>
                   <td>$ {{ item.factura.monto | number:'1.2-2' }}</td>
-                  <td class="deuda-cell">$ {{ formatMoneda(calcularDeudaFactura(item.factura, proveedores().find(p => p._id === proveedorIdActual))) }}</td>
+                  <td class="deuda-cell">$ {{ formatMoneda(calcularDeudaFactura(item.factura, getProveedorPorId(proveedorIdActual))) }}</td>
                   <td>
                     <button class="btn-small" (click)="seleccionarFacturaVinculada(item.index)">Seleccionar</button>
                   </td>
@@ -648,7 +648,7 @@
             <p><strong>Factura:</strong> {{ facturaConAbono.factura.numero }}</p>
             <p><strong>Total:</strong> $ {{ formatMoneda(facturaConAbono.factura.totalPagar || 0) }}</p>
             <p><strong>Abonado:</strong> $ {{ formatMoneda(facturaConAbono.factura.abonos || 0) }}</p>
-            <p><strong>Deuda:</strong> $ {{ formatMoneda(calcularDeudaFactura(facturaConAbono.factura, proveedores().find(p => p._id === facturaConAbono.proveedorId))) }}</p>
+            <p><strong>Deuda:</strong> $ {{ formatMoneda(calcularDeudaFactura(facturaConAbono.factura, getProveedorPorId(facturaConAbono.proveedorId))) }}</p>
           }
         </div>
         <div class="form-row">

@@ -24,7 +24,7 @@ export interface CuentaBancaria {
 export interface FacturaProveedor {
   numero: string;
   fecha: Date;
-  tipo: 'factura' | 'nota';
+  tipo: 'factura' | 'nota' | 'debito' | 'credito';
   monto: number;
   montoIva: number;
   baseImponible: number;
@@ -44,6 +44,7 @@ export interface FacturaProveedor {
   deudaIva: number;
   deudaIva25: number;
   imagenes?: string[];
+  facturaVinculadaIndex?: number;
 }
 
 export interface Proveedor {
@@ -138,6 +139,7 @@ export class CuentasPorPagar implements OnInit {
   showModalIva = false;
   showModalIva25 = false;
   showModalAbonoExito = false;
+  showModalFacturaVinculada = false;
   facturaAbonoExito: { numero: string; monto: number; deuda: number; proveedorId?: string; facturaIndex?: number } | null = null;
   editingProveedor: Proveedor | null = null;
   editingFactura: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
@@ -166,13 +168,14 @@ export class CuentasPorPagar implements OnInit {
   newFactura = {
     numero: '',
     fecha: '',
-    tipo: 'factura',
+    tipo: 'factura' as 'factura' | 'nota' | 'debito' | 'credito',
     monto: 0,
     montoIva: 0,
     baseImponible: 0,
     baseExenta: 0,
     porcentajeIva: 16,
     imagenes: [] as string[],
+    facturaVinculadaIndex: -1,
   };
 
   showCameraModal = false;
@@ -397,6 +400,7 @@ export class CuentasPorPagar implements OnInit {
         baseExenta: factura.baseExenta,
         porcentajeIva: factura.porcentajeIva || 16,
         imagenes: factura.imagenes || [],
+        facturaVinculadaIndex: factura.facturaVinculadaIndex ?? -1,
       };
     } else {
       this.editingFactura = null;
@@ -410,6 +414,7 @@ export class CuentasPorPagar implements OnInit {
         baseExenta: 0,
         porcentajeIva: 16,
         imagenes: [],
+        facturaVinculadaIndex: -1,
       };
     }
     this.showModalFactura = true;
@@ -419,6 +424,52 @@ export class CuentasPorPagar implements OnInit {
     this.showModalFactura = false;
     this.editingFactura = null;
     this.proveedorIdActual = null;
+  }
+
+  abrirModalFacturaVinculada() {
+    if (!this.proveedorIdActual) return;
+    this.showModalFacturaVinculada = true;
+  }
+
+  cerrarModalFacturaVinculada() {
+    this.showModalFacturaVinculada = false;
+  }
+
+  seleccionarFacturaVinculada(index: number) {
+    this.newFactura.facturaVinculadaIndex = index;
+    this.showModalFacturaVinculada = false;
+  }
+
+  getFacturasDisponiblesParaVincular(): { index: number; factura: FacturaProveedor }[] {
+    if (!this.proveedorIdActual) return [];
+    const proveedor = this.proveedores().find(p => p._id === this.proveedorIdActual);
+    if (!proveedor || !proveedor.facturas) return [];
+    const editIndex = this.editingFactura?.index ?? -1;
+    return proveedor.facturas
+      .map((f, i) => ({ index: i, factura: f }))
+      .filter(item => item.factura.tipo === 'factura' || item.factura.tipo === 'debito')
+      .filter(item => (item.factura.facturaVinculadaIndex === undefined || item.factura.facturaVinculadaIndex < 0))
+      .filter(item => item.index !== editIndex);
+  }
+
+  getNombreFacturaVinculada(): string {
+    if (this.newFactura.facturaVinculadaIndex < 0 || !this.proveedorIdActual) return '';
+    const proveedor = this.proveedores().find(p => p._id === this.proveedorIdActual);
+    if (!proveedor || !proveedor.facturas) return '';
+    const factura = proveedor.facturas[this.newFactura.facturaVinculadaIndex];
+    if (!factura) return '';
+    return `N° ${factura.numero} - $${this.formatMoneda(factura.monto)}`;
+  }
+
+  quitarFacturaVinculada() {
+    this.newFactura.facturaVinculadaIndex = -1;
+  }
+
+  getNotasVinculadas(proveedor: Proveedor, facturaIndex: number): { index: number; factura: FacturaProveedor }[] {
+    if (!proveedor.facturas) return [];
+    return proveedor.facturas
+      .map((f, i) => ({ index: i, factura: f }))
+      .filter(item => item.factura.facturaVinculadaIndex === facturaIndex);
   }
 
   guardarFactura() {
@@ -468,7 +519,8 @@ export class CuentasPorPagar implements OnInit {
   }
 
   abrirModalAbono(proveedorId: string, index: number, factura: FacturaProveedor) {
-    if (this.calcularDeudaFactura(factura) <= 0) {
+    const proveedor = this.proveedores().find(p => p._id === proveedorId);
+    if (this.calcularDeudaFactura(factura, proveedor) <= 0) {
       return;
     }
     this.facturaConAbono = { proveedorId, index, factura };
@@ -748,18 +800,39 @@ export class CuentasPorPagar implements OnInit {
 
   calcularDeuda(proveedor: Proveedor): number {
     return proveedor.facturas?.reduce((sum, f) => {
-      if (f.tipo === 'nota') {
-        return sum + ((f.monto || 0) - (f.abonos || 0));
-      }
-      return sum + ((f.monto || 0) + (f.baseExenta || 0) - (f.abonos || 0));
+      return sum + this.calcularDeudaFactura(f, proveedor);
     }, 0) || 0;
   }
 
-  calcularDeudaFactura(factura: FacturaProveedor): number {
-    if (factura.tipo === 'nota') {
-      return (factura.monto || 0) - (factura.abonos || 0);
+  calcularDeudaFactura(factura: FacturaProveedor, proveedor?: Proveedor): number {
+    if (factura.facturaVinculadaIndex !== undefined && factura.facturaVinculadaIndex >= 0) {
+      return 0;
     }
-    return (factura.monto || 0) + (factura.baseExenta || 0) - (factura.abonos || 0);
+
+    let deudaBase: number;
+    if (factura.tipo === 'nota') {
+      deudaBase = (factura.monto || 0) - (factura.abonos || 0);
+    } else {
+      deudaBase = (factura.monto || 0) + (factura.baseExenta || 0) - (factura.abonos || 0);
+    }
+
+    if (proveedor && proveedor.facturas) {
+      const indiceFactura = proveedor.facturas.indexOf(factura);
+      if (indiceFactura >= 0) {
+        for (let i = 0; i < proveedor.facturas.length; i++) {
+          const nota = proveedor.facturas[i];
+          if (nota.facturaVinculadaIndex === indiceFactura) {
+            if (nota.tipo === 'debito') {
+              deudaBase -= (nota.monto || 0);
+            } else if (nota.tipo === 'credito') {
+              deudaBase += (nota.monto || 0);
+            }
+          }
+        }
+      }
+    }
+
+    return deudaBase;
   }
 
   calcularTotalBaseImponible(proveedor: Proveedor): number {

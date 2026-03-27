@@ -198,8 +198,15 @@
                         <td>
                           @if (factura.tipo === 'nota') {
                             <span class="badge-nota">NOTA</span>
+                          } @else if (factura.tipo === 'debito') {
+                            <span class="badge-debito">DÉBITO</span>
+                          } @else if (factura.tipo === 'credito') {
+                            <span class="badge-credito">CRÉDITO</span>
                           } @else {
                             <span class="badge-factura">FACTURA</span>
+                          }
+                          @if (factura.facturaVinculadaIndex !== undefined && factura.facturaVinculadaIndex >= 0 && proveedor.facturas[factura.facturaVinculadaIndex]) {
+                            <span class="vinculada-indicator" title="Vinculada a factura N° {{ proveedor.facturas[factura.facturaVinculadaIndex].numero }}">🔗</span>
                           }
                         </td>
                         <td>{{ factura.numero }}</td>
@@ -207,7 +214,7 @@
                         <td>$ {{ factura.monto | number:'1.2-2' }}</td>
                         <td>$ {{ (factura.baseExenta || 0) | number:'1.2-2' }}</td>
                         <td>Bs {{ formatMoneda(factura.iva || 0) }}</td>
-                        @if (factura.tipo === 'factura') {
+                        @if (factura.tipo === 'factura' || factura.tipo === 'debito') {
                           <td>
                             @let ivaColor = getIvaColor(factura);
                             <span class="iva-status-circle" 
@@ -220,16 +227,16 @@
                         } @else {
                           <td></td>
                         }
-                        <td class="deuda-cell">$ {{ formatMoneda(calcularDeudaFactura(factura)) }}</td>
+                        <td class="deuda-cell">$ {{ formatMoneda(calcularDeudaFactura(factura, proveedor)) }}</td>
                         <td>
-                          @if (calcularDeudaFactura(factura) === 0) {
+                          @if (calcularDeudaFactura(factura, proveedor) === 0) {
                             <span class="badge-pagada">Pagada</span>
                           } @else {
                             <span class="badge-pendiente">Pendiente</span>
                           }
                         </td>
                         <td>
-                          <button class="btn-abono" (click)="abrirModalAbono(proveedor._id || '', $index, factura); $event.stopPropagation()" title="Agregar Abono" [disabled]="calcularDeudaFactura(factura) === 0">+ Abono</button>
+                          <button class="btn-abono" (click)="abrirModalAbono(proveedor._id || '', $index, factura); $event.stopPropagation()" title="Agregar Abono" [disabled]="calcularDeudaFactura(factura, proveedor) === 0">+ Abono</button>
                           <button class="btn-icon-small" (click)="eliminarFactura(proveedor._id || '', $index); $event.stopPropagation()" title="Eliminar">🗑️</button>
                         </td>
                       </tr>
@@ -463,9 +470,11 @@
         <div class="form-row">
           <div class="form-group">
             <label>Tipo</label>
-            <select [(ngModel)]="newFactura.tipo" class="input-tipo">
+            <select [(ngModel)]="newFactura.tipo" class="input-tipo" (ngModelChange)="newFactura.facturaVinculadaIndex = -1">
               <option value="factura">Factura</option>
               <option value="nota">Nota</option>
+              <option value="debito">Nota de Débito</option>
+              <option value="credito">Nota de Crédito</option>
             </select>
           </div>
           <div class="form-group">
@@ -477,7 +486,20 @@
             <input type="date" [(ngModel)]="newFactura.fecha" />
           </div>
         </div>
-        @if (newFactura.tipo === 'factura') {
+        @if (newFactura.tipo === 'debito' || newFactura.tipo === 'credito') {
+          <div class="vincular-factura-section">
+            <label>Factura vinculada</label>
+            @if (newFactura.facturaVinculadaIndex >= 0) {
+              <div class="factura-vinculada-info">
+                <span class="vinculada-badge">Vinculada a: {{ getNombreFacturaVinculada() }}</span>
+                <button class="btn-remove-vinculada" (click)="quitarFacturaVinculada()">✕</button>
+              </div>
+            } @else {
+              <button class="btn-vincular" (click)="abrirModalFacturaVinculada()">+ Seleccionar Factura</button>
+            }
+          </div>
+        }
+        @if (newFactura.tipo === 'factura' || newFactura.tipo === 'debito') {
           <div class="form-row">
             <div class="form-group">
               <label>Monto ($)</label>
@@ -495,7 +517,7 @@
             </div>
           </div>
         }
-        @if (newFactura.tipo === 'nota') {
+        @if (newFactura.tipo === 'nota' || newFactura.tipo === 'credito') {
           <div class="form-row">
             <div class="form-group">
               <label>Monto ($)</label>
@@ -503,7 +525,7 @@
             </div>
           </div>
         }
-        @if (newFactura.tipo === 'factura' && (newFactura.monto > 0 || newFactura.montoIva > 0 || newFactura.baseExenta > 0)) {
+        @if ((newFactura.tipo === 'factura' || newFactura.tipo === 'debito') && (newFactura.monto > 0 || newFactura.montoIva > 0 || newFactura.baseExenta > 0)) {
           <div class="factura-preview">
             <div class="preview-row">
               <span>Monto:</span>
@@ -519,7 +541,7 @@
             </div>
           </div>
         }
-        @if (newFactura.tipo === 'nota' && newFactura.monto > 0) {
+        @if ((newFactura.tipo === 'nota' || newFactura.tipo === 'credito') && newFactura.monto > 0) {
           <div class="factura-preview">
             <div class="preview-row">
               <span>Monto:</span>
@@ -561,6 +583,58 @@
   </div>
 }
 
+@if (showModalFacturaVinculada) {
+  <div class="modal-overlay">
+    <div class="modal-content modal-factura-vinculada" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Seleccionar Factura</h3>
+        <button class="close-btn" (click)="cerrarModalFacturaVinculada()">✕</button>
+      </div>
+      <div class="modal-body">
+        @if (getFacturasDisponiblesParaVincular().length > 0) {
+          <table class="facturas-vinculada-table">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Número</th>
+                <th>Fecha</th>
+                <th>Monto</th>
+                <th>Deuda</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of getFacturasDisponiblesParaVincular(); track item.index) {
+                <tr>
+                  <td>
+                    @if (item.factura.tipo === 'debito') {
+                      <span class="badge-debito">DÉBITO</span>
+                    } @else {
+                      <span class="badge-factura">FACTURA</span>
+                    }
+                  </td>
+                  <td>{{ item.factura.numero }}</td>
+                  <td>{{ formatFecha(item.factura.fecha) }}</td>
+                  <td>$ {{ item.factura.monto | number:'1.2-2' }}</td>
+                  <td class="deuda-cell">$ {{ formatMoneda(calcularDeudaFactura(item.factura, proveedores().find(p => p._id === proveedorIdActual))) }}</td>
+                  <td>
+                    <button class="btn-small" (click)="seleccionarFacturaVinculada(item.index)">Seleccionar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="no-facturas">No hay facturas disponibles para vincular</p>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="cerrarModalFacturaVinculada()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+}
+
 @if (showModalAbono) {
   <div class="modal-overlay">
     <div class="modal-content" (click)="$event.stopPropagation()">
@@ -574,7 +648,7 @@
             <p><strong>Factura:</strong> {{ facturaConAbono.factura.numero }}</p>
             <p><strong>Total:</strong> $ {{ formatMoneda(facturaConAbono.factura.totalPagar || 0) }}</p>
             <p><strong>Abonado:</strong> $ {{ formatMoneda(facturaConAbono.factura.abonos || 0) }}</p>
-            <p><strong>Deuda:</strong> $ {{ formatMoneda(calcularDeudaFactura(facturaConAbono.factura)) }}</p>
+            <p><strong>Deuda:</strong> $ {{ formatMoneda(calcularDeudaFactura(facturaConAbono.factura, proveedores().find(p => p._id === facturaConAbono.proveedorId))) }}</p>
           }
         </div>
         <div class="form-row">
@@ -647,6 +721,10 @@
               <td>
                 @if (facturaDetalle.factura.tipo === 'nota') {
                   <span class="badge-nota">NOTA</span>
+                } @else if (facturaDetalle.factura.tipo === 'debito') {
+                  <span class="badge-debito">NOTA DE DÉBITO</span>
+                } @else if (facturaDetalle.factura.tipo === 'credito') {
+                  <span class="badge-credito">NOTA DE CRÉDITO</span>
                 } @else {
                   <span class="badge-factura">FACTURA</span>
                 }
@@ -655,7 +733,7 @@
               <td>$ {{ (facturaDetalle.factura.baseExenta || 0) | number:'1.2-2' }}</td>
               <td>Bs {{ formatMoneda(facturaDetalle.factura.iva || 0) }}</td>
               <td>-$ {{ formatMoneda(facturaDetalle.factura.abonos) }}</td>
-              <td><strong>$ {{ formatMoneda(calcularDeudaFactura(facturaDetalle.factura)) }}</strong></td>
+              <td><strong>$ {{ formatMoneda(calcularDeudaFactura(facturaDetalle.factura, facturaDetalle.proveedor)) }}</strong></td>
             </tr>
           </tbody>
         </table>
@@ -681,6 +759,46 @@
                     <td class="abono-actions">
                       <button class="btn-edit-abono" (click)="editarAbono(facturaDetalle.proveedor._id || '', facturaDetalle.index, $index, abono)" title="Editar">✏️</button>
                       <button class="btn-delete-abono" (click)="eliminarAbono(facturaDetalle.proveedor._id || '', facturaDetalle.index, $index)" title="Eliminar">🗑️</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (getNotasVinculadas(facturaDetalle.proveedor, facturaDetalle.index).length > 0) {
+          <div class="notas-vinculadas-detalle">
+            <h5>Notas Vinculadas</h5>
+            <table class="cotizacion-table">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Número</th>
+                  <th>Fecha</th>
+                  <th>Monto</th>
+                  <th>Efecto</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of getNotasVinculadas(facturaDetalle.proveedor, facturaDetalle.index); track item.index) {
+                  <tr>
+                    <td>
+                      @if (item.factura.tipo === 'debito') {
+                        <span class="badge-debito">DÉBITO</span>
+                      } @else {
+                        <span class="badge-credito">CRÉDITO</span>
+                      }
+                    </td>
+                    <td>{{ item.factura.numero }}</td>
+                    <td>{{ formatFecha(item.factura.fecha) }}</td>
+                    <td>$ {{ item.factura.monto | number:'1.2-2' }}</td>
+                    <td>
+                      @if (item.factura.tipo === 'debito') {
+                        <span class="efecto-resta">- $ {{ formatMoneda(item.factura.monto) }}</span>
+                      } @else {
+                        <span class="efecto-suma">+ $ {{ formatMoneda(item.factura.monto) }}</span>
+                      }
                     </td>
                   </tr>
                 }

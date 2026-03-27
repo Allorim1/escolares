@@ -549,6 +549,24 @@
   font-weight: 600;
 }
 
+.badge-debito {
+  background: #e96d02;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.badge-credito {
+  background: #6f42c1;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
 .badge-pendiente {
   background: #ffc107;
   color: #333;
@@ -2405,4 +2423,117 @@
   margin-top: 0.8rem;
   padding: 0.7rem 2rem;
   font-size: 1rem;
+}
+
+.vincular-factura-section {
+  background: #f0f4ff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid #d0d8f0;
+}
+
+.vincular-factura-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #1d63c1;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.btn-vincular {
+  background: #1d63c1;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.btn-vincular:hover {
+  background: #155a9e;
+}
+
+.factura-vinculada-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vinculada-badge {
+  background: #28a745;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.btn-remove-vinculada {
+  background: #dc3545;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove-vinculada:hover {
+  background: #c82333;
+}
+
+.modal-factura-vinculada {
+  max-width: 700px;
+}
+
+.facturas-vinculada-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.facturas-vinculada-table th,
+.facturas-vinculada-table td {
+  padding: 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.facturas-vinculada-table th {
+  background: #f8f9fa;
+  color: #333;
+  font-weight: 600;
+}
+
+.notas-vinculadas-detalle {
+  margin-top: 1rem;
+}
+
+.notas-vinculadas-detalle h5 {
+  margin: 0 0 0.8rem 0;
+  color: #1d63c1;
+}
+
+.efecto-resta {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.efecto-suma {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.vinculada-indicator {
+  margin-left: 0.3rem;
+  font-size: 0.75rem;
+  cursor: help;
+  vertical-align: middle;
 }

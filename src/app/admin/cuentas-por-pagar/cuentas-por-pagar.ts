@@ -137,6 +137,8 @@ export class CuentasPorPagar implements OnInit {
   showModalDetalleFactura = false;
   showModalIva = false;
   showModalIva25 = false;
+  showModalAbonoExito = false;
+  facturaAbonoExito: { numero: string; monto: number; deuda: number } | null = null;
   editingProveedor: Proveedor | null = null;
   editingFactura: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
   proveedorIdActual: string | null = null;
@@ -466,6 +468,9 @@ export class CuentasPorPagar implements OnInit {
   }
 
   abrirModalAbono(proveedorId: string, index: number, factura: FacturaProveedor) {
+    if (this.calcularDeudaFactura(factura) <= 0) {
+      return;
+    }
     this.facturaConAbono = { proveedorId, index, factura };
     this.newAbono = {
       monto: 0,
@@ -585,8 +590,15 @@ export class CuentasPorPagar implements OnInit {
       .post(`${this.API}/${this.facturaConAbono.proveedorId}/facturas/${this.facturaConAbono.index}/abonos`, this.newAbono)
       .subscribe({
         next: () => {
-          this.loadProveedores();
+          const montoAbono = this.newAbono.monto;
+          const numeroFactura = this.facturaConAbono?.factura.numero || '';
           this.cerrarModalAbono();
+          this.facturaAbonoExito = {
+            numero: numeroFactura,
+            monto: montoAbono,
+            deuda: 0
+          };
+          this.showModalAbonoExito = true;
         },
         error: (err) => {
           console.error('Error agregando abono:', err);
@@ -595,6 +607,12 @@ export class CuentasPorPagar implements OnInit {
           }
         },
       });
+  }
+
+  cerrarModalAbonoExito() {
+    this.showModalAbonoExito = false;
+    this.facturaAbonoExito = null;
+    this.loadProveedores();
   }
 
   editarAbono(proveedorId: string, facturaIndex: number, abonoIndex: number, abono: { monto: number; fecha: Date }) {

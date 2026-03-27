@@ -1088,3 +1088,15 @@
   </div>
 }
 
+@if (showModalAbonoExito && facturaAbonoExito) {
+  <div class="modal-overlay mini-modal-overlay">
+    <div class="mini-modal">
+      <div class="mini-modal-icon">✓</div>
+      <h3>Abono Registrado</h3>
+      <p>Se ha agregado un abono de <strong>$ {{ formatMoneda(facturaAbonoExito.monto) }}</strong></p>
+      <p class="mini-modal-factura">Factura N° {{ facturaAbonoExito.numero }}</p>
+      <button class="btn-primary mini-modal-btn" (click)="cerrarModalAbonoExito()">Aceptar</button>
+    </div>
+  </div>
+}
+

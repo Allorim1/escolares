@@ -2338,3 +2338,71 @@
 .iva-status-circle.iva-pendiente {
   background-color: #dc3545;
 }
+
+.mini-modal-overlay {
+  z-index: 1100;
+}
+
+.mini-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  max-width: 350px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  animation: miniModalIn 0.3s ease;
+}
+
+@keyframes miniModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mini-modal-icon {
+  width: 64px;
+  height: 64px;
+  background: #28a745;
+  color: white;
+  border-radius: 50%;
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.mini-modal h3 {
+  margin: 0 0 0.8rem 0;
+  color: #28a745;
+  font-size: 1.3rem;
+}
+
+.mini-modal p {
+  margin: 0.4rem 0;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.mini-modal p strong {
+  color: #1d63c1;
+  font-size: 1.1rem;
+}
+
+.mini-modal-factura {
+  color: #6c757d !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 1.2rem !important;
+}
+
+.mini-modal-btn {
+  margin-top: 0.8rem;
+  padding: 0.7rem 2rem;
+  font-size: 1rem;
+}

@@ -139,6 +139,9 @@ export class CuentasPorPagar implements OnInit {
   showModalIva = false;
   showModalIva25 = false;
   showModalAbonoExito = false;
+  showModalFotoExito = false;
+  showModalFotoAccion = false;
+  fotoAccionMensaje = '';
   showModalFacturaVinculada = false;
   facturaAbonoExito: { numero: string; monto: number; deuda: number; proveedorId?: string; facturaIndex?: number } | null = null;
   editingProveedor: Proveedor | null = null;
@@ -176,6 +179,7 @@ export class CuentasPorPagar implements OnInit {
     porcentajeIva: 16,
     imagenes: [] as string[],
     facturaVinculadaIndex: -1,
+    conIva: false,
   };
 
   showCameraModal = false;
@@ -401,6 +405,7 @@ export class CuentasPorPagar implements OnInit {
         porcentajeIva: factura.porcentajeIva || 16,
         imagenes: factura.imagenes || [],
         facturaVinculadaIndex: factura.facturaVinculadaIndex ?? -1,
+        conIva: (factura.montoIva || 0) > 0,
       };
     } else {
       this.editingFactura = null;
@@ -415,6 +420,7 @@ export class CuentasPorPagar implements OnInit {
         porcentajeIva: 16,
         imagenes: [],
         facturaVinculadaIndex: -1,
+        conIva: false,
       };
     }
     this.showModalFactura = true;
@@ -447,7 +453,7 @@ export class CuentasPorPagar implements OnInit {
     const editIndex = this.editingFactura?.index ?? -1;
     return proveedor.facturas
       .map((f, i) => ({ index: i, factura: f }))
-      .filter(item => item.factura.tipo === 'factura' || item.factura.tipo === 'debito')
+      .filter(item => item.factura.tipo === 'factura' || item.factura.tipo === 'nota')
       .filter(item => (item.factura.facturaVinculadaIndex === undefined || item.factura.facturaVinculadaIndex < 0))
       .filter(item => item.index !== editIndex);
   }
@@ -1216,22 +1222,10 @@ export class CuentasPorPagar implements OnInit {
       .put(`${this.API}/${proveedorId}/facturas/${facturaIndex}`, { imagenes })
       .subscribe({
         next: () => {
-          this.loadProveedores();
-          const fd = this.facturaDetalle;
-          if (fd) {
-            setTimeout(() => {
-              const proveedores = this.proveedores();
-              const prov = proveedores.find(p => p._id === fd.proveedor._id);
-              if (prov && prov.facturas && prov.facturas[fd.index]) {
-                this.facturaDetalle = {
-                  proveedor: prov,
-                  factura: prov.facturas[fd.index],
-                  index: fd.index
-                };
-                this.fotoViewerImagenes = prov.facturas[fd.index].imagenes || [];
-              }
-            }, 200);
-          }
+          this.actualizarDetalleTrasCambioFotos();
+          this.fotoAccionMensaje = 'Foto editada exitosamente';
+          this.showModalFotoAccion = true;
+          this.cdr.detectChanges();
         },
         error: (err) => console.error('Error guardando foto recortada:', err),
       });
@@ -1249,27 +1243,13 @@ export class CuentasPorPagar implements OnInit {
       .put(`${this.API}/${proveedorId}/facturas/${facturaIndex}`, { imagenes })
       .subscribe({
         next: () => {
-          this.loadProveedores();
-          const fd = this.facturaDetalle;
-          if (fd) {
-            const fdProveedorId = fd.proveedor._id;
-            const fdIndex = fd.index;
-            setTimeout(() => {
-              const proveedores = this.proveedores();
-              const prov = proveedores.find(p => p._id === fdProveedorId);
-              if (prov && prov.facturas && prov.facturas[fdIndex]) {
-                this.facturaDetalle = {
-                  proveedor: prov,
-                  factura: prov.facturas[fdIndex],
-                  index: fdIndex
-                };
-              }
-            }, 200);
+          this.actualizarDetalleTrasCambioFotos();
+          if (this.fotoViewerIndex >= imagenes.length) {
+            this.fotoViewerIndex = Math.max(0, imagenes.length - 1);
           }
-          this.fotoViewerImagenes = imagenes;
-          if (this.fotoViewerIndex >= this.fotoViewerImagenes.length) {
-            this.fotoViewerIndex = Math.max(0, this.fotoViewerImagenes.length - 1);
-          }
+          this.fotoAccionMensaje = 'Foto eliminada exitosamente';
+          this.showModalFotoAccion = true;
+          this.cdr.detectChanges();
         },
         error: (err) => console.error('Error eliminando foto:', err),
       });
@@ -1301,23 +1281,10 @@ export class CuentasPorPagar implements OnInit {
       .put(`${this.API}/${proveedorId}/facturas/${facturaIndex}`, { imagenes })
       .subscribe({
         next: () => {
-          this.loadProveedores();
-          const fd = this.facturaDetalle;
-          if (fd) {
-            const fdProveedorId = fd.proveedor._id;
-            const fdIndex = fd.index;
-            setTimeout(() => {
-              const proveedores = this.proveedores();
-              const prov = proveedores.find(p => p._id === fdProveedorId);
-              if (prov && prov.facturas && prov.facturas[fdIndex]) {
-                this.facturaDetalle = {
-                  proveedor: prov,
-                  factura: prov.facturas[fdIndex],
-                  index: fdIndex
-                };
-              }
-            }, 200);
-          }
+          this.actualizarDetalleTrasCambioFotos();
+          this.fotoAccionMensaje = 'Foto agregada exitosamente';
+          this.showModalFotoAccion = true;
+          this.cdr.detectChanges();
         },
         error: (err) => console.error('Error agregando foto:', err),
       });
@@ -1376,26 +1343,26 @@ export class CuentasPorPagar implements OnInit {
           
           if (res.imagenes && res.imagenes.length > this.qrImagenesIniciales.length) {
             console.log('Polling - Nueva foto detectada!');
+            if (this.qrInterval) {
+              clearInterval(this.qrInterval);
+              this.qrInterval = null;
+            }
             this.qrFotoRecibida = true;
+            this.showQRModal = false;
+            this.showModalFotoExito = true;
+            this.loadProveedores();
+            const fd = this.facturaDetalle;
+            if (fd) {
+              const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
+              if (prov && prov.facturas && prov.facturas[fd.index]) {
+                this.facturaDetalle = {
+                  proveedor: prov,
+                  factura: prov.facturas[fd.index],
+                  index: fd.index
+                };
+              }
+            }
             this.cdr.detectChanges();
-            setTimeout(() => {
-              this.cerrarQRModal();
-              this.loadProveedores();
-              setTimeout(() => {
-                const fd = this.facturaDetalle;
-                if (fd) {
-                  const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-                  if (prov && prov.facturas && prov.facturas[fd.index]) {
-                    this.facturaDetalle = {
-                      proveedor: prov,
-                      factura: prov.facturas[fd.index],
-                      index: fd.index
-                    };
-                    this.cdr.detectChanges();
-                  }
-                }
-              }, 300);
-            }, 2000);
           }
         },
         error: (err) => {
@@ -1403,6 +1370,38 @@ export class CuentasPorPagar implements OnInit {
         }
       });
     }, 2000);
+  }
+
+  cerrarModalFotoExito() {
+    this.showModalFotoExito = false;
+    this.qrFotoRecibida = false;
+  }
+
+  cerrarModalFotoAccion() {
+    this.showModalFotoAccion = false;
+    this.fotoAccionMensaje = '';
+  }
+
+  actualizarDetalleTrasCambioFotos() {
+    this.loadProveedores();
+    const fd = this.facturaDetalle;
+    if (fd) {
+      const fdProveedorId = fd.proveedor._id;
+      const fdIndex = fd.index;
+      setTimeout(() => {
+        const proveedores = this.proveedores();
+        const prov = proveedores.find(p => p._id === fdProveedorId);
+        if (prov && prov.facturas && prov.facturas[fdIndex]) {
+          this.facturaDetalle = {
+            proveedor: prov,
+            factura: prov.facturas[fdIndex],
+            index: fdIndex
+          };
+          this.fotoViewerImagenes = prov.facturas[fdIndex].imagenes || [];
+          this.cdr.detectChanges();
+        }
+      }, 200);
+    }
   }
 
   cerrarQRModal() {

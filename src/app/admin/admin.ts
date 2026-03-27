@@ -40,6 +40,7 @@ export class Admin {
         { label: 'Cuentas por Pagar', route: 'cuentas-por-pagar' },
         { label: 'Retenciones', route: 'retenciones' },
         { label: 'Galería', route: 'galeria' },
+        { label: 'Conversión', route: 'conversion' },
       ]
     },
 {

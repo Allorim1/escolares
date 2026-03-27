@@ -2537,3 +2537,20 @@
   cursor: help;
   vertical-align: middle;
 }
+
+.iva-toggle-section {
+  background: #f8f9fa;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.iva-toggle-section .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  margin: 0;
+}

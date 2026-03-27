@@ -138,7 +138,7 @@ export class CuentasPorPagar implements OnInit {
   showModalIva = false;
   showModalIva25 = false;
   showModalAbonoExito = false;
-  facturaAbonoExito: { numero: string; monto: number; deuda: number } | null = null;
+  facturaAbonoExito: { numero: string; monto: number; deuda: number; proveedorId?: string; facturaIndex?: number } | null = null;
   editingProveedor: Proveedor | null = null;
   editingFactura: { proveedorId: string; index: number; factura: FacturaProveedor } | null = null;
   proveedorIdActual: string | null = null;
@@ -592,11 +592,15 @@ export class CuentasPorPagar implements OnInit {
         next: () => {
           const montoAbono = this.newAbono.monto;
           const numeroFactura = this.facturaConAbono?.factura.numero || '';
+          const proveedorId = this.facturaConAbono?.proveedorId || '';
+          const facturaIndex = this.facturaConAbono?.index ?? -1;
           this.cerrarModalAbono();
           this.facturaAbonoExito = {
             numero: numeroFactura,
             monto: montoAbono,
-            deuda: 0
+            deuda: 0,
+            proveedorId,
+            facturaIndex
           };
           this.showModalAbonoExito = true;
         },
@@ -611,8 +615,13 @@ export class CuentasPorPagar implements OnInit {
 
   cerrarModalAbonoExito() {
     this.showModalAbonoExito = false;
+    const proveedorId = this.facturaAbonoExito?.proveedorId;
+    const facturaIndex = this.facturaAbonoExito?.facturaIndex;
     this.facturaAbonoExito = null;
     this.loadProveedores();
+    if (proveedorId && facturaIndex !== undefined && facturaIndex >= 0) {
+      this.actualizarFacturaDetalle(proveedorId, facturaIndex);
+    }
   }
 
   editarAbono(proveedorId: string, facturaIndex: number, abonoIndex: number, abono: { monto: number; fecha: Date }) {
@@ -625,7 +634,10 @@ export class CuentasPorPagar implements OnInit {
     this.http
       .put(`${this.API}/${proveedorId}/facturas/${facturaIndex}/abonos/${abonoIndex}`, { monto: parseFloat(nuevoMonto), fechaAbono: fecha })
       .subscribe({
-        next: () => this.loadProveedores(),
+        next: () => {
+          this.loadProveedores();
+          this.actualizarFacturaDetalle(proveedorId, facturaIndex);
+        },
         error: (err) => console.error('Error actualizando abono:', err),
       });
   }
@@ -636,9 +648,30 @@ export class CuentasPorPagar implements OnInit {
     this.http
       .delete(`${this.API}/${proveedorId}/facturas/${facturaIndex}/abonos/${abonoIndex}`)
       .subscribe({
-        next: () => this.loadProveedores(),
+        next: () => {
+          this.loadProveedores();
+          this.actualizarFacturaDetalle(proveedorId, facturaIndex);
+        },
         error: (err) => console.error('Error eliminando abono:', err),
       });
+  }
+
+  actualizarFacturaDetalle(proveedorId: string, facturaIndex: number) {
+    const fd = this.facturaDetalle;
+    if (fd && fd.proveedor._id === proveedorId && fd.index === facturaIndex) {
+      setTimeout(() => {
+        const proveedores = this.proveedores();
+        const prov = proveedores.find(p => p._id === proveedorId);
+        if (prov && prov.facturas && prov.facturas[facturaIndex]) {
+          this.facturaDetalle = {
+            proveedor: prov,
+            factura: prov.facturas[facturaIndex],
+            index: facturaIndex
+          };
+          this.cdr.detectChanges();
+        }
+      }, 200);
+    }
   }
 
   editarAbonoIva(proveedorId: string, facturaIndex: number, abonoIndex: number, abono: { monto: number; fecha: Date }) {
@@ -654,6 +687,7 @@ export class CuentasPorPagar implements OnInit {
         next: () => {
           this.loadProveedores();
           this.actualizarFacturaIva();
+          this.actualizarFacturaDetalle(proveedorId, facturaIndex);
           this.cerrarModalIva();
         },
         error: (err) => console.error('Error actualizando abono IVA:', err),
@@ -669,6 +703,7 @@ export class CuentasPorPagar implements OnInit {
         next: () => {
           this.loadProveedores();
           this.actualizarFacturaIva();
+          this.actualizarFacturaDetalle(proveedorId, facturaIndex);
           this.cerrarModalIva();
         },
         error: (err) => console.error('Error eliminando abono IVA:', err),
@@ -688,6 +723,7 @@ export class CuentasPorPagar implements OnInit {
         next: () => {
           this.loadProveedores();
           this.actualizarFacturaIva25();
+          this.actualizarFacturaDetalle(proveedorId, facturaIndex);
           this.cerrarModalIva25();
         },
         error: (err) => console.error('Error actualizando abono IVA 25%:', err),
@@ -703,6 +739,7 @@ export class CuentasPorPagar implements OnInit {
         next: () => {
           this.loadProveedores();
           this.actualizarFacturaIva25();
+          this.actualizarFacturaDetalle(proveedorId, facturaIndex);
           this.cerrarModalIva25();
         },
         error: (err) => console.error('Error eliminando abono IVA 25%:', err),

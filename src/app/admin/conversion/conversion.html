@@ -12,7 +12,7 @@
       <p class="upload-desc">Histórico de ventas con fechas y totales</p>
       <label class="upload-btn">
         Seleccionar Archivo
-        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileSelect($event, 'ventas')" hidden>
+        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileVentas($event)" hidden>
       </label>
       @if (ventasNombre()) {
         <span class="file-name">{{ ventasNombre() }}</span>
@@ -21,69 +21,44 @@
 
     <div class="upload-card">
       <h3>💱 Archivo de Tasas</h3>
-      <p class="upload-desc">Histórico de tasas de cambio por fecha</p>
+      <p class="upload-desc">Excel donde cada hoja es una fecha y contiene la tasa USD</p>
       <label class="upload-btn">
         Seleccionar Archivo
-        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileSelect($event, 'tasas')" hidden>
+        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileTasas($event)" hidden>
       </label>
       @if (tasasNombre()) {
         <span class="file-name">{{ tasasNombre() }}</span>
+        <span class="file-info">Tasas encontradas: {{ tasasMap().size }}</span>
       }
     </div>
   </div>
 
-  @if (ventasColumnas().length > 0 || tasasColumnas().length > 0) {
+  @if (ventasColumnas().length > 0) {
     <div class="config-section">
-      <h3>Configurar Columnas</h3>
+      <h3>Configurar Columnas de Ventas</h3>
 
       <div class="config-row">
-        @if (ventasColumnas().length > 0) {
-          <div class="config-card">
-            <h4>Ventas</h4>
-            <div class="config-group">
-              <label>Columna Fecha</label>
-              <select [(ngModel)]="columnaFechaVentas" class="config-select">
-                <option value="">-- Seleccionar --</option>
-                @for (col of ventasColumnas(); track col) {
-                  <option [value]="col">{{ col }}</option>
-                }
-              </select>
-            </div>
-            <div class="config-group">
-              <label>Columna Total</label>
-              <select [(ngModel)]="columnaTotalVentas" class="config-select">
-                <option value="">-- Seleccionar --</option>
-                @for (col of ventasColumnas(); track col) {
-                  <option [value]="col">{{ col }}</option>
-                }
-              </select>
-            </div>
+        <div class="config-card">
+          <h4>Ventas</h4>
+          <div class="config-group">
+            <label>Columna Fecha</label>
+            <select [(ngModel)]="columnaFechaVentas" class="config-select">
+              <option value="">-- Seleccionar --</option>
+              @for (col of ventasColumnas(); track col) {
+                <option [value]="col">{{ col }}</option>
+              }
+            </select>
           </div>
-        }
-
-        @if (tasasColumnas().length > 0) {
-          <div class="config-card">
-            <h4>Tasas</h4>
-            <div class="config-group">
-              <label>Columna Fecha</label>
-              <select [(ngModel)]="columnaFechaTasas" class="config-select">
-                <option value="">-- Seleccionar --</option>
-                @for (col of tasasColumnas(); track col) {
-                  <option [value]="col">{{ col }}</option>
-                }
-              </select>
-            </div>
-            <div class="config-group">
-              <label>Columna Tasa</label>
-              <select [(ngModel)]="columnaTasaTasas" class="config-select">
-                <option value="">-- Seleccionar --</option>
-                @for (col of tasasColumnas(); track col) {
-                  <option [value]="col">{{ col }}</option>
-                }
-              </select>
-            </div>
+          <div class="config-group">
+            <label>Columna Total</label>
+            <select [(ngModel)]="columnaTotalVentas" class="config-select">
+              <option value="">-- Seleccionar --</option>
+              @for (col of ventasColumnas(); track col) {
+                <option [value]="col">{{ col }}</option>
+              }
+            </select>
           </div>
-        }
+        </div>
       </div>
 
       <div class="actions-bar">

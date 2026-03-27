@@ -499,7 +499,7 @@
             }
           </div>
         }
-        @if (newFactura.tipo === 'factura' || newFactura.tipo === 'debito') {
+        @if (newFactura.tipo === 'factura') {
           <div class="form-row">
             <div class="form-group">
               <label>Monto ($)</label>
@@ -516,6 +516,28 @@
               <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
             </div>
           </div>
+        }
+        @if (newFactura.tipo === 'debito') {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Monto ($)</label>
+              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
+            </div>
+          </div>
+          <div class="iva-toggle-section">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="newFactura.conIva" />
+              <span>Incluir IVA</span>
+            </label>
+          </div>
+          @if (newFactura.conIva) {
+            <div class="form-row">
+              <div class="form-group">
+                <label>Monto IVA ($)</label>
+                <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
+              </div>
+            </div>
+          }
         }
         @if (newFactura.tipo === 'nota' || newFactura.tipo === 'credito') {
           <div class="form-row">

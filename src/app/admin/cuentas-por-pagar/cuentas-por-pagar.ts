@@ -821,7 +821,7 @@ export class CuentasPorPagar implements OnInit {
     }
 
     let deudaBase: number;
-    if (factura.tipo === 'nota') {
+    if (factura.tipo === 'nota' || factura.tipo === 'credito') {
       deudaBase = (factura.monto || 0) - (factura.abonos || 0);
     } else {
       deudaBase = (factura.monto || 0) + (factura.baseExenta || 0) - (factura.abonos || 0);

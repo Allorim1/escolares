@@ -78,6 +78,14 @@
   word-break: break-all;
 }
 
+.file-info {
+  display: block;
+  margin-top: 0.3rem;
+  color: #1d63c1;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
 .config-section {
   background: white;
   border-radius: 12px;

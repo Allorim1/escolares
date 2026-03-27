@@ -3,17 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import * as ExcelJS from 'exceljs';
 
-interface FilaVenta {
-  fecha: string;
-  total: number;
-  [key: string]: any;
-}
-
-interface FilaTasa {
-  fecha: string;
-  tasa: number;
-}
-
 interface FilaResultado {
   fecha: string;
   totalOriginal: number;
@@ -30,67 +19,110 @@ interface FilaResultado {
   styleUrl: './conversion.css',
 })
 export class Conversion {
-  ventasFile = signal<any[][] | null>(null);
-  tasasFile = signal<any[][] | null>(null);
   ventasNombre = signal('');
   tasasNombre = signal('');
 
-  ventasData = signal<FilaVenta[]>([]);
-  tasasData = signal<FilaTasa[]>([]);
-  resultados = signal<FilaResultado[]>([]);
-
   ventasColumnas = signal<string[]>([]);
   tasasColumnas = signal<string[]>([]);
+  tasasFilas = signal<any[][]>([]);
 
   columnaFechaVentas = signal('');
   columnaTotalVentas = signal('');
-  columnaFechaTasas = signal('');
-  columnaTasaTasas = signal('');
+
+  ventasRaw = signal<any[][]>([]);
+  tasasMap = signal<Map<string, number>>(new Map());
 
   ventasPreview = signal<any[][]>([]);
   tasasPreview = signal<any[][]>([]);
 
+  resultados = signal<FilaResultado[]>([]);
   procesando = signal(false);
   error = signal('');
 
   totalOriginal = signal(0);
   totalConvertido = signal(0);
 
-  onFileSelect(event: Event, tipo: 'ventas' | 'tasas') {
+  onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
-
     const file = input.files[0];
     const ext = file.name.split('.').pop()?.toLowerCase();
 
+    this.error.set('');
     if (ext === 'csv') {
-      this.parseCSV(file, tipo);
+      this.parseCSVVentas(file);
     } else if (ext === 'xlsx' || ext === 'xls') {
-      this.parseExcel(file, tipo);
+      this.parseExcelVentas(file);
     } else {
       this.error.set('Formato no soportado. Use CSV o Excel (.xlsx)');
     }
   }
 
-  private parseCSV(file: File, tipo: 'ventas' | 'tasas') {
+  onFileTasas(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+
+    this.error.set('');
+    if (ext === 'csv') {
+      this.parseCSVTasas(file);
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      this.parseExcelTasas(file);
+    } else {
+      this.error.set('Formato no soportado. Use CSV o Excel (.xlsx)');
+    }
+  }
+
+  private parseCSVVentas(file: File) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split('\n').filter(l => l.trim());
       if (lines.length < 2) {
-        this.error.set('El archivo CSV debe tener al menos una fila de encabezado y una de datos');
+        this.error.set('El archivo CSV debe tener encabezado y datos');
         return;
       }
-
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const headers = this.parseCSVLine(lines[0]);
       const rows: any[][] = [headers];
-
       for (let i = 1; i < lines.length; i++) {
-        const cols = this.parseCSVLine(lines[i]);
-        rows.push(cols);
+        rows.push(this.parseCSVLine(lines[i]));
       }
+      this.ventasRaw.set(rows);
+      this.ventasColumnas.set(headers);
+      this.ventasNombre.set(file.name);
+      this.ventasPreview.set(rows.slice(0, 6));
 
-      this.asignarDatos(tipo, file.name, headers, rows);
+      const colFecha = headers.find(h =>
+        h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date')
+      );
+      const colTotal = headers.find(h =>
+        h.toLowerCase().includes('total') || h.toLowerCase().includes('monto') || h.toLowerCase().includes('amount')
+      );
+      if (colFecha) this.columnaFechaVentas.set(colFecha);
+      if (colTotal) this.columnaTotalVentas.set(colTotal);
+    };
+    reader.readAsText(file);
+  }
+
+  private parseCSVTasas(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) {
+        this.error.set('El archivo CSV de tasas debe tener encabezado y datos');
+        return;
+      }
+      const headers = this.parseCSVLine(lines[0]);
+      const rows: any[][] = [headers];
+      for (let i = 1; i < lines.length; i++) {
+        rows.push(this.parseCSVLine(lines[i]));
+      }
+      this.tasasFilas.set(rows);
+      this.tasasColumnas.set(headers);
+      this.tasasNombre.set(file.name);
+      this.tasasPreview.set(rows.slice(0, 6));
     };
     reader.readAsText(file);
   }
@@ -99,12 +131,11 @@ export class Conversion {
     const result: string[] = [];
     let current = '';
     let inQuotes = false;
-
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
       if (char === '"') {
         inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
+      } else if ((char === ',' || char === ';' || char === '\t') && !inQuotes) {
         result.push(current.trim());
         current = '';
       } else {
@@ -115,7 +146,7 @@ export class Conversion {
     return result;
   }
 
-  private parseExcel(file: File, tipo: 'ventas' | 'tasas') {
+  private parseExcelVentas(file: File) {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
@@ -132,7 +163,7 @@ export class Conversion {
         const rows: any[][] = [];
         worksheet.eachRow((row) => {
           const rowData: any[] = [];
-          row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          row.eachCell({ includeEmpty: true }, (cell) => {
             let value = cell.value;
             if (value instanceof Date) {
               value = value.toISOString().split('T')[0];
@@ -145,58 +176,115 @@ export class Conversion {
         });
 
         if (rows.length < 2) {
-          this.error.set('El archivo Excel debe tener al menos encabezado y una fila de datos');
+          this.error.set('El archivo Excel debe tener encabezado y datos');
           return;
         }
 
         const headers = rows[0].map(h => String(h).trim());
-        this.asignarDatos(tipo, file.name, headers, rows);
+        this.ventasRaw.set(rows);
+        this.ventasColumnas.set(headers);
+        this.ventasNombre.set(file.name);
+        this.ventasPreview.set(rows.slice(0, 6));
+
+        const colFecha = headers.find(h =>
+          h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date')
+        );
+        const colTotal = headers.find(h =>
+          h.toLowerCase().includes('total') || h.toLowerCase().includes('monto') || h.toLowerCase().includes('amount')
+        );
+        if (colFecha) this.columnaFechaVentas.set(colFecha);
+        if (colTotal) this.columnaTotalVentas.set(colTotal);
       } catch (err) {
-        console.error('Error parsing Excel:', err);
-        this.error.set('Error al leer el archivo Excel');
+        console.error('Error parsing Excel ventas:', err);
+        this.error.set('Error al leer el archivo Excel de ventas. Asegúrese de que sea formato .xlsx');
       }
     };
     reader.readAsArrayBuffer(file);
   }
 
-  private asignarDatos(tipo: 'ventas' | 'tasas', nombre: string, headers: string[], rows: any[][]) {
-    this.error.set('');
+  private parseExcelTasas(file: File) {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const buffer = e.target?.result as ArrayBuffer;
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
 
-    if (tipo === 'ventas') {
-      this.ventasFile.set(rows as any);
-      this.ventasNombre.set(nombre);
-      this.ventasColumnas.set(headers);
-      this.ventasPreview.set(rows.slice(0, 6));
+        const mapaTasas = new Map<string, number>();
 
-      const colFecha = headers.find(h =>
-        h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date')
-      );
-      const colTotal = headers.find(h =>
-        h.toLowerCase().includes('total') || h.toLowerCase().includes('monto') || h.toLowerCase().includes('amount')
-      );
-      if (colFecha) this.columnaFechaVentas.set(colFecha);
-      if (colTotal) this.columnaTotalVentas.set(colTotal);
-    } else {
-      this.tasasFile.set(rows as any);
-      this.tasasNombre.set(nombre);
-      this.tasasColumnas.set(headers);
-      this.tasasPreview.set(rows.slice(0, 6));
+        workbook.eachSheet((worksheet, sheetId) => {
+          const nombreHoja = worksheet.name.trim();
+          const fecha = this.normalizarFecha(nombreHoja);
+          if (!fecha) return;
 
-      const colFecha = headers.find(h =>
-        h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date')
-      );
-      const colTasa = headers.find(h =>
-        h.toLowerCase().includes('tasa') || h.toLowerCase().includes('rate') || h.toLowerCase().includes('valor')
-      );
-      if (colFecha) this.columnaFechaTasas.set(colFecha);
-      if (colTasa) this.columnaTasaTasas.set(colTasa);
+          worksheet.eachRow((row) => {
+            const primeraCelda = String(row.getCell(1).value ?? '').toLowerCase().trim();
+            if (primeraCelda === 'usd' || primeraCelda === 'dolar' || primeraCelda === 'dólar') {
+              const valorCompra = this.parseNumber(row.getCell(2).value);
+              if (valorCompra > 0) {
+                mapaTasas.set(fecha, valorCompra);
+              }
+            }
+          });
+        });
+
+        if (mapaTasas.size === 0) {
+          this.error.set('No se encontraron tasas en el archivo. Verifique que las hojas tengan nombres con fechas y contengan una fila con "USD"');
+          return;
+        }
+
+        this.tasasMap.set(mapaTasas);
+        this.tasasNombre.set(file.name);
+        this.tasasColumnas.set(['Fecha', 'Tasa']);
+
+        const preview: any[][] = [['Fecha', 'Tasa']];
+        mapaTasas.forEach((tasa, fecha) => {
+          preview.push([fecha, tasa]);
+        });
+        this.tasasPreview.set(preview.slice(0, 11));
+      } catch (err) {
+        console.error('Error parsing Excel tasas:', err);
+        this.error.set('Error al leer el archivo Excel de tasas. Intente guardarlo como .xlsx desde Excel');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  procesarTasasDesdeTabla() {
+    const filas = this.tasasFilas();
+    if (filas.length < 2) {
+      this.error.set('No hay datos de tasas para procesar');
+      return;
     }
+
+    const headers = filas[0];
+    const mapaTasas = new Map<string, number>();
+
+    for (let i = 1; i < filas.length; i++) {
+      const row = filas[i];
+      for (let j = 0; j < headers.length; j++) {
+        const fecha = this.normalizarFecha(row[j]);
+        if (fecha) {
+          const tasa = this.parseNumber(row[j + 1] ?? row[1]);
+          if (tasa > 0) {
+            mapaTasas.set(fecha, tasa);
+          }
+        }
+      }
+    }
+
+    this.tasasMap.set(mapaTasas);
   }
 
   procesar() {
-    if (!this.columnaFechaVentas() || !this.columnaTotalVentas() ||
-        !this.columnaFechaTasas() || !this.columnaTasaTasas()) {
-      this.error.set('Debe seleccionar las columnas de fecha y total/tasa para ambos archivos');
+    if (!this.columnaFechaVentas() || !this.columnaTotalVentas()) {
+      this.error.set('Debe seleccionar las columnas de fecha y total del archivo de ventas');
+      return;
+    }
+
+    const ventasRows = this.ventasRaw();
+    if (ventasRows.length < 2) {
+      this.error.set('Debe cargar el archivo de ventas');
       return;
     }
 
@@ -204,38 +292,23 @@ export class Conversion {
     this.error.set('');
 
     try {
-      const ventasRows = this.ventasFile() as any[][];
-      const tasasRows = this.tasasFile() as any[][];
-
-      if (!ventasRows || !tasasRows) {
-        this.error.set('Debe cargar ambos archivos');
-        this.procesando.set(false);
-        return;
-      }
-
       const ventasHeaders = ventasRows[0];
-      const tasasHeaders = tasasRows[0];
-
       const idxFechaV = ventasHeaders.indexOf(this.columnaFechaVentas());
       const idxTotalV = ventasHeaders.indexOf(this.columnaTotalVentas());
-      const idxFechaT = tasasHeaders.indexOf(this.columnaFechaTasas());
-      const idxTasaT = tasasHeaders.indexOf(this.columnaTasaTasas());
 
-      if (idxFechaV < 0 || idxTotalV < 0 || idxFechaT < 0 || idxTasaT < 0) {
+      if (idxFechaV < 0 || idxTotalV < 0) {
         this.error.set('No se encontraron las columnas seleccionadas');
         this.procesando.set(false);
         return;
       }
 
-      const tasaMap = new Map<string, number>();
-      for (let i = 1; i < tasasRows.length; i++) {
-        const fecha = this.normalizarFecha(tasasRows[i][idxFechaT]);
-        const tasa = this.parseNumber(tasasRows[i][idxTasaT]);
-        if (fecha && tasa > 0) {
-          tasaMap.set(fecha, tasa);
-        }
+      if (this.tasasMap().size === 0) {
+        this.error.set('Debe cargar y procesar el archivo de tasas primero');
+        this.procesando.set(false);
+        return;
       }
 
+      const tasaMap = this.tasasMap();
       const resultados: FilaResultado[] = [];
       let totalOrig = 0;
       let totalConv = 0;
@@ -286,27 +359,43 @@ export class Conversion {
       return valor.toISOString().split('T')[0];
     }
     const str = String(valor).trim();
+
     if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
       return str.substring(0, 10);
     }
     if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(str)) {
       const parts = str.split('/');
-      const day = parts[0].padStart(2, '0');
-      const month = parts[1].padStart(2, '0');
-      const year = parts[2].substring(0, 4);
-      return `${year}-${month}-${day}`;
+      return `${parts[2].substring(0, 4)}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
     if (/^\d{1,2}-\d{1,2}-\d{4}/.test(str)) {
       const parts = str.split('-');
-      const day = parts[0].padStart(2, '0');
-      const month = parts[1].padStart(2, '0');
-      const year = parts[2].substring(0, 4);
-      return `${year}-${month}-${day}`;
+      return `${parts[2].substring(0, 4)}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
-    const d = new Date(str);
-    if (!isNaN(d.getTime())) {
-      return d.toISOString().split('T')[0];
+    if (/^\d{8}$/.test(str)) {
+      return `${str.substring(0, 4)}-${str.substring(4, 6)}-${str.substring(6, 8)}`;
     }
+
+    const meses: Record<string, string> = {
+      'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
+      'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
+      'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12',
+      'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04',
+      'jun': '06', 'jul': '07', 'ago': '08', 'sep': '09',
+      'oct': '10', 'nov': '11', 'dic': '12',
+      'jan': '01', 'apr': '04', 'aug': '08',
+    };
+
+    const lowerStr = str.toLowerCase();
+    for (const [mes, num] of Object.entries(meses)) {
+      if (lowerStr.includes(mes)) {
+        const diaMatch = lowerStr.match(/(\d{1,2})/);
+        const anioMatch = lowerStr.match(/(\d{4})/);
+        if (diaMatch && anioMatch) {
+          return `${anioMatch[1]}-${num}-${diaMatch[1].padStart(2, '0')}`;
+        }
+      }
+    }
+
     return str;
   }
 
@@ -315,7 +404,12 @@ export class Conversion {
     if (!valor) return 0;
     const str = String(valor).replace(/[^\d.,-]/g, '');
     if (str.includes(',') && str.includes('.')) {
-      return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+      const lastComma = str.lastIndexOf(',');
+      const lastDot = str.lastIndexOf('.');
+      if (lastComma > lastDot) {
+        return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+      }
+      return parseFloat(str.replace(/,/g, '')) || 0;
     }
     if (str.includes(',')) {
       return parseFloat(str.replace(',', '.')) || 0;
@@ -368,9 +462,7 @@ export class Conversion {
     totalRow.font = { bold: true };
     totalRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE3F2FD' } };
 
-    worksheet.columns.forEach(col => {
-      col.width = 18;
-    });
+    worksheet.columns.forEach(col => { col.width = 18; });
 
     workbook.xlsx.writeBuffer().then(buffer => {
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -384,21 +476,18 @@ export class Conversion {
   }
 
   limpiar() {
-    this.ventasFile.set(null);
-    this.tasasFile.set(null);
     this.ventasNombre.set('');
     this.tasasNombre.set('');
-    this.ventasData.set([]);
-    this.tasasData.set([]);
-    this.resultados.set([]);
     this.ventasColumnas.set([]);
     this.tasasColumnas.set([]);
+    this.tasasFilas.set([]);
     this.columnaFechaVentas.set('');
     this.columnaTotalVentas.set('');
-    this.columnaFechaTasas.set('');
-    this.columnaTasaTasas.set('');
+    this.ventasRaw.set([]);
+    this.tasasMap.set(new Map());
     this.ventasPreview.set([]);
     this.tasasPreview.set([]);
+    this.resultados.set([]);
     this.error.set('');
     this.totalOriginal.set(0);
     this.totalConvertido.set(0);

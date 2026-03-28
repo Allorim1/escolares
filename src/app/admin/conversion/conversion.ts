@@ -43,6 +43,9 @@ export class Conversion {
   totalOriginal = signal(0);
   totalConvertido = signal(0);
 
+  tasasManuales = signal<Map<string, number>>(new Map());
+  fechasSinTasa = signal<string[]>([]);
+
   onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
@@ -127,7 +130,7 @@ export class Conversion {
       }
 
       // Crear encabezados simplificados
-      const headers = ['FECHA', 'DIA', 'VENTAS', 'GASTOS', 'TOTAL'];
+      const headers = ['FECHA', 'VENTAS'];
       
       // Extraer solo los datos relevantes
       const dataRows: any[][] = [headers];
@@ -138,14 +141,12 @@ export class Conversion {
         
         // Los datos reales están en las posiciones 12-16
         const fecha = row[12];
-        const dia = row[13];
         const ventas = row[14];
-        const gastos = row[15];
         const total = row[16];
         
         // Verificar que hay datos válidos
         if (fecha && ventas && total) {
-          dataRows.push([fecha, dia, ventas, gastos, total]);
+          dataRows.push([fecha, ventas]);
         }
       }
 
@@ -161,7 +162,7 @@ export class Conversion {
 
       // Configurar columnas automáticamente
       this.columnaFechaVentas.set('FECHA');
-      this.columnaTotalVentas.set('TOTAL');
+      this.columnaTotalVentas.set('VENTAS');
     };
     reader.readAsText(file);
   }
@@ -509,6 +510,50 @@ export class Conversion {
       }
 
       const tasaMap = this.tasasMap();
+      const tasasManuales = this.tasasManuales();
+      const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
+      const fechasFaltantes: string[] = [];
+
+      // Primera pasada: recopilar todas las fechas únicas de ventas
+      const fechasVentas = new Set<string>();
+      for (let i = 1; i < ventasRows.length; i++) {
+        const fecha = this.normalizarFecha(ventasRows[i][idxFechaV]);
+        if (fecha) fechasVentas.add(fecha);
+      }
+
+      // Para fechas de fin de semana sin tasa, buscar la del próximo lunes
+      for (const fecha of fechasVentas) {
+        if (todasLasTasas.has(fecha)) continue;
+        const fechaDate = new Date(fecha + 'T00:00:00');
+        const diaSemana = fechaDate.getDay(); // 0=Dom, 6=Sáb
+
+        if (diaSemana === 0 || diaSemana === 6) {
+          // Buscar el próximo lunes
+          const diasHastaLunes = diaSemana === 6 ? 2 : 1;
+          const lunesDate = new Date(fechaDate);
+          lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
+          const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
+          const tasaLunes = todasLasTasas.get(lunesStr);
+          if (tasaLunes) {
+            todasLasTasas.set(fecha, tasaLunes);
+            console.log(`Fin de semana ${fecha} (${diaSemana === 6 ? 'Sábado' : 'Domingo'}) -> tasa del lunes ${lunesStr}: ${tasaLunes}`);
+          }
+        }
+      }
+
+      // Detectar fechas laborales sin tasa (no fin de semana)
+      for (const fecha of fechasVentas) {
+        if (todasLasTasas.has(fecha)) continue;
+        const fechaDate = new Date(fecha + 'T00:00:00');
+        const diaSemana = fechaDate.getDay();
+        if (diaSemana !== 0 && diaSemana !== 6) {
+          fechasFaltantes.push(fecha);
+        }
+      }
+
+      this.fechasSinTasa.set(fechasFaltantes);
+
+      // Segunda pasada: calcular resultados
       const resultados: FilaResultado[] = [];
       let totalOrig = 0;
       let totalConv = 0;
@@ -520,7 +565,7 @@ export class Conversion {
 
         if (!fecha) continue;
 
-        const tasa = tasaMap.get(fecha) || 0;
+        const tasa = todasLasTasas.get(fecha) || 0;
         const totalConvertido = tasa > 0 ? total / tasa : 0;
 
         const columnasExtra: { [key: string]: any } = {};
@@ -782,5 +827,34 @@ export class Conversion {
     this.error.set('');
     this.totalOriginal.set(0);
     this.totalConvertido.set(0);
+    this.tasasManuales.set(new Map());
+    this.fechasSinTasa.set([]);
+  }
+
+  asignarTasaManual(fecha: string, valor: any) {
+    const tasa = parseFloat(valor);
+    if (isNaN(tasa) || tasa <= 0) return;
+    const manuales = new Map(this.tasasManuales());
+    manuales.set(fecha, tasa);
+    this.tasasManuales.set(manuales);
+    this.procesar();
+  }
+
+  eliminarTasaManual(fecha: string) {
+    const manuales = new Map(this.tasasManuales());
+    manuales.delete(fecha);
+    this.tasasManuales.set(manuales);
+    this.procesar();
+  }
+
+  esFinDeSemana(fecha: string): boolean {
+    const d = new Date(fecha + 'T00:00:00');
+    return d.getDay() === 0 || d.getDay() === 6;
+  }
+
+  diaSemanaLabel(fecha: string): string {
+    const d = new Date(fecha + 'T00:00:00');
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return dias[d.getDay()];
   }
 }

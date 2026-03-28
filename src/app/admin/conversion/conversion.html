@@ -129,6 +129,35 @@
     </div>
   }
 
+  @if (fechasSinTasa().length > 0) {
+    <div class="tasas-faltantes-section">
+      <h3>Tasas Faltantes (días laborales sin coincidencia)</h3>
+      <p class="tasas-faltantes-desc">Ingrese manualmente la tasa USD para las siguientes fechas:</p>
+      <div class="tasas-faltantes-list">
+        @for (fecha of fechasSinTasa(); track fecha) {
+          <div class="tasa-faltante-item">
+            <span class="tasa-fecha">{{ fecha }} ({{ diaSemanaLabel(fecha) }})</span>
+            @if (tasasManuales().has(fecha)) {
+              <span class="tasa-manual-valor">{{ tasasManuales().get(fecha) }}</span>
+              <button class="btn-remove-tasa" (click)="eliminarTasaManual(fecha)">✕</button>
+            } @else {
+              <input 
+                type="number" 
+                class="tasa-manual-input" 
+                placeholder="Tasa USD"
+                step="0.0001"
+                min="0"
+                #inputTasa
+                (keydown.enter)="asignarTasaManual(fecha, inputTasa.value); inputTasa.value = ''"
+              >
+              <button class="btn-add-tasa" (click)="asignarTasaManual(fecha, inputTasa.value); inputTasa.value = ''">✓</button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   @if (resultados().length > 0) {
     <div class="result-section">
       <div class="result-header">

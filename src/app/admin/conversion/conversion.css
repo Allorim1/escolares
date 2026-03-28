@@ -364,3 +364,103 @@
 .total-row td {
   border-top: 2px solid #1d63c1;
 }
+
+.tasas-faltantes-section {
+  background: #fff8e1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+  border: 1px solid #ffc107;
+}
+
+.tasas-faltantes-section h3 {
+  color: #856404;
+  margin-bottom: 0.5rem;
+}
+
+.tasas-faltantes-desc {
+  color: #856404;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.tasas-faltantes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tasa-faltante-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: white;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.tasa-fecha {
+  font-weight: 500;
+  min-width: 180px;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.tasa-manual-input {
+  width: 140px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.tasa-manual-input:focus {
+  outline: none;
+  border-color: #1d63c1;
+  box-shadow: 0 0 0 3px rgba(29, 99, 193, 0.1);
+}
+
+.tasa-manual-valor {
+  font-weight: 600;
+  color: #28a745;
+  min-width: 100px;
+}
+
+.btn-add-tasa {
+  background: #28a745;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-add-tasa:hover {
+  background: #218838;
+}
+
+.btn-remove-tasa {
+  background: #dc3545;
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove-tasa:hover {
+  background: #c82333;
+}

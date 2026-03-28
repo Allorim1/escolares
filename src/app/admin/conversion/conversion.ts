@@ -150,7 +150,6 @@ export class Conversion {
           dataRows.push([fecha, dia, ventas, total]);
         }
       }
-      }
 
       if (dataRows.length < 2) {
         this.error.set('No se encontraron datos de ventas válidos en el archivo');

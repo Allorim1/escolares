@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import * as ExcelJS from 'exceljs';
+import * as XLSX from 'xlsx';
 
 interface FilaResultado {
   fecha: string;
@@ -83,24 +84,84 @@ export class Conversion {
         this.error.set('El archivo CSV debe tener encabezado y datos');
         return;
       }
-      const headers = this.parseCSVLine(lines[0]);
-      const rows: any[][] = [headers];
-      for (let i = 1; i < lines.length; i++) {
-        rows.push(this.parseCSVLine(lines[i]));
+      
+      // Parsear todas las líneas
+      const allRows: any[][] = [];
+      for (let i = 0; i < lines.length; i++) {
+        allRows.push(this.parseCSVLine(lines[i]));
       }
-      this.ventasRaw.set(rows);
+
+      // Detectar estructura del archivo
+      // Buscar la fila que contiene los encabezados reales (FECHA, DIA, VENTAS, GASTOS, TOTAL)
+      let headerRowIndex = -1;
+      let fechaColIdx = -1;
+      let totalColIdx = -1;
+      let ventasColIdx = -1;
+
+      for (let i = 0; i < allRows.length; i++) {
+        const row = allRows[i];
+        for (let j = 0; j < row.length; j++) {
+          const cell = String(row[j]).trim().toUpperCase();
+          if (cell === 'FECHA') {
+            headerRowIndex = i;
+            fechaColIdx = j;
+          }
+          if (cell === 'TOTAL' && headerRowIndex === i) {
+            totalColIdx = j;
+          }
+          if (cell === 'VENTAS' && headerRowIndex === i) {
+            ventasColIdx = j;
+          }
+        }
+        if (headerRowIndex >= 0) break;
+      }
+
+      // Si no se encontraron encabezados específicos, usar los índices por defecto
+      // Basado en la estructura observada: FECHA=6, VENTAS=8, TOTAL=10
+      // Los datos reales están en: fecha=12, ventas=14, total=16
+      if (headerRowIndex < 0) {
+        headerRowIndex = 0;
+        fechaColIdx = 6;
+        ventasColIdx = 8;
+        totalColIdx = 10;
+      }
+
+      // Crear encabezados simplificados
+      const headers = ['FECHA', 'DIA', 'VENTAS', 'GASTOS', 'TOTAL'];
+      
+      // Extraer solo los datos relevantes
+      const dataRows: any[][] = [headers];
+      
+      for (let i = 0; i < allRows.length; i++) {
+        const row = allRows[i];
+        if (row.length < 17) continue; // Saltar filas incompletas
+        
+        // Los datos reales están en las posiciones 12-16
+        const fecha = row[12];
+        const dia = row[13];
+        const ventas = row[14];
+        const gastos = row[15];
+        const total = row[16];
+        
+        // Verificar que hay datos válidos
+        if (fecha && ventas && total) {
+          dataRows.push([fecha, dia, ventas, gastos, total]);
+        }
+      }
+
+      if (dataRows.length < 2) {
+        this.error.set('No se encontraron datos de ventas válidos en el archivo');
+        return;
+      }
+
+      this.ventasRaw.set(dataRows);
       this.ventasColumnas.set(headers);
       this.ventasNombre.set(file.name);
-      this.ventasPreview.set(rows.slice(0, 6));
+      this.ventasPreview.set(dataRows.slice(0, 6));
 
-      const colFecha = headers.find(h =>
-        h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date')
-      );
-      const colTotal = headers.find(h =>
-        h.toLowerCase().includes('total') || h.toLowerCase().includes('monto') || h.toLowerCase().includes('amount')
-      );
-      if (colFecha) this.columnaFechaVentas.set(colFecha);
-      if (colTotal) this.columnaTotalVentas.set(colTotal);
+      // Configurar columnas automáticamente
+      this.columnaFechaVentas.set('FECHA');
+      this.columnaTotalVentas.set('TOTAL');
     };
     reader.readAsText(file);
   }
@@ -151,29 +212,44 @@ export class Conversion {
     reader.onload = async (e) => {
       try {
         const buffer = e.target?.result as ArrayBuffer;
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(buffer);
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        let rows: any[][] = [];
 
-        const worksheet = workbook.worksheets[0];
-        if (!worksheet) {
-          this.error.set('El archivo Excel no tiene hojas');
-          return;
-        }
+        if (ext === 'xls') {
+          // Usar xlsx para archivos .xls
+          const workbook = XLSX.read(buffer, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          if (!sheetName) {
+            this.error.set('El archivo Excel no tiene hojas');
+            return;
+          }
+          const worksheet = workbook.Sheets[sheetName];
+          rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        } else {
+          // Usar ExcelJS para archivos .xlsx
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(buffer);
 
-        const rows: any[][] = [];
-        worksheet.eachRow((row) => {
-          const rowData: any[] = [];
-          row.eachCell({ includeEmpty: true }, (cell) => {
-            let value = cell.value;
-            if (value instanceof Date) {
-              value = value.toISOString().split('T')[0];
-            } else if (typeof value === 'object' && value !== null) {
-              value = (value as any).result ?? (value as any).text ?? String(value);
-            }
-            rowData.push(value ?? '');
+          const worksheet = workbook.worksheets[0];
+          if (!worksheet) {
+            this.error.set('El archivo Excel no tiene hojas');
+            return;
+          }
+
+          worksheet.eachRow((row) => {
+            const rowData: any[] = [];
+            row.eachCell({ includeEmpty: true }, (cell) => {
+              let value = cell.value;
+              if (value instanceof Date) {
+                value = value.toISOString().split('T')[0];
+              } else if (typeof value === 'object' && value !== null) {
+                value = (value as any).result ?? (value as any).text ?? String(value);
+              }
+              rowData.push(value ?? '');
+            });
+            rows.push(rowData);
           });
-          rows.push(rowData);
-        });
+        }
 
         if (rows.length < 2) {
           this.error.set('El archivo Excel debe tener encabezado y datos');
@@ -196,7 +272,7 @@ export class Conversion {
         if (colTotal) this.columnaTotalVentas.set(colTotal);
       } catch (err) {
         console.error('Error parsing Excel ventas:', err);
-        this.error.set('Error al leer el archivo Excel de ventas. Asegúrese de que sea formato .xlsx');
+        this.error.set('Error al leer el archivo Excel de ventas. Intente guardarlo como .xlsx desde Excel');
       }
     };
     reader.readAsArrayBuffer(file);
@@ -207,26 +283,56 @@ export class Conversion {
     reader.onload = async (e) => {
       try {
         const buffer = e.target?.result as ArrayBuffer;
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(buffer);
-
+        const ext = file.name.split('.').pop()?.toLowerCase();
         const mapaTasas = new Map<string, number>();
 
-        workbook.eachSheet((worksheet, sheetId) => {
-          const nombreHoja = worksheet.name.trim();
-          const fecha = this.normalizarFecha(nombreHoja);
-          if (!fecha) return;
+        if (ext === 'xls') {
+          // Usar xlsx para archivos .xls
+          const workbook = XLSX.read(buffer, { type: 'array' });
+          
+          workbook.SheetNames.forEach(sheetName => {
+            const fecha = this.normalizarFecha(sheetName.trim());
+            if (!fecha) return;
 
-          worksheet.eachRow((row) => {
-            const primeraCelda = String(row.getCell(1).value ?? '').toLowerCase().trim();
-            if (primeraCelda === 'usd' || primeraCelda === 'dolar' || primeraCelda === 'dólar') {
-              const valorCompra = this.parseNumber(row.getCell(2).value);
-              if (valorCompra > 0) {
-                mapaTasas.set(fecha, valorCompra);
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+            
+            for (const row of jsonData) {
+              if (!row || row.length === 0) continue;
+              const primeraCelda = String(row[0] ?? '').toLowerCase().trim();
+              if (primeraCelda === 'usd' || primeraCelda === 'dolar' || primeraCelda === 'dólar') {
+                // Buscar el valor USD en las columnas siguientes
+                for (let i = 1; i < row.length; i++) {
+                  const valor = this.parseNumber(row[i]);
+                  if (valor > 0) {
+                    mapaTasas.set(fecha, valor);
+                    break;
+                  }
+                }
               }
             }
           });
-        });
+        } else {
+          // Usar ExcelJS para archivos .xlsx
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(buffer);
+
+          workbook.eachSheet((worksheet, sheetId) => {
+            const nombreHoja = worksheet.name.trim();
+            const fecha = this.normalizarFecha(nombreHoja);
+            if (!fecha) return;
+
+            worksheet.eachRow((row) => {
+              const primeraCelda = String(row.getCell(1).value ?? '').toLowerCase().trim();
+              if (primeraCelda === 'usd' || primeraCelda === 'dolar' || primeraCelda === 'dólar') {
+                const valorCompra = this.parseNumber(row.getCell(2).value);
+                if (valorCompra > 0) {
+                  mapaTasas.set(fecha, valorCompra);
+                }
+              }
+            });
+          });
+        }
 
         if (mapaTasas.size === 0) {
           this.error.set('No se encontraron tasas en el archivo. Verifique que las hojas tengan nombres con fechas y contengan una fila con "USD"');

@@ -212,16 +212,14 @@ export class Conversion {
     reader.onload = async (e) => {
       try {
         const buffer = e.target?.result as ArrayBuffer;
-        const ext = file.name.split('.').pop()?.toLowerCase();
+        const fileName = file.name.toLowerCase();
         let rows: any[][] = [];
 
-        // Detectar formato por cabecera del archivo
-        const header = new Uint8Array(buffer.slice(0, 4));
-        const isOLE2 = header[0] === 0xD0 && header[1] === 0xCF && header[2] === 0x11 && header[3] === 0xE0;
-        const isZIP = header[0] === 0x50 && header[1] === 0x4B;
+        // Verificar por extensión PRIMERO
+        const isXlsByExtension = fileName.endsWith('.xls') && !fileName.endsWith('.xlsx');
 
-        if (isOLE2 || ext === 'xls') {
-          // Usar xlsx para archivos .xls
+        if (isXlsByExtension) {
+          // Archivo .xls - usar librería xlsx
           const workbook = XLSX.read(buffer, { type: 'array' });
           const sheetName = workbook.SheetNames[0];
           if (!sheetName) {
@@ -230,8 +228,8 @@ export class Conversion {
           }
           const worksheet = workbook.Sheets[sheetName];
           rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-        } else if (isZIP || ext === 'xlsx') {
-          // Usar ExcelJS para archivos .xlsx
+        } else {
+          // Archivo .xlsx - usar ExcelJS
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(buffer);
 
@@ -254,9 +252,6 @@ export class Conversion {
             });
             rows.push(rowData);
           });
-        } else {
-          this.error.set('Formato de archivo no reconocido. Use .xls o .xlsx');
-          return;
         }
 
         if (rows.length < 2) {
@@ -291,26 +286,22 @@ export class Conversion {
     reader.onload = async (e) => {
       try {
         const buffer = e.target?.result as ArrayBuffer;
-        const ext = file.name.split('.').pop()?.toLowerCase();
+        const fileName = file.name.toLowerCase();
         const mapaTasas = new Map<string, number>();
 
-        console.log('Parsing tasas file:', file.name, 'extension:', ext, 'buffer size:', buffer.byteLength);
+        console.log('Parsing tasas file:', fileName, 'size:', buffer.byteLength);
 
-        // Detectar si es formato .xls (OLE2) o .xlsx (ZIP)
-        // Los archivos .xlsx son ZIP y empiezan con PK (0x504B)
-        // Los archivos .xls son OLE2 y empiezan con D0 CF 11 E0
-        const header = new Uint8Array(buffer.slice(0, 4));
-        const isOLE2 = header[0] === 0xD0 && header[1] === 0xCF && header[2] === 0x11 && header[3] === 0xE0;
-        const isZIP = header[0] === 0x50 && header[1] === 0x4B;
-        
-        console.log('File header:', Array.from(header).map(b => b.toString(16).padStart(2, '0')).join(' '));
-        console.log('Is OLE2 (.xls):', isOLE2, 'Is ZIP (.xlsx):', isZIP);
+        // Verificar por extensión PRIMERO (más confiable)
+        const isXlsByExtension = fileName.endsWith('.xls') && !fileName.endsWith('.xlsx');
 
-        if (isOLE2 || ext === 'xls') {
-          // Usar xlsx para archivos .xls (formato antiguo OLE2)
+        console.log('Is .xls by extension:', isXlsByExtension);
+
+        if (isXlsByExtension) {
+          // Archivo .xls - usar librería xlsx (SheetJS)
           console.log('Using xlsx library for .xls file');
           const workbook = XLSX.read(buffer, { type: 'array' });
-          
+          console.log('Sheets found:', workbook.SheetNames);
+
           workbook.SheetNames.forEach(sheetName => {
             const fecha = this.normalizarFecha(sheetName.trim());
             if (!fecha) {
@@ -320,18 +311,16 @@ export class Conversion {
 
             const worksheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-            
-            console.log('Processing sheet:', sheetName, 'rows:', jsonData.length);
-            
+            console.log('Sheet:', sheetName, '- rows:', jsonData.length);
+
             for (const row of jsonData) {
               if (!row || row.length === 0) continue;
               const primeraCelda = String(row[0] ?? '').toLowerCase().trim();
               if (primeraCelda === 'usd' || primeraCelda === 'dolar' || primeraCelda === 'dólar') {
-                // Buscar el valor USD en las columnas siguientes
                 for (let i = 1; i < row.length; i++) {
                   const valor = this.parseNumber(row[i]);
                   if (valor > 0) {
-                    console.log('Found USD rate:', fecha, '=', valor, 'from cell:', row[i]);
+                    console.log('Found USD rate:', fecha, '=', valor);
                     mapaTasas.set(fecha, valor);
                     break;
                   }
@@ -339,8 +328,8 @@ export class Conversion {
               }
             }
           });
-        } else if (isZIP || ext === 'xlsx') {
-          // Usar ExcelJS para archivos .xlsx (formato ZIP)
+        } else {
+          // Archivo .xlsx - usar ExcelJS
           console.log('Using ExcelJS for .xlsx file');
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(buffer);
@@ -360,10 +349,9 @@ export class Conversion {
               }
             });
           });
-        } else {
-          this.error.set('Formato de archivo no reconocido. Use .xls o .xlsx');
-          return;
         }
+
+        console.log('Total tasas found:', mapaTasas.size);
 
         if (mapaTasas.size === 0) {
           this.error.set('No se encontraron tasas en el archivo. Verifique que las hojas tengan nombres con fechas y contengan una fila con "USD"');

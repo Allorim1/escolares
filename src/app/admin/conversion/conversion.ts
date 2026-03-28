@@ -291,6 +291,7 @@ export class Conversion {
         const buffer = e.target?.result as ArrayBuffer;
         const fileName = file.name.toLowerCase();
         const mapaTasas = new Map<string, number>();
+        const hojasDetectadas: string[] = [];
 
         console.log('Parsing tasas file:', fileName, 'size:', buffer.byteLength);
 
@@ -306,6 +307,7 @@ export class Conversion {
           console.log('Sheets found:', workbook.SheetNames.length, workbook.SheetNames);
 
           workbook.SheetNames.forEach((sheetName, idx) => {
+            hojasDetectadas.push(sheetName);
             const fecha = this.normalizarFecha(sheetName.trim());
             console.log(`Sheet ${idx}: "${sheetName}" -> fecha normalizada: "${fecha}"`);
             
@@ -400,8 +402,13 @@ export class Conversion {
 
           workbook.eachSheet((worksheet, sheetId) => {
             const nombreHoja = worksheet.name.trim();
+            hojasDetectadas.push(nombreHoja);
             const fecha = this.normalizarFecha(nombreHoja);
-            if (!fecha) return;
+            console.log(`Sheet "${nombreHoja}" -> fecha normalizada: "${fecha}"`);
+            if (!fecha) {
+              console.log('  -> Skipping sheet (not a date):', nombreHoja);
+              return;
+            }
 
             worksheet.eachRow((row) => {
               const primeraCelda = String(row.getCell(1).value ?? '').toLowerCase().trim();
@@ -418,7 +425,11 @@ export class Conversion {
         console.log('Total tasas found:', mapaTasas.size);
 
         if (mapaTasas.size === 0) {
-          this.error.set('No se encontraron tasas en el archivo. Verifique que las hojas tengan nombres con fechas y contengan una fila con "USD"');
+          const nombresHojas = hojasDetectadas.length > 0 ? hojasDetectadas.join(', ') : 'ninguna';
+          const mensaje = `No se encontraron tasas. Hojas detectadas: [${nombresHojas}]. `
+            + `Las hojas deben tener nombres con fechas (ej: "2025-03-28", "28/03/2025", "28 de marzo 2025") `
+            + `y contener una fila con "USD". Revisa la consola (F12) para más detalles.`;
+          this.error.set(mensaje);
           return;
         }
 

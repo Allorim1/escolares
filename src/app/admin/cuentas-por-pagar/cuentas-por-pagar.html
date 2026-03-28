@@ -523,6 +523,10 @@
               <label>Monto ($)</label>
               <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
             </div>
+            <div class="form-group">
+              <label>Monto (Bs)</label>
+              <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" />
+            </div>
           </div>
           <div class="iva-toggle-section">
             <label class="checkbox-label">
@@ -545,6 +549,12 @@
               <label>Monto ($)</label>
               <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
             </div>
+            @if (newFactura.tipo === 'credito') {
+              <div class="form-group">
+                <label>Monto (Bs)</label>
+                <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" />
+              </div>
+            }
           </div>
           <div class="iva-toggle-section">
             <label class="checkbox-label">
@@ -567,6 +577,12 @@
               <span>Monto:</span>
               <span>$ {{ newFactura.monto | number:'1.2-2' }}</span>
             </div>
+            @if (newFactura.tipo === 'debito' && newFactura.montoBsf > 0) {
+              <div class="preview-row">
+                <span>Monto Bs:</span>
+                <span>Bs {{ formatMoneda(newFactura.montoBsf) }}</span>
+              </div>
+            }
             <div class="preview-row">
               <span>Base Exenta:</span>
               <span>$ {{ newFactura.baseExenta | number:'1.2-2' }}</span>
@@ -583,6 +599,12 @@
               <span>Monto:</span>
               <span>$ {{ newFactura.monto | number:'1.2-2' }}</span>
             </div>
+            @if (newFactura.tipo === 'credito' && newFactura.montoBsf > 0) {
+              <div class="preview-row">
+                <span>Monto Bs:</span>
+                <span>Bs {{ formatMoneda(newFactura.montoBsf) }}</span>
+              </div>
+            }
             <div class="preview-row total">
               <span>Total a Pagar:</span>
               <span>$ {{ formatMoneda(newFactura.monto) }}</span>
@@ -746,6 +768,7 @@
             <tr>
               <th>Tipo</th>
               <th>Monto</th>
+              <th>Monto Bs</th>
               <th>Base Exenta</th>
               <th>IVA</th>
               <th>Abonos</th>
@@ -766,6 +789,7 @@
                 }
               </td>
               <td>$ {{ facturaDetalle.factura.monto | number:'1.2-2' }}</td>
+              <td>{{ (facturaDetalle.factura.montoBsf || 0) > 0 ? 'Bs ' + formatMoneda(facturaDetalle.factura.montoBsf) : '-' }}</td>
               <td>$ {{ (facturaDetalle.factura.baseExenta || 0) | number:'1.2-2' }}</td>
               <td>Bs {{ formatMoneda(facturaDetalle.factura.iva || 0) }}</td>
               <td>-$ {{ formatMoneda(facturaDetalle.factura.abonos) }}</td>

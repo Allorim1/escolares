@@ -227,7 +227,7 @@ export class Conversion {
             return;
           }
           const worksheet = workbook.Sheets[sheetName];
-          rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+          rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true }) as any[][];
         } else {
           // Archivo .xlsx - usar ExcelJS
           const workbook = new ExcelJS.Workbook();
@@ -243,8 +243,11 @@ export class Conversion {
             const rowData: any[] = [];
             row.eachCell({ includeEmpty: true }, (cell) => {
               let value = cell.value;
-              if (value instanceof Date) {
-                value = value.toISOString().split('T')[0];
+              if (value instanceof Date && !isNaN(value.getTime())) {
+                const y = value.getFullYear();
+                const m = String(value.getMonth() + 1).padStart(2, '0');
+                const d = String(value.getDate()).padStart(2, '0');
+                value = `${y}-${m}-${d}`;
               } else if (typeof value === 'object' && value !== null) {
                 value = (value as any).result ?? (value as any).text ?? String(value);
               }
@@ -300,62 +303,80 @@ export class Conversion {
           // Archivo .xls - usar librería xlsx (SheetJS)
           console.log('Using xlsx library for .xls file');
           const workbook = XLSX.read(buffer, { type: 'array' });
-          console.log('Sheets found:', workbook.SheetNames);
+          console.log('Sheets found:', workbook.SheetNames.length, workbook.SheetNames);
 
-          workbook.SheetNames.forEach(sheetName => {
+          workbook.SheetNames.forEach((sheetName, idx) => {
             const fecha = this.normalizarFecha(sheetName.trim());
+            console.log(`Sheet ${idx}: "${sheetName}" -> fecha normalizada: "${fecha}"`);
+            
             if (!fecha) {
-              console.log('Sheet name is not a date:', sheetName);
+              console.log('  -> Skipping sheet (not a date):', sheetName);
               return;
             }
 
             const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-            console.log('Sheet:', sheetName, '- rows:', jsonData.length);
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true }) as any[][];
+            console.log('  -> Rows:', jsonData.length);
 
-            // Buscar la fila de encabezados para encontrar la columna COMPRA (BID)
+            // Log de las primeras filas para entender estructura
+            for (let i = 0; i < Math.min(5, jsonData.length); i++) {
+              console.log(`  Row ${i}:`, jsonData[i]);
+            }
+
+            // Buscar columna COMPRA (BID) en cualquier fila
             let compraColIdx = -1;
-            let usdRowIdx = -1;
+            let headerRowIdx = -1;
 
-            for (let r = 0; r < jsonData.length; r++) {
+            for (let r = 0; r < Math.min(10, jsonData.length); r++) {
               const row = jsonData[r];
               if (!row) continue;
-
-              // Buscar encabezado COMPRA/BID
               for (let c = 0; c < row.length; c++) {
                 const cell = String(row[c] ?? '').toLowerCase().trim();
                 if (cell.includes('compra') || cell.includes('bid')) {
                   compraColIdx = c;
-                  console.log('Found COMPRA column at index:', c);
+                  headerRowIdx = r;
+                  console.log(`  -> Found COMPRA/BID at row ${r}, col ${c}: "${row[c]}"`);
                 }
               }
-
-              // Buscar fila con USD
-              const primeraCelda = String(row[0] ?? '').toLowerCase().trim();
-              if (primeraCelda === 'usd' || primeraCelda === 'dolar' || primeraCelda === 'dólar') {
-                usdRowIdx = r;
-                console.log('Found USD row at index:', r);
-              }
+              if (compraColIdx >= 0) break;
             }
 
-            // Extraer la tasa USD de la columna COMPRA
+            // Buscar fila con USD en cualquier columna
+            let usdRowIdx = -1;
+            let usdColIdx = 0;
+
+            for (let r = 0; r < jsonData.length; r++) {
+              const row = jsonData[r];
+              if (!row) continue;
+              for (let c = 0; c < row.length; c++) {
+                const cell = String(row[c] ?? '').toLowerCase().trim();
+                if (cell === 'usd' || cell === 'dolar' || cell === 'dólar' || cell === '$') {
+                  usdRowIdx = r;
+                  usdColIdx = c;
+                  console.log(`  -> Found USD at row ${r}, col ${c}: "${row[c]}"`);
+                  break;
+                }
+              }
+              if (usdRowIdx >= 0) break;
+            }
+
+            // Extraer la tasa USD
             if (usdRowIdx >= 0) {
               const usdRow = jsonData[usdRowIdx];
               let tasaValue = 0;
 
               if (compraColIdx >= 0 && compraColIdx < usdRow.length) {
-                // Usar la columna COMPRA (BID) específicamente
                 tasaValue = this.parseNumber(usdRow[compraColIdx]);
-                console.log('USD rate from COMPRA column:', tasaValue);
+                console.log(`  -> USD rate from COMPRA col ${compraColIdx}:`, tasaValue);
               }
 
-              // Si no se encontró en COMPRA, buscar el primer valor numérico > 0
+              // Fallback: buscar primer valor numérico después de la celda USD
               if (tasaValue <= 0) {
-                for (let i = 1; i < usdRow.length; i++) {
+                for (let i = usdColIdx + 1; i < usdRow.length; i++) {
                   const valor = this.parseNumber(usdRow[i]);
                   if (valor > 0) {
                     tasaValue = valor;
-                    console.log('USD rate from fallback column:', i, '=', valor);
+                    console.log(`  -> USD rate from fallback col ${i}:`, valor);
                     break;
                   }
                 }
@@ -363,7 +384,12 @@ export class Conversion {
 
               if (tasaValue > 0) {
                 mapaTasas.set(fecha, tasaValue);
+                console.log(`  -> TASA GUARDADA: ${fecha} = ${tasaValue}`);
+              } else {
+                console.log(`  -> No se encontró valor de tasa para ${fecha}`);
               }
+            } else {
+              console.log(`  -> No se encontró fila USD en sheet ${sheetName}`);
             }
           });
         } else {
@@ -518,26 +544,102 @@ export class Conversion {
 
   private normalizarFecha(valor: any): string {
     if (!valor) return '';
+
+    // Si es un número (fecha serial de Excel), convertir
+    if (typeof valor === 'number' && valor > 1) {
+      // Excel serial date: días desde 1900-01-01 (con ajuste por bug de Excel)
+      const utcDays = valor - 25569;
+      const utcValue = utcDays * 86400 * 1000;
+      const date = new Date(utcValue);
+      if (!isNaN(date.getTime()) && date.getUTCFullYear() > 1990 && date.getUTCFullYear() < 2050) {
+        const y = date.getUTCFullYear();
+        const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const d = String(date.getUTCDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      return '';
+    }
+
     if (valor instanceof Date) {
-      return valor.toISOString().split('T')[0];
+      if (isNaN(valor.getTime())) return '';
+      const y = valor.getFullYear();
+      if (y < 1991 || y > 2049) return '';
+      const m = String(valor.getMonth() + 1).padStart(2, '0');
+      const d = String(valor.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
     }
+
     const str = String(valor).trim();
+    if (!str || str === 'undefined' || str === 'null') return '';
 
-    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
-      return str.substring(0, 10);
+    const esAnioValido = (a: number) => a >= 1991 && a <= 2049;
+    const esMesValido = (m: number) => m >= 1 && m <= 12;
+    const esDiaValido = (d: number) => d >= 1 && d <= 31;
+
+    // YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      const y = parseInt(str.substring(0, 4));
+      const m = parseInt(str.substring(5, 7));
+      const d = parseInt(str.substring(8, 10));
+      if (esAnioValido(y) && esMesValido(m) && esDiaValido(d)) {
+        return str.substring(0, 10);
+      }
     }
-    if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(str)) {
+
+    // DD/MM/YYYY o D/M/YYYY o DD/MM/YY o D/M/YY
+    if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(str)) {
       const parts = str.split('/');
-      return `${parts[2].substring(0, 4)}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-    }
-    if (/^\d{1,2}-\d{1,2}-\d{4}/.test(str)) {
-      const parts = str.split('-');
-      return `${parts[2].substring(0, 4)}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-    }
-    if (/^\d{8}$/.test(str)) {
-      return `${str.substring(0, 4)}-${str.substring(4, 6)}-${str.substring(6, 8)}`;
+      let anio = parts[2];
+      if (anio.length === 2) {
+        const yy = parseInt(anio);
+        anio = yy >= 50 ? `19${anio}` : `20${anio}`;
+      }
+      const y = parseInt(anio);
+      const m = parseInt(parts[1]);
+      const d = parseInt(parts[0]);
+      if (esAnioValido(y) && esMesValido(m) && esDiaValido(d)) {
+        return `${anio}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
     }
 
+    // DD-MM-YYYY o D-M-YYYY o DD-MM-YY o D-M-YY
+    if (/^\d{1,2}-\d{1,2}-\d{2,4}$/.test(str)) {
+      const parts = str.split('-');
+      let anio = parts[2];
+      if (anio.length === 2) {
+        const yy = parseInt(anio);
+        anio = yy >= 50 ? `19${anio}` : `20${anio}`;
+      }
+      const y = parseInt(anio);
+      const m = parseInt(parts[1]);
+      const d = parseInt(parts[0]);
+      if (esAnioValido(y) && esMesValido(m) && esDiaValido(d)) {
+        return `${anio}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
+    }
+
+    // YYYYMMDD
+    if (/^\d{8}$/.test(str)) {
+      const y = parseInt(str.substring(0, 4));
+      const m = parseInt(str.substring(4, 6));
+      const d = parseInt(str.substring(6, 8));
+      if (esAnioValido(y) && esMesValido(m) && esDiaValido(d)) {
+        return `${y}-${str.substring(4, 6)}-${str.substring(6, 8)}`;
+      }
+    }
+
+    // YYYY/M/D o YYYY/M/DD
+    if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(str)) {
+      const parts = str.split('/');
+      const y = parseInt(parts[0]);
+      const m = parseInt(parts[1]);
+      const d = parseInt(parts[2]);
+      if (esAnioValido(y) && esMesValido(m) && esDiaValido(d)) {
+        return `${parts[0]}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
+    }
+
+    // Nombres de meses en español e inglés
     const meses: Record<string, string> = {
       'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
       'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
@@ -545,7 +647,12 @@ export class Conversion {
       'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04',
       'jun': '06', 'jul': '07', 'ago': '08', 'sep': '09',
       'oct': '10', 'nov': '11', 'dic': '12',
-      'jan': '01', 'apr': '04', 'aug': '08',
+      'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+      'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
+      'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12',
+      'january': '01', 'february': '02', 'march': '03', 'april': '04',
+      'june': '06', 'july': '07', 'august': '08',
+      'september': '09', 'october': '10', 'november': '11', 'december': '12',
     };
 
     const lowerStr = str.toLowerCase();
@@ -554,12 +661,16 @@ export class Conversion {
         const diaMatch = lowerStr.match(/(\d{1,2})/);
         const anioMatch = lowerStr.match(/(\d{4})/);
         if (diaMatch && anioMatch) {
-          return `${anioMatch[1]}-${num}-${diaMatch[1].padStart(2, '0')}`;
+          const y = parseInt(anioMatch[1]);
+          const d = parseInt(diaMatch[1]);
+          if (esAnioValido(y) && esDiaValido(d)) {
+            return `${anioMatch[1]}-${num}-${diaMatch[1].padStart(2, '0')}`;
+          }
         }
       }
     }
 
-    return str;
+    return '';
   }
 
   private parseNumber(valor: any): number {

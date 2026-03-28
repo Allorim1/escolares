@@ -313,18 +313,56 @@ export class Conversion {
             const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
             console.log('Sheet:', sheetName, '- rows:', jsonData.length);
 
-            for (const row of jsonData) {
-              if (!row || row.length === 0) continue;
+            // Buscar la fila de encabezados para encontrar la columna COMPRA (BID)
+            let compraColIdx = -1;
+            let usdRowIdx = -1;
+
+            for (let r = 0; r < jsonData.length; r++) {
+              const row = jsonData[r];
+              if (!row) continue;
+
+              // Buscar encabezado COMPRA/BID
+              for (let c = 0; c < row.length; c++) {
+                const cell = String(row[c] ?? '').toLowerCase().trim();
+                if (cell.includes('compra') || cell.includes('bid')) {
+                  compraColIdx = c;
+                  console.log('Found COMPRA column at index:', c);
+                }
+              }
+
+              // Buscar fila con USD
               const primeraCelda = String(row[0] ?? '').toLowerCase().trim();
               if (primeraCelda === 'usd' || primeraCelda === 'dolar' || primeraCelda === 'dólar') {
-                for (let i = 1; i < row.length; i++) {
-                  const valor = this.parseNumber(row[i]);
+                usdRowIdx = r;
+                console.log('Found USD row at index:', r);
+              }
+            }
+
+            // Extraer la tasa USD de la columna COMPRA
+            if (usdRowIdx >= 0) {
+              const usdRow = jsonData[usdRowIdx];
+              let tasaValue = 0;
+
+              if (compraColIdx >= 0 && compraColIdx < usdRow.length) {
+                // Usar la columna COMPRA (BID) específicamente
+                tasaValue = this.parseNumber(usdRow[compraColIdx]);
+                console.log('USD rate from COMPRA column:', tasaValue);
+              }
+
+              // Si no se encontró en COMPRA, buscar el primer valor numérico > 0
+              if (tasaValue <= 0) {
+                for (let i = 1; i < usdRow.length; i++) {
+                  const valor = this.parseNumber(usdRow[i]);
                   if (valor > 0) {
-                    console.log('Found USD rate:', fecha, '=', valor);
-                    mapaTasas.set(fecha, valor);
+                    tasaValue = valor;
+                    console.log('USD rate from fallback column:', i, '=', valor);
                     break;
                   }
                 }
+              }
+
+              if (tasaValue > 0) {
+                mapaTasas.set(fecha, tasaValue);
               }
             }
           });
@@ -446,7 +484,7 @@ export class Conversion {
         if (!fecha) continue;
 
         const tasa = tasaMap.get(fecha) || 0;
-        const totalConvertido = tasa > 0 ? total * tasa : 0;
+        const totalConvertido = tasa > 0 ? total / tasa : 0;
 
         const columnasExtra: { [key: string]: any } = {};
         ventasHeaders.forEach((h: string, idx: number) => {
@@ -559,7 +597,7 @@ export class Conversion {
     const worksheet = workbook.addWorksheet('Conversión');
 
     const columnasExtra = this.getColumnasExtra();
-    const headers = ['Fecha', ...columnasExtra, 'Total Original ($)', 'Tasa', 'Total Convertido (Bs)'];
+    const headers = ['Fecha', ...columnasExtra, 'Total Original (Bs)', 'Tasa USD', 'Total Convertido ($)'];
 
     worksheet.addRow(headers);
     const headerRow = worksheet.getRow(1);

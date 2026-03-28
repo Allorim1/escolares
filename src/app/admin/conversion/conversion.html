@@ -1,6 +1,6 @@
 <div class="conversion-container">
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
-  <h2>Conversión de Tasas</h2>
+  <h2>Conversión Bs → USD</h2>
 
   @if (error()) {
     <div class="error-banner">{{ error() }}</div>
@@ -9,7 +9,7 @@
   <div class="upload-section">
     <div class="upload-card">
       <h3>📊 Archivo de Ventas</h3>
-      <p class="upload-desc">Histórico de ventas con fechas y totales</p>
+      <p class="upload-desc">Histórico de ventas en Bolívares con fechas y totales</p>
       <label class="upload-btn">
         Seleccionar Archivo
         <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileVentas($event)" hidden>
@@ -21,7 +21,7 @@
 
     <div class="upload-card">
       <h3>💱 Archivo de Tasas</h3>
-      <p class="upload-desc">Excel donde cada hoja es una fecha y contiene la tasa USD</p>
+      <p class="upload-desc">Excel con tasa USD COMPRA (BID) por fecha</p>
       <label class="upload-btn">
         Seleccionar Archivo
         <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileTasas($event)" hidden>
@@ -50,7 +50,7 @@
             </select>
           </div>
           <div class="config-group">
-            <label>Columna Total</label>
+            <label>Columna Total (Bs)</label>
             <select [(ngModel)]="columnaTotalVentas" class="config-select">
               <option value="">-- Seleccionar --</option>
               @for (col of ventasColumnas(); track col) {
@@ -66,7 +66,7 @@
           @if (procesando()) {
             <span class="spinner"></span> Procesando...
           } @else {
-            🔄 Convertir
+            🔄 Convertir a USD
           }
         </button>
         <button class="btn-secondary" (click)="limpiar()">🗑️ Limpiar</button>
@@ -139,11 +139,11 @@
       <div class="totals-bar">
         <div class="total-item">
           <span class="total-label">Total Original:</span>
-          <span class="total-value">$ {{ formatearMoneda(totalOriginal()) }}</span>
+          <span class="total-value">Bs {{ formatearMoneda(totalOriginal()) }}</span>
         </div>
         <div class="total-item">
           <span class="total-label">Total Convertido:</span>
-          <span class="total-value highlight">Bs {{ formatearMoneda(totalConvertido()) }}</span>
+          <span class="total-value highlight">$ {{ formatearMoneda(totalConvertido()) }}</span>
         </div>
         <div class="total-item">
           <span class="total-label">Registros:</span>
@@ -163,9 +163,9 @@
               @for (col of getColumnasExtra(); track col) {
                 <th>{{ col }}</th>
               }
-              <th>Total Original ($)</th>
-              <th>Tasa</th>
-              <th>Total Convertido (Bs)</th>
+              <th>Total Original (Bs)</th>
+              <th>Tasa USD</th>
+              <th>Total Convertido (USD)</th>
             </tr>
           </thead>
           <tbody>
@@ -175,7 +175,7 @@
                 @for (col of getColumnasExtra(); track col) {
                   <td>{{ r.columnasExtra[col] ?? '' }}</td>
                 }
-                <td class="num">$ {{ formatearMoneda(r.totalOriginal) }}</td>
+                <td class="num">Bs {{ formatearMoneda(r.totalOriginal) }}</td>
                 <td class="num">
                   @if (r.tasa > 0) {
                     {{ formatearMoneda(r.tasa) }}
@@ -185,7 +185,7 @@
                 </td>
                 <td class="num">
                   @if (r.totalConvertido > 0) {
-                    Bs {{ formatearMoneda(r.totalConvertido) }}
+                    $ {{ formatearMoneda(r.totalConvertido) }}
                   } @else {
                     -
                   }
@@ -196,9 +196,9 @@
           <tfoot>
             <tr class="total-row">
               <td [attr.colspan]="1 + getColumnasExtra().length"><strong>TOTALES</strong></td>
-              <td class="num"><strong>$ {{ formatearMoneda(totalOriginal()) }}</strong></td>
+              <td class="num"><strong>Bs {{ formatearMoneda(totalOriginal()) }}</strong></td>
               <td></td>
-              <td class="num"><strong>Bs {{ formatearMoneda(totalConvertido()) }}</strong></td>
+              <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
             </tr>
           </tfoot>
         </table>

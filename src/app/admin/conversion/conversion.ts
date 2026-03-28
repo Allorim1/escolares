@@ -130,7 +130,7 @@ export class Conversion {
       }
 
       // Crear encabezados simplificados
-      const headers = ['FECHA', 'VENTAS'];
+      const headers = ['FECHA', 'DIA', 'VENTAS'];
       
       // Extraer solo los datos relevantes
       const dataRows: any[][] = [headers];
@@ -141,13 +141,15 @@ export class Conversion {
         
         // Los datos reales están en las posiciones 12-16
         const fecha = row[12];
+        const dia = row[13];
         const ventas = row[14];
         const total = row[16];
         
         // Verificar que hay datos válidos
         if (fecha && ventas && total) {
-          dataRows.push([fecha, ventas]);
+          dataRows.push([fecha, dia, ventas, total]);
         }
+      }
       }
 
       if (dataRows.length < 2) {

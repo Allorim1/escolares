@@ -789,7 +789,7 @@
                 }
               </td>
               <td>$ {{ facturaDetalle.factura.monto | number:'1.2-2' }}</td>
-              <td>{{ (facturaDetalle.factura.montoBsf || 0) > 0 ? 'Bs ' + formatMoneda(facturaDetalle.factura.montoBsf) : '-' }}</td>
+              <td>{{ (facturaDetalle.factura.montoBsf || 0) > 0 ? 'Bs ' + formatMoneda(facturaDetalle.factura.montoBsf || 0) : '-' }}</td>
               <td>$ {{ (facturaDetalle.factura.baseExenta || 0) | number:'1.2-2' }}</td>
               <td>Bs {{ formatMoneda(facturaDetalle.factura.iva || 0) }}</td>
               <td>-$ {{ formatMoneda(facturaDetalle.factura.abonos) }}</td>

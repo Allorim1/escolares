@@ -629,13 +629,21 @@ export class Conversion {
       }
     }
 
-    // YYYYMMDD
+    // YYYYMMDD o DDMMYYYY (8 dígitos sin separador)
     if (/^\d{8}$/.test(str)) {
-      const y = parseInt(str.substring(0, 4));
-      const m = parseInt(str.substring(4, 6));
-      const d = parseInt(str.substring(6, 8));
-      if (esAnioValido(y) && esMesValido(m) && esDiaValido(d)) {
-        return `${y}-${str.substring(4, 6)}-${str.substring(6, 8)}`;
+      // Intentar YYYYMMDD primero
+      const y1 = parseInt(str.substring(0, 4));
+      const m1 = parseInt(str.substring(4, 6));
+      const d1 = parseInt(str.substring(6, 8));
+      if (esAnioValido(y1) && esMesValido(m1) && esDiaValido(d1)) {
+        return `${y1}-${str.substring(4, 6)}-${str.substring(6, 8)}`;
+      }
+      // Intentar DDMMYYYY
+      const d2 = parseInt(str.substring(0, 2));
+      const m2 = parseInt(str.substring(2, 4));
+      const y2 = parseInt(str.substring(4, 8));
+      if (esAnioValido(y2) && esMesValido(m2) && esDiaValido(d2)) {
+        return `${y2}-${str.substring(2, 4)}-${str.substring(0, 2)}`;
       }
     }
 

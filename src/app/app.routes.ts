@@ -158,6 +158,10 @@ export const routes: Routes = [
         path: 'galeria',
         loadComponent: () => import('./admin/galeria/galeria').then((m) => m.Galeria),
       },
+      {
+        path: 'manuales',
+        loadComponent: () => import('./admin/manuales/admin-manuales').then((m) => m.AdminManuales),
+      },
     ],
   },
   {

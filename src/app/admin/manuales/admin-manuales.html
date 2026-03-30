@@ -1,0 +1,104 @@
+<section class="manuales-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 50px; display: block; margin-bottom: 10px;">
+  <h3>Gestión de Manuales</h3>
+
+  @if (!esRoot()) {
+    <div class="no-access">
+      <p>No tienes acceso a esta sección. Solo el usuario root puede gestionar manuales.</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-message" (click)="clearMessages()">{{ error() }}</div>
+  }
+
+  @if (success()) {
+    <div class="success-message" (click)="clearMessages()">{{ success() }}</div>
+  }
+
+  @if (cargando()) {
+    <div class="cargando">Cargando manuales...</div>
+  } @else {
+    <button class="btn-crear" (click)="openAddModal()">+ Subir Manual</button>
+    
+    @if (manuales().length === 0) {
+      <div class="sin-manuales">
+        <p>No hay manuales registrados.</p>
+        <p>Haz clic en "Subir Manual" para agregar el primero.</p>
+      </div>
+    } @else {
+      <div class="manuales-grid">
+        @for (manual of manuales(); track manual.id) {
+          <div class="manual-card">
+            <div class="manual-icon">📄</div>
+            <div class="manual-info">
+              <h4>{{ manual.nombre }}</h4>
+              <p class="manual-desc">{{ manual.descripcion || 'Sin descripción' }}</p>
+              <div class="manual-meta">
+                <span class="tipo-badge" [class]="manual.tipo">{{ getTipoLabel(manual.tipo) }}</span>
+                <span class="fecha">{{ formatFecha(manual.fechaSubida) }}</span>
+                <span class="tamano">{{ formatTamano(manual.tamano) }}</span>
+              </div>
+            </div>
+            <div class="manual-actions">
+              <button class="btn-descargar" (click)="descargarManual(manual)" title="Descargar">
+                ⬇️ Descargar
+              </button>
+              <button class="btn-editar" (click)="openEditModal(manual)" title="Editar">
+                ✏️ Editar
+              </button>
+              <button class="btn-eliminar" (click)="eliminarManual(manual)" title="Eliminar">
+                🗑️ Eliminar
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</section>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditing() ? 'Editar Manual' : 'Subir Nuevo Manual' }}</h3>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre del Manual *</label>
+          <input type="text" [(ngModel)]="formNombre" placeholder="Ej: Manual de Usuario" />
+        </div>
+        
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="formDescripcion" rows="3" placeholder="Descripción del manual..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Tipo de Documento</label>
+          <select [(ngModel)]="formTipo">
+            @for (tipo of tiposDocumento; track tipo.value) {
+              <option [value]="tipo.value">{{ tipo.label }}</option>
+            }
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>{{ isEditing() ? 'Nuevo Archivo (opcional)' : 'Archivo *' }}</label>
+          <input type="file" (change)="onFileSelected($event)" />
+          @if (isEditing() && editingManual()) {
+            <small class="file-hint">Archivo actual: {{ editingManual()!.nombre }}</small>
+          }
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button class="btn-primary" (click)="guardarManual()">
+          {{ isEditing() ? 'Actualizar' : 'Subir' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

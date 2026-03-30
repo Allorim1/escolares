@@ -44,6 +44,10 @@ export class AdminManuales implements OnInit {
   isEditing = signal(false);
   editingManual = signal<Manual | null>(null);
 
+  // View modal
+  showViewModal = signal(false);
+  viewingManual = signal<Manual | null>(null);
+
   // Form fields
   formTitulo = '';
   formDescripcion = '';
@@ -110,6 +114,16 @@ export class AdminManuales implements OnInit {
     this.isEditing.set(false);
     this.editingManual.set(null);
     this.clearMessages();
+  }
+
+  verManual(manual: Manual) {
+    this.viewingManual.set(manual);
+    this.showViewModal.set(true);
+  }
+
+  closeViewModal() {
+    this.showViewModal.set(false);
+    this.viewingManual.set(null);
   }
 
   agregarPaso() {

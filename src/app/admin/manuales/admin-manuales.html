@@ -2,141 +2,175 @@
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 50px; display: block; margin-bottom: 10px;">
   <h3>Gestión de Manuales</h3>
 
-  @if (!esRoot()) {
+  <ng-container *ngIf="!esRoot()">
     <div class="no-access">
       <p>No tienes acceso a esta sección. Solo el usuario root puede gestionar manuales.</p>
     </div>
-  } @else if (error()) {
+  </ng-container>
+
+  <ng-container *ngIf="error()">
     <div class="error-message" (click)="clearMessages()">{{ error() }}</div>
-  }
+  </ng-container>
 
-  @if (success()) {
+  <ng-container *ngIf="success()">
     <div class="success-message" (click)="clearMessages()">{{ success() }}</div>
-  }
+  </ng-container>
 
-  @if (cargando()) {
+  <ng-container *ngIf="cargando()">
     <div class="cargando">Cargando manuales...</div>
-  } @else {
+  </ng-container>
+
+  <ng-container *ngIf="!cargando()">
     <button class="btn-crear" (click)="openAddModal()">+ Crear Manual</button>
     
-    @if (manuales().length === 0) {
+    <ng-container *ngIf="manuales().length === 0">
       <div class="sin-manuales">
         <p>No hay manuales registrados.</p>
         <p>Haz clic en "Crear Manual" para agregar el primero.</p>
       </div>
-    } @else {
+    </ng-container>
+
+    <ng-container *ngIf="manuales().length > 0">
       <div class="manuales-grid">
-        @for (manual of manuales(); track manual.id) {
-          <div class="manual-card">
-            <div class="manual-icon">📖</div>
-            <div class="manual-info">
-              <h4>{{ manual.titulo }}</h4>
-              <p class="manual-desc">{{ manual.descripcion || 'Sin descripción' }}</p>
-              <div class="manual-meta">
-                <span class="categoria-badge">{{ getCategoriaLabel(manual.categoria) }}</span>
-                <span class="pasos-count">{{ manual.pasos.length }} pasos</span>
-                <span class="fecha">{{ formatFecha(manual.fechaCreacion) }}</span>
-              </div>
-            </div>
-            <div class="manual-actions">
-              <button class="btn-editar" (click)="openEditModal(manual)" title="Editar">
-                ✏️ Editar
-              </button>
-              <button class="btn-eliminar" (click)="eliminarManual(manual)" title="Eliminar">
-                🗑️ Eliminar
-              </button>
+        <div class="manual-card" *ngFor="let manual of manuales()">
+          <div class="manual-icon">📖</div>
+          <div class="manual-info">
+            <h4>{{ manual.titulo }}</h4>
+            <p class="manual-desc">{{ manual.descripcion || 'Sin descripción' }}</p>
+            <div class="manual-meta">
+              <span class="categoria-badge">{{ getCategoriaLabel(manual.categoria) }}</span>
+              <span class="pasos-count">{{ manual.pasos.length }} pasos</span>
+              <span class="fecha">{{ formatFecha(manual.fechaCreacion) }}</span>
             </div>
           </div>
-        }
+          <div class="manual-actions">
+            <button class="btn-ver" (click)="verManual(manual)" title="Ver">👁️ Ver</button>
+            <button class="btn-editar" (click)="openEditModal(manual)" title="Editar">✏️ Editar</button>
+            <button class="btn-eliminar" (click)="eliminarManual(manual)" title="Eliminar">🗑️ Eliminar</button>
+          </div>
+        </div>
       </div>
-    }
-  }
+    </ng-container>
+  </ng-container>
 </section>
 
-@if (showModal()) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ isEditing() ? 'Editar Manual' : 'Crear Nuevo Manual' }}</h3>
-        <button class="close-btn" (click)="closeModal()">&times;</button>
+<div class="modal-overlay" *ngIf="showModal()" (click)="closeModal()">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing() ? 'Editar Manual' : 'Crear Nuevo Manual' }}</h3>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group flex-2">
+          <label>Título del Manual *</label>
+          <input type="text" [(ngModel)]="formTitulo" placeholder="Ej: Cómo crear un producto" />
+        </div>
+        <div class="form-group flex-1">
+          <label>Categoría</label>
+          <select [(ngModel)]="formCategoria">
+            <option *ngFor="let cat of categorias" [value]="cat.value">{{ cat.label }}</option>
+          </select>
+        </div>
       </div>
       
-      <div class="modal-body">
-        <div class="form-row">
-          <div class="form-group flex-2">
-            <label>Título del Manual *</label>
-            <input type="text" [(ngModel)]="formTitulo" placeholder="Ej: Cómo crear un producto" />
-          </div>
-          <div class="form-group flex-1">
-            <label>Categoría</label>
-            <select [(ngModel)]="formCategoria">
-              @for (cat of categorias; track cat.value) {
-                <option [value]="cat.value">{{ cat.label }}</option>
-              }
-            </select>
-          </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea [(ngModel)]="formDescripcion" rows="2" placeholder="Breve descripción del manual..."></textarea>
+      </div>
+      
+      <div class="pasos-section">
+        <div class="pasos-header">
+          <h4>Pasos del Manual</h4>
+          <button class="btn-agregar-paso" (click)="agregarPaso()">+ Agregar Paso</button>
         </div>
         
-        <div class="form-group">
-          <label>Descripción</label>
-          <textarea [(ngModel)]="formDescripcion" rows="2" placeholder="Breve descripción del manual..."></textarea>
-        </div>
-        
-        <div class="pasos-section">
-          <div class="pasos-header">
-            <h4>Pasos del Manual</h4>
-            <button class="btn-agregar-paso" (click)="agregarPaso()">+ Agregar Paso</button>
+        <ng-container *ngIf="formPasos.length === 0">
+          <div class="no-pasos">
+            <p>No hay pasos agregados. Haz clic en "Agregar Paso" para comenzar.</p>
           </div>
-          
-          @if (formPasos.length === 0) {
-            <div class="no-pasos">
-              <p>No hay pasos agregados. Haz clic en "Agregar Paso" para comenzar.</p>
-            </div>
-          } @else {
-            <div class="pasos-list">
-              @for (paso of formPasos; track paso.id; let i = $index) {
-                <div class="paso-card">
-                  <div class="paso-header">
-                    <span class="paso-numero">Paso {{ paso.numero }}</span>
-                    <div class="paso-acciones">
-                      <button class="btn-mover" (click)="moverPasoArriba(i)" [disabled]="i === 0" title="Mover arriba">⬆️</button>
-                      <button class="btn-mover" (click)="moverPasoAbajo(i)" [disabled]="i === formPasos.length - 1" title="Mover abajo">⬇️</button>
-                      <button class="btn-eliminar-paso" (click)="eliminarPaso(i)" title="Eliminar paso">🗑️</button>
-                    </div>
-                  </div>
-                  <div class="paso-content">
-                    <div class="form-group">
-                      <label>Título del Paso *</label>
-                      <input type="text" [(ngModel)]="paso.titulo" placeholder="Ej: Ir a la sección de productos" />
-                    </div>
-                    <div class="form-group">
-                      <label>Descripción / Comentario *</label>
-                      <textarea [(ngModel)]="paso.descripcion" rows="3" placeholder="Describe este paso en detalle..."></textarea>
-                    </div>
-                    <div class="form-group">
-                      <label>Captura de Pantalla</label>
-                      <input type="file" accept="image/*" (change)="onImageSelected($event, i)" />
-                      @if (paso.imagen) {
-                        <div class="imagen-preview">
-                          <img [src]="paso.imagen" alt="Preview" />
-                          <button class="btn-quitar-img" (click)="paso.imagen = ''">Quitar imagen</button>
-                        </div>
-                      }
-                    </div>
-                  </div>
+        </ng-container>
+
+        <ng-container *ngIf="formPasos.length > 0">
+          <div class="pasos-list">
+            <div class="paso-card" *ngFor="let paso of formPasos; let i = index">
+              <div class="paso-header">
+                <span class="paso-numero">Paso {{ paso.numero }}</span>
+                <div class="paso-acciones">
+                  <button class="btn-mover" (click)="moverPasoArriba(i)" [disabled]="i === 0" title="Mover arriba">⬆️</button>
+                  <button class="btn-mover" (click)="moverPasoAbajo(i)" [disabled]="i === formPasos.length - 1" title="Mover abajo">⬇️</button>
+                  <button class="btn-eliminar-paso" (click)="eliminarPaso(i)" title="Eliminar paso">🗑️</button>
                 </div>
-              }
+              </div>
+              <div class="paso-content">
+                <div class="form-group">
+                  <label>Título del Paso *</label>
+                  <input type="text" [(ngModel)]="paso.titulo" placeholder="Ej: Ir a la sección de productos" />
+                </div>
+                <div class="form-group">
+                  <label>Descripción / Comentario *</label>
+                  <textarea [(ngModel)]="paso.descripcion" rows="3" placeholder="Describe este paso en detalle..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Captura de Pantalla</label>
+                  <input type="file" accept="image/*" (change)="onImageSelected($event, i)" />
+                  <ng-container *ngIf="paso.imagen">
+                    <div class="imagen-preview">
+                      <img [src]="paso.imagen" alt="Preview" />
+                      <button class="btn-quitar-img" (click)="paso.imagen = ''">Quitar imagen</button>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
             </div>
-          }
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
-        <button class="btn-primary" (click)="guardarManual()">
-          {{ isEditing() ? 'Actualizar' : 'Crear Manual' }}
-        </button>
+          </div>
+        </ng-container>
       </div>
     </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
+      <button class="btn-primary" (click)="guardarManual()">
+        {{ isEditing() ? 'Actualizar' : 'Crear Manual' }}
+      </button>
+    </div>
   </div>
-}
+</div>
+
+<div class="modal-overlay" *ngIf="showViewModal() && viewingManual()" (click)="closeViewModal()">
+  <div class="modal-content modal-extra-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ viewingManual()!.titulo }}</h3>
+      <button class="close-btn" (click)="closeViewModal()">×</button>
+    </div>
+    
+    <div class="modal-body view-body">
+      <ng-container *ngIf="viewingManual()!.descripcion">
+        <p class="view-descripcion">{{ viewingManual()!.descripcion }}</p>
+      </ng-container>
+      
+      <div class="view-pasos">
+        <div class="view-paso-card" *ngFor="let paso of viewingManual()!.pasos">
+          <div class="view-paso-numero">
+            <span class="numero-circulo">{{ paso.numero }}</span>
+            <span class="numero-texto">Paso {{ paso.numero }}</span>
+          </div>
+          <div class="view-paso-content">
+            <h4>{{ paso.titulo }}</h4>
+            <p>{{ paso.descripcion }}</p>
+            <ng-container *ngIf="paso.imagen">
+              <div class="view-imagen">
+                <img [src]="paso.imagen" alt="Captura del paso {{ paso.numero }}" />
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeViewModal()">Cerrar</button>
+    </div>
+  </div>
+</div>

@@ -51,59 +51,24 @@ button.nav-btn.primary:hover {
   z-index: 9999;
 }
 
-.maintenance-modal {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-  border-radius: 20px;
-  padding: 50px 60px;
-  text-align: center;
-  color: white;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  max-width: 90%;
+.maintenance-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
   animation: fadeIn 0.5s ease;
-  position: relative;
 }
 
-.corner-logo {
-  position: absolute;
-  width: 120px;
-  height: auto;
-  opacity: 0.9;
-}
-
-.corner-logo.top-left {
-  top: 15px;
-  left: 15px;
-}
-
-.corner-logo.top-right {
-  top: 15px;
-  right: 15px;
-  transform: scaleX(-1);
-}
-
-.maintenance-icon {
-  font-size: 60px;
-  margin-bottom: 20px;
-  animation: spin 2s linear infinite;
-}
-
-.maintenance-modal h2 {
-  font-size: 32px;
-  margin: 0 0 15px 0;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-.maintenance-modal p {
-  font-size: 18px;
-  margin: 0 0 25px 0;
-  opacity: 0.95;
-  font-weight: 500;
+.maintenance-image {
+  max-width: 90%;
+  max-height: 70vh;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .continue-btn {
-  background: white;
-  color: #0d6efd;
+  background: #0d6efd;
+  color: white;
   border: none;
   padding: 14px 40px;
   font-size: 16px;
@@ -116,9 +81,9 @@ button.nav-btn.primary:hover {
 }
 
 .continue-btn:hover {
-  background: #f0f0f0;
+  background: #0a58ca;
   transform: scale(1.05);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 20px rgba(13, 110, 253, 0.4);
 }
 
 @keyframes fadeIn {
@@ -130,12 +95,4 @@ button.nav-btn.primary:hover {
     opacity: 1;
     transform: scale(1);
   }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(-10deg); }
-  50% { transform: rotate(0deg); }
-  75% { transform: rotate(10deg); }
-  100% { transform: rotate(0deg); }
 }

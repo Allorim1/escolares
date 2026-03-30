@@ -1,12 +1,8 @@
 <!-- Maintenance Notice Modal -->
 @if (showMaintenanceModal()) {
-  <div class="maintenance-overlay">
-    <div class="maintenance-modal">
-      <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo Escolares" class="corner-logo top-left">
-      <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo Escolares" class="corner-logo top-right">
-      <div class="maintenance-icon">🔧</div>
-      <h2>Página en mantenimiento</h2>
-      <p>Trabajamos en mejorar para ti</p>
+  <div class="maintenance-overlay" (click)="dismissModal()">
+    <div class="maintenance-container" (click)="$event.stopPropagation()">
+      <img src="/mantenimiento.jpg" alt="Página en mantenimiento" class="maintenance-image">
       <button class="continue-btn" (click)="dismissModal()">Continuar</button>
     </div>
   </div>

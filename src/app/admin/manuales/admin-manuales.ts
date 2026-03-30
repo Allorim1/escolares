@@ -5,14 +5,22 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../shared/data-access/auth.service';
 
+interface Paso {
+  id: string;
+  numero: number;
+  titulo: string;
+  descripcion: string;
+  imagen?: string;
+}
+
 interface Manual {
   id: string;
-  nombre: string;
+  titulo: string;
   descripcion: string;
-  tipo: string;
-  fechaSubida: Date;
-  url: string;
-  tamano: number;
+  categoria: string;
+  pasos: Paso[];
+  fechaCreacion: Date;
+  fechaActualizacion?: Date;
 }
 
 @Component({
@@ -36,19 +44,19 @@ export class AdminManuales implements OnInit {
   isEditing = signal(false);
   editingManual = signal<Manual | null>(null);
 
-  formNombre = '';
+  // Form fields
+  formTitulo = '';
   formDescripcion = '';
-  formTipo = 'manual';
-  selectedFile: File | null = null;
+  formCategoria = 'general';
+  formPasos: Paso[] = [];
 
-  tiposDocumento = [
-    { value: 'manual', label: 'Manual' },
-    { value: 'guia', label: 'Guía' },
-    { value: 'procedimiento', label: 'Procedimiento' },
-    { value: 'instructivo', label: 'Instructivo' },
-    { value: 'politica', label: 'Política' },
-    { value: 'formato', label: 'Formato' },
-    { value: 'otro', label: 'Otro' },
+  categorias = [
+    { value: 'general', label: 'General' },
+    { value: 'productos', label: 'Gestión de Productos' },
+    { value: 'usuarios', label: 'Gestión de Usuarios' },
+    { value: 'pedidos', label: 'Gestión de Pedidos' },
+    { value: 'facturacion', label: 'Facturación' },
+    { value: 'configuracion', label: 'Configuración' },
   ];
 
   ngOnInit() {
@@ -80,20 +88,20 @@ export class AdminManuales implements OnInit {
   openAddModal() {
     this.isEditing.set(false);
     this.editingManual.set(null);
-    this.formNombre = '';
+    this.formTitulo = '';
     this.formDescripcion = '';
-    this.formTipo = 'manual';
-    this.selectedFile = null;
+    this.formCategoria = 'general';
+    this.formPasos = [];
     this.showModal.set(true);
   }
 
   openEditModal(manual: Manual) {
     this.isEditing.set(true);
     this.editingManual.set(manual);
-    this.formNombre = manual.nombre;
+    this.formTitulo = manual.titulo;
     this.formDescripcion = manual.descripcion;
-    this.formTipo = manual.tipo;
-    this.selectedFile = null;
+    this.formCategoria = manual.categoria;
+    this.formPasos = [...manual.pasos.map(p => ({ ...p }))];
     this.showModal.set(true);
   }
 
@@ -104,46 +112,104 @@ export class AdminManuales implements OnInit {
     this.clearMessages();
   }
 
-  onFileSelected(event: any) {
+  agregarPaso() {
+    const nuevoPaso: Paso = {
+      id: this.generarId(),
+      numero: this.formPasos.length + 1,
+      titulo: '',
+      descripcion: '',
+      imagen: ''
+    };
+    this.formPasos.push(nuevoPaso);
+  }
+
+  eliminarPaso(index: number) {
+    this.formPasos.splice(index, 1);
+    // Renumber steps
+    this.formPasos.forEach((paso, i) => {
+      paso.numero = i + 1;
+    });
+  }
+
+  moverPasoArriba(index: number) {
+    if (index > 0) {
+      const temp = this.formPasos[index];
+      this.formPasos[index] = this.formPasos[index - 1];
+      this.formPasos[index - 1] = temp;
+      this.formPasos.forEach((paso, i) => {
+        paso.numero = i + 1;
+      });
+    }
+  }
+
+  moverPasoAbajo(index: number) {
+    if (index < this.formPasos.length - 1) {
+      const temp = this.formPasos[index];
+      this.formPasos[index] = this.formPasos[index + 1];
+      this.formPasos[index + 1] = temp;
+      this.formPasos.forEach((paso, i) => {
+        paso.numero = i + 1;
+      });
+    }
+  }
+
+  onImageSelected(event: any, pasoIndex: number) {
     const file = event.target.files[0];
     if (file) {
-      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.formPasos[pasoIndex].imagen = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
     }
   }
 
   guardarManual() {
-    if (!this.formNombre.trim()) {
-      this.error.set('El nombre es requerido');
+    if (!this.formTitulo.trim()) {
+      this.error.set('El título es requerido');
       return;
+    }
+
+    if (this.formPasos.length === 0) {
+      this.error.set('Debe agregar al menos un paso');
+      return;
+    }
+
+    // Validate steps
+    for (let i = 0; i < this.formPasos.length; i++) {
+      if (!this.formPasos[i].titulo.trim()) {
+        this.error.set(`El paso ${i + 1} debe tener un título`);
+        return;
+      }
+      if (!this.formPasos[i].descripcion.trim()) {
+        this.error.set(`El paso ${i + 1} debe tener una descripción`);
+        return;
+      }
     }
 
     if (this.isEditing()) {
       this.actualizarManual();
     } else {
-      this.subirManual();
+      this.crearManual();
     }
   }
 
-  subirManual() {
-    if (!this.selectedFile) {
-      this.error.set('Debe seleccionar un archivo');
-      return;
-    }
+  crearManual() {
+    const manualData = {
+      titulo: this.formTitulo,
+      descripcion: this.formDescripcion,
+      categoria: this.formCategoria,
+      pasos: this.formPasos.filter(p => p.titulo.trim() && p.descripcion.trim())
+    };
 
-    const formData = new FormData();
-    formData.append('nombre', this.formNombre);
-    formData.append('descripcion', this.formDescripcion);
-    formData.append('tipo', this.formTipo);
-    formData.append('archivo', this.selectedFile);
-
-    this.http.post('/api/manuales', formData).subscribe({
+    this.http.post('/api/manuales', manualData).subscribe({
       next: () => {
-        this.success.set('Manual subido correctamente');
+        this.success.set('Manual creado correctamente');
         this.cargarManuales();
         this.closeModal();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al subir manual');
+        this.error.set(err.error?.error || 'Error al crear manual');
       },
     });
   }
@@ -152,15 +218,14 @@ export class AdminManuales implements OnInit {
     const manual = this.editingManual();
     if (!manual) return;
 
-    const formData = new FormData();
-    formData.append('nombre', this.formNombre);
-    formData.append('descripcion', this.formDescripcion);
-    formData.append('tipo', this.formTipo);
-    if (this.selectedFile) {
-      formData.append('archivo', this.selectedFile);
-    }
+    const manualData = {
+      titulo: this.formTitulo,
+      descripcion: this.formDescripcion,
+      categoria: this.formCategoria,
+      pasos: this.formPasos.filter(p => p.titulo.trim() && p.descripcion.trim())
+    };
 
-    this.http.put(`/api/manuales/${manual.id}`, formData).subscribe({
+    this.http.put(`/api/manuales/${manual.id}`, manualData).subscribe({
       next: () => {
         this.success.set('Manual actualizado correctamente');
         this.cargarManuales();
@@ -173,7 +238,7 @@ export class AdminManuales implements OnInit {
   }
 
   eliminarManual(manual: Manual) {
-    if (!confirm(`¿Estás seguro de eliminar "${manual.nombre}"?`)) {
+    if (!confirm(`¿Estás seguro de eliminar "${manual.titulo}"?`)) {
       return;
     }
 
@@ -188,19 +253,9 @@ export class AdminManuales implements OnInit {
     });
   }
 
-  descargarManual(manual: Manual) {
-    window.open(`/api/manuales/${manual.id}/descargar`, '_blank');
-  }
-
-  getTipoLabel(tipo: string): string {
-    const found = this.tiposDocumento.find(t => t.value === tipo);
-    return found ? found.label : tipo;
-  }
-
-  formatTamano(tamano: number): string {
-    if (tamano < 1024) return tamano + ' B';
-    if (tamano < 1024 * 1024) return (tamano / 1024).toFixed(1) + ' KB';
-    return (tamano / (1024 * 1024)).toFixed(1) + ' MB';
+  getCategoriaLabel(categoria: string): string {
+    const found = this.categorias.find(c => c.value === categoria);
+    return found ? found.label : categoria;
   }
 
   formatFecha(fecha: Date | string): string {
@@ -215,5 +270,9 @@ export class AdminManuales implements OnInit {
   clearMessages() {
     this.error.set(null);
     this.success.set(null);
+  }
+
+  private generarId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 }

@@ -130,72 +130,32 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 15px;
+  align-items: center;
 }
 
-.tipo-badge {
+.categoria-badge {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-}
-
-.tipo-badge.manual {
   background: #cfe2ff;
   color: #084298;
 }
 
-.tipo-badge.guia {
-  background: #d1e7dd;
-  color: #0f5132;
+.pasos-count {
+  font-size: 12px;
+  color: #0d6efd;
+  font-weight: 600;
 }
 
-.tipo-badge.procedimiento {
-  background: #fff3cd;
-  color: #664d03;
-}
-
-.tipo-badge.instructivo {
-  background: #e2d9f3;
-  color: #4a2c7a;
-}
-
-.tipo-badge.politica {
-  background: #f8d7da;
-  color: #842029;
-}
-
-.tipo-badge.formato {
-  background: #e2e3e5;
-  color: #41464b;
-}
-
-.tipo-badge.otro {
-  background: #e9ecef;
-  color: #495057;
-}
-
-.fecha,
-.tamano {
+.fecha {
   font-size: 12px;
   color: #6c757d;
-}
-
-.fecha::before,
-.tamano::before {
-  content: '•';
-  margin: 0 6px;
-}
-
-.fecha:first-of-type::before {
-  content: '';
-  margin: 0;
 }
 
 .manual-actions {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .manual-actions button {
@@ -208,15 +168,6 @@
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.btn-descargar {
-  background: #198754;
-  color: white;
-}
-
-.btn-descargar:hover {
-  background: #157347;
 }
 
 .btn-editar {
@@ -256,10 +207,14 @@
   background: white;
   border-radius: 12px;
   width: 100%;
-  max-width: 500px;
+  max-width: 900px;
   max-height: 90vh;
   overflow-y: auto;
   animation: modalFadeIn 0.3s ease;
+}
+
+.modal-large {
+  max-width: 1000px;
 }
 
 @keyframes modalFadeIn {
@@ -279,6 +234,10 @@
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid #e9ecef;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
 }
 
 .modal-header h3 {
@@ -305,13 +264,26 @@
   padding: 20px;
 }
 
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-2 {
+  flex: 2;
+}
+
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #333;
   font-weight: 600;
   font-size: 14px;
@@ -322,9 +294,9 @@
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid #ced4da;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
   transition: border-color 0.2s ease;
   box-sizing: border-box;
@@ -338,14 +310,151 @@
 }
 
 .form-group input[type="file"] {
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
-.file-hint {
-  display: block;
-  margin-top: 5px;
+/* Pasos Section */
+.pasos-section {
+  margin-top: 20px;
+  border-top: 2px solid #e9ecef;
+  padding-top: 20px;
+}
+
+.pasos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.pasos-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.btn-agregar-paso {
+  background: #198754;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-agregar-paso:hover {
+  background: #157347;
+}
+
+.no-pasos {
+  text-align: center;
+  padding: 30px;
+  background: #f8f9fa;
+  border-radius: 8px;
   color: #6c757d;
+}
+
+.pasos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.paso-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+}
+
+.paso-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #e9ecef;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.paso-numero {
+  font-weight: 700;
+  color: #0d6efd;
+  font-size: 14px;
+}
+
+.paso-acciones {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-mover {
+  background: white;
+  border: 1px solid #ced4da;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
   font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-mover:hover:not(:disabled) {
+  background: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+}
+
+.btn-mover:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-eliminar-paso {
+  background: white;
+  border: 1px solid #dc3545;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-eliminar-paso:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.paso-content {
+  padding: 15px;
+}
+
+.imagen-preview {
+  margin-top: 10px;
+  position: relative;
+}
+
+.imagen-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.btn-quitar-img {
+  margin-top: 5px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-quitar-img:hover {
+  background: #bb2d3b;
 }
 
 .modal-footer {
@@ -354,6 +463,9 @@
   gap: 12px;
   padding: 20px;
   border-top: 1px solid #e9ecef;
+  position: sticky;
+  bottom: 0;
+  background: white;
 }
 
 .btn-primary {
@@ -400,5 +512,20 @@
 
   .manual-actions button {
     justify-content: center;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .modal-content {
+    max-width: 100%;
+    margin: 10px;
+  }
+
+  .pasos-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
   }
 }

@@ -149,6 +149,9 @@
               <select class="rol-select" [(ngModel)]="selectedUserRolData">
                 <option value="usuario">Usuario</option>
                 <option value="owner">Owner</option>
+                @for (rol of roles(); track rol.id) {
+                  <option [value]="'usuario:' + rol.id">{{ rol.nombre }}</option>
+                }
               </select>
             </div>
           </div>

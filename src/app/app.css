@@ -60,6 +60,25 @@ button.nav-btn.primary:hover {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   max-width: 90%;
   animation: fadeIn 0.5s ease;
+  position: relative;
+}
+
+.corner-logo {
+  position: absolute;
+  width: 80px;
+  height: auto;
+  opacity: 0.9;
+}
+
+.corner-logo.top-left {
+  top: 15px;
+  left: 15px;
+}
+
+.corner-logo.top-right {
+  top: 15px;
+  right: 15px;
+  transform: scaleX(-1);
 }
 
 .maintenance-icon {

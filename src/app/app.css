@@ -77,9 +77,29 @@ button.nav-btn.primary:hover {
 
 .maintenance-modal p {
   font-size: 18px;
-  margin: 0;
+  margin: 0 0 25px 0;
   opacity: 0.95;
   font-weight: 500;
+}
+
+.continue-btn {
+  background: white;
+  color: #0d6efd;
+  border: none;
+  padding: 14px 40px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.continue-btn:hover {
+  background: #f0f0f0;
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes fadeIn {

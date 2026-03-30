@@ -19,6 +19,30 @@
       }
     </div>
 
+    <div class="upload-card upload-card-anterior">
+      <h3>📈 Ventas Año Anterior 1</h3>
+      <p class="upload-desc">Ventas del período anterior para comparar ganancias</p>
+      <label class="upload-btn upload-btn-anterior">
+        Seleccionar Archivo
+        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileAnterior1($event)" hidden>
+      </label>
+      @if (ventasAnterior1Nombre()) {
+        <span class="file-name">{{ ventasAnterior1Nombre() }}</span>
+      }
+    </div>
+
+    <div class="upload-card upload-card-anterior">
+      <h3>📈 Ventas Año Anterior 2</h3>
+      <p class="upload-desc">Segundo período anterior para comparar ganancias</p>
+      <label class="upload-btn upload-btn-anterior">
+        Seleccionar Archivo
+        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileAnterior2($event)" hidden>
+      </label>
+      @if (ventasAnterior2Nombre()) {
+        <span class="file-name">{{ ventasAnterior2Nombre() }}</span>
+      }
+    </div>
+
     <div class="upload-card">
       <h3>💱 Archivo de Tasas</h3>
       <p class="upload-desc">Excel con tasa USD COMPRA (BID) por fecha</p>
@@ -59,6 +83,54 @@
             </select>
           </div>
         </div>
+
+        @if (ventasAnterior1Columnas().length > 0) {
+          <div class="config-card config-card-anterior">
+            <h4>Año Anterior 1</h4>
+            <div class="config-group">
+              <label>Columna Fecha</label>
+              <select [(ngModel)]="columnaFechaAnterior1" class="config-select">
+                <option value="">-- Seleccionar --</option>
+                @for (col of ventasAnterior1Columnas(); track col) {
+                  <option [value]="col">{{ col }}</option>
+                }
+              </select>
+            </div>
+            <div class="config-group">
+              <label>Columna Total (Bs)</label>
+              <select [(ngModel)]="columnaTotalAnterior1" class="config-select">
+                <option value="">-- Seleccionar --</option>
+                @for (col of ventasAnterior1Columnas(); track col) {
+                  <option [value]="col">{{ col }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+
+        @if (ventasAnterior2Columnas().length > 0) {
+          <div class="config-card config-card-anterior">
+            <h4>Año Anterior 2</h4>
+            <div class="config-group">
+              <label>Columna Fecha</label>
+              <select [(ngModel)]="columnaFechaAnterior2" class="config-select">
+                <option value="">-- Seleccionar --</option>
+                @for (col of ventasAnterior2Columnas(); track col) {
+                  <option [value]="col">{{ col }}</option>
+                }
+              </select>
+            </div>
+            <div class="config-group">
+              <label>Columna Total (Bs)</label>
+              <select [(ngModel)]="columnaTotalAnterior2" class="config-select">
+                <option value="">-- Seleccionar --</option>
+                @for (col of ventasAnterior2Columnas(); track col) {
+                  <option [value]="col">{{ col }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
       </div>
 
       <div class="actions-bar">
@@ -69,6 +141,11 @@
             🔄 Convertir a USD
           }
         </button>
+        @if (ventasAnterior1Raw().length > 1 || ventasAnterior2Raw().length > 1) {
+          <button class="btn-comparar" (click)="procesarComparacion()" [disabled]="resultados().length === 0">
+            📊 Comparar Períodos
+          </button>
+        }
         <button class="btn-secondary" (click)="limpiar()">🗑️ Limpiar</button>
       </div>
     </div>
@@ -228,6 +305,131 @@
               <td class="num"><strong>Bs {{ formatearMoneda(totalOriginal()) }}</strong></td>
               <td></td>
               <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (comparaciones().length > 0) {
+    <div class="comparacion-section">
+      <div class="result-header">
+        <h3>📊 Comparación de Períodos</h3>
+      </div>
+
+      <div class="totals-bar comparacion-totals">
+        <div class="total-item">
+          <span class="total-label">Total Actual:</span>
+          <span class="total-value">Bs {{ formatearMoneda(totalOriginal()) }}</span>
+        </div>
+        @if (ventasAnterior1Nombre()) {
+          <div class="total-item">
+            <span class="total-label">Total Anterior 1:</span>
+            <span class="total-value">Bs {{ formatearMoneda(totalOriginalAnterior1()) }}</span>
+          </div>
+          <div class="total-item">
+            <span class="total-label">Variación 1:</span>
+            <span class="total-value" [class.positivo]="variacionTotalPct1() > 0" [class.negativo]="variacionTotalPct1() < 0">
+              {{ variacionTotalPct1() > 0 ? '+' : '' }}{{ variacionTotalPct1() }}%
+            </span>
+          </div>
+        }
+        @if (ventasAnterior2Nombre()) {
+          <div class="total-item">
+            <span class="total-label">Total Anterior 2:</span>
+            <span class="total-value">Bs {{ formatearMoneda(totalOriginalAnterior2()) }}</span>
+          </div>
+          <div class="total-item">
+            <span class="total-label">Variación 2:</span>
+            <span class="total-value" [class.positivo]="variacionTotalPct2() > 0" [class.negativo]="variacionTotalPct2() < 0">
+              {{ variacionTotalPct2() > 0 ? '+' : '' }}{{ variacionTotalPct2() }}%
+            </span>
+          </div>
+        }
+      </div>
+
+      <div class="result-table-wrapper">
+        <table class="result-table comparacion-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Actual (Bs)</th>
+              @if (ventasAnterior1Nombre()) {
+                <th>Anterior 1 (Bs)</th>
+                <th>Var. %</th>
+              }
+              @if (ventasAnterior2Nombre()) {
+                <th>Anterior 2 (Bs)</th>
+                <th>Var. %</th>
+              }
+              <th>Conv. Actual ($)</th>
+              @if (ventasAnterior1Nombre()) {
+                <th>Conv. Ant. 1 ($)</th>
+              }
+              @if (ventasAnterior2Nombre()) {
+                <th>Conv. Ant. 2 ($)</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of comparaciones(); track c.fecha) {
+              <tr>
+                <td>{{ c.fecha }}</td>
+                <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
+                @if (ventasAnterior1Nombre()) {
+                  <td class="num">{{ c.totalAnterior1 > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior1) : '-' }}</td>
+                  <td class="num" [class.positivo]="c.variacionPct1 > 0" [class.negativo]="c.variacionPct1 < 0">
+                    @if (c.totalAnterior1 > 0) {
+                      {{ c.variacionPct1 > 0 ? '+' : '' }}{{ c.variacionPct1 }}%
+                    } @else {
+                      -
+                    }
+                  </td>
+                }
+                @if (ventasAnterior2Nombre()) {
+                  <td class="num">{{ c.totalAnterior2 > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior2) : '-' }}</td>
+                  <td class="num" [class.positivo]="c.variacionPct2 > 0" [class.negativo]="c.variacionPct2 < 0">
+                    @if (c.totalAnterior2 > 0) {
+                      {{ c.variacionPct2 > 0 ? '+' : '' }}{{ c.variacionPct2 }}%
+                    } @else {
+                      -
+                    }
+                  </td>
+                }
+                <td class="num">$ {{ formatearMoneda(c.convertidoActual) }}</td>
+                @if (ventasAnterior1Nombre()) {
+                  <td class="num">{{ c.convertidoAnterior1 > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior1) : '-' }}</td>
+                }
+                @if (ventasAnterior2Nombre()) {
+                  <td class="num">{{ c.convertidoAnterior2 > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior2) : '-' }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td><strong>TOTALES</strong></td>
+              <td class="num"><strong>Bs {{ formatearMoneda(totalOriginal()) }}</strong></td>
+              @if (ventasAnterior1Nombre()) {
+                <td class="num"><strong>Bs {{ formatearMoneda(totalOriginalAnterior1()) }}</strong></td>
+                <td class="num" [class.positivo]="variacionTotalPct1() > 0" [class.negativo]="variacionTotalPct1() < 0">
+                  <strong>{{ variacionTotalPct1() > 0 ? '+' : '' }}{{ variacionTotalPct1() }}%</strong>
+                </td>
+              }
+              @if (ventasAnterior2Nombre()) {
+                <td class="num"><strong>Bs {{ formatearMoneda(totalOriginalAnterior2()) }}</strong></td>
+                <td class="num" [class.positivo]="variacionTotalPct2() > 0" [class.negativo]="variacionTotalPct2() < 0">
+                  <strong>{{ variacionTotalPct2() > 0 ? '+' : '' }}{{ variacionTotalPct2() }}%</strong>
+                </td>
+              }
+              <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
+              @if (ventasAnterior1Nombre()) {
+                <td class="num"><strong>{{ totalConvertidoAnterior1() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior1()) : '-' }}</strong></td>
+              }
+              @if (ventasAnterior2Nombre()) {
+                <td class="num"><strong>{{ totalConvertidoAnterior2() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior2()) : '-' }}</strong></td>
+              }
             </tr>
           </tfoot>
         </table>

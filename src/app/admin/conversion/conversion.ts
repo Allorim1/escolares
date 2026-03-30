@@ -12,6 +12,18 @@ interface FilaResultado {
   columnasExtra: { [key: string]: any };
 }
 
+interface ComparacionResultado {
+  fecha: string;
+  totalActual: number;
+  totalAnterior1: number;
+  totalAnterior2: number;
+  convertidoActual: number;
+  convertidoAnterior1: number;
+  convertidoAnterior2: number;
+  variacionPct1: number;
+  variacionPct2: number;
+}
+
 @Component({
   selector: 'app-conversion',
   standalone: true,
@@ -46,6 +58,32 @@ export class Conversion {
   tasasManuales = signal<Map<string, number>>(new Map());
   fechasSinTasa = signal<string[]>([]);
 
+  // Archivos de comparación
+  ventasAnterior1Nombre = signal('');
+  ventasAnterior1Raw = signal<any[][]>([]);
+  ventasAnterior1Columnas = signal<string[]>([]);
+  columnaFechaAnterior1 = signal('');
+  columnaTotalAnterior1 = signal('');
+  ventasAnterior1Preview = signal<any[][]>([]);
+
+  ventasAnterior2Nombre = signal('');
+  ventasAnterior2Raw = signal<any[][]>([]);
+  ventasAnterior2Columnas = signal<string[]>([]);
+  columnaFechaAnterior2 = signal('');
+  columnaTotalAnterior2 = signal('');
+  ventasAnterior2Preview = signal<any[][]>([]);
+
+  resultadosAnterior1 = signal<FilaResultado[]>([]);
+  resultadosAnterior2 = signal<FilaResultado[]>([]);
+  totalOriginalAnterior1 = signal(0);
+  totalConvertidoAnterior1 = signal(0);
+  totalOriginalAnterior2 = signal(0);
+  totalConvertidoAnterior2 = signal(0);
+
+  comparaciones = signal<ComparacionResultado[]>([]);
+  variacionTotalPct1 = signal(0);
+  variacionTotalPct2 = signal(0);
+
   onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
@@ -73,6 +111,38 @@ export class Conversion {
       this.parseCSVTasas(file);
     } else if (ext === 'xlsx' || ext === 'xls') {
       this.parseExcelTasas(file);
+    } else {
+      this.error.set('Formato no soportado. Use CSV o Excel (.xlsx)');
+    }
+  }
+
+  onFileAnterior1(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+
+    this.error.set('');
+    if (ext === 'csv') {
+      this.parseCSVComparacion(file, 1);
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      this.parseExcelComparacion(file, 1);
+    } else {
+      this.error.set('Formato no soportado. Use CSV o Excel (.xlsx)');
+    }
+  }
+
+  onFileAnterior2(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+
+    this.error.set('');
+    if (ext === 'csv') {
+      this.parseCSVComparacion(file, 2);
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      this.parseExcelComparacion(file, 2);
     } else {
       this.error.set('Formato no soportado. Use CSV o Excel (.xlsx)');
     }
@@ -207,6 +277,166 @@ export class Conversion {
     }
     result.push(current.trim());
     return result;
+  }
+
+  private parseCSVComparacion(file: File, slot: 1 | 2) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) {
+        this.error.set('El archivo CSV debe tener encabezado y datos');
+        return;
+      }
+
+      const allRows: any[][] = [];
+      for (let i = 0; i < lines.length; i++) {
+        allRows.push(this.parseCSVLine(lines[i]));
+      }
+
+      let headerRowIndex = -1;
+      let fechaColIdx = -1;
+      let totalColIdx = -1;
+
+      for (let i = 0; i < allRows.length; i++) {
+        const row = allRows[i];
+        for (let j = 0; j < row.length; j++) {
+          const cell = String(row[j]).trim().toUpperCase();
+          if (cell === 'FECHA') {
+            headerRowIndex = i;
+            fechaColIdx = j;
+          }
+          if (cell === 'TOTAL' && headerRowIndex === i) {
+            totalColIdx = j;
+          }
+        }
+        if (headerRowIndex >= 0) break;
+      }
+
+      if (headerRowIndex < 0) {
+        headerRowIndex = 0;
+        fechaColIdx = 6;
+        totalColIdx = 10;
+      }
+
+      const headers = ['FECHA', 'DIA', 'VENTAS'];
+      const dataRows: any[][] = [headers];
+
+      for (let i = 0; i < allRows.length; i++) {
+        const row = allRows[i];
+        if (row.length < 17) continue;
+        const fecha = row[12];
+        const dia = row[13];
+        const ventas = row[14];
+        const total = row[16];
+        if (fecha && ventas && total) {
+          dataRows.push([fecha, dia, ventas, total]);
+        }
+      }
+
+      if (dataRows.length < 2) {
+        this.error.set('No se encontraron datos válidos en el archivo de comparación');
+        return;
+      }
+
+      if (slot === 1) {
+        this.ventasAnterior1Raw.set(dataRows);
+        this.ventasAnterior1Columnas.set(headers);
+        this.ventasAnterior1Nombre.set(file.name);
+        this.ventasAnterior1Preview.set(dataRows.slice(0, 6));
+        this.columnaFechaAnterior1.set('FECHA');
+        this.columnaTotalAnterior1.set('VENTAS');
+      } else {
+        this.ventasAnterior2Raw.set(dataRows);
+        this.ventasAnterior2Columnas.set(headers);
+        this.ventasAnterior2Nombre.set(file.name);
+        this.ventasAnterior2Preview.set(dataRows.slice(0, 6));
+        this.columnaFechaAnterior2.set('FECHA');
+        this.columnaTotalAnterior2.set('VENTAS');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  private parseExcelComparacion(file: File, slot: 1 | 2) {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const buffer = e.target?.result as ArrayBuffer;
+        const fileName = file.name.toLowerCase();
+        let rows: any[][] = [];
+
+        const isXlsByExtension = fileName.endsWith('.xls') && !fileName.endsWith('.xlsx');
+
+        if (isXlsByExtension) {
+          const workbook = XLSX.read(buffer, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          if (!sheetName) {
+            this.error.set('El archivo Excel no tiene hojas');
+            return;
+          }
+          const worksheet = workbook.Sheets[sheetName];
+          rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true }) as any[][];
+        } else {
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(buffer);
+          const worksheet = workbook.worksheets[0];
+          if (!worksheet) {
+            this.error.set('El archivo Excel no tiene hojas');
+            return;
+          }
+          worksheet.eachRow((row) => {
+            const rowData: any[] = [];
+            row.eachCell({ includeEmpty: true }, (cell) => {
+              let value = cell.value;
+              if (value instanceof Date && !isNaN(value.getTime())) {
+                const y = value.getFullYear();
+                const m = String(value.getMonth() + 1).padStart(2, '0');
+                const d = String(value.getDate()).padStart(2, '0');
+                value = `${y}-${m}-${d}`;
+              } else if (typeof value === 'object' && value !== null) {
+                value = (value as any).result ?? (value as any).text ?? String(value);
+              }
+              rowData.push(value ?? '');
+            });
+            rows.push(rowData);
+          });
+        }
+
+        if (rows.length < 2) {
+          this.error.set('El archivo Excel debe tener encabezado y datos');
+          return;
+        }
+
+        const headers = rows[0].map(h => String(h).trim());
+        const colFecha = headers.find(h =>
+          h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date')
+        );
+        const colTotal = headers.find(h =>
+          h.toLowerCase().includes('total') || h.toLowerCase().includes('monto') || h.toLowerCase().includes('amount')
+        );
+
+        if (slot === 1) {
+          this.ventasAnterior1Raw.set(rows);
+          this.ventasAnterior1Columnas.set(headers);
+          this.ventasAnterior1Nombre.set(file.name);
+          this.ventasAnterior1Preview.set(rows.slice(0, 6));
+          if (colFecha) this.columnaFechaAnterior1.set(colFecha);
+          if (colTotal) this.columnaTotalAnterior1.set(colTotal);
+        } else {
+          this.ventasAnterior2Raw.set(rows);
+          this.ventasAnterior2Columnas.set(headers);
+          this.ventasAnterior2Nombre.set(file.name);
+          this.ventasAnterior2Preview.set(rows.slice(0, 6));
+          if (colFecha) this.columnaFechaAnterior2.set(colFecha);
+          if (colTotal) this.columnaTotalAnterior2.set(colTotal);
+        }
+      } catch (err) {
+        console.error('Error parsing Excel comparación:', err);
+        this.error.set('Error al leer el archivo Excel de comparación: ' + (err as Error).message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
   }
 
   private parseExcelVentas(file: File) {
@@ -599,6 +829,178 @@ export class Conversion {
     }
   }
 
+  procesarComparacion() {
+    if (this.tasasMap().size === 0) {
+      this.error.set('Debe cargar y procesar el archivo de tasas primero');
+      return;
+    }
+
+    const tasaMap = this.tasasMap();
+    const tasasManuales = this.tasasManuales();
+    const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
+
+    // Procesar archivo anterior 1 si existe
+    if (this.ventasAnterior1Raw().length >= 2) {
+      const res1 = this.calcularResultados(
+        this.ventasAnterior1Raw(),
+        this.columnaFechaAnterior1(),
+        this.columnaTotalAnterior1(),
+        todasLasTasas
+      );
+      this.resultadosAnterior1.set(res1.resultados);
+      this.totalOriginalAnterior1.set(res1.totalOrig);
+      this.totalConvertidoAnterior1.set(res1.totalConv);
+    }
+
+    // Procesar archivo anterior 2 si existe
+    if (this.ventasAnterior2Raw().length >= 2) {
+      const res2 = this.calcularResultados(
+        this.ventasAnterior2Raw(),
+        this.columnaFechaAnterior2(),
+        this.columnaTotalAnterior2(),
+        todasLasTasas
+      );
+      this.resultadosAnterior2.set(res2.resultados);
+      this.totalOriginalAnterior2.set(res2.totalOrig);
+      this.totalConvertidoAnterior2.set(res2.totalConv);
+    }
+
+    // Calcular comparaciones
+    this.calcularComparaciones();
+  }
+
+  private calcularResultados(
+    ventasRows: any[][],
+    colFecha: string,
+    colTotal: string,
+    todasLasTasas: Map<string, number>
+  ): { resultados: FilaResultado[]; totalOrig: number; totalConv: number } {
+    const ventasHeaders = ventasRows[0];
+    const idxFechaV = ventasHeaders.indexOf(colFecha);
+    const idxTotalV = ventasHeaders.indexOf(colTotal);
+
+    if (idxFechaV < 0 || idxTotalV < 0) {
+      return { resultados: [], totalOrig: 0, totalConv: 0 };
+    }
+
+    const resultados: FilaResultado[] = [];
+    let totalOrig = 0;
+    let totalConv = 0;
+
+    for (let i = 1; i < ventasRows.length; i++) {
+      const row = ventasRows[i];
+      const fecha = this.normalizarFecha(row[idxFechaV]);
+      const total = this.parseNumber(row[idxTotalV]);
+
+      if (!fecha) continue;
+
+      const tasa = todasLasTasas.get(fecha) || 0;
+      const totalConvertido = tasa > 0 ? total / tasa : 0;
+
+      const columnasExtra: { [key: string]: any } = {};
+      ventasHeaders.forEach((h: string, idx: number) => {
+        if (idx !== idxFechaV && idx !== idxTotalV) {
+          columnasExtra[h] = row[idx];
+        }
+      });
+
+      resultados.push({
+        fecha,
+        totalOriginal: total,
+        tasa,
+        totalConvertido,
+        columnasExtra
+      });
+
+      totalOrig += total;
+      totalConv += totalConvertido;
+    }
+
+    return {
+      resultados,
+      totalOrig: Math.round(totalOrig * 100) / 100,
+      totalConv: Math.round(totalConv * 100) / 100
+    };
+  }
+
+  private calcularComparaciones() {
+    const actuales = this.resultados();
+    const anteriores1 = this.resultadosAnterior1();
+    const anteriores2 = this.resultadosAnterior2();
+
+    if (actuales.length === 0) return;
+
+    const mapaActual = new Map<string, FilaResultado>();
+    for (const r of actuales) {
+      mapaActual.set(r.fecha, r);
+    }
+
+    const mapaAnterior1 = new Map<string, FilaResultado>();
+    for (const r of anteriores1) {
+      mapaAnterior1.set(r.fecha, r);
+    }
+
+    const mapaAnterior2 = new Map<string, FilaResultado>();
+    for (const r of anteriores2) {
+      mapaAnterior2.set(r.fecha, r);
+    }
+
+    const todasLasFechas = new Set<string>([
+      ...mapaActual.keys(),
+      ...mapaAnterior1.keys(),
+      ...mapaAnterior2.keys()
+    ]);
+
+    const comparaciones: ComparacionResultado[] = [];
+
+    for (const fecha of todasLasFechas) {
+      const actual = mapaActual.get(fecha);
+      const anterior1 = mapaAnterior1.get(fecha);
+      const anterior2 = mapaAnterior2.get(fecha);
+
+      const totalActual = actual?.totalOriginal ?? 0;
+      const totalAnterior1 = anterior1?.totalOriginal ?? 0;
+      const totalAnterior2 = anterior2?.totalOriginal ?? 0;
+      const convertidoActual = actual?.totalConvertido ?? 0;
+      const convertidoAnterior1 = anterior1?.totalConvertido ?? 0;
+      const convertidoAnterior2 = anterior2?.totalConvertido ?? 0;
+
+      const variacionPct1 = totalAnterior1 > 0
+        ? Math.round(((totalActual - totalAnterior1) / totalAnterior1) * 10000) / 100
+        : 0;
+      const variacionPct2 = totalAnterior2 > 0
+        ? Math.round(((totalActual - totalAnterior2) / totalAnterior2) * 10000) / 100
+        : 0;
+
+      comparaciones.push({
+        fecha,
+        totalActual,
+        totalAnterior1,
+        totalAnterior2,
+        convertidoActual,
+        convertidoAnterior1,
+        convertidoAnterior2,
+        variacionPct1,
+        variacionPct2
+      });
+    }
+
+    comparaciones.sort((a, b) => a.fecha.localeCompare(b.fecha));
+    this.comparaciones.set(comparaciones);
+
+    // Calcular variación total porcentual
+    const totalAct = this.totalOriginal();
+    const totalAnt1 = this.totalOriginalAnterior1();
+    const totalAnt2 = this.totalOriginalAnterior2();
+
+    this.variacionTotalPct1.set(
+      totalAnt1 > 0 ? Math.round(((totalAct - totalAnt1) / totalAnt1) * 10000) / 100 : 0
+    );
+    this.variacionTotalPct2.set(
+      totalAnt2 > 0 ? Math.round(((totalAct - totalAnt2) / totalAnt2) * 10000) / 100 : 0
+    );
+  }
+
   private normalizarFecha(valor: any): string {
     if (!valor) return '';
 
@@ -768,6 +1170,8 @@ export class Conversion {
     if (this.resultados().length === 0) return;
 
     const workbook = new ExcelJS.Workbook();
+
+    // Hoja principal de conversión
     const worksheet = workbook.addWorksheet('Conversión');
 
     const columnasExtra = this.getColumnasExtra();
@@ -801,6 +1205,48 @@ export class Conversion {
 
     worksheet.columns.forEach(col => { col.width = 18; });
 
+    // Hoja de comparación si hay datos
+    if (this.comparaciones().length > 0) {
+      const wsComp = workbook.addWorksheet('Comparación');
+      const hasAnt1 = this.ventasAnterior1Nombre() !== '';
+      const hasAnt2 = this.ventasAnterior2Nombre() !== '';
+
+      const compHeaders = ['Fecha', 'Total Actual (Bs)'];
+      if (hasAnt1) compHeaders.push('Total Anterior 1 (Bs)', 'Variación % 1');
+      if (hasAnt2) compHeaders.push('Total Anterior 2 (Bs)', 'Variación % 2');
+      compHeaders.push('Convertido Actual ($)');
+      if (hasAnt1) compHeaders.push('Convertido Ant. 1 ($)');
+      if (hasAnt2) compHeaders.push('Convertido Ant. 2 ($)');
+
+      wsComp.addRow(compHeaders);
+      const compHeaderRow = wsComp.getRow(1);
+      compHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      compHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E7D32' } };
+
+      for (const c of this.comparaciones()) {
+        const row: any[] = [c.fecha, c.totalActual];
+        if (hasAnt1) row.push(c.totalAnterior1, c.variacionPct1 + '%');
+        if (hasAnt2) row.push(c.totalAnterior2, c.variacionPct2 + '%');
+        row.push(c.convertidoActual);
+        if (hasAnt1) row.push(c.convertidoAnterior1);
+        if (hasAnt2) row.push(c.convertidoAnterior2);
+        wsComp.addRow(row);
+      }
+
+      // Fila de totales
+      const totRow: any[] = ['TOTALES', this.totalOriginal()];
+      if (hasAnt1) totRow.push(this.totalOriginalAnterior1(), this.variacionTotalPct1() + '%');
+      if (hasAnt2) totRow.push(this.totalOriginalAnterior2(), this.variacionTotalPct2() + '%');
+      totRow.push(this.totalConvertido());
+      if (hasAnt1) totRow.push(this.totalConvertidoAnterior1());
+      if (hasAnt2) totRow.push(this.totalConvertidoAnterior2());
+      const compTotalRow = wsComp.addRow(totRow);
+      compTotalRow.font = { bold: true };
+      compTotalRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } };
+
+      wsComp.columns.forEach(col => { col.width = 20; });
+    }
+
     workbook.xlsx.writeBuffer().then(buffer => {
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = URL.createObjectURL(blob);
@@ -830,6 +1276,28 @@ export class Conversion {
     this.totalConvertido.set(0);
     this.tasasManuales.set(new Map());
     this.fechasSinTasa.set([]);
+    // Limpiar comparaciones
+    this.ventasAnterior1Nombre.set('');
+    this.ventasAnterior1Raw.set([]);
+    this.ventasAnterior1Columnas.set([]);
+    this.columnaFechaAnterior1.set('');
+    this.columnaTotalAnterior1.set('');
+    this.ventasAnterior1Preview.set([]);
+    this.ventasAnterior2Nombre.set('');
+    this.ventasAnterior2Raw.set([]);
+    this.ventasAnterior2Columnas.set([]);
+    this.columnaFechaAnterior2.set('');
+    this.columnaTotalAnterior2.set('');
+    this.ventasAnterior2Preview.set([]);
+    this.resultadosAnterior1.set([]);
+    this.resultadosAnterior2.set([]);
+    this.totalOriginalAnterior1.set(0);
+    this.totalConvertidoAnterior1.set(0);
+    this.totalOriginalAnterior2.set(0);
+    this.totalConvertidoAnterior2.set(0);
+    this.comparaciones.set([]);
+    this.variacionTotalPct1.set(0);
+    this.variacionTotalPct2.set(0);
   }
 
   asignarTasaManual(fecha: string, valor: any) {

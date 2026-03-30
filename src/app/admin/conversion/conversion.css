@@ -464,3 +464,71 @@
 .btn-remove-tasa:hover {
   background: #c82333;
 }
+
+.upload-card-anterior {
+  border: 2px dashed #2e7d32;
+}
+
+.upload-btn-anterior {
+  background: #2e7d32 !important;
+}
+
+.upload-btn-anterior:hover {
+  background: #1b5e20 !important;
+}
+
+.config-card-anterior {
+  border-left: 3px solid #2e7d32;
+}
+
+.config-card-anterior h4 {
+  color: #2e7d32;
+}
+
+.btn-comparar {
+  background: #2e7d32;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-comparar:hover:not(:disabled) {
+  background: #1b5e20;
+}
+
+.btn-comparar:disabled {
+  background: #81c784;
+  cursor: not-allowed;
+}
+
+.comparacion-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-top: 1.5rem;
+  border: 2px solid #2e7d32;
+}
+
+.comparacion-totals {
+  background: #e8f5e9;
+}
+
+.comparacion-table th {
+  background: #2e7d32;
+}
+
+.positivo {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.negativo {
+  color: #c62828;
+  font-weight: 600;
+}

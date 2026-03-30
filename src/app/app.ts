@@ -12,4 +12,5 @@ import { Footer } from './shared/ui/footer/footer';
 })
 export class App {
   protected readonly title = signal('escolares');
+  showMaintenanceModal = signal(true);
 }

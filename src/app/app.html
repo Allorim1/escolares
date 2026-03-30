@@ -1,3 +1,14 @@
+<!-- Maintenance Notice Modal -->
+@if (showMaintenanceModal()) {
+  <div class="maintenance-overlay">
+    <div class="maintenance-modal">
+      <div class="maintenance-icon">🔧</div>
+      <h2>Página en mantenimiento</h2>
+      <p>Estamos trabajando en lo mejor para ustedes</p>
+    </div>
+  </div>
+}
+
 <div class="flex flex-col min-h-screen">
   <app-header />
   <main>

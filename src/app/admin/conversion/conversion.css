@@ -485,6 +485,41 @@
   color: #2e7d32;
 }
 
+/* Tasas Anteriores - Purple/Orange Theme */
+.upload-card-tasas-anteriores {
+  border: 2px dashed #6f42c1;
+}
+
+.upload-btn-tasas-anteriores {
+  background: #6f42c1 !important;
+}
+
+.upload-btn-tasas-anteriores:hover {
+  background: #5a32a3 !important;
+}
+
+.preview-card-tasas-anteriores h4 {
+  color: #6f42c1 !important;
+}
+
+.preview-table-tasas-anteriores th {
+  background: #6f42c1 !important;
+}
+
+.tasas-anteriores-section {
+  background: #f8f4ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+  border: 2px solid #6f42c1;
+}
+
+.tasas-anteriores-section h3 {
+  color: #6f42c1;
+  margin-bottom: 0.5rem;
+}
+
 .btn-comparar {
   background: #2e7d32;
   color: white;
@@ -531,4 +566,37 @@
 .negativo {
   color: #c62828;
   font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .upload-section {
+    flex-direction: column;
+  }
+  
+  .upload-card {
+    min-width: 100%;
+  }
+  
+  .config-row {
+    flex-direction: column;
+  }
+  
+  .config-card {
+    min-width: 100%;
+  }
+  
+  .totals-bar {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  
+  .actions-bar {
+    flex-direction: column;
+  }
+  
+  .result-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }

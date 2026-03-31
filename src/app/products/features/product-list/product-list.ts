@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ProductsStateService } from '../../data-access/products-state.service';
 import { LoadingComponent } from '../../../shared/ui/loading/loading';
+import { CurrencyService } from '../../../shared/data-access/currency.service';
 
 @Component({
   selector: 'app-product-list',
@@ -97,6 +98,12 @@ import { LoadingComponent } from '../../../shared/ui/loading/loading';
 export default class ProductList implements OnInit {
   productsState = inject(ProductsStateService);
   private route = inject(ActivatedRoute);
+  currencyService = inject(CurrencyService);
+
+  // Format price based on current currency display
+  formatPrice(priceInUsd: number): string {
+    return this.currencyService.formatPrice(priceInUsd);
+  }
 
   filterText = signal('');
   filterCategory = signal('');

@@ -498,6 +498,37 @@ header.app-header {
   outline: none;
 }
 
+/* Currency Toggle Button */
+.currency-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.currency-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.currency-icon {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.currency-label {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
 .submit-btn {
   width: 100%;
   padding: 0.875rem;

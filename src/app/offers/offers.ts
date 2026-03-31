@@ -16,6 +16,7 @@ import { OfertasService } from '../shared/data-access/ofertas.service';
 import { ProductsService } from '../products/data-access/products.service';
 import { Product } from '../shared/interfaces/product.interface';
 import { LoadingComponent } from '../shared/ui/loading/loading';
+import { CurrencyService } from '../shared/data-access/currency.service';
 
 @Component({
   selector: 'app-offers',
@@ -26,6 +27,12 @@ import { LoadingComponent } from '../shared/ui/loading/loading';
 export class Offers implements OnInit, AfterViewInit {
   private ofertasService = inject(OfertasService);
   private productsService = inject(ProductsService);
+  currencyService = inject(CurrencyService);
+
+  // Format price based on current currency display
+  formatPrice(priceInUsd: number): string {
+    return this.currencyService.formatPrice(priceInUsd);
+  }
 
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 

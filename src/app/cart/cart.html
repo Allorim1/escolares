@@ -16,7 +16,7 @@
     <div class="cart-summary">
       <div class="summary-row total">
         <span>Total:</span>
-        <span class="total-price">{{ price() | currency }}</span>
+        <span class="total-price">{{ formatPrice(price()) }}</span>
       </div>
       <div class="cart-actions">
         <a routerLink="/products" class="continue-btn">Continuar comprando</a>
@@ -74,13 +74,13 @@
               @for (item of state().products; track item) {
                 <div class="summary-item">
                   <span>{{ item.quantity }}x {{ item.product.title }}</span>
-                  <span>{{ (item.product.price * item.quantity) | currency }}</span>
+                  <span>{{ formatPrice(item.product.price * item.quantity) }}</span>
                 </div>
               }
             </div>
             <div class="summary-total">
               <span>Total:</span>
-              <span>{{ price() | currency }}</span>
+              <span>{{ formatPrice(price()) }}</span>
             </div>
           </div>
 

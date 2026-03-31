@@ -7,7 +7,7 @@
 
   <div class="item-details">
     <h4 class="item-title">{{ productCartItem().product.title }}</h4>
-    <p class="item-price">{{ productCartItem().product.price | currency }}</p>
+    <p class="item-price">{{ formatPrice(productCartItem().product.price) }}</p>
   </div>
 
   <div class="item-quantity">
@@ -45,7 +45,7 @@
   </div>
 
   <div class="item-subtotal">
-    <span>{{ productCartItem().product.price * productCartItem().quantity | currency }}</span>
+    <span>{{ formatPrice(productCartItem().product.price * productCartItem().quantity) }}</span>
   </div>
 
   <button class="remove-btn" (click)="onRemove.emit(productCartItem().product.id)" title="Eliminar">

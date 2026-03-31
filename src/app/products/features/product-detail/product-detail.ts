@@ -4,6 +4,7 @@ import { CurrencyPipe, NgIf } from '@angular/common';
 import { CartStateService } from '../../../shared/data-access/cart-state.service';
 import { RouterLink } from '@angular/router';
 import { OfertasService } from '../../../shared/data-access/ofertas.service';
+import { CurrencyService } from '../../../shared/data-access/currency.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -17,6 +18,12 @@ export default class ProductDetail {
   productDetailState = inject(ProductDetailSateService).state;
   cartState = inject(CartStateService).state;
   private ofertasService = inject(OfertasService);
+  currencyService = inject(CurrencyService);
+
+  // Format price based on current currency display
+  formatPrice(priceInUsd: number): string {
+    return this.currencyService.formatPrice(priceInUsd);
+  }
 
   id = input.required<string>();
   showAddedMessage = signal(false);

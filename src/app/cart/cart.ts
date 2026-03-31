@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService, User, Direccion } from '../shared/data-access/auth.service';
 import { OrdersBackend, OrderItem, OrderStatus } from '../backend/data-access/orders.backend';
+import { CurrencyService } from '../shared/data-access/currency.service';
 
 const CART_IMPORTS = [CartItem, CurrencyPipe, RouterLink, FormsModule, DatePipe];
 
@@ -40,6 +41,12 @@ export default class CartComponent {
   authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
   private http = inject(HttpClient);
+  currencyService = inject(CurrencyService);
+
+  // Format price based on current currency display
+  formatPrice(priceInUsd: number): string {
+    return this.currencyService.formatPrice(priceInUsd);
+  }
 
   showCheckoutModal = signal(false);
   checkoutStep = signal(1);

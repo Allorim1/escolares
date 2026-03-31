@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../data-access/auth.service';
 import { ProductsService } from '../../../products/data-access/products.service';
 import { CartStateService } from '../../data-access/cart-state.service';
+import { CurrencyService } from '../../data-access/currency.service';
 import { Product } from '../../../shared/interfaces/product.interface';
 
 @Component({
@@ -17,8 +18,24 @@ export class Header {
   private router = inject(Router);
   private productsService = inject(ProductsService);
   private cartState = inject(CartStateService);
+  currencyService = inject(CurrencyService);
 
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
+
+  // Check if current user is root
+  isRoot(): boolean {
+    return this.authService.user()?.rol === 'root';
+  }
+
+  // Toggle currency display
+  toggleCurrency() {
+    this.currencyService.toggleCurrency();
+  }
+
+  // Format price based on current display mode
+  formatPrice(priceInUsd: number): string {
+    return this.currencyService.formatPrice(priceInUsd);
+  }
 
   searchQuery = '';
   suggestions = signal<Product[]>([]);

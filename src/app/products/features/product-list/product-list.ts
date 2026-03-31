@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ProductsStateService } from '../../data-access/products-state.service';
 import { LoadingComponent } from '../../../shared/ui/loading/loading';
 import { CurrencyService } from '../../../shared/data-access/currency.service';
+import { AuthService } from '../../../shared/data-access/auth.service';
 
 @Component({
   selector: 'app-product-list',
@@ -69,6 +70,41 @@ import { CurrencyService } from '../../../shared/data-access/currency.service';
     .clear-filters-btn:hover {
       background: #1d63c1;
     }
+    .filter-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    .results-count {
+      color: #666;
+      font-size: 0.875rem;
+      margin: 0;
+    }
+    .currency-toggle-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    .currency-toggle-btn:hover {
+      background: #1565c0;
+    }
+    .currency-icon {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .currency-label {
+      font-size: 0.85rem;
+    }
     .page-indicator {
       font-weight: 600;
       padding: 0.25rem 0.75rem;
@@ -87,11 +123,6 @@ import { CurrencyService } from '../../../shared/data-access/currency.service';
     .pagination .btn-secondary:hover:not(:disabled) {
       background: #e0e0e0;
     }
-    .results-count {
-      color: #666;
-      font-size: 0.875rem;
-      margin-top: 1rem;
-    }
   `,
   providers: [ProductsStateService],
 })
@@ -99,6 +130,17 @@ export default class ProductList implements OnInit {
   productsState = inject(ProductsStateService);
   private route = inject(ActivatedRoute);
   currencyService = inject(CurrencyService);
+  private authService = inject(AuthService);
+
+  // Check if current user is root
+  isRoot(): boolean {
+    return this.authService.user()?.rol === 'root';
+  }
+
+  // Toggle currency display (only works for root users)
+  toggleCurrency() {
+    this.currencyService.toggleCurrency();
+  }
 
   // Format price based on current currency display
   formatPrice(priceInUsd: number): string {

@@ -63,12 +63,6 @@
   </nav>
 
   <div class="header-icons">
-    @if (isRoot()) {
-      <button class="currency-toggle" (click)="toggleCurrency()" [title]="currencyService.isDisplayBs() ? 'Mostrar precios en USD' : 'Mostrar precios en Bs'">
-        <span class="currency-icon">{{ currencyService.isDisplayBs() ? 'Bs' : '$' }}</span>
-        <span class="currency-label">{{ currencyService.isDisplayBs() ? 'Bs' : 'USD' }}</span>
-      </button>
-    }
     <a class="cart-btn" routerLink="/cart">
       <img src="/cart.png" alt="Carrito" />
       @if (cartCount() > 0) {

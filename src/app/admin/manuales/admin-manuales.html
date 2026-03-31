@@ -54,7 +54,7 @@
   </ng-container>
 </section>
 
-<div class="modal-overlay" *ngIf="showModal()" (click)="closeModal()">
+<div class="modal-overlay" *ngIf="showModal()">
   <div class="modal-content modal-large" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>{{ isEditing() ? 'Editar Manual' : 'Crear Nuevo Manual' }}</h3>

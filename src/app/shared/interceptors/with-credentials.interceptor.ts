@@ -42,16 +42,25 @@ function isTokenExpiringSoon(token: string): boolean {
 }
 
 async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: string; error?: string }> {
-  const refreshToken = localStorage.getItem('refreshToken');
-  if (!refreshToken) return { error: 'No refresh token' };
+  const refreshTokenValue = localStorage.getItem('refreshToken');
+  if (!refreshTokenValue) return { error: 'No refresh token' };
+
+  // Validate refresh token format before trying to refresh
+  if (!isValidJWTToken(refreshTokenValue)) {
+    return { error: 'Invalid refresh token format' };
+  }
 
   try {
     const res = await fetch('/api/auth/refresh', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken })
+      body: JSON.stringify({ refreshToken: refreshTokenValue })
     });
-    return await res.json();
+    const data = await res.json();
+    if (!res.ok) {
+      return { error: data.error || 'Refresh failed' };
+    }
+    return data;
   } catch (e) {
     return { error: 'Refresh failed' };
   }
@@ -134,18 +143,19 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
               });
               return next(req);
             } else {
+              // Refresh failed - clean tokens but don't auto-redirect
+              // Let the component handle the error
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
-              router.navigate(['/login']);
-              return throwError(() => new Error('Token expirado'));
+              return throwError(() => new Error(data.error || 'Token expirado'));
             }
           }),
           catchError(() => {
+            // Refresh failed due to network error - clean tokens but don't auto-redirect
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
-            router.navigate(['/login']);
             return throwError(() => new Error('Sesión expirada'));
           })
         );

@@ -5,6 +5,20 @@ import { catchError, throwError, switchMap, from } from 'rxjs';
 
 let isRefreshing = false;
 
+function isValidJWTToken(token: string): boolean {
+  const parts = token.split('.');
+  if (parts.length !== 3) return false;
+  // Verify the parts are non-empty base64 strings
+  if (!parts[0] || !parts[1] || !parts[2]) return false;
+  // Try to decode the payload to verify it's valid base64 JSON
+  try {
+    atob(parts[1]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function decodeToken(token: string): any {
   try {
     const parts = token.split('.');
@@ -17,6 +31,8 @@ function decodeToken(token: string): any {
 }
 
 function isTokenExpiringSoon(token: string): boolean {
+  // First validate the token format
+  if (!isValidJWTToken(token)) return false; // Invalid tokens are not "expiring soon"
   const payload = decodeToken(token);
   if (!payload || !payload.exp) return true;
   const expDate = new Date(payload.exp * 1000);
@@ -47,7 +63,15 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
   if (typeof window !== 'undefined' && window.localStorage) {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      if (isTokenExpiringSoon(token)) {
+      // Check if token has valid JWT format
+      if (!isValidJWTToken(token)) {
+        // Invalid token format - clear and continue without it
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        // Don't redirect here, just continue without the invalid token
+        // The backend will return 401 if auth is required, and we'll handle it there
+      } else if (isTokenExpiringSoon(token)) {
         if (!isRefreshing) {
           isRefreshing = true;
           return from(refreshToken()).pipe(
@@ -83,12 +107,13 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
             })
           );
         }
+      } else {
+        req = req.clone({
+          setHeaders: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
       }
-      req = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
     }
   }
 

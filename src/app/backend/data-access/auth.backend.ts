@@ -1,8 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { User } from '../models';
+import { TokenRenewalService } from '../../shared/data-access/token-renewal.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +11,7 @@ import { User } from '../models';
 export class AuthBackend {
   private readonly API_URL = '/api/auth';
   private readonly STORAGE_KEY_SESSION = 'user';
+  private tokenRenewalService = inject(TokenRenewalService);
 
   currentUser = signal<User | null>(null);
   isLoggedIn = signal(false);
@@ -42,6 +44,12 @@ export class AuthBackend {
         this.currentUser.set(user);
         this.isLoggedIn.set(true);
         this.isAdmin.set(user.isAdmin || user.rol === 'admin' || user.rol === 'owner' || user.rol === 'root');
+        // Start token renewal service if user is already logged in
+        const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (accessToken && refreshToken) {
+          this.tokenRenewalService.start();
+        }
       }
     }
   }
@@ -81,6 +89,8 @@ export class AuthBackend {
             localStorage.setItem('refreshToken', response.refreshToken);
           }
         }
+        // Start token renewal service after successful login
+        this.tokenRenewalService.start();
         this.loginLoading.set(false);
         if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root') {
           this.router.navigate(['/admin/inicio']);
@@ -96,12 +106,15 @@ export class AuthBackend {
   }
 
   logout() {
+    // Stop token renewal service
+    this.tokenRenewalService.stop();
     this.currentUser.set(null);
     this.isLoggedIn.set(false);
     this.isAdmin.set(false);
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.removeItem(this.STORAGE_KEY_SESSION);
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('accessToken');
     }
   }
 

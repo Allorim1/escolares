@@ -138,7 +138,7 @@
   </div>
 </div>
 
-<div class="modal-overlay" *ngIf="showViewModal() && viewingManual()" (click)="closeViewModal()">
+<div class="modal-overlay" *ngIf="showViewModal() && viewingManual()">
   <div class="modal-content modal-extra-large" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>{{ viewingManual()!.titulo }}</h3>

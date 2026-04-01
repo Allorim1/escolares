@@ -1677,6 +1677,74 @@
   cursor: not-allowed;
 }
 
+/* Comentarios de Factura */
+.comentario-section {
+  margin-top: 1.5rem;
+}
+
+.comentario-section h5 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 600;
+}
+
+.comentario-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s;
+}
+
+.comentario-input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+/* Celda de Comentario en Tabla */
+.comentario-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.comentario-indicator {
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.comentario-indicator:hover {
+  transform: scale(1.2);
+}
+
+/* Comentario en Modal Detalle */
+.factura-comentario {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.factura-comentario h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 600;
+}
+
+.factura-comentario p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.4;
+}
+
 /* Fotos de Factura */
 .fotos-section {
   margin-top: 1.5rem;

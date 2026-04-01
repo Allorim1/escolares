@@ -46,6 +46,7 @@ export interface FacturaProveedor {
   imagenes?: string[];
   facturaVinculadaIndex?: number;
   montoBsf?: number;
+  comentario?: string;
 }
 
 export interface Proveedor {
@@ -182,6 +183,7 @@ export class CuentasPorPagar implements OnInit {
     facturaVinculadaIndex: -1,
     conIva: false,
     montoBsf: 0,
+    comentario: '',
   };
 
   showCameraModal = false;
@@ -409,6 +411,7 @@ export class CuentasPorPagar implements OnInit {
         facturaVinculadaIndex: factura.facturaVinculadaIndex ?? -1,
         conIva: (factura.montoIva || 0) > 0,
         montoBsf: factura.montoBsf || 0,
+        comentario: factura.comentario || '',
       };
     } else {
       this.editingFactura = null;
@@ -425,6 +428,7 @@ export class CuentasPorPagar implements OnInit {
         facturaVinculadaIndex: -1,
         conIva: false,
         montoBsf: 0,
+        comentario: '',
       };
     }
     this.showModalFactura = true;

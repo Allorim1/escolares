@@ -154,8 +154,7 @@
                                     Jurídica
                                   } @else {
                                     -
-}
-
+                                  }
                                 </td>
                               </tr>
                             </tbody>
@@ -189,6 +188,7 @@
                       <th>IVA</th>
                       <th>Deuda</th>
                       <th>Estado</th>
+                      <th>Obs</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -235,6 +235,11 @@
                             <span class="badge-pendiente">Pendiente</span>
                           }
                         </td>
+                        <td class="comentario-cell">
+                          @if (factura.comentario) {
+                            <span class="comentario-indicator" [title]="factura.comentario">📝</span>
+                          }
+                        </td>
                         <td>
                           <button class="btn-abono" (click)="abrirModalAbono(proveedor._id || '', $index, factura); $event.stopPropagation()" title="Agregar Abono" [disabled]="calcularDeudaFactura(factura, proveedor) === 0">+ Abono</button>
                           <button class="btn-icon-small" (click)="eliminarFactura(proveedor._id || '', $index); $event.stopPropagation()" title="Eliminar">🗑️</button>
@@ -244,9 +249,9 @@
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="7"><strong>Totales:</strong></td>
-                      <td class="deuda-cell"><strong>$ {{ formatMoneda(calcularDeuda(proveedor)) }}</strong></td>
-                      <td colspan="2"></td>
+                      <td colspan="9"><strong>Totales:</strong></td>
+                      <td></td>
+                      <td></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -611,6 +616,15 @@
             </div>
           </div>
         }
+        <div class="comentario-section">
+          <h5>Comentarios</h5>
+          <textarea 
+            [(ngModel)]="newFactura.comentario" 
+            placeholder="Agregar un comentario sobre esta factura (opcional)"
+            rows="3"
+            class="comentario-input"
+          ></textarea>
+        </div>
         <div class="fotos-section">
           <h5>Fotos de Factura</h5>
           <div class="fotos-buttons">
@@ -902,6 +916,13 @@
                 <span class="cuenta-num">/{{ cuenta.numero }}</span>
               </div>
             }
+          </div>
+        }
+
+        @if (facturaDetalle && facturaDetalle.factura.comentario) {
+          <div class="factura-comentario">
+            <h5>📝 Comentario</h5>
+            <p>{{ facturaDetalle.factura.comentario }}</p>
           </div>
         }
 

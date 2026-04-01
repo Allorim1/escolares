@@ -142,6 +142,14 @@ export default class ProductList implements OnInit {
     this.currencyService.toggleCurrency();
   }
 
+  // Get the title for the toggle button
+  getToggleTitle(): string {
+    const display = this.currencyService.currencyDisplay();
+    if (display === 'BOTH') return 'Mostrando ambos precios - Click para ver solo USD';
+    if (display === 'BS') return 'Mostrando Bs - Click para ver ambos';
+    return 'Mostrando USD - Click para ver en Bs';
+  }
+
   // Format price based on current currency display
   formatPrice(priceInUsd: number): string {
     return this.currencyService.formatPrice(priceInUsd);

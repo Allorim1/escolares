@@ -1,7 +1,7 @@
 import { Injectable, signal, inject, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-export type CurrencyDisplay = 'USD' | 'BS';
+export type CurrencyDisplay = 'USD' | 'BS' | 'BOTH';
 
 @Injectable({
   providedIn: 'root'
@@ -27,8 +27,10 @@ export class CurrencyService {
   currencyDisplay = this.currencyDisplayInternal.asReadonly();
   currentTasa = this.tasaDolar.asReadonly();
   
-  // Computed signal to check if displaying in Bs
+  // Computed signal to check display mode
   isDisplayBs = computed(() => this.currencyDisplayInternal() === 'BS');
+  isDisplayUsd = computed(() => this.currencyDisplayInternal() === 'USD');
+  isDisplayBoth = computed(() => this.currencyDisplayInternal() === 'BOTH');
   
   constructor() {
     this.loadTasa();
@@ -38,7 +40,7 @@ export class CurrencyService {
   private loadFromStorage(): CurrencyDisplay {
     if (typeof window !== 'undefined' && window.localStorage) {
       const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored === 'BS' || stored === 'USD') {
+      if (stored === 'BS' || stored === 'USD' || stored === 'BOTH') {
         return stored;
       }
     }
@@ -93,11 +95,19 @@ export class CurrencyService {
   }
   
   /**
-   * Toggle between USD and BS display
+   * Cycle through display modes: USD -> BS -> BOTH -> USD
    * Only root users can modify this (enforced by backend)
    */
   toggleCurrency() {
-    const newValue: CurrencyDisplay = this.currencyDisplayInternal() === 'USD' ? 'BS' : 'USD';
+    let newValue: CurrencyDisplay;
+    const current = this.currencyDisplayInternal();
+    if (current === 'USD') {
+      newValue = 'BS';
+    } else if (current === 'BS') {
+      newValue = 'BOTH';
+    } else {
+      newValue = 'USD';
+    }
     this.setCurrencyDisplay(newValue);
   }
   
@@ -122,7 +132,7 @@ export class CurrencyService {
         // Revert to previous value on error if not authorized
         if (err.status === 403) {
           // User is not root, revert the change
-          const previousValue: CurrencyDisplay = display === 'USD' ? 'BS' : 'USD';
+          const previousValue: CurrencyDisplay = display === 'USD' ? 'BOTH' : 'USD';
           this.currencyDisplayInternal.set(previousValue);
           this.saveToStorage(previousValue);
           console.warn('Solo el usuario root puede cambiar la visualización de precios');
@@ -144,11 +154,17 @@ export class CurrencyService {
    * Format price based on current display mode
    */
   formatPrice(priceInUsd: number): string {
-    if (this.currencyDisplayInternal() === 'BS') {
+    const display = this.currencyDisplayInternal();
+    
+    if (display === 'BOTH') {
+      const priceInBs = this.convertToBs(priceInUsd);
+      return `${this.formatBs(priceInBs)} | $${priceInUsd.toFixed(2)}`;
+    } else if (display === 'BS') {
       const priceInBs = this.convertToBs(priceInUsd);
       return this.formatBs(priceInBs);
+    } else {
+      return `$${priceInUsd.toFixed(2)}`;
     }
-    return `Ref. $${priceInUsd.toFixed(2)}`;
   }
   
   /**
@@ -159,9 +175,19 @@ export class CurrencyService {
   }
   
   /**
-   * Format price in USD with Ref. prefix
+   * Format price in USD
    */
   formatUsd(priceInUsd: number): string {
-    return `Ref. $${priceInUsd.toFixed(2)}`;
+    return `$${priceInUsd.toFixed(2)}`;
+  }
+  
+  /**
+   * Get the display label for the toggle button
+   */
+  getDisplayLabel(): string {
+    const display = this.currencyDisplayInternal();
+    if (display === 'BOTH') return 'Ambos';
+    if (display === 'BS') return 'Bs';
+    return '$';
   }
 }

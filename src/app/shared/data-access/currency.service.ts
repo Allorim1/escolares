@@ -159,8 +159,8 @@ export class CurrencyService {
     
     if (display === 'BOTH') {
       const priceInBs = this.convertToBs(priceInUsd);
-      // Bs price is prominent (highlighted), USD price is muted
-      return `<span class="price-bs-highlight">${this.formatBs(priceInBs)}</span> <span class="price-usd-muted">| $${priceInUsd.toFixed(2)}</span>`;
+      // Bs price is on top (highlighted), USD price is below (muted)
+      return `<span class="price-bs-highlight">${this.formatBs(priceInBs)}</span><br><span class="price-usd-muted">$${priceInUsd.toFixed(2)}</span>`;
     } else if (display === 'BS') {
       const priceInBs = this.convertToBs(priceInUsd);
       return this.formatBs(priceInBs);

@@ -26,13 +26,13 @@
 
           <div class="price-section">
             @if (precioOferta) {
-              <span class="original-price">{{ formatPrice(product.price) }}</span>
-              <span class="discount-price">{{ formatPrice(precioOferta) }}</span>
+              <span class="original-price" [innerHTML]="formatPrice(product.price)"></span>
+              <span class="discount-price" [innerHTML]="formatPrice(precioOferta)"></span>
               <span class="discount-badge"
                 >{{ calcularDescuento(product.price, precioOferta) }}% OFF</span
               >
             } @else {
-              <span class="product-detail-price">{{ formatPrice(product.price) }}</span>
+              <span class="product-detail-price" [innerHTML]="formatPrice(product.price)"></span>
             }
           </div>
 

@@ -152,19 +152,26 @@ export class CurrencyService {
   
   /**
    * Format price based on current display mode
+   * Returns HTML with CSS classes for BOTH mode styling
    */
   formatPrice(priceInUsd: number): string {
     const display = this.currencyDisplayInternal();
     
     if (display === 'BOTH') {
       const priceInBs = this.convertToBs(priceInUsd);
-      return `${this.formatBs(priceInBs)} | $${priceInUsd.toFixed(2)}`;
+      // Bs price is prominent (highlighted), USD price is muted
+      return `<span class="price-bs-highlight">${this.formatBs(priceInBs)}</span> <span class="price-usd-muted">| $${priceInUsd.toFixed(2)}</span>`;
     } else if (display === 'BS') {
       const priceInBs = this.convertToBs(priceInUsd);
       return this.formatBs(priceInBs);
     } else {
       return `$${priceInUsd.toFixed(2)}`;
     }
+  }
+
+  // Check if we're in BOTH mode (for applying special CSS)
+  isBothMode(): boolean {
+    return this.currencyDisplayInternal() === 'BOTH';
   }
   
   /**

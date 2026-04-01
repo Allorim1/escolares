@@ -127,9 +127,8 @@
           <p
             class="card-price"
             style="font-size: 1.1rem; font-weight: 700; color: #1976d2; margin-bottom: 1.5rem"
-          >
-            {{ formatPrice(product.price) }}
-          </p>
+            [innerHTML]="formatPrice(product.price)"
+          ></p>
           <button
             class="btn btn-primary"
             style="

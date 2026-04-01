@@ -12,8 +12,8 @@
             <h3 class="offer-title">{{ product.title }}</h3>
             <p class="offer-description">{{ product.description }}</p>
             <div class="offer-prices">
-              <span class="original-price">{{ formatPrice(product.price) }}</span>
-              <span class="discount-price">{{ formatPrice(getOfertaPriceForProduct(product)) }}</span>
+              <span class="original-price" [innerHTML]="formatPrice(product.price)"></span>
+              <span class="discount-price" [innerHTML]="formatPrice(getOfertaPriceForProduct(product))"></span>
             </div>
             <a [routerLink]="['/products', product.id]" class="offer-btn">Ver Producto</a>
           </div>

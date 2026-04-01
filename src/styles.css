@@ -107,3 +107,17 @@ body {
   align-items: center;
   justify-content: center;
 }
+
+/* Currency display styles for BOTH mode */
+.price-bs-highlight {
+  font-weight: bold;
+  color: #1a73e8;
+  font-size: 1.1em;
+}
+
+.price-usd-muted {
+  font-weight: normal;
+  color: #999;
+  font-size: 0.85em;
+  opacity: 0.7;
+}

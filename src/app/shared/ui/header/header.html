@@ -43,7 +43,7 @@
             <img [src]="product.image" [alt]="product.title" />
             <div class="item-info">
               <div class="item-title">{{ product.title }}</div>
-              <div class="item-price">{{ formatPrice(product.price) }}</div>
+              <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
             </div>
           </a>
         }

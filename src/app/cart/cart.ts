@@ -9,6 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService, User, Direccion } from '../shared/data-access/auth.service';
 import { OrdersBackend, OrderItem, OrderStatus } from '../backend/data-access/orders.backend';
 import { CurrencyService } from '../shared/data-access/currency.service';
+import { StoreSettingsService } from '../shared/data-access/store-settings.service';
 
 const CART_IMPORTS = [CartItem, CurrencyPipe, RouterLink, FormsModule, DatePipe];
 
@@ -42,6 +43,7 @@ export default class CartComponent {
   private ordersBackend = inject(OrdersBackend);
   private http = inject(HttpClient);
   currencyService = inject(CurrencyService);
+  storeSettings = inject(StoreSettingsService);
 
   // Format price based on current currency display
   formatPrice(priceInUsd: number): string {
@@ -210,6 +212,12 @@ export default class CartComponent {
   }
 
   openCheckout() {
+    // Check if purchases are disabled
+    if (this.storeSettings.comprasDeshabilitadas()) {
+      alert('Las compras están temporalmente deshabilitadas. Por favor intenta más tarde.');
+      return;
+    }
+
     const currentUser = this.authService.user();
     const addresses = currentUser?.direcciones || [];
     const defaultAddress = addresses.length > 0 ? addresses[0] : null;

@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { StoreSettingsService } from '../../shared/data-access/store-settings.service';
 
 interface DashboardStats {
   totalProveedores: number;
@@ -24,10 +25,16 @@ interface DashboardStats {
 export class AdminInicio implements OnInit {
   private http = inject(HttpClient);
   authService = inject(AuthService);
+  storeSettings = inject(StoreSettingsService);
   
   get userName(): string {
     const user = this.authService.user();
     return user?.nombreCompleto || user?.username || 'Usuario';
+  }
+  
+  get isRoot(): boolean {
+    const user = this.authService.user();
+    return user?.rol === 'root';
   }
   
   stats = signal<DashboardStats>({
@@ -95,5 +102,9 @@ export class AdminInicio implements OnInit {
 
   formatMoneda(value: number): string {
     return value.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  toggleCompras() {
+    this.storeSettings.toggleCompras();
   }
 }

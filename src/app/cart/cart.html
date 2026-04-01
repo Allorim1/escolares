@@ -1,7 +1,13 @@
 <section class="cart-container">
   <h2>Tu Carrito de Compras</h2>
 
-  @if (state().products.length > 0) {
+  @if (storeSettings.comprasDeshabilitadas()) {
+    <div class="compras-deshabilitadas">
+      <div class="compras-icon">🛇</div>
+      <h3>Compras Temporalmente Deshabilitadas</h3>
+      <p>En este momento no es posible realizar compras. Por favor intenta más tarde.</p>
+    </div>
+  } @else if (state().products.length > 0) {
     <div class="cart-items">
       @for (item of state().products; track item) {
         <app-cart-item

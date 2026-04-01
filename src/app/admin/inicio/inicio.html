@@ -4,6 +4,36 @@
     <p>Panel de administración</p>
   </div>
 
+  @if (isRoot) {
+    <div class="store-control-card">
+      <div class="store-control-content">
+        <div class="store-control-icon">🛒</div>
+        <div class="store-control-info">
+          <h3>Control de Tienda</h3>
+          <p class="store-status">
+            @if (storeSettings.comprasDeshabilitadas()) {
+              <span class="status-badge status-disabled">🛇 Compras Deshabilitadas</span>
+            } @else {
+              <span class="status-badge status-active">✅ Compras Activas</span>
+            }
+          </p>
+        </div>
+      </div>
+      <button 
+        class="toggle-compras-btn"
+        [class.btn-danger]="!storeSettings.comprasDeshabilitadas()"
+        [class.btn-success]="storeSettings.comprasDeshabilitadas()"
+        (click)="toggleCompras()"
+      >
+        @if (storeSettings.comprasDeshabilitadas()) {
+          <span>🔓 Habilitar Compras</span>
+        } @else {
+          <span>🔒 Deshabilitar Compras</span>
+        }
+      </button>
+    </div>
+  }
+
   @if (loading()) {
     <div class="loading">Cargando estadísticas...</div>
   } @else {

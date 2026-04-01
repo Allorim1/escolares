@@ -119,6 +119,32 @@
   background: #0056b3;
 }
 
+/* Compras Deshabilitadas */
+.compras-deshabilitadas {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #fee2e2;
+}
+
+.compras-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.compras-deshabilitadas h3 {
+  color: #991b1b;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.compras-deshabilitadas p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
 /* Checkout Modal */
 .modal-overlay {
   position: fixed;

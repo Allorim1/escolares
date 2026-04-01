@@ -143,3 +143,91 @@
   color: #374151;
   text-align: center;
 }
+
+/* Store Control Card */
+.store-control-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
+  border: 2px solid #e5e7eb;
+}
+
+.store-control-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.store-control-icon {
+  font-size: 40px;
+}
+
+.store-control-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.store-status {
+  margin: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-disabled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.toggle-compras-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-compras-btn:hover {
+  transform: translateY(-1px);
+}
+
+.toggle-compras-btn.btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+}
+
+.toggle-compras-btn.btn-danger:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+}
+
+.toggle-compras-btn.btn-success {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  color: white;
+}
+
+.toggle-compras-btn.btn-success:hover {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+}

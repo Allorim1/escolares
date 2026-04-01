@@ -14,6 +14,8 @@ export interface Product {
   enOferta?: boolean;
   precioOferta?: number;
   createdAt?: Date;
+  iva?: boolean;
+  ivaPercentage?: number;
 }
 
 export interface ProductItemCart {

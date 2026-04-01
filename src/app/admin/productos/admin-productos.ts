@@ -12,6 +12,8 @@ interface ProductFormData {
   category: string;
   image: string;
   marca: string;
+  iva: boolean;
+  ivaPercentage: number;
 }
 
 @Component({
@@ -43,6 +45,8 @@ export class AdminProductos implements OnInit {
     category: '',
     image: '',
     marca: '',
+    iva: false,
+    ivaPercentage: 16,
   });
 
   categories = ['Lapices', 'Mochilas', "", "women's clothing"];
@@ -99,6 +103,8 @@ export class AdminProductos implements OnInit {
       category: 'electronics',
       image: 'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg',
       marca: '',
+      iva: false,
+      ivaPercentage: 16,
     });
     this.showModal.set(true);
   }
@@ -113,6 +119,8 @@ export class AdminProductos implements OnInit {
       category: product.category,
       image: product.image,
       marca: product.marca || '',
+      iva: product.iva || false,
+      ivaPercentage: product.ivaPercentage || 16,
     });
     this.showModal.set(true);
   }
@@ -134,6 +142,8 @@ export class AdminProductos implements OnInit {
         category: data.category,
         image: data.image,
         marca: data.marca || null,
+        iva: data.iva,
+        ivaPercentage: data.ivaPercentage,
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
@@ -152,6 +162,8 @@ export class AdminProductos implements OnInit {
         category: data.category,
         image: data.image,
         marca: data.marca || null,
+        iva: data.iva,
+        ivaPercentage: data.ivaPercentage,
       }).subscribe({
         next: (updated) => {
           this.products.update((products) => 

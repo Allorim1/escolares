@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
 
 interface MenuItem {
@@ -20,8 +21,28 @@ interface MenuCategory {
   templateUrl: './admin.html',
   styleUrl: './admin.css',
 })
-export class Admin {
+export class Admin implements OnInit {
   authService = inject(AuthService);
+  private http = inject(HttpClient);
+
+  apiKeyExpired = signal(false);
+  apiKeyStatusLoaded = signal(false);
+
+  ngOnInit() {
+    this.checkApiKeyStatus();
+  }
+
+  checkApiKeyStatus() {
+    this.http.get<{ apiKeyExpired: boolean }>('/api/settings/tasas-status').subscribe({
+      next: (data) => {
+        this.apiKeyExpired.set(data.apiKeyExpired);
+        this.apiKeyStatusLoaded.set(true);
+      },
+      error: () => {
+        this.apiKeyStatusLoaded.set(true);
+      }
+    });
+  }
 
   isRoot(): boolean {
     return this.authService.user()?.rol === 'root';

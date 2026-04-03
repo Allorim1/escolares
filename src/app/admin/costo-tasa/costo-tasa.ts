@@ -133,6 +133,8 @@ export class CostoTasa implements OnInit {
   paginaActual = 1;
   reportesPorPagina = 5;
 
+  apiKeyExpired = signal(false);
+
   ngOnInit() {
     this.loadTasas();
     this.loadReportes();
@@ -151,6 +153,10 @@ export class CostoTasa implements OnInit {
         this.apiKeyLoaded = true;
       }
     });
+  }
+
+  setApiKeyExpired(expired: boolean) {
+    this.apiKeyExpired.set(expired);
   }
 
   abrirDolarVzla() {
@@ -888,6 +894,13 @@ export class CostoTasa implements OnInit {
             this.loadingTasa.set(false);
             return;
           }
+          
+          if (data.apiKeyExpired) {
+            this.tasaError.set('API key expirada. Por favor, actualízala.');
+            this.loadingTasa.set(false);
+            return;
+          }
+          
           try {
             const usd = data.current?.usd;
             const eur = data.current?.eur;
@@ -925,8 +938,8 @@ export class CostoTasa implements OnInit {
         error: (err) => {
           console.error('Error loading tasas:', err);
           let mensaje = 'No se pudieron cargar las tasas.';
-          if (err.status === 401) {
-            mensaje = 'API key inválida. Ingrésalas manualmente.';
+          if (err.status === 401 || err.error?.apiKeyExpired) {
+            mensaje = 'API key expirada. Por favor, actualízala.';
           } else if (err.status === 0) {
             mensaje = 'Error de conexión. Verifica tu internet.';
           }

@@ -1394,9 +1394,7 @@ export class CuentasPorPagar implements OnInit {
       facturaIndex
     }).subscribe({
       next: (res) => {
-        console.log('QR Response:', res);
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=${encodeURIComponent(res.uploadUrl)}`;
-        this.qrCodeData = qrApiUrl;
+        this.qrCodeData = res.uploadUrl;
         this.qrExpiracion = res.expiresAt;
         this.cdr.detectChanges();
         this.iniciarPollingQR(proveedorId, facturaIndex);
@@ -1527,6 +1525,10 @@ export class CuentasPorPagar implements OnInit {
 
   formatMoneda(value: number): string {
     return value.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  encodeURIComponent(str: string): string {
+    return encodeURIComponent(str);
   }
 
   formatFecha(date: Date | string): string {

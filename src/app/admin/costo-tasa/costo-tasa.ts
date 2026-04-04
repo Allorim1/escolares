@@ -175,8 +175,9 @@ export class CostoTasa implements OnInit {
       next: (data) => {
         window.open('https://www.dolarvzla.com/settings/api/', '_blank');
       },
-      error: (err) => {
-        if (err.status === 401) {
+      error: (err: any) => {
+        console.error('Error checking tasas:', err);
+        if (err.status === 401 || err.error?.apiKeyExpired || err.name === 'TimeoutError') {
           this.showApiKeyInput = true;
           this.dolarApiKey = '';
         } else {

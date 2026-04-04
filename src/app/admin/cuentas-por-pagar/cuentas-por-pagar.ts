@@ -584,6 +584,7 @@ export class CuentasPorPagar implements OnInit {
           this.facturaDetalle.factura.comentario = this.comentarioEdit;
         }
         this.comentarioEditando = false;
+        this.cdr.detectChanges();
         alert('Comentario guardado');
       },
       error: (err) => {
@@ -621,6 +622,7 @@ export class CuentasPorPagar implements OnInit {
         }
         this.comentarioEdit = '';
         this.comentarioEditando = false;
+        this.cdr.detectChanges();
         alert('Comentario borrado');
       },
       error: (err) => {

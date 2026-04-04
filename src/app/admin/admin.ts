@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
+import { ApiKeyStatusService } from '../shared/data-access/api-key-status.service';
 
 interface MenuItem {
   label: string;
@@ -24,8 +25,8 @@ interface MenuCategory {
 export class Admin implements OnInit {
   authService = inject(AuthService);
   private http = inject(HttpClient);
+  apiKeyStatusService = inject(ApiKeyStatusService);
 
-  apiKeyExpired = signal(false);
   apiKeyStatusLoaded = signal(false);
 
   ngOnInit() {
@@ -36,7 +37,7 @@ export class Admin implements OnInit {
     this.http.get<{ apiKeyExpired: boolean }>('/api/settings/tasas-status').subscribe({
       next: (data) => {
         console.log('API Key Status:', data);
-        this.apiKeyExpired.set(data.apiKeyExpired);
+        this.apiKeyStatusService.setApiKeyExpired(data.apiKeyExpired);
         this.apiKeyStatusLoaded.set(true);
       },
       error: (err) => {

@@ -1,4 +1,9 @@
 <div class="admin-container">
+  @if (apiKeyStatusLoaded() && apiKeyStatusService.apiKeyExpired() && isRoot()) {
+    <div class="api-key-warning">
+      <span>⚠️ La API Key de tasas está expirada. Por favor, actualízala en la sección de Costos y Tasas.</span>
+    </div>
+  }
   <aside class="admin-sidebar">
     <h2>Panel</h2>
     <nav class="admin-nav">

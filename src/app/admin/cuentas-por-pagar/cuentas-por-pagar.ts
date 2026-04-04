@@ -555,14 +555,81 @@ export class CuentasPorPagar implements OnInit {
     this.facturaConAbono = null;
   }
 
+  comentarioEdit = '';
+  comentarioEditando = false;
+
   abrirDetalleFactura(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
     this.facturaDetalle = { proveedor, factura, index };
+    this.comentarioEdit = factura.comentario || '';
     this.showModalDetalleFactura = true;
   }
 
   cerrarDetalleFactura() {
     this.showModalDetalleFactura = false;
     this.facturaDetalle = null;
+    this.comentarioEdit = '';
+  }
+
+  guardarComentario() {
+    if (!this.facturaDetalle) return;
+    
+    const proveedorId = this.facturaDetalle.proveedor._id;
+    const facturaIndex = this.facturaDetalle.index;
+    
+    this.http.put(`/api/proveedores/${proveedorId}/factura/${facturaIndex}/comentario`, {
+      comentario: this.comentarioEdit
+    }).subscribe({
+      next: () => {
+        if (this.facturaDetalle) {
+          this.facturaDetalle.factura.comentario = this.comentarioEdit;
+        }
+        this.comentarioEditando = false;
+        this.cdr.detectChanges();
+        alert('Comentario guardado');
+      },
+      error: (err) => {
+        console.error('Error guardando comentario:', err);
+        alert('Error al guardar comentario');
+      }
+    });
+  }
+
+  editarComentario() {
+    this.comentarioEditando = true;
+  }
+
+  cancelarEditarComentario() {
+    this.comentarioEditando = false;
+    if (this.facturaDetalle) {
+      this.comentarioEdit = this.facturaDetalle.factura.comentario || '';
+    }
+  }
+
+  borrarComentario() {
+    if (!this.facturaDetalle) return;
+    
+    if (!confirm('¿Estás seguro de que quieres borrar el comentario?')) return;
+    
+    const proveedorId = this.facturaDetalle.proveedor._id;
+    const facturaIndex = this.facturaDetalle.index;
+    
+    this.http.put(`/api/proveedores/${proveedorId}/factura/${facturaIndex}/comentario`, {
+      comentario: ''
+    }).subscribe({
+      next: () => {
+        if (this.facturaDetalle) {
+          this.facturaDetalle.factura.comentario = '';
+        }
+        this.comentarioEdit = '';
+        this.comentarioEditando = false;
+        this.cdr.detectChanges();
+        alert('Comentario borrado');
+      },
+      error: (err) => {
+        console.error('Error borrando comentario:', err);
+        alert('Error al borrar comentario');
+      }
+    });
   }
 
   abrirModalIva(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
@@ -1327,9 +1394,7 @@ export class CuentasPorPagar implements OnInit {
       facturaIndex
     }).subscribe({
       next: (res) => {
-        console.log('QR Response:', res);
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=${encodeURIComponent(res.uploadUrl)}`;
-        this.qrCodeData = qrApiUrl;
+        this.qrCodeData = res.uploadUrl;
         this.qrExpiracion = res.expiresAt;
         this.cdr.detectChanges();
         this.iniciarPollingQR(proveedorId, facturaIndex);
@@ -1460,6 +1525,10 @@ export class CuentasPorPagar implements OnInit {
 
   formatMoneda(value: number): string {
     return value.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  encodeURIComponent(str: string): string {
+    return encodeURIComponent(str);
   }
 
   formatFecha(date: Date | string): string {

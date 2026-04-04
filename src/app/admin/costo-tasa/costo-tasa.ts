@@ -6,6 +6,7 @@ import { catchError, of, timeout } from 'rxjs';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { ApiKeyStatusService } from '../../shared/data-access/api-key-status.service';
 
 interface Tasa {
   costo: number;
@@ -59,6 +60,7 @@ export class CostoTasa implements OnInit {
 
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private apiKeyStatusService = inject(ApiKeyStatusService);
 
   private readonly API_DOLAR = '/api/tasas';
   private readonly API_COSTOS = '/api/costos';
@@ -133,6 +135,8 @@ export class CostoTasa implements OnInit {
   paginaActual = 1;
   reportesPorPagina = 5;
 
+  apiKeyExpired = signal(false);
+
   ngOnInit() {
     this.loadTasas();
     this.loadReportes();
@@ -171,8 +175,9 @@ export class CostoTasa implements OnInit {
       next: (data) => {
         window.open('https://www.dolarvzla.com/settings/api/', '_blank');
       },
-      error: (err) => {
-        if (err.status === 401) {
+      error: (err: any) => {
+        console.error('Error checking tasas:', err);
+        if (err.status === 401 || err.error?.apiKeyExpired || err.name === 'TimeoutError') {
           this.showApiKeyInput = true;
           this.dolarApiKey = '';
         } else {
@@ -888,6 +893,13 @@ export class CostoTasa implements OnInit {
             this.loadingTasa.set(false);
             return;
           }
+          
+          if (data.apiKeyExpired) {
+            this.tasaError.set('API key expirada. Por favor, actualízala.');
+            this.loadingTasa.set(false);
+            return;
+          }
+          
           try {
             const usd = data.current?.usd;
             const eur = data.current?.eur;
@@ -922,14 +934,17 @@ export class CostoTasa implements OnInit {
             this.loadingTasa.set(false);
           }
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error loading tasas:', err);
           let mensaje = 'No se pudieron cargar las tasas.';
-          if (err.status === 401) {
-            mensaje = 'API key inválida. Ingrésalas manualmente.';
-          } else if (err.status === 0) {
+          
+          if (err.status === 401 || err.error?.apiKeyExpired) {
+            mensaje = 'API key expirada. Por favor, actualízala.';
+            this.apiKeyStatusService.setApiKeyExpired(true);
+          } else if (err.status === 0 || err.name === 'TimeoutError') {
             mensaje = 'Error de conexión. Verifica tu internet.';
           }
+          
           this.tasaError.set(mensaje);
           this.loadingTasa.set(false);
         },

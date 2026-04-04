@@ -1,6 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
+import { ApiKeyStatusService } from '../shared/data-access/api-key-status.service';
 
 interface MenuItem {
   label: string;
@@ -20,8 +22,35 @@ interface MenuCategory {
   templateUrl: './admin.html',
   styleUrl: './admin.css',
 })
-export class Admin {
+export class Admin implements OnInit {
   authService = inject(AuthService);
+  private http = inject(HttpClient);
+  apiKeyStatusService = inject(ApiKeyStatusService);
+
+  apiKeyStatusLoaded = signal(false);
+
+  ngOnInit() {
+    this.checkApiKeyStatus();
+  }
+
+  checkApiKeyStatus() {
+    this.http.get<{ apiKeyExpired?: boolean; error?: string }>('/api/tasas').subscribe({
+      next: (data) => {
+        console.log('API tasas response:', data);
+        if (data.apiKeyExpired) {
+          this.apiKeyStatusService.setApiKeyExpired(true);
+        }
+        this.apiKeyStatusLoaded.set(true);
+      },
+      error: (err: any) => {
+        console.error('Error checking API key status:', err);
+        if (err.status === 401 || err.error?.apiKeyExpired || err.name === 'TimeoutError') {
+          this.apiKeyStatusService.setApiKeyExpired(true);
+        }
+        this.apiKeyStatusLoaded.set(true);
+      }
+    });
+  }
 
   isRoot(): boolean {
     return this.authService.user()?.rol === 'root';

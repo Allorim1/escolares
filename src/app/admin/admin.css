@@ -3,6 +3,27 @@
   min-height: 100vh;
 }
 
+.api-key-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #ffc107 !important;
+  color: #000 !important;
+  padding: 15px !important;
+  text-align: center;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  z-index: 10000 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+  display: block !important;
+}
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+}
+
 .admin-sidebar {
   width: 250px;
   background: #1a1a1a;

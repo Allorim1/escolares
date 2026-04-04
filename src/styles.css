@@ -3,9 +3,10 @@
   --white: #fff;
 }
 
-/* Opcional: Pon aquí estilos que afecten a toda la app, como el body */
-body {
+/* Optional: Pon aquí estilos que afecten a toda la app, como el body */
+html, body {
   margin: 0;
+  padding: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
 }
 

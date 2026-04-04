@@ -937,12 +937,11 @@ export class CostoTasa implements OnInit {
           console.error('Error loading tasas:', err);
           let mensaje = 'No se pudieron cargar las tasas.';
           
-          if (err.name === 'TimeoutError' || err.status === 0) {
-            mensaje = 'Error de conexión. Verifica tu internet.';
-            this.apiKeyStatusService.setApiKeyExpired(true);
-          } else if (err.status === 401 || err.error?.apiKeyExpired) {
+          if (err.status === 401 || err.error?.apiKeyExpired) {
             mensaje = 'API key expirada. Por favor, actualízala.';
             this.apiKeyStatusService.setApiKeyExpired(true);
+          } else if (err.status === 0 || err.name === 'TimeoutError') {
+            mensaje = 'Error de conexión. Verifica tu internet.';
           }
           
           this.tasaError.set(mensaje);

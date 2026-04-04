@@ -42,6 +42,7 @@ export class Admin implements OnInit {
       },
       error: (err) => {
         console.error('Error checking API key status:', err);
+        this.apiKeyStatusService.setApiKeyExpired(true);
         this.apiKeyStatusLoaded.set(true);
       }
     });

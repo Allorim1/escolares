@@ -8,13 +8,21 @@
   top: 0;
   left: 0;
   right: 0;
-  background: #fff3cd;
-  color: #856404;
-  padding: 1rem;
+  background: #ffc107 !important;
+  color: #000 !important;
+  padding: 15px !important;
   text-align: center;
-  font-weight: 500;
-  z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  z-index: 10000 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+  display: block !important;
+}
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  padding-top: 50px;
 }
 
 .admin-sidebar {

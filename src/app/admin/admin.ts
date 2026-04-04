@@ -35,10 +35,12 @@ export class Admin implements OnInit {
   checkApiKeyStatus() {
     this.http.get<{ apiKeyExpired: boolean }>('/api/settings/tasas-status').subscribe({
       next: (data) => {
+        console.log('API Key Status:', data);
         this.apiKeyExpired.set(data.apiKeyExpired);
         this.apiKeyStatusLoaded.set(true);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error checking API key status:', err);
         this.apiKeyStatusLoaded.set(true);
       }
     });

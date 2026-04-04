@@ -926,6 +926,19 @@
           </div>
         }
 
+        <div class="factura-comentario-editar">
+          <h5>📝 {{ facturaDetalle?.factura?.comentario ? 'Editar' : 'Agregar' }} Comentario</h5>
+          <div class="comentario-edit-row">
+            <input 
+              type="text" 
+              [(ngModel)]="comentarioEdit" 
+              placeholder="Agregar un comentario sobre esta factura"
+              class="comentario-input-edit"
+            >
+            <button class="btn-guardar-comentario" (click)="guardarComentario()">Guardar</button>
+          </div>
+        </div>
+
         @if (facturaDetalle) {
           @if ((facturaDetalle.factura.imagenes?.length ?? 0) > 0) {
             <div class="factura-fotos">

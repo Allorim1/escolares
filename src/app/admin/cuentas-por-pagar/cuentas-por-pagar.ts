@@ -557,12 +557,38 @@ export class CuentasPorPagar implements OnInit {
 
   abrirDetalleFactura(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
     this.facturaDetalle = { proveedor, factura, index };
+    this.comentarioEdit = factura.comentario || '';
     this.showModalDetalleFactura = true;
   }
 
   cerrarDetalleFactura() {
     this.showModalDetalleFactura = false;
     this.facturaDetalle = null;
+    this.comentarioEdit = '';
+  }
+
+  comentarioEdit = '';
+
+  guardarComentario() {
+    if (!this.facturaDetalle) return;
+    
+    const proveedorId = this.facturaDetalle.proveedor._id;
+    const facturaIndex = this.facturaDetalle.index;
+    
+    this.http.put(`/api/proveedores/${proveedorId}/factura/${facturaIndex}/comentario`, {
+      comentario: this.comentarioEdit
+    }).subscribe({
+      next: () => {
+        if (this.facturaDetalle) {
+          this.facturaDetalle.factura.comentario = this.comentarioEdit;
+        }
+        alert('Comentario guardado');
+      },
+      error: (err) => {
+        console.error('Error guardando comentario:', err);
+        alert('Error al guardar comentario');
+      }
+    });
   }
 
   abrirModalIva(proveedor: Proveedor, factura: FacturaProveedor, index: number) {

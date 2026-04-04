@@ -34,15 +34,19 @@ export class Admin implements OnInit {
   }
 
   checkApiKeyStatus() {
-    this.http.get<{ apiKeyExpired: boolean }>('/api/settings/tasas-status').subscribe({
+    this.http.get<{ apiKeyExpired?: boolean; error?: string }>('/api/tasas').subscribe({
       next: (data) => {
-        console.log('API Key Status:', data);
-        this.apiKeyStatusService.setApiKeyExpired(data.apiKeyExpired);
+        console.log('API tasas response:', data);
+        if (data.apiKeyExpired) {
+          this.apiKeyStatusService.setApiKeyExpired(true);
+        }
         this.apiKeyStatusLoaded.set(true);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error checking API key status:', err);
-        this.apiKeyStatusService.setApiKeyExpired(true);
+        if (err.status === 401 || err.error?.apiKeyExpired || err.name === 'TimeoutError') {
+          this.apiKeyStatusService.setApiKeyExpired(true);
+        }
         this.apiKeyStatusLoaded.set(true);
       }
     });

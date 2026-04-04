@@ -128,7 +128,10 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
+      const publicEndpointsWithoutAuth = ['/api/tasas', '/api/settings/tasas-status'];
+      const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
+      
+      if (error.status === 401 && !isPublicEndpoint) {
         return from(refreshToken()).pipe(
           switchMap((data: any) => {
             if (data.accessToken) {
@@ -143,8 +146,6 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
               });
               return next(req);
             } else {
-              // Refresh failed - clean tokens but don't auto-redirect
-              // Let the component handle the error
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
@@ -152,7 +153,6 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
             }
           }),
           catchError(() => {
-            // Refresh failed due to network error - clean tokens but don't auto-redirect
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');

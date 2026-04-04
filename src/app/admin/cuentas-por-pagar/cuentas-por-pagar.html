@@ -1310,7 +1310,7 @@
         } @else {
           <p>Escanea este código QR con tu celular para subir una foto de la factura</p>
           @if (qrCodeData) {
-            <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=' + encodeURIComponent(qrCodeData)" alt="QR Code" class="qr-code-image">
+            <img [src]="qrCodeData" alt="QR Code" class="qr-code-image">
           } @else {
             <div class="qr-loading">Generando código QR...</div>
           }

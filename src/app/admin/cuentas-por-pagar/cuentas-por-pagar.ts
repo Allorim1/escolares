@@ -214,6 +214,7 @@ export class CuentasPorPagar implements OnInit {
   qrInterval: any = null;
   qrFotoRecibida = false;
   qrImagenesIniciales: string[] = [];
+  qrToken: string = '';
 
   newAbono = {
     monto: 0,
@@ -1385,19 +1386,21 @@ export class CuentasPorPagar implements OnInit {
     this.qrCodeData = '';
     this.qrExpiracion = '';
     this.qrFotoRecibida = false;
+    this.qrToken = '';
     this.qrImagenesIniciales = this.facturaDetalle?.factura.imagenes ? [...this.facturaDetalle.factura.imagenes] : [];
     this.showQRModal = true;
     this.cdr.detectChanges();
     
-    this.http.post<{ uploadUrl: string; expiresAt: string }>('/api/facturas/generate-qr', {
+    this.http.post<{ qrCode: string; token: string; uploadUrl: string; expiresAt: string }>('/api/facturas-qr/generate-qr', {
       proveedorId,
       facturaIndex
     }).subscribe({
       next: (res) => {
-        this.qrCodeData = res.uploadUrl;
+        this.qrCodeData = res.qrCode;
+        this.qrToken = res.token;
         this.qrExpiracion = res.expiresAt;
         this.cdr.detectChanges();
-        this.iniciarPollingQR(proveedorId, facturaIndex);
+        this.iniciarPollingQR();
       },
       error: (err) => {
         console.error('Error generating QR:', err);
@@ -1407,42 +1410,62 @@ export class CuentasPorPagar implements OnInit {
     });
   }
 
-  iniciarPollingQR(proveedorId: string, facturaIndex: number) {
+  iniciarPollingQR() {
+    if (!this.qrToken) {
+      console.error('No hay token para polling');
+      return;
+    }
+    
     this.qrInterval = setInterval(() => {
-      this.http.get<{ imagenes: string[] }>(`/api/facturas/imagenes/${proveedorId}/${facturaIndex}`).subscribe({
+      this.http.get<{ success: boolean; imagen?: string }>(`/api/facturas-qr/check/${this.qrToken}`).subscribe({
         next: (res) => {
-          console.log('Polling - Imagenes del servidor:', res.imagenes?.length);
-          console.log('Polling - Imagenes iniciales guardadas:', this.qrImagenesIniciales.length);
+          console.log('Polling QR - success:', res.success, 'hasImage:', !!res.imagen);
           
-          if (res.imagenes && res.imagenes.length > this.qrImagenesIniciales.length) {
+          if (res.success && res.imagen) {
             console.log('Polling - Nueva foto detectada!');
             if (this.qrInterval) {
               clearInterval(this.qrInterval);
               this.qrInterval = null;
             }
-            this.qrFotoRecibida = true;
-            this.showQRModal = false;
-            this.showModalFotoExito = true;
-            this.loadProveedores();
-            const fd = this.facturaDetalle;
-            if (fd) {
-              const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-              if (prov && prov.facturas && prov.facturas[fd.index]) {
-                this.facturaDetalle = {
-                  proveedor: prov,
-                  factura: prov.facturas[fd.index],
-                  index: fd.index
-                };
-              }
-            }
-            this.cdr.detectChanges();
+            
+            this.guardarImagenEnFactura(this.qrProveedorId, this.qrFacturaIndex, res.imagen);
           }
         },
         error: (err) => {
           console.error('Polling error:', err);
         }
       });
-    }, 2000);
+    }, 3000);
+  }
+
+  guardarImagenEnFactura(proveedorId: string, facturaIndex: number, imagen: string) {
+    this.http.post(`/api/proveedores/${proveedorId}/facturas/${facturaIndex}/imagen`, { imagen }).subscribe({
+      next: () => {
+        console.log('Imagen guardada en factura');
+        this.qrFotoRecibida = true;
+        this.showQRModal = false;
+        this.showModalFotoExito = true;
+        this.loadProveedores();
+        
+        const fd = this.facturaDetalle;
+        if (fd) {
+          const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
+          if (prov && prov.facturas && prov.facturas[fd.index]) {
+            this.facturaDetalle = {
+              proveedor: prov,
+              factura: prov.facturas[fd.index],
+              index: fd.index
+            };
+          }
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error guardando imagen:', err);
+        this.showQRModal = false;
+        alert('Error al guardar la imagen');
+      }
+    });
   }
 
   cerrarModalFotoExito() {
@@ -1487,6 +1510,7 @@ export class CuentasPorPagar implements OnInit {
     this.qrExpiracion = '';
     this.qrFotoRecibida = false;
     this.qrImagenesIniciales = [];
+    this.qrToken = '';
   }
 
   private convertToBase64(file: File, callback: (base64: string) => void) {

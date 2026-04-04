@@ -555,6 +555,9 @@ export class CuentasPorPagar implements OnInit {
     this.facturaConAbono = null;
   }
 
+  comentarioEdit = '';
+  comentarioEditando = false;
+
   abrirDetalleFactura(proveedor: Proveedor, factura: FacturaProveedor, index: number) {
     this.facturaDetalle = { proveedor, factura, index };
     this.comentarioEdit = factura.comentario || '';
@@ -566,8 +569,6 @@ export class CuentasPorPagar implements OnInit {
     this.facturaDetalle = null;
     this.comentarioEdit = '';
   }
-
-  comentarioEdit = '';
 
   guardarComentario() {
     if (!this.facturaDetalle) return;
@@ -582,11 +583,49 @@ export class CuentasPorPagar implements OnInit {
         if (this.facturaDetalle) {
           this.facturaDetalle.factura.comentario = this.comentarioEdit;
         }
+        this.comentarioEditando = false;
         alert('Comentario guardado');
       },
       error: (err) => {
         console.error('Error guardando comentario:', err);
         alert('Error al guardar comentario');
+      }
+    });
+  }
+
+  editarComentario() {
+    this.comentarioEditando = true;
+  }
+
+  cancelarEditarComentario() {
+    this.comentarioEditando = false;
+    if (this.facturaDetalle) {
+      this.comentarioEdit = this.facturaDetalle.factura.comentario || '';
+    }
+  }
+
+  borrarComentario() {
+    if (!this.facturaDetalle) return;
+    
+    if (!confirm('¿Estás seguro de que quieres borrar el comentario?')) return;
+    
+    const proveedorId = this.facturaDetalle.proveedor._id;
+    const facturaIndex = this.facturaDetalle.index;
+    
+    this.http.put(`/api/proveedores/${proveedorId}/factura/${facturaIndex}/comentario`, {
+      comentario: ''
+    }).subscribe({
+      next: () => {
+        if (this.facturaDetalle) {
+          this.facturaDetalle.factura.comentario = '';
+        }
+        this.comentarioEdit = '';
+        this.comentarioEditando = false;
+        alert('Comentario borrado');
+      },
+      error: (err) => {
+        console.error('Error borrando comentario:', err);
+        alert('Error al borrar comentario');
       }
     });
   }

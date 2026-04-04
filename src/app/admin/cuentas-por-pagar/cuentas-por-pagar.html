@@ -922,22 +922,43 @@
         @if (facturaDetalle && facturaDetalle.factura.comentario) {
           <div class="factura-comentario">
             <h5>📝 Comentario</h5>
-            <p>{{ facturaDetalle.factura.comentario }}</p>
+            <div class="comentario-content">
+              <p>{{ facturaDetalle.factura.comentario }}</p>
+              <div class="comentario-actions">
+                <button class="btn-edit-comentario" (click)="editarComentario()">✏️ Editar</button>
+                <button class="btn-delete-comentario" (click)="borrarComentario()">🗑️ Borrar</button>
+              </div>
+            </div>
+          </div>
+          @if (comentarioEditando) {
+            <div class="factura-comentario-editar">
+              <h5>📝 Editar Comentario</h5>
+              <div class="comentario-edit-row">
+                <input 
+                  type="text" 
+                  [(ngModel)]="comentarioEdit" 
+                  placeholder="Editar comentario"
+                  class="comentario-input-edit"
+                >
+                <button class="btn-guardar-comentario" (click)="guardarComentario()">Actualizar</button>
+                <button class="btn-cancelar-comentario" (click)="cancelarEditarComentario()">Cancelar</button>
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="factura-comentario-editar">
+            <h5>📝 Agregar Comentario</h5>
+            <div class="comentario-edit-row">
+              <input 
+                type="text" 
+                [(ngModel)]="comentarioEdit" 
+                placeholder="Agregar un comentario sobre esta factura"
+                class="comentario-input-edit"
+              >
+              <button class="btn-guardar-comentario" (click)="guardarComentario()">Guardar</button>
+            </div>
           </div>
         }
-
-        <div class="factura-comentario-editar">
-          <h5>📝 {{ facturaDetalle?.factura?.comentario ? 'Editar' : 'Agregar' }} Comentario</h5>
-          <div class="comentario-edit-row">
-            <input 
-              type="text" 
-              [(ngModel)]="comentarioEdit" 
-              placeholder="Agregar un comentario sobre esta factura"
-              class="comentario-input-edit"
-            >
-            <button class="btn-guardar-comentario" (click)="guardarComentario()">Guardar</button>
-          </div>
-        </div>
 
         @if (facturaDetalle) {
           @if ((facturaDetalle.factura.imagenes?.length ?? 0) > 0) {

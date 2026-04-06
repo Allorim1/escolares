@@ -96,6 +96,7 @@ export class CuentasPorPagar implements OnInit {
   proveedorExpandido = signal<string | null>(null);
   proveedorEditando = signal<string | null>(null);
   cuentaExpandida = signal<{proveedorId: string, index: number} | null>(null);
+  cuentaEditando = signal<{proveedorId: string, index: number} | null>(null);
   usuarioActual = 'Admin';
   Math = Math;
 
@@ -393,6 +394,46 @@ export class CuentasPorPagar implements OnInit {
 
   eliminarCuentaBancaria(index: number) {
     this.newProveedor.cuentasBancarias = this.newProveedor.cuentasBancarias.filter((_, i) => i !== index);
+  }
+
+  editarCuentaBancaria(proveedorId: string, index: number) {
+    this.cuentaEditando.set({ proveedorId, index });
+    const cuenta = this.newProveedor.cuentasBancarias[index];
+    this.newCuentaBancaria = { 
+      banco: cuenta.banco || '',
+      bancosAfiliados: cuenta.bancosAfiliados || [],
+      numero: cuenta.numero || '',
+      tipo: cuenta.tipo || 'corriente',
+      titular: cuenta.titular || '',
+      pagoMovil: cuenta.pagoMovil || false,
+      cedulaRif: cuenta.cedulaRif || '',
+      cedulaRifTipo: cuenta.cedulaRifTipo || 'V',
+      tipoPersona: cuenta.tipoPersona || 'personal',
+      alias: cuenta.alias || '',
+      comentario: cuenta.comentario || '',
+      esZelle: cuenta.esZelle || false
+    };
+  }
+
+  guardarEdicionCuenta() {
+    const editando = this.cuentaEditando();
+    if (!editando) return;
+    
+    const cedulaRifCompleta = this.newCuentaBancaria.cedulaRif.trim()
+      ? `${this.newCuentaBancaria.cedulaRifTipo}-${this.newCuentaBancaria.cedulaRif.trim()}`
+      : '';
+    
+    const cuentaActualizada = { ...this.newCuentaBancaria, cedulaRif: cedulaRifCompleta };
+    this.newProveedor.cuentasBancarias = this.newProveedor.cuentasBancarias.map((cuenta, i) => 
+      i === editando.index ? cuentaActualizada : cuenta
+    );
+    
+    this.cancelarEdicionCuenta();
+  }
+
+  cancelarEdicionCuenta() {
+    this.cuentaEditando.set(null);
+    this.newCuentaBancaria = { banco: '', bancosAfiliados: [] as string[], numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '', cedulaRifTipo: 'V', tipoPersona: 'personal', alias: '', comentario: '', esZelle: false };
   }
 
   abrirModalFactura(proveedorId: string, factura?: FacturaProveedor, index?: number) {

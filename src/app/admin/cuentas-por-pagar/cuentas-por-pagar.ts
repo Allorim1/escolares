@@ -313,6 +313,8 @@ export class CuentasPorPagar implements OnInit {
       ? `${this.newProveedor.rifTipo}-${this.newProveedor.rif.trim()}`
       : '';
 
+    console.log('Guardando proveedor:', this.newProveedor.cuentasBancarias);
+
     if (this.editingProveedor) {
       this.http
         .put(`${this.API}/${this.editingProveedor._id}`, {
@@ -419,6 +421,9 @@ export class CuentasPorPagar implements OnInit {
     const editando = this.cuentaEditando();
     if (!editando) return;
     
+    console.log('Guardando cuenta editada, index:', editando.index);
+    console.log('Cuentas antes:', this.newProveedor.cuentasBancarias);
+    
     const cedulaRifCompleta = this.newCuentaBancaria.cedulaRif.trim()
       ? `${this.newCuentaBancaria.cedulaRifTipo}-${this.newCuentaBancaria.cedulaRif.trim()}`
       : '';
@@ -427,6 +432,8 @@ export class CuentasPorPagar implements OnInit {
     this.newProveedor.cuentasBancarias = this.newProveedor.cuentasBancarias.map((cuenta, i) => 
       i === editando.index ? cuentaActualizada : cuenta
     );
+    
+    console.log('Cuentas después:', this.newProveedor.cuentasBancarias);
     
     this.cancelarEdicionCuenta();
   }

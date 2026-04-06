@@ -1432,22 +1432,39 @@ export class CuentasPorPagar implements OnInit {
     this.showQRModal = true;
     this.cdr.detectChanges();
     
-    this.http.post<{ qrCode: string; token: string; uploadUrl: string; expiresAt: string }>('/api/facturas-qr/generate-qr', {
-      proveedorId,
-      facturaIndex
-    }).subscribe({
-      next: (res) => {
-        this.qrCodeData = res.qrCode;
-        this.qrToken = res.token;
-        this.qrExpiracion = res.expiresAt;
-        this.cdr.detectChanges();
-        this.iniciarPollingQR();
+    const token = localStorage.getItem('accessToken');
+    fetch('/api/facturas-qr/generate-qr', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
-      error: (err) => {
-        console.error('Error generating QR:', err);
-        alert('Error al generar código QR');
-        this.showQRModal = false;
+      body: JSON.stringify({ proveedorId, facturaIndex })
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error: ${res.status}`);
       }
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        return res.text().then(text => {
+          console.error('Non-JSON response:', text.substring(0, 200));
+          throw new Error('Response is not JSON');
+        });
+      }
+      return res.json();
+    })
+    .then(res => {
+      this.qrCodeData = res.qrCode;
+      this.qrToken = res.token;
+      this.qrExpiracion = res.expiresAt;
+      this.cdr.detectChanges();
+      this.iniciarPollingQR();
+    })
+    .catch(err => {
+      console.error('Error generating QR:', err);
+      alert('Error al generar código QR. Por favor verifica tu sesión.');
+      this.showQRModal = false;
     });
   }
 
@@ -1458,8 +1475,30 @@ export class CuentasPorPagar implements OnInit {
     }
     
     this.qrInterval = setInterval(() => {
-      this.http.get<{ success: boolean; imagen?: string }>(`/api/facturas-qr/check/${this.qrToken}`).subscribe({
-        next: (res) => {
+      const token = this.qrToken;
+      if (!token) {
+        if (this.qrInterval) {
+          clearInterval(this.qrInterval);
+          this.qrInterval = null;
+        }
+        return;
+      }
+      
+      fetch(`/api/facturas-qr/check/${token}`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error: ${res.status}`);
+          }
+          const contentType = res.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            return res.text().then(text => {
+              console.error('Non-JSON response:', text.substring(0, 100));
+              throw new Error('Response is not JSON');
+            });
+          }
+          return res.json();
+        })
+        .then(res => {
           console.log('Polling QR - success:', res.success, 'hasImage:', !!res.imagen);
           
           if (res.success && res.imagen) {
@@ -1471,41 +1510,45 @@ export class CuentasPorPagar implements OnInit {
             
             this.guardarImagenEnFactura(this.qrProveedorId, this.qrFacturaIndex, res.imagen);
           }
-        },
-        error: (err) => {
+        })
+        .catch(err => {
           console.error('Polling error:', err);
-        }
-      });
+        });
     }, 3000);
   }
 
   guardarImagenEnFactura(proveedorId: string, facturaIndex: number, imagen: string) {
-    this.http.post(`/api/proveedores/${proveedorId}/facturas/${facturaIndex}/imagen`, { imagen }).subscribe({
-      next: () => {
-        console.log('Imagen guardada en factura');
-        this.qrFotoRecibida = true;
-        this.showQRModal = false;
-        this.showModalFotoExito = true;
-        this.loadProveedores();
-        
-        const fd = this.facturaDetalle;
-        if (fd) {
-          const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-          if (prov && prov.facturas && prov.facturas[fd.index]) {
-            this.facturaDetalle = {
-              proveedor: prov,
-              factura: prov.facturas[fd.index],
-              index: fd.index
-            };
-          }
-        }
-        this.cdr.detectChanges();
+    const token = localStorage.getItem('accessToken');
+    fetch(`/api/proveedores/${proveedorId}/facturas/${facturaIndex}/imagen`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
-      error: (err) => {
-        console.error('Error guardando imagen:', err);
-        this.showQRModal = false;
-        alert('Error al guardar la imagen');
+      body: JSON.stringify({ imagen })
+    }).then(() => {
+      console.log('Imagen guardada en factura');
+      this.qrFotoRecibida = true;
+      this.showQRModal = false;
+      this.showModalFotoExito = true;
+      this.loadProveedores();
+      
+      const fd = this.facturaDetalle;
+      if (fd) {
+        const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
+        if (prov && prov.facturas && prov.facturas[fd.index]) {
+          this.facturaDetalle = {
+            proveedor: prov,
+            factura: prov.facturas[fd.index],
+            index: fd.index
+          };
+        }
       }
+      this.cdr.detectChanges();
+    }).catch(err => {
+      console.error('Error guardando imagen:', err);
+      this.showQRModal = false;
+      alert('Error al guardar la imagen');
     });
   }
 

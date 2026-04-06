@@ -235,11 +235,17 @@ header.app-header {
   min-width: 160px;
   z-index: 1000;
   overflow: hidden;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .user-dropdown:hover .dropdown-menu {
   display: block;
+}
+
+@media (max-width: 1024px) {
+  .user-dropdown:hover .dropdown-menu {
+    display: none;
+  }
 }
 
 .dropdown-menu a,
@@ -614,25 +620,6 @@ header.app-header {
 
 .mobile-nav a:hover {
   background: rgba(255, 255, 255, 0.1);
-}
-
-.user-dropdown .dropdown-menu {
-  position: fixed;
-  top: auto;
-  right: 10px;
-  bottom: 70px;
-  left: 10px;
-  width: auto;
-  max-width: none;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  overflow: hidden;
-}
-
-.user-dropdown .dropdown-menu.open {
-  display: block;
 }
 
 @media (max-width: 1024px) {

@@ -224,16 +224,6 @@ header.app-header {
   position: relative;
 }
 
-.user-dropdown:hover .dropdown-menu {
-  display: block;
-}
-
-@media (max-width: 1024px) {
-  .user-dropdown:hover .dropdown-menu {
-    display: none;
-  }
-}
-
 .dropdown-menu {
   display: none;
   position: absolute;
@@ -243,8 +233,9 @@ header.app-header {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   min-width: 160px;
-  z-index: 100;
+  z-index: 1000;
   overflow: hidden;
+  margin-top: 8px;
 }
 
 .user-dropdown:hover .dropdown-menu {

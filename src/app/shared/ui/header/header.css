@@ -571,3 +571,123 @@ header.app-header {
 .modal-footer button:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 768px) {
+  header.app-header {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand-logo {
+    height: 40px;
+  }
+
+  .header-search {
+    width: 100%;
+    order: 3;
+    margin-top: 10px;
+  }
+
+  .header-icons {
+    gap: 8px;
+  }
+
+  .nav-btn,
+  .hover-underline {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .auth-buttons {
+    gap: 4px;
+  }
+
+  .login-btn,
+  .register-btn {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .user-btn img,
+  .cart-btn img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .currency-toggle {
+    display: none;
+  }
+
+  .announcement-bar {
+    font-size: 11px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  header.app-header {
+    padding: 8px 10px;
+  }
+
+  .brand-logo {
+    height: 32px;
+  }
+
+  .header-search {
+    width: 100%;
+  }
+
+  .search-input {
+    padding: 6px 8px;
+    font-size: 0.85rem;
+  }
+
+  .header-icons {
+    gap: 4px;
+  }
+
+  .nav-btn,
+  .hover-underline {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-width: 1px;
+  }
+
+  .auth-buttons {
+    gap: 2px;
+  }
+
+  .login-btn,
+  .register-btn {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+
+  .announcement-bar {
+    font-size: 10px;
+    height: 28px;
+    padding: 0 8px;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    padding-top: 2.5rem;
+  }
+
+  .form-group input,
+  .form-group select {
+    font-size: 0.9rem;
+    padding: 0.625rem;
+  }
+
+  .rif-input,
+  .telefono-input {
+    height: 38px;
+    font-size: 0.85rem;
+  }
+
+  .rif-select,
+  .telefono-select {
+    height: 38px;
+  }
+}

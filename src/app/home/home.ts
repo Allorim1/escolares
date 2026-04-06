@@ -464,6 +464,123 @@ import { MarcasService } from '../shared/data-access/marcas.service';
           grid-template-columns: 1fr;
         }
       }
+
+      /* Banner responsive */
+      @media (max-width: 768px) {
+        :host {
+          padding: 0;
+        }
+
+        .banner-btn {
+          width: 36px;
+          height: 36px;
+          font-size: 1.2rem;
+        }
+
+        .banner-btn.prev {
+          left: 0.5rem;
+        }
+
+        .banner-btn.next {
+          right: 0.5rem;
+        }
+
+        .marcas-carousel {
+          padding: 1rem 35px;
+          margin-top: 1rem;
+        }
+
+        .carousel-viewport {
+          width: calc(150px * 2 + 12px);
+        }
+
+        .marca-slide {
+          flex: 0 0 150px;
+        }
+
+        .marca-image,
+        .marca-placeholder {
+          width: 100px;
+          height: 100px;
+        }
+
+        .marca-name {
+          font-size: 0.85rem;
+        }
+
+        .whatsapp-float {
+          width: 50px;
+          height: 50px;
+          bottom: 1rem;
+          right: 1rem;
+        }
+
+        .whatsapp-float img {
+          width: 28px;
+          height: 28px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .banner-btn {
+          width: 30px;
+          height: 30px;
+          font-size: 1rem;
+        }
+
+        .banner-btn.prev {
+          left: 0.25rem;
+        }
+
+        .banner-btn.next {
+          right: 0.25rem;
+        }
+
+        .marcas-carousel {
+          padding: 0.75rem 30px;
+        }
+
+        .carousel-viewport {
+          width: calc(120px * 2 + 8px);
+        }
+
+        .marca-slide {
+          flex: 0 0 120px;
+        }
+
+        .marca-image,
+        .marca-placeholder {
+          width: 80px;
+          height: 80px;
+          padding: 0.5rem;
+        }
+
+        .marca-placeholder {
+          font-size: 2rem;
+        }
+
+        .marca-name {
+          font-size: 0.75rem;
+        }
+
+        .carousel-btn {
+          width: 28px;
+          height: 28px;
+          font-size: 1rem;
+        }
+
+        .whatsapp-float {
+          width: 44px;
+          height: 44px;
+          bottom: 0.75rem;
+          right: 0.75rem;
+        }
+
+        .whatsapp-float img {
+          width: 24px;
+          height: 24px;
+        }
+      }
     `,
   ],
 })

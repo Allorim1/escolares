@@ -1447,7 +1447,7 @@ export class CuentasPorPagar implements OnInit {
     ).subscribe({
       next: (res) => {
         this.qrCodeData = res.qrCode;
-        this.qrToken = res.token;
+        this.qrToken = res.token || '';
         this.qrExpiracion = res.expiresAt;
         this.cdr.detectChanges();
 
@@ -1455,12 +1455,28 @@ export class CuentasPorPagar implements OnInit {
           this.http.get<{ imagenes: string[] }>(`/api/facturas-qr/imagenes/${proveedorId}/${facturaIndex}`).subscribe({
             next: (pollRes) => {
               if (pollRes.imagenes && pollRes.imagenes.length > imagenesIniciales) {
-                const nuevaImagen = pollRes.imagenes[pollRes.imagenes.length - 1];
                 this.qrFotoRecibida = true;
                 this.cdr.detectChanges();
                 clearInterval(this.qrInterval);
                 this.qrInterval = null;
-                this.guardarImagenEnFactura(proveedorId, facturaIndex, nuevaImagen);
+                setTimeout(() => {
+                  this.showQRModal = false;
+                  this.showModalFotoExito = true;
+                  this.loadProveedores();
+                  
+                  const fd = this.facturaDetalle;
+                  if (fd) {
+                    const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
+                    if (prov && prov.facturas && prov.facturas[fd.index]) {
+                      this.facturaDetalle = {
+                        proveedor: prov,
+                        factura: prov.facturas[fd.index],
+                        index: fd.index
+                      };
+                    }
+                  }
+                  this.cdr.detectChanges();
+                }, 2000);
               }
             },
           });

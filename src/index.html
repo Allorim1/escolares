@@ -11,8 +11,9 @@
 <body>
   <app-root></app-root>
   <script>
-    // Solo inicializar eruda en dispositivos móviles
-    if (window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    // Solo inicializar eruda en rutas de QR upload
+    const currentPath = window.location.pathname;
+    if (currentPath.includes('/facturas-qr/upload/')) {
       eruda.init();
     }
   </script>

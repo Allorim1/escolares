@@ -1452,18 +1452,19 @@ export class CuentasPorPagar implements OnInit {
         this.cdr.detectChanges();
 
         this.qrInterval = setInterval(() => {
-          this.http.get<{ success: boolean; imagen?: string }>(`/api/facturas-qr/check/${this.qrToken}`).subscribe({
+          this.http.get<{ imagenes: string[] }>(`/api/facturas-qr/imagenes/${proveedorId}/${facturaIndex}`).subscribe({
             next: (pollRes) => {
-              if (pollRes.success && pollRes.imagen) {
+              if (pollRes.imagenes && pollRes.imagenes.length > imagenesIniciales) {
+                const nuevaImagen = pollRes.imagenes[pollRes.imagenes.length - 1];
                 this.qrFotoRecibida = true;
                 this.cdr.detectChanges();
                 clearInterval(this.qrInterval);
                 this.qrInterval = null;
-                this.guardarImagenEnFactura(proveedorId, facturaIndex, pollRes.imagen);
+                this.guardarImagenEnFactura(proveedorId, facturaIndex, nuevaImagen);
               }
             },
           });
-        }, 3000);
+        }, 2000);
       },
       error: () => {
         alert('Error al generar código QR');
@@ -1474,33 +1475,26 @@ export class CuentasPorPagar implements OnInit {
   }
 
   guardarImagenEnFactura(proveedorId: string, facturaIndex: number, imagen: string) {
-    this.http.post(`/api/proveedores/${proveedorId}/facturas/${facturaIndex}/imagen`, { imagen }).subscribe({
-      next: () => {
-        console.log('Imagen guardada en factura');
-        this.qrFotoRecibida = true;
-        this.showQRModal = false;
-        this.showModalFotoExito = true;
-        this.loadProveedores();
-        
-        const fd = this.facturaDetalle;
-        if (fd) {
-          const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-          if (prov && prov.facturas && prov.facturas[fd.index]) {
-            this.facturaDetalle = {
-              proveedor: prov,
-              factura: prov.facturas[fd.index],
-              index: fd.index
-            };
-          }
+    this.qrFotoRecibida = true;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.showQRModal = false;
+      this.showModalFotoExito = true;
+      this.loadProveedores();
+      
+      const fd = this.facturaDetalle;
+      if (fd) {
+        const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
+        if (prov && prov.facturas && prov.facturas[fd.index]) {
+          this.facturaDetalle = {
+            proveedor: prov,
+            factura: prov.facturas[fd.index],
+            index: fd.index
+          };
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error guardando imagen:', err);
-        this.showQRModal = false;
-        alert('Error al guardar la imagen');
       }
-    });
+      this.cdr.detectChanges();
+    }, 2000);
   }
 
   cerrarModalFotoExito() {

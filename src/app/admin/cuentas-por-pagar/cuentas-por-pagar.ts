@@ -1438,18 +1438,13 @@ export class CuentasPorPagar implements OnInit {
   private async ejecutarGeneracionQR(proveedorId: string, facturaIndex: number) {
     try {
       const token = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
       const res = await fetch('/api/facturas-qr/generate-qr', {
         method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ proveedorId, facturaIndex }),
-        credentials: 'include'
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ proveedorId, facturaIndex })
       });
       
       const text = await res.text();
@@ -1489,7 +1484,7 @@ export class CuentasPorPagar implements OnInit {
         return;
       }
       
-      fetch(`/api/facturas-qr/check/${token}`, { credentials: 'include' })
+      fetch(`/api/facturas-qr/check/${token}`)
         .then(async res => {
           const text = await res.text();
           if (!res.ok) {
@@ -1518,18 +1513,14 @@ export class CuentasPorPagar implements OnInit {
 
   guardarImagenEnFactura(proveedorId: string, facturaIndex: number, imagen: string) {
     const token = localStorage.getItem('accessToken');
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
     
     fetch(`/api/proveedores/${proveedorId}/facturas/${facturaIndex}/imagen`, {
       method: 'POST',
-      headers: headers,
-      body: JSON.stringify({ imagen }),
-      credentials: 'include'
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ imagen })
     })
     .then(async res => {
       const text = await res.text();

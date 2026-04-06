@@ -1432,40 +1432,45 @@ export class CuentasPorPagar implements OnInit {
     this.showQRModal = true;
     this.cdr.detectChanges();
     
-    const token = localStorage.getItem('accessToken');
-    fetch('/api/facturas-qr/generate-qr', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: JSON.stringify({ proveedorId, facturaIndex })
-    })
-    .then(res => {
+    this.ejecutarGeneracionQR(proveedorId, facturaIndex);
+  }
+
+  private async ejecutarGeneracionQR(proveedorId: string, facturaIndex: number) {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const res = await fetch('/api/facturas-qr/generate-qr', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ proveedorId, facturaIndex }),
+        credentials: 'include'
+      });
+      
+      const text = await res.text();
+      console.log('QR generation response:', res.status, text.substring(0, 150));
+      
       if (!res.ok) {
-        throw new Error(`HTTP error: ${res.status}`);
+        throw new Error(`Server error: ${res.status} - ${text}`);
       }
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        return res.text().then(text => {
-          console.error('Non-JSON response:', text.substring(0, 200));
-          throw new Error('Response is not JSON');
-        });
-      }
-      return res.json();
-    })
-    .then(res => {
-      this.qrCodeData = res.qrCode;
-      this.qrToken = res.token;
-      this.qrExpiracion = res.expiresAt;
+      
+      const data = JSON.parse(text);
+      this.qrCodeData = data.qrCode;
+      this.qrToken = data.token;
+      this.qrExpiracion = data.expiresAt;
       this.cdr.detectChanges();
       this.iniciarPollingQR();
-    })
-    .catch(err => {
-      console.error('Error generating QR:', err);
-      alert('Error al generar código QR. Por favor verifica tu sesión.');
+    } catch (err: any) {
+      console.error('Full error in generar QR:', err);
       this.showQRModal = false;
-    });
+      this.cdr.detectChanges();
+      alert('Error al generar QR: ' + (err.message || err));
+    }
   }
 
   iniciarPollingQR() {
@@ -1484,30 +1489,24 @@ export class CuentasPorPagar implements OnInit {
         return;
       }
       
-      fetch(`/api/facturas-qr/check/${token}`)
-        .then(res => {
+      fetch(`/api/facturas-qr/check/${token}`, { credentials: 'include' })
+        .then(async res => {
+          const text = await res.text();
           if (!res.ok) {
-            throw new Error(`HTTP error: ${res.status}`);
+            throw new Error(`HTTP ${res.status}: ${text}`);
           }
-          const contentType = res.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            return res.text().then(text => {
-              console.error('Non-JSON response:', text.substring(0, 100));
-              throw new Error('Response is not JSON');
-            });
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            return { success: false, error: 'Invalid JSON' };
           }
-          return res.json();
         })
         .then(res => {
-          console.log('Polling QR - success:', res.success, 'hasImage:', !!res.imagen);
-          
           if (res.success && res.imagen) {
-            console.log('Polling - Nueva foto detectada!');
             if (this.qrInterval) {
               clearInterval(this.qrInterval);
               this.qrInterval = null;
             }
-            
             this.guardarImagenEnFactura(this.qrProveedorId, this.qrFacturaIndex, res.imagen);
           }
         })
@@ -1519,14 +1518,31 @@ export class CuentasPorPagar implements OnInit {
 
   guardarImagenEnFactura(proveedorId: string, facturaIndex: number, imagen: string) {
     const token = localStorage.getItem('accessToken');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     fetch(`/api/proveedores/${proveedorId}/facturas/${facturaIndex}/imagen`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: JSON.stringify({ imagen })
-    }).then(() => {
+      headers: headers,
+      body: JSON.stringify({ imagen }),
+      credentials: 'include'
+    })
+    .then(async res => {
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return {};
+      }
+    })
+    .then(() => {
       console.log('Imagen guardada en factura');
       this.qrFotoRecibida = true;
       this.showQRModal = false;
@@ -1545,7 +1561,8 @@ export class CuentasPorPagar implements OnInit {
         }
       }
       this.cdr.detectChanges();
-    }).catch(err => {
+    })
+    .catch(err => {
       console.error('Error guardando imagen:', err);
       this.showQRModal = false;
       alert('Error al guardar la imagen');

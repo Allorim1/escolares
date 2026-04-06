@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, HostListener } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../data-access/auth.service';
@@ -21,6 +21,20 @@ export class Header {
   currencyService = inject(CurrencyService);
 
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
+
+  mobileMenuOpen = signal(false);
+  userDropdownOpen = signal(false);
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.mobile-menu-btn') && !target.closest('.mobile-nav')) {
+      this.mobileMenuOpen.set(false);
+    }
+    if (!target.closest('.user-dropdown')) {
+      this.userDropdownOpen.set(false);
+    }
+  }
 
   // Check if current user is root
   isRoot(): boolean {
@@ -105,6 +119,22 @@ export class Header {
   logout() {
     this.authService.logout();
     this.router.navigate(['/']);
+  }
+
+  toggleMobileMenu() {
+    this.mobileMenuOpen.update(v => !v);
+  }
+
+  closeMobileMenu() {
+    this.mobileMenuOpen.set(false);
+  }
+
+  toggleUserDropdown() {
+    this.userDropdownOpen.update(v => !v);
+  }
+
+  closeUserDropdown() {
+    this.userDropdownOpen.set(false);
   }
 
   openLogin() {

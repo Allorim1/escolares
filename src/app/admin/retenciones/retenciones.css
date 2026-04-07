@@ -403,3 +403,22 @@
 .btn-cancelar:hover {
   background: #5a6268;
 }
+
+.fecha-rango {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.fecha-rango .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.mensaje-txt {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+}

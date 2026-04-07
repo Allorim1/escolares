@@ -4,6 +4,26 @@
 
   <div class="ret-panel">
     <div class="ret-section">
+      <h3>Generar TXT de Retenciones</h3>
+      <div class="fecha-rango">
+        <div class="form-group">
+          <label>Fecha Desde</label>
+          <input type="date" [(ngModel)]="fechaDesde" />
+        </div>
+        <div class="form-group">
+          <label>Fecha Hasta</label>
+          <input type="date" [(ngModel)]="fechaHasta" />
+        </div>
+      </div>
+      <button class="btn-primary" (click)="generarTxtRetenciones()">
+        📄 Generar TXT
+      </button>
+      @if (mensajeTXT()) {
+        <p class="mensaje-txt">{{ mensajeTXT() }}</p>
+      }
+    </div>
+
+    <div class="ret-section">
       <h3>Seleccionar Proveedor</h3>
       <div class="buscador-container">
         <input 

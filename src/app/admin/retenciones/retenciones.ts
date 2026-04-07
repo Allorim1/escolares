@@ -54,6 +54,12 @@ export class Retenciones implements OnInit {
   mostrarComprobantePdf = signal(false);
   mostrarModalAccion = signal(false);
   today = new Date();
+  fechaDesde = '';
+  fechaHasta = '';
+  mensajeTXT = signal('');
+  
+  private RIF_EMPRESA = 'J304883676';
+  private PERIODO = '202604';
 
   ngOnInit() {
     this.loadProveedores();
@@ -209,6 +215,79 @@ export class Retenciones implements OnInit {
       pdf.save(`Comprobante_Retencion_${this.comprobanteNumero}.pdf`);
     });
 
+  }
+
+  generarTxtRetenciones() {
+    if (!this.fechaDesde || !this.fechaHasta) {
+      this.mensajeTXT.set('Por favor seleccione un rango de fechas');
+      return;
+    }
+
+    const desde = new Date(this.fechaDesde);
+    const hasta = new Date(this.fechaHasta);
+    hasta.setHours(23, 59, 59, 999);
+
+    const periodo = `${desde.getFullYear()}${String(desde.getMonth() + 1).padStart(2, '0')}`;
+    const now = new Date();
+    const fechaActual = now.toISOString().split('T')[0];
+
+    let lineas: string[] = [];
+    let nComprobante = 1;
+
+    for (const proveedor of this.proveedores()) {
+      if (!proveedor.facturas || proveedor.facturas.length === 0) continue;
+
+      for (const factura of proveedor.facturas) {
+        const fechaFactura = new Date(factura.fecha);
+        
+        if (fechaFactura >= desde && fechaFactura <= hasta) {
+          const rifProveedor = (proveedor.rif || '').replace(/-/g, '');
+          const numeroFactura = factura.numero || '';
+          const numeroControl = factura.numeroControl || '';
+          const montoTotal = (factura.totalPagar || 0).toFixed(2);
+          const baseImponible = (factura.baseImponible || 0).toFixed(2);
+          const montoRetencion = (factura.iva75 || 0).toFixed(2);
+          const iva = (factura.iva || 0).toFixed(2);
+          
+          const linea = [
+            this.RIF_EMPRESA,
+            periodo,
+            fechaActual,
+            'C',
+            '01',
+            rifProveedor,
+            numeroFactura,
+            numeroControl,
+            montoTotal,
+            baseImponible,
+            montoRetencion,
+            '0',
+            String(nComprobante).padStart(8, '0'),
+            iva,
+            '0'
+          ].join('|');
+
+          lineas.push(linea);
+          nComprobante++;
+        }
+      }
+    }
+
+    if (lineas.length === 0) {
+      this.mensajeTXT.set('No se encontraron facturas en el rango de fechas seleccionado');
+      return;
+    }
+
+    const contenidoTxt = lineas.join('\n');
+    const blob = new Blob([contenidoTxt], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `retenciones_${periodo}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    this.mensajeTXT.set(`TXT generado con ${lineas.length} registro(s)`);
   }
 }
  /* 

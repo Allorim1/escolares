@@ -265,6 +265,26 @@
   margin-bottom: 1.5rem;
 }
 
+.proveedor-bancos-afiliados {
+  background: #e9ecef;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.proveedor-bancos-afiliados .bancos-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.proveedor-bancos-afiliados .bancos-value {
+  color: #1d63c1;
+  font-weight: 500;
+}
+
 .cuentas-section h5, .facturas-section h5, .contacto-section h5, .auditoria-section h5 {
   color: #333;
   margin-bottom: 0.8rem;

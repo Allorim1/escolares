@@ -59,6 +59,7 @@ export interface Proveedor {
   telefono?: string;
   vendedor?: string;
   tasaPreferida?: 'dolar' | 'euro' | 'binance';
+  bancosAfiliados?: string[];
   cuentasBancarias: CuentaBancaria[];
   facturas: FacturaProveedor[];
   creadoPor?: string;
@@ -178,6 +179,7 @@ export class CuentasPorPagar implements OnInit {
     telefono: '',
     vendedor: '',
     tasaPreferida: 'dolar' as 'dolar' | 'euro' | 'binance',
+    bancosAfiliados: [] as string[],
     cuentasBancarias: [] as CuentaBancaria[],
   };
 
@@ -297,11 +299,12 @@ export class CuentasPorPagar implements OnInit {
         telefono: proveedor.telefono || '',
         vendedor: proveedor.vendedor || '',
         tasaPreferida: proveedor.tasaPreferida || 'dolar',
+        bancosAfiliados: proveedor.bancosAfiliados || [],
         cuentasBancarias: cuentasConTipo,
       };
     } else {
       this.editingProveedor = null;
-      this.newProveedor = { nombre: '', alias: '', rif: '', rifTipo: 'J', direccion: '', correo: '', telefono: '', vendedor: '', tasaPreferida: 'dolar', cuentasBancarias: [] };
+      this.newProveedor = { nombre: '', alias: '', rif: '', rifTipo: 'J', direccion: '', correo: '', telefono: '', vendedor: '', tasaPreferida: 'dolar', bancosAfiliados: [], cuentasBancarias: [] };
     }
     this.showModalProveedor = true;
   }
@@ -334,6 +337,7 @@ export class CuentasPorPagar implements OnInit {
           telefono: this.newProveedor.telefono,
           vendedor: this.newProveedor.vendedor,
           tasaPreferida: this.newProveedor.tasaPreferida,
+          bancosAfiliados: this.newProveedor.bancosAfiliados,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
           modificadoPor: this.usuarioActual,
         })
@@ -355,6 +359,7 @@ export class CuentasPorPagar implements OnInit {
           telefono: this.newProveedor.telefono,
           vendedor: this.newProveedor.vendedor,
           tasaPreferida: this.newProveedor.tasaPreferida,
+          bancosAfiliados: this.newProveedor.bancosAfiliados,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
           creadoPor: this.usuarioActual,
         })
@@ -377,6 +382,18 @@ export class CuentasPorPagar implements OnInit {
   }
 
   toggleBancoAfliado(banco: string) {
+    if (!this.newProveedor.bancosAfiliados) {
+      this.newProveedor.bancosAfiliados = [];
+    }
+    const index = this.newProveedor.bancosAfiliados.indexOf(banco);
+    if (index > -1) {
+      this.newProveedor.bancosAfiliados.splice(index, 1);
+    } else {
+      this.newProveedor.bancosAfiliados.push(banco);
+    }
+  }
+
+  toggleBancoAfliadoCuenta(banco: string) {
     if (!this.newCuentaBancaria.bancosAfiliados) {
       this.newCuentaBancaria.bancosAfiliados = [];
     }

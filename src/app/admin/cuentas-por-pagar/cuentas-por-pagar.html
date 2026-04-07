@@ -104,6 +104,12 @@
             } -->
             <div class="cuentas-section">
               <h5>Cuentas Bancarias</h5>
+              @if ((proveedor.bancosAfiliados?.length ?? 0) > 0) {
+                <div class="proveedor-bancos-afiliados">
+                  <span class="bancos-label">Bancos Afiliados:</span>
+                  <span class="bancos-value">{{ proveedor.bancosAfiliados?.join(', ') }}</span>
+                </div>
+              }
               @if ((proveedor.cuentasBancarias?.length ?? 0) > 0) {
                 <div class="cuentas-list">
                   @for (cuenta of proveedor.cuentasBancarias; track $index) {
@@ -330,6 +336,27 @@
               <label>Teléfono del Vendedor</label>
               <input type="text" [(ngModel)]="newProveedor.telefono" placeholder="0000-0000000" (keydown.enter)="guardarProveedor()" />
             </div>
+          <div class="cuenta-options">
+            <label class="option-label">Bancos Afiliados:</label>
+            <div class="checkbox-group">
+              <label class="checkbox-circle">
+                <input type="checkbox" (change)="toggleBancoAfliado('BNC')" [checked]="newProveedor.bancosAfiliados?.includes('BNC')" />
+                <span class="checkbox-btn">BNC</span>
+              </label>
+              <label class="checkbox-circle">
+                <input type="checkbox" (change)="toggleBancoAfliado('BANESCO')" [checked]="newProveedor.bancosAfiliados?.includes('BANESCO')" />
+                <span class="checkbox-btn">BANESCO</span>
+              </label>
+              <label class="checkbox-circle">
+                <input type="checkbox" (change)="toggleBancoAfliado('BANCARIBE')" [checked]="newProveedor.bancosAfiliados?.includes('BANCARIBE')" />
+                <span class="checkbox-btn">BANCARIBE</span>
+              </label>
+              <label class="checkbox-circle">
+                <input type="checkbox" (change)="toggleBancoAfliado('BDV')" [checked]="newProveedor.bancosAfiliados?.includes('BDV')" />
+                <span class="checkbox-btn">BDV</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <div class="cuentas-form">
@@ -382,19 +409,19 @@
             <label class="option-label">Afiliado en:</label>
             <div class="checkbox-group">
               <label class="checkbox-circle">
-                <input type="checkbox" (change)="toggleBancoAfliado('BNC')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BNC')" />
+                <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BNC')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BNC')" />
                 <span class="checkbox-btn">BNC</span>
               </label>
               <label class="checkbox-circle">
-                <input type="checkbox" (change)="toggleBancoAfliado('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANESCO')" />
+                <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANESCO')" />
                 <span class="checkbox-btn">BANESCO</span>
               </label>
               <label class="checkbox-circle">
-                <input type="checkbox" (change)="toggleBancoAfliado('BANCARIBE')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANCARIBE')" />
+                <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANCARIBE')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANCARIBE')" />
                 <span class="checkbox-btn">BANCARIBE</span>
               </label>
               <label class="checkbox-circle">
-                <input type="checkbox" (change)="toggleBancoAfliado('BDV')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BDV')" />
+                <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BDV')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BDV')" />
                 <span class="checkbox-btn">BDV</span>
               </label>
             </div>
@@ -453,19 +480,19 @@
                 <label class="option-label">Afiliado en:</label>
                 <div class="checkbox-group">
                   <label class="checkbox-circle">
-                    <input type="checkbox" (change)="toggleBancoAfliado('BNC')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BNC')" />
+                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BNC')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BNC')" />
                     <span class="checkbox-btn">BNC</span>
                   </label>
                   <label class="checkbox-circle">
-                    <input type="checkbox" (change)="toggleBancoAfliado('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANESCO')" />
+                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANESCO')" />
                     <span class="checkbox-btn">BANESCO</span>
                   </label>
                   <label class="checkbox-circle">
-                    <input type="checkbox" (change)="toggleBancoAfliado('BANCARIBE')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANCARIBE')" />
+                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANCARIBE')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANCARIBE')" />
                     <span class="checkbox-btn">BANCARIBE</span>
                   </label>
                   <label class="checkbox-circle">
-                    <input type="checkbox" (change)="toggleBancoAfliado('BDV')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BDV')" />
+                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BDV')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BDV')" />
                     <span class="checkbox-btn">BDV</span>
                   </label>
                 </div>

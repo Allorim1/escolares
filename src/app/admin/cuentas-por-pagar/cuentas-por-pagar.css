@@ -2426,6 +2426,11 @@
   color: #495057;
 }
 
+.qr-instructions {
+  margin: 0 0 1.5rem 0;
+  color: #495057;
+}
+
 .qr-code-image {
   max-width: 250px;
   border-radius: 12px;
@@ -2441,6 +2446,12 @@
   font-size: 0.85rem;
   color: #dc3545 !important;
   margin-top: 1rem !important;
+}
+
+.qr-polling {
+  margin-top: 1rem;
+  color: #6c757d;
+  font-size: 0.9rem;
 }
 
 .qr-success {

@@ -145,6 +145,16 @@ export class CuentasPorPagar implements OnInit {
   showModalFotoExito = false;
   showModalFotoAccion = false;
   fotoAccionMensaje = '';
+
+  cerrarModalFotoExito() {
+    this.showModalFotoExito = false;
+  }
+
+  cerrarModalFotoAccion() {
+    this.showModalFotoAccion = false;
+    this.fotoAccionMensaje = '';
+  }
+
   showModalFacturaVinculada = false;
   facturaAbonoExito: { numero: string; monto: number; deuda: number; proveedorId?: string; facturaIndex?: number } | null = null;
   editingProveedor: Proveedor | null = null;
@@ -192,8 +202,16 @@ export class CuentasPorPagar implements OnInit {
   videoElement: HTMLVideoElement | null = null;
   fotoIndexEliminar: number = -1;
   cameraCallback: ((base64: string) => void) | null = null;
-  modoQR = false;
-  qrScanInterval: any = null;
+
+  showQRModal = false;
+  qrCodeData = signal('');
+  qrExpiracion = signal('');
+  qrLoading = false;
+  qrFotoRecibida = signal(false);
+  qrPollingInterval: any = null;
+  qrToken = signal('');
+  qrProveedorId = '';
+  qrFacturaIndex = -1;
 
   showFotoViewer = false;
   fotoViewerIndex = 0;
@@ -206,16 +224,6 @@ export class CuentasPorPagar implements OnInit {
   fotoViewerPosition = { x: 0, y: 0 };
   fotoViewerIsDragging = false;
   fotoViewerDragStart = { x: 0, y: 0 };
-
-  showQRModal = false;
-  qrCodeData: string = '';
-  qrExpiracion: string = '';
-  qrProveedorId: string = '';
-  qrFacturaIndex: number = -1;
-  qrInterval: any = null;
-  qrFotoRecibida = false;
-  qrImagenesIniciales: string[] = [];
-  qrToken: string = '';
 
   newAbono = {
     monto: 0,
@@ -991,7 +999,6 @@ export class CuentasPorPagar implements OnInit {
   }
 
   async abrirCamera() {
-    this.modoQR = false;
     try {
       this.cameraStream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' } 
@@ -1007,86 +1014,6 @@ export class CuentasPorPagar implements OnInit {
       console.error('Error accessing camera:', err);
       alert('No se pudo acceder a la cámara');
     }
-  }
-
-  async abrirCameraQR() {
-    this.modoQR = true;
-    try {
-      this.cameraStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      this.showCameraModal = true;
-      setTimeout(() => {
-        this.videoElement = document.getElementById('cameraVideo') as HTMLVideoElement;
-        if (this.videoElement) {
-          this.videoElement.srcObject = this.cameraStream;
-          this.iniciarEscaneoQR();
-        }
-      }, 100);
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      alert('No se pudo acceder a la cámara');
-    }
-  }
-
-  iniciarEscaneoQR() {
-    if (!('BarcodeDetector' in window)) {
-      alert('Tu navegador no soporta escaneo de códigos QR');
-      return;
-    }
-
-    const barcodeDetector = new (window as any).BarcodeDetector({
-      formats: ['qr_code']
-    });
-
-    this.qrScanInterval = setInterval(async () => {
-      if (!this.videoElement || this.videoElement.readyState !== 4) return;
-
-      try {
-        const barcodes = await barcodeDetector.detect(this.videoElement);
-        if (barcodes.length > 0) {
-          clearInterval(this.qrScanInterval);
-          this.tomarFotoQR();
-        }
-      } catch (err) {
-        console.error('Error escaneando QR:', err);
-      }
-    }, 300);
-  }
-
-  tomarFotoQR() {
-    if (!this.videoElement) return;
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = this.videoElement.videoWidth;
-    canvas.height = this.videoElement.videoHeight;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.drawImage(this.videoElement, 0, 0);
-      const imageData = canvas.toDataURL('image/jpeg', 0.7);
-      
-      if (this.cameraCallback) {
-        this.cameraCallback(imageData);
-        this.cameraCallback = null;
-      } else {
-        this.newFactura.imagenes = [...this.newFactura.imagenes, imageData];
-      }
-    }
-    this.cerrarCamera();
-  }
-
-  cerrarCamera() {
-    if (this.qrScanInterval) {
-      clearInterval(this.qrScanInterval);
-      this.qrScanInterval = null;
-    }
-    if (this.cameraStream) {
-      this.cameraStream.getTracks().forEach(track => track.stop());
-      this.cameraStream = null;
-    }
-    this.showCameraModal = false;
-    this.videoElement = null;
-    this.modoQR = false;
   }
 
   tomarFoto() {
@@ -1123,6 +1050,70 @@ export class CuentasPorPagar implements OnInit {
 
   eliminarFoto(index: number) {
     this.newFactura.imagenes = this.newFactura.imagenes.filter((_, i) => i !== index);
+  }
+
+  abrirQRScanner(proveedorId: string, facturaIndex: number) {
+    this.qrProveedorId = proveedorId;
+    this.qrFacturaIndex = facturaIndex;
+    this.qrLoading = true;
+    this.showQRModal = true;
+    this.qrCodeData.set('');
+    this.qrExpiracion.set('');
+    this.qrToken.set('');
+    this.qrFotoRecibida.set(false);
+    
+    this.http.post<any>('/api/facturas-qr/generate-qr', { proveedorId, facturaIndex }).subscribe({
+      next: (res) => {
+        this.qrCodeData.set(res.qrCode);
+        this.qrExpiracion.set(res.expiresAt);
+        this.qrLoading = false;
+        
+        const tokenMatch = res.uploadUrl.match(/facturas-qr\/upload\/([a-f0-9]+)/);
+        if (tokenMatch) {
+          const token = tokenMatch[1];
+          this.qrToken.set(token);
+          this.iniciarPollingQR();
+        }
+      },
+      error: (err) => {
+        console.error('Error generating QR:', err);
+        this.qrLoading = false;
+        alert('Error al generar código QR. Asegúrate de que el servidor esté actualizado.');
+        this.showQRModal = false;
+      }
+    });
+  }
+
+  iniciarPollingQR() {
+    const token = this.qrToken();
+    if (!token) return;
+    
+    this.qrPollingInterval = setInterval(() => {
+      this.http.get<any>(`/api/facturas-qr/check/${token}`).subscribe({
+        next: (res) => {
+          if (res.success && res.imagen) {
+            this.qrFotoRecibida.set(true);
+            this.agregarFotoAServidor(res.imagen);
+            setTimeout(() => {
+              this.cerrarQRModal();
+            }, 3000);
+          }
+        },
+        error: () => {}
+      });
+    }, 2000);
+  }
+
+  cerrarQRModal() {
+    if (this.qrPollingInterval) {
+      clearInterval(this.qrPollingInterval);
+      this.qrPollingInterval = null;
+    }
+    this.showQRModal = false;
+    this.qrCodeData.set('');
+    this.qrExpiracion.set('');
+    this.qrFotoRecibida.set(false);
+    this.qrToken.set('');
   }
 
   abrirFotoViewer(index: number) {
@@ -1421,148 +1412,31 @@ export class CuentasPorPagar implements OnInit {
     };
   }
 
-  abrirCameraQRDetalle() {
-    this.abrirCameraQR();
-    this.cameraCallback = (base64: string) => {
-      this.agregarFotoAServidor(base64);
-    };
-  }
-
-  abrirQRModal(proveedorId: string, facturaIndex: number) {
-    this.qrProveedorId = proveedorId;
-    this.qrFacturaIndex = facturaIndex;
-    this.qrCodeData = '';
-    this.qrExpiracion = '';
-    this.qrFotoRecibida = false;
-    this.qrToken = '';
-    this.qrImagenesIniciales = this.facturaDetalle?.factura.imagenes ? [...this.facturaDetalle.factura.imagenes] : [];
-    this.showQRModal = true;
-    this.cdr.detectChanges();
-    
-    this.generarQRParaFactura(proveedorId, facturaIndex);
-  }
-
-  private generarQRParaFactura(proveedorId: string, facturaIndex: number) {
-    this.qrCodeData = '';
-    this.qrExpiracion = '';
-    this.qrFotoRecibida = false;
-    this.qrToken = '';
-    const imagenesIniciales = this.qrImagenesIniciales.length;
-
-    this.http.post<{ qrCode: string; token: string; uploadUrl: string; expiresAt: string }>(
-      '/api/facturas-qr/generate-qr', { proveedorId, facturaIndex }
-    ).subscribe({
-      next: (res) => {
-        this.qrCodeData = res.qrCode;
-        this.qrToken = res.token || '';
-        this.qrExpiracion = res.expiresAt;
-        this.cdr.detectChanges();
-
-        this.qrInterval = setInterval(() => {
-          this.http.get<{ imagenes: string[] }>(`/api/facturas-qr/imagenes/${proveedorId}/${facturaIndex}`).subscribe({
-            next: (pollRes) => {
-              if (pollRes.imagenes && pollRes.imagenes.length > imagenesIniciales) {
-                this.qrFotoRecibida = true;
-                this.cdr.detectChanges();
-                clearInterval(this.qrInterval);
-                this.qrInterval = null;
-                setTimeout(() => {
-                  this.showQRModal = false;
-                  this.showModalFotoExito = true;
-                  this.loadProveedores();
-                  
-                  const fd = this.facturaDetalle;
-                  if (fd) {
-                    const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-                    if (prov && prov.facturas && prov.facturas[fd.index]) {
-                      this.facturaDetalle = {
-                        proveedor: prov,
-                        factura: prov.facturas[fd.index],
-                        index: fd.index
-                      };
-                    }
-                  }
-                  this.cdr.detectChanges();
-                }, 2000);
-              }
-            },
-          });
-        }, 2000);
-      },
-      error: () => {
-        alert('Error al generar código QR');
-        this.showQRModal = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  guardarImagenEnFactura(proveedorId: string, facturaIndex: number, imagen: string) {
-    this.qrFotoRecibida = true;
-    this.cdr.detectChanges();
-    setTimeout(() => {
-      this.showQRModal = false;
-      this.showModalFotoExito = true;
-      this.loadProveedores();
-      
-      const fd = this.facturaDetalle;
-      if (fd) {
-        const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-        if (prov && prov.facturas && prov.facturas[fd.index]) {
-          this.facturaDetalle = {
-            proveedor: prov,
-            factura: prov.facturas[fd.index],
-            index: fd.index
-          };
-        }
-      }
-      this.cdr.detectChanges();
-    }, 2000);
-  }
-
-  cerrarModalFotoExito() {
-    this.showModalFotoExito = false;
-    this.qrFotoRecibida = false;
-  }
-
-  cerrarModalFotoAccion() {
-    this.showModalFotoAccion = false;
-    this.fotoAccionMensaje = '';
+  cerrarCamera() {
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(track => track.stop());
+      this.cameraStream = null;
+    }
+    this.showCameraModal = false;
+    this.videoElement = null;
   }
 
   actualizarDetalleTrasCambioFotos() {
-    this.loadProveedores();
     const fd = this.facturaDetalle;
-    if (fd) {
-      const fdProveedorId = fd.proveedor._id;
-      const fdIndex = fd.index;
-      setTimeout(() => {
-        const proveedores = this.proveedores();
-        const prov = proveedores.find(p => p._id === fdProveedorId);
-        if (prov && prov.facturas && prov.facturas[fdIndex]) {
-          this.facturaDetalle = {
-            proveedor: prov,
-            factura: prov.facturas[fdIndex],
-            index: fdIndex
-          };
-          this.fotoViewerImagenes = prov.facturas[fdIndex].imagenes || [];
-          this.cdr.detectChanges();
-        }
-      }, 200);
-    }
-  }
-
-  cerrarQRModal() {
-    if (this.qrInterval) {
-      clearInterval(this.qrInterval);
-      this.qrInterval = null;
-    }
-    this.showQRModal = false;
-    this.qrCodeData = '';
-    this.qrExpiracion = '';
-    this.qrFotoRecibida = false;
-    this.qrImagenesIniciales = [];
-    this.qrToken = '';
+    if (!fd) return;
+    
+    setTimeout(() => {
+      const proveedores = this.proveedores();
+      const prov = proveedores.find(p => p._id === fd.proveedor._id);
+      if (prov && prov.facturas && prov.facturas[fd.index]) {
+        this.facturaDetalle = {
+          proveedor: prov,
+          factura: prov.facturas[fd.index],
+          index: fd.index
+        };
+        this.cdr.detectChanges();
+      }
+    }, 200);
   }
 
   private convertToBase64(file: File, callback: (base64: string) => void) {

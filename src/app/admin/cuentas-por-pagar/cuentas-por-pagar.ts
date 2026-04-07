@@ -1099,7 +1099,11 @@ export class CuentasPorPagar implements OnInit {
             }, 3000);
           }
         },
-        error: () => {}
+        error: (err) => {
+          if (err.name === 'AbortError' || err.status === 0) {
+            return;
+          }
+        }
       });
     }, 2000);
   }

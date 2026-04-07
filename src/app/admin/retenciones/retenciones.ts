@@ -265,8 +265,8 @@ export class Retenciones implements OnInit {
             String(nComprobante).padStart(8, '0'),
             iva,
             '0'
-          ].join('|');
-
+          ].join('\t');
+          
           lineas.push(linea);
           nComprobante++;
         }

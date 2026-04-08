@@ -47,6 +47,7 @@ export interface FacturaProveedor {
   facturaVinculadaIndex?: number;
   montoBsf?: number;
   comentario?: string;
+  numeroControl?: string;
 }
 
 export interface Proveedor {
@@ -197,6 +198,7 @@ export class CuentasPorPagar implements OnInit {
     conIva: false,
     montoBsf: 0,
     comentario: '',
+    numeroControl: '',
   };
 
   showCameraModal = false;

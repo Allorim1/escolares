@@ -596,6 +596,14 @@
             <input type="date" [(ngModel)]="newFactura.fecha" />
           </div>
         </div>
+        @if (newFactura.tipo === 'factura') {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Número de Control</label>
+              <input type="text" [(ngModel)]="newFactura.numeroControl" placeholder="Número de Control" />
+            </div>
+          </div>
+        }
         @if (newFactura.tipo === 'debito' || newFactura.tipo === 'credito') {
           <div class="vincular-factura-section">
             <label>Documento vinculado</label>
@@ -878,6 +886,12 @@
               <label>Fecha:</label>
               <span>{{ formatFecha(facturaDetalle.factura.fecha) }}</span>
             </div>
+            @if (facturaDetalle.factura.tipo === 'factura') {
+              <div class="dato-field">
+                <label>Número de Control:</label>
+                <span>{{ facturaDetalle.factura.numeroControl || 'N/A' }}</span>
+              </div>
+            }
           </div>
         </div>
 

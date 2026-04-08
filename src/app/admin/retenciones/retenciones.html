@@ -1,7 +1,44 @@
 <div class="ret-container">
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <h2>Retenciones de IVA</h2>
+ 
+  <button class="btn-secondary" style="margin-bottom: 15px; width: auto;" (click)="toggleRetenciones()">
+    {{ mostrarRetenciones() ? '👀 Ocultar Retenciones' : '📋 Ver Retenciones Guardadas' }}
+  </button>
 
+  @if (mostrarRetenciones()) {
+    <div class="retenciones-list">
+      <table>
+        <thead>
+          <tr>
+            <th>Nro</th>
+            <th>Proveedor</th>
+            <th>RIF</th>
+            <th>Factura</th>
+            <th>Fecha</th>
+            <th>Base</th>
+            <th>IVA</th>
+            <th>Retenido</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of retenciones(); track r._id) {
+            <tr>
+              <td>{{ r.numero }}</td>
+              <td>{{ r.proveedorNombre }}</td>
+              <td>{{ r.proveedorRif }}</td>
+              <td>{{ r.facturaNumero }}</td>
+              <td>{{ r.facturaFecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ r.baseImponible | number:'1.2-2' }}</td>
+              <td>{{ r.iva | number:'1.2-2' }}</td>
+              <td>{{ r.retenido | number:'1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+ 
   <div class="ret-panel">
     <div class="ret-section">
       <h3>Generar TXT de Retenciones</h3>
@@ -86,7 +123,15 @@
       
       <div class="form-group">
         <label>Número de Comprobante</label>
-        <input type="text" [(ngModel)]="comprobanteNumero" />
+        <div class="numero-control">
+          <input 
+            type="number" 
+            [ngModel]="ultimoNumero" 
+            (ngModelChange)="onComprobanteNumeroChange($event.toString())"
+            min="{{ultimoNumero}}"
+          />
+          <button class="btn-small" (click)="aumentarNumero()">+1</button>
+        </div>
       </div>
 
       @if (facturaSeleccionada()) {

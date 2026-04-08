@@ -871,18 +871,22 @@ export class CuentasPorPagar implements OnInit {
   actualizarFacturaDetalle(proveedorId: string, facturaIndex: number) {
     const fd = this.facturaDetalle;
     if (fd && fd.proveedor._id === proveedorId && fd.index === facturaIndex) {
-      setTimeout(() => {
-        const proveedores = this.proveedores();
-        const prov = proveedores.find(p => p._id === proveedorId);
-        if (prov && prov.facturas && prov.facturas[facturaIndex]) {
-          this.facturaDetalle = {
-            proveedor: prov,
-            factura: prov.facturas[facturaIndex],
-            index: facturaIndex
-          };
-          this.cdr.detectChanges();
+      this.http.get<Proveedor[]>(this.API).subscribe({
+        next: (data) => {
+          this.proveedores.set(data);
+          setTimeout(() => {
+            const prov = data.find(p => p._id === proveedorId);
+            if (prov && prov.facturas && prov.facturas[facturaIndex]) {
+              this.facturaDetalle = {
+                proveedor: prov,
+                factura: prov.facturas[facturaIndex],
+                index: facturaIndex
+              };
+              this.cdr.detectChanges();
+            }
+          }, 100);
         }
-      }, 200);
+      });
     }
   }
 

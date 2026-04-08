@@ -1105,12 +1105,18 @@ export class CuentasPorPagar implements OnInit {
     const token = this.qrToken();
     if (!token) return;
     
-    this.qrPollingInterval = setInterval(() => {
+    const intervalId = setInterval(() => {
       this.http.get<any>(`/api/facturas-qr/check/${token}`).subscribe({
         next: (res) => {
           if (res.success && res.imagen) {
+            clearInterval(intervalId);
             this.qrFotoRecibida.set(true);
-            this.agregarFotoAServidor(res.imagen);
+            
+            this.actualizarFacturaDetalle(this.qrProveedorId, this.qrFacturaIndex);
+            
+            this.fotoAccionMensaje = 'Foto recibida correctamente';
+            this.showModalFotoAccion = true;
+            
             setTimeout(() => {
               this.cerrarQRModal();
             }, 3000);

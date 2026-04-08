@@ -248,6 +248,7 @@
                         </td>
                         <td>
                           <button class="btn-abono" (click)="abrirModalAbono(proveedor._id || '', $index, factura); $event.stopPropagation()" title="Agregar Abono" [disabled]="calcularDeudaFactura(factura, proveedor) === 0">+ Abono</button>
+                          <button class="btn-icon-small" (click)="abrirModalFactura(proveedor._id || '', factura, $index); $event.stopPropagation()" title="Editar">✏️</button>
                           <button class="btn-icon-small" (click)="eliminarFactura(proveedor._id || '', $index); $event.stopPropagation()" title="Eliminar">🗑️</button>
                         </td>
                       </tr>

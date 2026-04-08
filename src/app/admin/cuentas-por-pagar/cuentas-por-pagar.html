@@ -596,7 +596,7 @@
             <input type="date" [(ngModel)]="newFactura.fecha" />
           </div>
         </div>
-        @if (newFactura.tipo === 'factura') {
+        @if (newFactura.tipo === 'factura' || (editingFactura && editingFactura.factura.tipo === 'factura')) {
           <div class="form-row">
             <div class="form-group">
               <label>Número de Control</label>

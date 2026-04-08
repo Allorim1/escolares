@@ -488,6 +488,7 @@ export class CuentasPorPagar implements OnInit {
         conIva: (factura.montoIva || 0) > 0,
         montoBsf: factura.montoBsf || 0,
         comentario: factura.comentario || '',
+        numeroControl: factura.numeroControl || '',
       };
     } else {
       this.editingFactura = null;
@@ -505,6 +506,7 @@ export class CuentasPorPagar implements OnInit {
         conIva: false,
         montoBsf: 0,
         comentario: '',
+        numeroControl: '',
       };
     }
     this.showModalFactura = true;

@@ -18,6 +18,7 @@ interface Factura {
   numero: string;
   fecha: Date;
   tipo?: 'factura' | 'nota' | 'debito' | 'credito';
+  monto?: number;
   baseImponible: number;
   baseExenta: number;
   porcentajeIva: number;
@@ -227,9 +228,9 @@ export class Retenciones implements OnInit {
           notaDebito: '',
           notaCredito: '',
           factAfectada: '',
-          totalCompras: factura.totalPagar,
+          totalCompras: (factura.monto || 0) + (factura.iva || 0) + (factura.baseExenta || 0),
           exento: factura.baseExenta || 0,
-          baseImponible: factura.baseImponible,
+          baseImponible: factura.monto || 0,
           porcentajeIva: factura.porcentajeIva || 16,
           iva: factura.iva,
           retenido: factura.iva75 || 0
@@ -245,15 +246,16 @@ export class Retenciones implements OnInit {
       facturaFecha: factura.fecha,
       fechaPagada: new Date(),
       numeroControl: factura.numeroControl || '',
-      totalCompras: factura.totalPagar,
-      baseImponible: factura.baseImponible,
+      totalCompras: (factura.monto || 0) + (factura.iva || 0) + (factura.baseExenta || 0),
+      baseImponible: factura.monto || 0,
       exento: factura.baseExenta || 0,
       porcentajeIva: factura.porcentajeIva || 16,
       iva: factura.iva,
       retenido: factura.iva75 || 0
     }).subscribe({
       next: () => {
-        this.http.put('/api/retenciones/ultimo', { ultimoNumero: this.ultimoNumero }).subscribe();
+        const secuencia = parseInt(this.comprobanteNumero.slice(-8));
+        this.http.put('/api/retenciones/ultimo', { ultimoNumero: secuencia }).subscribe();
         this.cargarRetenciones();
       },
       error: (err) => {

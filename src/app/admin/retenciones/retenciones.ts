@@ -10,6 +10,7 @@ interface Proveedor {
   _id?: string;
   nombre: string;
   rif: string;
+  direccion?: string;
   facturas?: Factura[];
 }
 

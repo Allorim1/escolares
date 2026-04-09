@@ -18,6 +18,7 @@ interface Factura {
   numero: string;
   fecha: Date;
   tipo?: 'factura' | 'nota' | 'debito' | 'credito';
+  monto?: number;
   baseImponible: number;
   baseExenta: number;
   porcentajeIva: number;
@@ -228,8 +229,8 @@ export class Retenciones implements OnInit {
           notaCredito: '',
           factAfectada: '',
           totalCompras: factura.totalPagar,
-          exento: factura.baseExenta,
-          baseImponible: factura.baseImponible,
+          exento: factura.baseExenta || 0,
+          baseImponible: factura.monto || 0,
           porcentajeIva: factura.porcentajeIva || 16,
           iva: factura.iva,
           retenido: factura.iva75 || 0
@@ -246,8 +247,8 @@ export class Retenciones implements OnInit {
       fechaPagada: new Date(),
       numeroControl: factura.numeroControl || '',
       totalCompras: factura.totalPagar,
-      baseImponible: factura.baseImponible,
-      exento: factura.baseExenta,
+      baseImponible: factura.baseImponible || 0,
+      exento: factura.baseExenta || 0,
       porcentajeIva: factura.porcentajeIva || 16,
       iva: factura.iva,
       retenido: factura.iva75 || 0

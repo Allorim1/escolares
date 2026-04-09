@@ -635,8 +635,12 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Monto IVA ($)</label>
+              <label>Monto IVA (Bs)</label>
               <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Monto (Bs)</label>
+              <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" />
             </div>
           </div>
         }
@@ -660,7 +664,7 @@
           @if (newFactura.conIva) {
             <div class="form-row">
               <div class="form-group">
-                <label>Monto IVA ($)</label>
+                <label>Monto IVA (Bs)</label>
                 <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
               </div>
             </div>
@@ -688,7 +692,7 @@
           @if (newFactura.conIva) {
             <div class="form-row">
               <div class="form-group">
-                <label>Monto IVA ($)</label>
+                <label>Monto IVA (Bs)</label>
                 <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
               </div>
             </div>

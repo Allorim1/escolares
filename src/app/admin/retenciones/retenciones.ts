@@ -364,23 +364,22 @@ export class Retenciones implements OnInit {
       const iva = (retencion.iva || 0).toFixed(2);
       const totalCompras = (retencion.totalCompras || 0).toFixed(2);
       
-      const linea = [
-        this.RIF_EMPRESA,
-        periodo,
-        fechaActual,
-        'C',
-        '01',
-        rifProveedor,
-        numeroFactura,
-        '',
-        totalCompras,
-        baseImponible,
-        montoRetencion,
-        '0',
-        String(nComprobante).padStart(8, '0'),
-        iva,
-        '0'
-      ].join('\t');
+      const linea = 
+        this.RIF_EMPRESA + 'ㅤㅤ' +
+        periodo + 'ㅤ' +
+        fechaActual + 'ㅤㅤㅤㅤ' +
+        'C' + 'ㅤㅤㅤㅤ' +
+        '01' + 'ㅤㅤㅤㅤ' +
+        rifProveedor + 'ㅤㅤㅤㅤ' +
+        numeroFactura + 'ㅤㅤㅤㅤ' +
+        retencion.numero + 'ㅤㅤㅤㅤ' +
+        totalCompras + 'ㅤㅤㅤㅤ' +
+        baseImponible + 'ㅤㅤㅤㅤ' +
+        montoRetencion + 'ㅤㅤㅤㅤ' +
+        '0' + 'ㅤㅤㅤㅤ' +
+        String(nComprobante).padStart(8, '0') + 'ㅤ' +
+        iva + 'ㅤ' +
+        '0';
       
       lineas.push(linea);
       nComprobante++;

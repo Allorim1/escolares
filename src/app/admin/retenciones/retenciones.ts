@@ -372,7 +372,7 @@ export class Retenciones implements OnInit {
         '01' + 'ㅤㅤㅤㅤ' +
         rifProveedor + 'ㅤㅤㅤㅤ' +
         numeroFactura + 'ㅤㅤㅤㅤ' +
-        retencion.numero + 'ㅤㅤㅤㅤ' +
+        retencion.numero || 0.00 + 'ㅤㅤㅤㅤ' +
         totalCompras + 'ㅤㅤㅤㅤ' +
         baseImponible + 'ㅤㅤㅤㅤ' +
         montoRetencion + 'ㅤㅤㅤㅤ' +

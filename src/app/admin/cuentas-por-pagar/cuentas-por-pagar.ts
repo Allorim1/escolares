@@ -29,6 +29,7 @@ export interface FacturaProveedor {
   montoIva: number;
   baseImponible: number;
   baseExenta: number;
+  exentoBsf?: number;
   porcentajeIva: number;
   iva: number;
   iva75: number;
@@ -192,6 +193,7 @@ export class CuentasPorPagar implements OnInit {
     montoIva: 0,
     baseImponible: 0,
     baseExenta: 0,
+    exentoBsf: 0,
     porcentajeIva: 16,
     imagenes: [] as string[],
     facturaVinculadaIndex: -1,
@@ -482,6 +484,7 @@ export class CuentasPorPagar implements OnInit {
         montoIva: factura.montoIva || 0,
         baseImponible: factura.baseImponible,
         baseExenta: factura.baseExenta,
+        exentoBsf: factura.exentoBsf || 0,
         porcentajeIva: factura.porcentajeIva || 16,
         imagenes: factura.imagenes || [],
         facturaVinculadaIndex: factura.facturaVinculadaIndex ?? -1,
@@ -500,6 +503,7 @@ export class CuentasPorPagar implements OnInit {
         montoIva: 0,
         baseImponible: 0,
         baseExenta: 0,
+        exentoBsf: 0,
         porcentajeIva: 16,
         imagenes: [],
         facturaVinculadaIndex: -1,

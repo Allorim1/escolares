@@ -254,7 +254,13 @@ export class Retenciones implements OnInit {
         this.http.put('/api/retenciones/ultimo', { ultimoNumero: this.ultimoNumero }).subscribe();
         this.cargarRetenciones();
       },
-      error: (err) => console.error('Error guardando retencion:', err)
+      error: (err) => {
+        if (err.error?.error === 'Ya existe una retención para esta factura') {
+          alert('Ya existe una retención para esta factura');
+        } else {
+          console.error('Error guardando retencion:', err);
+        }
+      }
     });
     
     if (opcion === 1 || opcion === 4) {
@@ -335,9 +341,8 @@ export class Retenciones implements OnInit {
       return;
     }
 
-    const desde = new Date(this.fechaDesde);
-    const hasta = new Date(this.fechaHasta);
-    hasta.setHours(23, 59, 59, 999);
+    const desde = new Date(this.fechaDesde + 'T00:00:00');
+    const hasta = new Date(this.fechaHasta + 'T23:59:59.999');
 
     const periodo = `${desde.getFullYear()}${String(desde.getMonth() + 1).padStart(2, '0')}`;
     const now = new Date();

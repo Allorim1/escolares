@@ -395,7 +395,7 @@ export class Retenciones implements OnInit {
         baseImponible + 'ㅤㅤㅤㅤ' +
         montoRetencion + 'ㅤㅤㅤㅤ' +
         '0' + 'ㅤㅤㅤㅤ' +
-        numero + 'ㅤ'
+        numero + 'ㅤ' +
         '16.00' + 'ㅤ' +
         '0';
       

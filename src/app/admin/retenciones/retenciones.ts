@@ -42,6 +42,7 @@ interface Retencion {
   facturaNumero: string;
   facturaFecha: Date;
   fechaPagada: Date;
+  numeroControl?: string;
   totalCompras: number;
   baseImponible: number;
   exento: number;
@@ -243,6 +244,7 @@ export class Retenciones implements OnInit {
       facturaNumero: factura.numero || '',
       facturaFecha: factura.fecha,
       fechaPagada: new Date(),
+      numeroControl: factura.numeroControl || '',
       totalCompras: factura.totalPagar,
       baseImponible: factura.baseImponible,
       exento: factura.baseExenta,
@@ -364,6 +366,7 @@ export class Retenciones implements OnInit {
     for (const retencion of retencionesFiltradas) {
       const rifProveedor = (retencion.proveedorRif || '').replace(/-/g, '');
       const numeroFactura = retencion.facturaNumero || '';
+      const numeroControl = retencion.numeroControl || '';
       const baseImponible = (retencion.baseImponible || 0).toFixed(2);
       const montoRetencion = (retencion.retenido || 0).toFixed(2);
       const iva = (retencion.iva || 0).toFixed(2);
@@ -378,6 +381,7 @@ export class Retenciones implements OnInit {
         '01' + 'ㅤㅤㅤㅤ' +
         rifProveedor + 'ㅤㅤㅤㅤ' +
         numeroFactura + 'ㅤㅤㅤㅤ' +
+        numeroControl + 'ㅤㅤㅤㅤ' +
         numero + 'ㅤㅤㅤㅤ' +
         totalCompras + 'ㅤㅤㅤㅤ' +
         baseImponible + 'ㅤㅤㅤㅤ' +

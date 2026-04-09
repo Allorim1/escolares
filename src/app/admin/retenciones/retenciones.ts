@@ -16,6 +16,7 @@ interface Proveedor {
 interface Factura {
   numero: string;
   fecha: Date;
+  tipo?: 'factura' | 'nota' | 'debito' | 'credito';
   baseImponible: number;
   baseExenta: number;
   porcentajeIva: number;
@@ -162,6 +163,10 @@ export class Retenciones implements OnInit {
   async generarComprobante() {
     if (!this.proveedorSeleccionado() || !this.facturaSeleccionada()) {
       alert('Por favor seleccione un proveedor y una factura');
+      return;
+    }
+    if (this.facturaSeleccionada()?.tipo && this.facturaSeleccionada()?.tipo !== 'factura') {
+      alert('Solo se pueden generar retenciones para facturas');
       return;
     }
     this.mostrarModalAccion.set(true);

@@ -376,7 +376,8 @@ export class Retenciones implements OnInit {
       const numeroControl = retencion.numeroControl || '';
       const montoRetencion = (retencion.retenido || 0).toFixed(2);
       const iva = (retencion.iva || 0).toFixed(2);
-      const baseImponible = ((retencion.montoBsf || 0) - (retencion.iva)).toFixed(2);
+      const exento = (retencion.exentoBsf || 0).toFixed(2);
+      const baseImponible = ((retencion.montoBsf || 0) - (retencion.exentoBsf || 0) - (retencion.iva || 0)).toFixed(2);
       const numero = (retencion.numero || 0).toString();
       const totalCompras = (retencion.montoBsf || 0).toFixed(2);
       
@@ -390,10 +391,11 @@ export class Retenciones implements OnInit {
         numeroFactura + 'ㅤㅤㅤㅤ' +
         numeroControl + 'ㅤㅤㅤㅤ' +
         totalCompras + 'ㅤㅤㅤㅤ' +
+        exento + 'ㅤㅤㅤㅤ' +
         baseImponible + 'ㅤㅤㅤㅤ' +
         montoRetencion + 'ㅤㅤㅤㅤ' +
         '0' + 'ㅤㅤㅤㅤ' +
-        numero +
+        numero + 'ㅤ'
         '16.00' + 'ㅤ' +
         '0';
       

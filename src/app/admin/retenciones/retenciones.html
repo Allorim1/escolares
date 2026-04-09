@@ -9,33 +9,46 @@
   @if (mostrarRetenciones()) {
     <div class="retenciones-list">
       <table>
-        <thead>
+          <thead>
           <tr>
             <th>Nro</th>
             <th>Proveedor</th>
             <th>RIF</th>
             <th>Factura</th>
-            <th>Fecha</th>
+            <th>Fecha Factura</th>
+            <th>Fecha Pagada</th>
             <th>Base</th>
             <th>IVA</th>
             <th>Retenido</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          @for (r of retenciones(); track r._id) {
+          @for (r of retencionesPaginadas; track r._id) {
             <tr>
               <td>{{ r.numero }}</td>
               <td>{{ r.proveedorNombre }}</td>
               <td>{{ r.proveedorRif }}</td>
               <td>{{ r.facturaNumero }}</td>
               <td>{{ r.facturaFecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ r.fechaPagada | date:'dd/MM/yyyy' }}</td>
               <td>{{ r.baseImponible | number:'1.2-2' }}</td>
               <td>{{ r.iva | number:'1.2-2' }}</td>
               <td>{{ r.retenido | number:'1.2-2' }}</td>
+              <td>
+                <button class="btn-icon-small" (click)="eliminarRetencion(r._id || '')" title="Eliminar">🗑️</button>
+              </td>
             </tr>
           }
         </tbody>
       </table>
+      @if (totalPaginasRetenciones > 1) {
+        <div class="paginacion">
+          <button class="btn-pagina" (click)="cambiarPaginaRetenciones(paginaActualRetenciones - 1)" [disabled]="paginaActualRetenciones === 1">← Anterior</button>
+          <span class="info-pagina">Página {{ paginaActualRetenciones }} de {{ totalPaginasRetenciones }}</span>
+          <button class="btn-pagina" (click)="cambiarPaginaRetenciones(paginaActualRetenciones + 1)" [disabled]="paginaActualRetenciones === totalPaginasRetenciones">Siguiente →</button>
+        </div>
+      }
     </div>
   }
  

@@ -41,6 +41,7 @@ interface Retencion {
   proveedorNombre: string;
   facturaNumero: string;
   facturaFecha: Date;
+  fechaPagada: Date;
   totalCompras: number;
   baseImponible: number;
   exento: number;
@@ -77,7 +78,9 @@ export class Retenciones implements OnInit {
   fechaDesde = '';
   fechaHasta = '';
   mensajeTXT = signal('');
-  
+  retencionesPorPagina = 10;
+  paginaActualRetenciones = 1;
+  totalPaginasRetenciones = 1;
   private RIF_EMPRESA = 'J304883676';
   private PERIODO = '202604';
 
@@ -101,9 +104,32 @@ export class Retenciones implements OnInit {
 
   cargarRetenciones() {
     this.http.get<Retencion[]>('/api/retenciones').subscribe({
-      next: (data) => this.retenciones.set(data),
+      next: (data) => {
+        this.retenciones.set(data);
+        this.totalPaginasRetenciones = Math.ceil(data.length / this.retencionesPorPagina);
+      },
       error: (err) => console.error('Error cargando retenciones:', err)
     });
+  }
+
+  eliminarRetencion(id: string) {
+    if (!confirm('¿Está seguro de eliminar esta retención?')) return;
+    this.http.delete(`/api/retenciones/${id}`).subscribe({
+      next: () => this.cargarRetenciones(),
+      error: (err) => console.error('Error eliminando retención:', err)
+    });
+  }
+
+  cambiarPaginaRetenciones(pagina: number) {
+    if (pagina >= 1 && pagina <= this.totalPaginasRetenciones) {
+      this.paginaActualRetenciones = pagina;
+    }
+  }
+
+  get retencionesPaginadas(): Retencion[] {
+    const inicio = (this.paginaActualRetenciones - 1) * this.retencionesPorPagina;
+    const fin = inicio + this.retencionesPorPagina;
+    return this.retenciones().slice(inicio, fin);
   }
 
   loadProveedores() {
@@ -133,23 +159,28 @@ export class Retenciones implements OnInit {
   }
 
   generarNumeroComprobante() {
-    this.ultimoNumero++;
-    this.comprobanteNumero = String(this.ultimoNumero).padStart(8, '0');
+    const now = new Date();
+    const periodo = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const secuencia = this.ultimoNumero + 1;
+    this.comprobanteNumero = `${periodo}${String(secuencia).padStart(8, '0')}`;
   }
 
   aumentarNumero() {
-    this.ultimoNumero++;
-    this.comprobanteNumero = String(this.ultimoNumero).padStart(8, '0');
+    const now = new Date();
+    const periodo = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const secuencia = this.ultimoNumero + 1;
+    this.comprobanteNumero = `${periodo}${String(secuencia).padStart(8, '0')}`;
   }
 
   onComprobanteNumeroChange(value: string) {
     const num = parseInt(value);
     if (!isNaN(num) && num >= this.ultimoNumero) {
       this.ultimoNumero = num;
-      this.comprobanteNumero = String(num).padStart(8, '0');
-    } else {
-      this.comprobanteNumero = String(this.ultimoNumero).padStart(8, '0');
     }
+    const now = new Date();
+    const periodo = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const secuencia = this.ultimoNumero;
+    this.comprobanteNumero = `${periodo}${String(secuencia).padStart(8, '0')}`;
   }
 
   seleccionarProveedor(proveedor: Proveedor) {
@@ -211,6 +242,7 @@ export class Retenciones implements OnInit {
       proveedorNombre: proveedor.nombre,
       facturaNumero: factura.numero || '',
       facturaFecha: factura.fecha,
+      fechaPagada: new Date(),
       totalCompras: factura.totalPagar,
       baseImponible: factura.baseImponible,
       exento: factura.baseExenta,
@@ -311,51 +343,47 @@ export class Retenciones implements OnInit {
     const now = new Date();
     const fechaActual = now.toISOString().split('T')[0];
 
+    const retencionesFiltradas = this.retenciones().filter(r => {
+      const fechaPagada = new Date(r.fechaPagada);
+      return fechaPagada >= desde && fechaPagada <= hasta;
+    });
+
+    if (retencionesFiltradas.length === 0) {
+      this.mensajeTXT.set('No se encontraron retenciones en el rango de fechas seleccionado');
+      return;
+    }
+
     let lineas: string[] = [];
     let nComprobante = 1;
 
-    for (const proveedor of this.proveedores()) {
-      if (!proveedor.facturas || proveedor.facturas.length === 0) continue;
-
-      for (const factura of proveedor.facturas) {
-        const fechaFactura = new Date(factura.fecha);
-        
-        if (fechaFactura >= desde && fechaFactura <= hasta) {
-          const rifProveedor = (proveedor.rif || '').replace(/-/g, '');
-          const numeroFactura = factura.numero || '';
-          const numeroControl = factura.numeroControl || '';
-          const montoTotal = (factura.totalPagar || 0).toFixed(2);
-          const baseImponible = (factura.baseImponible || 0).toFixed(2);
-          const montoRetencion = (factura.iva75 || 0).toFixed(2);
-          const iva = (factura.iva || 0).toFixed(2);
-          
-          const linea = [
-            this.RIF_EMPRESA,
-            periodo,
-            fechaActual,
-            'C',
-            '01',
-            rifProveedor,
-            numeroFactura,
-            numeroControl,
-            montoTotal,
-            baseImponible,
-            montoRetencion,
-            '0',
-            String(nComprobante).padStart(8, '0'),
-            iva,
-            '0'
-          ].join('\t');
-          
-          lineas.push(linea);
-          nComprobante++;
-        }
-      }
-    }
-
-    if (lineas.length === 0) {
-      this.mensajeTXT.set('No se encontraron facturas en el rango de fechas seleccionado');
-      return;
+    for (const retencion of retencionesFiltradas) {
+      const rifProveedor = (retencion.proveedorRif || '').replace(/-/g, '');
+      const numeroFactura = retencion.facturaNumero || '';
+      const baseImponible = (retencion.baseImponible || 0).toFixed(2);
+      const montoRetencion = (retencion.retenido || 0).toFixed(2);
+      const iva = (retencion.iva || 0).toFixed(2);
+      const totalCompras = (retencion.totalCompras || 0).toFixed(2);
+      
+      const linea = [
+        this.RIF_EMPRESA,
+        periodo,
+        fechaActual,
+        'C',
+        '01',
+        rifProveedor,
+        numeroFactura,
+        '',
+        totalCompras,
+        baseImponible,
+        montoRetencion,
+        '0',
+        String(nComprobante).padStart(8, '0'),
+        iva,
+        '0'
+      ].join('\t');
+      
+      lineas.push(linea);
+      nComprobante++;
     }
 
     const contenidoTxt = lineas.join('\n');

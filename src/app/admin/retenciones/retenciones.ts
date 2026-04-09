@@ -382,12 +382,11 @@ export class Retenciones implements OnInit {
         rifProveedor + 'ㅤㅤㅤㅤ' +
         numeroFactura + 'ㅤㅤㅤㅤ' +
         numeroControl + 'ㅤㅤㅤㅤ' +
-        numero + 'ㅤㅤㅤㅤ' +
         totalCompras + 'ㅤㅤㅤㅤ' +
         baseImponible + 'ㅤㅤㅤㅤ' +
         montoRetencion + 'ㅤㅤㅤㅤ' +
         '0' + 'ㅤㅤㅤㅤ' +
-        String(nComprobante).padStart(8, '0') + 'ㅤ' +
+        numero +
         iva + 'ㅤ' +
         '0';
       

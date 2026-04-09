@@ -362,7 +362,7 @@ export class Retenciones implements OnInit {
       const baseImponible = (retencion.baseImponible || 0).toFixed(2);
       const montoRetencion = (retencion.retenido || 0).toFixed(2);
       const iva = (retencion.iva || 0).toFixed(2);
-      const numero = (retencion.numero || 0)
+      const numero = (retencion.numero || 0).toString();
       const totalCompras = (retencion.totalCompras || 0).toFixed(2);
       
       const linea = 

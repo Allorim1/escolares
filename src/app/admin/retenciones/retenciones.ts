@@ -48,6 +48,7 @@ interface Retencion {
   numeroControl?: string;
   totalCompras: number;
   baseImponible: number;
+  montoBsf: number;
   exento: number;
   exentoBsf?: number;
   porcentajeIva: number;
@@ -373,11 +374,11 @@ export class Retenciones implements OnInit {
       const rifProveedor = (retencion.proveedorRif || '').replace(/-/g, '');
       const numeroFactura = retencion.facturaNumero || '';
       const numeroControl = retencion.numeroControl || '';
-      const baseImponible = (retencion.baseImponible || 0).toFixed(2);
       const montoRetencion = (retencion.retenido || 0).toFixed(2);
       const iva = (retencion.iva || 0).toFixed(2);
+      const baseImponible = ((retencion.montoBsf || 0) - (retencion.iva)).toFixed(2);
       const numero = (retencion.numero || 0).toString();
-      const totalCompras = (retencion.totalCompras || 0).toFixed(2);
+      const totalCompras = (retencion.montoBsf || 0).toFixed(2);
       
       const linea = 
         this.RIF_EMPRESA + 'ㅤㅤ' +
@@ -393,7 +394,7 @@ export class Retenciones implements OnInit {
         montoRetencion + 'ㅤㅤㅤㅤ' +
         '0' + 'ㅤㅤㅤㅤ' +
         numero +
-        iva + 'ㅤ' +
+        '16.00' + 'ㅤ' +
         '0';
       
       lineas.push(linea);

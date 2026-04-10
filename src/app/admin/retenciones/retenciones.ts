@@ -259,6 +259,9 @@ export class Retenciones implements OnInit {
     };
 
     if (!existente) {
+      const montoBsf = (factura.montoBsf && factura.montoBsf > 0) 
+        ? factura.montoBsf 
+        : ((factura.baseImponible || 0) + (factura.iva || 0) + (factura.baseExenta || 0));
       this.http.post('/api/retenciones', {
         numero: this.comprobanteNumero,
         proveedorRif: proveedor.rif || '',
@@ -267,10 +270,10 @@ export class Retenciones implements OnInit {
         facturaFecha: factura.fecha,
         fechaPagada: new Date(),
         numeroControl: factura.numeroControl || '',
-        totalCompras: factura.montoBsf || 0,
-        baseImponible: factura.baseImponible,
-        montoBsf: factura.montoBsf,
-        exento: factura.baseExenta || 0,
+        totalCompras: montoBsf + (factura.exentoBsf || 0),
+        baseImponible: (montoBsf  - (factura.iva || 0)),
+        montoBsf: montoBsf,
+        exento: factura.exentoBsf || 0,
         exentoBsf: factura.exentoBsf || 0,
         porcentajeIva: factura.porcentajeIva || 16,
         iva: factura.iva,
@@ -397,9 +400,10 @@ export class Retenciones implements OnInit {
       const montoRetencion = (retencion.retenido || 0).toFixed(2);
       const iva = (retencion.iva || 0).toFixed(2);
       const exento = (retencion.exentoBsf || 0).toFixed(2);
-      const baseImponible = ((retencion.montoBsf || 0) - (retencion.exentoBsf || 0) - (retencion.iva || 0)).toFixed(2);
+      const montoBsf = retencion.montoBsf != null ? retencion.montoBsf : (retencion.totalCompras || 0);
+      const baseImponible = (montoBsf - (retencion.exentoBsf || 0) - (retencion.iva || 0)).toFixed(2);
       const numero = (retencion.numero || 0).toString();
-      const totalCompras = (retencion.montoBsf || 0).toFixed(2);
+      const totalCompras = montoBsf.toFixed(2);
       
       const linea = 
         this.RIF_EMPRESA + 'ㅤㅤ' +

@@ -291,9 +291,9 @@
                     <td style="border: 1.5px solid #000;"></td>
                     <td style="border: 1.5px solid #000;"></td>
                     <td style="border: 1.5px solid #000;"></td>
-                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.totalCompras || facturaSeleccionada()?.montoBsf) | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.exento || facturaSeleccionada()?.exentoBsf) | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.baseImponible || ((facturaSeleccionada()?.montoBsf || 0) - (facturaSeleccionada()?.iva || 0))) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.montoBsf || facturaSeleccionada()?.monto) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.exentoBsf || facturaSeleccionada()?.baseExenta) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (((facturaSeleccionada()?.montoBsf || 0) - (facturaSeleccionada()?.iva || 0)) || retencionExistente()?.baseImponible) | number:'1.2-2' }}</td>
                     <td style="border: 1.5px solid #000;">{{ retencionExistente() ? retencionExistente()!.porcentajeIva + '%' : facturaSeleccionada()?.porcentajeIva + '%' }}</td>
                     <td style="border: 1.5px solid #000;">{{ retencionExistente()?.iva | number:'1.2-2' }}</td>
                     <td style="border: 1.5px solid #000;">{{ retencionExistente()?.retenido | number:'1.2-2' }}</td>

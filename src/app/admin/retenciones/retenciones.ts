@@ -276,9 +276,10 @@ export class Retenciones implements OnInit {
         retenido: factura.iva75 || 0
       }).subscribe({
         next: () => {
-          const secuencia = parseInt(this.comprobanteNumero.slice(-8));
-          this.http.put('/api/retenciones/ultimo', { ultimoNumero: secuencia }).subscribe();
+          this.ultimoNumero = parseInt(this.comprobanteNumero.slice(-8));
+          this.http.put('/api/retenciones/ultimo', { ultimoNumero: this.ultimoNumero }).subscribe();
           this.cargarRetenciones();
+          this.generarNumeroComprobante();
         },
         error: (err) => {
           if (err.error?.error === 'Ya existe una retención para esta factura') {
@@ -288,6 +289,8 @@ export class Retenciones implements OnInit {
           }
         }
       });
+    } else {
+      this.generarNumeroComprobante();
     }
     
     if (opcion === 1 || opcion === 4) {
@@ -302,10 +305,6 @@ export class Retenciones implements OnInit {
     
     if (opcion === 3 || opcion === 4) {
       await this.excelService.generarComprobanteIVA(datos);
-    }
-
-    if (!existente) {
-      this.generarNumeroComprobante();
     }
   }
 

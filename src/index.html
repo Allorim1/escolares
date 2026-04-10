@@ -5,9 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Escolares</title>
   <base href="/">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/x-icon" href="escolares.ico">
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 </head>
 <body>
   <app-root></app-root>
+  <script>
+    // Solo inicializar eruda en rutas de QR upload
+    const currentPath = window.location.pathname;
+    if (currentPath.includes('/facturas-qr/upload/')) {
+      eruda.init();
+    }
+  </script>
 </body>
 </html>

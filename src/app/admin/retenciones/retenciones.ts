@@ -10,15 +10,20 @@ interface Proveedor {
   _id?: string;
   nombre: string;
   rif: string;
+  direccion?: string;
   facturas?: Factura[];
 }
 
 interface Factura {
   numero: string;
   fecha: Date;
+  tipo?: 'factura' | 'nota' | 'debito' | 'credito';
+  monto?: number;
   baseImponible: number;
   baseExenta: number;
+  exentoBsf?: number;
   porcentajeIva: number;
+  montoBsf: number;
   iva: number;
   iva75: number;
   iva25: number;
@@ -30,6 +35,25 @@ interface Factura {
   deudaIva: number;
   deudaIva25: number;
   numeroControl?: string;
+}
+
+interface Retencion {
+  _id?: string;
+  numero: string;
+  proveedorRif: string;
+  proveedorNombre: string;
+  facturaNumero: string;
+  facturaFecha: Date;
+  fechaPagada: Date;
+  numeroControl?: string;
+  totalCompras: number;
+  baseImponible: number;
+  montoBsf?: number;
+  exento: number;
+  exentoBsf?: number;
+  porcentajeIva: number;
+  iva: number;
+  retenido: number;
 }
 
 @Component({
@@ -49,15 +73,70 @@ export class Retenciones implements OnInit {
   proveedoresFiltrados = signal<Proveedor[]>([]);
   proveedorSeleccionado = signal<Proveedor | null>(null);
   facturaSeleccionada = signal<Factura | null>(null);
+  retenciones = signal<Retencion[]>([]);
+  retencionExistente = signal<Retencion | null>(null);
   comprobanteNumero = '';
+  ultimoNumero = 0;
   busquedaProveedor = '';
   mostrarComprobantePdf = signal(false);
   mostrarModalAccion = signal(false);
+  mostrarRetenciones = signal(false);
   today = new Date();
+  fechaDesde = '';
+  fechaHasta = '';
+  mensajeTXT = signal('');
+  retencionesPorPagina = 10;
+  paginaActualRetenciones = 1;
+  totalPaginasRetenciones = 1;
+  private RIF_EMPRESA = 'J304883676';
+  private PERIODO = '202604';
 
   ngOnInit() {
     this.loadProveedores();
-    this.generarNumeroComprobante();
+    this.cargarUltimoNumero();
+    this.cargarRetenciones();
+  }
+
+  cargarUltimoNumero() {
+    this.http.get<{ultimoNumero: number}>('/api/retenciones/ultimo').subscribe({
+      next: (res) => {
+        this.ultimoNumero = res.ultimoNumero || 0;
+        this.generarNumeroComprobante();
+      },
+      error: () => {
+        this.generarNumeroComprobante();
+      }
+    });
+  }
+
+  cargarRetenciones() {
+    this.http.get<Retencion[]>('/api/retenciones').subscribe({
+      next: (data) => {
+        this.retenciones.set(data);
+        this.totalPaginasRetenciones = Math.ceil(data.length / this.retencionesPorPagina);
+      },
+      error: (err) => console.error('Error cargando retenciones:', err)
+    });
+  }
+
+  eliminarRetencion(id: string) {
+    if (!confirm('¿Está seguro de eliminar esta retención?')) return;
+    this.http.delete(`/api/retenciones/${id}`).subscribe({
+      next: () => this.cargarRetenciones(),
+      error: (err) => console.error('Error eliminando retención:', err)
+    });
+  }
+
+  cambiarPaginaRetenciones(pagina: number) {
+    if (pagina >= 1 && pagina <= this.totalPaginasRetenciones) {
+      this.paginaActualRetenciones = pagina;
+    }
+  }
+
+  get retencionesPaginadas(): Retencion[] {
+    const inicio = (this.paginaActualRetenciones - 1) * this.retencionesPorPagina;
+    const fin = inicio + this.retencionesPorPagina;
+    return this.retenciones().slice(inicio, fin);
   }
 
   loadProveedores() {
@@ -68,6 +147,10 @@ export class Retenciones implements OnInit {
       },
       error: (err) => console.error('Error cargando proveedores:', err),
     });
+  }
+
+  toggleRetenciones() {
+    this.mostrarRetenciones.set(!this.mostrarRetenciones());
   }
 
   filtrarProveedores() {
@@ -84,10 +167,27 @@ export class Retenciones implements OnInit {
 
   generarNumeroComprobante() {
     const now = new Date();
-    const ano = now.getFullYear();
-    const mes = String(now.getMonth() + 1).padStart(2, '0');
-    const random = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
-    this.comprobanteNumero = `${ano}${mes}${random}`;
+    const periodo = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const secuencia = this.ultimoNumero + 1;
+    this.comprobanteNumero = `${periodo}${String(secuencia).padStart(8, '0')}`;
+  }
+
+  aumentarNumero() {
+    const now = new Date();
+    const periodo = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const secuencia = this.ultimoNumero + 1;
+    this.comprobanteNumero = `${periodo}${String(secuencia).padStart(8, '0')}`;
+  }
+
+  onComprobanteNumeroChange(value: string) {
+    const num = parseInt(value);
+    if (!isNaN(num) && num >= this.ultimoNumero) {
+      this.ultimoNumero = num;
+    }
+    const now = new Date();
+    const periodo = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const secuencia = this.ultimoNumero;
+    this.comprobanteNumero = `${periodo}${String(secuencia).padStart(8, '0')}`;
   }
 
   seleccionarProveedor(proveedor: Proveedor) {
@@ -97,6 +197,14 @@ export class Retenciones implements OnInit {
 
   seleccionarFactura(factura: Factura) {
     this.facturaSeleccionada.set(factura);
+    const existentes = this.retenciones().filter(r => 
+      r.facturaNumero === factura.numero && r.proveedorRif === this.proveedorSeleccionado()?.rif
+    );
+    if (existentes.length > 0) {
+      this.retencionExistente.set(existentes[0]);
+    } else {
+      this.retencionExistente.set(null);
+    }
   }
 
   async generarComprobante() {
@@ -104,6 +212,16 @@ export class Retenciones implements OnInit {
       alert('Por favor seleccione un proveedor y una factura');
       return;
     }
+    if (this.facturaSeleccionada()?.tipo && this.facturaSeleccionada()?.tipo !== 'factura') {
+      alert('Solo se pueden generar retenciones para facturas');
+      return;
+    }
+
+    if (this.retencionExistente()) {
+      const existente = this.retencionExistente()!;
+      this.comprobanteNumero = existente.numero;
+    }
+    
     this.mostrarModalAccion.set(true);
   }
 
@@ -112,6 +230,7 @@ export class Retenciones implements OnInit {
     
     const proveedor = this.proveedorSeleccionado()!;
     const factura = this.facturaSeleccionada()!;
+    const existente = this.retencionExistente();
 
     const datos: DatosComprobante = {
       numeroComprobante: this.comprobanteNumero,
@@ -129,15 +248,54 @@ export class Retenciones implements OnInit {
           notaDebito: '',
           notaCredito: '',
           factAfectada: '',
-          totalCompras: factura.totalPagar,
-          exento: factura.baseExenta,
-          baseImponible: factura.baseImponible,
-          porcentajeIva: factura.porcentajeIva || 16,
-          iva: factura.iva,
-          retenido: factura.iva75 || 0
+          totalCompras: existente ? existente.totalCompras : (factura.monto || 0) + (factura.iva || 0) + (factura.baseExenta || 0),
+          exento: existente ? existente.exento : (factura.baseExenta || 0),
+          baseImponible: existente ? existente.baseImponible : (factura.monto || 0),
+          porcentajeIva: existente ? existente.porcentajeIva : (factura.porcentajeIva || 16),
+          iva: existente ? existente.iva : factura.iva,
+          retenido: existente ? existente.retenido : (factura.iva75 || 0)
         }
       ]
     };
+
+    if (!existente) {
+      const montoBsf = (factura.montoBsf && factura.montoBsf > 0) 
+        ? factura.montoBsf 
+        : ((factura.baseImponible || 0) + (factura.iva || 0) + (factura.baseExenta || 0));
+      this.http.post('/api/retenciones', {
+        numero: this.comprobanteNumero,
+        proveedorRif: proveedor.rif || '',
+        proveedorNombre: proveedor.nombre,
+        facturaNumero: factura.numero || '',
+        facturaFecha: factura.fecha,
+        fechaPagada: new Date(),
+        numeroControl: factura.numeroControl || '',
+        totalCompras: montoBsf + (factura.exentoBsf || 0),
+        baseImponible: (montoBsf  - (factura.iva || 0)),
+        montoBsf: montoBsf,
+        exento: factura.exentoBsf || 0,
+        exentoBsf: factura.exentoBsf || 0,
+        porcentajeIva: factura.porcentajeIva || 16,
+        iva: factura.iva,
+        retenido: factura.iva75 || 0
+      }).subscribe({
+        next: () => {
+          this.ultimoNumero = parseInt(this.comprobanteNumero.slice(-8));
+          this.http.put('/api/retenciones/ultimo', { ultimoNumero: this.ultimoNumero }).subscribe();
+          this.cargarRetenciones();
+          this.generarNumeroComprobante();
+        },
+        error: (err) => {
+          if (err.error?.error === 'Ya existe una retención para esta factura') {
+            alert('Ya existe una retención para esta factura');
+          } else {
+            console.error('Error guardando retencion:', err);
+          }
+        }
+      });
+    } else {
+      this.generarNumeroComprobante();
+    }
     
     if (opcion === 1 || opcion === 4) {
       this.mostrarComprobantePdf.set(true);
@@ -152,8 +310,6 @@ export class Retenciones implements OnInit {
     if (opcion === 3 || opcion === 4) {
       await this.excelService.generarComprobanteIVA(datos);
     }
-
-    this.generarNumeroComprobante();
   }
 
   abrirComprobantePdf() {
@@ -209,6 +365,77 @@ export class Retenciones implements OnInit {
       pdf.save(`Comprobante_Retencion_${this.comprobanteNumero}.pdf`);
     });
 
+  }
+
+  generarTxtRetenciones() {
+    if (!this.fechaDesde || !this.fechaHasta) {
+      this.mensajeTXT.set('Por favor seleccione un rango de fechas');
+      return;
+    }
+
+    const desde = new Date(this.fechaDesde + 'T00:00:00');
+    const hasta = new Date(this.fechaHasta + 'T23:59:59.999');
+
+    const periodo = `${desde.getFullYear()}${String(desde.getMonth() + 1).padStart(2, '0')}`;
+    const now = new Date();
+    const fechaActual = now.toISOString().split('T')[0];
+
+    const retencionesFiltradas = this.retenciones().filter(r => {
+      const fechaPagada = new Date(r.fechaPagada);
+      return fechaPagada >= desde && fechaPagada <= hasta;
+    });
+
+    if (retencionesFiltradas.length === 0) {
+      this.mensajeTXT.set('No se encontraron retenciones en el rango de fechas seleccionado');
+      return;
+    }
+
+    let lineas: string[] = [];
+    let nComprobante = 1;
+
+    for (const retencion of retencionesFiltradas) {
+      const rifProveedor = (retencion.proveedorRif || '').replace(/-/g, '');
+      const numeroFactura = retencion.facturaNumero || '';
+      const numeroControl = retencion.numeroControl || '';
+      const montoRetencion = (retencion.retenido || 0).toFixed(2);
+      const iva = (retencion.iva || 0).toFixed(2);
+      const exento = (retencion.exentoBsf || 0).toFixed(2);
+      const montoBsf = retencion.montoBsf != null ? retencion.montoBsf : (retencion.totalCompras || 0);
+      const baseImponible = (montoBsf - (retencion.exentoBsf || 0) - (retencion.iva || 0)).toFixed(2);
+      const numero = (retencion.numero || 0).toString();
+      const totalCompras = montoBsf.toFixed(2);
+      
+      const linea = 
+        this.RIF_EMPRESA + 'ㅤㅤ' +
+        periodo + 'ㅤ' +
+        fechaActual + 'ㅤㅤㅤㅤ' +
+        'C' + 'ㅤㅤㅤㅤ' +
+        '01' + 'ㅤㅤㅤㅤ' +
+        rifProveedor + 'ㅤㅤㅤㅤ' +
+        numeroFactura + 'ㅤㅤㅤㅤ' +
+        numeroControl + 'ㅤㅤㅤㅤ' +
+        totalCompras + 'ㅤㅤㅤㅤ' +
+        baseImponible + 'ㅤㅤㅤㅤ' +
+        exento + 'ㅤㅤㅤㅤ' +
+        '0' + 'ㅤㅤㅤㅤ' +
+        numero + 'ㅤ' +
+        '16.00' + 'ㅤ' +
+        '0';
+      
+      lineas.push(linea);
+      nComprobante++;
+    }
+
+    const contenidoTxt = lineas.join('\n');
+    const blob = new Blob([contenidoTxt], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `retenciones_${periodo}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    this.mensajeTXT.set(`TXT generado con ${lineas.length} registro(s)`);
   }
 }
  /* 

@@ -265,6 +265,26 @@
   margin-bottom: 1.5rem;
 }
 
+.proveedor-bancos-afiliados {
+  background: #e9ecef;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.proveedor-bancos-afiliados .bancos-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.proveedor-bancos-afiliados .bancos-value {
+  color: #1d63c1;
+  font-weight: 500;
+}
+
 .cuentas-section h5, .facturas-section h5, .contacto-section h5, .auditoria-section h5 {
   color: #333;
   margin-bottom: 0.8rem;
@@ -2426,6 +2446,11 @@
   color: #495057;
 }
 
+.qr-instructions {
+  margin: 0 0 1.5rem 0;
+  color: #495057;
+}
+
 .qr-code-image {
   max-width: 250px;
   border-radius: 12px;
@@ -2441,6 +2466,12 @@
   font-size: 0.85rem;
   color: #dc3545 !important;
   margin-top: 1rem !important;
+}
+
+.qr-polling {
+  margin-top: 1rem;
+  color: #6c757d;
+  font-size: 0.9rem;
 }
 
 .qr-success {
@@ -2722,4 +2753,67 @@
   font-size: 0.9rem;
   color: #495057;
   margin: 0;
+}
+
+.btn-edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-edit:hover {
+  background: #e3f2fd;
+}
+
+.cuenta-editar-section {
+  background: #fff3cd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border: 1px solid #ffc107;
+}
+
+.cuenta-editar-section h6 {
+  margin: 0 0 0.75rem;
+  color: #856404;
+  font-size: 0.95rem;
+}
+
+.btn-group-inline {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.btn-save {
+  padding: 0.5rem 1rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-save:hover {
+  background: #218838;
+}
+
+.btn-cancel {
+  padding: 0.5rem 1rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-cancel:hover {
+  background: #5a6268;
+}
 }

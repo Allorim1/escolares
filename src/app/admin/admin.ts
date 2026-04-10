@@ -68,7 +68,7 @@ export class Admin implements OnInit {
         { label: 'Facturación', route: 'facturacion' },
         { label: 'Cuentas por Pagar', route: 'cuentas-por-pagar' },
         { label: 'Retenciones', route: 'retenciones' },
-        { label: 'Galería', route: 'galeria' },
+        { label: 'Galería de Documentos', route: 'galeria' },
         { label: 'Conversión', route: 'conversion' },
       ]
     },

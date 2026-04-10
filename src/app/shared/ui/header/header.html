@@ -51,6 +51,14 @@
     }
   </div>
 
+  <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Menú">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
   <nav class="controls" role="navigation" aria-label="Principal">
     <a class="nav-btn primary liquid" routerLink="/">Inicio</a>
     <a class="nav-btn liquid" routerLink="/products">Productos</a>
@@ -62,6 +70,17 @@
     <a class="nav-btn liquid" routerLink="/feedback">Contáctanos</a>
   </nav>
 
+  <nav class="mobile-nav" [class.open]="mobileMenuOpen()">
+    <a routerLink="/" (click)="closeMobileMenu()">Inicio</a>
+    <a routerLink="/products" (click)="closeMobileMenu()">Productos</a>
+    <a routerLink="/lineas" (click)="closeMobileMenu()">Líneas</a>
+    <a routerLink="/marcas" (click)="closeMobileMenu()">Marcas</a>
+    <a routerLink="/about-me" (click)="closeMobileMenu()">¿Quiénes somos?</a>
+    <a routerLink="/how-buy" (click)="closeMobileMenu()">¿Cómo comprar?</a>
+    <a routerLink="/offers" (click)="closeMobileMenu()">Ofertas</a>
+    <a routerLink="/feedback" (click)="closeMobileMenu()">Contáctanos</a>
+  </nav>
+
   <div class="header-icons">
     <a class="cart-btn" routerLink="/cart">
       <img src="/cart.png" alt="Carrito" />
@@ -71,15 +90,15 @@
     </a>
     @if (authService.isLoggedIn()) {
       <div class="user-dropdown">
-        <a class="user-btn" routerLink="/panel">
+        <a class="user-btn" (click)="toggleUserDropdown()" style="cursor: pointer">
           <img src="/usuario.png" alt="Usuario" />
         </a>
-        <div class="dropdown-menu">
-          <a routerLink="/panel/perfil">Perfil</a>
-          <a routerLink="/panel/ajustes">Ajustes</a>
-          <a routerLink="/panel/pedidos">Mis pedidos</a>
+        <div class="dropdown-menu" [class.open]="userDropdownOpen()">
+          <a routerLink="/panel/perfil" (click)="closeUserDropdown()">Perfil</a>
+          <a routerLink="/panel/ajustes" (click)="closeUserDropdown()">Ajustes</a>
+          <a routerLink="/panel/pedidos" (click)="closeUserDropdown()">Mis pedidos</a>
           @if (authService.isAdmin()) {
-            <a routerLink="/admin">Panel Admin</a>
+            <a routerLink="/admin" (click)="closeUserDropdown()">Panel Admin</a>
           }
           <button (click)="logout()">Cerrar sesión</button>
         </div>

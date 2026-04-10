@@ -96,3 +96,23 @@ button.nav-btn.primary:hover {
     transform: scale(1);
   }
 }
+
+@media (max-width: 768px) {
+  .continue-btn {
+    padding: 12px 30px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .maintenance-image {
+    max-width: 95%;
+    max-height: 60vh;
+  }
+
+  .continue-btn {
+    padding: 10px 24px;
+    font-size: 13px;
+    border-radius: 24px;
+  }
+}

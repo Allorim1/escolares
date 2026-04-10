@@ -231,3 +231,152 @@
 .toggle-compras-btn.btn-success:hover {
   background: linear-gradient(135deg, #15803d 0%, #166534 100%);
 }
+
+@media (max-width: 768px) {
+  .inicio-container {
+    padding: 16px;
+  }
+
+  .inicio-header {
+    margin-bottom: 20px;
+  }
+
+  .inicio-header h1 {
+    font-size: 22px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .stat-icon {
+    font-size: 28px;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+  }
+
+  .action-card {
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .action-icon {
+    font-size: 24px;
+  }
+
+  .action-label {
+    font-size: 12px;
+  }
+
+  .store-control-card {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .store-control-content {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .store-control-info h3 {
+    font-size: 16px;
+  }
+
+  .toggle-compras-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .inicio-container {
+    padding: 12px;
+  }
+
+  .inicio-header h1 {
+    font-size: 18px;
+  }
+
+  .inicio-header p {
+    font-size: 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .stat-icon {
+    font-size: 22px;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .action-card {
+    padding: 12px;
+  }
+
+  .action-icon {
+    font-size: 20px;
+  }
+
+  .action-label {
+    font-size: 11px;
+  }
+
+  .store-control-card {
+    padding: 12px;
+  }
+
+  .store-control-icon {
+    font-size: 28px;
+  }
+
+  .toggle-compras-btn {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+}

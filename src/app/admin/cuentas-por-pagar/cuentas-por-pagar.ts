@@ -29,6 +29,7 @@ export interface FacturaProveedor {
   montoIva: number;
   baseImponible: number;
   baseExenta: number;
+  exentoBsf?: number;
   porcentajeIva: number;
   iva: number;
   iva75: number;
@@ -47,6 +48,7 @@ export interface FacturaProveedor {
   facturaVinculadaIndex?: number;
   montoBsf?: number;
   comentario?: string;
+  numeroControl?: string;
 }
 
 export interface Proveedor {
@@ -59,6 +61,7 @@ export interface Proveedor {
   telefono?: string;
   vendedor?: string;
   tasaPreferida?: 'dolar' | 'euro' | 'binance';
+  bancosAfiliados?: string[];
   cuentasBancarias: CuentaBancaria[];
   facturas: FacturaProveedor[];
   creadoPor?: string;
@@ -96,6 +99,7 @@ export class CuentasPorPagar implements OnInit {
   proveedorExpandido = signal<string | null>(null);
   proveedorEditando = signal<string | null>(null);
   cuentaExpandida = signal<{proveedorId: string, index: number} | null>(null);
+  cuentaEditando = signal<{proveedorId: string, index: number} | null>(null);
   usuarioActual = 'Admin';
   Math = Math;
 
@@ -144,6 +148,16 @@ export class CuentasPorPagar implements OnInit {
   showModalFotoExito = false;
   showModalFotoAccion = false;
   fotoAccionMensaje = '';
+
+  cerrarModalFotoExito() {
+    this.showModalFotoExito = false;
+  }
+
+  cerrarModalFotoAccion() {
+    this.showModalFotoAccion = false;
+    this.fotoAccionMensaje = '';
+  }
+
   showModalFacturaVinculada = false;
   facturaAbonoExito: { numero: string; monto: number; deuda: number; proveedorId?: string; facturaIndex?: number } | null = null;
   editingProveedor: Proveedor | null = null;
@@ -167,6 +181,7 @@ export class CuentasPorPagar implements OnInit {
     telefono: '',
     vendedor: '',
     tasaPreferida: 'dolar' as 'dolar' | 'euro' | 'binance',
+    bancosAfiliados: [] as string[],
     cuentasBancarias: [] as CuentaBancaria[],
   };
 
@@ -178,12 +193,14 @@ export class CuentasPorPagar implements OnInit {
     montoIva: 0,
     baseImponible: 0,
     baseExenta: 0,
+    exentoBsf: 0,
     porcentajeIva: 16,
     imagenes: [] as string[],
     facturaVinculadaIndex: -1,
     conIva: false,
     montoBsf: 0,
     comentario: '',
+    numeroControl: '',
   };
 
   showCameraModal = false;
@@ -191,8 +208,16 @@ export class CuentasPorPagar implements OnInit {
   videoElement: HTMLVideoElement | null = null;
   fotoIndexEliminar: number = -1;
   cameraCallback: ((base64: string) => void) | null = null;
-  modoQR = false;
-  qrScanInterval: any = null;
+
+  showQRModal = false;
+  qrCodeData = signal('');
+  qrExpiracion = signal('');
+  qrLoading = false;
+  qrFotoRecibida = signal(false);
+  qrPollingInterval: any = null;
+  qrToken = signal('');
+  qrProveedorId = '';
+  qrFacturaIndex = -1;
 
   showFotoViewer = false;
   fotoViewerIndex = 0;
@@ -205,15 +230,6 @@ export class CuentasPorPagar implements OnInit {
   fotoViewerPosition = { x: 0, y: 0 };
   fotoViewerIsDragging = false;
   fotoViewerDragStart = { x: 0, y: 0 };
-
-  showQRModal = false;
-  qrCodeData: string = '';
-  qrExpiracion: string = '';
-  qrProveedorId: string = '';
-  qrFacturaIndex: number = -1;
-  qrInterval: any = null;
-  qrFotoRecibida = false;
-  qrImagenesIniciales: string[] = [];
 
   newAbono = {
     monto: 0,
@@ -287,11 +303,12 @@ export class CuentasPorPagar implements OnInit {
         telefono: proveedor.telefono || '',
         vendedor: proveedor.vendedor || '',
         tasaPreferida: proveedor.tasaPreferida || 'dolar',
+        bancosAfiliados: proveedor.bancosAfiliados || [],
         cuentasBancarias: cuentasConTipo,
       };
     } else {
       this.editingProveedor = null;
-      this.newProveedor = { nombre: '', alias: '', rif: '', rifTipo: 'J', direccion: '', correo: '', telefono: '', vendedor: '', tasaPreferida: 'dolar', cuentasBancarias: [] };
+      this.newProveedor = { nombre: '', alias: '', rif: '', rifTipo: 'J', direccion: '', correo: '', telefono: '', vendedor: '', tasaPreferida: 'dolar', bancosAfiliados: [], cuentasBancarias: [] };
     }
     this.showModalProveedor = true;
   }
@@ -311,6 +328,8 @@ export class CuentasPorPagar implements OnInit {
       ? `${this.newProveedor.rifTipo}-${this.newProveedor.rif.trim()}`
       : '';
 
+    console.log('Guardando proveedor:', this.newProveedor.cuentasBancarias);
+
     if (this.editingProveedor) {
       this.http
         .put(`${this.API}/${this.editingProveedor._id}`, {
@@ -322,6 +341,7 @@ export class CuentasPorPagar implements OnInit {
           telefono: this.newProveedor.telefono,
           vendedor: this.newProveedor.vendedor,
           tasaPreferida: this.newProveedor.tasaPreferida,
+          bancosAfiliados: this.newProveedor.bancosAfiliados,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
           modificadoPor: this.usuarioActual,
         })
@@ -343,6 +363,7 @@ export class CuentasPorPagar implements OnInit {
           telefono: this.newProveedor.telefono,
           vendedor: this.newProveedor.vendedor,
           tasaPreferida: this.newProveedor.tasaPreferida,
+          bancosAfiliados: this.newProveedor.bancosAfiliados,
           cuentasBancarias: this.newProveedor.cuentasBancarias,
           creadoPor: this.usuarioActual,
         })
@@ -365,6 +386,18 @@ export class CuentasPorPagar implements OnInit {
   }
 
   toggleBancoAfliado(banco: string) {
+    if (!this.newProveedor.bancosAfiliados) {
+      this.newProveedor.bancosAfiliados = [];
+    }
+    const index = this.newProveedor.bancosAfiliados.indexOf(banco);
+    if (index > -1) {
+      this.newProveedor.bancosAfiliados.splice(index, 1);
+    } else {
+      this.newProveedor.bancosAfiliados.push(banco);
+    }
+  }
+
+  toggleBancoAfliadoCuenta(banco: string) {
     if (!this.newCuentaBancaria.bancosAfiliados) {
       this.newCuentaBancaria.bancosAfiliados = [];
     }
@@ -394,6 +427,51 @@ export class CuentasPorPagar implements OnInit {
     this.newProveedor.cuentasBancarias = this.newProveedor.cuentasBancarias.filter((_, i) => i !== index);
   }
 
+  editarCuentaBancaria(proveedorId: string, index: number) {
+    this.cuentaEditando.set({ proveedorId, index });
+    const cuenta = this.newProveedor.cuentasBancarias[index];
+    this.newCuentaBancaria = { 
+      banco: cuenta.banco || '',
+      bancosAfiliados: cuenta.bancosAfiliados || [],
+      numero: cuenta.numero || '',
+      tipo: cuenta.tipo || 'corriente',
+      titular: cuenta.titular || '',
+      pagoMovil: cuenta.pagoMovil || false,
+      cedulaRif: cuenta.cedulaRif || '',
+      cedulaRifTipo: cuenta.cedulaRifTipo || 'V',
+      tipoPersona: cuenta.tipoPersona || 'personal',
+      alias: cuenta.alias || '',
+      comentario: cuenta.comentario || '',
+      esZelle: cuenta.esZelle || false
+    };
+  }
+
+  guardarEdicionCuenta() {
+    const editando = this.cuentaEditando();
+    if (!editando) return;
+    
+    console.log('Guardando cuenta editada, index:', editando.index);
+    console.log('Cuentas antes:', this.newProveedor.cuentasBancarias);
+    
+    const cedulaRifCompleta = this.newCuentaBancaria.cedulaRif.trim()
+      ? `${this.newCuentaBancaria.cedulaRifTipo}-${this.newCuentaBancaria.cedulaRif.trim()}`
+      : '';
+    
+    const cuentaActualizada = { ...this.newCuentaBancaria, cedulaRif: cedulaRifCompleta };
+    this.newProveedor.cuentasBancarias = this.newProveedor.cuentasBancarias.map((cuenta, i) => 
+      i === editando.index ? cuentaActualizada : cuenta
+    );
+    
+    console.log('Cuentas después:', this.newProveedor.cuentasBancarias);
+    
+    this.cancelarEdicionCuenta();
+  }
+
+  cancelarEdicionCuenta() {
+    this.cuentaEditando.set(null);
+    this.newCuentaBancaria = { banco: '', bancosAfiliados: [] as string[], numero: '', tipo: 'corriente', titular: '', pagoMovil: false, cedulaRif: '', cedulaRifTipo: 'V', tipoPersona: 'personal', alias: '', comentario: '', esZelle: false };
+  }
+
   abrirModalFactura(proveedorId: string, factura?: FacturaProveedor, index?: number) {
     this.proveedorIdActual = proveedorId;
     if (factura && index !== undefined) {
@@ -406,12 +484,14 @@ export class CuentasPorPagar implements OnInit {
         montoIva: factura.montoIva || 0,
         baseImponible: factura.baseImponible,
         baseExenta: factura.baseExenta,
+        exentoBsf: factura.exentoBsf || 0,
         porcentajeIva: factura.porcentajeIva || 16,
         imagenes: factura.imagenes || [],
         facturaVinculadaIndex: factura.facturaVinculadaIndex ?? -1,
         conIva: (factura.montoIva || 0) > 0,
         montoBsf: factura.montoBsf || 0,
         comentario: factura.comentario || '',
+        numeroControl: factura.numeroControl || '',
       };
     } else {
       this.editingFactura = null;
@@ -423,12 +503,14 @@ export class CuentasPorPagar implements OnInit {
         montoIva: 0,
         baseImponible: 0,
         baseExenta: 0,
+        exentoBsf: 0,
         porcentajeIva: 16,
         imagenes: [],
         facturaVinculadaIndex: -1,
         conIva: false,
         montoBsf: 0,
         comentario: '',
+        numeroControl: '',
       };
     }
     this.showModalFactura = true;
@@ -797,18 +879,22 @@ export class CuentasPorPagar implements OnInit {
   actualizarFacturaDetalle(proveedorId: string, facturaIndex: number) {
     const fd = this.facturaDetalle;
     if (fd && fd.proveedor._id === proveedorId && fd.index === facturaIndex) {
-      setTimeout(() => {
-        const proveedores = this.proveedores();
-        const prov = proveedores.find(p => p._id === proveedorId);
-        if (prov && prov.facturas && prov.facturas[facturaIndex]) {
-          this.facturaDetalle = {
-            proveedor: prov,
-            factura: prov.facturas[facturaIndex],
-            index: facturaIndex
-          };
-          this.cdr.detectChanges();
+      this.http.get<Proveedor[]>(this.API).subscribe({
+        next: (data) => {
+          this.proveedores.set(data);
+          setTimeout(() => {
+            const prov = data.find(p => p._id === proveedorId);
+            if (prov && prov.facturas && prov.facturas[facturaIndex]) {
+              this.facturaDetalle = {
+                proveedor: prov,
+                factura: prov.facturas[facturaIndex],
+                index: facturaIndex
+              };
+              this.cdr.detectChanges();
+            }
+          }, 100);
         }
-      }, 200);
+      });
     }
   }
 
@@ -942,7 +1028,6 @@ export class CuentasPorPagar implements OnInit {
   }
 
   async abrirCamera() {
-    this.modoQR = false;
     try {
       this.cameraStream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' } 
@@ -958,86 +1043,6 @@ export class CuentasPorPagar implements OnInit {
       console.error('Error accessing camera:', err);
       alert('No se pudo acceder a la cámara');
     }
-  }
-
-  async abrirCameraQR() {
-    this.modoQR = true;
-    try {
-      this.cameraStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      this.showCameraModal = true;
-      setTimeout(() => {
-        this.videoElement = document.getElementById('cameraVideo') as HTMLVideoElement;
-        if (this.videoElement) {
-          this.videoElement.srcObject = this.cameraStream;
-          this.iniciarEscaneoQR();
-        }
-      }, 100);
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      alert('No se pudo acceder a la cámara');
-    }
-  }
-
-  iniciarEscaneoQR() {
-    if (!('BarcodeDetector' in window)) {
-      alert('Tu navegador no soporta escaneo de códigos QR');
-      return;
-    }
-
-    const barcodeDetector = new (window as any).BarcodeDetector({
-      formats: ['qr_code']
-    });
-
-    this.qrScanInterval = setInterval(async () => {
-      if (!this.videoElement || this.videoElement.readyState !== 4) return;
-
-      try {
-        const barcodes = await barcodeDetector.detect(this.videoElement);
-        if (barcodes.length > 0) {
-          clearInterval(this.qrScanInterval);
-          this.tomarFotoQR();
-        }
-      } catch (err) {
-        console.error('Error escaneando QR:', err);
-      }
-    }, 300);
-  }
-
-  tomarFotoQR() {
-    if (!this.videoElement) return;
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = this.videoElement.videoWidth;
-    canvas.height = this.videoElement.videoHeight;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.drawImage(this.videoElement, 0, 0);
-      const imageData = canvas.toDataURL('image/jpeg', 0.7);
-      
-      if (this.cameraCallback) {
-        this.cameraCallback(imageData);
-        this.cameraCallback = null;
-      } else {
-        this.newFactura.imagenes = [...this.newFactura.imagenes, imageData];
-      }
-    }
-    this.cerrarCamera();
-  }
-
-  cerrarCamera() {
-    if (this.qrScanInterval) {
-      clearInterval(this.qrScanInterval);
-      this.qrScanInterval = null;
-    }
-    if (this.cameraStream) {
-      this.cameraStream.getTracks().forEach(track => track.stop());
-      this.cameraStream = null;
-    }
-    this.showCameraModal = false;
-    this.videoElement = null;
-    this.modoQR = false;
   }
 
   tomarFoto() {
@@ -1074,6 +1079,80 @@ export class CuentasPorPagar implements OnInit {
 
   eliminarFoto(index: number) {
     this.newFactura.imagenes = this.newFactura.imagenes.filter((_, i) => i !== index);
+  }
+
+  abrirQRScanner(proveedorId: string, facturaIndex: number) {
+    this.qrProveedorId = proveedorId;
+    this.qrFacturaIndex = facturaIndex;
+    this.qrLoading = true;
+    this.showQRModal = true;
+    this.qrCodeData.set('');
+    this.qrExpiracion.set('');
+    this.qrToken.set('');
+    this.qrFotoRecibida.set(false);
+    
+    this.http.post<any>('/api/facturas-qr/generate-qr', { proveedorId, facturaIndex }).subscribe({
+      next: (res) => {
+        this.qrCodeData.set(res.qrCode);
+        this.qrExpiracion.set(res.expiresAt);
+        this.qrLoading = false;
+        
+        const tokenMatch = res.uploadUrl.match(/facturas-qr\/upload\/([a-f0-9]+)/);
+        if (tokenMatch) {
+          const token = tokenMatch[1];
+          this.qrToken.set(token);
+          this.iniciarPollingQR();
+        }
+      },
+      error: (err) => {
+        console.error('Error generating QR:', err);
+        this.qrLoading = false;
+        alert('Error al generar código QR. Asegúrate de que el servidor esté actualizado.');
+        this.showQRModal = false;
+      }
+    });
+  }
+
+  iniciarPollingQR() {
+    const token = this.qrToken();
+    if (!token) return;
+    
+    const intervalId = setInterval(() => {
+      this.http.get<any>(`/api/facturas-qr/check/${token}`).subscribe({
+        next: (res) => {
+          if (res.success && res.imagen) {
+            clearInterval(intervalId);
+            this.qrFotoRecibida.set(true);
+            
+            this.actualizarFacturaDetalle(this.qrProveedorId, this.qrFacturaIndex);
+            
+            this.fotoAccionMensaje = 'Foto recibida correctamente';
+            this.showModalFotoAccion = true;
+            
+            setTimeout(() => {
+              this.cerrarQRModal();
+            }, 3000);
+          }
+        },
+        error: (err) => {
+          if (err.name === 'AbortError' || err.status === 0) {
+            return;
+          }
+        }
+      });
+    }, 2000);
+  }
+
+  cerrarQRModal() {
+    if (this.qrPollingInterval) {
+      clearInterval(this.qrPollingInterval);
+      this.qrPollingInterval = null;
+    }
+    this.showQRModal = false;
+    this.qrCodeData.set('');
+    this.qrExpiracion.set('');
+    this.qrFotoRecibida.set(false);
+    this.qrToken.set('');
   }
 
   abrirFotoViewer(index: number) {
@@ -1372,121 +1451,31 @@ export class CuentasPorPagar implements OnInit {
     };
   }
 
-  abrirCameraQRDetalle() {
-    this.abrirCameraQR();
-    this.cameraCallback = (base64: string) => {
-      this.agregarFotoAServidor(base64);
-    };
-  }
-
-  abrirQRModal(proveedorId: string, facturaIndex: number) {
-    this.qrProveedorId = proveedorId;
-    this.qrFacturaIndex = facturaIndex;
-    this.qrCodeData = '';
-    this.qrExpiracion = '';
-    this.qrFotoRecibida = false;
-    this.qrImagenesIniciales = this.facturaDetalle?.factura.imagenes ? [...this.facturaDetalle.factura.imagenes] : [];
-    this.showQRModal = true;
-    this.cdr.detectChanges();
-    
-    this.http.post<{ uploadUrl: string; expiresAt: string }>('/api/facturas/generate-qr', {
-      proveedorId,
-      facturaIndex
-    }).subscribe({
-      next: (res) => {
-        this.qrCodeData = res.uploadUrl;
-        this.qrExpiracion = res.expiresAt;
-        this.cdr.detectChanges();
-        this.iniciarPollingQR(proveedorId, facturaIndex);
-      },
-      error: (err) => {
-        console.error('Error generating QR:', err);
-        alert('Error al generar código QR');
-        this.showQRModal = false;
-      }
-    });
-  }
-
-  iniciarPollingQR(proveedorId: string, facturaIndex: number) {
-    this.qrInterval = setInterval(() => {
-      this.http.get<{ imagenes: string[] }>(`/api/facturas/imagenes/${proveedorId}/${facturaIndex}`).subscribe({
-        next: (res) => {
-          console.log('Polling - Imagenes del servidor:', res.imagenes?.length);
-          console.log('Polling - Imagenes iniciales guardadas:', this.qrImagenesIniciales.length);
-          
-          if (res.imagenes && res.imagenes.length > this.qrImagenesIniciales.length) {
-            console.log('Polling - Nueva foto detectada!');
-            if (this.qrInterval) {
-              clearInterval(this.qrInterval);
-              this.qrInterval = null;
-            }
-            this.qrFotoRecibida = true;
-            this.showQRModal = false;
-            this.showModalFotoExito = true;
-            this.loadProveedores();
-            const fd = this.facturaDetalle;
-            if (fd) {
-              const prov = this.proveedores().find(p => p._id === fd.proveedor._id);
-              if (prov && prov.facturas && prov.facturas[fd.index]) {
-                this.facturaDetalle = {
-                  proveedor: prov,
-                  factura: prov.facturas[fd.index],
-                  index: fd.index
-                };
-              }
-            }
-            this.cdr.detectChanges();
-          }
-        },
-        error: (err) => {
-          console.error('Polling error:', err);
-        }
-      });
-    }, 2000);
-  }
-
-  cerrarModalFotoExito() {
-    this.showModalFotoExito = false;
-    this.qrFotoRecibida = false;
-  }
-
-  cerrarModalFotoAccion() {
-    this.showModalFotoAccion = false;
-    this.fotoAccionMensaje = '';
+  cerrarCamera() {
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(track => track.stop());
+      this.cameraStream = null;
+    }
+    this.showCameraModal = false;
+    this.videoElement = null;
   }
 
   actualizarDetalleTrasCambioFotos() {
-    this.loadProveedores();
     const fd = this.facturaDetalle;
-    if (fd) {
-      const fdProveedorId = fd.proveedor._id;
-      const fdIndex = fd.index;
-      setTimeout(() => {
-        const proveedores = this.proveedores();
-        const prov = proveedores.find(p => p._id === fdProveedorId);
-        if (prov && prov.facturas && prov.facturas[fdIndex]) {
-          this.facturaDetalle = {
-            proveedor: prov,
-            factura: prov.facturas[fdIndex],
-            index: fdIndex
-          };
-          this.fotoViewerImagenes = prov.facturas[fdIndex].imagenes || [];
-          this.cdr.detectChanges();
-        }
-      }, 200);
-    }
-  }
-
-  cerrarQRModal() {
-    if (this.qrInterval) {
-      clearInterval(this.qrInterval);
-      this.qrInterval = null;
-    }
-    this.showQRModal = false;
-    this.qrCodeData = '';
-    this.qrExpiracion = '';
-    this.qrFotoRecibida = false;
-    this.qrImagenesIniciales = [];
+    if (!fd) return;
+    
+    setTimeout(() => {
+      const proveedores = this.proveedores();
+      const prov = proveedores.find(p => p._id === fd.proveedor._id);
+      if (prov && prov.facturas && prov.facturas[fd.index]) {
+        this.facturaDetalle = {
+          proveedor: prov,
+          factura: prov.facturas[fd.index],
+          index: fd.index
+        };
+        this.cdr.detectChanges();
+      }
+    }, 200);
   }
 
   private convertToBase64(file: File, callback: (base64: string) => void) {

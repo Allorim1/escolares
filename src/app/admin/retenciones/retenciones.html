@@ -1,8 +1,78 @@
 <div class="ret-container">
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <h2>Retenciones de IVA</h2>
+ 
+  <button class="btn-secondary" style="margin-bottom: 15px; width: auto;" (click)="toggleRetenciones()">
+    {{ mostrarRetenciones() ? '👀 Ocultar Retenciones' : '📋 Ver Retenciones Guardadas' }}
+  </button>
 
+  @if (mostrarRetenciones()) {
+    <div class="retenciones-list">
+      <table>
+          <thead>
+          <tr>
+            <th>Nro</th>
+            <th>Proveedor</th>
+            <th>RIF</th>
+            <th>Factura</th>
+            <th>Fecha Factura</th>
+            <th>Fecha Pagada</th>
+            <th>Base</th>
+            <th>IVA</th>
+            <th>Retenido</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of retencionesPaginadas; track r._id) {
+            <tr>
+              <td>{{ r.numero }}</td>
+              <td>{{ r.proveedorNombre }}</td>
+              <td>{{ r.proveedorRif }}</td>
+              <td>{{ r.facturaNumero }}</td>
+              <td>{{ r.facturaFecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ r.fechaPagada | date:'dd/MM/yyyy' }}</td>
+              <td>{{ r.baseImponible | number:'1.2-2' }}</td>
+              <td>{{ r.iva | number:'1.2-2' }}</td>
+              <td>{{ r.retenido | number:'1.2-2' }}</td>
+              <td>
+                <button class="btn-icon-small" (click)="eliminarRetencion(r._id || '')" title="Eliminar">🗑️</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (totalPaginasRetenciones > 1) {
+        <div class="paginacion">
+          <button class="btn-pagina" (click)="cambiarPaginaRetenciones(paginaActualRetenciones - 1)" [disabled]="paginaActualRetenciones === 1">← Anterior</button>
+          <span class="info-pagina">Página {{ paginaActualRetenciones }} de {{ totalPaginasRetenciones }}</span>
+          <button class="btn-pagina" (click)="cambiarPaginaRetenciones(paginaActualRetenciones + 1)" [disabled]="paginaActualRetenciones === totalPaginasRetenciones">Siguiente →</button>
+        </div>
+      }
+    </div>
+  }
+ 
   <div class="ret-panel">
+    <div class="ret-section">
+      <h3>Generar TXT de Retenciones</h3>
+      <div class="fecha-rango">
+        <div class="form-group">
+          <label>Fecha Desde</label>
+          <input type="date" [(ngModel)]="fechaDesde" />
+        </div>
+        <div class="form-group">
+          <label>Fecha Hasta</label>
+          <input type="date" [(ngModel)]="fechaHasta" />
+        </div>
+      </div>
+      <button class="btn-primary" (click)="generarTxtRetenciones()">
+        📄 Generar TXT
+      </button>
+      @if (mensajeTXT()) {
+        <p class="mensaje-txt">{{ mensajeTXT() }}</p>
+      }
+    </div>
+
     <div class="ret-section">
       <h3>Seleccionar Proveedor</h3>
       <div class="buscador-container">
@@ -37,6 +107,7 @@
       @if (proveedorSeleccionado()) {
         <div class="facturas-list">
           @for (factura of proveedorSeleccionado()?.facturas; track $index) {
+            @if (factura.tipo === 'factura') {
             <div 
               class="factura-card"
               [class.selected]="facturaSeleccionada()?.numero === factura.numero"
@@ -51,6 +122,7 @@
                 <span>Retención: {{ factura.iva75 | number:'1.2-2' }}</span>
               </div>
             </div>
+            }
           }
           @if ((proveedorSeleccionado()?.facturas?.length ?? 0) === 0) {
             <p class="no-data">No hay facturas para este proveedor</p>
@@ -66,21 +138,39 @@
       
       <div class="form-group">
         <label>Número de Comprobante</label>
-        <input type="text" [(ngModel)]="comprobanteNumero" />
+        <div class="numero-control">
+          <input 
+            type="number" 
+            [ngModel]="ultimoNumero" 
+            (ngModelChange)="onComprobanteNumeroChange($event.toString())"
+            min="{{ultimoNumero}}"
+          />
+          <button class="btn-small" (click)="aumentarNumero()">+1</button>
+        </div>
       </div>
 
       @if (facturaSeleccionada()) {
         <div class="resumen">
           <h4>Resumen</h4>
+          @if (retencionExistente()) {
+            <p class="badge-existe">⚠️ Esta factura ya tiene una retención generada</p>
+          }
           <p><strong>Proveedor:</strong> {{ proveedorSeleccionado()?.nombre }}</p>
           <p><strong>RIF:</strong> {{ proveedorSeleccionado()?.rif }}</p>
           <p><strong>Factura:</strong> {{ facturaSeleccionada()?.numero }}</p>
           <p><strong>Fecha:</strong> {{ facturaSeleccionada()?.fecha | date:'dd/MM/yyyy' }}</p>
           <hr>
-          <p><strong>Base Imponible:</strong> {{ facturaSeleccionada()?.baseImponible | number:'1.2-2' }}</p>
-          <p><strong>Base Exenta:</strong> {{ facturaSeleccionada()?.baseExenta | number:'1.2-2' }}</p>
-          <p><strong>IVA ({{ facturaSeleccionada()?.porcentajeIva }}%):</strong> {{ facturaSeleccionada()?.iva | number:'1.2-2' }}</p>
-          <p><strong>Retención (75%):</strong> {{ facturaSeleccionada()?.iva75 | number:'1.2-2' }}</p>
+          @if (retencionExistente()) {
+            <p><strong>Base Imponible:</strong> {{ retencionExistente()?.baseImponible | number:'1.2-2' }}</p>
+            <p><strong>Exento:</strong> {{ retencionExistente()?.exento | number:'1.2-2' }}</p>
+            <p><strong>IVA ({{ retencionExistente()?.porcentajeIva }}%):</strong> {{ retencionExistente()?.iva | number:'1.2-2' }}</p>
+            <p><strong>Retención (75%):</strong> {{ retencionExistente()?.retenido | number:'1.2-2' }}</p>
+          } @else {
+            <p><strong>Base Imponible:</strong> {{ facturaSeleccionada()?.baseImponible | number:'1.2-2' }}</p>
+            <p><strong>Base Exenta:</strong> {{ facturaSeleccionada()?.baseExenta | number:'1.2-2' }}</p>
+            <p><strong>IVA ({{ facturaSeleccionada()?.porcentajeIva }}%):</strong> {{ facturaSeleccionada()?.iva | number:'1.2-2' }}</p>
+            <p><strong>Retención (75%):</strong> {{ facturaSeleccionada()?.iva75 | number:'1.2-2' }}</p>
+          }
         </div>
       }
 
@@ -160,13 +250,13 @@
                 </td>
                 <td style="border: 1.5px solid #000; padding: 3px; width: 15%;">
                     <label style="font-size: 7.5pt; font-weight: bold; display: block;">Periodo Fiscal</label>
-                    <div style="height: 25px; font-size: 9pt;">{{ facturaSeleccionada()?.fecha | date:'MM/yyyy' }}</div>
+                    <div style="height: 25px; font-size: 9pt;">{{ retencionExistente() ? (retencionExistente()!.facturaFecha | date:'MM/yyyy') : (facturaSeleccionada()?.fecha | date:'MM/yyyy') }}</div>
                 </td>
             </tr>
             <tr>
                 <td colspan="3" style="border: 1.5px solid #000; padding: 3px; padding-top: 8px;">
                     <label style="font-size: 7.5pt; font-weight: bold; display: block; text-align: center;">Dirección Fiscal del Sujeto Retenido</label>
-                    <div style="height: 20px; font-size: 9pt;"></div>
+                    <div style="height: 20px; font-size: 9pt;">{{ proveedorSeleccionado()?.direccion }}</div>
                 </td>
             </tr>
         </table>
@@ -195,18 +285,18 @@
             <tbody>
                 <tr>
                     <td style="border: 1.5px solid #000; height: 30px;">1</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.fecha | date:'dd/MM/yyyy' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.numero }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.numeroControl }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente() ? (retencionExistente()!.facturaFecha | date:'dd/MM/yyyy') : (facturaSeleccionada()?.fecha | date:'dd/MM/yyyy') }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente() ? retencionExistente()!.facturaNumero : facturaSeleccionada()?.numero }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente() ? retencionExistente()!.numeroControl : facturaSeleccionada()?.numeroControl }}</td>
                     <td style="border: 1.5px solid #000;"></td>
                     <td style="border: 1.5px solid #000;"></td>
                     <td style="border: 1.5px solid #000;"></td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.totalPagar | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.baseExenta | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.baseImponible | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.porcentajeIva }}%</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.iva | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.iva75 | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.montoBsf || facturaSeleccionada()?.monto) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.exentoBsf || facturaSeleccionada()?.baseExenta) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (((facturaSeleccionada()?.montoBsf || 0) - (facturaSeleccionada()?.iva || 0)) || retencionExistente()?.baseImponible) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente() ? retencionExistente()!.porcentajeIva + '%' : facturaSeleccionada()?.porcentajeIva + '%' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente()?.iva | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente()?.retenido | number:'1.2-2' }}</td>
                 </tr>
             </tbody>
         </table>

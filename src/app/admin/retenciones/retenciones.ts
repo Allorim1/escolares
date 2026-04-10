@@ -48,7 +48,7 @@ interface Retencion {
   numeroControl?: string;
   totalCompras: number;
   baseImponible: number;
-  montoBsf: number;
+  montoBsf?: number;
   exento: number;
   exentoBsf?: number;
   porcentajeIva: number;
@@ -267,8 +267,9 @@ export class Retenciones implements OnInit {
         facturaFecha: factura.fecha,
         fechaPagada: new Date(),
         numeroControl: factura.numeroControl || '',
-        totalCompras: factura.montoBsf,
+        totalCompras: factura.montoBsf || 0,
         baseImponible: factura.baseImponible,
+        montoBsf: factura.montoBsf,
         exento: factura.baseExenta || 0,
         exentoBsf: factura.exentoBsf || 0,
         porcentajeIva: factura.porcentajeIva || 16,

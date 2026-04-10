@@ -183,6 +183,16 @@
   font-size: 0.9rem;
 }
 
+.badge-existe {
+  background: #fff3cd;
+  color: #856404;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  border: 1px solid #ffeeba;
+}
+
 .resumen hr {
   margin: 10px 0;
   border: none;

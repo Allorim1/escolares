@@ -152,15 +152,25 @@
       @if (facturaSeleccionada()) {
         <div class="resumen">
           <h4>Resumen</h4>
+          @if (retencionExistente()) {
+            <p class="badge-existe">⚠️ Esta factura ya tiene una retención generada</p>
+          }
           <p><strong>Proveedor:</strong> {{ proveedorSeleccionado()?.nombre }}</p>
           <p><strong>RIF:</strong> {{ proveedorSeleccionado()?.rif }}</p>
           <p><strong>Factura:</strong> {{ facturaSeleccionada()?.numero }}</p>
           <p><strong>Fecha:</strong> {{ facturaSeleccionada()?.fecha | date:'dd/MM/yyyy' }}</p>
           <hr>
-          <p><strong>Base Imponible:</strong> {{ facturaSeleccionada()?.baseImponible | number:'1.2-2' }}</p>
-          <p><strong>Base Exenta:</strong> {{ facturaSeleccionada()?.baseExenta | number:'1.2-2' }}</p>
-          <p><strong>IVA ({{ facturaSeleccionada()?.porcentajeIva }}%):</strong> {{ facturaSeleccionada()?.iva | number:'1.2-2' }}</p>
-          <p><strong>Retención (75%):</strong> {{ facturaSeleccionada()?.iva75 | number:'1.2-2' }}</p>
+          @if (retencionExistente()) {
+            <p><strong>Base Imponible:</strong> {{ retencionExistente()?.baseImponible | number:'1.2-2' }}</p>
+            <p><strong>Exento:</strong> {{ retencionExistente()?.exento | number:'1.2-2' }}</p>
+            <p><strong>IVA ({{ retencionExistente()?.porcentajeIva }}%):</strong> {{ retencionExistente()?.iva | number:'1.2-2' }}</p>
+            <p><strong>Retención (75%):</strong> {{ retencionExistente()?.retenido | number:'1.2-2' }}</p>
+          } @else {
+            <p><strong>Base Imponible:</strong> {{ facturaSeleccionada()?.baseImponible | number:'1.2-2' }}</p>
+            <p><strong>Base Exenta:</strong> {{ facturaSeleccionada()?.baseExenta | number:'1.2-2' }}</p>
+            <p><strong>IVA ({{ facturaSeleccionada()?.porcentajeIva }}%):</strong> {{ facturaSeleccionada()?.iva | number:'1.2-2' }}</p>
+            <p><strong>Retención (75%):</strong> {{ facturaSeleccionada()?.iva75 | number:'1.2-2' }}</p>
+          }
         </div>
       }
 
@@ -240,7 +250,7 @@
                 </td>
                 <td style="border: 1.5px solid #000; padding: 3px; width: 15%;">
                     <label style="font-size: 7.5pt; font-weight: bold; display: block;">Periodo Fiscal</label>
-                    <div style="height: 25px; font-size: 9pt;">{{ facturaSeleccionada()?.fecha | date:'MM/yyyy' }}</div>
+                    <div style="height: 25px; font-size: 9pt;">{{ retencionExistente() ? (retencionExistente()!.facturaFecha | date:'MM/yyyy') : (facturaSeleccionada()?.fecha | date:'MM/yyyy') }}</div>
                 </td>
             </tr>
             <tr>
@@ -275,18 +285,18 @@
             <tbody>
                 <tr>
                     <td style="border: 1.5px solid #000; height: 30px;">1</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.fecha | date:'dd/MM/yyyy' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.numero }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.numeroControl }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente() ? (retencionExistente()!.facturaFecha | date:'dd/MM/yyyy') : (facturaSeleccionada()?.fecha | date:'dd/MM/yyyy') }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente() ? retencionExistente()!.facturaNumero : facturaSeleccionada()?.numero }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente() ? retencionExistente()!.numeroControl : facturaSeleccionada()?.numeroControl }}</td>
                     <td style="border: 1.5px solid #000;"></td>
                     <td style="border: 1.5px solid #000;"></td>
                     <td style="border: 1.5px solid #000;"></td>
-                    <td style="border: 1.5px solid #000;">{{ (facturaSeleccionada()?.montoBsf) | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.exentoBsf | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ ((facturaSeleccionada()?.montoBsf || 0) - (facturaSeleccionada()?.iva || 0)) | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.porcentajeIva }}%</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.iva | number:'1.2-2' }}</td>
-                    <td style="border: 1.5px solid #000;">{{ facturaSeleccionada()?.iva75 | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.totalCompras || facturaSeleccionada()?.montoBsf) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.exento || facturaSeleccionada()?.exentoBsf) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ (retencionExistente()?.baseImponible || ((facturaSeleccionada()?.montoBsf || 0) - (facturaSeleccionada()?.iva || 0))) | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente() ? retencionExistente()!.porcentajeIva + '%' : facturaSeleccionada()?.porcentajeIva + '%' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente()?.iva | number:'1.2-2' }}</td>
+                    <td style="border: 1.5px solid #000;">{{ retencionExistente()?.retenido | number:'1.2-2' }}</td>
                 </tr>
             </tbody>
         </table>

@@ -74,6 +74,7 @@ export class Retenciones implements OnInit {
   proveedorSeleccionado = signal<Proveedor | null>(null);
   facturaSeleccionada = signal<Factura | null>(null);
   retenciones = signal<Retencion[]>([]);
+  retencionExistente = signal<Retencion | null>(null);
   comprobanteNumero = '';
   ultimoNumero = 0;
   busquedaProveedor = '';
@@ -196,6 +197,14 @@ export class Retenciones implements OnInit {
 
   seleccionarFactura(factura: Factura) {
     this.facturaSeleccionada.set(factura);
+    const existentes = this.retenciones().filter(r => 
+      r.facturaNumero === factura.numero && r.proveedorRif === this.proveedorSeleccionado()?.rif
+    );
+    if (existentes.length > 0) {
+      this.retencionExistente.set(existentes[0]);
+    } else {
+      this.retencionExistente.set(null);
+    }
   }
 
   async generarComprobante() {
@@ -207,6 +216,12 @@ export class Retenciones implements OnInit {
       alert('Solo se pueden generar retenciones para facturas');
       return;
     }
+
+    if (this.retencionExistente()) {
+      const existente = this.retencionExistente()!;
+      this.comprobanteNumero = existente.numero;
+    }
+    
     this.mostrarModalAccion.set(true);
   }
 
@@ -215,6 +230,7 @@ export class Retenciones implements OnInit {
     
     const proveedor = this.proveedorSeleccionado()!;
     const factura = this.facturaSeleccionada()!;
+    const existente = this.retencionExistente();
 
     const datos: DatosComprobante = {
       numeroComprobante: this.comprobanteNumero,
@@ -232,45 +248,47 @@ export class Retenciones implements OnInit {
           notaDebito: '',
           notaCredito: '',
           factAfectada: '',
-          totalCompras: (factura.monto || 0) + (factura.iva || 0) + (factura.baseExenta || 0),
-          exento: factura.baseExenta || 0,
-          baseImponible: factura.monto || 0,
-          porcentajeIva: factura.porcentajeIva || 16,
-          iva: factura.iva,
-          retenido: factura.iva75 || 0
+          totalCompras: existente ? existente.totalCompras : (factura.monto || 0) + (factura.iva || 0) + (factura.baseExenta || 0),
+          exento: existente ? existente.exento : (factura.baseExenta || 0),
+          baseImponible: existente ? existente.baseImponible : (factura.monto || 0),
+          porcentajeIva: existente ? existente.porcentajeIva : (factura.porcentajeIva || 16),
+          iva: existente ? existente.iva : factura.iva,
+          retenido: existente ? existente.retenido : (factura.iva75 || 0)
         }
       ]
     };
 
-    this.http.post('/api/retenciones', {
-      numero: this.comprobanteNumero,
-      proveedorRif: proveedor.rif || '',
-      proveedorNombre: proveedor.nombre,
-      facturaNumero: factura.numero || '',
-      facturaFecha: factura.fecha,
-      fechaPagada: new Date(),
-      numeroControl: factura.numeroControl || '',
-      totalCompras: factura.montoBsf,
-      baseImponible: factura.baseImponible,
-      exento: factura.baseExenta || 0,
-      exentoBsf: factura.exentoBsf || 0,
-      porcentajeIva: factura.porcentajeIva || 16,
-      iva: factura.iva,
-      retenido: factura.iva75 || 0
-    }).subscribe({
-      next: () => {
-        const secuencia = parseInt(this.comprobanteNumero.slice(-8));
-        this.http.put('/api/retenciones/ultimo', { ultimoNumero: secuencia }).subscribe();
-        this.cargarRetenciones();
-      },
-      error: (err) => {
-        if (err.error?.error === 'Ya existe una retención para esta factura') {
-          alert('Ya existe una retención para esta factura');
-        } else {
-          console.error('Error guardando retencion:', err);
+    if (!existente) {
+      this.http.post('/api/retenciones', {
+        numero: this.comprobanteNumero,
+        proveedorRif: proveedor.rif || '',
+        proveedorNombre: proveedor.nombre,
+        facturaNumero: factura.numero || '',
+        facturaFecha: factura.fecha,
+        fechaPagada: new Date(),
+        numeroControl: factura.numeroControl || '',
+        totalCompras: factura.montoBsf,
+        baseImponible: factura.baseImponible,
+        exento: factura.baseExenta || 0,
+        exentoBsf: factura.exentoBsf || 0,
+        porcentajeIva: factura.porcentajeIva || 16,
+        iva: factura.iva,
+        retenido: factura.iva75 || 0
+      }).subscribe({
+        next: () => {
+          const secuencia = parseInt(this.comprobanteNumero.slice(-8));
+          this.http.put('/api/retenciones/ultimo', { ultimoNumero: secuencia }).subscribe();
+          this.cargarRetenciones();
+        },
+        error: (err) => {
+          if (err.error?.error === 'Ya existe una retención para esta factura') {
+            alert('Ya existe una retención para esta factura');
+          } else {
+            console.error('Error guardando retencion:', err);
+          }
         }
-      }
-    });
+      });
+    }
     
     if (opcion === 1 || opcion === 4) {
       this.mostrarComprobantePdf.set(true);
@@ -286,7 +304,9 @@ export class Retenciones implements OnInit {
       await this.excelService.generarComprobanteIVA(datos);
     }
 
-    this.generarNumeroComprobante();
+    if (!existente) {
+      this.generarNumeroComprobante();
+    }
   }
 
   abrirComprobantePdf() {
@@ -391,9 +411,8 @@ export class Retenciones implements OnInit {
         numeroFactura + 'ㅤㅤㅤㅤ' +
         numeroControl + 'ㅤㅤㅤㅤ' +
         totalCompras + 'ㅤㅤㅤㅤ' +
-        exento + 'ㅤㅤㅤㅤ' +
         baseImponible + 'ㅤㅤㅤㅤ' +
-        montoRetencion + 'ㅤㅤㅤㅤ' +
+        exento + 'ㅤㅤㅤㅤ' +
         '0' + 'ㅤㅤㅤㅤ' +
         numero + 'ㅤ' +
         '16.00' + 'ㅤ' +

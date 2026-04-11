@@ -71,6 +71,7 @@ export class Admin implements OnInit {
         { label: 'Galería de Documentos', route: 'galeria' },
         { label: 'Conversión', route: 'conversion' },
         { label: 'Chat', route: 'chat' },
+        { label: 'Cierre de Caja', route: 'cierre-caja' },
       ]
     },
 {

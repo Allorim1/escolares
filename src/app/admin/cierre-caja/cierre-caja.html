@@ -1,0 +1,141 @@
+<div class="cierre-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+  <h2>Cierre de Caja</h2>
+
+  <div class="cierre-layout">
+    <div class="cierre-form">
+      <h3>Nuevo Cierre</h3>
+      
+      <div class="form-group">
+        <label>Saldo Inicial Total (Bs)</label>
+        <input type="number" [(ngModel)]="nuevoCierre.saldoInicial" (input)="calcularSaldo()" min="0" step="0.01" />
+      </div>
+
+      <div class="cajas-grid">
+        <h4>Cajas de Ingresos</h4>
+        
+        @for (caja of cajas; track caja.id) {
+          <div class="caja-card">
+            <div class="caja-header">
+              <span class="caja-titulo">{{ caja.nombre }}</span>
+            </div>
+            <div class="metodos-pago">
+              @for (metodo of caja.metodos; track metodo.id) {
+                <div class="metodo-row">
+                  <label>{{ metodo.nombre }}</label>
+                  <input 
+                    type="number" 
+                    [(ngModel)]="caja.metodosValues[metodo.id]"
+                    (input)="calcularSaldo()"
+                    min="0" 
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+              }
+            </div>
+            <div class="caja-total">
+              <span>Total {{ caja.nombre }}:</span>
+              <strong>{{ getCajaTotal(caja.id) | number:'1.2-2' }} Bs</strong>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Total Gastos (Bs)</label>
+        <input type="number" [(ngModel)]="nuevoCierre.totalGastos" (input)="calcularSaldo()" min="0" step="0.01" />
+      </div>
+
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea [(ngModel)]="nuevoCierre.observaciones" rows="3"></textarea>
+      </div>
+
+      <div class="resumen">
+        <div class="resumen-row">
+          <span>Total Ingresos:</span>
+          <strong>{{ totalIngresosCalculado | number:'1.2-2' }} Bs</strong>
+        </div>
+        <div class="resumen-row">
+          <span>Saldo Calculado:</span>
+          <strong>{{ saldoCalculado | number:'1.2-2' }} Bs</strong>
+        </div>
+        <div class="resumen-row" [class.diferencia-positiva]="diferencia > 0" [class.diferencia-negativa]="diferencia < 0">
+          <span>Diferencia:</span>
+          <strong>{{ diferencia | number:'1.2-2' }} Bs</strong>
+        </div>
+      </div>
+
+      <button class="btn-primary" (click)="guardarCierre()">Guardar Cierre de Caja</button>
+    </div>
+
+    <div class="cierre-historial">
+      <div class="historial-header">
+        <h3>Historial</h3>
+        <div class="buscador">
+          <input type="date" [(ngModel)]="fechaBuscar" (change)="buscarPorFecha()" />
+          @if (fechaBuscar) {
+            <button class="btn-limpiar" (click)="fechaBuscar = ''; cargarCierres()">Limpiar</button>
+          }
+        </div>
+      </div>
+
+      <div class="cierres-list">
+        @for (cierre of cierresFiltrados; track cierre._id) {
+          <div class="cierre-card">
+            <div class="cierre-header">
+              <span class="cierre-fecha">{{ formatearFecha(cierre.fecha) }}</span>
+              <span class="cierre-usuario">{{ cierre.usuario }}</span>
+            </div>
+            <div class="cierre-detalles">
+              <div class="detalle-row">
+                <span>Saldo Inicial:</span>
+                <span>{{ formatearMonto(cierre.saldoInicial) }} Bs</span>
+              </div>
+              
+              @if (cierre.cajas) {
+                @for (caja of getCajasFromcierre(cierre.cajas); track caja.id) {
+                  <div class="caja-detalle">
+                    <strong>{{ caja.nombre }}:</strong>
+                    @for (metodo of caja.metodos; track metodo.id) {
+                      <span class="metodoEtiqueta" [class.tiene-valor]="metodo.valor > 0">
+                        {{ metodo.nombre }}: {{ formatearMonto(metodo.valor) }}
+                      </span>
+                    }
+                    <span class="caja-subtotal">{{ formatearMonto(caja.total) }} Bs</span>
+                  </div>
+                }
+              }
+              
+              <div class="detalle-row">
+                <span>Gastos:</span>
+                <span class="negativo">-{{ formatearMonto(cierre.totalGastos) }} Bs</span>
+              </div>
+              <hr>
+              <div class="detalle-row total">
+                <span>Saldo Final:</span>
+                <strong>{{ formatearMonto(cierre.saldoFinal) }} Bs</strong>
+              </div>
+              @if (cierre.diferencia && cierre.diferencia !== 0) {
+                <div class="detalle-row" [class.diferencia-positiva]="cierre.diferencia > 0" [class.diferencia-negativa]="cierre.diferencia < 0">
+                  <span>Diferencia:</span>
+                  <strong>{{ formatearMonto(cierre.diferencia!) }} Bs</strong>
+                </div>
+              }
+              @if (cierre.observaciones) {
+                <div class="observaciones">
+                  <strong>Obs:</strong> {{ cierre.observaciones }}
+                </div>
+              }
+            </div>
+            <button class="btn-eliminar" (click)="eliminarCierre(cierre._id || '')">Eliminar</button>
+          </div>
+        }
+        @if (cierresFiltrados.length === 0) {
+          <div class="no-data">No hay cierres registrados</div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -166,6 +166,10 @@ export const routes: Routes = [
         path: 'chat',
         loadComponent: () => import('./admin/chat/chat').then((m) => m.Chat),
       },
+      {
+        path: 'cierre-caja',
+        loadComponent: () => import('./admin/cierre-caja/cierre-caja').then((m) => m.CierreCaja),
+      },
     ],
   },
   {

@@ -24,6 +24,13 @@ interface Mensaje {
   fecha: Date;
 }
 
+interface MensajePublico {
+  _id?: string;
+  emisorNombre: string;
+  mensaje: string;
+  fecha: Date;
+}
+
 @Component({
   selector: 'app-chat',
   standalone: true,
@@ -36,21 +43,27 @@ export class Chat implements OnInit, AfterViewChecked {
   authService = inject(AuthService);
 
   @ViewChild('mensajesContainer') mensajesContainer!: ElementRef;
+  @ViewChild('mensajesPublicosContainer') mensajesPublicosContainer!: ElementRef;
 
   usuarios = signal<Usuario[]>([]);
   usuariosFiltrados: Usuario[] = [];
   usuarioSeleccionado = signal<Usuario | null>(null);
   mensajes: Mensaje[] = [];
+  mensajesPublicos: MensajePublico[] = [];
   
+  tabActiva: 'privado' | 'publico' = 'privado';
   busqueda = '';
   nuevoMensaje = '';
+  nuevoMensajePublico = '';
   currentUserId = '';
   
   private pollingInterval: any;
+  private pollingPublicoInterval: any;
 
   ngOnInit() {
     this.currentUserId = this.authService.user()?.id || '';
     this.cargarUsuarios();
+    this.cargarMensajesPublicos();
     this.iniciarPolling();
   }
 
@@ -95,6 +108,15 @@ export class Chat implements OnInit, AfterViewChecked {
     });
   }
 
+  cargarMensajesPublicos() {
+    this.http.get<MensajePublico[]>('/api/chat/publico').subscribe({
+      next: (data) => {
+        this.mensajesPublicos = data;
+      },
+      error: (err) => console.error('Error cargando mensajes públicos:', err)
+    });
+  }
+
   enviarMensaje() {
     if (!this.nuevoMensaje.trim() || !this.usuarioSeleccionado()) return;
 
@@ -107,6 +129,24 @@ export class Chat implements OnInit, AfterViewChecked {
       next: () => {
         this.nuevoMensaje = '';
         this.cargarMensajes(receptorId);
+      },
+      error: (err) => console.error('Error enviando mensaje:', err)
+    });
+  }
+
+  enviarMensajePublico() {
+    if (!this.nuevoMensajePublico.trim()) return;
+
+    const usuario = this.authService.user();
+    const emisorNombre = usuario?.username || 'Usuario';
+
+    this.http.post('/api/chat/publico', {
+      emisorNombre,
+      mensaje: this.nuevoMensajePublico.trim()
+    }).subscribe({
+      next: () => {
+        this.nuevoMensajePublico = '';
+        this.cargarMensajesPublicos();
       },
       error: (err) => console.error('Error enviando mensaje:', err)
     });
@@ -143,16 +183,25 @@ export class Chat implements OnInit, AfterViewChecked {
   }
 
   private scrollToBottom() {
-    if (this.mensajesContainer) {
+    if (this.tabActiva === 'privado' && this.mensajesContainer) {
       const el = this.mensajesContainer.nativeElement;
+      el.scrollTop = el.scrollHeight;
+    } else if (this.tabActiva === 'publico' && this.mensajesPublicosContainer) {
+      const el = this.mensajesPublicosContainer.nativeElement;
       el.scrollTop = el.scrollHeight;
     }
   }
 
   private iniciarPolling() {
     this.pollingInterval = setInterval(() => {
-      if (this.usuarioSeleccionado()) {
+      if (this.tabActiva === 'privado' && this.usuarioSeleccionado()) {
         this.cargarMensajes(this.usuarioSeleccionado()!._id);
+      }
+    }, 5000);
+
+    this.pollingPublicoInterval = setInterval(() => {
+      if (this.tabActiva === 'publico') {
+        this.cargarMensajesPublicos();
       }
     }, 5000);
   }

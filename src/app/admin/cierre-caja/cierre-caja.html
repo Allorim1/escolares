@@ -32,7 +32,7 @@
                       step="0.01"
                       placeholder="0.00"
                     />
-                    @if (getTasa() > 0 && cajasValues[caja.id]?.[metodo.id] > 0) {
+                    @if (getTasa() > 0 && (cajasValues[caja.id]?.[metodo.id] || 0) > 0) {
                       <span class="divisa-convertido">
                         = {{ getDivisaConvertido(caja.id) | number:'1.2-2' }} Bs
                         <small>({{ getTasa() | number:'1.2-2' }} Bs/USD)</small>
@@ -144,7 +144,7 @@
                     <strong>{{ caja.nombre }}:</strong>
                     @for (metodo of caja.metodos; track metodo.id) {
                       <span class="metodoEtiqueta" [class.tiene-valor]="metodo.valor > 0" [class.valor-negativo]="metodo.valor < 0">
-                        {{ metodo.nombre }}: {{ formatearMonto(Math.abs(metodo.valor)) }}
+                        {{ metodo.nombre }}: {{ formatearMonto(getValorAbsoluto(metodo.valor)) }}
                       </span>
                     }
                     <span class="caja-subtotal">{{ formatearMonto(caja.total) }} Bs</span>

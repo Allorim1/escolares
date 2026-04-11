@@ -152,6 +152,10 @@ export class CierreCaja implements OnInit {
     });
   }
 
+  getValorAbsoluto(valor: number): number {
+    return Math.abs(valor);
+  }
+
   getTasa(): number {
     return this.currencyService.currentTasa() || 0;
   }

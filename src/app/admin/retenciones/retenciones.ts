@@ -130,7 +130,7 @@ export class Retenciones implements OnInit {
         this.registroService.registrar(
           'eliminar',
           'Retenciones',
-          `Eliminó retención ${retention?.numero || ''} - Factura ${retention?.facturaNumero || ''}`,
+          `Eliminó retención ${retencion?.numero || ''} - Factura ${retencion?.facturaNumero || ''}`,
           { retencion: retencion }
         );
       },

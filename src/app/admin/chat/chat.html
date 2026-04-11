@@ -19,7 +19,7 @@
             class="conversacion-item"
             [class.selected]="usuarioSeleccionado()?._id === usuario._id"
             (click)="seleccionarUsuario(usuario)">
-            <div class="usuario-avatar">{{ getInitials(usuario.username || usuario.nombre) }}</div>
+            <div class="usuario-avatar">{{ getInitials(usuario.username || usuario.nombre || '') }}</div>
             <div class="usuario-info">
               <span class="usuario-nombre">{{ usuario.username || usuario.nombre }}</span>
               @if (usuario.ultimoMensaje) {

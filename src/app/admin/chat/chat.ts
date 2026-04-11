@@ -40,7 +40,7 @@ export class Chat implements OnInit, AfterViewChecked {
   usuarios = signal<Usuario[]>([]);
   usuariosFiltrados: Usuario[] = [];
   usuarioSeleccionado = signal<Usuario | null>(null);
-  mensajes = signal<Mensaje[]>([]);
+  mensajes: Mensaje[] = [];
   
   busqueda = '';
   nuevoMensaje = '';
@@ -49,7 +49,7 @@ export class Chat implements OnInit, AfterViewChecked {
   private pollingInterval: any;
 
   ngOnInit() {
-    this.currentUserId = this.authService.user()?._id || '';
+    this.currentUserId = this.authService.user()?.id || '';
     this.cargarUsuarios();
     this.iniciarPolling();
   }
@@ -62,18 +62,19 @@ export class Chat implements OnInit, AfterViewChecked {
     this.http.get<Usuario[]>('/api/chat/admin/usuarios').subscribe({
       next: (data) => {
         this.usuarios.set(data);
-        this.filtrarUsuarios();
+        this.usuariosFiltrados = data;
       },
       error: (err) => console.error('Error cargando usuarios:', err)
     });
   }
 
   filtrarUsuarios() {
+    const usuariosList = this.usuarios();
     if (!this.busqueda.trim()) {
-      this.usuariosFiltrados = this.usuarios();
+      this.usuariosFiltrados = usuariosList;
     } else {
       const term = this.busqueda.toLowerCase();
-      this.usuariosFiltrados = this.usuarios().filter(u => 
+      this.usuariosFiltrados = usuariosList.filter(u => 
         (u.username || u.nombre || '').toLowerCase().includes(term)
       );
     }
@@ -87,7 +88,7 @@ export class Chat implements OnInit, AfterViewChecked {
   cargarMensajes(usuarioId: string) {
     this.http.get<Mensaje[]>(`/api/chat/mensajes/${usuarioId}`).subscribe({
       next: (data) => {
-        this.mensajes.set(data);
+        this.mensajes = data;
         this.scrollToBottom();
       },
       error: (err) => console.error('Error cargando mensajes:', err)

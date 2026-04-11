@@ -14,20 +14,33 @@
   gap: 30px;
 }
 
+.izquierdo {
+  flex: 1;
+  min-width: 0;
+}
+
+.derecho {
+  width: 400px;
+  flex-shrink: 0;
+}
+
 .cierre-form {
-  width: 500px;
+  width: 100%;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 25px;
-  flex-shrink: 0;
 }
 
 .cajas-grid {
   margin: 20px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
 }
 
 .cajas-grid h4 {
+  grid-column: 1 / -1;
   margin: 0 0 15px 0;
   color: #333;
   font-size: 15px;
@@ -38,7 +51,18 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 12px;
-  margin-bottom: 12px;
+}
+
+.caja-card.caja-derecha {
+  background: #fff;
+  border-color: #1d63c1;
+}
+
+.caja-card {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
 }
 
 .caja-header {
@@ -181,6 +205,16 @@
   color: #666;
 }
 
+.financiera-row {
+  flex-wrap: wrap;
+}
+
+.financiera-resta {
+  color: #c62828;
+  font-weight: 600;
+  font-size: 12px;
+}
+
 .metodo-row input:focus {
   outline: none;
   border-color: #1d63c1;
@@ -279,8 +313,10 @@
 }
 
 .cierre-historial {
-  flex: 1;
-  min-width: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
 }
 
 .historial-header {

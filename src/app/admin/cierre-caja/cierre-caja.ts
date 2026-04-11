@@ -53,7 +53,8 @@ export class CierreCaja implements OnInit {
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
-      { id: 'gastos', nombre: 'Gastos' }
+      { id: 'gastos', nombre: 'Gastos' },
+      { id: 'financiamiento', nombre: 'Financiamiento Cash' }
     ]},
     { id: '2B', nombre: 'Caja 2B', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
@@ -62,7 +63,8 @@ export class CierreCaja implements OnInit {
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
-      { id: 'gastos', nombre: 'Gastos' }
+      { id: 'gastos', nombre: 'Gastos' },
+      { id: 'financiamiento', nombre: 'Financiamiento Cash' }
     ]},
     { id: '3C', nombre: 'Caja 3C', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
@@ -71,7 +73,8 @@ export class CierreCaja implements OnInit {
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
-      { id: 'gastos', nombre: 'Gastos' }
+      { id: 'gastos', nombre: 'Gastos' },
+      { id: 'financiamiento', nombre: 'Financiamiento Cash' }
     ]},
     { id: '4D', nombre: 'Caja 4D', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
@@ -80,7 +83,8 @@ export class CierreCaja implements OnInit {
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
-      { id: 'gastos', nombre: 'Gastos' }
+      { id: 'gastos', nombre: 'Gastos' },
+      { id: 'financiamiento', nombre: 'Financiamiento Cash' }
     ]}
   ];
 
@@ -166,6 +170,12 @@ export class CierreCaja implements OnInit {
     return divisa * tasa;
   }
 
+  getFinanciamientoConvertido(cajaId: string): number {
+    const finan = this.cajasValues[cajaId]?.['financiamiento'] || 0;
+    const tasa = this.getTasa();
+    return finan * tasa;
+  }
+
   cargarCierres() {
     this.loading.set(true);
     const url = this.fechaBuscar 
@@ -191,7 +201,7 @@ export class CierreCaja implements OnInit {
     if (!caja) return 0;
     
     let total = 0;
-    const negativos = ['gastos'];
+    const negativos = ['gastos', 'financiamiento'];
     const tasa = this.getTasa();
     
     for (const [metodoId, valor] of Object.entries(caja)) {
@@ -199,6 +209,12 @@ export class CierreCaja implements OnInit {
       if (metodoId === 'rc') continue;
       if (metodoId === 'divisa') {
         total += val * tasa;
+      } else if (metodoId === 'financiamiento') {
+        if (aplicarNegativos) {
+          total -= val * tasa;
+        } else {
+          total += val * tasa;
+        }
       } else if (aplicarNegativos && negativos.includes(metodoId)) {
         total -= val;
       } else {
@@ -302,14 +318,15 @@ export class CierreCaja implements OnInit {
   getCajasFromcierre(cajas: any): { id: string; nombre: string; metodos: { id: string; nombre: string; valor: number }[]; total: number }[] {
     if (!cajas) return [];
     const labels: Record<string, string> = { '1A': 'Caja 1A', '2B': 'Caja 2B', '3C': 'Caja 3C', '4D': 'Caja 4D' };
-    const metodoLabels: Record<string, string> = { 
+const metodoLabels: Record<string, string> = { 
       'efectivo': 'Efectivo', 
       'debito': 'Débito', 
-      'huella': 'Huella Digital',
+      'huella': 'Biopago',
       'divisa': 'Divisa',
       'pagoMovil': 'Pago Móvil',
       'rc': 'RC',
-      'gastos': 'Gastos'
+      'gastos': 'Gastos',
+      'financiamiento': 'Financiamiento Cash'
     };
     return Object.entries(cajas).map(([cajaId, metodos]) => {
       const metodosArr = Object.entries(metodos as Record<string, number>).map(([k, v]) => ({

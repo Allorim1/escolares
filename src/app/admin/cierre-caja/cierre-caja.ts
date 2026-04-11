@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
-interface CierreCaja {
+interface CierreCajaData {
   _id?: string;
   fecha: Date;
   usuario: string;
@@ -15,7 +15,7 @@ interface CierreCaja {
   diferencia?: number;
 }
 
-interface Caja {
+interface CajaData {
   id: string;
   nombre: string;
   metodos: { id: string; nombre: string }[];
@@ -31,13 +31,13 @@ interface Caja {
 export class CierreCaja implements OnInit {
   private http = inject(HttpClient);
 
-  cierres = signal<CierreCaja[]>([]);
+  cierres = signal<CierreCajaData[]>([]);
   loading = signal(false);
 
   fechaBuscar = '';
-  cierresFiltrados: CierreCaja[] = [];
+  cierresFiltrados: CierreCajaData[] = [];
 
-  cajas: Caja[] = [
+  cajaDataList: CajaData[] = [
     { id: '1A', nombre: 'Caja 1A', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
       { id: 'debito', nombre: 'Débito' },
@@ -78,7 +78,7 @@ export class CierreCaja implements OnInit {
   }
 
   private inicializarCajas() {
-    this.cajas.forEach(caja => {
+    this.cajaDataList.forEach(caja => {
       this.cajasValues[caja.id] = {};
       caja.metodos.forEach(metodo => {
         this.cajasValues[caja.id][metodo.id] = 0;
@@ -114,7 +114,7 @@ export class CierreCaja implements OnInit {
 
   calcularSaldo() {
     this.totalIngresosCalculado = 0;
-    this.cajas.forEach(caja => {
+    this.cajaDataList.forEach(caja => {
       this.totalIngresosCalculado += this.getCajaTotal(caja.id);
     });
     
@@ -125,7 +125,7 @@ export class CierreCaja implements OnInit {
   guardarCierre() {
     this.calcularSaldo();
     
-    const cierre: CierreCaja = {
+    const cierre: CierreCajaData = {
       fecha: new Date(),
       usuario: 'Usuario',
       saldoInicial: this.nuevoCierre.saldoInicial,

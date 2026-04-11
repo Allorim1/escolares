@@ -14,7 +14,7 @@
       <div class="cajas-grid">
         <h4>Cajas de Ingresos</h4>
         
-        @for (caja of cajas; track caja.id) {
+        @for (caja of cajaDataList; track caja.id) {
           <div class="caja-card">
             <div class="caja-header">
               <span class="caja-titulo">{{ caja.nombre }}</span>
@@ -25,8 +25,8 @@
                   <label>{{ metodo.nombre }}</label>
                   <input 
                     type="number" 
-                    [(ngModel)]="caja.metodosValues[metodo.id]"
-                    (input)="calcularSaldo()"
+                    [ngModel]="cajasValues[caja.id]?.[metodo.id]"
+                    (ngModelChange)="cajasValues[caja.id][metodo.id] = $event; calcularSaldo()"
                     min="0" 
                     step="0.01"
                     placeholder="0.00"

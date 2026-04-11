@@ -92,7 +92,7 @@ export class CierreCaja implements OnInit {
       ? `/api/cierre-caja?fecha=${this.fechaBuscar}`
       : '/api/cierre-caja';
     
-    this.http.get<CierreCaja[]>(url).subscribe({
+    this.http.get<CierreCajaData[]>(url).subscribe({
       next: (data) => {
         this.cierres.set(data);
         this.cierresFiltrados = data;

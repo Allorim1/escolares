@@ -203,3 +203,4 @@ export class CierreCaja implements OnInit {
       return { id: cajaId, nombre: labels[cajaId] || cajaId, metodos: metodosArr, total };
     });
   }
+}

@@ -11,17 +11,36 @@
 
 .cierre-layout {
   display: flex;
+  flex-direction: column;
   gap: 30px;
 }
 
-.izquierdo {
+.arriba {
+  display: flex;
+  gap: 20px;
+}
+
+.abajo {
+  width: 100%;
+}
+
+.cierre-form {
   flex: 1;
-  min-width: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 25px;
+}
+
+.cajas-grid {
+  margin: 20px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
 }
 
 .derecho {
-  width: 400px;
-  flex-shrink: 0;
+  width: 100%;
 }
 
 .cierre-form {
@@ -317,6 +336,8 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .historial-header {

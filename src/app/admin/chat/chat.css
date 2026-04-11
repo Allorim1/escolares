@@ -105,6 +105,15 @@
   font-size: 14px;
 }
 
+.usuario-rol {
+  font-size: 11px;
+  color: #1d63c1;
+  background: #e3f2fd;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
 .ultimo-mensaje {
   color: #666;
   font-size: 13px;
@@ -207,6 +216,7 @@
 .mensaje-input input:focus {
   outline: none;
   border-color: #1d63c1;
+  box-shadow: 0 0 0 2px rgba(29, 99, 193, 0.2);
 }
 
 .btn-enviar {

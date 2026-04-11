@@ -29,28 +29,31 @@
             placeholder="Buscar usuario..."
           />
         </div>
-        <div class="conversaciones-list">
-          @for (usuario of usuariosFiltrados; track usuario._id) {
-            <div 
-              class="conversacion-item"
-              [class.selected]="usuarioSeleccionado()?._id === usuario._id"
-              (click)="seleccionarUsuario(usuario)">
-              <div class="usuario-avatar">{{ getInitials(usuario.username || usuario.nombre || '') }}</div>
-              <div class="usuario-info">
-                <span class="usuario-nombre">{{ usuario.username || usuario.nombre }}</span>
-                @if (usuario.ultimoMensaje) {
-                  <span class="ultimo-mensaje">{{ usuario.ultimoMensaje }}</span>
-                }
-              </div>
-              @if (usuario.sinLeer && usuario.sinLeer > 0) {
-                <span class="badge-nuevos">{{ usuario.sinLeer }}</span>
+<div class="conversaciones-list">
+        @for (usuario of usuariosFiltrados; track usuario._id) {
+          <div 
+            class="conversacion-item"
+            [class.selected]="usuarioSeleccionado()?._id === usuario._id"
+            (click)="seleccionarUsuario(usuario)">
+            <div class="usuario-avatar">{{ getInitials(usuario.username || usuario.nombre || '') }}</div>
+            <div class="usuario-info">
+              <span class="usuario-nombre">{{ usuario.username || usuario.nombre }}</span>
+              @if (usuario.rol) {
+                <span class="usuario-rol">{{ getRolLabel(usuario.rol) }}</span>
+              }
+              @if (usuario.ultimoMensaje) {
+                <span class="ultimo-mensaje">{{ usuario.ultimoMensaje }}</span>
               }
             </div>
-          }
-          @if (usuariosFiltrados.length === 0) {
-            <div class="no-conversaciones">No hay conversaciones</div>
-          }
-        </div>
+            @if (usuario.sinLeer && usuario.sinLeer > 0) {
+              <span class="badge-nuevos">{{ usuario.sinLeer }}</span>
+            }
+          </div>
+        }
+        @if (usuariosFiltrados.length === 0) {
+          <div class="no-conversaciones">No hay conversaciones</div>
+        }
+      </div>
       </div>
 
       <div class="mensajes-panel">

@@ -9,6 +9,7 @@ interface Usuario {
   username?: string;
   nombre?: string;
   email?: string;
+  rol?: string;
   ultimoMensaje?: string;
   ultimoMensajeFecha?: Date;
   sinLeer?: number;
@@ -159,6 +160,16 @@ export class Chat implements OnInit, AfterViewChecked {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return nombre.substring(0, 2).toUpperCase();
+  }
+
+  getRolLabel(rol: string): string {
+    const labels: Record<string, string> = {
+      'root': 'Administrador',
+      'admin': 'Admin',
+      'owner': 'Propietario',
+      'usuario': 'Usuario',
+    };
+    return labels[rol] || rol;
   }
 
   formatearFecha(fecha: Date | string): string {

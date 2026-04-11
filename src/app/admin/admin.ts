@@ -70,6 +70,7 @@ export class Admin implements OnInit {
         { label: 'Retenciones', route: 'retenciones' },
         { label: 'Galería de Documentos', route: 'galeria' },
         { label: 'Conversión', route: 'conversion' },
+        { label: 'Chat', route: 'chat' },
       ]
     },
 {

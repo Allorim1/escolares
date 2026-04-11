@@ -162,6 +162,10 @@ export const routes: Routes = [
         path: 'manuales',
         loadComponent: () => import('./admin/manuales/admin-manuales').then((m) => m.AdminManuales),
       },
+      {
+        path: 'chat',
+        loadComponent: () => import('./admin/chat/chat').then((m) => m.Chat),
+      },
     ],
   },
   {

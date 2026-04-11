@@ -1,0 +1,77 @@
+<div class="chat-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+  <h2>Chat en Vivo</h2>
+
+  <div class="chat-layout">
+    <div class="conversaciones-panel">
+      <h3>Conversaciones</h3>
+      <div class="buscador">
+        <input 
+          type="text" 
+          [(ngModel)]="busqueda" 
+          (input)="filtrarUsuarios()"
+          placeholder="Buscar usuario..."
+        />
+      </div>
+      <div class="conversaciones-list">
+        @for (usuario of usuariosFiltrados; track usuario._id) {
+          <div 
+            class="conversacion-item"
+            [class.selected]="usuarioSeleccionado()?._id === usuario._id"
+            (click)="seleccionarUsuario(usuario)">
+            <div class="usuario-avatar">{{ getInitials(usuario.username || usuario.nombre) }}</div>
+            <div class="usuario-info">
+              <span class="usuario-nombre">{{ usuario.username || usuario.nombre }}</span>
+              @if (usuario.ultimoMensaje) {
+                <span class="ultimo-mensaje">{{ usuario.ultimoMensaje }}</span>
+              }
+            </div>
+            @if (usuario.sinLeer && usuario.sinLeer > 0) {
+              <span class="badge-nuevos">{{ usuario.sinLeer }}</span>
+            }
+          </div>
+        }
+        @if (usuariosFiltrados.length === 0) {
+          <div class="no-conversaciones">No hay conversaciones</div>
+        }
+      </div>
+    </div>
+
+    <div class="mensajes-panel">
+      @if (usuarioSeleccionado()) {
+        <div class="chat-header">
+          <span>{{ usuarioSeleccionado()?.username || usuarioSeleccionado()?.nombre }}</span>
+        </div>
+        
+        <div class="mensajes-list" #mensajesContainer>
+          @for (mensaje of mensajes; track $index) {
+            <div 
+              class="mensaje"
+              [class.enviado]="mensaje.emisorId === currentUserId"
+              [class.recibido]="mensaje.emisorId !== currentUserId">
+              <div class="mensaje-content">{{ mensaje.mensaje }}</div>
+              <div class="mensaje-fecha">{{ formatearFecha(mensaje.fecha) }}</div>
+            </div>
+          }
+          @if (mensajes.length === 0) {
+            <div class="no-mensajes">No hay mensajes. ¡Inicia la conversación!</div>
+          }
+        </div>
+
+        <div class="mensaje-input">
+          <input 
+            type="text"
+            [(ngModel)]="nuevoMensaje"
+            (keyup.enter)="enviarMensaje()"
+            placeholder="Escribe un mensaje..."
+          />
+          <button class="btn-enviar" (click)="enviarMensaje()">Enviar</button>
+        </div>
+      } @else {
+        <div class="sin-seleccion">
+          <p>Selecciona una conversación para comenzar a chatear</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

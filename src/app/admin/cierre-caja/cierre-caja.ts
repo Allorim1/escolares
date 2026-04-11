@@ -49,7 +49,7 @@ export class CierreCaja implements OnInit {
     { id: '1A', nombre: 'Caja 1A', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
       { id: 'debito', nombre: 'Débito' },
-      { id: 'huella', nombre: 'Huella Digital' },
+      { id: 'huella', nombre: 'Biopago' },
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
@@ -58,7 +58,7 @@ export class CierreCaja implements OnInit {
     { id: '2B', nombre: 'Caja 2B', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
       { id: 'debito', nombre: 'Débito' },
-      { id: 'huella', nombre: 'Huella Digital' },
+      { id: 'huella', nombre: 'Biopago' },
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
@@ -67,7 +67,7 @@ export class CierreCaja implements OnInit {
     { id: '3C', nombre: 'Caja 3C', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
       { id: 'debito', nombre: 'Débito' },
-      { id: 'huella', nombre: 'Huella Digital' },
+      { id: 'huella', nombre: 'Biopago' },
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
@@ -76,7 +76,7 @@ export class CierreCaja implements OnInit {
     { id: '4D', nombre: 'Caja 4D', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
       { id: 'debito', nombre: 'Débito' },
-      { id: 'huella', nombre: 'Huella Digital' },
+      { id: 'huella', nombre: 'Biopago' },
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },

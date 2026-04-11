@@ -21,22 +21,66 @@
             </div>
             <div class="metodos-pago">
               @for (metodo of caja.metodos; track metodo.id) {
-                <div class="metodo-row">
-                  <label>{{ metodo.nombre }}</label>
-                  <input 
-                    type="number" 
-                    [ngModel]="cajasValues[caja.id]?.[metodo.id]"
-                    (ngModelChange)="cajasValues[caja.id][metodo.id] = $event; calcularSaldo()"
-                    min="0" 
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                </div>
+                @if (metodo.id === 'divisa') {
+                  <div class="metodo-row divisa-row">
+                    <label>{{ metodo.nombre }} (USD)</label>
+                    <input 
+                      type="number" 
+                      [ngModel]="cajasValues[caja.id]?.[metodo.id]"
+                      (ngModelChange)="cajasValues[caja.id][metodo.id] = $event; calcularSaldo()"
+                      min="0" 
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                    @if (getTasa() > 0 && cajasValues[caja.id]?.[metodo.id] > 0) {
+                      <span class="divisa-convertido">
+                        = {{ getDivisaConvertido(caja.id) | number:'1.2-2' }} Bs
+                        <small>({{ getTasa() | number:'1.2-2' }} Bs/USD)</small>
+                      </span>
+                    }
+                  </div>
+                } @else if (metodo.id === 'rc') {
+                  <div class="metodo-row rc-row">
+                    <label>{{ metodo.nombre }}</label>
+                    <span class="rc-total">{{ getRCEntries(caja.id).length }} RC(s): {{ getRCEntries(caja.id).reduce((sum, e) => sum + e.monto, 0) | number:'1.2-2' }} Bs</span>
+                    <button class="btn-agregar-rc" (click)="agregarRC(caja.id, rcNuevoMonto, rcDescripcion); rcNuevoMonto = 0; rcDescripcion = ''">+ Agregar RC</button>
+                  </div>
+                  <div class="rc-inputs">
+                    <input type="number" [(ngModel)]="rcNuevoMonto" placeholder="Monto" min="0.01" step="0.01" />
+                    <input type="text" [(ngModel)]="rcDescripcion" placeholder="Descripción (opcional)" />
+                  </div>
+                  @if (getRCEntries(caja.id).length > 0) {
+                    <div class="rc-list">
+                      @for (rc of getRCEntries(caja.id); track $index) {
+                        <div class="rc-item">
+                          <span class="rc-monto">{{ rc.monto | number:'1.2-2' }} Bs</span>
+                          <span class="rc-hora">{{ formatearHora(rc.hora) }}</span>
+                          @if (rc.descripcion) {
+                            <span class="rc-desc">{{ rc.descripcion }}</span>
+                          }
+                          <button class="btn-eliminar-rc" (click)="eliminarRC(caja.id, $index)">×</button>
+                        </div>
+                      }
+                    </div>
+                  }
+                } @else {
+                  <div class="metodo-row">
+                    <label>{{ metodo.nombre }}</label>
+                    <input 
+                      type="number" 
+                      [ngModel]="cajasValues[caja.id]?.[metodo.id]"
+                      (ngModelChange)="cajasValues[caja.id][metodo.id] = $event; calcularSaldo()"
+                      min="0" 
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+                }
               }
             </div>
             <div class="caja-total">
               <span>Total {{ caja.nombre }}:</span>
-              <strong>{{ getCajaTotal(caja.id) | number:'1.2-2' }} Bs</strong>
+              <strong [class.negativo]="getCajaTotal(caja.id, true) < 0">{{ getCajaTotal(caja.id, true) | number:'1.2-2' }} Bs</strong>
             </div>
           </div>
         }
@@ -99,8 +143,8 @@
                   <div class="caja-detalle">
                     <strong>{{ caja.nombre }}:</strong>
                     @for (metodo of caja.metodos; track metodo.id) {
-                      <span class="metodoEtiqueta" [class.tiene-valor]="metodo.valor > 0">
-                        {{ metodo.nombre }}: {{ formatearMonto(metodo.valor) }}
+                      <span class="metodoEtiqueta" [class.tiene-valor]="metodo.valor > 0" [class.valor-negativo]="metodo.valor < 0">
+                        {{ metodo.nombre }}: {{ formatearMonto(Math.abs(metodo.valor)) }}
                       </span>
                     }
                     <span class="caja-subtotal">{{ formatearMonto(caja.total) }} Bs</span>

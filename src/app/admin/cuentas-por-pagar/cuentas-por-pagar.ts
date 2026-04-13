@@ -543,12 +543,14 @@ export class CuentasPorPagar implements OnInit {
     if (this.newFactura.montoBsf && this.newFactura.base !== undefined) {
       const base = this.newFactura.base || 0;
       const montoBsf = this.newFactura.montoBsf || 0;
+      const porcentajeIva = this.newFactura.porcentajeIva || 0;
       if (base >= montoBsf) {
         this.newFactura.exentoBsf = 0;
         this.newFactura.base = montoBsf;
       } else {
         this.newFactura.exentoBsf = montoBsf - base;
       }
+      this.newFactura.montoIva = base * (porcentajeIva / 100);
     }
   }
 

@@ -225,6 +225,18 @@
 
 .financiera-row {
   flex-wrap: wrap;
+  background: #2596be;
+  padding: 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+.financiera-row label {
+  color: #fff;
+}
+
+.financiera-row input {
+  background: #fff;
 }
 
 .financiera-resta {

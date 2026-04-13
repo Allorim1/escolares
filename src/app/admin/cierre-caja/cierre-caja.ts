@@ -326,13 +326,13 @@ export class CierreCaja implements OnInit {
     const labels: Record<string, string> = { '1A': 'Caja 1A', '2B': 'Caja 2B', '3C': 'Caja 3C', '4D': 'Caja 4D' };
 const metodoLabels: Record<string, string> = { 
       'efectivo': 'Efectivo', 
-      'debito': 'Débito', 
+      'debito': 'Punto', 
       'huella': 'Biopago',
       'divisa': 'Divisa',
       'pagoMovil': 'Pago Móvil',
       'rc': 'RC',
       'gastos': 'Gastos',
-      'financiamiento': 'Financiamiento Cash'
+      'financiamiento': 'Financiamiento Cashea'
     };
     return Object.entries(cajas).map(([cajaId, metodos]) => {
       const metodosArr = Object.entries(metodos as Record<string, number>).map(([k, v]) => ({

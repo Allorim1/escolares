@@ -31,10 +31,12 @@
                         step="0.01"
                         placeholder="0.00"
                       />
-                      @if (getTasa() > 0 && (cajasValues[caja.id]?.[metodo.id] || 0) > 0) {
+                      @if (cajasValues[caja.id]?.[metodo.id] ?? 0) {
                         <span class="divisa-convertido">
                           = {{ getDivisaConvertido(caja.id) | number:'1.2-2' }} Bs
-                          <small>({{ getTasa() | number:'1.2-2' }} Bs/USD)</small>
+                          @if (getTasa() > 0) {
+                            <small>({{ getTasa() | number:'1.2-2' }} Bs/USD)</small>
+                          }
                         </span>
                       }
                     </div>
@@ -49,11 +51,13 @@
                         step="0.01"
                         placeholder="0.00"
                       />
-                      <span class="financiera-resta">(Resta)</span>
-                      @if (getTasa() > 0 && (cajasValues[caja.id]?.[metodo.id] || 0) > 0) {
+                      
+                      @if ((cajasValues[caja.id]?.[metodo.id] ?? 0) > 0) {
                         <span class="divisa-convertido negativo">
                           = {{ '-' + getFinanciamientoConvertido(caja.id) | number:'1.2-2' }} Bs
-                          <small>({{ getTasa() | number:'1.2-2' }} Bs/USD)</small>
+                          @if (getTasa() > 0) {
+                            <small>({{ getTasa() | number:'1.2-2' }} Bs/USD)</small>
+                          }
                         </span>
                       }
                     </div>

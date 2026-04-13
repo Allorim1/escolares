@@ -166,13 +166,15 @@ export class CierreCaja implements OnInit {
 
   getDivisaConvertido(cajaId: string): number {
     const divisa = this.cajasValues[cajaId]?.['divisa'] || 0;
-    const tasa = this.getTasa();
+    let tasa = this.getTasa();
+    if (tasa <= 0) tasa = 1;
     return divisa * tasa;
   }
 
   getFinanciamientoConvertido(cajaId: string): number {
     const finan = this.cajasValues[cajaId]?.['financiamiento'] || 0;
-    const tasa = this.getTasa();
+    let tasa = this.getTasa();
+    if (tasa <= 0) tasa = 1;
     return finan * tasa;
   }
 
@@ -202,7 +204,11 @@ export class CierreCaja implements OnInit {
     
     let total = 0;
     const negativos = ['gastos', 'financiamiento'];
-    const tasa = this.getTasa();
+    let tasa = this.getTasa();
+    
+    if (tasa <= 0) {
+      tasa = 1;
+    }
     
     for (const [metodoId, valor] of Object.entries(caja)) {
       const val = valor || 0;

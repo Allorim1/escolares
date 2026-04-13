@@ -48,43 +48,43 @@ export class CierreCaja implements OnInit {
   cajaDataList: CajaData[] = [
     { id: '1A', nombre: 'Caja 1A', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
-      { id: 'debito', nombre: 'Débito' },
+      { id: 'debito', nombre: 'Punto' },
       { id: 'huella', nombre: 'Biopago' },
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
       { id: 'gastos', nombre: 'Gastos' },
-      { id: 'financiamiento', nombre: 'Financiamiento Cash' }
+      { id: 'financiamiento', nombre: 'Financiamiento Cashea' }
     ]},
     { id: '2B', nombre: 'Caja 2B', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
-      { id: 'debito', nombre: 'Débito' },
+      { id: 'debito', nombre: 'Punto' },
       { id: 'huella', nombre: 'Biopago' },
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
       { id: 'gastos', nombre: 'Gastos' },
-      { id: 'financiamiento', nombre: 'Financiamiento Cash' }
+      { id: 'financiamiento', nombre: 'Financiamiento Cashea' }
     ]},
     { id: '3C', nombre: 'Caja 3C', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
-      { id: 'debito', nombre: 'Débito' },
+      { id: 'debito', nombre: 'Punto' },
       { id: 'huella', nombre: 'Biopago' },
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
       { id: 'gastos', nombre: 'Gastos' },
-      { id: 'financiamiento', nombre: 'Financiamiento Cash' }
+      { id: 'financiamiento', nombre: 'Financiamiento Cashea' }
     ]},
     { id: '4D', nombre: 'Caja 4D', metodos: [
       { id: 'efectivo', nombre: 'Efectivo' },
-      { id: 'debito', nombre: 'Débito' },
+      { id: 'debito', nombre: 'Punto' },
       { id: 'huella', nombre: 'Biopago' },
       { id: 'divisa', nombre: 'Divisa' },
       { id: 'pagoMovil', nombre: 'Pago Móvil' },
       { id: 'rc', nombre: 'RC' },
       { id: 'gastos', nombre: 'Gastos' },
-      { id: 'financiamiento', nombre: 'Financiamiento Cash' }
+      { id: 'financiamiento', nombre: 'Financiamiento Cashea' }
     ]}
   ];
 

@@ -223,7 +223,7 @@ export class LibroCompras implements OnInit {
       ],
       body: tableData,
       startY: 35,
-      fontSize: 7,
+      styles: { fontSize: 7 },
       headStyles: { fillColor: [41, 128, 185] },
       alternateRowStyles: { fillColor: [240, 240, 240] },
     });

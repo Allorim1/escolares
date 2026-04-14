@@ -2,7 +2,20 @@
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="header">
     <h2>Gestión de Productos</h2>
-    <button class="add-btn" (click)="showAddForm()">+ Agregar Producto</button>
+    <div class="header-actions">
+      <button 
+        class="btn-ocultar-precios" 
+        [class.active]="preciosOcultosParaNoRegistrados()"
+        (click)="togglePreciosOcultos()"
+      >
+        @if (preciosOcultosParaNoRegistrados()) {
+          🔒 Ocultar Precios
+        } @else {
+          👁 Mostrar Precios
+        }
+      </button>
+      <button class="add-btn" (click)="showAddForm()">+ Agregar Producto</button>
+    </div>
   </div>
 
   <div class="filters">

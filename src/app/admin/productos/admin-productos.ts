@@ -33,6 +33,7 @@ export class AdminProductos implements OnInit {
   isAdding = signal(false);
   showModal = signal(false);
   uploadingImage = signal(false);
+  preciosOcultosParaNoRegistrados = signal(false);
   
   filtroCategoria = '';
   filtroMarca = '';
@@ -80,12 +81,35 @@ export class AdminProductos implements OnInit {
 
   ngOnInit() {
     this.loadProducts();
+    this.loadPreciosOcultosSetting();
   }
 
   loadProducts() {
     this.productsService.getProducts().subscribe({
       next: (products) => this.products.set(products),
       error: (err) => console.error('Error loading products:', err),
+    });
+  }
+
+  loadPreciosOcultosSetting() {
+    this.http.get<{ hidden: boolean }>('/api/settings/ocultar-precios').subscribe({
+      next: (data) => {
+        this.preciosOcultosParaNoRegistrados.set(data.hidden);
+      },
+      error: () => {}
+    });
+  }
+
+  togglePreciosOcultos() {
+    const nuevoValor = !this.preciosOcultosParaNoRegistrados();
+    this.http.put<{ success: boolean }>('/api/settings/ocultar-precios', { hidden: nuevoValor }).subscribe({
+      next: () => {
+        this.preciosOcultosParaNoRegistrados.set(nuevoValor);
+      },
+      error: (err) => {
+        console.error('Error guardando setting:', err);
+        alert('Error al guardar la configuración');
+      }
     });
   }
 

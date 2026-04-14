@@ -170,6 +170,10 @@ export const routes: Routes = [
         path: 'cierre-caja',
         loadComponent: () => import('./admin/cierre-caja/cierre-caja').then((m) => m.CierreCaja),
       },
+      {
+        path: 'libro-compras',
+        loadComponent: () => import('./admin/libro-compras/libro-compras').then((m) => m.LibroCompras),
+      },
     ],
   },
   {

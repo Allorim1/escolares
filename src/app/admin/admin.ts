@@ -66,15 +66,22 @@ export class Admin implements OnInit {
         { label: 'Histórico Costos', route: 'historico-costos' },
         { label: 'Registro', route: 'registro' },
         { label: 'Facturación', route: 'facturacion' },
-        { label: 'Cuentas por Pagar', route: 'cuentas-por-pagar' },
-        { label: 'Retenciones', route: 'retenciones' },
         { label: 'Galería de Documentos', route: 'galeria' },
         { label: 'Conversión', route: 'conversion' },
         { label: 'Chat', route: 'chat' },
         { label: 'Cierre de Caja', route: 'cierre-caja' },
       ]
     },
-{
+    {
+      name: 'Cuentas por Pagar',
+      expanded: true,
+      items: [
+        { label: 'Proveedores', route: 'cuentas-por-pagar' },
+        { label: 'Retenciones', route: 'retenciones' },
+        { label: 'Libro de Compras', route: 'libro-compras' },
+      ]
+    },
+    {
       name: 'Panel Web',
       expanded: true,
       items: [

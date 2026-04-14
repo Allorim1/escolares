@@ -104,11 +104,13 @@ export class LibroCompras implements OnInit {
         const fechaFactura = new Date(factura.fecha);
         if (fechaFactura < inicio || fechaFactura > fin) return;
 
+        if (factura.tipo !== 'factura') return;
+
         const alicuota = factura.porcentajeIva || 16;
         if (this.alicuotaSeleccionada() > 0 && alicuota !== this.alicuotaSeleccionada()) return;
 
         let montoTotal = factura.monto || 0;
-        
+
         if (factura.tipo === 'credito' || factura.tipo === 'nota') {
           montoTotal = -Math.abs(montoTotal);
         }

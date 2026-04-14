@@ -24,17 +24,25 @@
             >
           </div>
 
-          <div class="price-section">
-            @if (precioOferta) {
-              <span class="original-price" [innerHTML]="formatPrice(product.price)"></span>
-              <span class="discount-price" [innerHTML]="formatPrice(precioOferta)"></span>
-              <span class="discount-badge"
-                >{{ calcularDescuento(product.price, precioOferta) }}% OFF</span
-              >
-            } @else {
-              <span class="product-detail-price" [innerHTML]="formatPrice(product.price)"></span>
-            }
-          </div>
+          @if (shouldShowPrice()) {
+            <div class="price-section">
+              @if (precioOferta) {
+                <span class="original-price" [innerHTML]="formatPrice(product.price)"></span>
+                <span class="discount-price" [innerHTML]="formatPrice(precioOferta)"></span>
+                <span class="discount-badge"
+                  >{{ calcularDescuento(product.price, precioOferta) }}% OFF</span
+                >
+              } @else {
+                <span class="product-detail-price" [innerHTML]="formatPrice(product.price)"></span>
+              }
+            </div>
+          } @else {
+            <div class="price-section">
+              <p style="font-size: 1rem; color: #888; font-style: italic;">
+                Inicie sesión para ver precios
+              </p>
+            </div>
+          }
 
           <p class="product-description">
             {{ product.description }}
@@ -53,54 +61,56 @@
             }
           </div>
 
-          <div class="quantity-selector">
-            <label class="quantity-label">Cantidad:</label>
-            <div class="quantity-controls">
-              <button 
-                type="button" 
-                class="qty-btn" 
-                (click)="decreaseQuantity()"
-                [disabled]="quantity() <= 1"
-              >-</button>
-              <span class="qty-value">{{ quantity() }}</span>
-              <button 
-                type="button" 
-                class="qty-btn" 
-                (click)="increaseQuantity()"
-              >+</button>
+          @if (shouldShowPrice()) {
+            <div class="quantity-selector">
+              <label class="quantity-label">Cantidad:</label>
+              <div class="quantity-controls">
+                <button 
+                  type="button" 
+                  class="qty-btn" 
+                  (click)="decreaseQuantity()"
+                  [disabled]="quantity() <= 1"
+                >-</button>
+                <span class="qty-value">{{ quantity() }}</span>
+                <button 
+                  type="button" 
+                  class="qty-btn" 
+                  (click)="increaseQuantity()"
+                >+</button>
+              </div>
             </div>
-          </div>
 
-          <div class="action-buttons">
-            <button 
-              class="add-to-cart-btn" 
-              [class.added]="showAddedMessage()"
-              (click)="addToCart()"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+            <div class="action-buttons">
+              <button 
+                class="add-to-cart-btn" 
+                [class.added]="showAddedMessage()"
+                (click)="addToCart()"
               >
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="m1 1 4 4v11a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V6H7"></path>
-              </svg>
-              @if (showAddedMessage()) {
-                ¡Agregado al carrito!
-              } @else {
-                Agregar al carrito
-              }
-            </button>
-          </div>
-          @if (showAddedMessage()) {
-            <div class="added-message">✓ Producto agregado al carrito</div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="m1 1 4 4v11a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V6H7"></path>
+                </svg>
+                @if (showAddedMessage()) {
+                  ¡Agregado al carrito!
+                } @else {
+                  Agregar al carrito
+                }
+              </button>
+            </div>
+            @if (showAddedMessage()) {
+              <div class="added-message">✓ Producto agregado al carrito</div>
+            }
           }
         </div>
       </div>

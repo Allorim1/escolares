@@ -6,6 +6,7 @@ import { ProductsStateService } from '../../data-access/products-state.service';
 import { LoadingComponent } from '../../../shared/ui/loading/loading';
 import { CurrencyService } from '../../../shared/data-access/currency.service';
 import { AuthService } from '../../../shared/data-access/auth.service';
+import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.service';
 
 @Component({
   selector: 'app-product-list',
@@ -131,6 +132,14 @@ export default class ProductList implements OnInit {
   private route = inject(ActivatedRoute);
   currencyService = inject(CurrencyService);
   private authService = inject(AuthService);
+  apiKeyStatusService = inject(ApiKeyStatusService);
+
+  // Check if prices should be shown
+  shouldShowPrice(): boolean {
+    if (this.authService.isLoggedIn()) return true;
+    if (!this.apiKeyStatusService.preciosOcultosParaNoRegistrados()) return true;
+    return false;
+  }
 
   // Check if current user is root
   isRoot(): boolean {

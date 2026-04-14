@@ -20,6 +20,17 @@
               <button class="btn-small" (click)="guardarApiKey()">Guardar</button>
             </div>
           }
+          <button 
+            class="btn-ocultar-precios" 
+            [class.active]="preciosOcultosParaNoRegistrados()"
+            (click)="togglePreciosOcultos()"
+          >
+            @if (preciosOcultosParaNoRegistrados()) {
+              🔒 Ocultar Precios
+            } @else {
+              👁 Mostrar Precios
+            }
+          </button>
         }
         <button class="refresh-btn" (click)="loadTasas()" [disabled]="loadingTasa()">
           @if (loadingTasa()) {

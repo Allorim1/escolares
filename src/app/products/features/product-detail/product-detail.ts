@@ -5,6 +5,8 @@ import { CartStateService } from '../../../shared/data-access/cart-state.service
 import { RouterLink } from '@angular/router';
 import { OfertasService } from '../../../shared/data-access/ofertas.service';
 import { CurrencyService } from '../../../shared/data-access/currency.service';
+import { AuthService } from '../../../shared/data-access/auth.service';
+import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -19,6 +21,15 @@ export default class ProductDetail {
   cartState = inject(CartStateService).state;
   private ofertasService = inject(OfertasService);
   currencyService = inject(CurrencyService);
+  private authService = inject(AuthService);
+  apiKeyStatusService = inject(ApiKeyStatusService);
+
+  // Check if prices should be shown
+  shouldShowPrice(): boolean {
+    if (this.authService.isLoggedIn()) return true;
+    if (!this.apiKeyStatusService.preciosOcultosParaNoRegistrados()) return true;
+    return false;
+  }
 
   // Format price based on current currency display
   formatPrice(priceInUsd: number): string {

@@ -1539,6 +1539,30 @@ h2 {
   background: #d97706;
 }
 
+.btn-ocultar-precios {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-ocultar-precios:hover {
+  background: #c82333;
+}
+
+.btn-ocultar-precios.active {
+  background: #28a745;
+}
+
+.btn-ocultar-precios.active:hover {
+  background: #218838;
+}
+
 .api-key-container {
   display: flex;
   gap: 8px;

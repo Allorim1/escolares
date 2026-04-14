@@ -124,11 +124,20 @@
           <p class="card-text" style="font-size: 1rem; color: #666; margin-bottom: 1rem">
             {{ product.description }}
           </p>
-          <p
-            class="card-price"
-            style="font-size: 1.1rem; font-weight: 700; color: #1976d2; margin-bottom: 1.5rem"
-            [innerHTML]="formatPrice(product.price)"
-          ></p>
+          @if (shouldShowPrice()) {
+            <p
+              class="card-price"
+              style="font-size: 1.1rem; font-weight: 700; color: #1976d2; margin-bottom: 1.5rem"
+              [innerHTML]="formatPrice(product.price)"
+            ></p>
+          } @else {
+            <p
+              class="card-price"
+              style="font-size: 1rem; color: #888; font-style: italic; margin-bottom: 1.5rem"
+            >
+              Inicie sesión para ver precios
+            </p>
+          }
           <button
             class="btn btn-primary"
             style="

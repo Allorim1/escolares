@@ -136,12 +136,14 @@ export class CostoTasa implements OnInit {
   reportesPorPagina = 5;
 
   apiKeyExpired = signal(false);
+  preciosOcultosParaNoRegistrados = signal(false);
 
   ngOnInit() {
     this.loadTasas();
     this.loadReportes();
     if (this.isRoot()) {
       this.loadApiKeyStatus();
+      this.loadPreciosOcultosSetting();
     }
   }
 
@@ -153,6 +155,28 @@ export class CostoTasa implements OnInit {
       },
       error: (err) => {
         this.apiKeyLoaded = true;
+      }
+    });
+  }
+
+  loadPreciosOcultosSetting() {
+    this.http.get<{ hidden: boolean }>('/api/settings/ocultar-precios').subscribe({
+      next: (data) => {
+        this.preciosOcultosParaNoRegistrados.set(data.hidden);
+      },
+      error: () => {}
+    });
+  }
+
+  togglePreciosOcultos() {
+    const nuevoValor = !this.preciosOcultosParaNoRegistrados();
+    this.http.put<{ success: boolean }>('/api/settings/ocultar-precios', { hidden: nuevoValor }).subscribe({
+      next: () => {
+        this.preciosOcultosParaNoRegistrados.set(nuevoValor);
+      },
+      error: (err) => {
+        console.error('Error guardando setting:', err);
+        alert('Error al guardar la configuración');
       }
     });
   }

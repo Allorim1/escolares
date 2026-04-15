@@ -1639,7 +1639,10 @@ esMismoDiaSemana(dia1: number, dia2: number): boolean {
   cumpleMeta(variacion: number): boolean {
     return variacion >= this.metaVariacion();
   }
-}
+
+  getMetaVariacion(): number {
+    return this.metaVariacion();
+  }
 
   getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];

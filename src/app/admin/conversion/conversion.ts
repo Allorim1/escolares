@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 interface FilaResultado {
   fecha: string;
   dia: string;
+  diaEquivalente: string;
   totalOriginal: number;
   tasa: number;
   totalConvertido: number;
@@ -16,6 +17,7 @@ interface FilaResultado {
 interface ComparacionResultado {
   fecha: string;
   dia: string;
+  diaEquivalente: string;
   totalActual: number;
   totalAnterior: number;
   tasaActual: number;
@@ -962,6 +964,7 @@ export class Conversion {
 
         if (!fecha) continue;
 
+        const diaEquivalente = this.getDiaEquivalente(fecha);
         const tasa = todasLasTasas.get(fecha) || 0;
         const totalConvertido = tasa > 0 ? total / tasa : 0;
 
@@ -975,6 +978,7 @@ export class Conversion {
         resultados.push({
           fecha,
           dia,
+          diaEquivalente,
           totalOriginal: total,
           tasa,
           totalConvertido,
@@ -1110,6 +1114,7 @@ export class Conversion {
 
       if (!fecha) continue;
 
+      const diaEquivalente = this.getDiaEquivalente(fecha);
       const tasa = todasLasTasas.get(fecha) || 0;
       const totalConvertido = tasa > 0 ? total / tasa : 0;
 
@@ -1123,6 +1128,7 @@ export class Conversion {
       resultados.push({
         fecha,
         dia,
+        diaEquivalente,
         totalOriginal: total,
         tasa,
         totalConvertido,
@@ -1172,6 +1178,7 @@ export class Conversion {
         comparacionesActualList.push({
           fecha,
           dia: actual.dia || '',
+          diaEquivalente: actual.diaEquivalente || '',
           totalActual: actual.totalOriginal,
           totalAnterior: 0,
           tasaActual: actual.tasa,
@@ -1189,6 +1196,7 @@ export class Conversion {
         comparacionesAnteriorList.push({
           fecha,
           dia: anterior.dia || '',
+          diaEquivalente: anterior.diaEquivalente || '',
           totalActual: 0,
           totalAnterior: anterior.totalOriginal,
           tasaActual: 0,
@@ -1218,6 +1226,7 @@ export class Conversion {
       comparaciones.push({
         fecha,
         dia: actual?.dia || anterior?.dia || '',
+        diaEquivalente: actual?.diaEquivalente || anterior?.diaEquivalente || '',
         totalActual,
         totalAnterior,
         tasaActual,
@@ -1611,5 +1620,13 @@ export class Conversion {
     const sumaTasa = resultados.reduce((sum, r) => sum + (r.tasa > 0 ? r.tasa : 0), 0);
     const count = resultados.filter(r => r.tasa > 0).length;
     return count > 0 ? Math.round((sumaTasa / count) * 10000) / 10000 : 0;
+  }
+
+  private getDiaEquivalente(fecha: string): string {
+    return fecha;
+  }
+
+  getDiaEquivalentePublico(fecha: string): string {
+    return this.getDiaEquivalente(fecha);
   }
 }

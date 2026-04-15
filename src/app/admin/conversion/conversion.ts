@@ -1115,7 +1115,7 @@ export class Conversion {
       if (!fecha) continue;
 
       const diaEquivalente = this.getDiaEquivalente(fecha);
-      const tasa = todasLasTasas.get(fecha) || 0;
+      const tasa = todasLasTasas.get(diaEquivalente) || todasLasTasas.get(fecha) || 0;
       const totalConvertido = tasa > 0 ? total / tasa : 0;
 
       const columnasExtra: { [key: string]: any } = {};

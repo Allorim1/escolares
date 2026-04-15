@@ -713,18 +713,29 @@
 
 .modal-content.modal-comparacion {
   max-width: 1400px;
+  overflow-y: auto;
 }
 
 .comparacion-tables-container {
   display: flex;
   gap: 1.5rem;
   padding: 1rem 1.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  min-height: 300px;
 }
 
 .tabla-actual, .tabla-anterior {
   flex: 1;
   min-width: 400px;
+  max-width: 50%;
+}
+
+.tabla-actual .result-table-wrapper,
+.tabla-anterior .result-table-wrapper {
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .tabla-header {

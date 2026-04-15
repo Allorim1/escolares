@@ -352,7 +352,7 @@
     </div>
   }
 
-  @if (comparaciones().length > 0 && mostrarModalComparacion()) {
+  @if ((comparacionesActual().length > 0 || comparacionesAnterior().length > 0) && mostrarModalComparacion()) {
     <div class="modal-overlay" (click)="cerrarModalComparacion()">
       <div class="modal-content modal-comparacion" (click)="$event.stopPropagation()">
         <div class="modal-header">
@@ -374,7 +374,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (c of comparaciones(); track c.fecha) {
+                  @for (c of comparacionesActual(); track c.fecha) {
                     <tr>
                       <td>{{ c.fecha }}</td>
                       <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
@@ -408,7 +408,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (c of comparaciones(); track c.fecha) {
+                  @for (c of comparacionesAnterior(); track c.fecha) {
                     <tr>
                       <td>{{ c.fecha }}</td>
                       <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>

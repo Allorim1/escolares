@@ -81,6 +81,8 @@ export class Conversion {
   fechasSinTasaAnterior = signal<string[]>([]);
 
   comparaciones = signal<ComparacionResultado[]>([]);
+  comparacionesActual = signal<ComparacionResultado[]>([]);
+  comparacionesAnterior = signal<ComparacionResultado[]>([]);
   variacionTotalPct = signal(0);
   mostrarModalComparacion = signal(false);
 
@@ -995,7 +997,12 @@ export class Conversion {
 
     const tasasAnterioresBase = this.tasasAnterioresMap();
     const tasasAnterioresManual = this.tasasAnterioresManuales();
-    const todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+    let todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+
+    // Si no hay tasas anteriores, usar las actuales como fallback
+    if (todasLasTasasAnteriores.size === 0) {
+      todasLasTasasAnteriores = new Map(todasLasTasas);
+    }
 
     const fechasFaltantesAnterior: string[] = [];
 
@@ -1012,8 +1019,8 @@ export class Conversion {
       this.totalConvertido.set(resActual.totalConv);
     }
 
-    // Procesar archivo anterior con tasas anteriores
-    if (this.ventasAnteriorRaw().length >= 2 && todasLasTasasAnteriores.size > 0) {
+    // Procesar archivo anterior con tasas anteriores (o tasas actuales como fallback)
+    if (this.ventasAnteriorRaw().length >= 2) {
       // Primera pasada: recopilar todas las fechas únicas de ventas anteriores
       const ventasAnteriorRows = this.ventasAnteriorRaw();
       const ventasAnteriorHeaders = ventasAnteriorRows[0];
@@ -1146,6 +1153,41 @@ export class Conversion {
     ]);
 
     const comparaciones: ComparacionResultado[] = [];
+    const comparacionesActualList: ComparacionResultado[] = [];
+    const comparacionesAnteriorList: ComparacionResultado[] = [];
+
+    // Listas separadas para cada año
+    for (const fecha of Array.from(mapaActual.keys()).sort()) {
+      const actual = mapaActual.get(fecha);
+      if (actual) {
+        comparacionesActualList.push({
+          fecha,
+          totalActual: actual.totalOriginal,
+          totalAnterior: 0,
+          tasaActual: actual.tasa,
+          tasaAnterior: 0,
+          convertidoActual: actual.totalConvertido,
+          convertidoAnterior: 0,
+          variacionPct: 0
+        });
+      }
+    }
+
+    for (const fecha of Array.from(mapaAnterior.keys()).sort()) {
+      const anterior = mapaAnterior.get(fecha);
+      if (anterior) {
+        comparacionesAnteriorList.push({
+          fecha,
+          totalActual: 0,
+          totalAnterior: anterior.totalOriginal,
+          tasaActual: 0,
+          tasaAnterior: anterior.tasa,
+          convertidoActual: 0,
+          convertidoAnterior: anterior.totalConvertido,
+          variacionPct: 0
+        });
+      }
+    }
 
     for (const fecha of todasLasFechas) {
       const actual = mapaActual.get(fecha);
@@ -1176,6 +1218,8 @@ export class Conversion {
 
     comparaciones.sort((a, b) => a.fecha.localeCompare(b.fecha));
     this.comparaciones.set(comparaciones);
+    this.comparacionesActual.set(comparacionesActualList);
+    this.comparacionesAnterior.set(comparacionesAnteriorList);
 
     // Calcular variación total porcentual
     const totalAct = this.totalOriginal();
@@ -1473,6 +1517,8 @@ export class Conversion {
     this.tasasAnterioresManuales.set(new Map());
     this.fechasSinTasaAnterior.set([]);
     this.comparaciones.set([]);
+    this.comparacionesActual.set([]);
+    this.comparacionesAnterior.set([]);
     this.variacionTotalPct.set(0);
     this.mostrarModalComparacion.set(false);
   }
@@ -1521,9 +1567,7 @@ export class Conversion {
   }
 
   abrirModalComparacion() {
-    if (this.comparaciones().length === 0) {
-      this.procesarComparacion();
-    }
+    this.procesarComparacion();
     this.mostrarModalComparacion.set(true);
   }
 

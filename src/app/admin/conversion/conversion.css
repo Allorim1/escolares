@@ -27,9 +27,39 @@
 
 .upload-section {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
+}
+
+.upload-group {
+  flex: 1;
+  min-width: 400px;
+}
+
+.upload-group-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1d63c1;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #1d63c1;
+}
+
+.upload-group:last-child .upload-group-title {
+  color: #2e7d32;
+  border-bottom-color: #2e7d32;
+}
+
+.upload-cards-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.upload-cards-row .upload-card {
+  flex: 1;
+  min-width: 180px;
 }
 
 .upload-card {

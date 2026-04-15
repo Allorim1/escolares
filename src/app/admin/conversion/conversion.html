@@ -7,54 +7,64 @@
   }
 
   <div class="upload-section">
-    <div class="upload-card">
-      <h3>📊 Archivo de Ventas</h3>
-      <p class="upload-desc">Histórico de ventas en Bolívares con fechas y totales</p>
-      <label class="upload-btn">
-        Seleccionar Archivo
-        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileVentas($event)" hidden>
-      </label>
-      @if (ventasNombre()) {
-        <span class="file-name">{{ ventasNombre() }}</span>
-      }
+    <div class="upload-group">
+      <div class="upload-group-title">Año Actual</div>
+      <div class="upload-cards-row">
+        <div class="upload-card">
+          <h3>📊 Archivo de Ventas</h3>
+          <p class="upload-desc">Histórico de ventas en Bolívares con fechas y totales</p>
+          <label class="upload-btn">
+            Seleccionar Archivo
+            <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileVentas($event)" hidden>
+          </label>
+          @if (ventasNombre()) {
+            <span class="file-name">{{ ventasNombre() }}</span>
+          }
+        </div>
+
+        <div class="upload-card">
+          <h3>💱 Archivo de Tasas</h3>
+          <p class="upload-desc">Excel con tasa USD COMPRA (BID) por fecha</p>
+          <label class="upload-btn">
+            Seleccionar Archivo
+            <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileTasas($event)" hidden>
+          </label>
+          @if (tasasNombre()) {
+            <span class="file-name">{{ tasasNombre() }}</span>
+            <span class="file-info">Tasas encontradas: {{ tasasMap().size }}</span>
+          }
+        </div>
+      </div>
     </div>
 
-    <div class="upload-card upload-card-anterior">
-      <h3>📈 Ventas Año Anterior</h3>
-      <p class="upload-desc">Ventas del período anterior para comparar ganancias</p>
-      <label class="upload-btn upload-btn-anterior">
-        Seleccionar Archivo
-        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileAnterior($event)" hidden>
-      </label>
-      @if (ventasAnteriorNombre()) {
-        <span class="file-name">{{ ventasAnteriorNombre() }}</span>
-      }
-    </div>
+    <div class="upload-group">
+      <div class="upload-group-title">Año Anterior</div>
+      <div class="upload-cards-row">
+        <div class="upload-card upload-card-anterior">
+          <h3>📈 Ventas Año Anterior</h3>
+          <p class="upload-desc">Ventas del período anterior para comparar ganancias</p>
+          <label class="upload-btn upload-btn-anterior">
+            Seleccionar Archivo
+            <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileAnterior($event)" hidden>
+          </label>
+          @if (ventasAnteriorNombre()) {
+            <span class="file-name">{{ ventasAnteriorNombre() }}</span>
+          }
+        </div>
 
-    <div class="upload-card upload-card-tasas-anteriores">
-      <h3>💱 Tasas Anteriores</h3>
-      <p class="upload-desc">Archivo de tasas del período anterior</p>
-      <label class="upload-btn upload-btn-tasas-anteriores">
-        Seleccionar Archivo
-        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileTasasAnteriores($event)" hidden>
-      </label>
-      @if (tasasAnterioresNombre()) {
-        <span class="file-name">{{ tasasAnterioresNombre() }}</span>
-        <span class="file-info">Tasas encontradas: {{ tasasAnterioresMap().size }}</span>
-      }
-    </div>
-
-    <div class="upload-card">
-      <h3>💱 Archivo de Tasas</h3>
-      <p class="upload-desc">Excel con tasa USD COMPRA (BID) por fecha</p>
-      <label class="upload-btn">
-        Seleccionar Archivo
-        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileTasas($event)" hidden>
-      </label>
-      @if (tasasNombre()) {
-        <span class="file-name">{{ tasasNombre() }}</span>
-        <span class="file-info">Tasas encontradas: {{ tasasMap().size }}</span>
-      }
+        <div class="upload-card upload-card-tasas-anteriores">
+          <h3>💱 Tasas Anteriores</h3>
+          <p class="upload-desc">Archivo de tasas del período anterior</p>
+          <label class="upload-btn upload-btn-tasas-anteriores">
+            Seleccionar Archivo
+            <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileTasasAnteriores($event)" hidden>
+          </label>
+          @if (tasasAnterioresNombre()) {
+            <span class="file-name">{{ tasasAnterioresNombre() }}</span>
+            <span class="file-info">Tasas encontradas: {{ tasasAnterioresMap().size }}</span>
+          }
+        </div>
+      </div>
     </div>
   </div>
 

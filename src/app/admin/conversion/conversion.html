@@ -369,7 +369,6 @@
                   <tr>
                     <th>Fecha</th>
                     <th>Día</th>
-                    <th>Día Equivalente</th>
                     <th>Ventas (Bs)</th>
                     <th>Tasa USD</th>
                     <th>Convertido ($)</th>
@@ -380,7 +379,6 @@
                     <tr>
                       <td>{{ c.fecha }}</td>
                       <td>{{ c.dia }}</td>
-                      <td>{{ c.diaEquivalente }}</td>
                       <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
                       <td class="num">{{ c.tasaActual > 0 ? formatearMoneda(c.tasaActual) : '-' }}</td>
                       <td class="num">$ {{ formatearMoneda(c.convertidoActual) }}</td>
@@ -390,7 +388,6 @@
                 <tfoot>
                   <tr class="total-row">
                     <td><strong>TOTAL</strong></td>
-                    <td></td>
                     <td></td>
                     <td class="num"><strong>Bs {{ formatearMoneda(totalOriginal()) }}</strong></td>
                     <td></td>
@@ -409,7 +406,6 @@
                   <tr>
                     <th>Fecha</th>
                     <th>Día</th>
-                    <th>Día Equivalente</th>
                     <th>Ventas (Bs)</th>
                     <th>Tasa USD</th>
                     <th>Convertido ($)</th>
@@ -420,7 +416,6 @@
                     <tr>
                       <td>{{ c.fecha }}</td>
                       <td>{{ c.dia }}</td>
-                      <td>{{ c.diaEquivalente }}</td>
                       <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
                       <td class="num">{{ c.tasaAnterior > 0 ? formatearMoneda(c.tasaAnterior) : '-' }}</td>
                       <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
@@ -430,7 +425,6 @@
                 <tfoot>
                   <tr class="total-row">
                     <td><strong>TOTAL</strong></td>
-                    <td></td>
                     <td></td>
                     <td class="num"><strong>{{ totalOriginalAnterior() > 0 ? 'Bs ' + formatearMoneda(totalOriginalAnterior()) : '-' }}</strong></td>
                     <td></td>
@@ -443,6 +437,44 @@
         </div>
 
         <div class="comparacion-divider"></div>
+
+        <div class="resumen-diario-seccion">
+          <div class="resumen-header">Comparación por Día de la Semana (USD)</div>
+          <div class="result-table-wrapper">
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>Día</th>
+                  <th>Año Actual ($)</th>
+                  <th>Año Anterior ($)</th>
+                  <th>Variación (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of getResumenPorDiaSemana(); track r.dia) {
+                  <tr>
+                    <td>{{ r.dia }}</td>
+                    <td class="num">$ {{ formatearMoneda(r.actual) }}</td>
+                    <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
+                    <td class="num" [class.positivo]="r.variacion > 0" [class.negativo]="r.variacion < 0">
+                      {{ r.variacion > 0 ? '+' : '' }}{{ r.variacion }}%
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td><strong>TOTAL</strong></td>
+                  <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
+                  <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>
+                  <td class="num" [class.positivo]="variacionUSDPorcentaje() > 0" [class.negativo]="variacionUSDPorcentaje() < 0">
+                    <strong>{{ variacionUSDPorcentaje() > 0 ? '+' : '' }}{{ variacionUSDPorcentaje() }}%</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
 
         <div class="resumen-comparacion">
           <div class="resumen-header">Resumen de Comparación (USD)</div>

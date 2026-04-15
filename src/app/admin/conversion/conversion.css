@@ -768,6 +768,14 @@
   padding: 0 1.5rem 1rem;
 }
 
+.resumen-diario-seccion {
+  padding: 0 1.5rem 1rem;
+}
+
+.resumen-diario-seccion .result-table th {
+  background: #6f42c1;
+}
+
 .comparacion-divider {
   height: 4px;
   background: linear-gradient(90deg, #1d63c1 0%, #2e7d32 50%, #6f42c1 100%);

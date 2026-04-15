@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx';
 interface FilaResultado {
   fecha: string;
   dia: string;
-  diaEquivalente: string;
+  diaSemana: number;
   totalOriginal: number;
   tasa: number;
   totalConvertido: number;
@@ -17,7 +17,7 @@ interface FilaResultado {
 interface ComparacionResultado {
   fecha: string;
   dia: string;
-  diaEquivalente: string;
+  diaSemana: number;
   totalActual: number;
   totalAnterior: number;
   tasaActual: number;
@@ -964,7 +964,9 @@ export class Conversion {
 
         if (!fecha) continue;
 
-        const diaEquivalente = this.getDiaEquivalente(fecha);
+        const fechaDate = new Date(fecha + 'T00:00:00');
+        const diaSemana = fechaDate.getDay();
+
         const tasa = todasLasTasas.get(fecha) || 0;
         const totalConvertido = tasa > 0 ? total / tasa : 0;
 
@@ -978,7 +980,7 @@ export class Conversion {
         resultados.push({
           fecha,
           dia,
-          diaEquivalente,
+          diaSemana,
           totalOriginal: total,
           tasa,
           totalConvertido,
@@ -1114,8 +1116,10 @@ export class Conversion {
 
       if (!fecha) continue;
 
-      const diaEquivalente = this.getDiaEquivalente(fecha);
-      const tasa = todasLasTasas.get(diaEquivalente) || todasLasTasas.get(fecha) || 0;
+      const fechaDate = new Date(fecha + 'T00:00:00');
+      const diaSemana = fechaDate.getDay();
+
+      const tasa = todasLasTasas.get(fecha) || 0;
       const totalConvertido = tasa > 0 ? total / tasa : 0;
 
       const columnasExtra: { [key: string]: any } = {};
@@ -1128,7 +1132,7 @@ export class Conversion {
       resultados.push({
         fecha,
         dia,
-        diaEquivalente,
+        diaSemana,
         totalOriginal: total,
         tasa,
         totalConvertido,
@@ -1178,7 +1182,7 @@ export class Conversion {
         comparacionesActualList.push({
           fecha,
           dia: actual.dia || '',
-          diaEquivalente: actual.diaEquivalente || '',
+          diaSemana: actual.diaSemana ?? 0,
           totalActual: actual.totalOriginal,
           totalAnterior: 0,
           tasaActual: actual.tasa,
@@ -1196,7 +1200,7 @@ export class Conversion {
         comparacionesAnteriorList.push({
           fecha,
           dia: anterior.dia || '',
-          diaEquivalente: anterior.diaEquivalente || '',
+          diaSemana: anterior.diaSemana ?? 0,
           totalActual: 0,
           totalAnterior: anterior.totalOriginal,
           tasaActual: 0,
@@ -1226,7 +1230,7 @@ export class Conversion {
       comparaciones.push({
         fecha,
         dia: actual?.dia || anterior?.dia || '',
-        diaEquivalente: actual?.diaEquivalente || anterior?.diaEquivalente || '',
+        diaSemana: actual?.diaSemana ?? anterior?.diaSemana ?? 0,
         totalActual,
         totalAnterior,
         tasaActual,
@@ -1622,11 +1626,47 @@ export class Conversion {
     return count > 0 ? Math.round((sumaTasa / count) * 10000) / 10000 : 0;
   }
 
-  private getDiaEquivalente(fecha: string): string {
-    return fecha;
+  getDiaSemanaNum(diaSemana: number): string {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return dias[diaSemana] || '';
   }
 
-  getDiaEquivalentePublico(fecha: string): string {
-    return this.getDiaEquivalente(fecha);
+  esMismoDiaSemana(dia1: number, dia2: number): boolean {
+    return dia1 === dia2;
+  }
+
+  getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const actuales = this.resultados();
+    const anteriores = this.resultadosAnterior();
+
+    const totalesPorDia = new Map<number, { actual: number; anterior: number }>();
+
+    for (let i = 0; i < 7; i++) {
+      totalesPorDia.set(i, { actual: 0, anterior: 0 });
+    }
+
+    actuales.forEach(r => {
+      const current = totalesPorDia.get(r.diaSemana);
+      if (current) {
+        current.actual += r.totalConvertido;
+      }
+    });
+
+    anteriores.forEach(r => {
+      const current = totalesPorDia.get(r.diaSemana);
+      if (current) {
+        current.anterior += r.totalConvertido;
+      }
+    });
+
+    return Array.from(totalesPorDia.entries()).map(([diaSemana, valores]) => ({
+      dia: dias[diaSemana],
+      actual: Math.round(valores.actual * 100) / 100,
+      anterior: Math.round(valores.anterior * 100) / 100,
+      variacion: valores.anterior > 0 
+        ? Math.round(((valores.actual - valores.anterior) / valores.anterior) * 10000) / 100 
+        : 0
+    }));
   }
 }

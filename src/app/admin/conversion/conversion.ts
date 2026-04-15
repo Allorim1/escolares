@@ -952,9 +952,12 @@ export class Conversion {
       let totalOrig = 0;
       let totalConv = 0;
 
+      const idxDiaV = ventasHeaders.findIndex(h => h.toUpperCase() === 'DIA');
+
       for (let i = 1; i < ventasRows.length; i++) {
         const row = ventasRows[i];
         const fecha = this.normalizarFecha(row[idxFechaV]);
+        const dia = idxDiaV >= 0 ? String(row[idxDiaV] || '') : '';
         const total = this.parseNumber(row[idxTotalV]);
 
         if (!fecha) continue;
@@ -971,6 +974,7 @@ export class Conversion {
 
         resultados.push({
           fecha,
+          dia,
           totalOriginal: total,
           tasa,
           totalConvertido,
@@ -1213,6 +1217,7 @@ export class Conversion {
 
       comparaciones.push({
         fecha,
+        dia: actual?.dia || anterior?.dia || '',
         totalActual,
         totalAnterior,
         tasaActual,

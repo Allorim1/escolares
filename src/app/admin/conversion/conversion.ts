@@ -16,6 +16,8 @@ interface ComparacionResultado {
   fecha: string;
   totalActual: number;
   totalAnterior: number;
+  tasaActual: number;
+  tasaAnterior: number;
   convertidoActual: number;
   convertidoAnterior: number;
   variacionPct: number;
@@ -1151,6 +1153,8 @@ export class Conversion {
 
       const totalActual = actual?.totalOriginal ?? 0;
       const totalAnterior = anterior?.totalOriginal ?? 0;
+      const tasaActual = actual?.tasa ?? 0;
+      const tasaAnterior = anterior?.tasa ?? 0;
       const convertidoActual = actual?.totalConvertido ?? 0;
       const convertidoAnterior = anterior?.totalConvertido ?? 0;
 
@@ -1162,6 +1166,8 @@ export class Conversion {
         fecha,
         totalActual,
         totalAnterior,
+        tasaActual,
+        tasaAnterior,
         convertidoActual,
         convertidoAnterior,
         variacionPct
@@ -1523,5 +1529,31 @@ export class Conversion {
 
   cerrarModalComparacion() {
     this.mostrarModalComparacion.set(false);
+  }
+
+  diferenciaUSD(): number {
+    return Math.round((this.totalConvertido() - this.totalConvertidoAnterior()) * 100) / 100;
+  }
+
+  variacionUSDPorcentaje(): number {
+    const anterior = this.totalConvertidoAnterior();
+    if (anterior === 0) return 0;
+    return Math.round(((this.totalConvertido() - anterior) / anterior) * 10000) / 100;
+  }
+
+  tasaPromedioActual(): number {
+    const resultados = this.resultados();
+    if (resultados.length === 0) return 0;
+    const sumaTasa = resultados.reduce((sum, r) => sum + (r.tasa > 0 ? r.tasa : 0), 0);
+    const count = resultados.filter(r => r.tasa > 0).length;
+    return count > 0 ? Math.round((sumaTasa / count) * 10000) / 10000 : 0;
+  }
+
+  tasaPromedioAnterior(): number {
+    const resultados = this.resultadosAnterior();
+    if (resultados.length === 0) return 0;
+    const sumaTasa = resultados.reduce((sum, r) => sum + (r.tasa > 0 ? r.tasa : 0), 0);
+    const count = resultados.filter(r => r.tasa > 0).length;
+    return count > 0 ? Math.round((sumaTasa / count) * 10000) / 10000 : 0;
   }
 }

@@ -476,8 +476,14 @@
           </div>
         </div>
 
-        <div class="comparacion-dia-por-dia-seccion">
-          <div class="resumen-header">Comparación Día a Día</div>
+<div class="comparacion-dia-por-dia-seccion">
+          <div class="resumen-header">
+            <span>Comparación Día a Día (Lunes con Lunes, Martes con Martes...)</span>
+            <div class="meta-input-container">
+              <label>Meta (%):</label>
+              <input type="number" class="meta-input" [(ngModel)]="metaVariacion" min="0" max="100">
+            </div>
+          </div>
           <div class="result-table-wrapper">
             <table class="result-table">
               <thead>
@@ -498,7 +504,10 @@
                     <td>{{ r.fechaAnterior }}</td>
                     <td class="num">{{ r.actual > 0 ? '$ ' + formatearMoneda(r.actual) : '-' }}</td>
                     <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
-                    <td class="num" [class.positivo]="r.variacion > 0" [class.negativo]="r.variacion < 0">
+                    <td class="num" 
+                      [class.positivo]="r.variacion > 0" 
+                      [class.negativo]="r.variacion < 0"
+                      [class.meta-cumplida]="r.variacion > 0 && cumpleMeta(r.variacion)">
                       {{ r.variacion > 0 ? '+' : '' }}{{ r.variacion }}%
                     </td>
                   </tr>
@@ -506,6 +515,7 @@
               </tbody>
             </table>
           </div>
+        </div>
         </div>
 
         <div class="resumen-comparacion">

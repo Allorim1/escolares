@@ -89,6 +89,7 @@ export class Conversion {
   comparacionesAnterior = signal<ComparacionResultado[]>([]);
   variacionTotalPct = signal(0);
   mostrarModalComparacion = signal(false);
+  metaVariacion = signal(30);
 
   onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -1631,9 +1632,14 @@ export class Conversion {
     return dias[diaSemana] || '';
   }
 
-  esMismoDiaSemana(dia1: number, dia2: number): boolean {
+esMismoDiaSemana(dia1: number, dia2: number): boolean {
     return dia1 === dia2;
   }
+
+  cumpleMeta(variacion: number): boolean {
+    return variacion >= this.metaVariacion();
+  }
+}
 
   getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];

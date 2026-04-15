@@ -316,26 +316,30 @@
   @if (comparaciones().length > 0) {
     <div class="comparacion-section">
       <div class="result-header">
-        <h3>📊 Comparación de Períodos</h3>
+        <h3>📊 Comparación Anual</h3>
       </div>
 
-      <div class="totals-bar comparacion-totals">
-        <div class="total-item">
-          <span class="total-label">Total Actual:</span>
-          <span class="total-value">Bs {{ formatearMoneda(totalOriginal()) }}</span>
+      <div class="comparacion-totals-bar">
+        <div class="comparacion-total-card">
+          <div class="comparacion-total-label">Año Actual (Bs)</div>
+          <div class="comparacion-total-value">{{ formatearMoneda(totalOriginal()) }}</div>
         </div>
-        @if (ventasAnteriorNombre()) {
-          <div class="total-item">
-            <span class="total-label">Total Anterior:</span>
-            <span class="total-value">Bs {{ formatearMoneda(totalOriginalAnterior()) }}</span>
-          </div>
-          <div class="total-item">
-            <span class="total-label">Variación:</span>
-            <span class="total-value" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
-              {{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%
-            </span>
-          </div>
-        }
+        <div class="comparacion-total-card">
+          <div class="comparacion-total-label">Año Anterior (Bs)</div>
+          <div class="comparacion-total-value">{{ formatearMoneda(totalOriginalAnterior()) }}</div>
+        </div>
+        <div class="comparacion-total-card highlight">
+          <div class="comparacion-total-label">Año Actual (USD)</div>
+          <div class="comparacion-total-value">$ {{ formatearMoneda(totalConvertido()) }}</div>
+        </div>
+        <div class="comparacion-total-card highlight">
+          <div class="comparacion-total-label">Año Anterior (USD)</div>
+          <div class="comparacion-total-value">$ {{ formatearMoneda(totalConvertidoAnterior()) }}</div>
+        </div>
+        <div class="comparacion-total-card" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
+          <div class="comparacion-total-label">Variación</div>
+          <div class="comparacion-total-value">{{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%</div>
+        </div>
       </div>
 
       <div class="result-table-wrapper">
@@ -343,15 +347,11 @@
           <thead>
             <tr>
               <th>Fecha</th>
-              <th>Actual (Bs)</th>
-              @if (ventasAnteriorNombre()) {
-                <th>Anterior (Bs)</th>
-                <th>Var. %</th>
-              }
-              <th>Conv. Actual ($)</th>
-              @if (ventasAnteriorNombre()) {
-                <th>Conv. Anterior ($)</th>
-              }
+              <th>Ventas Actual (Bs)</th>
+              <th>Ventas Anterior (Bs)</th>
+              <th>Var. %</th>
+              <th>Ganancia Actual ($)</th>
+              <th>Ganancia Anterior ($)</th>
             </tr>
           </thead>
           <tbody>
@@ -359,20 +359,16 @@
               <tr>
                 <td>{{ c.fecha }}</td>
                 <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
-                @if (ventasAnteriorNombre()) {
-                  <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
-                  <td class="num" [class.positivo]="c.variacionPct > 0" [class.negativo]="c.variacionPct < 0">
-                    @if (c.totalAnterior > 0) {
-                      {{ c.variacionPct > 0 ? '+' : '' }}{{ c.variacionPct }}%
-                    } @else {
-                      -
-                    }
-                  </td>
-                }
+                <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
+                <td class="num" [class.positivo]="c.variacionPct > 0" [class.negativo]="c.variacionPct < 0">
+                  @if (c.totalAnterior > 0) {
+                    {{ c.variacionPct > 0 ? '+' : '' }}{{ c.variacionPct }}%
+                  } @else {
+                    -
+                  }
+                </td>
                 <td class="num">$ {{ formatearMoneda(c.convertidoActual) }}</td>
-                @if (ventasAnteriorNombre()) {
-                  <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
-                }
+                <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
               </tr>
             }
           </tbody>
@@ -380,16 +376,12 @@
             <tr class="total-row">
               <td><strong>TOTALES</strong></td>
               <td class="num"><strong>Bs {{ formatearMoneda(totalOriginal()) }}</strong></td>
-              @if (ventasAnteriorNombre()) {
-                <td class="num"><strong>Bs {{ formatearMoneda(totalOriginalAnterior()) }}</strong></td>
-                <td class="num" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
-                  <strong>{{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%</strong>
-                </td>
-              }
+              <td class="num"><strong>Bs {{ formatearMoneda(totalOriginalAnterior()) }}</strong></td>
+              <td class="num" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
+                <strong>{{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%</strong>
+              </td>
               <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
-              @if (ventasAnteriorNombre()) {
-                <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>
-              }
+              <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>
             </tr>
           </tfoot>
         </table>

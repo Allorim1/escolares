@@ -982,22 +982,35 @@ export class Conversion {
   }
 
   procesarComparacion() {
-    if (this.tasasMap().size === 0) {
-      this.error.set('Debe cargar y procesar el archivo de tasas primero');
-      return;
-    }
-
     const tasaMap = this.tasasMap();
     const tasasManuales = this.tasasManuales();
     const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
 
-    // Procesar archivo anterior si existe
+    const tasasAnteriores = this.tasasAnterioresMap();
+
+    // Procesar archivo actual con tasas actuales
+    if (this.resultados().length === 0 && this.ventasRaw().length >= 2) {
+      const resActual = this.calcularResultados(
+        this.ventasRaw(),
+        this.columnaFechaVentas(),
+        this.columnaTotalVentas(),
+        todasLasTasas
+      );
+      this.resultados.set(resActual.resultados);
+      this.totalOriginal.set(resActual.totalOrig);
+      this.totalConvertido.set(resActual.totalConv);
+    }
+
+    // Procesar archivo anterior con tasas anteriores
     if (this.ventasAnteriorRaw().length >= 2) {
+      // Si hay tasas anteriores, usarlas; si no, usar las tasas actuales
+      const tasasParaAnterior = tasasAnteriores.size > 0 ? tasasAnteriores : todasLasTasas;
+      
       const resAnterior = this.calcularResultados(
         this.ventasAnteriorRaw(),
         this.columnaFechaAnterior(),
         this.columnaTotalAnterior(),
-        todasLasTasas
+        tasasParaAnterior
       );
       this.resultadosAnterior.set(resAnterior.resultados);
       this.totalOriginalAnterior.set(resAnterior.totalOrig);

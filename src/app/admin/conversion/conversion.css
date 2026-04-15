@@ -550,8 +550,49 @@
   border: 2px solid #2e7d32;
 }
 
-.comparacion-totals {
-  background: #e8f5e9;
+.comparacion-totals-bar {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+  border-radius: 12px;
+  justify-content: center;
+}
+
+.comparacion-total-card {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 150px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.comparacion-total-label {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+
+.comparacion-total-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.comparacion-total-card.highlight .comparacion-total-value {
+  color: #1d63c1;
+}
+
+.comparacion-total-card.positivo .comparacion-total-value {
+  color: #2e7d32;
+}
+
+.comparacion-total-card.negativo .comparacion-total-value {
+  color: #c62828;
 }
 
 .comparacion-table th {

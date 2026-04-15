@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 
 interface FilaResultado {
   fecha: string;
+  dia: string;
   totalOriginal: number;
   tasa: number;
   totalConvertido: number;
@@ -14,6 +15,7 @@ interface FilaResultado {
 
 interface ComparacionResultado {
   fecha: string;
+  dia: string;
   totalActual: number;
   totalAnterior: number;
   tasaActual: number;
@@ -1086,6 +1088,7 @@ export class Conversion {
     const ventasHeaders = ventasRows[0];
     const idxFechaV = ventasHeaders.indexOf(colFecha);
     const idxTotalV = ventasHeaders.indexOf(colTotal);
+    const idxDiaV = ventasHeaders.findIndex(h => h.toUpperCase() === 'DIA');
 
     if (idxFechaV < 0 || idxTotalV < 0) {
       return { resultados: [], totalOrig: 0, totalConv: 0 };
@@ -1098,6 +1101,7 @@ export class Conversion {
     for (let i = 1; i < ventasRows.length; i++) {
       const row = ventasRows[i];
       const fecha = this.normalizarFecha(row[idxFechaV]);
+      const dia = idxDiaV >= 0 ? String(row[idxDiaV] || '') : '';
       const total = this.parseNumber(row[idxTotalV]);
 
       if (!fecha) continue;
@@ -1114,6 +1118,7 @@ export class Conversion {
 
       resultados.push({
         fecha,
+        dia,
         totalOriginal: total,
         tasa,
         totalConvertido,
@@ -1162,6 +1167,7 @@ export class Conversion {
       if (actual) {
         comparacionesActualList.push({
           fecha,
+          dia: actual.dia || '',
           totalActual: actual.totalOriginal,
           totalAnterior: 0,
           tasaActual: actual.tasa,
@@ -1178,6 +1184,7 @@ export class Conversion {
       if (anterior) {
         comparacionesAnteriorList.push({
           fecha,
+          dia: anterior.dia || '',
           totalActual: 0,
           totalAnterior: anterior.totalOriginal,
           tasaActual: 0,

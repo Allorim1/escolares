@@ -368,6 +368,7 @@
                 <thead>
                   <tr>
                     <th>Fecha</th>
+                    <th>Día</th>
                     <th>Ventas (Bs)</th>
                     <th>Tasa USD</th>
                     <th>Convertido ($)</th>
@@ -377,6 +378,7 @@
                   @for (c of comparacionesActual(); track c.fecha) {
                     <tr>
                       <td>{{ c.fecha }}</td>
+                      <td>{{ c.dia }}</td>
                       <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
                       <td class="num">{{ c.tasaActual > 0 ? formatearMoneda(c.tasaActual) : '-' }}</td>
                       <td class="num">$ {{ formatearMoneda(c.convertidoActual) }}</td>
@@ -386,6 +388,7 @@
                 <tfoot>
                   <tr class="total-row">
                     <td><strong>TOTAL</strong></td>
+                    <td></td>
                     <td class="num"><strong>Bs {{ formatearMoneda(totalOriginal()) }}</strong></td>
                     <td></td>
                     <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
@@ -402,6 +405,7 @@
                 <thead>
                   <tr>
                     <th>Fecha</th>
+                    <th>Día</th>
                     <th>Ventas (Bs)</th>
                     <th>Tasa USD</th>
                     <th>Convertido ($)</th>
@@ -411,6 +415,7 @@
                   @for (c of comparacionesAnterior(); track c.fecha) {
                     <tr>
                       <td>{{ c.fecha }}</td>
+                      <td>{{ c.dia }}</td>
                       <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
                       <td class="num">{{ c.tasaAnterior > 0 ? formatearMoneda(c.tasaAnterior) : '-' }}</td>
                       <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
@@ -420,6 +425,7 @@
                 <tfoot>
                   <tr class="total-row">
                     <td><strong>TOTAL</strong></td>
+                    <td></td>
                     <td class="num"><strong>{{ totalOriginalAnterior() > 0 ? 'Bs ' + formatearMoneda(totalOriginalAnterior()) : '-' }}</strong></td>
                     <td></td>
                     <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>

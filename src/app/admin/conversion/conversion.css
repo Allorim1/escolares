@@ -771,8 +771,17 @@
 .comparacion-divider {
   height: 4px;
   background: linear-gradient(90deg, #1d63c1 0%, #2e7d32 50%, #6f42c1 100%);
-  margin: 1rem 0;
+  margin: 1.5rem 0;
   border-radius: 2px;
+}
+
+.comparacion-tables-container {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  min-height: 350px;
 }
 
 .resumen-header {
@@ -794,6 +803,12 @@
   border: 2px solid #6f42c1;
   border-top: none;
   border-radius: 0 0 8px 8px;
+}
+
+.resumen-grid-compacto {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+  padding: 0.8rem;
 }
 
 .resumen-item {

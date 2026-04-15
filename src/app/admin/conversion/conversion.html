@@ -433,22 +433,14 @@
         <div class="comparacion-divider"></div>
 
         <div class="resumen-comparacion">
-          <div class="resumen-header">Resumen de Comparación</div>
-          <div class="resumen-grid">
+          <div class="resumen-header">Resumen de Comparación (USD)</div>
+          <div class="resumen-grid resumen-grid-compacto">
             <div class="resumen-item">
-              <div class="resumen-label">Ventas Año Actual</div>
-              <div class="resumen-value">Bs {{ formatearMoneda(totalOriginal()) }}</div>
-            </div>
-            <div class="resumen-item">
-              <div class="resumen-label">Ventas Año Anterior</div>
-              <div class="resumen-value">Bs {{ formatearMoneda(totalOriginalAnterior()) }}</div>
-            </div>
-            <div class="resumen-item highlight">
-              <div class="resumen-label">Ganancia Año Actual (USD)</div>
+              <div class="resumen-label">Ganancia Año Actual</div>
               <div class="resumen-value">$ {{ formatearMoneda(totalConvertido()) }}</div>
             </div>
-            <div class="resumen-item highlight">
-              <div class="resumen-label">Ganancia Año Anterior (USD)</div>
+            <div class="resumen-item">
+              <div class="resumen-label">Ganancia Año Anterior</div>
               <div class="resumen-value">$ {{ formatearMoneda(totalConvertidoAnterior()) }}</div>
             </div>
             <div class="resumen-item">
@@ -458,24 +450,10 @@
               </div>
             </div>
             <div class="resumen-item">
-              <div class="resumen-label">Variación Ventas (Bs)</div>
-              <div class="resumen-value" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
-                {{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%
-              </div>
-            </div>
-            <div class="resumen-item">
               <div class="resumen-label">Variación USD</div>
               <div class="resumen-value" [class.positivo]="variacionUSDPorcentaje() > 0" [class.negativo]="variacionUSDPorcentaje() < 0">
                 {{ variacionUSDPorcentaje() > 0 ? '+' : '' }}{{ variacionUSDPorcentaje() }}%
               </div>
-            </div>
-            <div class="resumen-item">
-              <div class="resumen-label">Tipo de Cambio Promedio Actual</div>
-              <div class="resumen-value">Bs {{ formatearMoneda(tasaPromedioActual()) }}</div>
-            </div>
-            <div class="resumen-item">
-              <div class="resumen-label">Tipo de Cambio Promedio Anterior</div>
-              <div class="resumen-value">Bs {{ formatearMoneda(tasaPromedioAnterior()) }}</div>
             </div>
           </div>
         </div>

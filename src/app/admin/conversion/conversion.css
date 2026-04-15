@@ -768,6 +768,13 @@
   padding: 0 1.5rem 1rem;
 }
 
+.comparacion-divider {
+  height: 4px;
+  background: linear-gradient(90deg, #1d63c1 0%, #2e7d32 50%, #6f42c1 100%);
+  margin: 1rem 0;
+  border-radius: 2px;
+}
+
 .resumen-header {
   background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
   color: white;

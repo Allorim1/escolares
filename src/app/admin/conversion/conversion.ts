@@ -1669,4 +1669,53 @@ export class Conversion {
         : 0
     }));
   }
+
+  getComparacionDiaPorDia(): { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const actuales = this.resultados();
+    const anteriores = this.resultadosAnterior();
+
+    const mapaActual = new Map<number, FilaResultado[]>();
+    const mapaAnterior = new Map<number, FilaResultado[]>();
+
+    actuales.forEach(r => {
+      const lista = mapaActual.get(r.diaSemana) || [];
+      lista.push(r);
+      mapaActual.set(r.diaSemana, lista);
+    });
+
+    anteriores.forEach(r => {
+      const lista = mapaAnterior.get(r.diaSemana) || [];
+      lista.push(r);
+      mapaAnterior.set(r.diaSemana, lista);
+    });
+
+    const resultado: { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
+
+    for (let diaSemana = 0; diaSemana < 7; diaSemana++) {
+      const diasActual = mapaActual.get(diaSemana) || [];
+      const diasAnterior = mapaAnterior.get(diaSemana) || [];
+
+      const maxLen = Math.max(diasActual.length, diasAnterior.length);
+      
+      for (let i = 0; i < maxLen; i++) {
+        const actual = diasActual[i];
+        const anterior = diasAnterior[i];
+
+        const actualUSD = actual?.totalConvertido || 0;
+        const anteriorUSD = anterior?.totalConvertido || 0;
+
+        resultado.push({
+          fechaActual: actual?.fecha || '',
+          fechaAnterior: anterior?.fecha || '',
+          dia: dias[diaSemana],
+          actual: Math.round(actualUSD * 100) / 100,
+          anterior: Math.round(anteriorUSD * 100) / 100,
+          variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+        });
+      }
+    }
+
+    return resultado.filter(r => r.fechaActual || r.fechaAnterior);
+  }
 }

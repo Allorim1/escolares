@@ -476,6 +476,38 @@
           </div>
         </div>
 
+        <div class="comparacion-dia-por-dia-seccion">
+          <div class="resumen-header">Comparación Día a Día (Lunes con Lunes, Martes con Martes...)</div>
+          <div class="result-table-wrapper">
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>Día</th>
+                  <th>Fecha Año Actual</th>
+                  <th>Fecha Año Anterior</th>
+                  <th>Actual ($)</th>
+                  <th>Anterior ($)</th>
+                  <th>Var. (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of getComparacionDiaPorDia(); track r.fechaActual + r.fechaAnterior + $index) {
+                  <tr>
+                    <td>{{ r.dia }}</td>
+                    <td>{{ r.fechaActual }}</td>
+                    <td>{{ r.fechaAnterior }}</td>
+                    <td class="num">{{ r.actual > 0 ? '$ ' + formatearMoneda(r.actual) : '-' }}</td>
+                    <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
+                    <td class="num" [class.positivo]="r.variacion > 0" [class.negativo]="r.variacion < 0">
+                      {{ r.variacion > 0 ? '+' : '' }}{{ r.variacion }}%
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="resumen-comparacion">
           <div class="resumen-header">Resumen de Comparación (USD)</div>
           <div class="resumen-grid resumen-grid-compacto">

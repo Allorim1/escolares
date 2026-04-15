@@ -74,6 +74,10 @@ export class Conversion {
   tasasAnterioresColumnas = signal<string[]>([]);
   tasasAnterioresPreview = signal<any[][]>([]);
 
+  // Tasas manuales para año anterior
+  tasasAnterioresManuales = signal<Map<string, number>>(new Map());
+  fechasSinTasaAnterior = signal<string[]>([]);
+
   comparaciones = signal<ComparacionResultado[]>([]);
   variacionTotalPct = signal(0);
 
@@ -986,7 +990,11 @@ export class Conversion {
     const tasasManuales = this.tasasManuales();
     const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
 
-    const tasasAnteriores = this.tasasAnterioresMap();
+    const tasasAnterioresBase = this.tasasAnterioresMap();
+    const tasasAnterioresManual = this.tasasAnterioresManuales();
+    const todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+
+    const fechasFaltantesAnterior: string[] = [];
 
     // Procesar archivo actual con tasas actuales
     if (this.resultados().length === 0 && this.ventasRaw().length >= 2) {
@@ -1002,15 +1010,53 @@ export class Conversion {
     }
 
     // Procesar archivo anterior con tasas anteriores
-    if (this.ventasAnteriorRaw().length >= 2) {
-      // Si hay tasas anteriores, usarlas; si no, usar las tasas actuales
-      const tasasParaAnterior = tasasAnteriores.size > 0 ? tasasAnteriores : todasLasTasas;
+    if (this.ventasAnteriorRaw().length >= 2 && todasLasTasasAnteriores.size > 0) {
+      // Primera pasada: recopilar todas las fechas únicas de ventas anteriores
+      const ventasAnteriorRows = this.ventasAnteriorRaw();
+      const ventasAnteriorHeaders = ventasAnteriorRows[0];
+      const idxFechaAnterior = ventasAnteriorHeaders.indexOf(this.columnaFechaAnterior());
       
+      const fechasVentasAnterior = new Set<string>();
+      for (let i = 1; i < ventasAnteriorRows.length; i++) {
+        const fecha = this.normalizarFecha(ventasAnteriorRows[i][idxFechaAnterior]);
+        if (fecha) fechasVentasAnterior.add(fecha);
+      }
+
+      // Para fechas de fin de semana sin tasa, buscar la del próximo lunes
+      for (const fecha of fechasVentasAnterior) {
+        if (todasLasTasasAnteriores.has(fecha)) continue;
+        const fechaDate = new Date(fecha + 'T00:00:00');
+        const diaSemana = fechaDate.getDay();
+
+        if (diaSemana === 0 || diaSemana === 6) {
+          const diasHastaLunes = diaSemana === 6 ? 2 : 1;
+          const lunesDate = new Date(fechaDate);
+          lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
+          const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
+          const tasaLunes = todasLasTasasAnteriores.get(lunesStr);
+          if (tasaLunes) {
+            todasLasTasasAnteriores.set(fecha, tasaLunes);
+          }
+        }
+      }
+
+      // Detectar fechas laborales sin tasa
+      for (const fecha of fechasVentasAnterior) {
+        if (todasLasTasasAnteriores.has(fecha)) continue;
+        const fechaDate = new Date(fecha + 'T00:00:00');
+        const diaSemana = fechaDate.getDay();
+        if (diaSemana !== 0 && diaSemana !== 6) {
+          fechasFaltantesAnterior.push(fecha);
+        }
+      }
+
+      this.fechasSinTasaAnterior.set(fechasFaltantesAnterior);
+
       const resAnterior = this.calcularResultados(
         this.ventasAnteriorRaw(),
         this.columnaFechaAnterior(),
         this.columnaTotalAnterior(),
-        tasasParaAnterior
+        todasLasTasasAnteriores
       );
       this.resultadosAnterior.set(resAnterior.resultados);
       this.totalOriginalAnterior.set(resAnterior.totalOrig);
@@ -1417,6 +1463,8 @@ export class Conversion {
     this.tasasAnterioresFilas.set([]);
     this.tasasAnterioresColumnas.set([]);
     this.tasasAnterioresPreview.set([]);
+    this.tasasAnterioresManuales.set(new Map());
+    this.fechasSinTasaAnterior.set([]);
     this.comparaciones.set([]);
     this.variacionTotalPct.set(0);
   }
@@ -1446,5 +1494,21 @@ export class Conversion {
     const d = new Date(fecha + 'T00:00:00');
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     return dias[d.getDay()];
+  }
+
+  asignarTasaAnteriorManual(fecha: string, valor: any) {
+    const tasa = parseFloat(valor);
+    if (isNaN(tasa) || tasa <= 0) return;
+    const manuales = new Map(this.tasasAnterioresManuales());
+    manuales.set(fecha, tasa);
+    this.tasasAnterioresManuales.set(manuales);
+    this.procesarComparacion();
+  }
+
+  eliminarTasaAnteriorManual(fecha: string) {
+    const manuales = new Map(this.tasasAnterioresManuales());
+    manuales.delete(fecha);
+    this.tasasAnterioresManuales.set(manuales);
+    this.procesarComparacion();
   }
 }

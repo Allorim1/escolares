@@ -374,6 +374,19 @@
   border: 1px solid #ffc107;
 }
 
+.tasas-anterior-section {
+  background: #f3e5f5;
+  border: 1px solid #6f42c1;
+}
+
+.tasas-anterior-section h3 {
+  color: #6f42c1;
+}
+
+.tasas-anterior-section .tasas-faltantes-desc {
+  color: #6f42c1;
+}
+
 .tasas-faltantes-section h3 {
   color: #856404;
   margin-bottom: 0.5rem;

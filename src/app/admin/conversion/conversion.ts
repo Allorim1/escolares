@@ -80,6 +80,7 @@ export class Conversion {
 
   comparaciones = signal<ComparacionResultado[]>([]);
   variacionTotalPct = signal(0);
+  mostrarModalComparacion = signal(false);
 
   onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -1467,6 +1468,7 @@ export class Conversion {
     this.fechasSinTasaAnterior.set([]);
     this.comparaciones.set([]);
     this.variacionTotalPct.set(0);
+    this.mostrarModalComparacion.set(false);
   }
 
   asignarTasaManual(fecha: string, valor: any) {
@@ -1510,5 +1512,16 @@ export class Conversion {
     manuales.delete(fecha);
     this.tasasAnterioresManuales.set(manuales);
     this.procesarComparacion();
+  }
+
+  abrirModalComparacion() {
+    if (this.comparaciones().length === 0) {
+      this.procesarComparacion();
+    }
+    this.mostrarModalComparacion.set(true);
+  }
+
+  cerrarModalComparacion() {
+    this.mostrarModalComparacion.set(false);
   }
 }

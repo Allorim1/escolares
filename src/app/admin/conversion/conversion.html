@@ -118,8 +118,8 @@
             🔄 Convertir a USD
           }
         </button>
-        @if (ventasAnteriorRaw().length > 1) {
-          <button class="btn-comparar" (click)="procesarComparacion()" [disabled]="resultados().length === 0">
+        @if (ventasAnteriorRaw().length > 1 && tasasMap().size > 0) {
+          <button class="btn-comparar" (click)="abrirModalComparacion()">
             📊 Comparar Períodos
           </button>
         }
@@ -342,78 +342,85 @@
     </div>
   }
 
-  @if (comparaciones().length > 0) {
-    <div class="comparacion-section">
-      <div class="result-header">
-        <h3>📊 Comparación Anual</h3>
-      </div>
+  @if (comparaciones().length > 0 && mostrarModalComparacion()) {
+    <div class="modal-overlay" (click)="cerrarModalComparacion()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>📊 Comparación Anual</h3>
+          <button class="modal-close" (click)="cerrarModalComparacion()">✕</button>
+        </div>
 
-      <div class="comparacion-totals-bar">
-        <div class="comparacion-total-card">
-          <div class="comparacion-total-label">Año Actual (Bs)</div>
-          <div class="comparacion-total-value">{{ formatearMoneda(totalOriginal()) }}</div>
+        <div class="comparacion-totals-bar">
+          <div class="comparacion-total-card">
+            <div class="comparacion-total-label">Año Actual (Bs)</div>
+            <div class="comparacion-total-value">{{ formatearMoneda(totalOriginal()) }}</div>
+          </div>
+          <div class="comparacion-total-card">
+            <div class="comparacion-total-label">Año Anterior (Bs)</div>
+            <div class="comparacion-total-value">{{ formatearMoneda(totalOriginalAnterior()) }}</div>
+          </div>
+          <div class="comparacion-total-card highlight">
+            <div class="comparacion-total-label">Año Actual (USD)</div>
+            <div class="comparacion-total-value">$ {{ formatearMoneda(totalConvertido()) }}</div>
+          </div>
+          <div class="comparacion-total-card highlight">
+            <div class="comparacion-total-label">Año Anterior (USD)</div>
+            <div class="comparacion-total-value">$ {{ formatearMoneda(totalConvertidoAnterior()) }}</div>
+          </div>
+          <div class="comparacion-total-card" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
+            <div class="comparacion-total-label">Variación</div>
+            <div class="comparacion-total-value">{{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%</div>
+          </div>
         </div>
-        <div class="comparacion-total-card">
-          <div class="comparacion-total-label">Año Anterior (Bs)</div>
-          <div class="comparacion-total-value">{{ formatearMoneda(totalOriginalAnterior()) }}</div>
-        </div>
-        <div class="comparacion-total-card highlight">
-          <div class="comparacion-total-label">Año Actual (USD)</div>
-          <div class="comparacion-total-value">$ {{ formatearMoneda(totalConvertido()) }}</div>
-        </div>
-        <div class="comparacion-total-card highlight">
-          <div class="comparacion-total-label">Año Anterior (USD)</div>
-          <div class="comparacion-total-value">$ {{ formatearMoneda(totalConvertidoAnterior()) }}</div>
-        </div>
-        <div class="comparacion-total-card" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
-          <div class="comparacion-total-label">Variación</div>
-          <div class="comparacion-total-value">{{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%</div>
-        </div>
-      </div>
 
-      <div class="result-table-wrapper">
-        <table class="result-table comparacion-table">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Ventas Actual (Bs)</th>
-              <th>Ventas Anterior (Bs)</th>
-              <th>Var. %</th>
-              <th>Ganancia Actual ($)</th>
-              <th>Ganancia Anterior ($)</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (c of comparaciones(); track c.fecha) {
+        <div class="result-table-wrapper">
+          <table class="result-table comparacion-table">
+            <thead>
               <tr>
-                <td>{{ c.fecha }}</td>
-                <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
-                <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
-                <td class="num" [class.positivo]="c.variacionPct > 0" [class.negativo]="c.variacionPct < 0">
-                  @if (c.totalAnterior > 0) {
-                    {{ c.variacionPct > 0 ? '+' : '' }}{{ c.variacionPct }}%
-                  } @else {
-                    -
-                  }
-                </td>
-                <td class="num">$ {{ formatearMoneda(c.convertidoActual) }}</td>
-                <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
+                <th>Fecha</th>
+                <th>Ventas Actual (Bs)</th>
+                <th>Ventas Anterior (Bs)</th>
+                <th>Var. %</th>
+                <th>Ganancia Actual ($)</th>
+                <th>Ganancia Anterior ($)</th>
               </tr>
-            }
-          </tbody>
-          <tfoot>
-            <tr class="total-row">
-              <td><strong>TOTALES</strong></td>
-              <td class="num"><strong>Bs {{ formatearMoneda(totalOriginal()) }}</strong></td>
-              <td class="num"><strong>Bs {{ formatearMoneda(totalOriginalAnterior()) }}</strong></td>
-              <td class="num" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
-                <strong>{{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%</strong>
-              </td>
-              <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
-              <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>
-            </tr>
-          </tfoot>
-        </table>
+            </thead>
+            <tbody>
+              @for (c of comparaciones(); track c.fecha) {
+                <tr>
+                  <td>{{ c.fecha }}</td>
+                  <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
+                  <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
+                  <td class="num" [class.positivo]="c.variacionPct > 0" [class.negativo]="c.variacionPct < 0">
+                    @if (c.totalAnterior > 0) {
+                      {{ c.variacionPct > 0 ? '+' : '' }}{{ c.variacionPct }}%
+                    } @else {
+                      -
+                    }
+                  </td>
+                  <td class="num">$ {{ formatearMoneda(c.convertidoActual) }}</td>
+                  <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td><strong>TOTALES</strong></td>
+                <td class="num"><strong>Bs {{ formatearMoneda(totalOriginal()) }}</strong></td>
+                <td class="num"><strong>Bs {{ formatearMoneda(totalOriginalAnterior()) }}</strong></td>
+                <td class="num" [class.positivo]="variacionTotalPct() > 0" [class.negativo]="variacionTotalPct() < 0">
+                  <strong>{{ variacionTotalPct() > 0 ? '+' : '' }}{{ variacionTotalPct() }}%</strong>
+                </td>
+                <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
+                <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-export" (click)="exportarResultados()">📥 Exportar Excel</button>
+        </div>
       </div>
     </div>
   }

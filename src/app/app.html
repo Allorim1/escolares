@@ -1,5 +1,5 @@
 <!-- Maintenance Notice Modal -->
-@if (showMaintenanceModal()) {
+@if (showMaintenanceModal) {
   <div class="maintenance-overlay" (click)="dismissModal()">
     <div class="maintenance-container" (click)="$event.stopPropagation()">
       <img src="/mantenimiento.jpg" alt="Página en mantenimiento" class="maintenance-image">

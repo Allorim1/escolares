@@ -30,7 +30,7 @@ export class App {
     this.storeSettings.setMantenimiento(false);
   }
 
-  get showMaintenanceModal() {
+  showMaintenanceModal() {
     return this.storeSettings.mantenimiento();
   }
 }

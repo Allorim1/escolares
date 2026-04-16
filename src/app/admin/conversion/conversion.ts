@@ -1706,8 +1706,9 @@ esMismoDiaSemana(dia1: number, dia2: number): boolean {
       const diasAnterior = mapaAnterior.get(diaSemana) || [];
 
       const maxLen = Math.max(diasActual.length, diasAnterior.length);
-      
-      for (let i = 0; i < maxLen; i++) {
+      const minLen = Math.min(diasActual.length, diasAnterior.length);
+
+      for (let i = 0; i < minLen; i++) {
         const actual = diasActual[i];
         const anterior = diasAnterior[i];
 
@@ -1722,6 +1723,42 @@ esMismoDiaSemana(dia1: number, dia2: number): boolean {
           anterior: Math.round(anteriorUSD * 100) / 100,
           variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
         });
+      }
+
+      if (diasActual.length > diasAnterior.length) {
+        const primerDiaAnterior = diasAnterior[0];
+        const anteriorUSD = primerDiaAnterior?.totalConvertido || 0;
+        
+        for (let i = minLen; i < diasActual.length; i++) {
+          const actual = diasActual[i];
+          const actualUSD = actual?.totalConvertido || 0;
+
+          resultado.push({
+            fechaActual: actual?.fecha || '',
+            fechaAnterior: primerDiaAnterior?.fecha || '',
+            dia: dias[diaSemana],
+            actual: Math.round(actualUSD * 100) / 100,
+            anterior: Math.round(anteriorUSD * 100) / 100,
+            variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+          });
+        }
+      } else if (diasAnterior.length > diasActual.length) {
+        const ultimoDiaActual = diasActual[diasActual.length - 1];
+        const actualUSD = ultimoDiaActual?.totalConvertido || 0;
+
+        for (let i = minLen; i < diasAnterior.length; i++) {
+          const anterior = diasAnterior[i];
+          const anteriorUSD = anterior?.totalConvertido || 0;
+
+          resultado.push({
+            fechaActual: ultimoDiaActual?.fecha || '',
+            fechaAnterior: anterior?.fecha || '',
+            dia: dias[diaSemana],
+            actual: Math.round(actualUSD * 100) / 100,
+            anterior: Math.round(anteriorUSD * 100) / 100,
+            variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+          });
+        }
       }
     }
 

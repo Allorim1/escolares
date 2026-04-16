@@ -107,4 +107,8 @@ export class AdminInicio implements OnInit {
   toggleCompras() {
     this.storeSettings.toggleCompras();
   }
+
+  toggleMantenimiento() {
+    this.storeSettings.toggleMantenimiento();
+  }
 }

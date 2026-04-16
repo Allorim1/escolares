@@ -21,6 +21,7 @@ export class StoreSettingsService {
 
   constructor() {
     this.loadFromBackend();
+    this.loadMantenimientoFromBackend();
   }
   
   private loadFromStorage(): boolean {
@@ -92,5 +93,59 @@ export class StoreSettingsService {
   isRoot(): boolean {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     return user.rol === 'root';
+  }
+
+  // Signal for mantenimiento mode
+  private mantenimientoInternal = signal<boolean>(this.loadMantenimientoFromStorage());
+  
+  // Public read-only signal
+  mantenimiento = this.mantenimientoInternal.asReadonly();
+  
+  private loadMantenimientoFromStorage(): boolean {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem('mantenimiento');
+      return stored === 'true';
+    }
+    return false;
+  }
+  
+  private saveMantenimientoToStorage(value: boolean) {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('mantenimiento', value.toString());
+    }
+  }
+
+  loadMantenimientoFromBackend() {
+    this.http.get<{ enabled: boolean }>(`${this.API_SETTINGS}/mantenimiento`).subscribe({
+      next: (data) => {
+        if (data && typeof data.enabled === 'boolean') {
+          this.mantenimientoInternal.set(data.enabled);
+          this.saveMantenimientoToStorage(data.enabled);
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  toggleMantenimiento() {
+    const newValue = !this.mantenimientoInternal();
+    this.setMantenimiento(newValue);
+  }
+
+  setMantenimiento(enabled: boolean) {
+    this.mantenimientoInternal.set(enabled);
+    this.saveMantenimientoToStorage(enabled);
+    
+    this.http.put<any>(`${this.API_SETTINGS}/mantenimiento`, { enabled }).subscribe({
+      next: (data) => {
+        if (data && typeof data.enabled === 'boolean') {
+          this.mantenimientoInternal.set(data.enabled);
+          this.saveMantenimientoToStorage(data.enabled);
+        }
+      },
+      error: (err) => {
+        console.error('Error saving mantenimiento setting:', err);
+      }
+    });
   }
 }

@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
+import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 
 interface ProductFormData {
   title: string;
@@ -12,6 +13,7 @@ interface ProductFormData {
   category: string;
   image: string;
   marca: string;
+  lineaId: string;
   iva: boolean;
   ivaPercentage: number;
 }
@@ -26,6 +28,7 @@ interface ProductFormData {
 export class AdminProductos implements OnInit {
   private productsService = inject(ProductsService);
   private marcasService = inject(MarcasService);
+  private lineasService = inject(LineasService);
   private http = inject(HttpClient);
 
   products = signal<Product[]>([]);
@@ -46,6 +49,7 @@ export class AdminProductos implements OnInit {
     category: '',
     image: '',
     marca: '',
+    lineaId: '',
     iva: false,
     ivaPercentage: 16,
   });
@@ -54,6 +58,10 @@ export class AdminProductos implements OnInit {
 
   get marcas(): Marca[] {
     return this.marcasService.marcas();
+  }
+
+  get lineas(): Linea[] {
+    return this.lineasService.lineas();
   }
 
   get filteredProducts(): Product[] {
@@ -127,6 +135,7 @@ export class AdminProductos implements OnInit {
       category: 'electronics',
       image: 'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg',
       marca: '',
+      lineaId: '',
       iva: false,
       ivaPercentage: 16,
     });
@@ -143,6 +152,7 @@ export class AdminProductos implements OnInit {
       category: product.category,
       image: product.image,
       marca: product.marca || '',
+      lineaId: (product as any).lineaId || '',
       iva: product.iva || false,
       ivaPercentage: product.ivaPercentage || 16,
     });
@@ -166,11 +176,15 @@ export class AdminProductos implements OnInit {
         category: data.category,
         image: data.image,
         marca: data.marca || null,
+        lineaId: data.lineaId || null,
         iva: data.iva,
         ivaPercentage: data.ivaPercentage,
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
+          if (data.lineaId) {
+            this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
+          }
           this.cancelEdit();
         },
         error: (err) => {
@@ -186,6 +200,7 @@ export class AdminProductos implements OnInit {
         category: data.category,
         image: data.image,
         marca: data.marca || null,
+        lineaId: data.lineaId || null,
         iva: data.iva,
         ivaPercentage: data.ivaPercentage,
       }).subscribe({
@@ -242,5 +257,12 @@ export class AdminProductos implements OnInit {
         }
       });
     }
+  }
+
+  getLineaName(product: Product): string {
+    const lineaId = (product as any).lineaId;
+    if (!lineaId) return '-';
+    const linea = this.lineasService.getLineaById(lineaId);
+    return linea?.name || '-';
   }
 }

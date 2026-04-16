@@ -3,6 +3,7 @@ import { RouterOutlet, Router } from '@angular/router';
 import { Header } from './shared/ui/header/header';
 import { Footer } from './shared/ui/footer/footer';
 import { ApiKeyStatusService } from './shared/data-access/api-key-status.service';
+import { StoreSettingsService } from './shared/data-access/store-settings.service';
 
 @Component({
   selector: 'app-root',
@@ -14,8 +15,8 @@ import { ApiKeyStatusService } from './shared/data-access/api-key-status.service
 export class App {
   private router = inject(Router);
   private apiKeyStatusService = inject(ApiKeyStatusService);
+  storeSettings = inject(StoreSettingsService);
   protected readonly title = signal('escolares');
-  showMaintenanceModal = signal(true);
 
   constructor() {
     this.apiKeyStatusService.cargarPreciosOcultosParaNoRegistrados();
@@ -26,6 +27,10 @@ export class App {
   }
 
   dismissModal() {
-    this.showMaintenanceModal.set(false);
+    this.storeSettings.setMantenimiento(false);
+  }
+
+  get showMaintenanceModal() {
+    return this.storeSettings.mantenimiento();
   }
 }

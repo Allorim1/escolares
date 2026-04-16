@@ -11,6 +11,7 @@ export interface Product {
   title: string;
   marca?: string;
   linea?: string;
+  lineaId?: string;
   enOferta?: boolean;
   precioOferta?: number;
   createdAt?: Date;

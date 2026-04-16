@@ -32,6 +32,34 @@
         }
       </button>
     </div>
+
+    <div class="store-control-card">
+      <div class="store-control-content">
+        <div class="store-control-icon">🔧</div>
+        <div class="store-control-info">
+          <h3>Modo Mantenimiento</h3>
+          <p class="store-status">
+            @if (storeSettings.mantenimiento()) {
+              <span class="status-badge status-warning">⚠️ Página en Mantenimiento</span>
+            } @else {
+              <span class="status-badge status-active">✅ Sitio Activo</span>
+            }
+          </p>
+        </div>
+      </div>
+      <button 
+        class="toggle-compras-btn"
+        [class.btn-warning]="!storeSettings.mantenimiento()"
+        [class.btn-success]="storeSettings.mantenimiento()"
+        (click)="toggleMantenimiento()"
+      >
+        @if (storeSettings.mantenimiento()) {
+          <span>🔓 Deshabilitar Mantenimiento</span>
+        } @else {
+          <span>🔒 Habilitar Mantenimiento</span>
+        }
+      </button>
+    </div>
   }
 
   @if (loading()) {

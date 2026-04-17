@@ -1,0 +1,207 @@
+<div class="nomina-container">
+  <div class="nomina-header">
+    <h1>Nómina</h1>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="abrirModalEmpleado()">+ Nuevo Empleado</button>
+      <button class="btn-primary" (click)="abrirModalPago()">+ Nuevo Pago</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="!showModalEmpleado() && !showModalPago()" (click)="showModalEmpleado.set(false); showModalPago.set(false)">
+      Pagos
+    </button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtro-group">
+      <label>Empleado:</label>
+      <select [ngModel]="filtros().empleadoId" (ngModelChange)="filtros.update(f => ({...f, empleadoId: $event})); filtrarPagos()">
+        <option value="">Todos</option>
+        @for (emp of empleados(); track emp._id) {
+          <option [value]="emp._id">{{ emp.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Tipo:</label>
+      <select [ngModel]="filtros().tipo" (ngModelChange)="filtros.update(f => ({...f, tipo: $event})); filtrarPagos()">
+        <option value="">Todos</option>
+        @for (tipo of tiposPago; track tipo) {
+          <option [value]="tipo">{{ tipo }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Desde:</label>
+      <input type="date" [ngModel]="filtros().fechaDesde" (ngModelChange)="filtros.update(f => ({...f, fechaDesde: $event})); filtrarPagos()">
+    </div>
+    <div class="filtro-group">
+      <label>Hasta:</label>
+      <input type="date" [ngModel]="filtros().fechaHasta" (ngModelChange)="filtros.update(f => ({...f, fechaHasta: $event})); filtrarPagos()">
+    </div>
+  </div>
+
+  <div class="totales">
+    <div class="total-card">
+      <span class="label">Total Pagado:</span>
+      <span class="value">{{ formatMonto(totales().total) }}</span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="pagos-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Empleado</th>
+          <th>Tipo</th>
+          <th>Monto</th>
+          <th>Notas</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (pago of getPagosFiltrados(); track pago._id) {
+          <tr>
+            <td>{{ formatFecha(pago.fecha) }}</td>
+            <td>{{ getNombreEmpleado(pago.empleadoId) }}</td>
+            <td><span class="tipo-badge">{{ pago.tipo }}</span></td>
+            <td class="monto">{{ formatMonto(pago.monto) }}</td>
+            <td>{{ pago.notas || '-' }}</td>
+            <td class="actions">
+              <button class="btn-edit" (click)="abrirModalPago(pago)">Editar</button>
+              <button class="btn-delete" (click)="eliminarPago(pago._id)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty">No hay pagos registrados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <div class="empleados-section">
+    <h2>Empleados</h2>
+    <table class="empleados-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Cédula</th>
+          <th>Cargo</th>
+          <th>Salario</th>
+          <th>Fecha Ingreso</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (emp of empleados(); track emp._id) {
+          <tr>
+            <td>{{ emp.nombre }}</td>
+            <td>{{ emp.cedula }}</td>
+            <td>{{ emp.cargo }}</td>
+            <td class="monto">{{ formatMonto(emp.salario) }}</td>
+            <td>{{ formatFecha(emp.fechaIngreso) }}</td>
+            <td class="actions">
+              <button class="btn-edit" (click)="abrirModalEmpleado(emp)">Editar</button>
+              <button class="btn-delete" (click)="eliminarEmpleado(emp._id)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty">No hay empleados registrados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (showModalEmpleado()) {
+  <div class="modal-overlay" (click)="cerrarModalEmpleado()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editingEmpleado?._id ? 'Editar' : 'Nuevo' }} Empleado</h2>
+      <form (ngSubmit)="guardarEmpleado()">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="editingEmpleado!.nombre" name="nombre" required>
+        </div>
+        <div class="form-group">
+          <label>Cédula *</label>
+          <input type="text" [(ngModel)]="editingEmpleado!.cedula" name="cedula" required>
+        </div>
+        <div class="form-group">
+          <label>Cargo</label>
+          <input type="text" [(ngModel)]="editingEmpleado!.cargo" name="cargo">
+        </div>
+        <div class="form-group">
+          <label>Salario</label>
+          <input type="number" [(ngModel)]="editingEmpleado!.salario" name="salario" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Fecha Ingreso</label>
+          <input type="date" [(ngModel)]="editingEmpleado!.fechaIngreso" name="fechaIngreso">
+        </div>
+        <div class="form-group">
+          <label>Notas</label>
+          <textarea [(ngModel)]="editingEmpleado!.notas" name="notas" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalEmpleado()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showModalPago()) {
+  <div class="modal-overlay" (click)="cerrarModalPago()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editingPago?._id ? 'Editar' : 'Nuevo' }} Pago</h2>
+      <form (ngSubmit)="guardarPago()">
+        <div class="form-group">
+          <label>Empleado *</label>
+          <select [(ngModel)]="editingPago!.empleadoId" name="empleadoId" (ngModelChange)="onEmpleadoChange($event)" required>
+            <option value="">Seleccionar</option>
+            @for (emp of empleados(); track emp._id) {
+              <option [value]="emp._id">{{ emp.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select [(ngModel)]="editingPago!.tipo" name="tipo" required>
+            @for (tipo of tiposPago; track tipo) {
+              <option [value]="tipo">{{ tipo }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Monto *</label>
+          <input type="number" [(ngModel)]="editingPago!.monto" name="monto" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" [(ngModel)]="editingPago!.fecha" name="fecha" required>
+        </div>
+        <div class="form-group">
+          <label>Notas</label>
+          <textarea [(ngModel)]="editingPago!.notas" name="notas" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalPago()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

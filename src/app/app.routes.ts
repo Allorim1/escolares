@@ -171,6 +171,14 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/cierre-caja/cierre-caja').then((m) => m.CierreCaja),
       },
       {
+        path: 'gastos',
+        loadComponent: () => import('./admin/gastos/gastos').then((m) => m.Gastos),
+      },
+      {
+        path: 'nomina',
+        loadComponent: () => import('./admin/nomina/nomina').then((m) => m.Nomina),
+      },
+      {
         path: 'libro-compras',
         loadComponent: () => import('./admin/libro-compras/libro-compras').then((m) => m.LibroCompras),
       },

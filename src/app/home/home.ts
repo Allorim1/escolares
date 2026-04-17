@@ -600,6 +600,15 @@ export default class HomeComponent implements AfterViewInit, OnDestroy {
 
   private autoScrollInterval: any;
 
+  get duplicatedMarcas() {
+    const original = this.marcas();
+    return [...original, ...original, ...original, ...original];
+  }
+
+  get totalMarcas() {
+    return this.duplicatedMarcas.length;
+  }
+
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
       setTimeout(() => this.revealAll(), 100);
@@ -647,18 +656,20 @@ export default class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   prev() {
-    if (this.currentIndex > 0) {
+    const originalLength = this.marcas().length;
+    if (this.currentIndex > originalLength) {
       this.currentIndex--;
     } else {
-      this.currentIndex = this.marcas().length - 1;
+      this.currentIndex = this.totalMarcas - this.visibleCount - 1;
     }
   }
 
   next() {
-    if (this.currentIndex < this.marcas().length - 1) {
+    const originalLength = this.marcas().length;
+    if (this.currentIndex < this.totalMarcas - this.visibleCount) {
       this.currentIndex++;
     } else {
-      this.currentIndex = 0;
+      this.currentIndex = originalLength;
     }
   }
 

@@ -7,12 +7,12 @@
     <button class="banner-btn next" (click)="nextBanner()">›</button>
   </div>
 
-  @if (marcas().length > 0) {
+  @if (duplicatedMarcas.length > 0) {
     <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">
       <button class="carousel-btn prev" (click)="prev()">‹</button>
       <div class="carousel-viewport">
         <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
-          @for (marca of marcas(); track marca.id) {
+          @for (marca of duplicatedMarcas; track marca.id + '-' + $index) {
             <div class="marca-slide">
               @if (marca.image) {
                 <img [src]="marca.image" [alt]="marca.name" class="marca-image" />

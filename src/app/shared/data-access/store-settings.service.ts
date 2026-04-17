@@ -134,7 +134,7 @@ export class StoreSettingsService {
       next: (data) => {
         if (data && typeof data.enabled === 'boolean') {
           this.mantenimientoInternal.set(data.enabled);
-          this.mantenimientoTipo.set(data.tipo || 'parcial');
+          this.mantenimientoTipoInternal.set(data.tipo || 'parcial');
           this.saveMantenimientoToStorage(data.enabled);
           if (typeof window !== 'undefined') {
             localStorage.setItem('mantenimientoTipo', data.tipo || 'parcial');
@@ -152,7 +152,7 @@ export class StoreSettingsService {
 
   setMantenimiento(enabled: boolean, tipo: string = 'parcial') {
     this.mantenimientoInternal.set(enabled);
-    this.mantenimientoTipo.set(tipo);
+    this.mantenimientoTipoInternal.set(tipo);
     this.saveMantenimientoToStorage(enabled);
     if (typeof window !== 'undefined') {
       localStorage.setItem('mantenimientoTipo', tipo);
@@ -162,7 +162,7 @@ export class StoreSettingsService {
       next: (data) => {
         if (data && typeof data.enabled === 'boolean') {
           this.mantenimientoInternal.set(data.enabled);
-          this.mantenimientoTipo.set(data.tipo || 'parcial');
+          this.mantenimientoTipoInternal.set(data.tipo || 'parcial');
           this.saveMantenimientoToStorage(data.enabled);
           if (typeof window !== 'undefined') {
             localStorage.setItem('mantenimientoTipo', data.tipo || 'parcial');

@@ -1,6 +1,6 @@
 header.app-header {
-  background: var(--blue);
-  color: var(--white);
+  background: var(--header-bg);
+  color: var(--header-text);
   padding: 12px 20px;
   display: flex;
   align-items: center;
@@ -8,11 +8,29 @@ header.app-header {
   position: sticky;
   top: 0;
   z-index: 1000;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: none;
+  color: var(--header-text);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .announcement-bar {
-  background-color: #1a407d;
-  color: #ffffff;
+  background-color: var(--announcement-bg);
+  color: var(--announcement-text);
   text-transform: uppercase; /* Para que siempre esté en mayúsculas */
   font-family: sans-serif; /* Usa la fuente que prefieras */
   font-size: 14px;

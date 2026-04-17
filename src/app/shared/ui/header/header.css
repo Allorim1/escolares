@@ -10,6 +10,23 @@ header.app-header {
   z-index: 1000;
 }
 
+.dark-toggle {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.dark-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .announcement-bar {
   background-color: #1a407d;
   color: #ffffff;

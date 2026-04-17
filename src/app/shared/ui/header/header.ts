@@ -26,6 +26,27 @@ export class Header {
     this.productsService.getProducts().subscribe((products) => {
       this.allProducts = products;
     });
+    this.initDarkMode();
+  }
+
+  private initDarkMode() {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('escolares-dark');
+      if (saved === 'true') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    }
+  }
+
+  toggleDarkMode() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const isDark = current === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('escolares-dark', String(!isDark));
+  }
+
+  isDarkMode(): boolean {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
   }
 
   mobileMenuOpen = signal(false);

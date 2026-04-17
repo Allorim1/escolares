@@ -27,10 +27,18 @@ export class App {
   }
 
   dismissModal() {
-    this.storeSettings.setMantenimiento(false);
+    this.storeSettings.setMantenimiento(false, this.storeSettings.mantenimientoTipo());
   }
 
-  get mantenimiento(): boolean {
-    return this.storeSettings.mantenimiento();
+  get mostrarModal(): boolean {
+    return this.storeSettings.debeMostrarMantenimiento();
+  }
+
+  get esMantenimientoAbsoluto(): boolean {
+    return this.storeSettings.mantenimientoTipo() === 'absoluto';
+  }
+
+  get esSitioBloqueado(): boolean {
+    return this.storeSettings.debeBloquearSitio();
   }
 }

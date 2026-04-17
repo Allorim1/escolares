@@ -109,6 +109,13 @@ export class AdminInicio implements OnInit {
   }
 
   toggleMantenimiento() {
-    this.storeSettings.toggleMantenimiento();
+    const currentEnabled = this.storeSettings.mantenimiento();
+    const currentTipo = this.storeSettings.mantenimientoTipo();
+    const newEnabled = !currentEnabled;
+    this.storeSettings.setMantenimiento(newEnabled, currentTipo);
+  }
+
+  setMantenimientoTipo(tipo: string) {
+    this.storeSettings.setMantenimiento(this.storeSettings.mantenimiento(), tipo);
   }
 }

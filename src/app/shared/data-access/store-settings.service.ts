@@ -101,12 +101,26 @@ export class StoreSettingsService {
   // Public read-only signal
   mantenimiento = this.mantenimientoInternal.asReadonly();
   
+  // Signal for mantenimiento tipo (parcial | absoluto)
+  private mantenimientoTipoInternal = signal<string>(this.loadMantenimientoTipoFromStorage());
+  
+  // Public read-only signal
+  mantenimientoTipo = this.mantenimientoTipoInternal.asReadonly();
+  
   private loadMantenimientoFromStorage(): boolean {
     if (typeof window !== 'undefined' && window.localStorage) {
       const stored = localStorage.getItem('mantenimiento');
       return stored === 'true';
     }
     return false;
+  }
+  
+  private loadMantenimientoTipoFromStorage(): string {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem('mantenimientoTipo');
+      return stored === 'absoluto' ? 'absoluto' : 'parcial';
+    }
+    return 'parcial';
   }
   
   private saveMantenimientoToStorage(value: boolean) {
@@ -116,11 +130,15 @@ export class StoreSettingsService {
   }
 
   loadMantenimientoFromBackend() {
-    this.http.get<{ enabled: boolean }>(`${this.API_SETTINGS}/mantenimiento`).subscribe({
+    this.http.get<{ enabled: boolean; tipo: string }>(`${this.API_SETTINGS}/mantenimiento`).subscribe({
       next: (data) => {
         if (data && typeof data.enabled === 'boolean') {
           this.mantenimientoInternal.set(data.enabled);
+          this.mantenimientoTipo.set(data.tipo || 'parcial');
           this.saveMantenimientoToStorage(data.enabled);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('mantenimientoTipo', data.tipo || 'parcial');
+          }
         }
       },
       error: () => {}
@@ -129,23 +147,56 @@ export class StoreSettingsService {
 
   toggleMantenimiento() {
     const newValue = !this.mantenimientoInternal();
-    this.setMantenimiento(newValue);
+    this.setMantenimiento(newValue, this.mantenimientoTipoInternal());
   }
 
-  setMantenimiento(enabled: boolean) {
+  setMantenimiento(enabled: boolean, tipo: string = 'parcial') {
     this.mantenimientoInternal.set(enabled);
+    this.mantenimientoTipo.set(tipo);
     this.saveMantenimientoToStorage(enabled);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mantenimientoTipo', tipo);
+    }
     
-    this.http.put<any>(`${this.API_SETTINGS}/mantenimiento`, { enabled }).subscribe({
+    this.http.put<any>(`${this.API_SETTINGS}/mantenimiento`, { enabled, tipo }).subscribe({
       next: (data) => {
         if (data && typeof data.enabled === 'boolean') {
           this.mantenimientoInternal.set(data.enabled);
+          this.mantenimientoTipo.set(data.tipo || 'parcial');
           this.saveMantenimientoToStorage(data.enabled);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('mantenimientoTipo', data.tipo || 'parcial');
+          }
         }
       },
       error: (err) => {
         console.error('Error saving mantenimiento setting:', err);
       }
     });
+  }
+
+  esAdmin(): boolean {
+    if (typeof window === 'undefined') return false;
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return false;
+    try {
+      const user = JSON.parse(userStr);
+      return user?.rol && user.rol !== 'guest';
+    } catch {
+      return false;
+    }
+  }
+
+  debeMostrarMantenimiento(): boolean {
+    if (!this.mantenimientoInternal()) return false;
+    if (this.esAdmin()) return false;
+    return true;
+  }
+
+  debeBloquearSitio(): boolean {
+    if (!this.mantenimientoInternal()) return false;
+    if (this.mantenimientoTipo() === 'parcial') return false;
+    if (this.esAdmin()) return false;
+    return true;
   }
 }

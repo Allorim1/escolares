@@ -1,17 +1,24 @@
-<!-- Maintenance Notice Modal -->
-@if (mantenimiento) {
-  <div class="maintenance-overlay" (click)="dismissModal()">
-    <div class="maintenance-container" (click)="$event.stopPropagation()">
+@if (esSitioBloqueado) {
+  <div class="maintenance-overlay">
+    <div class="maintenance-container">
       <img src="/mantenimiento.jpg" alt="Página en mantenimiento" class="maintenance-image">
-      <button class="continue-btn" (click)="dismissModal()">Continuar</button>
     </div>
   </div>
-}
+} @else {
+  @if (mostrarModal) {
+    <div class="maintenance-overlay" (click)="dismissModal()">
+      <div class="maintenance-container" (click)="$event.stopPropagation()">
+        <img src="/mantenimiento.jpg" alt="Página en mantenimiento" class="maintenance-image">
+        <button class="continue-btn" (click)="dismissModal()">Continuar</button>
+      </div>
+    </div>
+  }
 
-<div class="flex flex-col min-h-screen">
-  <app-header />
-  <main>
-    <router-outlet />
-  </main>
-  <app-footer />
-</div>
+  <div class="flex flex-col min-h-screen">
+    <app-header />
+    <main>
+      <router-outlet />
+    </main>
+    <app-footer />
+  </div>
+}

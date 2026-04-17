@@ -20,36 +20,12 @@ export class Header {
   private cartState = inject(CartStateService);
   currencyService = inject(CurrencyService);
 
-  private _isDarkMode = signal(false);
-
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
 
   constructor() {
     this.productsService.getProducts().subscribe((products) => {
       this.allProducts = products;
     });
-    this.initTheme();
-  }
-
-  private initTheme() {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('escolares-theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const isDark = savedTheme ? savedTheme === 'dark' : prefersDark;
-      this._isDarkMode.set(isDark);
-      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    }
-  }
-
-  isDarkMode() {
-    return this._isDarkMode();
-  }
-
-  toggleTheme() {
-    this._isDarkMode.update(v => !v);
-    const isDark = this._isDarkMode();
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('escolares-theme', isDark ? 'dark' : 'light');
   }
 
   mobileMenuOpen = signal(false);

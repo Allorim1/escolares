@@ -15,39 +15,47 @@
     </div>
   </div>
 
-  <div class="filtros">
-    <div class="busqueda">
-      <input 
-        type="text" 
-        [(ngModel)]="filtroBusqueda" 
-        placeholder="Buscar por cualquier campo..."
-        class="input-busqueda"
-      />
-    </div>
-    <div class="filtros-fecha">
-      <label>Desde:</label>
-      <input type="date" [(ngModel)]="fechaDesde" class="input-fecha" />
-      <label>Hasta:</label>
-      <input type="date" [(ngModel)]="fechaHasta" class="input-fecha" />
-      @if (fechaDesde || fechaHasta) {
-        <button class="btn-limpiar-fecha" (click)="fechaDesde = ''; fechaHasta = ''">Limpiar fechas</button>
-      }
-    </div>
-    <div class="filtro-botones">
-      <button 
-        class="btn-filtro" 
-        [class.active]="filtroModulo === ''"
-        (click)="limpiarFiltro()">
-        Todos
-      </button>
-      @for (modulo of modulos; track modulo) {
+  <div class="filtros-layout">
+    <aside class="filtros-sidebar">
+      <h4 class="sidebar-title">Módulos</h4>
+      <div class="sidebar-list">
         <button 
-          class="btn-filtro"
-          [class.active]="filtroModulo === modulo"
-          (click)="filtrarPorModulo(modulo)">
-          {{ modulo }}
+          class="sidebar-item" 
+          [class.active]="filtroModulo === ''"
+          (click)="limpiarFiltro()">
+          <span class="item-icon">📋</span>
+          <span class="item-text">Todos</span>
         </button>
-      }
+        @for (modulo of modulos; track modulo) {
+          <button 
+            class="sidebar-item"
+            [class.active]="filtroModulo === modulo"
+            (click)="filtrarPorModulo(modulo)">
+            <span class="item-icon">▶</span>
+            <span class="item-text">{{ modulo }}</span>
+          </button>
+        }
+      </div>
+    </aside>
+
+    <div class="filtros-main">
+      <div class="busqueda">
+        <input 
+          type="text" 
+          [(ngModel)]="filtroBusqueda" 
+          placeholder="Buscar por cualquier campo..."
+          class="input-busqueda"
+        />
+      </div>
+      <div class="filtros-fecha">
+        <label>Desde:</label>
+        <input type="date" [(ngModel)]="fechaDesde" class="input-fecha" />
+        <label>Hasta:</label>
+        <input type="date" [(ngModel)]="fechaHasta" class="input-fecha" />
+        @if (fechaDesde || fechaHasta) {
+          <button class="btn-limpiar-fecha" (click)="fechaDesde = ''; fechaHasta = ''">Limpiar fechas</button>
+        }
+      </div>
     </div>
   </div>
 

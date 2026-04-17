@@ -19,7 +19,7 @@ interface Pago {
   empleadoNombre: string;
   monto: number;
   fecha: Date;
-  tipo: ' quincena' | 'mes' | 'bono' | 'prestamo' | 'otro';
+  tipo: 'quincena' | 'mes' | 'bono' | 'prestamo' | 'otro';
   notas?: string;
 }
 

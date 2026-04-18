@@ -165,7 +165,7 @@ export class CurrencyService {
       const priceInBs = this.convertToBs(priceInUsd);
       return this.formatBs(priceInBs);
     } else {
-      return `$${priceInUsd.toFixed(2)}`;
+      return `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(priceInUsd)}`;
     }
   }
 
@@ -178,7 +178,7 @@ export class CurrencyService {
    * Format price in Bs
    */
   formatBs(priceInBs: number): string {
-    return `Bs. ${new Intl.NumberFormat('es-VE').format(Math.round(priceInBs))}`;
+    return `Bs. ${new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(priceInBs)}`;
   }
   
   /**

@@ -7,6 +7,8 @@ import { LoadingComponent } from '../../../shared/ui/loading/loading';
 import { CurrencyService } from '../../../shared/data-access/currency.service';
 import { AuthService } from '../../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.service';
+import { CartStateService } from '../../../shared/data-access/cart-state.service';
+import { Product } from '../../../shared/interfaces/product.interface';
 
 @Component({
   selector: 'app-product-list',
@@ -124,6 +126,177 @@ import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.
     .pagination .btn-secondary:hover:not(:disabled) {
       background: #e0e0e0;
     }
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 1rem;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      font-size: 1.75rem;
+      color: #999;
+      cursor: pointer;
+      z-index: 1;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .modal-close:hover {
+      background: #f0f0f0;
+      color: #333;
+    }
+    .modal-product-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .modal-image-col {
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f8f8;
+    }
+    .modal-product-image {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .modal-info-col {
+      padding: 1.5rem;
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-product-title {
+      margin: 0 0 0.75rem;
+      font-size: 1.5rem;
+      color: #333;
+      font-weight: 600;
+    }
+    .modal-product-description {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    .modal-product-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1976d2;
+      margin-bottom: 1rem;
+    }
+    .modal-product-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .meta-label {
+      font-size: 0.8rem;
+      color: #888;
+    }
+    .meta-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #333;
+      background: #f0f0f0;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+    .modal-quantity-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .modal-quantity-selector label {
+      font-weight: 600;
+      color: #333;
+    }
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .qty-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #ddd;
+      background: #f8f8f8;
+      border-radius: 6px;
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .qty-btn:hover:not(:disabled) {
+      background: #e0e0e0;
+    }
+    .qty-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .qty-value {
+      min-width: 40px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .modal-add-to-cart-btn {
+      padding: 0.875rem 1.5rem;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .modal-add-to-cart-btn:hover {
+      background: #1565c0;
+    }
+    @media (max-width: 600px) {
+      .modal-product-card {
+        grid-template-columns: 1fr;
+      }
+      .modal-image-col {
+        padding: 1rem;
+      }
+      .modal-info-col {
+        padding-left: 1.5rem;
+        padding-bottom: 1.5rem;
+      }
+    }
   `,
   providers: [ProductsStateService],
 })
@@ -133,6 +306,40 @@ export default class ProductList implements OnInit {
   currencyService = inject(CurrencyService);
   private authService = inject(AuthService);
   apiKeyStatusService = inject(ApiKeyStatusService);
+  cartState = inject(CartStateService).state;
+
+  selectedProduct = signal<Product | null>(null);
+  modalQuantity = signal(1);
+
+  openModal(product: Product) {
+    this.selectedProduct.set(product);
+    this.modalQuantity.set(1);
+  }
+
+  closeModal() {
+    this.selectedProduct.set(null);
+  }
+
+  increaseModalQuantity() {
+    this.modalQuantity.update(q => q + 1);
+  }
+
+  decreaseModalQuantity() {
+    if (this.modalQuantity() > 1) {
+      this.modalQuantity.update(q => q - 1);
+    }
+  }
+
+  addToCartFromModal() {
+    const product = this.selectedProduct();
+    if (!product) return;
+    
+    this.cartState.add({
+      product,
+      quantity: this.modalQuantity(),
+    });
+    this.closeModal();
+  }
 
   // Check if prices should be shown
   shouldShowPrice(): boolean {

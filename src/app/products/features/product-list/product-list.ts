@@ -310,6 +310,33 @@ export default class ProductList implements OnInit {
 
   selectedProduct = signal<Product | null>(null);
   modalQuantity = signal(1);
+  cardQuantities = signal<Record<string, number>>({});
+
+  getCardQuantity(productId: string | number): number {
+    return this.cardQuantities()[String(productId)] || 0;
+  }
+
+  addToCardFromCard(product: Product) {
+    const id = String(product.id);
+    const current = this.cardQuantities()[id] || 0;
+    this.cardQuantities.update(q => ({ ...q, [id]: current + 1 }));
+    this.cartState.add({ product, quantity: 1 });
+  }
+
+  increaseCardQuantity(product: Product) {
+    const id = String(product.id);
+    const current = this.cardQuantities()[id] || 0;
+    this.cardQuantities.update(q => ({ ...q, [id]: current + 1 }));
+    this.cartState.add({ product, quantity: 1 });
+  }
+
+  decreaseCardQuantity(product: Product) {
+    const id = String(product.id);
+    const current = this.cardQuantities()[id] || 0;
+    if (current > 0) {
+      this.cardQuantities.update(q => ({ ...q, [id]: current - 1 }));
+    }
+  }
 
   openModal(product: Product) {
     this.selectedProduct.set(product);

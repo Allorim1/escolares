@@ -101,6 +101,7 @@
           width: 100%;
           background: #fff;
           border-radius: 16px;
+          border: 2px solid #1d63c1;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
           overflow: hidden;
           transition: transform 0.2s, box-shadow 0.2s;
@@ -140,23 +141,62 @@
               Inicie sesión para ver precios
             </p>
           }
-          <button
-            class="btn btn-primary"
-            style="
-              background: #1976d2;
-              color: #fff;
-              border: none;
-              border-radius: 8px;
-              padding: 0.75rem 1.5rem;
-              font-size: 1rem;
-              cursor: pointer;
-              transition: background 0.2s;
-            "
-            (click)="$event.stopPropagation()"
-            [routerLink]="[product.id]"
-          >
-            Ver más
-          </button>
+          <div class="card-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+            @if (shouldShowPrice()) {
+              @if (getCardQuantity(product.id) > 0) {
+                <div class="card-qty-controls" style="display: flex; align-items: center; gap: 0.25rem;">
+                  <button 
+                    type="button" 
+                    class="qty-btn"
+                    style="width: 32px; height: 32px; border: 1px solid #ddd; background: #f8f8f8; border-radius: 4px; font-size: 1.1rem; cursor: pointer;"
+                    (click)="$event.stopPropagation(); decreaseCardQuantity(product)"
+                  >-</button>
+                  <span style="min-width: 30px; text-align: center; font-weight: 600;">{{ getCardQuantity(product.id) }}</span>
+                  <button 
+                    type="button" 
+                    class="qty-btn"
+                    style="width: 32px; height: 32px; border: 1px solid #ddd; background: #f8f8f8; border-radius: 4px; font-size: 1.1rem; cursor: pointer;"
+                    (click)="$event.stopPropagation(); increaseCardQuantity(product)"
+                  >+</button>
+                </div>
+              } @else {
+                <button 
+                  type="button" 
+                  class="btn btn-primary"
+                  style="
+                    background: #1d63c1;
+                    color: #fff;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 0.75rem 1rem;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                  "
+                  (click)="$event.stopPropagation(); addToCardFromCard(product)"
+                >
+                  🛒 Agregar
+                </button>
+              }
+            }
+            <button
+              class="btn btn-primary"
+              style="
+                background: #1976d2;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: background 0.2s;
+              "
+              (click)="$event.stopPropagation()"
+              [routerLink]="[product.id]"
+            >
+              Ver más
+            </button>
+          </div>
         </div>
       </div>
     }

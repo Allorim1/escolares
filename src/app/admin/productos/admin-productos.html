@@ -61,6 +61,53 @@
         </div>
         <form (ngSubmit)="saveProduct()">
           <div class="form-group">
+            <label>Imagen</label>
+            <div class="image-upload-container">
+              @if (uploadingImage()) {
+                <div class="uploading">Subiendo imagen...</div>
+              }
+              <div 
+                class="drop-zone"
+                [class.drag-over]="dragOver()"
+                [class.has-image]="formData().image"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)"
+              >
+                @if (formData().image) {
+                  <img [src]="formData().image" alt="Preview" class="drop-preview-img" />
+                } @else {
+                  <div class="drop-zone-content">
+                    <span class="drop-icon">🖼️</span>
+                    <span class="drop-text">Arrastra una imagen aquí</span>
+                    <span class="drop-subtext">o</span>
+                  </div>
+                }
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                class="file-input"
+                #fileInput
+              />
+              <button type="button" class="upload-btn" (click)="fileInput.click()">
+                📁 Seleccionar imagen
+              </button>
+              <div class="url-input-group">
+                <span class="url-separator">o pega una URL:</span>
+                <input
+                  type="text"
+                  [ngModel]="formData().image"
+                  name="image"
+                  (ngModelChange)="updateFormField('image', $event)"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
             <label>Nombre</label>
             <input
               type="text"
@@ -161,52 +208,6 @@
                 <option [value]="linea.id">{{ linea.name }}</option>
               }
             </select>
-          </div>
-          <div class="form-group">
-            <label>Imagen</label>
-            <div class="image-upload-container">
-              @if (uploadingImage()) {
-                <div class="uploading">Subiendo imagen...</div>
-              }
-              <div 
-                class="drop-zone"
-                [class.drag-over]="dragOver()"
-                (dragover)="onDragOver($event)"
-                (dragleave)="onDragLeave($event)"
-                (drop)="onDrop($event)"
-              >
-                <div class="drop-zone-content">
-                  <span class="drop-icon">🖼️</span>
-                  <span class="drop-text">Arrastra una imagen aquí</span>
-                  <span class="drop-subtext">o</span>
-                </div>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                (change)="onFileSelected($event)"
-                class="file-input"
-                #fileInput
-              />
-              <button type="button" class="upload-btn" (click)="fileInput.click()">
-                📁 Seleccionar imagen
-              </button>
-              <div class="url-input-group">
-                <span class="url-separator">o pega una URL:</span>
-                <input
-                  type="text"
-                  [ngModel]="formData().image"
-                  name="image"
-                  (ngModelChange)="updateFormField('image', $event)"
-                  placeholder="https://..."
-                />
-              </div>
-              @if (formData().image) {
-                <div class="image-preview">
-                  <img [src]="formData().image" alt="Preview" />
-                </div>
-              }
-            </div>
           </div>
           <div class="form-actions">
             <button type="submit" class="save-btn">Guardar</button>

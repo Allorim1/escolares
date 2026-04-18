@@ -86,17 +86,74 @@
 .product-rating {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
-.stars {
+.star {
+  color: #e0e0e0;
+  font-size: 1.25rem;
+}
+
+.star.full {
   color: #ffc107;
-  font-size: 1.1rem;
-  letter-spacing: 2px;
+}
+
+.star.half {
+  color: #ffc107;
+  position: relative;
 }
 
 .rating-text {
   color: #666;
+  font-size: 0.9rem;
+  margin-left: 0.25rem;
+}
+
+/* Ficha Técnica */
+.ficha-tecnica {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.ficha-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ficha-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ficha-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.ficha-row:last-child {
+  border-bottom: none;
+}
+
+.ficha-label {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.ficha-value {
+  font-weight: 600;
+  color: #333;
   font-size: 0.9rem;
 }
 

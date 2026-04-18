@@ -181,6 +181,19 @@ import { Product } from '../../../shared/interfaces/product.interface';
       align-items: center;
       justify-content: center;
       background: #f8f8f8;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+    .modal-product-image {
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+    }
+    .modal-image-col:hover .modal-product-image {
+      transform: scale(2);
+      cursor: zoom-out;
     }
     .modal-product-image {
       width: 100%;
@@ -311,6 +324,21 @@ export default class ProductList implements OnInit {
   selectedProduct = signal<Product | null>(null);
   modalQuantity = signal(1);
   cardQuantities = signal<Record<string, number>>({});
+  mouseX = signal(50);
+  mouseY = signal(50);
+
+  onMouseMove(event: MouseEvent, isHovering: boolean) {
+    if (!isHovering) return;
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    this.mouseX.set(x);
+    this.mouseY.set(y);
+  }
+
+  getZoomStyle(): string {
+    return `transform-origin: ${this.mouseX()}% ${this.mouseY()}%;`;
+  }
 
   getCardQuantity(productId: string | number): number {
     return this.cardQuantities()[String(productId)] || 0;

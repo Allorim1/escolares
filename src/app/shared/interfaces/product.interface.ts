@@ -17,6 +17,8 @@ export interface Product {
   createdAt?: Date;
   iva?: boolean;
   ivaPercentage?: number;
+  fichaTecnica?: { [key: string]: string };
+  unidades?: number;
 }
 
 export interface ProductItemCart {

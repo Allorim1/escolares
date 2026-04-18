@@ -1,17 +1,18 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
 import { ProductDetailSateService } from '../../data-access/product-detail-state.service';
-import { CurrencyPipe, NgIf } from '@angular/common';
+import { CurrencyPipe, NgIf, NgFor } from '@angular/common';
 import { CartStateService } from '../../../shared/data-access/cart-state.service';
 import { RouterLink } from '@angular/router';
 import { OfertasService } from '../../../shared/data-access/ofertas.service';
 import { CurrencyService } from '../../../shared/data-access/currency.service';
 import { AuthService } from '../../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.service';
+import { LineasService } from '../../../shared/data-access/lineas.service';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, NgIf],
+  imports: [CurrencyPipe, RouterLink, NgIf, NgFor],
   templateUrl: './product-detail.html',
   styleUrls: ['./product-detail.css'],
   providers: [ProductDetailSateService],
@@ -23,6 +24,7 @@ export default class ProductDetail {
   currencyService = inject(CurrencyService);
   private authService = inject(AuthService);
   apiKeyStatusService = inject(ApiKeyStatusService);
+  private lineasService = inject(LineasService);
 
   // Check if prices should be shown
   shouldShowPrice(): boolean {
@@ -87,5 +89,33 @@ export default class ProductDetail {
   calcularDescuento(precioOriginal: number, precioOferta: number): number {
     const descuento = ((precioOriginal - precioOferta) / precioOriginal) * 100;
     return Math.round(descuento);
+  }
+
+  getStarsArray(rate: number): number[] {
+    const fullStars = Math.floor(rate);
+    const hasHalfStar = rate % 1 >= 0.5;
+    const stars = [];
+    for (let i = 0; i < fullStars; i++) stars.push(1);
+    if (hasHalfStar) stars.push(0.5);
+    while (stars.length < 5) stars.push(0);
+    return stars;
+  }
+
+  getFichaTecnicaKeys(): string[] {
+    const product = this.productDetailState.product();
+    if (!product?.fichaTecnica) return [];
+    return Object.keys(product.fichaTecnica);
+  }
+
+  getFichaTecnicaValue(key: string): string {
+    const product = this.productDetailState.product();
+    return product?.fichaTecnica?.[key] || '';
+  }
+
+  getLineaName(): string {
+    const product = this.productDetailState.product();
+    if (!product?.lineaId) return '';
+    const linea = this.lineasService.getLineaById(product.lineaId);
+    return linea?.name || '';
   }
 }

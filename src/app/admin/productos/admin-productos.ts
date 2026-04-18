@@ -36,6 +36,7 @@ export class AdminProductos implements OnInit {
   isAdding = signal(false);
   showModal = signal(false);
   uploadingImage = signal(false);
+  dragOver = signal(false);
   preciosOcultosParaNoRegistrados = signal(false);
   
   filtroCategoria = '';
@@ -225,8 +226,41 @@ export class AdminProductos implements OnInit {
     if (!input.files || !input.files[0]) return;
 
     const file = input.files[0];
+    this.processFile(file);
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragOver.set(true);
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragOver.set(false);
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragOver.set(false);
+    
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    this.processFile(file);
+  }
+
+  processFile(file: File) {
     if (!file.type.startsWith('image/')) {
       alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen no puede exceder 5MB');
       return;
     }
 

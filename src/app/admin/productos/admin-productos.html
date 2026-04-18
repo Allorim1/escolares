@@ -168,6 +168,19 @@
               @if (uploadingImage()) {
                 <div class="uploading">Subiendo imagen...</div>
               }
+              <div 
+                class="drop-zone"
+                [class.drag-over]="dragOver()"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)"
+              >
+                <div class="drop-zone-content">
+                  <span class="drop-icon">🖼️</span>
+                  <span class="drop-text">Arrastra una imagen aquí</span>
+                  <span class="drop-subtext">o</span>
+                </div>
+              </div>
               <input
                 type="file"
                 accept="image/*"

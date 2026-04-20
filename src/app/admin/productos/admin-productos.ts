@@ -79,12 +79,6 @@ ngOnInit() {
     this.loadProductCategories();
     this.loadProducts();
     this.loadPreciosOcultosSetting();
-    this.loadMarcasLineas();
-  }
-
-  loadMarcasLineas() {
-    this.marcasService.loadMarcas();
-    this.lineasService.loadLineas();
   }
 
   loadProductCategories() {

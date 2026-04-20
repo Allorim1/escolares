@@ -62,8 +62,8 @@ export class AdminCategorias implements OnInit {
     const categoria = this.newCategoria();
     if (!categoria.nombre) return;
 
-    if (this.editingCategoria()) {
-      this.categoriasBackend.update(categoria.id, categoria).subscribe({
+    if (this.editingCategoria()?.id) {
+      this.categoriasBackend.update(this.editingCategoria()!.id, categoria).subscribe({
         next: () => {
           this.loadCategorias();
           this.closeModal();
@@ -81,6 +81,7 @@ export class AdminCategorias implements OnInit {
 
   deleteCategoria(categoria: CategoriaMenu) {
     if (!confirm(`¿Eliminar categoría "${categoria.nombre}"?`)) return;
+    if (!categoria.id) return;
     
     this.categoriasBackend.delete(categoria.id).subscribe({
       next: () => {
@@ -97,6 +98,7 @@ export class AdminCategorias implements OnInit {
   }
 
   editItem(categoria: CategoriaMenu, index: number) {
+    if (!categoria.id) return;
     this.selectedCategoriaId.set(categoria.id);
     this.newItem.set({ ...categoria.items[index] });
     this.editingItemIndex.set(index);
@@ -112,6 +114,8 @@ export class AdminCategorias implements OnInit {
     if (!item.label || !item.route) return;
     
     const categoriaId = this.selectedCategoriaId();
+    if (!categoriaId) return;
+    
     const index = this.editingItemIndex();
 
     if (index >= 0) {

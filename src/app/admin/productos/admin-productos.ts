@@ -5,7 +5,6 @@ import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
-import { CategoriasBackend } from '../../backend/data-access/categorias.backend';
 
 interface CategoriaProducto {
   id: string;
@@ -37,7 +36,6 @@ export class AdminProductos implements OnInit {
   private marcasService = inject(MarcasService);
   private lineasService = inject(LineasService);
   private http = inject(HttpClient);
-  private categoriasBackend = inject(CategoriasBackend);
 
   products = signal<Product[]>([]);
   editingProduct = signal<Product | null>(null);
@@ -81,60 +79,12 @@ ngOnInit() {
     this.loadProductCategories();
     this.loadProducts();
     this.loadPreciosOcultosSetting();
+    this.loadMarcasLineas();
   }
 
-  loadProductCategories() {
-    this.http.get<any[]>('/api/productos-categorias').subscribe({
-      next: (data) => {
-        this.productCategories.set(data);
-      },
-      error: () => {
-        this.productCategories.set([
-          { id: 'cat-1', nombre: 'Lápices' },
-          { id: 'cat-2', nombre: 'Mochilas' },
-          { id: 'cat-3', nombre: 'Uniformes' },
-        ]);
-      }
-    });
-  }
-
-  openCategoryModal() {
-    this.newCategoryName = '';
-    this.showCategoryModal.set(true);
-  }
-
-  closeCategoryModal() {
-    this.showCategoryModal.set(false);
-  }
-
-  addCategory() {
-    const nombre = this.newCategoryName.trim();
-    if (!nombre) return;
-    
-    this.http.post<any>('/api/productos-categorias', { nombre }).subscribe({
-      next: () => {
-        this.loadProductCategories();
-        this.closeCategoryModal();
-      }
-    });
-  }
-
-  deleteCategory(cat: CategoriaProducto) {
-    if (!confirm(`¿Eliminar categoría "${cat.nombre}"?`)) return;
-    
-    this.http.delete<any>(`/api/productos-categorias/${cat.id}`).subscribe({
-      next: () => {
-        this.loadProductCategories();
-      }
-    });
-  }
-
-  get categorias(): CategoriaProducto[] {
-    return this.productCategories();
-  }
-
-  get categories(): string[] {
-    return ['Nueva...', ...this.productCategories().map(c => c.nombre)];
+  loadMarcasLineas() {
+    this.marcasService.loadMarcas();
+    this.lineasService.loadLineas();
   }
 
   loadProductCategories() {
@@ -212,11 +162,6 @@ ngOnInit() {
     }
     
     return filtered;
-  }
-
-  ngOnInit() {
-    this.loadProducts();
-    this.loadPreciosOcultosSetting();
   }
 
   loadProducts() {

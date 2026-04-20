@@ -43,7 +43,7 @@ export class AuthBackend {
         const user = JSON.parse(stored);
         this.currentUser.set(user);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(user.isAdmin || user.rol === 'admin' || user.rol === 'owner' || user.rol === 'root');
+        this.isAdmin.set(user.isAdmin || user.rol === 'admin' || user.rol === 'owner' || user.rol === 'root' || !!user.rolId);
         // Start token renewal service if user is already logged in
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
@@ -81,7 +81,7 @@ export class AuthBackend {
       next: (response) => {
         this.currentUser.set(response);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root');
+        this.isAdmin.set(response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root' || !!response.rolId);
         this.saveToStorage(response);
         if (response.accessToken) {
           this.saveToken(response.accessToken);

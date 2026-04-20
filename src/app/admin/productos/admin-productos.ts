@@ -207,6 +207,7 @@ ngOnInit() {
       lineaId: '',
       iva: false,
       ivaPercentage: 16,
+      estado: 'disponible',
     });
     this.showModal.set(true);
   }

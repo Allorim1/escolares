@@ -89,6 +89,12 @@ export class Admin implements OnInit {
   }
 
   loadCategorias() {
+    const user = this.authService.user();
+    if (user?.rol === 'root') {
+      this.categorias.set(DEFAULT_CATEGORIAS);
+      return;
+    }
+    
     this.categoriasBackend.getAll().subscribe({
       next: (categorias) => {
         if (categorias && categorias.length > 0) {
@@ -97,6 +103,8 @@ export class Admin implements OnInit {
             expanded: c.expanded,
             items: c.items || []
           })));
+        } else {
+          this.categorias.set(DEFAULT_CATEGORIAS);
         }
       },
       error: () => {

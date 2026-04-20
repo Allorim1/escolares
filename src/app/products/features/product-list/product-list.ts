@@ -220,7 +220,7 @@ import { Product } from '../../../shared/interfaces/product.interface';
       line-height: 1.5;
     }
     .modal-product-price {
-      font-size: 1.5rem;
+      font-size: 1.75rem;
       font-weight: 700;
       color: #1976d2;
       margin-bottom: 1rem;
@@ -285,15 +285,16 @@ import { Product } from '../../../shared/interfaces/product.interface';
       font-size: 1.1rem;
     }
     .modal-add-to-cart-btn {
-      padding: 0.875rem 1.5rem;
+      padding: 1rem 1.5rem;
       background: #1976d2;
       color: white;
       border: none;
       border-radius: 8px;
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
+      width: 100%;
     }
     .modal-add-to-cart-btn:hover {
       background: #1565c0;

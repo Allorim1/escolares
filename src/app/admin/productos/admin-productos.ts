@@ -22,6 +22,7 @@ interface ProductFormData {
   lineaId: string;
   iva: boolean;
   ivaPercentage: number;
+  estado: 'disponible' | 'agotado';
 }
 
 @Component({
@@ -60,6 +61,7 @@ export class AdminProductos implements OnInit {
     lineaId: '',
     iva: false,
     ivaPercentage: 16,
+    estado: 'disponible',
   });
 
   productCategories = signal<CategoriaProducto[]>([]);
@@ -187,7 +189,7 @@ ngOnInit() {
     });
   }
 
-  updateFormField(field: keyof ProductFormData, value: string | number) {
+  updateFormField(field: keyof ProductFormData, value: string | number | boolean) {
     this.formData.update((data) => ({ ...data, [field]: value }));
   }
 
@@ -223,6 +225,7 @@ ngOnInit() {
       lineaId: (product as any).lineaId || '',
       iva: product.iva || false,
       ivaPercentage: product.ivaPercentage || 16,
+      estado: product.estado || 'disponible',
     });
     this.showModal.set(true);
   }
@@ -248,6 +251,7 @@ ngOnInit() {
         lineaId: data.lineaId || null,
         iva: data.iva,
         ivaPercentage: data.ivaPercentage,
+        estado: data.estado,
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
@@ -273,6 +277,7 @@ ngOnInit() {
         lineaId: data.lineaId || null,
         iva: data.iva,
         ivaPercentage: data.ivaPercentage,
+        estado: data.estado,
       }).subscribe({
         next: (updated) => {
           this.products.update((products) => 
@@ -356,6 +361,11 @@ ngOnInit() {
   }
 
   processAdditionalFile(file: File) {
+    const currentImages = this.formData().images.length;
+    if (currentImages >= 4) {
+      alert('Máximo 4 imágenes adicionales permitidas');
+      return;
+    }
     if (!file.type.startsWith('image/')) {
       alert('Por favor selecciona un archivo de imagen');
       return;

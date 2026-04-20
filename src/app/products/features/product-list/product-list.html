@@ -115,7 +115,7 @@
           [src]="product.image"
           alt="{{ product.title }}"
           class="card-img"
-          style="width: 100%; height: 190px; object-fit: contain; background: #f8f8f8"
+          style="width: 100%; height: 220px; object-fit: contain; background: #f8f8f8; padding: 0.5rem"
         />
         <div class="card-body" style="padding: 1rem">
           <h5
@@ -130,7 +130,7 @@
           @if (shouldShowPrice()) {
             <p
               class="card-price"
-              style="font-size: 1rem; font-weight: 700; color: #1976d2; margin-bottom: 0.75rem"
+              style="font-size: 1.4rem; font-weight: 700; color: #1976d2; margin-bottom: 0.75rem"
               [innerHTML]="formatPrice(product.price)"
             ></p>
           } @else {
@@ -168,10 +168,13 @@
                     color: #fff;
                     border: none;
                     border-radius: 8px;
-                    padding: 0.75rem 1rem;
-                    font-size: 0.9rem;
+                    padding: 0.875rem 1rem;
+                    font-size: 1rem;
+                    font-weight: 600;
                     cursor: pointer;
                     transition: background 0.2s;
+                    width: 100%;
+                    margin-top: 0.5rem;
                   "
                   (click)="$event.stopPropagation(); addToCardFromCard(product)"
                 >
@@ -182,14 +185,16 @@
             <button
               class="btn btn-primary"
               style="
-                background: #1976d2;
+                background: #6c757d;
                 color: #fff;
                 border: none;
                 border-radius: 8px;
-                padding: 0.75rem 1rem;
-                font-size: 0.9rem;
+                padding: 0.875rem 1rem;
+                font-size: 1rem;
+                font-weight: 600;
                 cursor: pointer;
                 transition: background 0.2s;
+                width: 100%;
               "
               (click)="$event.stopPropagation()"
               [routerLink]="[product.id]"

@@ -20,6 +20,7 @@ export interface Product {
   ivaPercentage?: number;
   fichaTecnica?: { [key: string]: string };
   unidades?: number;
+  estado?: 'disponible' | 'agotado';
 }
 
 export interface ProductItemCart {

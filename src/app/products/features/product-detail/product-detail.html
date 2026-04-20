@@ -6,6 +6,9 @@
       <div class="product-detail-card">
         <div class="product-image-col">
           <div class="image-wrapper">
+            @if (product.estado === 'agotado') {
+              <div class="agotado-badge">Temporalmente agotado</div>
+            }
             <img class="product-detail-image" [src]="product.image" [alt]="product.title" />
           </div>
         </div>
@@ -122,6 +125,7 @@
               <button 
                 class="add-to-cart-btn" 
                 [class.added]="showAddedMessage()"
+                [disabled]="product.estado === 'agotado'"
                 (click)="addToCart()"
               >
                 <svg

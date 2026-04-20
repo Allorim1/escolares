@@ -30,11 +30,11 @@
       />
     </div>
     <div class="filter-group">
-      <label>Categoría</label>
+      <label>Categoría <button type="button" class="btn-link" (click)="openCategoryModal()" title="Gestionar categorías">⚙</button></label>
       <select [(ngModel)]="filtroCategoria" name="filtroCategoria" class="filter-select">
         <option value="">Todas</option>
-        @for (cat of categories; track cat) {
-          <option [value]="cat">{{ cat }}</option>
+        @for (cat of categorias; track cat.id) {
+          <option [value]="cat.nombre">{{ cat.nombre }}</option>
         }
       </select>
     </div>
@@ -282,3 +282,28 @@
     </table>
   </div>
 </div>
+
+@if (showCategoryModal()) {
+  <div class="modal-overlay" (click)="closeCategoryModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Gestionar Categorías</h3>
+        <button class="close-btn" (click)="closeCategoryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="add-category-form">
+          <input type="text" [(ngModel)]="newCategoryName()" placeholder="Nueva categoría" class="form-input" />
+          <button class="btn-primary" (click)="addCategory()">Agregar</button>
+        </div>
+        <div class="categories-list">
+          @for (cat of categorias; track cat.id) {
+            <div class="category-item">
+              <span>{{ cat.nombre }}</span>
+              <button class="btn-delete" (click)="deleteCategory(cat)">&times;</button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

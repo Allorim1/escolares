@@ -55,9 +55,9 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
       { label: 'Líneas', route: 'lineas', permiso: 'lineas_ver' },
       { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
       { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
-      { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
-      { label: 'Categorías', route: 'categorias', permiso: 'categorias_gestionar' },
-      { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
+{ label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
+        { label: 'Categorías Menú', route: 'categorias', permiso: 'categorias_gestionar' },
+        { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
     ]
   }
 ];

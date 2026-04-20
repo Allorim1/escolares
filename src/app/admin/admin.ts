@@ -50,7 +50,7 @@ export class Admin implements OnInit {
         }
       });
     } else if (user.rolId) {
-      this.rolesBackend.getRolById(user.rolId).subscribe({
+      this.rolesBackend.getRol(user.rolId).subscribe({
         next: (rol) => {
           this.userPermissions.set(rol.permisos || []);
         },

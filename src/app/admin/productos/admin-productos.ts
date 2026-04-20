@@ -50,6 +50,7 @@ export class AdminProductos implements OnInit {
     description: '',
     category: '',
     image: '',
+    images: [],
     marca: '',
     lineaId: '',
     iva: false,

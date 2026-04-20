@@ -51,19 +51,6 @@
             {{ product.description }}
           </p>
 
-          <div class="product-meta">
-            <div class="meta-item">
-              <span class="meta-label">Categoría</span>
-              <span class="meta-value">{{ product.category }}</span>
-            </div>
-            @if (product.marca) {
-              <div class="meta-item">
-                <span class="meta-label">Marca</span>
-                <span class="meta-value">{{ product.marca }}</span>
-              </div>
-            }
-          </div>
-
           @if (product.category || product.marca || product.linea || product.unidades) {
             <div class="ficha-tecnica">
               <h3 class="ficha-title">📋 Ficha Técnica</h3>

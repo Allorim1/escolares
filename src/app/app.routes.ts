@@ -182,6 +182,10 @@ export const routes: Routes = [
         path: 'libro-compras',
         loadComponent: () => import('./admin/libro-compras/libro-compras').then((m) => m.LibroCompras),
       },
+      {
+        path: 'categorias',
+        loadComponent: () => import('./admin/categorias/admin-categorias').then((m) => m.AdminCategorias),
+      },
     ],
   },
   {

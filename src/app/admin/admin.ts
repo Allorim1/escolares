@@ -3,10 +3,12 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../shared/data-access/api-key-status.service';
+import { RolesBackend } from '../backend/data-access/roles.backend';
 
 interface MenuItem {
   label: string;
   route: string;
+  permiso?: string;
 }
 
 interface MenuCategory {
@@ -26,11 +28,45 @@ export class Admin implements OnInit {
   authService = inject(AuthService);
   private http = inject(HttpClient);
   apiKeyStatusService = inject(ApiKeyStatusService);
+  private rolesBackend = inject(RolesBackend);
+
+  userPermissions = signal<string[]>([]);
 
   apiKeyStatusLoaded = signal(false);
 
   ngOnInit() {
     this.checkApiKeyStatus();
+    this.loadUserPermissions();
+  }
+
+  loadUserPermissions() {
+    const user = this.authService.user();
+    if (!user) return;
+    
+    if (user.rol === 'root') {
+      this.rolesBackend.getPermisos().subscribe({
+        next: (permisos) => {
+          this.userPermissions.set(permisos.map(p => p.id));
+        }
+      });
+    } else if (user.rolId) {
+      this.rolesBackend.getRolById(user.rolId).subscribe({
+        next: (rol) => {
+          this.userPermissions.set(rol.permisos || []);
+        },
+        error: () => {
+          this.userPermissions.set([]);
+        }
+      });
+    }
+  }
+
+  hasPermission(permiso?: string): boolean {
+    const user = this.authService.user();
+    if (!user) return false;
+    if (user.rol === 'root') return true;
+    if (!permiso) return true;
+    return this.userPermissions().includes(permiso);
   }
 
   checkApiKeyStatus() {
@@ -61,38 +97,40 @@ export class Admin implements OnInit {
       name: 'Panel Admin',
       expanded: true,
       items: [
-        { label: 'Pedidos', route: 'pedidos' },
-        { label: 'Costos y Tasas', route: 'costo-tasa' },
-        { label: 'Histórico Costos', route: 'historico-costos' },
-        { label: 'Registro', route: 'registro' },
-        { label: 'Facturación', route: 'facturacion' },
-        { label: 'Gastos', route: 'gastos' },
-        { label: 'Nómina', route: 'nomina' },
-        { label: 'Galería de Documentos', route: 'galeria' },
-        { label: 'Conversión', route: 'conversion' },
-        { label: 'Chat', route: 'chat' },
-        { label: 'Cierre de Caja', route: 'cierre-caja' },
+        { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
+        { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
+        { label: 'Histórico Costos', route: 'historico-costos', permiso: 'tasas_ver' },
+        { label: 'Registro', route: 'registro', permiso: 'facturas_registrar' },
+        { label: 'Facturación', route: 'facturacion', permiso: 'facturas_gestionar' },
+        { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
+        { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
+        { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
+        { label: 'Conversión', route: 'conversion', permiso: 'conversion_gestionar' },
+        { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
+        { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
       ]
     },
     {
       name: 'Cuentas por Pagar',
       expanded: true,
       items: [
-        { label: 'Proveedores', route: 'cuentas-por-pagar' },
-        { label: 'Retenciones', route: 'retenciones' },
-        { label: 'Libro de Compras', route: 'libro-compras' },
+        { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'cuentas_ver' },
+        { label: 'Retenciones', route: 'retenciones', permiso: 'retenciones_ver' },
+        { label: 'Libro de Compras', route: 'libro-compras', permiso: 'libro_compras_ver' },
       ]
     },
     {
       name: 'Panel Web',
       expanded: true,
       items: [
-        { label: 'Inicio', route: 'inicio-gestion' },
-        { label: 'Productos', route: 'productos' },
-        { label: 'Marcas', route: 'marcas' },
-        { label: 'Líneas', route: 'lineas' },
-        { label: 'Ofertas', route: 'ofertas' },
-        { label: 'Usuarios', route: 'usuarios' },
+        { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
+        { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
+        { label: 'Marcas', route: 'marcas', permiso: 'marcas_ver' },
+        { label: 'Líneas', route: 'lineas', permiso: 'lineas_ver' },
+        { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
+        { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
+        { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
+        { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
       ]
     }
   ]);
@@ -103,6 +141,10 @@ export class Admin implements OnInit {
       newCats[index].expanded = !newCats[index].expanded;
       return newCats;
     });
+  }
+
+  getVisibleItems(items: MenuItem[]): MenuItem[] {
+    return items.filter(item => !item.permiso || this.hasPermission(item.permiso));
   }
 
   logout() {

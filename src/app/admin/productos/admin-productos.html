@@ -208,6 +208,39 @@
               }
             </select>
           </div>
+          <div class="form-group">
+            <label>Imágenes Adicionales</label>
+            <div class="additional-images-container">
+              <div 
+                class="drop-zone additional"
+                (dragover)="onAdditionalDragOver($event)"
+                (drop)="onAdditionalDrop($event)"
+              >
+                <span class="drop-text">+ Añadir más imágenes</span>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onAdditionalImageSelected($event)"
+                class="file-input"
+                #additionalFileInput
+                style="display: none;"
+              />
+              <button type="button" class="upload-btn" (click)="additionalFileInput.click()">
+                + Añadir
+              </button>
+              @if (formData().images.length > 0) {
+                <div class="additional-images-grid">
+                  @for (img of formData().images; track img; let i = $index) {
+                    <div class="additional-image-item">
+                      <img [src]="img" alt="Imagen adicional" />
+                      <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i)">&times;</button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
           <div class="form-actions">
             <button type="submit" class="save-btn">Guardar</button>
             <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancelar</button>

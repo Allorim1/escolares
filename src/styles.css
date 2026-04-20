@@ -121,3 +121,11 @@ html, body {
   color: #333;
   font-size: 0.9em;
 }
+
+.price-integer {
+  font-size: 1em;
+}
+
+.price-decimal {
+  font-size: 0.65em;
+}

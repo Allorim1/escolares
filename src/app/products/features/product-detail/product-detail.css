@@ -14,16 +14,24 @@
 }
 
 .back-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   color: #1d63c1;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1.1rem;
   margin-bottom: 1.5rem;
   transition: color 0.2s;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid #1d63c1;
+  border-radius: 8px;
+  float: right;
 }
 
 .back-link:hover {
-  color: #1565c0;
+  color: #fff;
+  background: #1d63c1;
 }
 
 .product-detail-card {
@@ -146,9 +154,9 @@
 }
 
 .ficha-label {
-  font-weight: 500;
-  color: #666;
-  font-size: 0.9rem;
+  font-weight: 600;
+  color: #000;
+  font-size: 0.95rem;
 }
 
 .ficha-value {
@@ -199,6 +207,7 @@
   line-height: 1.7;
   font-size: 1rem;
   margin: 0;
+  font-weight: 600;
 }
 
 .product-meta {
@@ -214,8 +223,9 @@
 }
 
 .meta-label {
-  font-size: 0.8rem;
-  color: #888;
+  font-size: 0.85rem;
+  color: #000;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }

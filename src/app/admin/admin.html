@@ -19,11 +19,9 @@
           @if (categoria.expanded) {
             <div class="categoria-items">
               @for (item of categoria.items; track item.route) {
-                <a [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
-              }
-              @if (categoria.name === 'Panel Web' && isRoot()) {
-                <a routerLink="roles" routerLinkActive="active">Roles</a>
-                <a routerLink="manuales" routerLinkActive="active">Manuales</a>
+                @if (!item.permiso || hasPermission(item.permiso)) {
+                  <a [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
+                }
               }
             </div>
           }

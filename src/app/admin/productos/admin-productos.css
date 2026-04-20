@@ -246,6 +246,59 @@
   display: none;
 }
 
+.additional-images-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.additional-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.additional-image-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.additional-image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.remove-img-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #dc3545;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drop-zone.additional {
+  min-height: 50px;
+  padding: 0.75rem;
+}
+
+.drop-zone.additional .drop-text {
+  font-size: 0.85rem;
+}
+
 .upload-btn {
   padding: 0.75rem 1rem;
   background: #17a2b8;

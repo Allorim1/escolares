@@ -12,6 +12,7 @@ interface ProductFormData {
   description: string;
   category: string;
   image: string;
+  images: string[];
   marca: string;
   lineaId: string;
   iva: boolean;
@@ -135,6 +136,7 @@ export class AdminProductos implements OnInit {
       description: '',
       category: 'electronics',
       image: 'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg',
+      images: [],
       marca: '',
       lineaId: '',
       iva: false,
@@ -152,6 +154,7 @@ export class AdminProductos implements OnInit {
       description: product.description,
       category: product.category,
       image: product.image,
+      images: product.images || [],
       marca: product.marca || '',
       lineaId: (product as any).lineaId || '',
       iva: product.iva || false,
@@ -176,6 +179,7 @@ export class AdminProductos implements OnInit {
         description: data.description,
         category: data.category,
         image: data.image,
+        images: data.images,
         marca: data.marca || null,
         lineaId: data.lineaId || null,
         iva: data.iva,
@@ -200,6 +204,7 @@ export class AdminProductos implements OnInit {
         description: data.description,
         category: data.category,
         image: data.image,
+        images: data.images,
         marca: data.marca || null,
         lineaId: data.lineaId || null,
         iva: data.iva,
@@ -277,6 +282,58 @@ export class AdminProductos implements OnInit {
       alert('Error al leer el archivo');
     };
     reader.readAsDataURL(file);
+  }
+
+  onAdditionalImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    this.processAdditionalFile(file);
+  }
+
+  processAdditionalFile(file: File) {
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen no puede exceder 5MB');
+      return;
+    }
+    this.uploadingImage.set(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.formData.update(data => ({ ...data, images: [...data.images, base64] }));
+      this.uploadingImage.set(false);
+    };
+    reader.onerror = () => {
+      this.uploadingImage.set(false);
+      alert('Error al leer el archivo');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeAdditionalImage(index: number) {
+    this.formData.update(data => ({ 
+      ...data, 
+      images: data.images.filter((_, i) => i !== index) 
+    }));
+  }
+
+  onAdditionalDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onAdditionalDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    for (let i = 0; i < files.length; i++) {
+      this.processAdditionalFile(files[i]);
+    }
   }
 
   deleteProduct(id: number | string) {

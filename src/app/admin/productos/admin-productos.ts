@@ -66,7 +66,7 @@ export class AdminProductos implements OnInit {
 
   productCategories = signal<CategoriaProducto[]>([]);
   
-  newCategoryName = signal('');
+  newCategoryName = '';
   showCategoryModal = signal(false);
 
   get categorias(): CategoriaProducto[] {
@@ -77,11 +77,10 @@ export class AdminProductos implements OnInit {
     return ['Nueva...', ...this.productCategories().map(c => c.nombre)];
   }
 
-  ngOnInit() {
-    this.loadMarcas();
-    this.loadLineas();
-    this.loadProducts();
+ngOnInit() {
     this.loadProductCategories();
+    this.loadProducts();
+    this.loadPreciosOcultosSetting();
   }
 
   loadProductCategories() {
@@ -100,7 +99,7 @@ export class AdminProductos implements OnInit {
   }
 
   openCategoryModal() {
-    this.newCategoryName.set('');
+    this.newCategoryName = '';
     this.showCategoryModal.set(true);
   }
 
@@ -109,7 +108,61 @@ export class AdminProductos implements OnInit {
   }
 
   addCategory() {
-    const nombre = this.newCategoryName().trim();
+    const nombre = this.newCategoryName.trim();
+    if (!nombre) return;
+    
+    this.http.post<any>('/api/productos-categorias', { nombre }).subscribe({
+      next: () => {
+        this.loadProductCategories();
+        this.closeCategoryModal();
+      }
+    });
+  }
+
+  deleteCategory(cat: CategoriaProducto) {
+    if (!confirm(`¿Eliminar categoría "${cat.nombre}"?`)) return;
+    
+    this.http.delete<any>(`/api/productos-categorias/${cat.id}`).subscribe({
+      next: () => {
+        this.loadProductCategories();
+      }
+    });
+  }
+
+  get categorias(): CategoriaProducto[] {
+    return this.productCategories();
+  }
+
+  get categories(): string[] {
+    return ['Nueva...', ...this.productCategories().map(c => c.nombre)];
+  }
+
+  loadProductCategories() {
+    this.http.get<any[]>('/api/productos-categorias').subscribe({
+      next: (data) => {
+        this.productCategories.set(data);
+      },
+      error: () => {
+        this.productCategories.set([
+          { id: 'cat-1', nombre: 'Lápices' },
+          { id: 'cat-2', nombre: 'Mochilas' },
+          { id: 'cat-3', nombre: 'Uniformes' },
+        ]);
+      }
+    });
+  }
+
+  openCategoryModal() {
+    this.newCategoryName = '';
+    this.showCategoryModal.set(true);
+  }
+
+  closeCategoryModal() {
+    this.showCategoryModal.set(false);
+  }
+
+  addCategory() {
+    const nombre = this.newCategoryName.trim();
     if (!nombre) return;
     
     this.http.post<any>('/api/productos-categorias', { nombre }).subscribe({

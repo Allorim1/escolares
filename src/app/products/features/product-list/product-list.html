@@ -91,6 +91,7 @@
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 1rem;
       justify-items: center;
+      padding: 0.5rem;
     "
   >
     @for (product of paginatedProducts(); track product; let i = $index) {
@@ -141,7 +142,7 @@
               Inicie sesión para ver precios
             </p>
           }
-          <div class="card-actions" style="display: flex; gap: 0.5rem; align-items: center; margin-top: auto;">
+          <div class="card-actions" style="display: flex; gap: 0.5rem; align-items: center; margin-top: auto; min-height: 38px;">
             @if (shouldShowPrice()) {
               @if (getCardQuantity(product.id) > 0) {
                 <div class="card-qty-controls" style="display: flex; align-items: center; gap: 0.25rem;">
@@ -174,6 +175,7 @@
                     cursor: pointer;
                     transition: background 0.2s;
                     flex: 1;
+                    height: 38px;
                   "
                   (click)="$event.stopPropagation(); addToCardFromCard(product)"
                 >
@@ -194,6 +196,7 @@
                 cursor: pointer;
                 transition: background 0.2s;
                 flex: 1;
+                height: 38px;
               "
               (click)="$event.stopPropagation()"
               [routerLink]="[product.id]"

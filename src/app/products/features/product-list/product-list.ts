@@ -212,6 +212,7 @@ import { Product } from '../../../shared/interfaces/product.interface';
       font-size: 1.5rem;
       color: #333;
       font-weight: 600;
+      text-transform: capitalize;
     }
     .modal-product-description {
       color: #666;

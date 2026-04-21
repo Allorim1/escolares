@@ -431,4 +431,9 @@ ngOnInit() {
     const linea = this.lineasService.getLineaById(lineaId);
     return linea?.name || '-';
   }
+
+  getLineaNameById(lineaId: string): string {
+    const linea = this.lineasService.getLineaById(lineaId);
+    return linea?.name || '-';
+  }
 }

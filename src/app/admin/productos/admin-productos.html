@@ -54,202 +54,274 @@
 
   @if (isAdding() || editingProduct()) {
     <div class="modal-overlay">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content modal-with-preview" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ isAdding() ? 'Nuevo Producto' : 'Editar Producto' }}</h3>
           <button class="close-btn" (click)="cancelEdit()">&times;</button>
         </div>
-        <form (ngSubmit)="saveProduct()">
-          <div class="form-group">
-            <label>Imagen</label>
-            <div class="image-upload-container">
-              @if (uploadingImage()) {
-                <div class="uploading">Subiendo imagen...</div>
-              }
-              <div 
-                class="drop-zone"
-                [class.drag-over]="dragOver()"
-                [class.has-image]="formData().image"
-                (dragover)="onDragOver($event)"
-                (dragleave)="onDragLeave($event)"
-                (drop)="onDrop($event)"
-              >
-                @if (formData().image) {
-                  <img [src]="formData().image" alt="Preview" class="drop-preview-img" />
-                } @else {
-                  <div class="drop-zone-content">
-                    <span class="drop-icon">🖼️</span>
-                    <span class="drop-text">Arrastra una imagen aquí</span>
-                    <span class="drop-subtext">o</span>
+        <div class="modal-body-split">
+          <div class="form-section">
+            <form (ngSubmit)="saveProduct()">
+              <div class="form-group">
+                <label>Imagen</label>
+                <div class="image-upload-container">
+                  @if (uploadingImage()) {
+                    <div class="uploading">Subiendo imagen...</div>
+                  }
+                  <div 
+                    class="drop-zone"
+                    [class.drag-over]="dragOver()"
+                    [class.has-image]="formData().image"
+                    (dragover)="onDragOver($event)"
+                    (dragleave)="onDragLeave($event)"
+                    (drop)="onDrop($event)"
+                  >
+                    @if (formData().image) {
+                      <img [src]="formData().image" alt="Preview" class="drop-preview-img" />
+                    } @else {
+                      <div class="drop-zone-content">
+                        <span class="drop-icon">🖼️</span>
+                        <span class="drop-text">Arrastra una imagen aquí</span>
+                        <span class="drop-subtext">o</span>
+                      </div>
+                    }
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onFileSelected($event)"
+                    class="file-input"
+                    #fileInput
+                  />
+                  <button type="button" class="upload-btn" (click)="fileInput.click()">
+                    📁 Seleccionar imagen
+                  </button>
+                  <div class="url-input-group">
+                    <span class="url-separator">o pega una URL:</span>
+                    <input
+                      type="text"
+                      [ngModel]="formData().image"
+                      name="image"
+                      (ngModelChange)="updateFormField('image', $event)"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Nombre</label>
+                <input
+                  type="text"
+                  [ngModel]="formData().title"
+                  name="title"
+                  (ngModelChange)="updateFormField('title', $event)"
+                />
+              </div>
+              <div class="form-group">
+                <label>Precio</label>
+                <input
+                  type="number"
+                  [ngModel]="formData().price"
+                  name="price"
+                  (ngModelChange)="updateFormField('price', $event)"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <div class="iva-group">
+                <div class="iva-header">
+                  <label class="iva-toggle-label">
+                    <span>Incluir IVA</span>
+                    <div class="toggle-switch">
+                      <input
+                        type="checkbox"
+                        [ngModel]="formData().iva"
+                        name="iva"
+                        (ngModelChange)="updateFormField('iva', $event)"
+                      />
+                      <span class="toggle-slider"></span>
+                    </div>
+                  </label>
+                </div>
+                @if (formData().iva) {
+                  <div class="iva-percentage-input">
+                    <span class="iva-suffix">%</span>
+                    <input
+                      type="number"
+                      [ngModel]="formData().ivaPercentage"
+                      name="ivaPercentage"
+                      (ngModelChange)="updateFormField('ivaPercentage', $event)"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      class="iva-input"
+                      placeholder="16"
+                    />
+                    <span class="iva-info">IVA %</span>
                   </div>
                 }
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                (change)="onFileSelected($event)"
-                class="file-input"
-                #fileInput
-              />
-              <button type="button" class="upload-btn" (click)="fileInput.click()">
-                📁 Seleccionar imagen
-              </button>
-              <div class="url-input-group">
-                <span class="url-separator">o pega una URL:</span>
-                <input
-                  type="text"
-                  [ngModel]="formData().image"
-                  name="image"
-                  (ngModelChange)="updateFormField('image', $event)"
-                  placeholder="https://..."
-                />
+              <div class="form-group">
+                <label>Estado</label>
+                <select
+                  [ngModel]="formData().estado"
+                  name="estado"
+                  (ngModelChange)="updateFormField('estado', $event)"
+                >
+                  <option value="disponible">Disponible</option>
+                  <option value="agotado">Temporalmente agotado</option>
+                </select>
               </div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Nombre</label>
-            <input
-              type="text"
-              [ngModel]="formData().title"
-              name="title"
-              (ngModelChange)="updateFormField('title', $event)"
-            />
-          </div>
-          <div class="form-group">
-            <label>Precio</label>
-            <input
-              type="number"
-              [ngModel]="formData().price"
-              name="price"
-              (ngModelChange)="updateFormField('price', $event)"
-              step="0.01"
-              required
-            />
-          </div>
-          <div class="iva-group">
-            <div class="iva-header">
-              <label class="iva-toggle-label">
-                <span>Incluir IVA</span>
-                <div class="toggle-switch">
-                  <input
-                    type="checkbox"
-                    [ngModel]="formData().iva"
-                    name="iva"
-                    (ngModelChange)="updateFormField('iva', $event)"
-                  />
-                  <span class="toggle-slider"></span>
-                </div>
-              </label>
-            </div>
-            @if (formData().iva) {
-              <div class="iva-percentage-input">
-                <span class="iva-suffix">%</span>
-                <input
-                  type="number"
-                  [ngModel]="formData().ivaPercentage"
-                  name="ivaPercentage"
-                  (ngModelChange)="updateFormField('ivaPercentage', $event)"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  class="iva-input"
-                  placeholder="16"
-                />
-                <span class="iva-info">IVA %</span>
+              <div class="form-group">
+                <label>Descripción</label>
+                <textarea
+                  [ngModel]="formData().description"
+                  name="description"
+                  (ngModelChange)="updateFormField('description', $event)"
+                  rows="3"
+                  required
+                ></textarea>
               </div>
-            }
-          </div>
-          <div class="form-group">
-            <label>Estado</label>
-            <select
-              [ngModel]="formData().estado"
-              name="estado"
-              (ngModelChange)="updateFormField('estado', $event)"
-            >
-              <option value="disponible">Disponible</option>
-              <option value="agotado">Temporalmente agotado</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Descripción</label>
-            <textarea
-              [ngModel]="formData().description"
-              name="description"
-              (ngModelChange)="updateFormField('description', $event)"
-              rows="3"
-              required
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label>Categoría</label>
-            <select
-              [ngModel]="formData().category"
-              name="category"
-              (ngModelChange)="updateFormField('category', $event)"
-            >
-              @for (cat of categories; track cat) {
-                <option [value]="cat">{{ cat }}</option>
-              }
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Marca (opcional)</label>
-            <select
-              [ngModel]="formData().marca"
-              name="marca"
-              (ngModelChange)="updateFormField('marca', $event)"
-            >
-              <option value="">Sin marca</option>
-              @for (marca of marcas; track marca.id) {
-                <option [value]="marca.name">{{ marca.name }}</option>
-              }
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Línea (opcional)</label>
-            <select
-              [ngModel]="formData().lineaId"
-              name="lineaId"
-              (ngModelChange)="updateFormField('lineaId', $event)"
-            >
-              <option value="">Sin línea</option>
-              @for (linea of lineas; track linea.id) {
-                <option [value]="linea.id">{{ linea.name }}</option>
-              }
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Imágenes Adicionales</label>
+              <div class="form-group">
+                <label>Categoría</label>
+                <select
+                  [ngModel]="formData().category"
+                  name="category"
+                  (ngModelChange)="updateFormField('category', $event)"
+                >
+                  @for (cat of categories; track cat) {
+                    <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Marca (opcional)</label>
+                <select
+                  [ngModel]="formData().marca"
+                  name="marca"
+                  (ngModelChange)="updateFormField('marca', $event)"
+                >
+                  <option value="">Sin marca</option>
+                  @for (marca of marcas; track marca.id) {
+                    <option [value]="marca.name">{{ marca.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Línea (opcional)</label>
+                <select
+                  [ngModel]="formData().lineaId"
+                  name="lineaId"
+                  (ngModelChange)="updateFormField('lineaId', $event)"
+                >
+                  <option value="">Sin línea</option>
+                  @for (linea of lineas; track linea.id) {
+                    <option [value]="linea.id">{{ linea.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Imágenes Adicionales</label>
 <div class="additional-images-container">
-              <p class="images-limit-text">Imágenes adicionales: {{ formData().images.length }}/4</p>
-              <input
-                #additionalFileInput
-                type="file"
-                accept="image/*"
-                (change)="onAdditionalImageSelected($event)"
-                style="display: none"
-              />
-              <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= 4">
-                + Añadir
-              </button>
-              @if (formData().images.length > 0) {
-                <div class="additional-images-grid">
-                  @for (img of formData().images; track img; let i = $index) {
-                    <div class="additional-image-item">
-                      <img [src]="img" alt="Imagen adicional" />
-                      <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i)">&times;</button>
+                  <p class="images-limit-text">Imágenes adicionales: {{ formData().images.length }}/4</p>
+                  <input
+                    #additionalFileInput
+                    type="file"
+                    accept="image/*"
+                    (change)="onAdditionalImageSelected($event)"
+                    style="display: none"
+                  />
+                  <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= 4">
+                    + Añadir
+                  </button>
+                  @if (formData().images.length > 0) {
+                    <div class="additional-images-grid">
+                      @for (img of formData().images; track img; let i = $index) {
+                        <div class="additional-image-item">
+                          <img [src]="img" alt="Imagen adicional" />
+                          <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i)">&times;</button>
+                        </div>
+                      }
                     </div>
                   }
                 </div>
-              }
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="save-btn">Guardar</button>
+                <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+          <div class="preview-section">
+            <h4 class="preview-title">Vista Previa</h4>
+            <div class="preview-card">
+              <div class="preview-image-col">
+                <div class="preview-image-wrapper">
+                  @if (formData().estado === 'agotado') {
+                    <div class="preview-agotado-badge">Temporalmente agotado</div>
+                  }
+                  @if (formData().image) {
+                    <img class="preview-image" [src]="formData().image" [alt]="formData().title" />
+                  } @else {
+                    <div class="preview-no-image">Sin imagen</div>
+                  }
+                </div>
+              </div>
+              <div class="preview-info-col">
+                <h1 class="preview-title-product">
+                  {{ formData().title || 'Nombre del producto' }}
+                </h1>
+                <div class="preview-rating">
+                  <span class="star full">★</span>
+                  <span class="star full">★</span>
+                  <span class="star full">★</span>
+                  <span class="star full">★</span>
+                  <span class="star">★</span>
+                  <span class="rating-text">0.0 (0 reseñas)</span>
+                </div>
+                <div class="preview-price-section">
+                  @if (formData().price > 0) {
+                    <span class="preview-price">${{ formData().price.toFixed(2) }}</span>
+                    @if (formData().iva) {
+                      <span class="preview-price-iva">+ {{ formData().ivaPercentage }}% IVA</span>
+                    }
+                  } @else {
+                    <span class="preview-price-placeholder">$0.00</span>
+                  }
+                </div>
+                <p class="preview-description">
+                  {{ formData().description || 'Descripción del producto...' }}
+                </p>
+                @if (formData().category || formData().marca || formData().lineaId) {
+                  <div class="preview-ficha">
+                    <h5 class="preview-ficha-title">📋 Ficha Técnica</h5>
+                    <div class="preview-ficha-grid">
+                      @if (formData().category && formData().category !== 'Nueva...') {
+                        <div class="preview-ficha-row">
+                          <span class="preview-ficha-label">Categoría</span>
+                          <span class="preview-ficha-value">{{ formData().category }}</span>
+                        </div>
+                      }
+                      @if (formData().lineaId) {
+                        <div class="preview-ficha-row">
+                          <span class="preview-ficha-label">Línea</span>
+                          <span class="preview-ficha-value">{{ getLineaNameById(formData().lineaId) }}</span>
+                        </div>
+                      }
+                      @if (formData().marca) {
+                        <div class="preview-ficha-row">
+                          <span class="preview-ficha-label">Marca</span>
+                          <span class="preview-ficha-value">{{ formData().marca }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
           </div>
-          <div class="form-actions">
-            <button type="submit" class="save-btn">Guardar</button>
-            <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancelar</button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   }

@@ -238,6 +238,12 @@ ngOnInit() {
     this.editingProduct.set(null);
   }
 
+  confirmCancel() {
+    if (confirm('Perderás toda la información sin guardar')) {
+      this.cancelEdit();
+    }
+  }
+
   saveProduct() {
     const data = this.formData();
 

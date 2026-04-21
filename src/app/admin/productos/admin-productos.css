@@ -444,16 +444,16 @@ td {
 
 tbody tr {
   transition: all 0.2s ease;
+  background: white;
+  cursor: default;
 }
 
 tbody tr:hover {
-  background: #f0f7ff;
-  transform: scale(1.01);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-tbody tr:hover td {
-  background: transparent;
+  background: #e3f2fd;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+  position: relative;
 }
 
 .product-thumb {

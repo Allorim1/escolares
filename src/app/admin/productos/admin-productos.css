@@ -693,6 +693,19 @@ tbody tr:hover {
   margin-top: 4px;
 }
 
+.iva-preview {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #e8f5e9;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #2e7d32;
+}
+
+.iva-preview strong {
+  font-size: 1rem;
+}
+
 @media (max-width: 1024px) {
   .productos-admin {
     max-width: 100%;
@@ -1013,6 +1026,24 @@ tbody tr:hover {
   font-size: 1.5rem;
   font-weight: 800;
   color: #ccc;
+}
+
+.preview-price-with-iva {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.preview-price-label {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.preview-price-base {
+  font-size: 0.75rem;
+  color: #888;
+  font-weight: 400;
 }
 
 .preview-price-iva {

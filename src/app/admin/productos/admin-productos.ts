@@ -446,4 +446,10 @@ ngOnInit() {
       images: currentMain ? [currentMain, ...currentImages] : currentImages
     }));
   }
+
+  calculatePriceWithIva(): number {
+    const price = this.formData().price || 0;
+    const ivaPercent = this.formData().ivaPercentage || 0;
+    return price + (price * ivaPercent / 100);
+  }
 }

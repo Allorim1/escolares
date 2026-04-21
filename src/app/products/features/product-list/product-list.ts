@@ -311,6 +311,11 @@ import { Product } from '../../../shared/interfaces/product.interface';
         padding-bottom: 1.5rem;
       }
     }
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+      border-color: #1565c0;
+    }
   `,
   providers: [ProductsStateService],
 })

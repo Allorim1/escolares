@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { DecimalPipe } from '@angular/common';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
@@ -28,7 +29,7 @@ interface ProductFormData {
 @Component({
   selector: 'app-admin-productos',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DecimalPipe],
   templateUrl: './admin-productos.html',
   styleUrl: './admin-productos.css',
 })

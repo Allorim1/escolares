@@ -269,6 +269,14 @@
   position: relative;
   width: 80px;
   height: 80px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 6px;
+}
+
+.additional-image-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .additional-image-item img {
@@ -880,7 +888,8 @@ tbody tr:hover {
 
 .preview-image-col {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 .preview-image-wrapper {
@@ -918,6 +927,35 @@ tbody tr:hover {
   color: #999;
   font-size: 0.9rem;
   padding: 2rem;
+}
+
+.preview-thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.preview-thumbnail-item {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.preview-thumbnail-item:hover {
+  border-color: #1d63c1;
+  transform: scale(1.05);
+}
+
+.preview-thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .preview-info-col {

@@ -436,4 +436,14 @@ ngOnInit() {
     const linea = this.lineasService.getLineaById(lineaId);
     return linea?.name || '-';
   }
+
+  setMainImage(img: string) {
+    const currentMain = this.formData().image;
+    const currentImages = this.formData().images.filter(i => i !== img);
+    this.formData.update(data => ({
+      ...data,
+      image: img,
+      images: currentMain ? [currentMain, ...currentImages] : currentImages
+    }));
+  }
 }

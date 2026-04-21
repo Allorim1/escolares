@@ -314,7 +314,7 @@ import { Product } from '../../../shared/interfaces/product.interface';
     .card-hover:hover {
       transform: translateY(-8px);
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-      border-color: #1565c0;
+      border-color: #1d63c1 !important;
     }
   `,
   providers: [ProductsStateService],

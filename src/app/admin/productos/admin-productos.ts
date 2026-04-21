@@ -495,22 +495,24 @@ ngOnInit() {
     return 0;
   }
 
-  onOfertaPorcentajeChange(value: number) {
+  onOfertaPorcentajeChange(value: number | string) {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
     const price = this.formData().price || 0;
-    const discount = price * value / 100;
+    const discount = price * (numValue || 0) / 100;
     this.formData.update(data => ({
       ...data,
-      ofertaPorcentaje: value,
+      ofertaPorcentaje: numValue || 0,
       ofertaPrecio: price - discount
     }));
   }
 
-  onOfertaPrecioChange(value: number) {
+  onOfertaPrecioChange(value: number | string) {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
     const price = this.formData().price || 0;
-    const porcentaje = price > 0 ? ((price - value) / price) * 100 : 0;
+    const porcentaje = price > 0 && numValue ? ((price - numValue) / price) * 100 : 0;
     this.formData.update(data => ({
       ...data,
-      ofertaPrecio: value,
+      ofertaPrecio: numValue || 0,
       ofertaPorcentaje: Math.round(porcentaje * 10) / 10
     }));
   }

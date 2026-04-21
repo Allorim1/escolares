@@ -146,7 +146,7 @@
                 />
               </div>
               <div class="form-group">
-                <label>Precio Base (sin IVA)</label>
+                <label>Precio (IVA incluido)</label>
                 <input
                   type="number"
                   [ngModel]="formData().price"
@@ -157,8 +157,10 @@
                 />
                 @if (formData().iva && formData().price > 0) {
                   <div class="iva-preview">
-                    <span>Precio con IVA ({{ formData().ivaPercentage }}%): </span>
-                    <strong>{{ calculatePriceWithIva() | number:'1.2-2' }}</strong>
+                    <span>Base: </span>
+                    <strong>{{ calculateIvaIncluded().base | number:'1.2-2' }}</strong>
+                    <span> | IVA ({{ formData().ivaPercentage }}%): </span>
+                    <strong>{{ calculateIvaIncluded().iva | number:'1.2-2' }}</strong>
                   </div>
                 }
               </div>
@@ -192,6 +194,57 @@
                       placeholder="16"
                     />
                     <span class="iva-info">IVA %</span>
+                  </div>
+                }
+              </div>
+              <div class="iva-group">
+                <div class="iva-header">
+                  <label class="iva-toggle-label">
+                    <span>Producto en Oferta</span>
+                    <div class="toggle-switch">
+                      <input
+                        type="checkbox"
+                        [ngModel]="formData().enOferta"
+                        name="enOferta"
+                        (ngModelChange)="updateFormField('enOferta', $event)"
+                      />
+                      <span class="toggle-slider"></span>
+                    </div>
+                  </label>
+                </div>
+                @if (formData().enOferta) {
+                  <div class="oferta-inputs">
+                    <div class="oferta-field">
+                      <label>Descuento %</label>
+                      <input
+                        type="number"
+                        [ngModel]="formData().ofertaPorcentaje"
+                        (ngModelChange)="onOfertaPorcentajeChange($event)"
+                        min="0"
+                        max="100"
+                        step="1"
+                        placeholder="0"
+                      />
+                      <span class="oferta-suffix">%</span>
+                    </div>
+                    <div class="oferta-field">
+                      <label>Precio Oferta</label>
+                      <input
+                        type="number"
+                        [ngModel]="formData().ofertaPrecio"
+                        (ngModelChange)="onOfertaPrecioChange($event)"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    @if (formData().price > 0 && formData().ofertaPrecio > 0) {
+                      <div class="oferta-preview">
+                        <span>Ahorras: </span>
+                        <strong>{{ (formData().price - formData().ofertaPrecio) | number:'1.2-2' }}</strong>
+                        <span> ({{ formData().ofertaPorcentaje | number:'1.1-1' }}% dto)</span>
+                      </div>
+                    }
                   </div>
                 }
               </div>
@@ -298,11 +351,17 @@
                 </div>
                 <div class="preview-price-section">
                   @if (formData().price > 0) {
-                    @if (formData().iva) {
+                    @if (formData().enOferta && formData().ofertaPrecio > 0) {
+                      <div class="preview-offer">
+                        <span class="preview-original-price">${{ formData().price.toFixed(2) }}</span>
+                        <span class="preview-offer-price">${{ formData().ofertaPrecio | number:'1.2-2' }}</span>
+                        <span class="preview-offer-badge">{{ formData().ofertaPorcentaje | number:'1.0-0' }}% OFF</span>
+                      </div>
+                    } @else if (formData().iva) {
                       <div class="preview-price-with-iva">
-                        <span class="preview-price-label">Precio final:</span>
-                        <span class="preview-price">${{ calculatePriceWithIva() | number:'1.2-2' }}</span>
-                        <span class="preview-price-base">(Base: ${{ formData().price.toFixed(2) }} + IVA {{ formData().ivaPercentage }}%: ${{ (formData().price * formData().ivaPercentage / 100) | number:'1.2-2' }})</span>
+                        <span class="preview-price-label">Precio (IVA incluido):</span>
+                        <span class="preview-price">${{ formData().price.toFixed(2) }}</span>
+                        <span class="preview-price-base">(Base: ${{ calculateIvaIncluded().base | number:'1.2-2' }} + IVA {{ formData().ivaPercentage }}%: ${{ calculateIvaIncluded().iva | number:'1.2-2' }})</span>
                       </div>
                     } @else {
                       <span class="preview-price">${{ formData().price.toFixed(2) }}</span>

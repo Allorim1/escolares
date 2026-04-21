@@ -706,6 +706,60 @@ tbody tr:hover {
   font-size: 1rem;
 }
 
+.oferta-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #fff3e0;
+  border-radius: 8px;
+  border: 1px solid #ffb74d;
+}
+
+.oferta-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.oferta-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e65100;
+  min-width: 90px;
+}
+
+.oferta-field input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ffcc80;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.oferta-field input:focus {
+  outline: none;
+  border-color: #ff9800;
+}
+
+.oferta-suffix {
+  color: #e65100;
+  font-weight: 600;
+}
+
+.oferta-preview {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #ffe0b2;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #e65100;
+}
+
+.oferta-preview strong {
+  font-size: 1rem;
+}
+
 @media (max-width: 1024px) {
   .productos-admin {
     max-width: 100%;
@@ -1051,6 +1105,34 @@ tbody tr:hover {
   font-size: 0.85rem;
   color: #666;
   font-weight: 500;
+}
+
+.preview-offer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.preview-original-price {
+  font-size: 1rem;
+  color: #999;
+  text-decoration: line-through;
+}
+
+.preview-offer-price {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #dc3545;
+}
+
+.preview-offer-badge {
+  background: #28a745;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .preview-description {

@@ -24,6 +24,9 @@ interface ProductFormData {
   iva: boolean;
   ivaPercentage: number;
   estado: 'disponible' | 'agotado';
+  enOferta: boolean;
+  ofertaPorcentaje: number;
+  ofertaPrecio: number;
 }
 
 @Component({
@@ -63,6 +66,9 @@ export class AdminProductos implements OnInit {
     iva: false,
     ivaPercentage: 16,
     estado: 'disponible',
+    enOferta: false,
+    ofertaPorcentaje: 0,
+    ofertaPrecio: 0,
   });
 
   productCategories = signal<CategoriaProducto[]>([]);
@@ -209,6 +215,9 @@ ngOnInit() {
       iva: false,
       ivaPercentage: 16,
       estado: 'disponible',
+      enOferta: false,
+      ofertaPorcentaje: 0,
+      ofertaPrecio: 0,
     });
     this.showModal.set(true);
   }
@@ -228,6 +237,9 @@ ngOnInit() {
       iva: product.iva || false,
       ivaPercentage: product.ivaPercentage || 16,
       estado: product.estado || 'disponible',
+      enOferta: (product as any).enOferta || false,
+      ofertaPorcentaje: (product as any).ofertaPorcentaje || 0,
+      ofertaPrecio: (product as any).ofertaPrecio || 0,
     });
     this.showModal.set(true);
   }
@@ -260,6 +272,9 @@ ngOnInit() {
         iva: data.iva,
         ivaPercentage: data.ivaPercentage,
         estado: data.estado,
+        enOferta: data.enOferta,
+        ofertaPorcentaje: data.ofertaPorcentaje,
+        ofertaPrecio: data.ofertaPrecio,
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
@@ -286,6 +301,9 @@ ngOnInit() {
         iva: data.iva,
         ivaPercentage: data.ivaPercentage,
         estado: data.estado,
+        enOferta: data.enOferta,
+        ofertaPorcentaje: data.ofertaPorcentaje,
+        ofertaPrecio: data.ofertaPrecio,
       }).subscribe({
         next: (updated) => {
           this.products.update((products) => 
@@ -454,9 +472,46 @@ ngOnInit() {
     }));
   }
 
-  calculatePriceWithIva(): number {
+  calculateIvaIncluded(): { base: number; iva: number; total: number } {
     const price = this.formData().price || 0;
     const ivaPercent = this.formData().ivaPercentage || 0;
-    return price + (price * ivaPercent / 100);
+    const base = price / (1 + ivaPercent / 100);
+    const iva = price - base;
+    return { base, iva, total: price };
+  }
+
+  calculateOfferPrice(): number {
+    const price = this.formData().price || 0;
+    const ofertaPrice = this.formData().ofertaPrecio || 0;
+    const ofertaPorcentaje = this.formData().ofertaPorcentaje || 0;
+    
+    if (this.formData().enOferta) {
+      if (ofertaPrice > 0 && ofertaPorcentaje === 0) {
+        return ofertaPrice;
+      } else if (ofertaPorcentaje > 0 && ofertaPrice === 0) {
+        return price - (price * ofertaPorcentaje / 100);
+      }
+    }
+    return 0;
+  }
+
+  onOfertaPorcentajeChange(value: number) {
+    const price = this.formData().price || 0;
+    const discount = price * value / 100;
+    this.formData.update(data => ({
+      ...data,
+      ofertaPorcentaje: value,
+      ofertaPrecio: price - discount
+    }));
+  }
+
+  onOfertaPrecioChange(value: number) {
+    const price = this.formData().price || 0;
+    const porcentaje = price > 0 ? ((price - value) / price) * 100 : 0;
+    this.formData.update(data => ({
+      ...data,
+      ofertaPrecio: value,
+      ofertaPorcentaje: Math.round(porcentaje * 10) / 10
+    }));
   }
 }

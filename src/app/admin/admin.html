@@ -11,21 +11,23 @@
         🏠 Inicio
       </a>
       @for (categoria of categorias(); track categoria.name; let i = $index) {
-        <div class="menu-categoria">
-          <button class="categoria-header" (click)="toggleCategoria(i)">
-            <span>{{ categoria.name }}</span>
-            <span class="toggle-icon">{{ categoria.expanded ? '▼' : '▶' }}</span>
-          </button>
-          @if (categoria.expanded) {
-            <div class="categoria-items">
-              @for (item of categoria.items; track item.route) {
-                @if (!item.permiso || hasPermission(item.permiso)) {
-                  <a [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
+        @if (categoria.items.some(item => !item.permiso || hasPermission(item.permiso))) {
+          <div class="menu-categoria">
+            <button class="categoria-header" (click)="toggleCategoria(i)">
+              <span>{{ categoria.name }}</span>
+              <span class="toggle-icon">{{ categoria.expanded ? '▼' : '▶' }}</span>
+            </button>
+            @if (categoria.expanded) {
+              <div class="categoria-items">
+                @for (item of categoria.items; track item.route) {
+                  @if (!item.permiso || hasPermission(item.permiso)) {
+                    <a [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
+                  }
                 }
-              }
-            </div>
-          }
-        </div>
+              </div>
+            }
+          </div>
+        }
       }
     </nav>
     <div class="admin-footer">

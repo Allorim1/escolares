@@ -93,23 +93,10 @@ export class Admin implements OnInit {
       this.categorias.set(DEFAULT_CATEGORIAS);
       return;
     }
-    
-    this.categoriasBackend.getAll().subscribe({
-      next: (categorias) => {
-        if (categorias && categorias.length > 0) {
-          this.categorias.set(categorias.map(c => ({
-            name: c.nombre,
-            expanded: false,
-            items: c.items || []
-          })));
-        } else {
-          this.categorias.set(DEFAULT_CATEGORIAS);
-        }
-      },
-      error: () => {
-        this.categorias.set(DEFAULT_CATEGORIAS);
-      }
-    });
+
+    // Para usuarios con roles personalizados, usar DEFAULT_CATEGORIAS
+    // pero filtrar items por permisos
+    this.categorias.set(DEFAULT_CATEGORIAS);
   }
 
   loadUserPermissions() {

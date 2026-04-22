@@ -9,6 +9,7 @@ import { AuthService } from '../../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.service';
 import { CartStateService } from '../../../shared/data-access/cart-state.service';
 import { OfertasService } from '../../../shared/data-access/ofertas.service';
+import { OfertasBackend } from '../../../backend/data-access/ofertas.backend';
 import { Product } from '../../../shared/interfaces/product.interface';
 
 @Component({
@@ -370,6 +371,7 @@ export default class ProductList implements OnInit {
   apiKeyStatusService = inject(ApiKeyStatusService);
   cartState = inject(CartStateService).state;
   private ofertasService = inject(OfertasService);
+  private ofertasBackend = inject(OfertasBackend);
 
   selectedProduct = signal<Product | null>(null);
   modalQuantity = signal(1);
@@ -499,6 +501,7 @@ export default class ProductList implements OnInit {
   currentBrand = signal('');
 
   ngOnInit() {
+    this.ofertasBackend.reload();
     this.route.paramMap.subscribe((params) => {
       const brand = params.get('brand');
       if (brand) {

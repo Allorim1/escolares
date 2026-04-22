@@ -14,7 +14,7 @@ export class OfertasBackend {
     this.loadFromApi();
   }
 
-  private loadFromApi() {
+  loadFromApi() {
     this.http.get<Oferta[]>(this.API_URL).subscribe({
       next: (ofertas) => {
         this.ofertas.set(ofertas);
@@ -23,6 +23,10 @@ export class OfertasBackend {
         console.error('Error loading ofertas from API:', error);
       },
     });
+  }
+
+  reload() {
+    this.loadFromApi();
   }
 
   agregarOferta(productId: number | string, precioOferta: number) {

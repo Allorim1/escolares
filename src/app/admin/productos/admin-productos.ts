@@ -284,6 +284,7 @@ ngOnInit() {
             this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
           }
           if (data.enOferta && data.ofertaPrecio > 0) {
+            console.log('Agregando oferta:', newProduct.id, data.ofertaPrecio);
             this.ofertasBackend.agregarOferta(newProduct.id, data.ofertaPrecio);
           }
           this.cancelEdit();
@@ -316,8 +317,10 @@ ngOnInit() {
             products.map((p) => (p.id === updated.id ? updated : p))
           );
           if (data.enOferta && data.ofertaPrecio > 0) {
+            console.log('Editando - Agregando oferta:', productId, data.ofertaPrecio);
             this.ofertasBackend.agregarOferta(productId, data.ofertaPrecio);
           } else {
+            console.log('Editando - Eliminando oferta:', productId);
             this.ofertasBackend.eliminarOferta(productId);
           }
           this.cancelEdit();

@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CartItem } from './ui/cart-item/cart-item';
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { ProductItemCart } from '../shared/interfaces/product.interface';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -11,7 +11,7 @@ import { OrdersBackend, OrderItem, OrderStatus } from '../backend/data-access/or
 import { CurrencyService } from '../shared/data-access/currency.service';
 import { StoreSettingsService } from '../shared/data-access/store-settings.service';
 
-const CART_IMPORTS = [CartItem, CurrencyPipe, RouterLink, FormsModule, DatePipe];
+const CART_IMPORTS = [CartItem, RouterLink, FormsModule, DatePipe];
 
 interface PaymentData {
   nombre: string;

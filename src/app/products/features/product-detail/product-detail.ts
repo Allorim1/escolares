@@ -1,4 +1,5 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
+import { NgIf } from '@angular/common';
 import { ProductDetailSateService } from '../../data-access/product-detail-state.service';
 import { CartStateService } from '../../../shared/data-access/cart-state.service';
 import { RouterLink } from '@angular/router';
@@ -13,13 +14,14 @@ import { ProductRating } from '../../../shared/ui/product-rating/product-rating'
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, ProductRating],
+  imports: [RouterLink, ProductRating, NgIf],
   templateUrl: './product-detail.html',
   styleUrls: ['./product-detail.css'],
   providers: [ProductDetailSateService],
 })
 export default class ProductDetail {
-  productDetailState = inject(ProductDetailSateService).state;
+  private productDetailService = inject(ProductDetailSateService);
+  productDetailState = this.productDetailService.state;
   cartState = inject(CartStateService).state;
   private ofertasService = inject(OfertasService);
   currencyService = inject(CurrencyService);
@@ -60,7 +62,7 @@ export default class ProductDetail {
 
   constructor() {
     effect(() => {
-      this.productDetailState.getById(this.id());
+      this.productDetailService.getById(this.id());
     });
     
     effect(() => {
@@ -94,7 +96,7 @@ export default class ProductDetail {
           this.userRating.set(rate);
           const currentProduct = this.product;
           if (currentProduct) {
-            this.productDetailState.updateProduct({
+            this.productDetailService.updateProduct({
               ...currentProduct,
               rating: {
                 rate: data.newAverage,

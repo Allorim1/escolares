@@ -2,7 +2,7 @@
   <div class="detail-container">
     <a routerLink="/products" class="back-link">← Volver a productos</a>
 
-    @if (productDetailState.product(); as product) {
+    @if (product; as product) {
       <div class="product-detail-card">
         <div class="product-image-col">
           <div class="image-wrapper">

@@ -28,4 +28,8 @@ export class ProductDetailSateService {
         ),
     },
   });
+
+  update(product: Product) {
+    this.state.set({ product, status: 'success' });
+  }
 }

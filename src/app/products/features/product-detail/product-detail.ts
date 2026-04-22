@@ -8,11 +8,13 @@ import { CurrencyService } from '../../../shared/data-access/currency.service';
 import { AuthService } from '../../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.service';
 import { LineasService } from '../../../shared/data-access/lineas.service';
+import { RatingsService } from '../../../shared/data-access/ratings.service';
+import { ProductRating } from '../../../shared/ui/product-rating/product-rating';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, NgIf, NgFor],
+  imports: [CurrencyPipe, RouterLink, NgIf, NgFor, ProductRating],
   templateUrl: './product-detail.html',
   styleUrls: ['./product-detail.css'],
   providers: [ProductDetailSateService],
@@ -25,6 +27,9 @@ export default class ProductDetail {
   private authService = inject(AuthService);
   apiKeyStatusService = inject(ApiKeyStatusService);
   private lineasService = inject(LineasService);
+  private ratingsService = inject(RatingsService);
+
+  userRating = signal(0);
 
   // Check if prices should be shown
   shouldShowPrice(): boolean {
@@ -55,6 +60,52 @@ export default class ProductDetail {
   constructor() {
     effect(() => {
       this.productDetailState.getById(this.id());
+    });
+    
+    effect(() => {
+      const product = this.productDetailState.product();
+      if (product && this.authService.isLoggedIn()) {
+        this.loadUserRating(product.id as string);
+      }
+    });
+  }
+
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  loadUserRating(productId: string) {
+    this.ratingsService.getUserRating(productId).subscribe({
+      next: (data: any) => {
+        this.userRating.set(data?.rate || 0);
+      },
+      error: () => {}
+    });
+  }
+
+  submitRating(rate: number) {
+    const product = this.productDetailState.product();
+    if (!product) return;
+    
+    this.ratingsService.submitRating(product.id as string, rate).subscribe({
+      next: (data: any) => {
+        if (data.success) {
+          this.userRating.set(rate);
+          const currentProduct = this.productDetailState.product();
+          if (currentProduct) {
+            this.productDetailState.update({
+              ...currentProduct,
+              rating: {
+                rate: data.newAverage,
+                count: data.count
+              }
+            });
+          }
+        }
+      },
+      error: () => {
+        alert('Error al guardar la calificación');
+      }
     });
   }
 

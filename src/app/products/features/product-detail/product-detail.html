@@ -21,10 +21,14 @@
           </h1>
 
           <div class="product-rating">
-            @for (star of getStarsArray(product.rating.rate); track star) {
-              <span class="star" [class.full]="star === 1" [class.half]="star === 0.5">★</span>
-            }
-            <span class="rating-text">{{ product.rating.rate.toFixed(1) }} ({{ product.rating.count }} reseñas)</span>
+            <app-product-rating
+              [currentRate]="product.rating.rate"
+              [userRate]="userRating()"
+              [allowRate]="isLoggedIn()"
+              [count]="product.rating.count"
+              [size]="'medium'"
+              (rateSubmit)="submitRating($event)"
+            ></app-product-rating>
           </div>
 
           @if (shouldShowPrice()) {

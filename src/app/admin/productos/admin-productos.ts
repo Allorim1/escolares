@@ -496,32 +496,28 @@ ngOnInit() {
   }
 
   onOfertaPorcentajeChange(value: number | string) {
-    if (value === '' || value === null || value === undefined) {
+    const rawValue = typeof value === 'string' ? parseFloat(value) : value;
+    const numValue = Math.floor(rawValue);
+    if (numValue < 0 || isNaN(rawValue)) {
       this.formData.update(data => ({ ...data, ofertaPorcentaje: 0, ofertaPrecio: 0 }));
       return;
     }
-    const numValue = typeof value === 'string' ? parseInt(value, 10) : Math.floor(value);
-    if (isNaN(numValue) || numValue < 0) {
-      return;
-    }
     const price = this.formData().price || 0;
-    const descuento = price * numValue / 100;
+    const precioDescuento = price * numValue / 100;
+    const precioOferta = price - precioDescuento;
     this.formData.update(data => ({
       ...data,
       ofertaPorcentaje: numValue,
-      ofertaPrecio: Math.max(0, price - descuento)
+      ofertaPrecio: Math.max(0, precioOferta)
     }));
   }
 
   onOfertaPrecioChange(value: number | string) {
-    if (value === '' || value === null || value === undefined) {
+    const rawValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(rawValue) || rawValue < 0) {
       this.formData.update(data => ({ ...data, ofertaPrecio: 0 }));
       return;
     }
-    const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    if (isNaN(numValue)) {
-      return;
-    }
-    this.formData.update(data => ({ ...data, ofertaPrecio: Math.max(0, numValue) }));
+    this.formData.update(data => ({ ...data, ofertaPrecio: Math.max(0, rawValue) }));
   }
 }

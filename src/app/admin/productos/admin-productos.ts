@@ -496,27 +496,26 @@ ngOnInit() {
   }
 
   onOfertaPorcentajeChange(value: number | string) {
+    if (value === '' || value === null || value === undefined) {
+      this.formData.update(data => ({ ...data, ofertaPorcentaje: 0 }));
+      return;
+    }
     const numValue = typeof value === 'string' ? parseInt(value, 10) : Math.floor(value);
     if (isNaN(numValue) || numValue < 0) {
       return;
     }
-    const price = this.formData().price || 0;
-    const discount = price * numValue / 100;
-    this.formData.update(data => ({
-      ...data,
-      ofertaPorcentaje: numValue,
-      ofertaPrecio: Math.max(0, Number((price - discount).toFixed(2)))
-    }));
+    this.formData.update(data => ({ ...data, ofertaPorcentaje: numValue }));
   }
 
   onOfertaPrecioChange(value: number | string) {
+    if (value === '' || value === null || value === undefined) {
+      this.formData.update(data => ({ ...data, ofertaPrecio: 0 }));
+      return;
+    }
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    const price = this.formData().price || 0;
-    const porcentaje = price > 0 && numValue ? Math.floor(((price - numValue) / price) * 100) : 0;
-    this.formData.update(data => ({
-      ...data,
-      ofertaPrecio: numValue || 0,
-      ofertaPorcentaje: Math.max(0, porcentaje)
-    }));
+    if (isNaN(numValue)) {
+      return;
+    }
+    this.formData.update(data => ({ ...data, ofertaPrecio: Math.max(0, numValue) }));
   }
 }

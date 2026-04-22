@@ -7,6 +7,7 @@ import { Product } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
+import { AuthService } from '../../shared/data-access/auth.service';
 
 interface CategoriaProducto {
   id: string;
@@ -28,6 +29,8 @@ interface ProductFormData {
   enOferta: boolean;
   ofertaPorcentaje: number;
   ofertaPrecio: number;
+  ratingRate: number;
+  ratingCount: number;
 }
 
 @Component({
@@ -43,6 +46,11 @@ export class AdminProductos implements OnInit {
   private lineasService = inject(LineasService);
   private http = inject(HttpClient);
   private ofertasBackend = inject(OfertasBackend);
+  private authService = inject(AuthService);
+
+  isRoot(): boolean {
+    return this.authService.user()?.rol === 'root';
+  }
 
   products = signal<Product[]>([]);
   editingProduct = signal<Product | null>(null);
@@ -71,6 +79,8 @@ export class AdminProductos implements OnInit {
     enOferta: false,
     ofertaPorcentaje: 0,
     ofertaPrecio: 0,
+    ratingRate: 0,
+    ratingCount: 0,
   });
 
   productCategories = signal<CategoriaProducto[]>([]);
@@ -220,6 +230,8 @@ ngOnInit() {
       enOferta: false,
       ofertaPorcentaje: 0,
       ofertaPrecio: 0,
+      ratingRate: 0,
+      ratingCount: 0,
     });
     this.showModal.set(true);
   }
@@ -242,6 +254,8 @@ ngOnInit() {
       enOferta: (product as any).enOferta || false,
       ofertaPorcentaje: (product as any).ofertaPorcentaje || 0,
       ofertaPrecio: (product as any).ofertaPrecio || 0,
+      ratingRate: product.rating?.rate || 0,
+      ratingCount: product.rating?.count || 0,
     });
     this.showModal.set(true);
   }
@@ -277,6 +291,7 @@ ngOnInit() {
         enOferta: data.enOferta,
         ofertaPorcentaje: data.ofertaPorcentaje,
         ofertaPrecio: data.ofertaPrecio,
+        rating: { rate: data.ratingRate, count: data.ratingCount },
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
@@ -311,6 +326,7 @@ ngOnInit() {
         enOferta: data.enOferta,
         ofertaPorcentaje: data.ofertaPorcentaje,
         ofertaPrecio: data.ofertaPrecio,
+        rating: { rate: data.ratingRate, count: data.ratingCount },
       }).subscribe({
         next: (updated) => {
           this.products.update((products) =>
@@ -527,10 +543,17 @@ ngOnInit() {
 
   onOfertaPrecioChange(value: any) {
     const numValue = Number(value);
+    const price = this.formData().price || 0;
     if (!isNaN(numValue) && numValue >= 0) {
-      this.formData.update(data => ({ ...data, ofertaPrecio: Math.round(numValue * 100) / 100 }));
+      const precioRedondeado = Math.round(numValue * 100) / 100;
+      const porcentaje = price > 0 ? Math.floor(((price - precioRedondeado) / price) * 100) : 0;
+      this.formData.update(data => ({
+        ...data,
+        ofertaPrecio: precioRedondeado,
+        ofertaPorcentaje: Math.max(0, porcentaje)
+      }));
     } else {
-      this.formData.update(data => ({ ...data, ofertaPrecio: 0 }));
+      this.formData.update(data => ({ ...data, ofertaPrecio: 0, ofertaPorcentaje: 0 }));
     }
   }
 }

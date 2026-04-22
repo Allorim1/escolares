@@ -1197,3 +1197,54 @@ tbody tr:hover {
     max-height: none;
   }
 }
+
+.rating-group {
+  padding: 1rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 10px;
+  border: 2px solid #4caf50;
+}
+
+.rating-group label {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.rating-inputs {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.rating-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.rating-field label {
+  font-size: 0.8rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.rating-field input {
+  padding: 0.5rem;
+  border: 1px solid #a5d6a7;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.rating-field input:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.rating-suffix {
+  color: #666;
+  font-size: 0.85rem;
+  font-weight: 500;
+}

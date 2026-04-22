@@ -21,7 +21,7 @@ interface MenuCategory {
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
   {
     name: 'Panel Admin',
-    expanded: true,
+    expanded: false,
     items: [
       { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
       { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
@@ -38,7 +38,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
   },
   {
     name: 'Cuentas por Pagar',
-    expanded: true,
+    expanded: false,
     items: [
       { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'cuentas_ver' },
       { label: 'Retenciones', route: 'retenciones', permiso: 'retenciones_ver' },
@@ -47,7 +47,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
   },
   {
     name: 'Panel Web',
-    expanded: true,
+    expanded: false,
     items: [
       { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
       { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
@@ -55,8 +55,8 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
       { label: 'Líneas', route: 'lineas', permiso: 'lineas_ver' },
       { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
       { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
-{ label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
-        { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
+      { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
+      { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
     ]
   }
 ];
@@ -99,7 +99,7 @@ export class Admin implements OnInit {
         if (categorias && categorias.length > 0) {
           this.categorias.set(categorias.map(c => ({
             name: c.nombre,
-            expanded: c.expanded,
+            expanded: false,
             items: c.items || []
           })));
         } else {

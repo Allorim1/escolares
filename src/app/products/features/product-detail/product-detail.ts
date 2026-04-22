@@ -1,6 +1,5 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
 import { ProductDetailSateService } from '../../data-access/product-detail-state.service';
-import { CurrencyPipe, NgIf, NgFor } from '@angular/common';
 import { CartStateService } from '../../../shared/data-access/cart-state.service';
 import { RouterLink } from '@angular/router';
 import { OfertasService } from '../../../shared/data-access/ofertas.service';
@@ -14,7 +13,7 @@ import { ProductRating } from '../../../shared/ui/product-rating/product-rating'
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, NgIf, NgFor, ProductRating],
+  imports: [RouterLink, ProductRating],
   templateUrl: './product-detail.html',
   styleUrls: ['./product-detail.css'],
   providers: [ProductDetailSateService],
@@ -31,14 +30,12 @@ export default class ProductDetail {
 
   userRating = signal(0);
 
-  // Check if prices should be shown
   shouldShowPrice(): boolean {
     if (this.authService.isLoggedIn()) return true;
     if (!this.apiKeyStatusService.preciosOcultosParaNoRegistrados()) return true;
     return false;
   }
 
-  // Format price based on current currency display
   formatPrice(priceInUsd: number): string {
     return this.currencyService.formatPrice(priceInUsd);
   }
@@ -47,13 +44,17 @@ export default class ProductDetail {
   showAddedMessage = signal(false);
   quantity = signal(1);
 
+  get product() {
+    return this.productDetailState().product;
+  }
+
   get isEnOferta(): boolean {
-    const product = this.productDetailState.product();
+    const product = this.product;
     return product ? this.ofertasService.isEnOferta(product.id as any) : false;
   }
 
   get precioOferta(): number | null {
-    const product = this.productDetailState.product();
+    const product = this.product;
     return product ? this.ofertasService.getOfertaPrice(product.id as any) : null;
   }
 
@@ -63,7 +64,7 @@ export default class ProductDetail {
     });
     
     effect(() => {
-      const product = this.productDetailState.product();
+      const product = this.product;
       if (product && this.authService.isLoggedIn()) {
         this.loadUserRating(product.id as string);
       }
@@ -84,16 +85,16 @@ export default class ProductDetail {
   }
 
   submitRating(rate: number) {
-    const product = this.productDetailState.product();
+    const product = this.product;
     if (!product) return;
     
     this.ratingsService.submitRating(product.id as string, rate).subscribe({
       next: (data: any) => {
         if (data.success) {
           this.userRating.set(rate);
-          const currentProduct = this.productDetailState.product();
+          const currentProduct = this.product;
           if (currentProduct) {
-            this.productDetailState.update({
+            this.productDetailState.updateProduct({
               ...currentProduct,
               rating: {
                 rate: data.newAverage,
@@ -110,7 +111,7 @@ export default class ProductDetail {
   }
 
   addToCart() {
-    const product = this.productDetailState.product();
+    const product = this.product;
     if (!product) {
       return;
     }
@@ -142,29 +143,19 @@ export default class ProductDetail {
     return Math.round(descuento);
   }
 
-  getStarsArray(rate: number): number[] {
-    const fullStars = Math.floor(rate);
-    const hasHalfStar = rate % 1 >= 0.5;
-    const stars = [];
-    for (let i = 0; i < fullStars; i++) stars.push(1);
-    if (hasHalfStar) stars.push(0.5);
-    while (stars.length < 5) stars.push(0);
-    return stars;
-  }
-
   getFichaTecnicaKeys(): string[] {
-    const product = this.productDetailState.product();
+    const product = this.product;
     if (!product?.fichaTecnica) return [];
     return Object.keys(product.fichaTecnica);
   }
 
   getFichaTecnicaValue(key: string): string {
-    const product = this.productDetailState.product();
+    const product = this.product;
     return product?.fichaTecnica?.[key] || '';
   }
 
   getLineaName(): string {
-    const product = this.productDetailState.product();
+    const product = this.product;
     if (!product?.lineaId) return '';
     const linea = this.lineasService.getLineaById(product.lineaId);
     return linea?.name || '';

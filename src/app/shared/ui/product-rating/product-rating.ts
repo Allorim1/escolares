@@ -1,11 +1,10 @@
-import { Component, Input, Output, EventEmitter, signal, computed } from '@angular/core';
-import { NgFor, NgClass } from '@angular/common';
+import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-product-rating',
   standalone: true,
-  imports: [NgFor, NgClass, RouterLink],
+  imports: [RouterLink],
   templateUrl: './product-rating.html',
   styleUrl: './product-rating.css',
 })

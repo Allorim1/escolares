@@ -8,6 +8,7 @@ import { CurrencyService } from '../../../shared/data-access/currency.service';
 import { AuthService } from '../../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.service';
 import { CartStateService } from '../../../shared/data-access/cart-state.service';
+import { OfertasService } from '../../../shared/data-access/ofertas.service';
 import { Product } from '../../../shared/interfaces/product.interface';
 
 @Component({
@@ -317,6 +318,47 @@ import { Product } from '../../../shared/interfaces/product.interface';
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
       border-color: #1d63c1 !important;
     }
+    .oferta-card {
+      border: 2px solid #e53935 !important;
+      position: relative;
+    }
+    .oferta-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #e53935, #ff7043);
+    }
+    .oferta-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, #e53935, #c62828);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(229, 57, 53, 0.4);
+    }
+    .oferta-price {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .precio-original {
+      text-decoration: line-through;
+      color: #999;
+      font-size: 0.85rem;
+      font-weight: 400;
+    }
+    .precio-oferta {
+      color: #e53935;
+      font-weight: 700;
+    }
   `,
   providers: [ProductsStateService],
 })
@@ -327,6 +369,7 @@ export default class ProductList implements OnInit {
   private authService = inject(AuthService);
   apiKeyStatusService = inject(ApiKeyStatusService);
   cartState = inject(CartStateService).state;
+  private ofertasService = inject(OfertasService);
 
   selectedProduct = signal<Product | null>(null);
   modalQuantity = signal(1);
@@ -431,6 +474,21 @@ export default class ProductList implements OnInit {
   // Format price based on current currency display
   formatPrice(priceInUsd: number): string {
     return this.currencyService.formatPrice(priceInUsd);
+  }
+
+  isEnOferta(product: Product): boolean {
+    return this.ofertasService.isEnOferta(product.id as any);
+  }
+
+  getOfertaPrice(product: Product): number | null {
+    return this.ofertasService.getOfertaPrice(product.id as any);
+  }
+
+  getDescuento(product: Product): number {
+    const ofertaPrice = this.getOfertaPrice(product);
+    if (!ofertaPrice) return 0;
+    const descuento = ((product.price - ofertaPrice) / product.price) * 100;
+    return Math.round(descuento);
   }
 
   filterText = signal('');

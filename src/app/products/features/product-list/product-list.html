@@ -97,6 +97,7 @@
     @for (product of paginatedProducts(); track product; let i = $index) {
       <div
         class="card card-hover"
+        [class.oferta-card]="isEnOferta(product)"
         style="
           max-width: 240px;
           width: 100%;
@@ -112,6 +113,9 @@
         "
         (click)="openModal(product)"
       >
+        @if (isEnOferta(product)) {
+          <div class="oferta-badge">OFERTA -{{ getDescuento(product) }}%</div>
+        }
         <img
           [src]="product.image"
           alt="{{ product.title }}"
@@ -129,11 +133,18 @@
             {{ product.description }}
           </p>
           @if (shouldShowPrice()) {
-            <p
-              class="card-price"
-              style="font-size: 1.1rem; font-weight: 700; color: #1976d2; margin-bottom: 0.5rem"
-              [innerHTML]="formatPrice(product.price)"
-            ></p>
+            @if (isEnOferta(product)) {
+              <div class="oferta-price">
+                <span class="precio-original" [innerHTML]="formatPrice(product.price)"></span>
+                <span class="precio-oferta" [innerHTML]="formatPrice(getOfertaPrice(product)!)"></span>
+              </div>
+            } @else {
+              <p
+                class="card-price"
+                style="font-size: 1.1rem; font-weight: 700; color: #1976d2; margin-bottom: 0.5rem"
+                [innerHTML]="formatPrice(product.price)"
+              ></p>
+            }
           } @else {
             <p
               class="card-price"

@@ -497,12 +497,15 @@ ngOnInit() {
 
   onOfertaPorcentajeChange(value: number | string) {
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(numValue) || numValue < 0 || numValue > 100) {
+      return;
+    }
     const price = this.formData().price || 0;
-    const discount = price * (numValue || 0) / 100;
+    const discount = price * numValue / 100;
     this.formData.update(data => ({
       ...data,
-      ofertaPorcentaje: numValue || 0,
-      ofertaPrecio: price - discount
+      ofertaPorcentaje: numValue,
+      ofertaPrecio: Number((price - discount).toFixed(2))
     }));
   }
 

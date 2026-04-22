@@ -6,6 +6,7 @@ import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
+import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
 
 interface CategoriaProducto {
   id: string;
@@ -41,6 +42,7 @@ export class AdminProductos implements OnInit {
   private marcasService = inject(MarcasService);
   private lineasService = inject(LineasService);
   private http = inject(HttpClient);
+  private ofertasBackend = inject(OfertasBackend);
 
   products = signal<Product[]>([]);
   editingProduct = signal<Product | null>(null);
@@ -281,6 +283,9 @@ ngOnInit() {
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
           }
+          if (data.enOferta && data.ofertaPrecio > 0) {
+            this.ofertasBackend.agregarOferta(newProduct.id, data.ofertaPrecio);
+          }
           this.cancelEdit();
         },
         error: (err) => {
@@ -289,7 +294,8 @@ ngOnInit() {
         }
       });
     } else if (this.editingProduct()) {
-      this.http.put<any>(`/api/products/${this.editingProduct()!.id}`, {
+      const productId = this.editingProduct()!.id;
+      this.http.put<any>(`/api/products/${productId}`, {
         title: data.title,
         price: data.price,
         description: data.description,
@@ -306,9 +312,14 @@ ngOnInit() {
         ofertaPrecio: data.ofertaPrecio,
       }).subscribe({
         next: (updated) => {
-          this.products.update((products) => 
+          this.products.update((products) =>
             products.map((p) => (p.id === updated.id ? updated : p))
           );
+          if (data.enOferta && data.ofertaPrecio > 0) {
+            this.ofertasBackend.agregarOferta(productId, data.ofertaPrecio);
+          } else {
+            this.ofertasBackend.eliminarOferta(productId);
+          }
           this.cancelEdit();
         },
         error: (err) => {

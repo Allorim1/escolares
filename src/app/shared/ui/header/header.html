@@ -100,17 +100,15 @@
         <a class="user-btn" (click)="toggleUserDropdown()" style="cursor: pointer">
           <img src="/usuario.png" alt="Usuario" />
         </a>
-        @if (userDropdownOpen()) {
-          <div class="dropdown-menu open" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
-            <a routerLink="/panel/perfil" (click)="closeUserDropdown()">Perfil</a>
-            <a routerLink="/panel/ajustes" (click)="closeUserDropdown()">Ajustes</a>
-            <a routerLink="/panel/pedidos" (click)="closeUserDropdown()">Mis pedidos</a>
-            @if (authService.isAdmin()) {
-              <a routerLink="/admin" (click)="closeUserDropdown()">Panel Admin</a>
-            }
-            <button (click)="logout()">Cerrar sesión</button>
-          </div>
-        }
+        <div class="dropdown-menu" [class.open]="userDropdownOpen()" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
+          <a routerLink="/panel/perfil" (click)="closeUserDropdown()">Perfil</a>
+          <a routerLink="/panel/ajustes" (click)="closeUserDropdown()">Ajustes</a>
+          <a routerLink="/panel/pedidos" (click)="closeUserDropdown()">Mis pedidos</a>
+          @if (authService.isAdmin()) {
+            <a routerLink="/admin" (click)="closeUserDropdown()">Panel Admin</a>
+          }
+          <button (click)="logout()">Cerrar sesión</button>
+        </div>
       </div>
     } @else {
       <a class="user-btn" (click)="openLogin()" style="cursor: pointer">

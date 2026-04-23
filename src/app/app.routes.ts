@@ -186,6 +186,10 @@ export const routes: Routes = [
         path: 'categorias',
         loadComponent: () => import('./admin/categorias/admin-categorias').then((m) => m.AdminCategorias),
       },
+      {
+        path: 'producto-categorias',
+        loadComponent: () => import('./admin/producto-categorias/admin-producto-categorias').then((m) => m.AdminProductoCategorias),
+      },
     ],
   },
   {

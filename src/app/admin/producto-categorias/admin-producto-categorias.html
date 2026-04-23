@@ -1,0 +1,71 @@
+<div class="categorias-container">
+  <h2>Gestión de Categorías de Productos</h2>
+  
+  <div class="actions">
+    <button class="btn-primary" (click)="openCreateModal()">Nueva Categoría</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else if (categorias().length === 0) {
+    <div class="empty">
+      <p>No hay categorías creadas.</p>
+    </div>
+  } @else {
+    <div class="categorias-list">
+      @for (cat of categorias(); track cat.id) {
+        <div class="categoria-card">
+          <div class="categoria-header">
+            @if (cat.imagen) {
+              <img [src]="cat.imagen" [alt]="cat.nombre" class="categoria-img" />
+            }
+            <div class="categoria-info">
+              <h3>{{ cat.nombre }}</h3>
+              <span class="orden">Orden: {{ cat.orden }}</span>
+            </div>
+            <div class="categoria-actions">
+              <button class="btn-small" (click)="openEditModal(cat)">Editar</button>
+              <button class="btn-small btn-danger" (click)="deleteCategoria(cat)">Eliminar</button>
+            </div>
+          </div>
+          @if (cat.descripcion) {
+            <p class="descripcion">{{ cat.descripcion }}</p>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingCategoria() ? 'Editar' : 'Nueva' }} Categoría</h3>
+        <button class="modal-close" (click)="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="formNombre" placeholder="Nombre de la categoría" />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="formDescripcion" placeholder="Descripción (opcional)"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Imagen URL</label>
+          <input type="text" [(ngModel)]="formImagen" placeholder="URL de la imagen (opcional)" />
+        </div>
+        <div class="form-group">
+          <label>Orden</label>
+          <input type="number" [(ngModel)]="formOrden" placeholder="0" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button class="btn-primary" (click)="saveCategoria()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}

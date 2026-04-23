@@ -73,7 +73,6 @@ export class Admin implements OnInit {
   private http = inject(HttpClient);
   apiKeyStatusService = inject(ApiKeyStatusService);
   private rolesBackend = inject(RolesBackend);
-  private categoriasBackend = inject(CategoriasBackend);
 
   userPermissions = signal<string[]>([]);
   apiKeyStatusLoaded = signal(false);
@@ -180,7 +179,7 @@ export class Admin implements OnInit {
     });
   }
 
-  getVisibleItems(items: MenuItem[]): MenuItem[] {
+  getVisibleItems(items: CategoriaItem[]): CategoriaItem[] {
     return items.filter(item => !item.permiso || this.hasPermission(item.permiso));
   }
 

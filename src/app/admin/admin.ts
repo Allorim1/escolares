@@ -106,6 +106,7 @@ export class Admin implements OnInit {
         next: (rol) => {
           console.log('Rol cargado:', rol.nombre, 'Permisos:', rol.permisos);
           this.userPermissions.set(rol.permisos || []);
+          console.log('userPermissions después de cargar rol:', this.userPermissions());
           this.setCategoriesWithExpanded();
         },
         error: (err) => {

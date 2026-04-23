@@ -179,7 +179,7 @@ export class Admin implements OnInit {
     });
   }
 
-  getVisibleItems(items: CategoriaItem[]): CategoriaItem[] {
+  getVisibleItems(items: MenuItem[]): MenuItem[] {
     return items.filter(item => !item.permiso || this.hasPermission(item.permiso));
   }
 

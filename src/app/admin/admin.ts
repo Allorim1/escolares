@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
@@ -77,10 +77,7 @@ export class Admin implements OnInit {
 
   userPermissions = signal<string[]>([]);
   apiKeyStatusLoaded = signal(false);
-
-  categorias = computed(() => {
-    return DEFAULT_CATEGORIAS;
-  });
+  categorias = signal<MenuCategory[]>([]);
 
   ngOnInit() {
     this.checkApiKeyStatus();
@@ -89,13 +86,17 @@ export class Admin implements OnInit {
 
   loadUserPermissions() {
     const user = this.authService.user();
-    if (!user) return;
+    if (!user) {
+      this.categorias.set(DEFAULT_CATEGORIAS);
+      return;
+    }
 
     if (user.rol === 'root') {
       this.rolesBackend.getPermisos().subscribe({
         next: (permisos) => {
           console.log('Permisos cargados (root):', permisos.map(p => p.id));
           this.userPermissions.set(permisos.map(p => p.id));
+          this.categorias.set(DEFAULT_CATEGORIAS);
         }
       });
     } else if (user.rolId) {
@@ -103,12 +104,17 @@ export class Admin implements OnInit {
         next: (rol) => {
           console.log('Rol cargado: ' + rol.nombre + ' Permisos:', rol.permisos);
           this.userPermissions.set(rol.permisos || []);
+          this.categorias.set(DEFAULT_CATEGORIAS);
         },
         error: (err) => {
           console.error('Error cargando rol:', err);
           this.userPermissions.set([]);
+          this.categorias.set(DEFAULT_CATEGORIAS);
         }
       });
+    } else {
+      console.log('Usuario sin rolId, no se cargan permisos');
+      this.categorias.set(DEFAULT_CATEGORIAS);
     }
   }
 

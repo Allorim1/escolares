@@ -105,7 +105,7 @@ export class Admin implements OnInit {
     } else if (user.rolId) {
       this.rolesBackend.getRol(user.rolId).subscribe({
         next: (rol) => {
-          console.log('Rol cargado: ' + rol.nombre + ' Permisos:', rol.permisos);
+          console.log('Rol cargado:', rol.nombre, 'Permisos:', rol.permisos);
           this.userPermissions.set(rol.permisos || []);
           this.categorias.set([...DEFAULT_CATEGORIAS]);
           console.log('Categorías set:', this.categorias());
@@ -113,60 +113,3 @@ export class Admin implements OnInit {
         },
         error: (err) => {
           console.error('Error cargando rol:', err);
-          this.userPermissions.set([]);
-          this.categorias.set([...DEFAULT_CATEGORIAS]);
-        }
-      });
-    } else {
-      console.log('Usuario sin rolId, no se cargan permisos');
-      this.categorias.set([...DEFAULT_CATEGORIAS]);
-    }
-  }
-
-  hasPermission(permiso?: string): boolean {
-    const user = this.authService.user();
-    if (!user) return false;
-    if (user.rol === 'root') return true;
-    if (!permiso) return true;
-    return this.userPermissions().includes(permiso);
-  }
-
-  checkApiKeyStatus() {
-    this.http.get<{ apiKeyExpired?: boolean; error?: string }>('/api/tasas').subscribe({
-      next: (data) => {
-        console.log('API tasas response:', data);
-        if (data.apiKeyExpired) {
-          this.apiKeyStatusService.setApiKeyExpired(true);
-        }
-        this.apiKeyStatusLoaded.set(true);
-      },
-      error: (err: any) => {
-        console.error('Error checking API key status:', err);
-        if (err.status === 401 || err.error?.apiKeyExpired || err.name === 'TimeoutError') {
-          this.apiKeyStatusService.setApiKeyExpired(true);
-        }
-        this.apiKeyStatusLoaded.set(true);
-      }
-    });
-  }
-
-isRoot(): boolean {
-    return this.authService.user()?.rol === 'root';
-  }
-
-  toggleCategoria(index: number) {
-    this.categorias.update(cats => {
-      const newCats = [...cats];
-      newCats[index].expanded = !newCats[index].expanded;
-      return newCats;
-    });
-  }
-
-  getVisibleItems(items: MenuItem[]): MenuItem[] {
-    return items.filter(item => !item.permiso || this.hasPermission(item.permiso));
-  }
-
-  logout() {
-    this.authService.logout();
-  }
-}

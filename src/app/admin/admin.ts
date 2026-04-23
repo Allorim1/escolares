@@ -87,7 +87,8 @@ export class Admin implements OnInit {
   loadUserPermissions() {
     const user = this.authService.user();
     if (!user) {
-      this.categorias.set(DEFAULT_CATEGORIAS);
+      console.log('No user found, setting default categories');
+      this.categorias.set([...DEFAULT_CATEGORIAS]);
       return;
     }
 
@@ -96,25 +97,28 @@ export class Admin implements OnInit {
         next: (permisos) => {
           console.log('Permisos cargados (root):', permisos.map(p => p.id));
           this.userPermissions.set(permisos.map(p => p.id));
-          this.categorias.set(DEFAULT_CATEGORIAS);
+          this.categorias.set([...DEFAULT_CATEGORIAS]);
+          console.log('Categories set:', this.categorias());
         }
       });
     } else if (user.rolId) {
       this.rolesBackend.getRol(user.rolId).subscribe({
         next: (rol) => {
-          console.log('Rol cargado: ' + rol.nombre + ' Permisos:', rol.permisos);
+          console.log('Rol cargado:', rol.nombre, 'Permisos:', rol.permisos);
           this.userPermissions.set(rol.permisos || []);
-          this.categorias.set(DEFAULT_CATEGORIAS);
+          this.categorias.set([...DEFAULT_CATEGORIAS]);
+          console.log('Categories set:', this.categorias());
+          console.log('User permissions:', this.userPermissions());
         },
         error: (err) => {
           console.error('Error cargando rol:', err);
           this.userPermissions.set([]);
-          this.categorias.set(DEFAULT_CATEGORIAS);
+          this.categorias.set([...DEFAULT_CATEGORIAS]);
         }
       });
     } else {
       console.log('Usuario sin rolId, no se cargan permisos');
-      this.categorias.set(DEFAULT_CATEGORIAS);
+      this.categorias.set([...DEFAULT_CATEGORIAS]);
     }
   }
 

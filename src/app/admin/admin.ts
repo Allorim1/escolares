@@ -98,6 +98,47 @@ export class Admin implements OnInit {
           const permisosIds = permisos.map(p => p.id);
           console.log('Permisos cargados (root):', permisosIds);
           this.userPermissions.set(permisosIds);
+          this.setCategoriesWithExpanded();
+          console.log('Categorías set:', this.categorias());
+        }
+      });
+    } else if (user.rolId) {
+      this.rolesBackend.getRol(user.rolId).subscribe({
+        next: (rol) => {
+          console.log('Rol cargado: ' + rol.nombre + ' Permisos:', rol.permisos);
+          this.userPermissions.set(rol.permisos || []);
+          this.setCategoriesWithExpanded();
+          console.log('Categorías set:', this.categorias());
+          console.log('User permissions:', this.userPermissions());
+        },
+        error: (err) => {
+          console.error('Error cargando rol:', err);
+          this.userPermissions.set([]);
+          this.setCategoriesWithExpanded();
+        }
+      });
+    } else {
+      console.log('Usuario sin rolId, no se cargan permisos');
+      this.setCategoriesWithExpanded();
+    }
+  }
+
+  private setCategoriesWithExpanded() {
+    const categories = DEFAULT_CATEGORIAS.map(cat => {
+      const hasVisibleItems = cat.items.some(item => 
+        !item.permiso || this.hasPermission(item.permiso)
+      );
+      return { ...cat, expanded: hasVisibleItems };
+    });
+    this.categorias.set(categories);
+  }
+
+    if (user.rol === 'root') {
+      this.rolesBackend.getPermisos().subscribe({
+        next: (permisos) => {
+          const permisosIds = permisos.map(p => p.id);
+          console.log('Permisos cargados (root):', permisosIds);
+          this.userPermissions.set(permisosIds);
           this.categorias.set([...DEFAULT_CATEGORIAS]);
           console.log('Categorías set:', this.categorias());
         }

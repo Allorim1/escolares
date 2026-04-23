@@ -51,6 +51,7 @@ export class Header {
 
   mobileMenuOpen = signal(false);
   userDropdownOpen = signal(false);
+  private dropdownTimer: any = null;
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -61,6 +62,20 @@ export class Header {
     if (!target.closest('.user-dropdown')) {
       this.userDropdownOpen.set(false);
     }
+  }
+
+  onUserDropdownEnter() {
+    if (this.dropdownTimer) {
+      clearTimeout(this.dropdownTimer);
+      this.dropdownTimer = null;
+    }
+    this.userDropdownOpen.set(true);
+  }
+
+  onUserDropdownLeave() {
+    this.dropdownTimer = setTimeout(() => {
+      this.userDropdownOpen.set(false);
+    }, 500);
   }
 
   // Check if current user is root

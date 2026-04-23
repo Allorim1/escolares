@@ -102,6 +102,7 @@ export class Admin implements OnInit {
         }
       });
     } else if (user.rolId) {
+      console.log('Intentando cargar rol con ID:', user.rolId);
       this.rolesBackend.getRol(user.rolId).subscribe({
         next: (rol) => {
           console.log('Rol cargado:', rol.nombre, 'Permisos:', rol.permisos);
@@ -111,6 +112,9 @@ export class Admin implements OnInit {
         },
         error: (err) => {
           console.error('Error cargando rol:', err);
+          console.error('Error status:', err.status);
+          console.error('Error message:', err.error);
+          console.error('User rolId:', user.rolId);
           this.userPermissions.set([]);
           this.setCategoriesWithExpanded();
         }

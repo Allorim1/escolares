@@ -17,6 +17,79 @@ import { Product } from '../../../shared/interfaces/product.interface';
   imports: [RouterLink, FormsModule, LoadingComponent, CommonModule],
   templateUrl: './product-list.html',
   styles: `
+    .products-layout {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+    .products-sidebar {
+      width: 250px;
+      flex-shrink: 0;
+      background: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 12px;
+      position: sticky;
+      top: 1rem;
+    }
+    .sidebar-section {
+      margin-bottom: 1.5rem;
+    }
+    .sidebar-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #1976d2;
+    }
+    .category-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .category-list li {
+      margin-bottom: 0.5rem;
+    }
+    .category-item {
+      width: 100%;
+      padding: 0.625rem 1rem;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #555;
+      transition: all 0.2s;
+    }
+    .category-item:hover {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .category-item.active {
+      background: #1976d2;
+      color: white;
+      border-color: #1976d2;
+    }
+    .current-brand {
+      font-size: 0.95rem;
+      color: #333;
+      font-weight: 600;
+      margin: 0.5rem 0;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #1976d2;
+      text-decoration: none;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+    .products-main {
+      flex: 1;
+      min-width: 0;
+    }
     .reveal-init {
       opacity: 0;
       transform: translateY(30px);
@@ -186,22 +259,16 @@ import { Product } from '../../../shared/interfaces/product.interface';
       overflow: hidden;
       cursor: zoom-in;
     }
+    .modal-image-col:hover .modal-product-image {
+      transform: scale(2);
+      cursor: zoom-out;
+    }
     .modal-product-image {
       max-width: 100%;
       max-height: 300px;
       object-fit: contain;
       border-radius: 8px;
       transition: transform 0.2s ease;
-    }
-    .modal-image-col:hover .modal-product-image {
-      transform: scale(2);
-      cursor: zoom-out;
-    }
-    .modal-product-image {
-      width: 100%;
-      max-height: 300px;
-      object-fit: contain;
-      border-radius: 8px;
     }
     .modal-info-col {
       padding: 1.5rem;
@@ -303,6 +370,13 @@ import { Product } from '../../../shared/interfaces/product.interface';
       background: #1565c0;
     }
     @media (max-width: 600px) {
+      .products-layout {
+        flex-direction: column;
+      }
+      .products-sidebar {
+        width: 100%;
+        position: static;
+      }
       .modal-product-card {
         grid-template-columns: 1fr;
       }

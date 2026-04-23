@@ -40,7 +40,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
     name: 'Cuentas por Pagar',
     expanded: false,
     items: [
-      { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'cuentas_ver' },
+      { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
       { label: 'Retenciones', route: 'retenciones', permiso: 'retenciones_ver' },
       { label: 'Libro de Compras', route: 'libro-compras', permiso: 'libro_compras_ver' },
     ]

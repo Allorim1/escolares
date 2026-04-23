@@ -88,7 +88,7 @@ export class Admin implements OnInit {
     const user = this.authService.user();
     if (!user) {
       console.log('No user found, setting default categories');
-      this.categorias.set([...DEFAULT_CATEGORIAS]);
+      this.setCategoriesWithExpanded();
       return;
     }
 
@@ -99,17 +99,14 @@ export class Admin implements OnInit {
           console.log('Permisos cargados (root):', permisosIds);
           this.userPermissions.set(permisosIds);
           this.setCategoriesWithExpanded();
-          console.log('Categorías set:', this.categorias());
         }
       });
     } else if (user.rolId) {
       this.rolesBackend.getRol(user.rolId).subscribe({
         next: (rol) => {
-          console.log('Rol cargado: ' + rol.nombre + ' Permisos:', rol.permisos);
+          console.log('Rol cargado:', rol.nombre, 'Permisos:', rol.permisos);
           this.userPermissions.set(rol.permisos || []);
           this.setCategoriesWithExpanded();
-          console.log('Categorías set:', this.categorias());
-          console.log('User permissions:', this.userPermissions());
         },
         error: (err) => {
           console.error('Error cargando rol:', err);
@@ -123,45 +120,20 @@ export class Admin implements OnInit {
     }
   }
 
-  private setCategoriesWithExpanded() {
+  setCategoriesWithExpanded() {
+    const permissions = this.userPermissions();
+    const user = this.authService.user();
+    const isRoot = user?.rol === 'root';
+
     const categories = DEFAULT_CATEGORIAS.map(cat => {
-      const hasVisibleItems = cat.items.some(item => 
-        !item.permiso || this.hasPermission(item.permiso)
-      );
+      const hasVisibleItems = cat.items.some(item => {
+        if (!item.permiso) return true;
+        if (isRoot) return true;
+        return permissions.includes(item.permiso);
+      });
       return { ...cat, expanded: hasVisibleItems };
     });
     this.categorias.set(categories);
-  }
-
-    if (user.rol === 'root') {
-      this.rolesBackend.getPermisos().subscribe({
-        next: (permisos) => {
-          const permisosIds = permisos.map(p => p.id);
-          console.log('Permisos cargados (root):', permisosIds);
-          this.userPermissions.set(permisosIds);
-          this.categorias.set([...DEFAULT_CATEGORIAS]);
-          console.log('Categorías set:', this.categorias());
-        }
-      });
-    } else if (user.rolId) {
-      this.rolesBackend.getRol(user.rolId).subscribe({
-        next: (rol) => {
-          console.log('Rol cargado: ' + rol.nombre + ' Permisos:', rol.permisos);
-          this.userPermissions.set(rol.permisos || []);
-          this.categorias.set([...DEFAULT_CATEGORIAS]);
-          console.log('Categorías set:', this.categorias());
-          console.log('User permissions:', this.userPermissions());
-        },
-        error: (err) => {
-          console.error('Error cargando rol:', err);
-          this.userPermissions.set([]);
-          this.categorias.set([...DEFAULT_CATEGORIAS]);
-        }
-      });
-    } else {
-      console.log('Usuario sin rolId, no se cargan permisos');
-      this.categorias.set([...DEFAULT_CATEGORIAS]);
-    }
   }
 
   hasPermission(permiso?: string): boolean {
@@ -191,11 +163,11 @@ export class Admin implements OnInit {
     });
   }
 
-isRoot(): boolean {
+  isRoot(): boolean {
     return this.authService.user()?.rol === 'root';
   }
 
-  toggleCategoria(index: number) {
+  public toggleCategoria(index: number) {
     this.categorias.update(cats => {
       const newCats = [...cats];
       newCats[index].expanded = !newCats[index].expanded;

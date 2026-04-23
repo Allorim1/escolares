@@ -41,8 +41,8 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
     expanded: false,
     items: [
       { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
-      { label: 'Retenciones', route: 'retenciones', permiso: 'retenciones_ver' },
-      { label: 'Libro de Compras', route: 'libro-compras', permiso: 'libro_compras_ver' },
+      { label: 'Retenciones', route: 'retenciones', permiso: 'ver_retenciones' },
+      { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
     ]
   },
   {

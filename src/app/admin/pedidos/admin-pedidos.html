@@ -84,13 +84,13 @@
 </section>
 
 @if (selectedOrder()) {
-  <div class="modal-overlay" (click)="closeDetail()">
-    <div class="order-detail-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
-        <button class="close-btn" (click)="closeDetail()">✕</button>
-      </div>
-      
+   <div class="modal-overlay" (click)="closeDetail()">
+     <div class="order-detail-modal" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+         <button class="close-btn" (click)="closeDetail()">✕</button>
+       </div>
+       
        <div class="modal-body">
          <div class="detail-section">
            <h4>Estado del Pedido</h4>
@@ -98,15 +98,121 @@
              @for (status of statusOptions; track status.value) {
                @if (status.value !== 'todos') {
                  <button 
-                  class="status-btn"
-                  [class.active]="selectedOrder()!.status === status.value"
-                  [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
-                  (click)="updateStatus(selectedOrder()!.id, status.value)"
-                  [disabled]="selectedOrder()!.status === 'entregado' && status.value !== 'entregado'"
-                >
-                  {{ status.label }}
-                </button>
+                   class="status-btn"
+                   [class.active]="selectedOrder()!.status === status.value"
+                   [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
+                   (click)="updateStatus(selectedOrder()!.id, status.value)"
+                   [disabled]="selectedOrder()!.status === 'entregado' && status.value !== 'entregado'"
+                 >
+                   {{ status.label }}
+                 </button>
                }
+             }
+           </div>
+         </div>
+         
+         <div class="detail-section">
+           <h4>Datos del Cliente</h4>
+           <div class="detail-grid">
+             <div class="detail-item">
+               <span class="label">Nombre:</span>
+               <span class="value">{{ selectedOrder()!.nombre }}</span>
+             </div>
+             <div class="detail-item">
+               <span class="label">Cédula:</span>
+               <span class="value">{{ selectedOrder()!.cedula }}</span>
+             </div>
+             <div class="detail-item">
+               <span class="label">Teléfono:</span>
+               <span class="value">{{ selectedOrder()!.telefono }}</span>
+             </div>
+             <div class="detail-item full">
+               <span class="label">Dirección:</span>
+               <span class="value">{{ selectedOrder()!.direccion }}</span>
+             </div>
+           </div>
+         </div>
+         
+         <div class="detail-section">
+           <h4>Información de Pago</h4>
+           <div class="detail-grid">
+             <div class="detail-item">
+               <span class="label">Método:</span>
+               <span class="value">{{ getPaymentMethodLabel(selectedOrder()!.metodoPago) }}</span>
+             </div>
+             <div class="detail-item">
+               <span class="label">Referencia:</span>
+               <span class="value">{{ selectedOrder()!.referencia || 'Sin referencia' }}</span>
+             </div>
+             <div class="detail-item">
+               <span class="label">Total:</span>
+               <span class="value total">${{ selectedOrder()!.total | number:'1.2-2' }}</span>
+             </div>
+             <div class="detail-item">
+               <span class="label">Fecha:</span>
+               <span class="value">{{ formatDate(selectedOrder()!.createdAt) }}</span>
+             </div>
+           </div>
+           
+           @if (selectedOrder()!.referencia || selectedOrder()!.fotoComprobante) {
+             <div class="comprobante-section">
+               <h5>Comprobante de Pago</h5>
+               @if (selectedOrder()!.referencia) {
+                 <div class="referencia-box">
+                   <span class="label">Referencia:</span>
+                   <span class="value ref">{{ selectedOrder()!.referencia }}</span>
+                 </div>
+               }
+               @if (selectedOrder()!.fotoComprobante) {
+                 <div class="comprobante-image">
+                   <span class="label">Foto:</span>
+                   <button class="btn-ver-foto" (click)="openImageModal(selectedOrder()!.fotoComprobante!)">
+                     📷 Ver Comprobante
+                   </button>
+                 </div>
+               }
+             </div>
+           }
+         </div>
+         
+         <div class="detail-section">
+           <h4>Productos</h4>
+           <div class="order-items">
+             @for (item of selectedOrder()!.items; track item.productId) {
+               <div class="order-item">
+                 <img [src]="item.image" [alt]="item.title" class="item-image" />
+                 <div class="item-info">
+                   <span class="item-title">{{ item.title }}</span>
+                   <span class="item-qty">x{{ item.quantity }}</span>
+                 </div>
+                 <span class="item-price">${{ (item.price * item.quantity) | number:'1.2-2' }}</span>
+               </div>
+             }
+           </div>
+         </div>
+         
+         @if (selectedOrder()!.historial.length > 0) {
+           <div class="detail-section">
+             <h4>Historial</h4>
+             <div class="historial-list">
+               @for (h of selectedOrder()!.historial; track h.fecha) {
+                 <div class="historial-item">
+                   <span class="historial-status" [style.background-color]="statusColors[h.status] || '#6c757d'">
+                     {{ getStatusLabel(h.status) }}
+                   </span>
+                   <span class="historial-date">{{ formatDate(h.fecha) }}</span>
+                   @if (h.observaciones) {
+                     <span class="historial-obs">{{ h.observaciones }}</span>
+                   }
+                 </div>
+               }
+             </div>
+           </div>
+         }
+       </div>
+     </div>
+   </div>
+ }
              }
            </div>
          </div>

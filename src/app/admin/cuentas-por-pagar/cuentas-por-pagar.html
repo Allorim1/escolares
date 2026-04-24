@@ -39,7 +39,7 @@
             @if (proveedor.tasaPreferida) {
               <span class="proveedor-tasa">Tasa: {{ proveedor.tasaPreferida | uppercase }}</span>
             }
-            <span class="factura-count">{{ proveedor.facturas?.length || 0 }} facturas</span>
+            <span class="factura-count">{{ (proveedor.facturas || []).length }} facturas</span>
           </div>
           <div class="proveedor-summary">
             <span class="deuda">Deuda: $ {{ formatMoneda(calcularDeuda(proveedor)) }}</span>
@@ -110,7 +110,7 @@
                   <span class="bancos-value">{{ proveedor.bancosAfiliados?.join(', ') }}</span>
                 </div>
               }
-              @if ((proveedor.cuentasBancarias?.length ?? 0) > 0) {
+              @if ((proveedor.cuentasBancarias || []).length > 0) {
                 <div class="cuentas-list">
                   @for (cuenta of proveedor.cuentasBancarias; track $index) {
                     <div class="cuenta-item" [class.cuenta-expanded]="cuentaExpandida()?.proveedorId === proveedor._id && cuentaExpandida()?.index === $index">
@@ -181,7 +181,7 @@
                 <button class="btn-small" (click)="abrirModalFactura(proveedor._id || '')">+ Agregar Factura</button>
               </div>
               
-              @if ((proveedor.facturas?.length ?? 0) > 0) {
+              @if ((proveedor.facturas || []).length > 0) {
                 <table class="facturas-table">
                   <thead>
                     <tr>

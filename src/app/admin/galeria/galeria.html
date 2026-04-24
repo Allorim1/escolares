@@ -40,7 +40,7 @@
                 <h4>{{ doc.nombre }}</h4>
                 <p class="doc-desc">{{ doc.descripcion || 'Sin descripción' }}</p>
                 <div class="doc-info">
-                  <span>{{ doc.imagenes?.length || 0 }} imagen(es)</span>
+                  <span>{{ (doc.imagenes || []).length }} imagen(es)</span>
                 </div>
                 <div class="doc-card-actions" (click)="$event.stopPropagation()">
                   <button class="btn-sm btn-edit" (click)="editarDoc(doc, $event)">✏️</button>

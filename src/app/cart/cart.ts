@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { CartItem } from './ui/cart-item/cart-item';
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { ProductItemCart } from '../shared/interfaces/product.interface';
@@ -33,11 +33,11 @@ const PAGO_MOVIL_INFO = {
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: CART_IMPORTS,
+  imports: [...CART_IMPORTS],
   templateUrl: './cart.html',
   styleUrl: './cart.css',
 })
-export default class CartComponent {
+export default class CartComponent implements OnDestroy {
   state = inject(CartStateService).state;
   authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
@@ -79,6 +79,7 @@ export default class CartComponent {
   qrLoading = signal(false);
   qrFotoRecibida = signal(false);
   qrPollingInterval: any = null;
+  qrPollingSubscription: any = null;
   qrToken = signal('');
 
   getPagoMovilInfo() {
@@ -92,7 +93,7 @@ export default class CartComponent {
     this.qrExpiracion.set('');
     this.qrToken.set('');
     
-    this.http.post<any>('/api/pago/generate-qr', {}).subscribe({
+    const subscription = this.http.post<any>('/api/pago/generate-qr', {}).subscribe({
       next: (res) => {
         this.qrCodeData.set(res.qrCode);
         this.qrExpiracion.set(res.expiresAt);
@@ -107,12 +108,18 @@ export default class CartComponent {
         }
       },
       error: (err) => {
-        console.error('Error generating QR:', err);
-        this.qrLoading.set(false);
-        alert('Error al generar código QR. Asegúrate de que el servidor esté actualizado.');
-        this.showQRModal.set(false);
+        if (err.name !== 'AbortError') {
+          console.error('Error generating QR:', err);
+          this.qrLoading.set(false);
+          if (this.showQRModal()) {
+            alert('Error al generar código QR. Asegúrate de que el servidor esté actualizado.');
+            this.showQRModal.set(false);
+          }
+        }
       }
     });
+    
+    this.qrPollingSubscription = subscription;
   }
 
   iniciarPollingQR() {
@@ -120,26 +127,46 @@ export default class CartComponent {
     if (!token) return;
     
     this.qrPollingInterval = setInterval(() => {
-      this.http.get<any>(`/api/pago/check/${token}`).subscribe({
+      if (!this.showQRModal()) {
+        this.detenerPollingQR();
+        return;
+      }
+      
+      const subscription = this.http.get<any>(`/api/pago/check/${token}`).subscribe({
         next: (res) => {
           if (res.success && res.imagen) {
             this.paymentData.update(p => ({ ...p, fotoComprobante: res.imagen }));
             this.qrFotoRecibida.set(true);
+            this.detenerPollingQR();
             setTimeout(() => {
               this.cerrarQRModal();
             }, 3000);
           }
         },
-        error: () => {}
+        error: (err) => {
+          if (err.name !== 'AbortError') {
+            console.error('Error polling QR:', err);
+          }
+        }
       });
+      
+      this.qrPollingSubscription = subscription;
     }, 2000);
   }
 
-  cerrarQRModal() {
+  detenerPollingQR() {
     if (this.qrPollingInterval) {
       clearInterval(this.qrPollingInterval);
       this.qrPollingInterval = null;
     }
+    if (this.qrPollingSubscription) {
+      this.qrPollingSubscription.unsubscribe();
+      this.qrPollingSubscription = null;
+    }
+  }
+
+  cerrarQRModal() {
+    this.detenerPollingQR();
     this.showQRModal.set(false);
     this.qrCodeData.set('');
     this.qrExpiracion.set('');
@@ -289,7 +316,7 @@ export default class CartComponent {
     });
   }
 
-  closeCheckout() {
+   closeCheckout() {
     this.showCheckoutModal.set(false);
     this.showAddAddress.set(false);
     this.selectedAddressId.set('');
@@ -297,6 +324,7 @@ export default class CartComponent {
     this.newAddressDireccion = '';
     this.checkoutStep.set(1);
     this.currentOrderId.set('');
+    this.cerrarQRModal();
     if (this.orderPlaced()) {
       this.orderPlaced.set(false);
       this.paymentData.set({
@@ -501,9 +529,19 @@ export default class CartComponent {
     }
   }
 
-  cerrarCamera() {
+   cerrarCamera() {
     if (this.cameraStream) {
-      this.cameraStream.getTracks().forEach(track => track.stop());
+      try {
+        this.cameraStream.getTracks().forEach(track => {
+          try {
+            track.stop();
+          } catch (e) {
+            console.warn('Error stopping track:', e);
+          }
+        });
+      } catch (e) {
+        console.warn('Error stopping camera stream:', e);
+      }
       this.cameraStream = null;
     }
     this.showCamera.set(false);
@@ -554,7 +592,7 @@ export default class CartComponent {
     reader.readAsDataURL(file);
   }
 
-  enviarComprobanteWhatsApp() {
+   enviarComprobanteWhatsApp() {
     const metodo = this.paymentMethods.find(m => m.value === this.paymentData().metodoPago)?.label || this.paymentData().metodoPago;
     const data = this.paymentData();
     const pmInfo = PAGO_MOVIL_INFO;
@@ -574,5 +612,13 @@ export default class CartComponent {
 
   get showCameraForPayment(): boolean {
     return this.showCamera() && this.checkoutStep() === 3;
+  }
+
+  ngOnDestroy() {
+    this.detenerPollingQR();
+    this.cerrarCamera();
+    if (this.showQRModal()) {
+      this.showQRModal.set(false);
+    }
   }
 }

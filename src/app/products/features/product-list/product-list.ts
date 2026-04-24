@@ -470,25 +470,33 @@ export default class ProductList implements OnInit {
     return this.cardQuantities()[String(productId)] || 0;
   }
 
-  addToCardFromCard(product: Product) {
+   addToCardFromCard(product: Product) {
     const id = String(product.id);
     const current = this.cardQuantities()[id] || 0;
-    this.cardQuantities.update(q => ({ ...q, [id]: current + 1 }));
+    const newQuantity = current + 1;
+    this.cardQuantities.update(q => ({ ...q, [id]: newQuantity }));
     this.cartState.add({ product, quantity: 1 });
   }
 
   increaseCardQuantity(product: Product) {
     const id = String(product.id);
     const current = this.cardQuantities()[id] || 0;
-    this.cardQuantities.update(q => ({ ...q, [id]: current + 1 }));
+    const newQuantity = current + 1;
+    this.cardQuantities.update(q => ({ ...q, [id]: newQuantity }));
     this.cartState.add({ product, quantity: 1 });
   }
 
-  decreaseCardQuantity(product: Product) {
+   decreaseCardQuantity(product: Product) {
     const id = String(product.id);
     const current = this.cardQuantities()[id] || 0;
     if (current > 0) {
-      this.cardQuantities.update(q => ({ ...q, [id]: current - 1 }));
+      const newQuantity = current - 1;
+      this.cardQuantities.update(q => ({ ...q, [id]: newQuantity }));
+      if (newQuantity === 0) {
+        this.cartState.remove(product.id);
+      } else {
+        this.cartState.update({ product, quantity: newQuantity });
+      }
     }
   }
 
@@ -576,6 +584,35 @@ export default class ProductList implements OnInit {
 
   ngOnInit() {
     this.ofertasBackend.reload();
+    
+    // Sync card quantities with actual cart state
+    this.cartState.subscribe(() => {
+      const products = this.cartState.state.products();
+      const newQuantities: Record<string, number> = {};
+      products.forEach((item: any) => {
+        newQuantities[String(item.product.id)] = item.quantity;
+      });
+      // Only update if different to avoid infinite loops
+      const current = this.cardQuantities();
+      let changed = false;
+      for (const id in newQuantities) {
+        if (current[id] !== newQuantities[id]) {
+          changed = true;
+          break;
+        }
+      }
+      // Also check for items that were removed
+      for (const id in current) {
+        if (!(id in newQuantities) && current[id] > 0) {
+          changed = true;
+          break;
+        }
+      }
+      if (changed) {
+        this.cardQuantities.set(newQuantities);
+      }
+    });
+    
     this.route.paramMap.subscribe((params) => {
       const brand = params.get('brand');
       if (brand) {

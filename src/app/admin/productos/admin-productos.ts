@@ -542,7 +542,8 @@ ngOnInit() {
 
   onOfertaPrecioChange(value: any) {
     const numValue = Number(value);
-    const price = this.formData().price || 0;
+    const form = this.formData();
+    const price = form.price || 0;
     if (!isNaN(numValue) && numValue >= 0) {
       // Limit to not exceed the original price
       const limitedValue = Math.min(numValue, price);

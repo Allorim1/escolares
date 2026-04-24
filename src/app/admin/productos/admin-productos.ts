@@ -82,6 +82,7 @@ export class AdminProductos implements OnInit {
     ratingRate: 0,
     ratingCount: 0,
   });
+  ofertaFieldModifiedByUser = signal<'porcentaje' | 'precio' | null>(null);
 
   productCategories = signal<CategoriaProducto[]>([]);
   
@@ -208,13 +209,12 @@ ngOnInit() {
     });
   }
 
-  updateFormField(field: keyof ProductFormData, value: string | number | boolean) {
-    this.formData.update((data) => ({ ...data, [field]: value }));
-  }
 
-  showAddForm() {
+
+   showAddForm() {
     this.isAdding.set(true);
     this.editingProduct.set(null);
+    this.ofertaFieldModifiedByUser.set(null);
     this.formData.set({
       title: '',
       price: 0,
@@ -236,29 +236,7 @@ ngOnInit() {
     this.showModal.set(true);
   }
 
-  showEditForm(product: Product) {
-    this.editingProduct.set(product);
-    this.isAdding.set(false);
-    this.formData.set({
-      title: product.title,
-      price: product.price,
-      description: product.description,
-      category: product.category,
-      image: product.image,
-      images: product.images || [],
-      marca: product.marca || '',
-      lineaId: (product as any).lineaId || '',
-      iva: product.iva || false,
-      ivaPercentage: product.ivaPercentage || 16,
-      estado: product.estado || 'disponible',
-      enOferta: (product as any).enOferta || false,
-      ofertaPorcentaje: (product as any).ofertaPorcentaje || 0,
-      ofertaPrecio: (product as any).ofertaPrecio || 0,
-      ratingRate: product.rating?.rate || 0,
-      ratingCount: product.rating?.count || 0,
-    });
-    this.showModal.set(true);
-  }
+
 
   cancelEdit() {
     this.showModal.set(false);
@@ -531,29 +509,37 @@ ngOnInit() {
       // Limit to 100% max and round to 1 decimal place
       const limitedValue = Math.min(numValue, 100);
       const roundedValue = Math.round(limitedValue * 10) / 10;
+      const price = this.formData().price || 0;
+      const calculatedPrice = Math.round((price * (1 - roundedValue / 100)) * 100) / 100;
       this.formData.update(data => ({
         ...data,
-        ofertaPorcentaje: roundedValue
+        ofertaPorcentaje: roundedValue,
+        ofertaPrecio: calculatedPrice
       }));
+      this.ofertaFieldModifiedByUser.set('porcentaje');
     } else {
-      this.formData.update(data => ({ ...data, ofertaPorcentaje: 0 }));
+      this.formData.update(data => ({ ...data, ofertaPorcentaje: 0, ofertaPrecio: 0 }));
+      this.ofertaFieldModifiedByUser.set(null);
     }
   }
 
   onOfertaPrecioChange(value: any) {
     const numValue = Number(value);
-    const form = this.formData();
-    const price = form.price || 0;
+    const price = this.formData().price || 0;
     if (!isNaN(numValue) && numValue >= 0) {
       // Limit to not exceed the original price
       const limitedValue = Math.min(numValue, price);
       const precioRedondeado = Math.round(limitedValue * 100) / 100;
+      const calculatedPorcentaje = price > 0 ? Math.round(((price - precioRedondeado) / price) * 1000) / 10 : 0;
       this.formData.update(data => ({
         ...data,
-        ofertaPrecio: precioRedondeado
+        ofertaPrecio: precioRedondeado,
+        ofertaPorcentaje: calculatedPorcentaje
       }));
+      this.ofertaFieldModifiedByUser.set('precio');
     } else {
-      this.formData.update(data => ({ ...data, ofertaPrecio: 0 }));
+      this.formData.update(data => ({ ...data, ofertaPrecio: 0, ofertaPorcentaje: 0 }));
+      this.ofertaFieldModifiedByUser.set(null);
     }
   }
 }

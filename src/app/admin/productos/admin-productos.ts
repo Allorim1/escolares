@@ -539,7 +539,6 @@ ngOnInit() {
       this.formData.update(data => ({ ...data, ofertaPorcentaje: 0 }));
     }
   }
-  }
 
   onOfertaPrecioChange(value: any) {
     const numValue = Number(value);

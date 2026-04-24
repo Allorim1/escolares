@@ -528,20 +528,26 @@ ngOnInit() {
   onOfertaPorcentajeChange(value: any) {
     const numValue = Number(value);
     if (!isNaN(numValue) && numValue >= 0) {
-      const entero = Math.floor(numValue);
+      // Limit to 100% max and round to 1 decimal place
+      const limitedValue = Math.min(numValue, 100);
+      const roundedValue = Math.round(limitedValue * 10) / 10;
       this.formData.update(data => ({
         ...data,
-        ofertaPorcentaje: entero
+        ofertaPorcentaje: roundedValue
       }));
     } else {
       this.formData.update(data => ({ ...data, ofertaPorcentaje: 0 }));
     }
   }
+  }
 
   onOfertaPrecioChange(value: any) {
     const numValue = Number(value);
+    const price = this.formData().price || 0;
     if (!isNaN(numValue) && numValue >= 0) {
-      const precioRedondeado = Math.round(numValue * 100) / 100;
+      // Limit to not exceed the original price
+      const limitedValue = Math.min(numValue, price);
+      const precioRedondeado = Math.round(limitedValue * 100) / 100;
       this.formData.update(data => ({
         ...data,
         ofertaPrecio: precioRedondeado

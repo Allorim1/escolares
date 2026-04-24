@@ -91,23 +91,25 @@
         <button class="close-btn" (click)="closeDetail()">✕</button>
       </div>
       
-      <div class="modal-body">
-        <div class="detail-section">
-          <h4>Estado del Pedido</h4>
-          <div class="status-selector">
-            @for (status of statusOptions; track status.value) {
-              @if (status.value !== 'todos') {
-                <button 
+       <div class="modal-body">
+         <div class="detail-section">
+           <h4>Estado del Pedido</h4>
+           <div class="status-selector">
+             @for (status of statusOptions; track status.value) {
+               @if (status.value !== 'todos') {
+                 <button 
                   class="status-btn"
                   [class.active]="selectedOrder()!.status === status.value"
                   [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
                   (click)="updateStatus(selectedOrder()!.id, status.value)"
+                  [disabled]="selectedOrder()!.status === 'entregado' && status.value !== 'entregado'"
                 >
                   {{ status.label }}
                 </button>
-              }
-            }
-          </div>
+               }
+             }
+           </div>
+         </div>
         </div>
         
         <div class="detail-section">

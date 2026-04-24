@@ -68,7 +68,7 @@ export class AdminPedidos implements OnInit {
     pendiente: '#17a2b8',
     procesando: '#6f42c1',
     enviado: '#007bff',
-    entrega: '#28a745',
+    entregado: '#28a745',
     cancelado: '#dc3545',
   };
 

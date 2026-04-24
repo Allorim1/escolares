@@ -18,8 +18,9 @@ export class Perfil {
   direccion = signal('');
   telefono = signal('');
   cedula = signal('');
+  supervisorKey = signal('');
 
-  constructor() {
+  ngOnInit() {
     this.cargarDatos();
   }
 
@@ -30,6 +31,7 @@ export class Perfil {
       this.direccion.set(user.direccion || '');
       this.telefono.set(user.telefono || '');
       this.cedula.set(user.cedula || '');
+      this.supervisorKey.set(user.supervisorKey || '');
     }
   }
 
@@ -49,6 +51,7 @@ export class Perfil {
       direccion: this.direccion(),
       telefono: this.telefono(),
       cedula: this.cedula(),
+      supervisorKey: this.supervisorKey(),
     })?.subscribe({
       next: (user) => {
         this.guardando.set(false);

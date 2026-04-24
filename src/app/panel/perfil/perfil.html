@@ -43,21 +43,30 @@
     }
   </div>
 
-  <div class="perfil-field">
-    <label>Cédula:</label>
-    @if (editando()) {
-      <input type="text" [(ngModel)]="cedula" placeholder="Ingresa tu número de cédula" />
-    } @else {
-      <span>{{ cedula() || 'No especificado' }}</span>
-    }
-  </div>
+   <div class="perfil-field">
+     <label>Cédula:</label>
+     @if (editando()) {
+       <input type="text" [(ngModel)]="cedula" placeholder="Ingresa tu número de cédula" />
+     } @else {
+       <span>{{ cedula() || 'No especificado' }}</span>
+     }
+   </div>
 
-  @if (editando()) {
-    <div class="perfil-actions">
-      <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
-      <button class="btn-guardar" (click)="guardar()" [disabled]="guardando()">
-        {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
-      </button>
-    </div>
-  }
+   <div class="perfil-field">
+     <label>Clave de Supervisor:</label>
+     @if (editando()) {
+       <input type="text" [(ngModel)]="supervisorKey" placeholder="Ingresa tu clave de supervisor" />
+     } @else {
+       <span>{{ supervisorKey() || 'No especificado' }}</span>
+     }
+   </div>
+
+   @if (editando()) {
+     <div class="perfil-actions">
+       <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+       <button class="btn-guardar" (click)="guardar()" [disabled]="guardando()">
+         {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+       </button>
+     </div>
+   }
 </section>

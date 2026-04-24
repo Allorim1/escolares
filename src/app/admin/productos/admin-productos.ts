@@ -209,9 +209,15 @@ ngOnInit() {
     });
   }
 
+  updateFormField(field: keyof ProductFormData, value: string | number | boolean) {
+    this.formData.update((data) => ({ ...data, [field]: value }));
+    // Reset offer field tracking when offer is disabled
+    if (field === 'enOferta' && value === false) {
+      this.ofertaFieldModifiedByUser.set(null);
+    }
+  }
 
-
-   showAddForm() {
+  showAddForm() {
     this.isAdding.set(true);
     this.editingProduct.set(null);
     this.ofertaFieldModifiedByUser.set(null);
@@ -237,6 +243,31 @@ ngOnInit() {
   }
 
 
+
+  showEditForm(product: Product) {
+    this.editingProduct.set(product);
+    this.isAdding.set(false);
+    this.ofertaFieldModifiedByUser.set(null);
+    this.formData.set({
+      title: product.title,
+      price: product.price,
+      description: product.description,
+      category: product.category,
+      image: product.image,
+      images: product.images || [],
+      marca: product.marca || '',
+      lineaId: (product as any).lineaId || '',
+      iva: product.iva || false,
+      ivaPercentage: product.ivaPercentage || 16,
+      estado: product.estado || 'disponible',
+      enOferta: (product as any).enOferta || false,
+      ofertaPorcentaje: (product as any).ofertaPorcentaje || 0,
+      ofertaPrecio: (product as any).ofertaPrecio || 0,
+      ratingRate: product.rating?.rate || 0,
+      ratingCount: product.rating?.count || 0,
+    });
+    this.showModal.set(true);
+  }
 
   cancelEdit() {
     this.showModal.set(false);

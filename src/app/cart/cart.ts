@@ -513,18 +513,45 @@ export default class CartComponent {
     this.paymentData.update(p => ({ ...p, fotoComprobante: '' }));
   }
 
+   onDragOver(event: DragEvent) {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    target.classList.add('drag-over');
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    target.classList.remove('drag-over');
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    target.classList.remove('drag-over');
+    
+    const file = event.dataTransfer?.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    
+    this.processImageFile(file);
+  }
+
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
+    this.processImageFile(file);
+    input.value = '';
+  }
+
+  private processImageFile(file: File) {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
       this.paymentData.update(p => ({ ...p, fotoComprobante: result }));
     };
     reader.readAsDataURL(file);
-    input.value = '';
   }
 
   enviarComprobanteWhatsApp() {

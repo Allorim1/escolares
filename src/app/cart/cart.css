@@ -527,7 +527,7 @@
 }
 
 .btn-secondary {
-  padding: 0.5rem 1rem;
+  padding: 0.875rem 1rem;
   background: #6c757d;
   color: white;
   border: none;
@@ -643,21 +643,41 @@
   background: #138496;
 }
 
-.btn-archivo-comprobante {
-  flex: 1;
-  padding: 1rem;
-  background: #6c757d;
-  color: white;
-  border: none;
+.upload-area {
+  border: 2px dashed #ccc;
   border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: #1d63c1;
+  background: #f0f7ff;
+}
+
+.btn-archivo-comprobante {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background: transparent;
+  color: #1d63c1;
+  border: none;
+  border-radius: 6px;
   font-size: 0.95rem;
   cursor: pointer;
   text-align: center;
-  display: inline-block;
+  font-weight: 500;
 }
 
 .btn-archivo-comprobante:hover {
-  background: #5a6268;
+  background: #e8f0fe;
+}
+
+.btn-archivo-comprobante input[type="file"] {
+  display: none;
 }
 
 /* WhatsApp Section */
@@ -679,8 +699,14 @@
   cursor: pointer;
 }
 
-.btn-whatsapp:hover {
+.btn-whatsapp:hover:not(:disabled) {
   background: #20BD5A;
+}
+
+.btn-whatsapp:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .whatsapp-hint {

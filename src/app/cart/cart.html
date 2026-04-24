@@ -192,36 +192,30 @@
                   <div class="form-group">
                     <label>Foto del comprobante</label>
                     
-                    @if (paymentData().fotoComprobante) {
-                      <div class="comprobante-preview">
-                        <img [src]="paymentData().fotoComprobante" alt="Comprobante" />
-                        <button type="button" class="btn-eliminar" (click)="eliminarComprobante()">✕</button>
-                      </div>
-                    } @else {
-                      <div class="foto-opciones">
-                        <button type="button" class="btn-foto-comprobante" (click)="abrirCamera()">
-                          📷 Cámara
-                        </button>
-                        <button type="button" class="btn-qr-comprobante" (click)="abrirQRModal()">
-                          📱 QR desde mi celular
-                        </button>
-                        <label class="btn-archivo-comprobante">
-                          📁 Archivo
-                          <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
-                        </label>
-                      </div>
-                    }
+                     @if (paymentData().fotoComprobante) {
+                       <div class="comprobante-preview">
+                         <img [src]="paymentData().fotoComprobante" alt="Comprobante" />
+                         <button type="button" class="btn-eliminar" (click)="eliminarComprobante()">✕</button>
+                       </div>
+                     } @else {
+                       <div class="upload-area" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+                         <label class="btn-archivo-comprobante">
+                           📁 Arrastra y suelta tu archivo aquí o haz clic para buscar
+                           <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
+                         </label>
+                       </div>
+                     }
                   </div>
                 }
 
-                @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia') {
-                  <div class="whatsapp-section">
-                    <button type="button" class="btn-whatsapp" (click)="enviarComprobanteWhatsApp()">
-                      📱 Enviar comprobante por WhatsApp
-                    </button>
-                    <p class="whatsapp-hint">Después de enviar, adjunta la foto en WhatsApp</p>
-                  </div>
-                }
+                 @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia') {
+                   <div class="whatsapp-section">
+                     <button type="button" class="btn-whatsapp" disabled>
+                       📱 Enviar comprobante por WhatsApp
+                     </button>
+                     <p class="whatsapp-hint">Después de enviar, adjunta la foto en WhatsApp</p>
+                   </div>
+                 }
 
                 @if (currentOrderId()) {
                   <div class="confirm-order-section">

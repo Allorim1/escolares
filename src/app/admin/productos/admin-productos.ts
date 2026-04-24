@@ -529,31 +529,25 @@ ngOnInit() {
     const numValue = Number(value);
     if (!isNaN(numValue) && numValue >= 0) {
       const entero = Math.floor(numValue);
-      const price = this.formData().price || 0;
-      const precioOferta = Math.max(0, price - (price * entero / 100));
       this.formData.update(data => ({
         ...data,
-        ofertaPorcentaje: entero,
-        ofertaPrecio: Math.round(precioOferta * 100) / 100
+        ofertaPorcentaje: entero
       }));
     } else {
-      this.formData.update(data => ({ ...data, ofertaPorcentaje: 0, ofertaPrecio: 0 }));
+      this.formData.update(data => ({ ...data, ofertaPorcentaje: 0 }));
     }
   }
 
   onOfertaPrecioChange(value: any) {
     const numValue = Number(value);
-    const price = this.formData().price || 0;
     if (!isNaN(numValue) && numValue >= 0) {
       const precioRedondeado = Math.round(numValue * 100) / 100;
-      const porcentaje = price > 0 ? Math.floor(((price - precioRedondeado) / price) * 100) : 0;
       this.formData.update(data => ({
         ...data,
-        ofertaPrecio: precioRedondeado,
-        ofertaPorcentaje: Math.max(0, porcentaje)
+        ofertaPrecio: precioRedondeado
       }));
     } else {
-      this.formData.update(data => ({ ...data, ofertaPrecio: 0, ofertaPorcentaje: 0 }));
+      this.formData.update(data => ({ ...data, ofertaPrecio: 0 }));
     }
   }
 }

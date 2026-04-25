@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { AuthService, User } from '../../shared/data-access/auth.service';
+import { AuthService } from '../../shared/data-access/auth.service';
+import { User } from '../../backend/models';
 import { RolesBackend, Rol } from '../../backend/data-access/roles.backend';
 
 interface UserWithRol extends User {

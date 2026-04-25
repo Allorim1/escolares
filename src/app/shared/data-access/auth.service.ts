@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthBackend } from '../../backend/data-access/auth.backend';
 import { Observable } from 'rxjs';
-import { User, Direccion } from '../backend/models';
+import { User, Direccion } from '../../backend/models';
 
 export type { User, Direccion };
 

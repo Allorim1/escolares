@@ -187,6 +187,13 @@ export class AdminPedidos implements OnInit {
     return this.orders().filter(o => o.status === status).length;
   }
 
+  isStatusDisabled(statusValue: string): boolean {
+    const currentStatus = this.selectedOrder()?.status;
+    if (!currentStatus) return true;
+    // Si el pedido está entregado o cancelado, deshabilitar todos los botones
+    return currentStatus === 'entregado' || currentStatus === 'cancelado';
+  }
+
   openImageModal(url: string) {
     this.modalImageUrl.set(url);
     this.imageModalOpen.set(true);

@@ -102,7 +102,7 @@
                      [class.active]="selectedOrder()!.status === status.value"
                      [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
                      (click)="onStatusClick(status.value)"
-                     [disabled]="status.value !== 'cancelado' && selectedOrder()!.status === 'entregado'"
+                     [disabled]="isStatusDisabled(status.value)"
                    >
                      {{ status.label }}
                    </button>

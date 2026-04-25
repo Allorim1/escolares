@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -45,8 +45,9 @@ interface Order {
   templateUrl: './admin-pedidos.html',
   styleUrl: './admin-pedidos.css',
 })
-export class AdminPedidos implements OnInit {
+export class AdminPedidos implements OnInit, OnDestroy {
   private http = inject(HttpClient);
+  private intervalId: any;
 
   orders = signal<Order[]>([]);
   loading = signal(true);
@@ -55,22 +56,23 @@ export class AdminPedidos implements OnInit {
   searchTerm = signal('');
   imageModalOpen = signal(false);
   modalImageUrl = signal('');
+  now = signal(Date.now());
 
-   // Modal de cancelación
-   showCancelModal = signal(false);
-   cancelReason = signal('');
-   supervisorKey = signal('');
-   cancelError = signal('');
-   isCancelling = signal(false);
+  // Modal de cancelación
+  showCancelModal = signal(false);
+  cancelReason = signal('');
+  supervisorKey = signal('');
+  cancelError = signal('');
+  isCancelling = signal(false);
 
-   // Modal de subida de factura
-   showFacturaModal = signal(false);
-   facturaError = signal('');
-   isUploadingFactura = signal(false);
-   // Drag & drop
-   dragActive = signal(false);
-   facturaFile = signal<File | null>(null);
-   facturaPreview = signal<string | null>(null);
+  // Modal de subida de factura
+  showFacturaModal = signal(false);
+  facturaError = signal('');
+  isUploadingFactura = signal(false);
+  // Drag & drop
+  dragActive = signal(false);
+  facturaFile = signal<File | null>(null);
+  facturaPreview = signal<string | null>(null);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -93,6 +95,16 @@ export class AdminPedidos implements OnInit {
 
   ngOnInit() {
     this.loadOrders();
+    // Actualizar cada minuto para contador
+    this.intervalId = setInterval(() => {
+      this.now.set(Date.now());
+    }, 60000);
+  }
+
+  ngOnDestroy() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
   }
 
   loadOrders() {
@@ -200,15 +212,34 @@ export class AdminPedidos implements OnInit {
   isStatusDisabled(statusValue: string): boolean {
     const currentStatus = this.selectedOrder()?.status;
     if (!currentStatus) return true;
-    // Si el pedido está entregado o cancelado, deshabilitar todos los botones
     if (currentStatus === 'entregado' || currentStatus === 'cancelado') {
       return true;
     }
-    // Si se intenta marcar como entregado y no hay factura, deshabilitar
     if (statusValue === 'entregado' && !this.selectedOrder()?.facturaImage) {
       return true;
     }
     return false;
+  }
+
+  getTimeInProgress(order: Order): string {
+    const endDate = (order.status === 'entregado' || order.status === 'cancelado')
+      ? new Date(order.updatedAt)
+      : new Date(this.now());
+    
+    const startDate = new Date(order.createdAt);
+    const diffMs = endDate.getTime() - startDate.getTime();
+    
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
   }
 
   openImageModal(url: string) {
@@ -228,121 +259,9 @@ export class AdminPedidos implements OnInit {
     this.cancelError.set('');
   }
 
-    closeCancelModal() {
-      this.showCancelModal.set(false);
-    }
-
-    // --- Factura ---
-    openFacturaModal() {
-      this.showFacturaModal.set(true);
-      this.facturaError.set('');
-      this.facturaFile.set(null);
-      this.facturaPreview.set(null);
-      this.dragActive.set(false);
-    }
-
-    closeFacturaModal() {
-      this.showFacturaModal.set(false);
-    }
-
-    onDragEnter(event: DragEvent) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.dragActive.set(true);
-    }
-
-    onDragLeave(event: DragEvent) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.dragActive.set(false);
-    }
-
-    onDragOver(event: DragEvent) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (event.dataTransfer) {
-        event.dataTransfer.dropEffect = 'copy';
-      }
-    }
-
-    onDrop(event: DragEvent) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.dragActive.set(false);
-
-      if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-        const file = event.dataTransfer.files[0];
-        if (file.type.startsWith('image/')) {
-          this.handleFacturaFile(file);
-        } else {
-          this.facturaError.set('Solo se permiten archivos de imagen');
-        }
-      }
-    }
-
-    onFileSelected(event: Event) {
-      const input = event.target as HTMLInputElement;
-      if (input.files && input.files.length > 0) {
-        const file = input.files[0];
-        if (file.type.startsWith('image/')) {
-          this.handleFacturaFile(file);
-        } else {
-          this.facturaError.set('Solo se permiten archivos de imagen');
-        }
-      }
-    }
-
-    private handleFacturaFile(file: File) {
-      this.facturaError.set('');
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        if (typeof result === 'string') {
-          this.facturaPreview.set(result);
-          this.facturaFile.set(file);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-
-    uploadFactura() {
-      const order = this.selectedOrder();
-      const file = this.facturaFile();
-
-      if (!file) {
-        this.facturaError.set('Selecciona una imagen para subir');
-        return;
-      }
-      if (!order) return;
-
-      this.isUploadingFactura.set(true);
-      this.facturaError.set('');
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64 = e.target?.result as string;
-
-        this.http.put(`/api/orders/${order.id}/factura`, {
-          facturaImage: base64
-        }).subscribe({
-          next: (updatedOrder: any) => {
-            this.isUploadingFactura.set(false);
-            this.closeFacturaModal();
-            this.loadOrders();
-            if (this.selectedOrder()?.id === order.id) {
-              this.selectedOrder.set(updatedOrder);
-            }
-            alert('Factura subida correctamente');
-          },
-          error: (err: any) => {
-            this.isUploadingFactura.set(false);
-            this.facturaError.set(err.error?.error || 'Error al subir factura');
-          }
-        });
-      };
-
-      reader.readAsDataURL(file);
-    }
+  closeCancelModal() {
+    this.showCancelModal.set(false);
+  }
 
   cancelOrderWithSupervisor() {
     const order = this.selectedOrder();
@@ -380,5 +299,117 @@ export class AdminPedidos implements OnInit {
         this.cancelError.set(err.error?.error || 'Error al cancelar pedido');
       }
     });
+  }
+
+  // --- Factura ---
+  openFacturaModal() {
+    this.showFacturaModal.set(true);
+    this.facturaError.set('');
+    this.facturaFile.set(null);
+    this.facturaPreview.set(null);
+    this.dragActive.set(false);
+  }
+
+  closeFacturaModal() {
+    this.showFacturaModal.set(false);
+  }
+
+  onDragEnter(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragActive.set(true);
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragActive.set(false);
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy';
+    }
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragActive.set(false);
+
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      if (file.type.startsWith('image/')) {
+        this.handleFacturaFile(file);
+      } else {
+        this.facturaError.set('Solo se permiten archivos de imagen');
+      }
+    }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.type.startsWith('image/')) {
+        this.handleFacturaFile(file);
+      } else {
+        this.facturaError.set('Solo se permiten archivos de imagen');
+      }
+    }
+  }
+
+  private handleFacturaFile(file: File) {
+    this.facturaError.set('');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (typeof result === 'string') {
+        this.facturaPreview.set(result);
+        this.facturaFile.set(file);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  uploadFactura() {
+    const order = this.selectedOrder();
+    const file = this.facturaFile();
+
+    if (!file) {
+      this.facturaError.set('Selecciona una imagen para subir');
+      return;
+    }
+    if (!order) return;
+
+    this.isUploadingFactura.set(true);
+    this.facturaError.set('');
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+
+      this.http.put(`/api/orders/${order.id}/factura`, {
+        facturaImage: base64
+      }).subscribe({
+        next: (updatedOrder: any) => {
+          this.isUploadingFactura.set(false);
+          this.closeFacturaModal();
+          this.loadOrders();
+          if (this.selectedOrder()?.id === order.id) {
+            this.selectedOrder.set(updatedOrder);
+          }
+          alert('Factura subida correctamente');
+        },
+        error: (err: any) => {
+          this.isUploadingFactura.set(false);
+          this.facturaError.set(err.error?.error || 'Error al subir factura');
+        }
+      });
+    };
+
+    reader.readAsDataURL(file);
   }
 }

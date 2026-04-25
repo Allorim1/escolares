@@ -73,6 +73,15 @@
             <span class="pedido-date">{{ formatDate(order.createdAt) }}</span>
             <span class="pedido-items">{{ order.items.length }} producto(s)</span>
           </div>
+          @if (order.status === 'entregado' || order.status === 'cancelado') {
+            <div class="pedido-timer completed">
+              ⏱️ {{ getTimeInProgress(order) }}
+            </div>
+          } @else {
+            <div class="pedido-timer">
+              ⏱️ {{ getTimeInProgress(order) }}
+            </div>
+          }
         </div>
       }
       

@@ -163,6 +163,18 @@
   padding-top: 0.75rem;
 }
 
+.pedido-timer {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.pedido-timer.completed {
+  color: #28a745;
+  font-weight: 500;
+}
+
 .no-orders {
   text-align: center;
   padding: 2rem;

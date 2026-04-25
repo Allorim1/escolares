@@ -31,6 +31,7 @@ export interface User {
   cedula?: string;
   tipoPersona?: 'natural' | 'juridica';
   direcciones?: Direccion[];
+  supervisorKey?: string;
 }
 
 export interface Direccion {

@@ -1,30 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthBackend } from '../../backend/data-access/auth.backend';
 import { Observable } from 'rxjs';
+import { User, Direccion } from '../backend/models';
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  isAdmin: boolean;
-  isOwner?: boolean;
-  rol?: 'root' | 'owner' | 'usuario';
-  rolId?: string;
-  nombreCompleto?: string;
-  direccion?: string;
-  telefono?: string;
-  cedula?: string;
-  tipoPersona?: 'natural' | 'juridica';
-  direcciones?: Direccion[];
-  comentarios?: string;
-  supervisorKey?: string;
-}
-
-export interface Direccion {
-  id: string;
-  nombre: string;
-  direccion: string;
-}
 
 @Injectable({
   providedIn: 'root',

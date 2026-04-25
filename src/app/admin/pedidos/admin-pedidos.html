@@ -92,24 +92,24 @@
       </div>
       
       <div class="modal-body">
-        <div class="detail-section">
-          <h4>Estado del Pedido</h4>
-          <div class="status-selector">
-            @for (status of statusOptions; track status.value) {
-              @if (status.value !== 'todos') {
-                <button 
-                  class="status-btn"
-                  [class.active]="selectedOrder()!.status === status.value"
-                  [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
-                  (click)="updateStatus(selectedOrder()!.id, status.value)"
-                  [disabled]="selectedOrder()!.status === 'entregado' && status.value !== 'entregado'"
-                >
-                  {{ status.label }}
-                </button>
-              }
-            }
-          </div>
-        </div>
+           <div class="detail-section">
+             <h4>Estado del Pedido</h4>
+             <div class="status-selector">
+               @for (status of statusOptions; track status.value) {
+                 @if (status.value !== 'todos') {
+                   <button 
+                     class="status-btn"
+                     [class.active]="selectedOrder()!.status === status.value"
+                     [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
+                     (click)="onStatusClick(status.value)"
+                     [disabled]="status.value !== 'cancelado' && selectedOrder()!.status === 'entregado'"
+                   >
+                     {{ status.label }}
+                   </button>
+                 }
+               }
+             </div>
+           </div>
         
         @if (selectedOrder()!.status !== 'entregado' && selectedOrder()!.status !== 'cancelado') {
           <div class="detail-section danger-zone">
@@ -118,20 +118,20 @@
               🗑️ Cancelar Pedido
             </button>
           </div>
-        }
-        
-        @if (selectedOrder()!.autorizadoNombre) {
-          <div class="detail-section autorizacion-section">
-            <h4>Autorización</h4>
-            <div class="autorizacion-info">
-              <span class="label">Cancelado por:</span>
-              <span class="value">{{ selectedOrder()!.autorizadoNombre }}</span>
-            </div>
-          </div>
-        }
-        
-        <div class="detail-section">
-          <h4>Datos del Cliente</h4>
+           }
+           
+           @if (selectedOrder()!.autorizadoNombre) {
+             <div class="detail-section autorizacion-section">
+               <h4>Autorización</h4>
+               <div class="autorizacion-info">
+                 <span class="label">Cancelado por:</span>
+                 <span class="value">{{ selectedOrder()!.autorizadoNombre }}</span>
+               </div>
+             </div>
+           }
+           
+           <div class="detail-section">
+             <h4>Datos del Cliente</h4>
           <div class="detail-grid">
             <div class="detail-item">
               <span class="label">Nombre:</span>

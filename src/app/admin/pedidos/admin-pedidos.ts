@@ -124,6 +124,14 @@ export class AdminPedidos implements OnInit {
     this.selectedOrder.set(null);
   }
 
+  onStatusClick(status: string) {
+    if (status === 'cancelado') {
+      this.openCancelModal();
+    } else {
+      this.updateStatus(this.selectedOrder()!.id, status);
+    }
+  }
+
   updateStatus(orderId: string, newStatus: string) {
     this.http.put(`/api/orders/${orderId}/status`, {
       status: newStatus,

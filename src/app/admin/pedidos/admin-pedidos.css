@@ -189,31 +189,10 @@
   border-radius: 12px;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.order-detail-modal {
-  background: white;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 600px;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
@@ -222,11 +201,13 @@
   align-items: center;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #eee;
+  flex-shrink: 0;
 }
 
 .modal-header h3 {
   margin: 0;
   color: #333;
+  font-size: 1.1rem;
 }
 
 .close-btn {
@@ -235,10 +216,23 @@
   font-size: 1.5rem;
   color: #666;
   cursor: pointer;
+  line-height: 1;
 }
 
 .modal-body {
   padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Modal de detalle de pedido */
+.order-detail-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .detail-section {
@@ -543,68 +537,38 @@
 
 /* Modal pequeño (cancelación) */
 .modal-small {
-  max-width: 450px;
-}
-
-/* Botón de cancelar pedido */
-.danger-zone {
-  border: 1px solid #dc3545;
-  border-radius: 8px;
-  padding: 1rem;
-  background: #fff5f5;
-}
-
-.btn-cancel-order {
+  max-width: 420px;
   width: 100%;
-  padding: 0.75rem 1rem;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: background 0.2s;
 }
 
-.btn-cancel-order:hover {
-  background: #c82333;
-}
-
-.btn-cancel-order:disabled {
-  background: #e0a0a0;
-  cursor: not-allowed;
-}
-
-/* Formulario cancelación */
-.cancel-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  resize: vertical;
-  font-family: inherit;
-}
-
-.cancel-textarea:focus {
-  outline: none;
-  border-color: #007bff;
-}
-
+/* Campos del modal de cancelación */
+.cancel-textarea,
 .supervisor-input {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.95rem;
-  font-family: monospace;
-  letter-spacing: 2px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
 }
 
+.cancel-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.cancel-textarea:focus,
 .supervisor-input:focus {
   outline: none;
   border-color: #007bff;
+}
+
+.cancel-textarea::placeholder,
+.supervisor-input::placeholder {
+  color: #999;
 }
 
 .help-text {
@@ -612,6 +576,7 @@
   margin-top: 0.5rem;
   font-size: 0.8rem;
   color: #666;
+  line-height: 1.4;
 }
 
 .error-message {
@@ -624,7 +589,33 @@
   margin-bottom: 1rem;
 }
 
-/* Botones */
+/* Sección de autorización (cancelación) */
+.autorizacion-section {
+  background: #fff5f5;
+  border: 1px solid #dc3545;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.autorizacion-info {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  align-items: center;
+}
+
+.autorizacion-info .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.autorizacion-info .value {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Botones genéricos */
 .btn-primary {
   padding: 0.625rem 1.25rem;
   background: #1d63c1;
@@ -672,28 +663,14 @@
   cursor: not-allowed;
 }
 
-/* Sección de autorización (cancelación) */
-.autorizacion-section {
-  background: #fff5f5;
-  border: 1px solid #dc3545;
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.autorizacion-info {
+/* Modal footer */
+.modal-footer {
   display: flex;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.autorizacion-info .label {
-  color: #666;
-  font-weight: 500;
-}
-
-.autorizacion-info .value {
-  color: #dc3545;
-  font-weight: 600;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #eee;
+  flex-shrink: 0;
 }
 
 /* Formulario modal */
@@ -706,13 +683,5 @@
   margin-bottom: 0.5rem;
   color: #555;
   font-weight: 500;
-}
-
-/* Modal footer */
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #eee;
+  font-size: 0.9rem;
 }

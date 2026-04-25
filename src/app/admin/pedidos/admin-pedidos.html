@@ -222,7 +222,26 @@
                   <span class="historial-date">{{ formatDate(h.fecha) }}</span>
                   @if (h.observaciones) {
                     <span class="historial-obs">{{ h.observaciones }}</span>
-                  }
+           }
+           
+           @if (selectedOrder()!.facturaImage) {
+             <div class="factura-section">
+               <h5>Factura</h5>
+               <div class="factura-image">
+                 <button class="btn-ver-factura" (click)="openImageModal(selectedOrder()!.facturaImage!)">
+                   📄 Ver Factura
+                 </button>
+               </div>
+             </div>
+           } @else {
+             <div class="factura-section">
+               <h5>Factura</h5>
+               <button class="btn-subir-factura" (click)="openFacturaModal()">
+                 📤 Subir Factura
+               </button>
+               <p class="factura-hint">Requerido para marcar como entregado</p>
+             </div>
+           }
                 </div>
               }
             </div>
@@ -282,6 +301,62 @@
           <button class="btn-secondary" (click)="closeCancelModal()">Cancelar</button>
           <button class="btn-danger" (click)="cancelOrderWithSupervisor()" [disabled]="isCancelling()">
             {{ isCancelling() ? 'Procesando...' : 'Confirmar Cancelación' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showFacturaModal()) {
+    <div class="modal-overlay" (click)="closeFacturaModal()">
+      <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Subir Factura - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+          <button class="close-btn" (click)="closeFacturaModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+          @if (!facturaPreview()) {
+            <div 
+              class="dropzone"
+              [class.drag-active]="dragActive()"
+              (dragenter)="onDragEnter($event)"
+              (dragleave)="onDragLeave($event)"
+              (dragover)="onDragOver($event)"
+              (drop)="onDrop($event)"
+            >
+              <div class="dropzone-content">
+                <span class="dropzone-icon">📁</span>
+                <p>Arrastra y suelta la imagen de la factura aquí</p>
+                <p class="dropzone-hint">o</p>
+                <button class="btn-select-file" (click)="fileInput.click()">
+                  Seleccionar archivo
+                </button>
+                <input 
+                  #fileInput
+                  type="file" 
+                  accept="image/*"
+                  (change)="onFileSelected($event)"
+                  style="display: none;"
+                />
+              </div>
+            </div>
+          } @else {
+            <div class="preview-container">
+              <img [src]="facturaPreview()" alt="Vista previa factura" class="factura-preview-img" />
+              <button class="btn-remove-factura" (click)="facturaFile.set(null); facturaPreview.set(null)">✕</button>
+            </div>
+          }
+
+          @if (facturaError()) {
+            <div class="error-message">{{ facturaError() }}</div>
+          }
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeFacturaModal()">Cancelar</button>
+          <button class="btn-primary" (click)="uploadFactura()" [disabled]="isUploadingFactura() || !facturaFile()">
+            {{ isUploadingFactura() ? 'Subiendo...' : 'Subir Factura' }}
           </button>
         </div>
       </div>

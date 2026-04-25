@@ -18,6 +18,8 @@ export class Register {
   email = signal('');
   password = signal('');
   confirmPassword = signal('');
+  showPassword = signal(false);
+  showConfirmPassword = signal(false);
   rif = signal('');
   rifTipo = signal('V');
   telefono = signal('');

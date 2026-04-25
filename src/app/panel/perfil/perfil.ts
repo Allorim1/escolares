@@ -19,6 +19,7 @@ export class Perfil {
   telefono = signal('');
   cedula = signal('');
   supervisorKey = signal('');
+  showSupervisorKey = signal(false);
 
   ngOnInit() {
     this.cargarDatos();

@@ -52,14 +52,23 @@
      }
    </div>
 
-   <div class="perfil-field">
-     <label>Clave de Supervisor:</label>
-     @if (editando()) {
-       <input type="text" [(ngModel)]="supervisorKey" placeholder="Ingresa tu clave de supervisor" />
-     } @else {
-       <span>{{ supervisorKey() || 'No especificado' }}</span>
-     }
-   </div>
+    <div class="perfil-field">
+      <label>Clave de Supervisor:</label>
+      @if (editando()) {
+        <div class="password-input-wrapper">
+          <input
+            [type]="showSupervisorKey() ? 'text' : 'password'"
+            [(ngModel)]="supervisorKey"
+            placeholder="Ingresa tu clave de supervisor"
+          />
+          <button type="button" class="toggle-password" (click)="showSupervisorKey.set(!showSupervisorKey())" tabindex="-1">
+            {{ showSupervisorKey() ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      } @else {
+        <span>{{ supervisorKey() || 'No especificado' }}</span>
+      }
+    </div>
 
    @if (editando()) {
      <div class="perfil-actions">

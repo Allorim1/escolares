@@ -36,29 +36,39 @@
         />
       </div>
 
-      <div class="form-group">
-        <label for="password">Contraseña</label>
-        <input
-          type="password"
-          id="password"
-          [ngModel]="password()"
-          name="password"
-          (ngModelChange)="password.set($event)"
-          required
-        />
-      </div>
+       <div class="form-group password-group">
+         <label for="password">Contraseña</label>
+         <div class="password-input-wrapper">
+           <input
+             [type]="showPassword() ? 'text' : 'password'"
+             id="password"
+             [ngModel]="password()"
+             name="password"
+             (ngModelChange)="password.set($event)"
+             required
+           />
+           <button type="button" class="toggle-password" (click)="showPassword.set(!showPassword())" tabindex="-1">
+             {{ showPassword() ? '🙈' : '👁️' }}
+           </button>
+         </div>
+       </div>
 
-      <div class="form-group">
-        <label for="confirmPassword">Confirmar contraseña</label>
-        <input
-          type="password"
-          id="confirmPassword"
-          [ngModel]="confirmPassword()"
-          name="confirmPassword"
-          (ngModelChange)="confirmPassword.set($event)"
-          required
-        />
-      </div>
+       <div class="form-group password-group">
+         <label for="confirmPassword">Confirmar contraseña</label>
+         <div class="password-input-wrapper">
+           <input
+             [type]="showConfirmPassword() ? 'text' : 'password'"
+             id="confirmPassword"
+             [ngModel]="confirmPassword()"
+             name="confirmPassword"
+             (ngModelChange)="confirmPassword.set($event)"
+             required
+           />
+           <button type="button" class="toggle-password" (click)="showConfirmPassword.set(!showConfirmPassword())" tabindex="-1">
+             {{ showConfirmPassword() ? '🙈' : '👁️' }}
+           </button>
+         </div>
+       </div>
 
       <div class="form-group">
         <label for="tipoPersona">Tipo de Persona</label>

@@ -15,6 +15,7 @@ export class Login {
 
   username = signal('');
   password = signal('');
+  showPassword = signal(false);
 
   get error() {
     return this.authService.loginError;

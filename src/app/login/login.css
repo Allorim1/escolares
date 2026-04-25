@@ -86,7 +86,6 @@
   right: 0.75rem;
   background: none;
   border: none;
-  font-size: 1.25rem;
   cursor: pointer;
   padding: 0;
   width: 1.5rem;
@@ -100,6 +99,11 @@
 
 .password-input-wrapper .toggle-password:hover {
   color: #333;
+}
+
+.password-input-wrapper .toggle-password svg {
+  width: 20px;
+  height: 20px;
 }
 
 @media (max-width: 480px) {

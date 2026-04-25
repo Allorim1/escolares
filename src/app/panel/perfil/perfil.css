@@ -98,7 +98,6 @@
   right: 0.5rem;
   background: none;
   border: none;
-  font-size: 1.1rem;
   cursor: pointer;
   padding: 0;
   width: 1.25rem;
@@ -111,6 +110,11 @@
 
 .perfil-field .password-input-wrapper .toggle-password:hover {
   color: #333;
+}
+
+.perfil-field .password-input-wrapper .toggle-password svg {
+  width: 18px;
+  height: 18px;
 }
 
 .btn-guardar {

@@ -104,10 +104,10 @@
             } -->
             <div class="cuentas-section">
               <h5>Cuentas Bancarias</h5>
-              @if ((proveedor.bancosAfiliados?.length ?? 0) > 0) {
+              @if ((proveedor.bancosAfiliados || []).length > 0) {
                 <div class="proveedor-bancos-afiliados">
                   <span class="bancos-label">Bancos Afiliados:</span>
-                  <span class="bancos-value">{{ proveedor.bancosAfiliados?.join(', ') }}</span>
+                  <span class="bancos-value">{{ (proveedor.bancosAfiliados || []).join(', ') }}</span>
                 </div>
               }
               @if ((proveedor.cuentasBancarias || []).length > 0) {
@@ -126,7 +126,7 @@
                         <span class="cuenta-titular">{{ cuenta.titular }}</span>
                       }
                       <span class="cuenta-banco">Banco: {{ cuenta.banco }}</span>
-                      @if (cuenta['bancosAfiliados']?.length || cuenta['tipoPersona']) {
+                      @if ((cuenta['bancosAfiliados'] || []).length || cuenta['tipoPersona']) {
                         <button class="btn-ver-mas" (click)="toggleCuentaExpandida(proveedor._id || '', $index)">
                           {{ cuentaExpandida()?.proveedorId === proveedor._id && cuentaExpandida()?.index === $index ? 'Ver menos' : 'Ver más' }}
                         </button>
@@ -152,7 +152,7 @@
                                 <td>{{ cuenta.banco || '-' }}</td>
                                 <td>{{ cuenta.tipo | uppercase }}</td>
                                 <td>{{ cuenta.numero }}</td>
-                                <td>{{ cuenta['bancosAfiliados']?.join(', ') || '-' }}</td>
+                                <td>{{ (cuenta['bancosAfiliados'] || []).join(', ') || '-' }}</td>
                                 <td>
                                   @if (cuenta['tipoPersona'] === 'personal') {
                                     Personal
@@ -353,7 +353,7 @@
                  <span class="checkbox-btn">BANCARIBE</span>
                </label>
               <label class="checkbox-circle">
-                <input type="checkbox" (change)="toggleBancoAfliado('BDV')" [checked]="newProveedor.bancosAfiliados?.includes('BDV')" />
+                <input type="checkbox" (change)="toggleBancoAfliado('BDV')" [checked]="newProveedor.bancosAfiliados.includes('BDV')" />
                 <span class="checkbox-btn">BDV</span>
               </label>
             </div>
@@ -413,10 +413,10 @@
                  <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BNC')" [checked]="newCuentaBancaria.bancosAfiliados.includes('BNC')" />
                  <span class="checkbox-btn">BNC</span>
                </label>
-              <label class="checkbox-circle">
-                <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANESCO')" />
-                <span class="checkbox-btn">BANESCO</span>
-              </label>
+<label class="checkbox-circle">
+                 <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados.includes('BANESCO')" />
+                 <span class="checkbox-btn">BANESCO</span>
+               </label>
               <label class="checkbox-circle">
                 <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANCARIBE')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANCARIBE')" />
                 <span class="checkbox-btn">BANCARIBE</span>
@@ -481,19 +481,19 @@
                 <label class="option-label">Afiliado en:</label>
                 <div class="checkbox-group">
                   <label class="checkbox-circle">
-                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BNC')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BNC')" />
+                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BNC')" [checked]="newCuentaBancaria.bancosAfiliados.includes('BNC')" />
                     <span class="checkbox-btn">BNC</span>
                   </label>
                   <label class="checkbox-circle">
-                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANESCO')" />
+                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANESCO')" [checked]="newCuentaBancaria.bancosAfiliados.includes('BANESCO')" />
                     <span class="checkbox-btn">BANESCO</span>
                   </label>
                   <label class="checkbox-circle">
-                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANCARIBE')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BANCARIBE')" />
+<input type="checkbox" (change)="toggleBancoAfliadoCuenta('BANCARIBE')" [checked]="newCuentaBancaria.bancosAfiliados.includes('BANCARIBE')" />
                     <span class="checkbox-btn">BANCARIBE</span>
                   </label>
                   <label class="checkbox-circle">
-                    <input type="checkbox" (change)="toggleBancoAfliadoCuenta('BDV')" [checked]="newCuentaBancaria.bancosAfiliados?.includes('BDV')" />
+<input type="checkbox" (change)="toggleBancoAfliadoCuenta('BDV')" [checked]="newCuentaBancaria.bancosAfiliados.includes('BDV')" />
                     <span class="checkbox-btn">BDV</span>
                   </label>
                 </div>
@@ -1016,7 +1016,7 @@
           </div>
         }
 
-        @if ((facturaDetalle.factura.iva75 ?? 0) > 0) {
+        @if ((facturaDetalle.factura.iva75 || 0) > 0) {
           <div class="iva-info">
             <p>IVA 75% por pagar: <strong>Bs {{ formatMoneda(facturaDetalle.factura.deudaIva || 0) }}</strong></p>
             <button class="btn-iva" (click)="abrirModalIva(facturaDetalle.proveedor, facturaDetalle.factura, facturaDetalle.index)">
@@ -1025,7 +1025,7 @@
           </div>
         }
 
-        @if ((facturaDetalle.factura.iva25 ?? 0) > 0) {
+        @if ((facturaDetalle.factura.iva25 || 0) > 0) {
           <div class="iva-info">
             <p>IVA 25% por pagar: <strong>Bs {{ formatMoneda(facturaDetalle.factura.deudaIva25 || 0) }}</strong></p>
             <button class="btn-iva btn-iva25" (click)="abrirModalIva25(facturaDetalle.proveedor, facturaDetalle.factura, facturaDetalle.index)">
@@ -1034,7 +1034,7 @@
           </div>
         }
 
-        @if ((facturaDetalle.proveedor.cuentasBancarias?.length ?? 0) > 0) {
+        @if ((facturaDetalle.proveedor.cuentasBancarias || []).length > 0) {
           <div class="factura-cuentas">
             <h5>Datos de Pago</h5>
             @for (cuenta of facturaDetalle.proveedor.cuentasBancarias; track $index) {

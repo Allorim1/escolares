@@ -169,6 +169,29 @@
   color: #666;
 }
 
+/* Modal genérico */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
 /* Modal */
 .modal-overlay {
   position: fixed;
@@ -516,4 +539,180 @@
   max-height: 85vh;
   border-radius: 8px;
   object-fit: contain;
+}
+
+/* Modal pequeño (cancelación) */
+.modal-small {
+  max-width: 450px;
+}
+
+/* Botón de cancelar pedido */
+.danger-zone {
+  border: 1px solid #dc3545;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff5f5;
+}
+
+.btn-cancel-order {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-cancel-order:hover {
+  background: #c82333;
+}
+
+.btn-cancel-order:disabled {
+  background: #e0a0a0;
+  cursor: not-allowed;
+}
+
+/* Formulario cancelación */
+.cancel-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.cancel-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.supervisor-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: monospace;
+  letter-spacing: 2px;
+}
+
+.supervisor-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.help-text {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.error-message {
+  padding: 0.75rem;
+  background: #f8d7da;
+  color: #721c24;
+  border-radius: 6px;
+  border: 1px solid #f5c6cb;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* Botones */
+.btn-primary {
+  padding: 0.625rem 1.25rem;
+  background: #1d63c1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #155a9e;
+}
+
+.btn-secondary {
+  padding: 0.625rem 1.25rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-danger {
+  padding: 0.625rem 1.25rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.btn-danger:disabled {
+  background: #e0a0a0;
+  cursor: not-allowed;
+}
+
+/* Sección de autorización (cancelación) */
+.autorizacion-section {
+  background: #fff5f5;
+  border: 1px solid #dc3545;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.autorizacion-info {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.autorizacion-info .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.autorizacion-info .value {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Formulario modal */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-weight: 500;
+}
+
+/* Modal footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #eee;
 }

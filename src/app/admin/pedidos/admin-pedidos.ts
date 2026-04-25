@@ -31,6 +31,8 @@ interface Order {
   fotoComprobante: string | null | undefined;
   status: string;
   historial: OrderHistorial[];
+  autorizadoPor?: string;
+  autorizadoNombre?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +54,13 @@ export class AdminPedidos implements OnInit {
   searchTerm = signal('');
   imageModalOpen = signal(false);
   modalImageUrl = signal('');
+
+  // Modal de cancelación
+  showCancelModal = signal(false);
+  cancelReason = signal('');
+  supervisorKey = signal('');
+  cancelError = signal('');
+  isCancelling = signal(false);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -92,21 +101,18 @@ export class AdminPedidos implements OnInit {
 
   get filteredOrders(): Order[] {
     let result = this.orders();
-    
     if (this.filterStatus() !== 'todos') {
       result = result.filter(o => o.status === this.filterStatus());
     }
-    
     if (this.searchTerm()) {
       const term = this.searchTerm().toLowerCase();
-      result = result.filter(o => 
+      result = result.filter(o =>
         o.nombre?.toLowerCase().includes(term) ||
         o.cedula?.toLowerCase().includes(term) ||
         o.telefono?.toLowerCase().includes(term) ||
         o.id.toLowerCase().includes(term)
       );
     }
-    
     return result;
   }
 
@@ -119,7 +125,7 @@ export class AdminPedidos implements OnInit {
   }
 
   updateStatus(orderId: string, newStatus: string) {
-    this.http.put(`/api/orders/${orderId}/status`, { 
+    this.http.put(`/api/orders/${orderId}/status`, {
       status: newStatus,
       observaciones: ''
     }).subscribe({
@@ -181,5 +187,54 @@ export class AdminPedidos implements OnInit {
   closeImageModal() {
     this.imageModalOpen.set(false);
     this.modalImageUrl.set('');
+  }
+
+  openCancelModal() {
+    this.showCancelModal.set(true);
+    this.cancelReason.set('');
+    this.supervisorKey.set('');
+    this.cancelError.set('');
+  }
+
+  closeCancelModal() {
+    this.showCancelModal.set(false);
+  }
+
+  cancelOrderWithSupervisor() {
+    const order = this.selectedOrder();
+    const motivo = this.cancelReason().trim();
+    const clave = this.supervisorKey().trim();
+
+    if (!motivo) {
+      this.cancelError.set('Por favor ingresa un motivo de cancelación');
+      return;
+    }
+    if (!clave) {
+      this.cancelError.set('Por favor ingresa la clave de supervisor');
+      return;
+    }
+    if (!order) return;
+
+    this.isCancelling.set(true);
+    this.cancelError.set('');
+
+    this.http.put(`/api/orders/${order.id}/cancel-authorize`, {
+      motivo,
+      claveSupervisor: clave
+    }).subscribe({
+      next: (updatedOrder: any) => {
+        this.isCancelling.set(false);
+        this.closeCancelModal();
+        this.loadOrders();
+        if (this.selectedOrder()?.id === order.id) {
+          this.selectedOrder.set(updatedOrder);
+        }
+        alert('Pedido cancelado correctamente');
+      },
+      error: (err: any) => {
+        this.isCancelling.set(false);
+        this.cancelError.set(err.error?.error || 'Error al cancelar pedido');
+      }
+    });
   }
 }

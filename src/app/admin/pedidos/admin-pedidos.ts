@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { NotificationService } from '../../shared/data-access/notification.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -47,6 +48,7 @@ interface Order {
 })
 export class AdminPedidos implements OnInit, OnDestroy {
   private http = inject(HttpClient);
+  private notificationService = inject(NotificationService);
   private intervalId: any;
 
   orders = signal<Order[]>([]);
@@ -155,12 +157,23 @@ export class AdminPedidos implements OnInit, OnDestroy {
   }
 
    updateStatus(orderId: string, newStatus: string) {
+     // Check if status is changing to pendiente for notification
+     const order = this.selectedOrder();
+     const wasConfirmed = order && order.status === 'confirmar';
+     const isPendiente = newStatus === 'pendiente';
      this.http.put<any>(`/api/orders/${orderId}/status`, {
        status: newStatus,
        observaciones: ''
      }).subscribe({
        next: (updatedOrder) => {
          this.loadOrders();
+         // Show notification if order changed to pendiente
+         if (wasConfirmed && isPendiente) {
+           this.notificationService.success(
+             'Pedido Confirmado',
+             'El pedido #' + orderId.slice(-8) + ' ha sido confirmado y est\u00E1 pendiente de procesamiento'
+           );
+         }
          if (this.selectedOrder()?.id === orderId) {
            this.selectedOrder.set(updatedOrder);
          }

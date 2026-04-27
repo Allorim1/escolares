@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
+import { NotificationService } from '../../shared/data-access/notification.service';
 import { RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { OrdersBackend, Order, OrderStatus } from '../../backend/data-access/orders.backend';
@@ -12,8 +13,10 @@ import { OrdersBackend, Order, OrderStatus } from '../../backend/data-access/ord
 })
 export default class Pedidos implements OnInit {
   private ordersBackend = inject(OrdersBackend);
+  private notificationService = inject(NotificationService);
   
   orders = signal<Order[]>([]);
+  private previousOrders = new Map<string, Order>();
   loading = signal(true);
   selectedOrder = signal<Order | null>(null);
 
@@ -32,6 +35,17 @@ export default class Pedidos implements OnInit {
     this.ordersBackend.getOrders().subscribe({
       next: (orders) => {
         this.orders.set(orders);
+        // Check for status changes to show notifications
+        orders.forEach(order => {
+          const previousOrder = this.previousOrders.get(order.id);
+          if (previousOrder && previousOrder.status !== order.status && order.status === 'pendiente') {
+            this.notificationService.success(
+              'Pedido Confirmado',
+              'El pedido #' + order.id + ' ha sido confirmado y est\u00E1 pendiente de procesamiento'
+            );
+          }
+          this.previousOrders.set(order.id, order);
+        });
         this.loading.set(false);
       },
       error: (err) => {

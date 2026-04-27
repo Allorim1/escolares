@@ -9,6 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
 import { User, Direccion } from '../backend/models';
 import { OrdersBackend, OrderItem, OrderStatus } from '../backend/data-access/orders.backend';
+import { NotificationService } from '../shared/data-access/notification.service';
 import { CurrencyService } from '../shared/data-access/currency.service';
 import { StoreSettingsService } from '../shared/data-access/store-settings.service';
 
@@ -42,6 +43,7 @@ export default class CartComponent implements OnDestroy {
   state = inject(CartStateService).state;
   authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
+  private notificationService = inject(NotificationService);
   private http = inject(HttpClient);
   currencyService = inject(CurrencyService);
   storeSettings = inject(StoreSettingsService);
@@ -379,6 +381,10 @@ export default class CartComponent implements OnDestroy {
     this.ordersBackend.createOrder(orderData).subscribe({
       next: (order) => {
         this.currentOrderId.set(order.id);
+        this.notificationService.success(
+          'Pedido Creado',
+          'Tu pedido ha sido creado exitosamente. N\u00FAmero: #' + order.id.slice(-8)
+        );
       },
       error: (err) => {
         console.error('Error guardando orden:', err);
@@ -416,6 +422,10 @@ export default class CartComponent implements OnDestroy {
           this.state.remove(item.product.id);
         });
         this.orderPlaced.set(true);
+        this.notificationService.success(
+          'Pedido Confirmado',
+          'Tu pedido ha sido confirmado y est\u00E1 pendiente de procesamiento'
+        );
         this.currentOrderId.set('');
       },
       error: (err) => {
@@ -483,6 +493,10 @@ export default class CartComponent implements OnDestroy {
     this.ordersBackend.createOrder(orderData).subscribe({
       next: (order) => {
         console.log('Order created:', order);
+        this.notificationService.success(
+          'Pedido Creado',
+          'Tu pedido ha sido creado exitosamente. N\u00FAmero: #' + order.id.slice(-8)
+        );
         this.state().products.forEach(item => {
           this.state.remove(item.product.id);
         });

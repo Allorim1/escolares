@@ -348,17 +348,19 @@ export class AdminPedidos implements OnInit, OnDestroy {
     }
   }
 
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      if (file.type.startsWith('image/')) {
-        this.handleFacturaFile(file);
-      } else {
-        this.facturaError.set('Solo se permiten archivos de imagen');
-      }
-    }
-  }
+   onFileSelected(event: Event) {
+     const input = event.target as HTMLInputElement;
+     if (input.files && input.files.length > 0) {
+       const file = input.files[0];
+       if (file.type.startsWith('image/')) {
+         this.handleFacturaFile(file);
+       } else {
+         this.facturaError.set('Solo se permiten archivos de imagen');
+       }
+       // Resetear el input para permitir seleccionar el mismo archivo nuevamente
+       input.value = '';
+     }
+   }
 
   private handleFacturaFile(file: File) {
     this.facturaError.set('');
@@ -376,8 +378,9 @@ export class AdminPedidos implements OnInit, OnDestroy {
    uploadFactura() {
      const order = this.selectedOrder();
      const file = this.facturaFile();
+     const preview = this.facturaPreview();
 
-     if (!file) {
+     if (!file || !preview) {
        this.facturaError.set('Selecciona una imagen para subir');
        return;
      }
@@ -386,29 +389,23 @@ export class AdminPedidos implements OnInit, OnDestroy {
      this.isUploadingFactura.set(true);
      this.facturaError.set('');
 
-     const reader = new FileReader();
-     reader.onload = (e) => {
-       const base64 = e.target?.result as string;
-
-       this.http.put<any>(`/api/orders/${order.id}/factura`, {
-         facturaImage: base64
-       }).subscribe({
-         next: (updatedOrder) => {
-           this.isUploadingFactura.set(false);
-           this.closeFacturaModal();
-           this.loadOrders();
-           if (this.selectedOrder()?.id === order.id) {
-             this.selectedOrder.set(updatedOrder);
-           }
-           alert('Factura subida correctamente');
-         },
-         error: (err: any) => {
-           this.isUploadingFactura.set(false);
-           this.facturaError.set(err.error?.error || 'Error al subir factura');
+     // Usar el preview que ya está en base64 desde handleFacturaFile
+     this.http.put<any>(`/api/orders/${order.id}/factura`, {
+       facturaImage: preview
+     }).subscribe({
+       next: (updatedOrder) => {
+         this.isUploadingFactura.set(false);
+         this.closeFacturaModal();
+         this.loadOrders();
+         if (this.selectedOrder()?.id === order.id) {
+           this.selectedOrder.set(updatedOrder);
          }
-       });
-     };
-
-     reader.readAsDataURL(file);
+         alert('Factura subida correctamente');
+       },
+       error: (err: any) => {
+         this.isUploadingFactura.set(false);
+         this.facturaError.set(err.error?.error || 'Error al subir factura');
+       }
+     });
    }
 }

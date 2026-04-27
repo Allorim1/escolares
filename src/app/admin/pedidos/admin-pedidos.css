@@ -656,7 +656,8 @@
   background: #5a6268;
 }
 
-.btn-danger {
+.btn-danger,
+.btn-cancel-order {
   padding: 0.625rem 1.25rem;
   background: #dc3545;
   color: white;
@@ -664,6 +665,38 @@
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-danger:hover,
+.btn-cancel-order:hover {
+  background: #c82333;
+}
+
+.btn-danger:disabled,
+.btn-cancel-order:disabled {
+  background: #e0a0a0;
+  cursor: not-allowed;
+}
+
+.btn-subir-factura {
+  padding: 0.625rem 1.25rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-subir-factura:hover {
+  background: #0056b3;
+}
+
+.btn-subir-factura:disabled {
+  background: #a0c8f0;
+  cursor: not-allowed;
 }
 
 .btn-danger:hover {

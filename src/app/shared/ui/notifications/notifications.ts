@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NotificationService, Notification } from '../data-access/notification.service';
+import { NotificationService, Notification } from '../../data-access/notification.service';
 
 @Component({
   selector: 'app-notifications',
@@ -13,7 +13,7 @@ export class NotificationsComponent {
   constructor(public notificationService: NotificationService) {}
 
   get notifications(): Notification[] {
-    return this.notificationService.notificationsSubject.value;
+    return this.notificationService.notifications;
   }
 
   removeNotification(id: string): void {

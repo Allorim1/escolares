@@ -3,6 +3,7 @@ import { RouterOutlet, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { Header } from './shared/ui/header/header';
 import { Footer } from './shared/ui/footer/footer';
+import { NotificationsComponent } from './shared/ui/notifications/notifications';
 import { ApiKeyStatusService } from './shared/data-access/api-key-status.service';
 import { StoreSettingsService } from './shared/data-access/store-settings.service';
 
@@ -21,7 +22,7 @@ export function initTheme(platformId: Object) {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Header, Footer],
+  imports: [RouterOutlet, Header, Footer, NotificationsComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
 })

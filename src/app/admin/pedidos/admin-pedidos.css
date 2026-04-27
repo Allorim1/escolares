@@ -719,14 +719,18 @@
   color: white;
   border: none;
   border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
   transition: background 0.2s;
 }
 
 .btn-subir-factura:hover {
   background: #0056b3;
+}
+
+.btn-subir-factura:disabled {
+  background: #a0c8f0;
+  cursor: not-allowed;
 }
 
 .factura-hint {

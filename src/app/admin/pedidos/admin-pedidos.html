@@ -101,46 +101,52 @@
       </div>
       
       <div class="modal-body">
-           <div class="detail-section">
-             <h4>Estado del Pedido</h4>
-             <div class="status-selector">
-               @for (status of statusOptions; track status.value) {
-                 @if (status.value !== 'todos') {
-                   <button 
-                     class="status-btn"
-                     [class.active]="selectedOrder()!.status === status.value"
-                     [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
-                     (click)="onStatusClick(status.value)"
-                     [disabled]="isStatusDisabled(status.value)"
-                   >
-                     {{ status.label }}
-                   </button>
-                 }
-               }
-             </div>
-           </div>
-        
+        <div class="detail-section">
+          <h4>Estado del Pedido</h4>
+          <div class="status-selector">
+            @for (status of statusOptions; track status.value) {
+              @if (status.value !== 'todos') {
+                <button 
+                  class="status-btn"
+                  [class.active]="selectedOrder()!.status === status.value"
+                  [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
+                  (click)="onStatusClick(status.value)"
+                  [disabled]="isStatusDisabled(status.value)"
+                >
+                  {{ status.label }}
+                </button>
+              }
+            }
+          </div>
+        </div>
+       
         @if (selectedOrder()!.status !== 'entregado' && selectedOrder()!.status !== 'cancelado') {
           <div class="detail-section danger-zone">
             <h4>Acciones</h4>
             <button class="btn-cancel-order" (click)="openCancelModal()">
               🗑️ Cancelar Pedido
             </button>
+            @if (!selectedOrder()!.facturaImage) {
+              <button class="btn-subir-factura" (click)="openFacturaModal()">
+                📤 Subir Factura
+              </button>
+              <p class="factura-hint">Requerido para marcar como entregado</p>
+            }
           </div>
-           }
-           
-           @if (selectedOrder()!.autorizadoNombre) {
-             <div class="detail-section autorizacion-section">
-               <h4>Autorización</h4>
-               <div class="autorizacion-info">
-                 <span class="label">Cancelado por:</span>
-                 <span class="value">{{ selectedOrder()!.autorizadoNombre }}</span>
-               </div>
-             </div>
-           }
-           
-           <div class="detail-section">
-             <h4>Datos del Cliente</h4>
+        }
+        
+        @if (selectedOrder()!.autorizadoNombre) {
+          <div class="detail-section autorizacion-section">
+            <h4>Autorización</h4>
+            <div class="autorizacion-info">
+              <span class="label">Cancelado por:</span>
+              <span class="value">{{ selectedOrder()!.autorizadoNombre }}</span>
+            </div>
+          </div>
+        }
+        
+        <div class="detail-section">
+          <h4>Datos del Cliente</h4>
           <div class="detail-grid">
             <div class="detail-item">
               <span class="label">Nombre:</span>
@@ -231,144 +237,136 @@
                   <span class="historial-date">{{ formatDate(h.fecha) }}</span>
                   @if (h.observaciones) {
                     <span class="historial-obs">{{ h.observaciones }}</span>
-           }
-           
-           @if (selectedOrder()!.facturaImage) {
-             <div class="factura-section">
-               <h5>Factura</h5>
-               <div class="factura-image">
-                 <button class="btn-ver-factura" (click)="openImageModal(selectedOrder()!.facturaImage!)">
-                   📄 Ver Factura
-                 </button>
-               </div>
-             </div>
-           } @else {
-             <div class="factura-section">
-               <h5>Factura</h5>
-               <button class="btn-subir-factura" (click)="openFacturaModal()">
-                 📤 Subir Factura
-               </button>
-               <p class="factura-hint">Requerido para marcar como entregado</p>
-             </div>
-           }
+                  }
                 </div>
               }
+            </div>
+          </div>
+        }
+        
+        @if (selectedOrder()!.facturaImage) {
+          <div class="factura-section">
+            <h5>Factura</h5>
+            <div class="factura-image">
+              <button class="btn-ver-factura" (click)="openImageModal(selectedOrder()!.facturaImage!)">
+                📄 Ver Factura
+              </button>
             </div>
           </div>
         }
       </div>
     </div>
   </div>
+}
 
-  @if (imageModalOpen()) {
-    <div class="image-modal-overlay" (click)="closeImageModal()">
-      <div class="image-modal-content" (click)="$event.stopPropagation()">
-        <button class="image-modal-close" (click)="closeImageModal()">✕</button>
-        <img [src]="modalImageUrl()" alt="Comprobante de pago" class="modal-image" />
+@if (imageModalOpen()) {
+  <div class="image-modal-overlay" (click)="closeImageModal()">
+    <div class="image-modal-content" (click)="$event.stopPropagation()">
+      <button class="image-modal-close" (click)="closeImageModal()">✕</button>
+      <img [src]="modalImageUrl()" alt="Comprobante de pago" class="modal-image" />
+    </div>
+  </div>
+}
+
+@if (showCancelModal()) {
+  <div class="modal-overlay" (click)="closeCancelModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Cancelar Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+        <button class="close-btn" (click)="closeCancelModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Motivo de Cancelación *</label>
+          <textarea
+            [value]="cancelReason()"
+            (input)="cancelReason.set($any($event.target).value || '')"
+            rows="3"
+            placeholder="Ingresa el motivo de la cancelación..."
+            class="cancel-textarea"
+          ></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Clave de Supervisor *</label>
+          <input
+            type="password"
+            [value]="supervisorKey()"
+            (input)="supervisorKey.set($any($event.target).value || '')"
+            placeholder="Ingresa tu clave de supervisor"
+            class="supervisor-input"
+          />
+          <small class="help-text">Solo usuarios con clave de supervisor pueden cancelar pedidos</small>
+        </div>
+
+        @if (cancelError()) {
+          <div class="error-message">{{ cancelError() }}</div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeCancelModal()">Cancelar</button>
+        <button class="btn-danger" (click)="cancelOrderWithSupervisor()" [disabled]="isCancelling()">
+          {{ isCancelling() ? 'Procesando...' : 'Confirmar Cancelación' }}
+        </button>
       </div>
     </div>
-  }
+  </div>
+}
 
-  @if (showCancelModal()) {
-    <div class="modal-overlay" (click)="closeCancelModal()">
-      <div class="modal-content modal-small" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3>Cancelar Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
-          <button class="close-btn" (click)="closeCancelModal()">&times;</button>
-        </div>
-        
-        <div class="modal-body">
-          <div class="form-group">
-            <label>Motivo de Cancelación *</label>
-            <textarea
-              [value]="cancelReason()"
-              (input)="cancelReason.set($any($event.target).value || '')"
-              rows="3"
-              placeholder="Ingresa el motivo de la cancelación..."
-              class="cancel-textarea"
-            ></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>Clave de Supervisor *</label>
-            <input
-              type="password"
-              [value]="supervisorKey()"
-              (input)="supervisorKey.set($any($event.target).value || '')"
-              placeholder="Ingresa tu clave de supervisor"
-              class="supervisor-input"
-            />
-            <small class="help-text">Solo usuarios con clave de supervisor pueden cancelar pedidos</small>
-          </div>
-
-          @if (cancelError()) {
-            <div class="error-message">{{ cancelError() }}</div>
-          }
-        </div>
-        
-        <div class="modal-footer">
-          <button class="btn-secondary" (click)="closeCancelModal()">Cancelar</button>
-          <button class="btn-danger" (click)="cancelOrderWithSupervisor()" [disabled]="isCancelling()">
-            {{ isCancelling() ? 'Procesando...' : 'Confirmar Cancelación' }}
-          </button>
-        </div>
+@if (showFacturaModal()) {
+  <div class="modal-overlay" (click)="closeFacturaModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Subir Factura - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+        <button class="close-btn" (click)="closeFacturaModal()">&times;</button>
       </div>
-    </div>
-  }
-
-  @if (showFacturaModal()) {
-    <div class="modal-overlay" (click)="closeFacturaModal()">
-      <div class="modal-content modal-small" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3>Subir Factura - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
-          <button class="close-btn" (click)="closeFacturaModal()">&times;</button>
-        </div>
-        
-        <div class="modal-body">
-          @if (!facturaPreview()) {
-            <div 
-              class="dropzone"
-              [class.drag-active]="dragActive()"
-              (dragenter)="onDragEnter($event)"
-              (dragleave)="onDragLeave($event)"
-              (dragover)="onDragOver($event)"
-              (drop)="onDrop($event)"
-            >
-              <div class="dropzone-content">
-                <span class="dropzone-icon">📁</span>
-                <p>Arrastra y suelta la imagen de la factura aquí</p>
-                <p class="dropzone-hint">o</p>
-                <button class="btn-select-file" (click)="fileInput.click()">
-                  Seleccionar archivo
-                </button>
-                <input 
-                  #fileInput
-                  type="file" 
-                  accept="image/*"
-                  (change)="onFileSelected($event)"
-                  style="display: none;"
-                />
-              </div>
+      
+      <div class="modal-body">
+        @if (!facturaPreview()) {
+          <div 
+            class="dropzone"
+            [class.drag-active]="dragActive()"
+            (dragenter)="onDragEnter($event)"
+            (dragleave)="onDragLeave($event)"
+            (dragover)="onDragOver($event)"
+            (drop)="onDrop($event)"
+          >
+            <div class="dropzone-content">
+              <span class="dropzone-icon">📁</span>
+              <p>Arrastra y suelta la imagen de la factura aquí</p>
+              <p class="dropzone-hint">o</p>
+              <button class="btn-select-file" (click)="fileInput.click()">
+                Seleccionar archivo
+              </button>
+              <input 
+                #fileInput
+                type="file" 
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                style="display: none;"
+              />
             </div>
-          } @else {
-            <div class="preview-container">
-              <img [src]="facturaPreview()" alt="Vista previa factura" class="factura-preview-img" />
-              <button class="btn-remove-factura" (click)="facturaFile.set(null); facturaPreview.set(null)">✕</button>
-            </div>
-          }
+          </div>
+        } @else {
+          <div class="preview-container">
+            <img [src]="facturaPreview()" alt="Vista previa factura" class="factura-preview-img" />
+            <button class="btn-remove-factura" (click)="facturaFile.set(null); facturaPreview.set(null)">✕</button>
+          </div>
+        }
 
-          @if (facturaError()) {
-            <div class="error-message">{{ facturaError() }}</div>
-          }
-        </div>
-        
-        <div class="modal-footer">
-          <button class="btn-secondary" (click)="closeFacturaModal()">Cancelar</button>
-          <button class="btn-primary" (click)="uploadFactura()" [disabled]="isUploadingFactura() || !facturaFile()">
-            {{ isUploadingFactura() ? 'Subiendo...' : 'Subir Factura' }}
-          </button>
-        </div>
+        @if (facturaError()) {
+          <div class="error-message">{{ facturaError() }}</div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeFacturaModal()">Cancelar</button>
+        <button class="btn-primary" (click)="uploadFactura()" [disabled]="isUploadingFactura() || !facturaFile()">
+          {{ isUploadingFactura() ? 'Subiendo...' : 'Subir Factura' }}
+        </button>
       </div>
     </div>
-  }
+  </div>
 }

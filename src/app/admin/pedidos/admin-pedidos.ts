@@ -154,25 +154,24 @@ export class AdminPedidos implements OnInit, OnDestroy {
     }
   }
 
-  updateStatus(orderId: string, newStatus: string) {
-    this.http.put(`/api/orders/${orderId}/status`, {
-      status: newStatus,
-      observaciones: ''
-    }).subscribe({
-      next: () => {
-        this.loadOrders();
-        if (this.selectedOrder()?.id === orderId) {
-          const updated = this.orders().find(o => o.id === orderId);
-          if (updated) this.selectedOrder.set(updated);
-        }
-        alert('Estado actualizado');
-      },
-      error: (err) => {
-        console.error('Error updating status:', err);
-        alert('Error al actualizar estado');
-      }
-    });
-  }
+   updateStatus(orderId: string, newStatus: string) {
+     this.http.put<any>(`/api/orders/${orderId}/status`, {
+       status: newStatus,
+       observaciones: ''
+     }).subscribe({
+       next: (updatedOrder) => {
+         this.loadOrders();
+         if (this.selectedOrder()?.id === orderId) {
+           this.selectedOrder.set(updatedOrder);
+         }
+         alert('Estado actualizado');
+       },
+       error: (err) => {
+         console.error('Error updating status:', err);
+         alert('Error al actualizar estado');
+       }
+     });
+   }
 
   getStatusLabel(status: string): string {
     const opt = this.statusOptions.find(o => o.value === status);
@@ -263,43 +262,43 @@ export class AdminPedidos implements OnInit, OnDestroy {
     this.showCancelModal.set(false);
   }
 
-  cancelOrderWithSupervisor() {
-    const order = this.selectedOrder();
-    const motivo = this.cancelReason().trim();
-    const clave = this.supervisorKey().trim();
+   cancelOrderWithSupervisor() {
+     const order = this.selectedOrder();
+     const motivo = this.cancelReason().trim();
+     const clave = this.supervisorKey().trim();
 
-    if (!motivo) {
-      this.cancelError.set('Por favor ingresa un motivo de cancelación');
-      return;
-    }
-    if (!clave) {
-      this.cancelError.set('Por favor ingresa la clave de supervisor');
-      return;
-    }
-    if (!order) return;
+     if (!motivo) {
+       this.cancelError.set('Por favor ingresa un motivo de cancelación');
+       return;
+     }
+     if (!clave) {
+       this.cancelError.set('Por favor ingresa la clave de supervisor');
+       return;
+     }
+     if (!order) return;
 
-    this.isCancelling.set(true);
-    this.cancelError.set('');
+     this.isCancelling.set(true);
+     this.cancelError.set('');
 
-    this.http.put(`/api/orders/${order.id}/cancel-authorize`, {
-      motivo,
-      claveSupervisor: clave
-    }).subscribe({
-      next: (updatedOrder: any) => {
-        this.isCancelling.set(false);
-        this.closeCancelModal();
-        this.loadOrders();
-        if (this.selectedOrder()?.id === order.id) {
-          this.selectedOrder.set(updatedOrder);
-        }
-        alert('Pedido cancelado correctamente');
-      },
-      error: (err: any) => {
-        this.isCancelling.set(false);
-        this.cancelError.set(err.error?.error || 'Error al cancelar pedido');
-      }
-    });
-  }
+     this.http.put<any>(`/api/orders/${order.id}/cancel-authorize`, {
+       motivo,
+       claveSupervisor: clave
+     }).subscribe({
+       next: (updatedOrder) => {
+         this.isCancelling.set(false);
+         this.closeCancelModal();
+         this.loadOrders();
+         if (this.selectedOrder()?.id === order.id) {
+           this.selectedOrder.set(updatedOrder);
+         }
+         alert('Pedido cancelado correctamente');
+       },
+       error: (err: any) => {
+         this.isCancelling.set(false);
+         this.cancelError.set(err.error?.error || 'Error al cancelar pedido');
+       }
+     });
+   }
 
   // --- Factura ---
   openFacturaModal() {
@@ -374,42 +373,42 @@ export class AdminPedidos implements OnInit, OnDestroy {
     reader.readAsDataURL(file);
   }
 
-  uploadFactura() {
-    const order = this.selectedOrder();
-    const file = this.facturaFile();
+   uploadFactura() {
+     const order = this.selectedOrder();
+     const file = this.facturaFile();
 
-    if (!file) {
-      this.facturaError.set('Selecciona una imagen para subir');
-      return;
-    }
-    if (!order) return;
+     if (!file) {
+       this.facturaError.set('Selecciona una imagen para subir');
+       return;
+     }
+     if (!order) return;
 
-    this.isUploadingFactura.set(true);
-    this.facturaError.set('');
+     this.isUploadingFactura.set(true);
+     this.facturaError.set('');
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target?.result as string;
+     const reader = new FileReader();
+     reader.onload = (e) => {
+       const base64 = e.target?.result as string;
 
-      this.http.put(`/api/orders/${order.id}/factura`, {
-        facturaImage: base64
-      }).subscribe({
-        next: (updatedOrder: any) => {
-          this.isUploadingFactura.set(false);
-          this.closeFacturaModal();
-          this.loadOrders();
-          if (this.selectedOrder()?.id === order.id) {
-            this.selectedOrder.set(updatedOrder);
-          }
-          alert('Factura subida correctamente');
-        },
-        error: (err: any) => {
-          this.isUploadingFactura.set(false);
-          this.facturaError.set(err.error?.error || 'Error al subir factura');
-        }
-      });
-    };
+       this.http.put<any>(`/api/orders/${order.id}/factura`, {
+         facturaImage: base64
+       }).subscribe({
+         next: (updatedOrder) => {
+           this.isUploadingFactura.set(false);
+           this.closeFacturaModal();
+           this.loadOrders();
+           if (this.selectedOrder()?.id === order.id) {
+             this.selectedOrder.set(updatedOrder);
+           }
+           alert('Factura subida correctamente');
+         },
+         error: (err: any) => {
+           this.isUploadingFactura.set(false);
+           this.facturaError.set(err.error?.error || 'Error al subir factura');
+         }
+       });
+     };
 
-    reader.readAsDataURL(file);
-  }
+     reader.readAsDataURL(file);
+   }
 }

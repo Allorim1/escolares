@@ -1,16 +1,19 @@
 <div class="notifications-container">
-  @for (notification of notifications; track notification.id) {
-    <div class="notification" 
-         [class.success]="notification.type === 'success'"
-         [class.error]="notification.type === 'error'"
-         [class.warning]="notification.type === 'warning'"
-         [class.info]="notification.type === 'info'">
-      <span class="notification-icon">{{ notification.icon }}</span>
+  @for (notification of notificationService.notifications(); track notification.id) {
+    <div class="notification notification-{{ notification.type }}">
+      @if (notification.icon) {
+        <span class="notification-icon">{{ notification.icon }}</span>
+      }
       <div class="notification-content">
-        <h4 class="notification-title">{{ notification.title }}</h4>
-        <p class="notification-message">{{ notification.message }}</p>
+        <div class="notification-title">{{ notification.title }}</div>
+        <div class="notification-message">{{ notification.message }}</div>
+        @if (notification.imageUrl) {
+          <img [src]="notification.imageUrl" class="notification-image" alt="Producto" />
+        }
       </div>
-      <button class="notification-close" (click)="removeNotification(notification.id)">✕</button>
+      <button class="notification-close" (click)="notificationService.remove(notification.id)">
+        ×
+      </button>
     </div>
   }
 </div>

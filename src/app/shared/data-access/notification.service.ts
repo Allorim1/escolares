@@ -8,6 +8,7 @@ export interface Notification {
   message: string;
   duration?: number;
   icon?: string;
+  imageUrl?: string;
 }
 
 @Injectable({
@@ -56,5 +57,10 @@ export class NotificationService {
 
   clear(): void {
     this.notificationsSubject.next([]);
+  }
+
+  // Método para mostrar notificación con imagen
+  showWithImage(notification: Omit<Notification, 'id'>): string {
+    return this.show(notification);
   }
 }

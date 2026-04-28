@@ -17,7 +17,7 @@ export class AuthService {
   isAdmin = this.backend.isAdmin;
   loginLoading = this.backend.loginLoading;
 
-  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string }) {
+  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string; nombreCompleto?: string }) {
     this.backend.register(username, email, password, extraData);
   }
 

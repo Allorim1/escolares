@@ -13,7 +13,7 @@ import { AuthService } from '../shared/data-access/auth.service';
 })
 export class Register {
   private authService = inject(AuthService);
-  private router = inject(Router);
+  router = inject(Router);
 
   username = signal('');
   email = signal('');
@@ -27,6 +27,11 @@ export class Register {
   telefonoPrefijo = signal('0412');
   direccion = signal('');
   tipoPersona = signal<'natural' | 'juridica'>('natural');
+  nombreCompleto = signal('');
+  aceptaTerminos = signal(false);
+  mayorEdad = signal(false);
+  mostrarModalConfirmacion = signal(false);
+  registroOk = signal(false);
 
   rifTipos = ['V', 'E', 'J', 'G', 'P'];
   telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
@@ -51,10 +56,12 @@ export class Register {
     effect(() => {
       if (this.authService.registerSuccess()) {
         this.loading.set(false);
+        this.registroOk.set(true);
+        this.mostrarModalConfirmacion.set(true);
         setTimeout(() => {
           this.authService.registerSuccess.set(false);
           this.router.navigate(['/login']);
-        }, 1500);
+        }, 3000);
       }
     });
 
@@ -159,12 +166,25 @@ export class Register {
     const telefonoPrefijoValue = this.telefonoPrefijo();
     const direccionValue = this.direccion();
     const tipoPersonaValue = this.tipoPersona();
+    const nombreCompletoValue = this.nombreCompleto();
+    const aceptaTerminosValue = this.aceptaTerminos();
+    const mayorEdadValue = this.mayorEdad();
 
     const rifCompleto = rifTipoValue + '-' + rifValue;
     const telefonoCompleto = telefonoPrefijoValue + '-' + telefonoValue;
 
-    if (!user || !mail || !pass || !confirm || !rifValue || !telefonoValue || !direccionValue) {
+    if (!user || !mail || !pass || !confirm || !rifValue || !telefonoValue || !direccionValue || !nombreCompletoValue) {
       this.authService.registerError.set('Todos los campos son obligatorios');
+      return;
+    }
+
+    if (!aceptaTerminosValue) {
+      this.authService.registerError.set('Debes aceptar los términos y condiciones');
+      return;
+    }
+
+    if (!mayorEdadValue) {
+      this.authService.registerError.set('Debes confirmar que eres mayor de edad');
       return;
     }
 
@@ -184,6 +204,12 @@ export class Register {
       telefono: telefonoCompleto,
       direccion: direccionValue,
       tipoPersona: tipoPersonaValue,
+      nombreCompleto: nombreCompletoValue,
     });
+  }
+
+  onRegisterSuccess() {
+    this.registroOk.set(true);
+    this.mostrarModalConfirmacion.set(true);
   }
 }

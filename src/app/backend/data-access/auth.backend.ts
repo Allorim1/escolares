@@ -54,7 +54,7 @@ export class AuthBackend {
     }
   }
 
-  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string }) {
+  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string; nombreCompleto?: string }) {
     this.registerError.set(null);
     this.registerSuccess.set(false);
 

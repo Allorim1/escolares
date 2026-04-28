@@ -300,13 +300,6 @@
             />
             <small class="help-text">Solo usuarios con clave de supervisor pueden cancelar pedidos</small>
           </div>
-        } @else {
-          <div class="form-group">
-            <label>Acceso Restringido</label>
-            <div class="help-text" style="color: #dc3545;">
-              No tienes una clave de supervisor configurada. No puedes cancelar pedidos.
-            </div>
-          </div>
         }
 
         @if (cancelError()) {

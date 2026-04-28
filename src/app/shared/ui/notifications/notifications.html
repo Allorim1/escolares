@@ -1,5 +1,5 @@
 <div class="notifications-container">
-  @for (notification of notificationService.notifications(); track notification.id) {
+  @for (notification of notificationService.notifications; track notification.id) {
     <div class="notification notification-{{ notification.type }}">
       @if (notification.icon) {
         <span class="notification-icon">{{ notification.icon }}</span>

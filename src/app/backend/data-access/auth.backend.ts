@@ -54,7 +54,16 @@ export class AuthBackend {
     }
   }
 
-  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string; nombreCompleto?: string; genero?: string }) {
+  register(username: string, email: string, password: string, extraData?: { 
+    rif?: string; 
+    telefono?: string; 
+    direccion?: string; 
+    tipoPersona?: string; 
+    nombreCompleto?: string; 
+    genero?: string;
+    tipoDocumento?: string;
+    numeroDocumento?: string;
+  }) {
     this.registerError.set(null);
     this.registerSuccess.set(false);
 

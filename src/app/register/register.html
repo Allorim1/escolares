@@ -126,32 +126,66 @@
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="rif">Rif o C.I</label>
-        <div class="rif-input-group">
+        <div class="form-group">
+          <label for="tipoDocumento">Tipo de Documento</label>
           <select
-            id="rifTipo"
-            [ngModel]="rifTipo()"
-            name="rifTipo"
-            (ngModelChange)="rifTipo.set($event)"
-            class="rif-select"
+            id="tipoDocumento"
+            [ngModel]="tipoDocumento()"
+            name="tipoDocumento"
+            (ngModelChange)="tipoDocumento.set($event)"
+            required
           >
-            @for (tipo of rifTipos; track tipo) {
-              <option [value]="tipo">{{ tipo }}</option>
-            }
+            <option value="cedula">Cédula</option>
+            <option value="rif">RIF</option>
+            <option value="rif_personal_natural">RIF Personal Natural</option>
+            <option value="rif_v">RIF-V</option>
+            <option value="rif_e">RIF-E</option>
+            <option value="pasaporte">Pasaporte</option>
+            <option value="extranjero">Cédula Extranjero</option>
+            <option value="gobierno">Gobierno</option>
           </select>
+        </div>
+
+        <div class="form-group">
+          <label for="numeroDocumento">
+            @if (tipoDocumento() === 'rif') {
+              Número de RIF
+            } @else if (tipoDocumento() === 'cedula') {
+              Número de Cédula
+            } @else if (tipoDocumento() === 'pasaporte') {
+              Número de Pasaporte
+            } @else if (tipoDocumento() === 'extranjero') {
+              Cédula de Extranjería
+            } @else if (tipoDocumento() === 'gobierno') {
+              Documento de Gobierno
+            } @else if (tipoDocumento() === 'rif_personal_natural') {
+              RIF Personal Natural
+            } @else if (tipoDocumento() === 'rif_v') {
+              RIF-V
+            } @else if (tipoDocumento() === 'rif_e') {
+              RIF-E
+            }
+          </label>
           <input
             type="text"
-            id="rif"
-            [ngModel]="rif()"
-            name="rif"
-            (ngModelChange)="rif.set($event)"
-            [placeholder]="tipoPersona() === 'juridica' ? '12345678-9' : '12345678'"
+            id="numeroDocumento"
+            [ngModel]="numeroDocumento()"
+            name="numeroDocumento"
+            (ngModelChange)="numeroDocumento.set($event)"
+            [placeholder]="
+              tipoDocumento() === 'rif' ? 'J-12345678-9' :
+              tipoDocumento() === 'cedula' ? '12345678' :
+              tipoDocumento() === 'pasaporte' ? 'PA12345678' :
+              tipoDocumento() === 'extranjero' ? 'E-12345678' :
+              tipoDocumento() === 'gobierno' ? 'G-12345678' :
+              tipoDocumento() === 'rif_personal_natural' ? 'V-12345678-9' :
+              tipoDocumento() === 'rif_v' ? 'V-12345678-9' :
+              tipoDocumento() === 'rif_e' ? 'E-12345678-9' :
+              'Número de documento'"
             class="rif-input"
             required
           />
         </div>
-      </div>
 
       <div class="form-group">
         <label for="telefono">Teléfono</label>
@@ -180,31 +214,24 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="telefono">Teléfono</label>
-        <input
-          type="tel"
-          id="telefono"
-          [ngModel]="telefono()"
-          name="telefono"
-          (ngModelChange)="telefono.set($event)"
-          placeholder="Ej: 0412-1234567"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="direccion">Dirección</label>
-        <textarea
-          id="direccion"
-          [ngModel]="direccion()"
-          name="direccion"
-          (ngModelChange)="direccion.set($event)"
-          placeholder="Dirección de entrega"
-          rows="2"
-          required
-        ></textarea>
-      </div>
+       <div class="form-group">
+         <label for="direccion">
+           @if (tipoDocumento() === 'rif' || tipoDocumento() === 'rif_personal_natural' || tipoDocumento() === 'rif_v' || tipoDocumento() === 'rif_e') {
+             Dirección Fiscal
+           } @else {
+             Dirección
+           }
+         </label>
+         <textarea
+           id="direccion"
+           [ngModel]="direccion()"
+           name="direccion"
+           (ngModelChange)="direccion.set($event)"
+           [placeholder]="tipoDocumento() === 'rif' || tipoDocumento() === 'rif_personal_natural' || tipoDocumento() === 'rif_v' || tipoDocumento() === 'rif_e' ? 'Dirección fiscal' : 'Dirección de entrega'"
+           rows="2"
+           required
+         ></textarea>
+       </div>
 
       <div class="form-group">
         <label>Foto de Cédula/RIF</label>

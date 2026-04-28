@@ -1,4 +1,4 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -26,12 +26,27 @@ export class Register {
   telefono = signal('');
   telefonoPrefijo = signal('0412');
   direccion = signal('');
-  tipoPersona = signal<'natural' | 'juridica'>('natural');
+   tipoPersona = signal<'natural' | 'juridica'>('natural');
   nombreCompleto = signal('');
+  genero = signal<'hombre' | 'mujer' | 'no_especificado'>('no_especificado');
   aceptaTerminos = signal(false);
   mayorEdad = signal(false);
   mostrarModalConfirmacion = signal(false);
   registroOk = signal(false);
+
+  // Computed para verificar si el formulario está completo
+  formComplete = computed(() => {
+    return this.username().trim() !== '' &&
+           this.email().trim() !== '' &&
+           this.password().trim() !== '' &&
+           this.confirmPassword().trim() !== '' &&
+           this.rif().trim() !== '' &&
+           this.telefono().trim() !== '' &&
+           this.direccion().trim() !== '' &&
+           this.nombreCompleto().trim() !== '' &&
+           this.mayorEdad() &&
+           this.aceptaTerminos();
+  });
 
   rifTipos = ['V', 'E', 'J', 'G', 'P'];
   telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
@@ -205,6 +220,7 @@ export class Register {
       direccion: direccionValue,
       tipoPersona: tipoPersonaValue,
       nombreCompleto: nombreCompletoValue,
+      genero: this.genero(),
     });
   }
 

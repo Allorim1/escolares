@@ -97,8 +97,23 @@
          </div>
        </div>
 
-      <div class="form-group">
-        <label for="tipoPersona">Tipo de Persona</label>
+       <div class="form-group">
+         <label for="genero">Género</label>
+         <select
+           id="genero"
+           [ngModel]="genero()"
+           name="genero"
+           (ngModelChange)="genero.set($event)"
+           required
+         >
+           <option value="no_especificado">No especificado</option>
+           <option value="hombre">Hombre</option>
+           <option value="mujer">Mujer</option>
+         </select>
+       </div>
+
+       <div class="form-group">
+         <label for="tipoPersona">Tipo de Persona</label>
         <select
           id="tipoPersona"
           [ngModel]="tipoPersona()"
@@ -252,7 +267,7 @@
          </label>
        </div>
 
-       <button type="submit" class="btn-register" [disabled]="loading()">
+       <button type="submit" class="btn-register" [disabled]="loading() || !formComplete()">
          {{ loading() ? 'Registrando...' : 'Registrarse' }}
        </button>
     </form>
@@ -280,7 +295,7 @@
 }
 
 @if (mostrarModalConfirmacion()) {
-  <div class="modal-overlay" (click)="mostrarModalConfirmacion.set(false)">
+  <div class="modal-overlay">
     <div class="modal-content modal-success" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>¡Registro exitoso!</h3>

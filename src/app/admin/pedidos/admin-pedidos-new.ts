@@ -1,6 +1,5 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
-import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -60,7 +59,6 @@ interface CompraNotificacion {
 export class AdminPedidos implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private notificationService = inject(NotificationService);
-  private authService = inject(AuthService);
   private intervalId: any;
   private socket: WebSocket | null = null;
 
@@ -79,7 +77,6 @@ export class AdminPedidos implements OnInit, OnDestroy {
   supervisorKey = signal('');
   cancelError = signal('');
   isCancelling = signal(false);
-  hasSupervisorKey = signal(false);
 
   // Modal de subida de factura
   showFacturaModal = signal(false);
@@ -108,11 +105,6 @@ export class AdminPedidos implements OnInit, OnDestroy {
     entregado: '#28a745',
     cancelado: '#dc3545',
   };
-
-  constructor() {
-    const user = this.authService.user();
-    this.hasSupervisorKey.set(!!user?.supervisorKey);
-  }
 
   ngOnInit() {
     this.loadOrders();

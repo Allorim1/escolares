@@ -288,17 +288,26 @@
           ></textarea>
         </div>
         
-        <div class="form-group">
-          <label>Clave de Supervisor *</label>
-          <input
-            type="password"
-            [value]="supervisorKey()"
-            (input)="supervisorKey.set($any($event.target).value || '')"
-            placeholder="Ingresa tu clave de supervisor"
-            class="supervisor-input"
-          />
-          <small class="help-text">Solo usuarios con clave de supervisor pueden cancelar pedidos</small>
-        </div>
+        @if (hasSupervisorKey()) {
+          <div class="form-group">
+            <label>Clave de Supervisor *</label>
+            <input
+              type="password"
+              [value]="supervisorKey()"
+              (input)="supervisorKey.set($any($event.target).value || '')"
+              placeholder="Ingresa tu clave de supervisor"
+              class="supervisor-input"
+            />
+            <small class="help-text">Solo usuarios con clave de supervisor pueden cancelar pedidos</small>
+          </div>
+        } @else {
+          <div class="form-group">
+            <label>Acceso Restringido</label>
+            <div class="help-text" style="color: #dc3545;">
+              No tienes una clave de supervisor configurada. No puedes cancelar pedidos.
+            </div>
+          </div>
+        }
 
         @if (cancelError()) {
           <div class="error-message">{{ cancelError() }}</div>

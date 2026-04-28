@@ -111,7 +111,35 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   constructor() {
     const user = this.authService.user();
-    this.hasSupervisorKey.set(!!user?.supervisorKey);
+    this.hasSupervisorKey.set(this.tienePermisosAdmin(user));
+  }
+
+  private tienePermisosAdmin(user: any): boolean {
+    // Si el usuario tiene rol 'root', tiene acceso total al panel admin
+    if (user.rol === 'root') {
+      return true;
+    }
+    
+    // Si el usuario tiene rol 'admin', también tiene acceso
+    if (user.rol === 'admin') {
+      return true;
+    }
+    
+    // Verificar permisos específicos que otorgan acceso al panel admin
+    const permisosAdmin = [
+      'pedidos_ver', 'tasas_gestionar', 'tasas_ver', 'facturas_registrar',
+      'facturas_gestionar', 'gastos_gestionar', 'nomina_ver', 'documentos_ver',
+      'conversion_gestionar', 'chat_ver', 'caja_ver', 'ver_proveedores',
+      'ver_retenciones', 'ver_libro_compras', 'inicio_gestionar', 'productos_gestionar',
+      'marcas_ver', 'lineas_ver', 'ofertas_ver', 'usuarios_gestionar', 
+      'roles_gestionar', 'manuales_ver'
+    ];
+    
+    if (user.permisos && Array.isArray(user.permisos)) {
+      return user.permisos.some((p: string) => permisosAdmin.includes(p));
+    }
+    
+    return false;
   }
 
   ngOnInit() {

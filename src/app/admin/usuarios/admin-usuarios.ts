@@ -11,6 +11,20 @@ interface UserWithRol extends User {
   rolName?: string;
 }
 
+interface NewUser {
+  username: string;
+  email: string;
+  nombreCompleto: string;
+  apellido: string;
+  telefono: string;
+  direccion: string;
+  comentarios: string;
+  password: string;
+  tipoDocumento: 'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e';
+  numeroDocumento: string;
+  genero: 'hombre' | 'mujer' | 'no_especificado';
+}
+
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
@@ -34,7 +48,7 @@ export class AdminUsuarios implements OnInit {
   newComentario = '';
   
   showCreateModal = signal(false);
-  newUser = {
+  newUser: NewUser = {
     username: '',
     email: '',
     nombreCompleto: '',
@@ -42,7 +56,10 @@ export class AdminUsuarios implements OnInit {
     telefono: '',
     direccion: '',
     comentarios: '',
-    password: ''
+    password: '',
+    tipoDocumento: 'cedula',
+    numeroDocumento: '',
+    genero: 'no_especificado'
   };
 
   userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
@@ -259,7 +276,10 @@ export class AdminUsuarios implements OnInit {
       telefono: '',
       direccion: '',
       comentarios: '',
-      password: ''
+      password: '',
+      tipoDocumento: 'cedula',
+      numeroDocumento: '',
+      genero: 'no_especificado'
     };
   }
 
@@ -274,6 +294,41 @@ export class AdminUsuarios implements OnInit {
       return;
     }
 
+    // Construir el documento completo según el tipo
+    let documentoCompleto = '';
+    const tipo = userData.tipoDocumento;
+    const numero = userData.numeroDocumento;
+
+    switch (tipo) {
+      case 'cedula':
+        documentoCompleto = 'V-' + numero;
+        break;
+      case 'rif':
+        // Para RIF en creación de usuarios, asumimos V- (natural) por defecto
+        documentoCompleto = 'V-' + numero;
+        break;
+      case 'rif_personal_natural':
+        documentoCompleto = 'V-' + numero;
+        break;
+      case 'rif_v':
+        documentoCompleto = 'V-' + numero;
+        break;
+      case 'rif_e':
+        documentoCompleto = 'E-' + numero;
+        break;
+      case 'pasaporte':
+        documentoCompleto = numero;
+        break;
+      case 'extranjero':
+        documentoCompleto = 'E-' + numero;
+        break;
+      case 'gobierno':
+        documentoCompleto = 'G-' + numero;
+        break;
+      default:
+        documentoCompleto = numero;
+    }
+
     this.http.post('/api/auth/register-simple', {
       username: userData.username,
       email: userData.email,
@@ -283,6 +338,10 @@ export class AdminUsuarios implements OnInit {
       telefono: userData.telefono,
       direccion: userData.direccion,
       comentarios: userData.comentarios,
+      rif: documentoCompleto,
+      tipoDocumento: tipo,
+      numeroDocumento: numero,
+      genero: userData.genero,
     }).subscribe({
       next: () => {
         this.cargarUsuarios();

@@ -52,40 +52,122 @@
       </div>
       
       <div class="modal-body">
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Usuario *</label>
-            <input type="text" [(ngModel)]="newUser.username" placeholder="Nombre de usuario" />
-          </div>
-          <div class="form-group">
-            <label>Email *</label>
-            <input type="email" [(ngModel)]="newUser.email" placeholder="correo@ejemplo.com" />
-          </div>
-          <div class="form-group">
-            <label>Nombre</label>
-            <input type="text" [(ngModel)]="newUser.nombreCompleto" placeholder="Nombre completo" />
-          </div>
-          <div class="form-group">
-            <label>Apellido</label>
-            <input type="text" [(ngModel)]="newUser.apellido" placeholder="Apellido" />
-          </div>
-          <div class="form-group">
-            <label>Teléfono</label>
-            <input type="text" [(ngModel)]="newUser.telefono" placeholder="Número de teléfono" />
-          </div>
-          <div class="form-group">
-            <label>Dirección</label>
-            <input type="text" [(ngModel)]="newUser.direccion" placeholder="Dirección" />
-          </div>
-          <div class="form-group full-width">
-            <label>Comentarios</label>
-            <textarea [(ngModel)]="newUser.comentarios" rows="3" placeholder="Comentarios"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Contraseña *</label>
-            <input type="password" [(ngModel)]="newUser.password" placeholder="Contraseña" />
-          </div>
-        </div>
+         <div class="form-grid">
+           <div class="form-group">
+             <label>Usuario *</label>
+             <input type="text" [(ngModel)]="newUser.username" placeholder="Nombre de usuario" />
+           </div>
+           <div class="form-group">
+             <label>Email *</label>
+             <input type="email" [(ngModel)]="newUser.email" placeholder="correo@ejemplo.com" />
+           </div>
+           <div class="form-group">
+             <label>Nombre</label>
+             <input type="text" [(ngModel)]="newUser.nombreCompleto" placeholder="Nombre completo" />
+           </div>
+           <div class="form-group">
+             <label>Apellido</label>
+             <input type="text" [(ngModel)]="newUser.apellido" placeholder="Apellido" />
+           </div>
+
+           <div class="form-group">
+             <label for="tipoDocumento">Tipo de Documento</label>
+             <select
+               id="tipoDocumento"
+               [(ngModel)]="newUser.tipoDocumento"
+             >
+               <option value="cedula">Cédula</option>
+               <option value="rif">RIF</option>
+               <option value="rif_personal_natural">RIF Personal Natural</option>
+               <option value="rif_v">RIF-V</option>
+               <option value="rif_e">RIF-E</option>
+               <option value="pasaporte">Pasaporte</option>
+               <option value="extranjero">Cédula Extranjero</option>
+               <option value="gobierno">Gobierno</option>
+             </select>
+           </div>
+
+           <div class="form-group">
+             <label for="numeroDocumento">
+               @if (newUser.tipoDocumento === 'rif') {
+                 Número de RIF
+               } @else if (newUser.tipoDocumento === 'cedula') {
+                 Número de Cédula
+               } @else if (newUser.tipoDocumento === 'pasaporte') {
+                 Número de Pasaporte
+               } @else if (newUser.tipoDocumento === 'extranjero') {
+                 Cédula de Extranjería
+               } @else if (newUser.tipoDocumento === 'gobierno') {
+                 Documento de Gobierno
+               } @else if (newUser.tipoDocumento === 'rif_personal_natural') {
+                 RIF Personal Natural
+               } @else if (newUser.tipoDocumento === 'rif_v') {
+                 RIF-V
+               } @else if (newUser.tipoDocumento === 'rif_e') {
+                 RIF-E
+               }
+             </label>
+             <input
+               type="text"
+               id="numeroDocumento"
+               [(ngModel)]="newUser.numeroDocumento"
+               [placeholder]="
+                 newUser.tipoDocumento === 'rif' ? 'J-12345678-9' :
+                 newUser.tipoDocumento === 'cedula' ? '12345678' :
+                 newUser.tipoDocumento === 'pasaporte' ? 'PA12345678' :
+                 newUser.tipoDocumento === 'extranjero' ? 'E-12345678' :
+                 newUser.tipoDocumento === 'gobierno' ? 'G-12345678' :
+                 newUser.tipoDocumento === 'rif_personal_natural' ? 'V-12345678-9' :
+                 newUser.tipoDocumento === 'rif_v' ? 'V-12345678-9' :
+                 newUser.tipoDocumento === 'rif_e' ? 'E-12345678-9' :
+                 'Número de documento'
+               "
+               class="rif-input"
+             />
+           </div>
+
+           <div class="form-group">
+             <label for="genero">Género</label>
+             <select
+               id="genero"
+               [(ngModel)]="newUser.genero"
+             >
+               <option value="no_especificado">No especificado</option>
+               <option value="hombre">Hombre</option>
+               <option value="mujer">Mujer</option>
+             </select>
+           </div>
+
+           <div class="form-group">
+             <label>Teléfono</label>
+             <input type="text" [(ngModel)]="newUser.telefono" placeholder="Número de teléfono" />
+           </div>
+
+           <div class="form-group">
+             <label>
+               @if (newUser.tipoDocumento === 'rif' || newUser.tipoDocumento === 'rif_personal_natural' || newUser.tipoDocumento === 'rif_v' || newUser.tipoDocumento === 'rif_e') {
+                 Dirección Fiscal
+               } @else {
+                 Dirección
+               }
+             </label>
+             <input
+               type="text"
+               [(ngModel)]="newUser.direccion"
+               [placeholder]="newUser.tipoDocumento === 'rif' || newUser.tipoDocumento === 'rif_personal_natural' || newUser.tipoDocumento === 'rif_v' || newUser.tipoDocumento === 'rif_e' ? 'Dirección fiscal del negocio' : 'Dirección'"
+             />
+           </div>
+
+           <div class="form-group full-width">
+             <label>Comentarios</label>
+             <textarea [(ngModel)]="newUser.comentarios" rows="3" placeholder="Comentarios"></textarea>
+           </div>
+
+           <div class="form-group">
+             <label>Contraseña *</label>
+             <input type="password" [(ngModel)]="newUser.password" placeholder="Contraseña" />
+           </div>
+         </div>
       </div>
       
       <div class="modal-footer">

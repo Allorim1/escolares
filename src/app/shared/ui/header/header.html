@@ -255,24 +255,24 @@
                     RIF-E
                   }
                 </label>
-               <input
-                 type="text"
-                 id="numeroDocumento"
-                 [(ngModel)]="registerNumeroDocumento"
-                 name="registerNumeroDocumento"
-                 [placeholder]="
-                   registerTipoDocumento === 'rif' ? 'J-12345678-9' :
-                   registerTipoDocumento === 'cedula' ? '12345678' :
-                   registerTipoDocumento === 'pasaporte' ? 'PA12345678' :
-                   registerTipoDocumento === 'extranjero' ? 'E-12345678' :
-                   registerTipoDocumento === 'gobierno' ? 'G-12345678' :
-                   registerTipoDocumento === 'rif_personal_natural' ? 'V-12345678-9' :
-                   registerTipoDocumento === 'rif_v' ? 'V-12345678-9' :
-                   registerTipoDocumento === 'rif_e' ? 'E-12345678-9' :
-                   'Número de documento'
-                 "
-                 required
-               />
+                <input
+                  type="text"
+                  id="numeroDocumento"
+                  [(ngModel)]="registerNumeroDocumento"
+                  name="registerNumeroDocumento"
+                  [placeholder]="
+                    registerTipoDocumento() === 'rif' ? 'J-12345678-9' :
+                    registerTipoDocumento() === 'cedula' ? '12345678' :
+                    registerTipoDocumento() === 'pasaporte' ? 'PA12345678' :
+                    registerTipoDocumento() === 'extranjero' ? 'E-12345678' :
+                    registerTipoDocumento() === 'gobierno' ? 'G-12345678' :
+                    registerTipoDocumento() === 'rif_personal_natural' ? 'V-12345678-9' :
+                    registerTipoDocumento() === 'rif_v' ? 'V-12345678-9' :
+                    registerTipoDocumento() === 'rif_e' ? 'E-12345678-9' :
+                    'Número de documento'
+                  "
+                  required
+                />
              </div>
              <div class="form-group">
                <label>Teléfono</label>
@@ -293,17 +293,17 @@
                </div>
              </div>
              <div class="form-group">
-               <label>
-                 @if (registerTipoDocumento === 'rif' || registerTipoDocumento === 'rif_personal_natural' || registerTipoDocumento === 'rif_v' || registerTipoDocumento === 'rif_e') {
-                   Dirección Fiscal
-                 } @else {
-                   Dirección
-                 }
-               </label>
+                <label>
+                  @if (registerTipoDocumento() === 'rif' || registerTipoDocumento() === 'rif_personal_natural' || registerTipoDocumento() === 'rif_v' || registerTipoDocumento() === 'rif_e') {
+                    Dirección Fiscal
+                  } @else {
+                    Dirección
+                  }
+                </label>
                <textarea 
                  [(ngModel)]="registerDireccion" 
                  name="direccion" 
-                 [placeholder]="registerTipoDocumento === 'rif' || registerTipoDocumento === 'rif_personal_natural' || registerTipoDocumento === 'rif_v' || registerTipoDocumento === 'rif_e' ? 'Dirección fiscal del negocio' : 'Dirección de entrega'"
+                  [placeholder]="registerTipoDocumento() === 'rif' || registerTipoDocumento() === 'rif_personal_natural' || registerTipoDocumento() === 'rif_v' || registerTipoDocumento() === 'rif_e' ? 'Dirección fiscal del negocio' : 'Dirección de entrega'"
                  rows="2"
                  required
                ></textarea>

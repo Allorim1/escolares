@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
-import { AuthService } from '../../data-access/auth.service';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../shared/data-access/auth.service';
 
 interface Direccion {
   id: number;
@@ -14,7 +15,8 @@ interface Direccion {
 @Component({
   selector: 'app-direcciones',
   templateUrl: './direcciones.html',
-  styleUrls: ['./direcciones.css']
+  styleUrls: ['./direcciones.css'],
+  imports: [FormsModule]
 })
 export class Direcciones {
   authService = AuthService;

@@ -65,6 +65,10 @@ export const routes: Routes = [
         loadComponent: () => import('./panel/pedidos/pedidos').then((m) => m.default),
       },
       {
+        path: 'direcciones',
+        loadComponent: () => import('./panel/direcciones/direcciones').then((m) => m.Direcciones),
+      },
+      {
         path: '',
         redirectTo: 'perfil',
         pathMatch: 'full',

@@ -1,0 +1,121 @@
+<section class="direcciones-container">
+  <div class="direcciones-header">
+    <h3>Mis Direcciones</h3>
+    @if (!editando()) {
+      <button class="btn-agregar" (click)="nuevaDireccion()">Agregar Dirección</button>
+    }
+  </div>
+
+  @if (direcciones().length === 0) {
+    <div class="empty-state">
+      <p>No tienes direcciones registradas</p>
+      <button class="btn-agregar" (click)="nuevaDireccion()">Agregar Primera Dirección</button>
+    </div>
+  } @else {
+    <div class="direcciones-list">
+      @for (dir of direcciones(); track dir.id) {
+        <div class="direccion-item">
+          <div class="direccion-info">
+            <h4>{{ dir.alias || 'Dirección ' + (dir.id + 1) }}</h4>
+            <p class="direccion-text">{{ dir.direccion }}</p>
+            <p class="direccion-details">
+              {{ dir.ciudad }}, {{ dir.estado }} {{ dir.codigoPostal }}
+            </p>
+            @if (dir.principal) {
+              <span class="tag principal">Principal</span>
+            }
+          </div>
+          <div class="direccion-actions">
+            @if (!editando()) {
+              <button class="btn-editar" (click)="editarDireccion(dir)">Editar</button>
+              <button class="btn-eliminar" (click)="eliminarDireccion(dir.id)">Eliminar</button>
+              <button class="btn-principal" (click)="establecerPrincipal(dir.id)" 
+                      [class.activo]="dir.principal">
+                {{ dir.principal ? 'Quitar como Principal' : 'Establecer como Principal' }}
+              </button>
+            }
+          </div>
+        </div>
+        @if (!editando() && editandoIndex() === dir.id) {
+          <div class="direccion-form">
+            <h4>Editar Dirección</h4>
+            <form (ngSubmit)="actualizarDireccion()">
+              <div class="form-group">
+                <label>Alias:</label>
+                <input type="text" [(ngModel)]="editAlias" placeholder="Ej: Casa, Trabajo, etc." />
+              </div>
+              <div class="form-group">
+                <label>Dirección:</label>
+                <input type="text" [(ngModel)]="editDireccion" placeholder="Calle, número, apartamento" required />
+              </div>
+              <div class="form-group">
+                <label>Ciudad:</label>
+                <input type="text" [(ngModel)]="editCiudad" placeholder="Ciudad" required />
+              </div>
+              <div class="form-group">
+                <label>Estado:</label>
+                <input type="text" [(ngModel)]="editEstado" placeholder="Estado" required />
+              </div>
+              <div class="form-group">
+                <label>Código Postal:</label>
+                <input type="text" [(ngModel)]="editCodigoPostal" placeholder="00000" required />
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" [(ngModel)]="editPrincipal" />
+                  Establecer como dirección principal
+                </label>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn-cancelar" (click)="cancelarEdicion()">Cancelar</button>
+                <button type="submit" class="btn-guardar" [disabled]="guardando()">
+                  {{ guardando() ? 'Guardando...' : 'Guardar Cambios' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  @if (editando() && editandoIndex() === -1) {
+    <div class="direccion-form">
+      <h4>Nueva Dirección</h4>
+      <form (ngSubmit)="crearDireccion()">
+        <div class="form-group">
+          <label>Alias:</label>
+          <input type="text" [(ngModel)]="nuevoAlias" placeholder="Ej: Casa, Trabajo, etc." />
+        </div>
+        <div class="form-group">
+          <label>Dirección:</label>
+          <input type="text" [(ngModel)]="nuevaDireccionTexto" placeholder="Calle, número, apartamento" required />
+        </div>
+        <div class="form-group">
+          <label>Ciudad:</label>
+          <input type="text" [(ngModel)]="nuevaCiudad" placeholder="Ciudad" required />
+        </div>
+        <div class="form-group">
+          <label>Estado:</label>
+          <input type="text" [(ngModel)]="nuevoEstado" placeholder="Estado" required />
+        </div>
+        <div class="form-group">
+          <label>Código Postal:</label>
+          <input type="text" [(ngModel)]="nuevoCodigoPostal" placeholder="00000" required />
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="nuevoPrincipal" />
+            Establecer como dirección principal
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancelar" (click)="cancelarNuevaDireccion()">Cancelar</button>
+          <button type="submit" class="btn-guardar" [disabled]="guardando()">
+            {{ guardando() ? 'Guardando...' : 'Guardar Dirección' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</section>

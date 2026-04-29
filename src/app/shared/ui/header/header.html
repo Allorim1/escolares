@@ -236,25 +236,25 @@
                </select>
              </div>
              <div class="form-group">
-               <label for="numeroDocumento">
-                 @if (registerTipoDocumento === 'rif') {
-                   Número de RIF
-                 } @else if (registerTipoDocumento === 'cedula') {
-                   Número de Cédula
-                 } @else if (registerTipoDocumento === 'pasaporte') {
-                   Número de Pasaporte
-                 } @else if (registerTipoDocumento === 'extranjero') {
-                   Cédula de Extranjería
-                 } @else if (registerTipoDocumento === 'gobierno') {
-                   Documento de Gobierno
-                 } @else if (registerTipoDocumento === 'rif_personal_natural') {
-                   RIF Personal Natural
-                 } @else if (registerTipoDocumento === 'rif_v') {
-                   RIF-V
-                 } @else if (registerTipoDocumento === 'rif_e') {
-                   RIF-E
-                 }
-               </label>
+                <label for="numeroDocumento">
+                  @if (registerTipoDocumento() === 'rif') {
+                    Número de RIF
+                  } @else if (registerTipoDocumento() === 'cedula') {
+                    Número de Cédula
+                  } @else if (registerTipoDocumento() === 'pasaporte') {
+                    Número de Pasaporte
+                  } @else if (registerTipoDocumento() === 'extranjero') {
+                    Cédula de Extranjería
+                  } @else if (registerTipoDocumento() === 'gobierno') {
+                    Documento de Gobierno
+                  } @else if (registerTipoDocumento() === 'rif_personal_natural') {
+                    RIF Personal Natural
+                  } @else if (registerTipoDocumento() === 'rif_v') {
+                    RIF-V
+                  } @else if (registerTipoDocumento() === 'rif_e') {
+                    RIF-E
+                  }
+                </label>
                <input
                  type="text"
                  id="numeroDocumento"

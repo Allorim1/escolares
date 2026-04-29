@@ -110,7 +110,7 @@ export class Header {
   registerTelefono = signal('');
   registerTelefonoPrefijo = signal('0412');
   registerDireccion = signal('');
-  registerTipoPersona = signal('natural');
+
   registerAceptaTerminos = signal(false);
   registerMayorEdad = signal(false);
   registerError = signal('');
@@ -196,28 +196,26 @@ export class Header {
     this.showLoginModal.set(false);
   }
 
-  closeModals() {
-    this.showLoginModal.set(false);
-    this.showRegisterModal.set(false);
-    this.loginUsername.set('');
-    this.loginPassword.set('');
-    this.registerUsername.set('');
-    this.registerEmail.set('');
-    this.registerPassword.set('');
-    this.registerConfirmPassword.set('');
-    this.registerNumeroDocumento.set('');
-    this.registerTelefono.set('');
-    this.registerDireccion.set('');
-    this.registerTipoPersona.set('natural');
-    this.registerError.set('');
-    // Reset nuevos campos
-    this.registerNombreCompleto.set('');
-    this.registerGenero.set('no_especificado');
-    this.registerTipoDocumento.set('cedula');
-    this.registerTelefonoPrefijo.set('0412');
-    this.registerAceptaTerminos.set(false);
-    this.registerMayorEdad.set(false);
-  }
+   closeModals() {
+     this.showLoginModal.set(false);
+     this.showRegisterModal.set(false);
+     this.loginUsername.set('');
+     this.loginPassword.set('');
+     this.registerUsername.set('');
+     this.registerEmail.set('');
+     this.registerPassword.set('');
+     this.registerConfirmPassword.set('');
+     this.registerNumeroDocumento.set('');
+     this.registerTelefono.set('');
+     this.registerDireccion.set('');
+     // Reset nuevos campos
+     this.registerNombreCompleto.set('');
+     this.registerGenero.set('no_especificado');
+     this.registerTipoDocumento.set('cedula');
+     this.registerTelefonoPrefijo.set('0412');
+     this.registerAceptaTerminos.set(false);
+     this.registerMayorEdad.set(false);
+   }
 
   doLogin() {
     if (this.loginUsername() && this.loginPassword()) {
@@ -252,52 +250,51 @@ export class Header {
       return;
     }
 
-    // Construir documento completo
-    let documentoCompleto = '';
-    const tipo = this.registerTipoDocumento();
-    const numero = this.registerNumeroDocumento();
+     // Construir documento completo
+     let documentoCompleto = '';
+     const tipo = this.registerTipoDocumento();
+     const numero = this.registerNumeroDocumento();
 
-    switch (tipo) {
-      case 'cedula':
-        documentoCompleto = 'V-' + numero;
-        break;
-      case 'rif':
-        documentoCompleto = this.registerTipoPersona() === 'juridica' ? 'J-' + numero : 'V-' + numero;
-        break;
-      case 'rif_personal_natural':
-        documentoCompleto = 'V-' + numero;
-        break;
-      case 'rif_v':
-        documentoCompleto = 'V-' + numero;
-        break;
-      case 'rif_e':
-        documentoCompleto = 'E-' + numero;
-        break;
-      case 'pasaporte':
-        documentoCompleto = numero;
-        break;
-      case 'extranjero':
-        documentoCompleto = 'E-' + numero;
-        break;
-      case 'gobierno':
-        documentoCompleto = 'G-' + numero;
-        break;
-      default:
-        documentoCompleto = numero;
-    }
+     switch (tipo) {
+       case 'cedula':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif':
+         documentoCompleto = 'J-' + numero; // Assuming juridica as default since Tipo de Persona was removed
+         break;
+       case 'rif_personal_natural':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif_v':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif_e':
+         documentoCompleto = 'E-' + numero;
+         break;
+       case 'pasaporte':
+         documentoCompleto = numero;
+         break;
+       case 'extranjero':
+         documentoCompleto = 'E-' + numero;
+         break;
+       case 'gobierno':
+         documentoCompleto = 'G-' + numero;
+         break;
+       default:
+         documentoCompleto = numero;
+     }
 
     const telefonoCompleto = this.registerTelefonoPrefijo() + '-' + this.registerTelefono();
 
-    this.authService.register(this.registerUsername(), this.registerEmail(), this.registerPassword(), {
-      rif: documentoCompleto,
-      telefono: telefonoCompleto,
-      direccion: this.registerDireccion(),
-      tipoPersona: this.registerTipoPersona(),
-      nombreCompleto: this.registerNombreCompleto(),
-      genero: this.registerGenero(),
-      tipoDocumento: this.registerTipoDocumento(),
-      numeroDocumento: this.registerNumeroDocumento(),
-    });
+     this.authService.register(this.registerUsername(), this.registerEmail(), this.registerPassword(), {
+       rif: documentoCompleto,
+       telefono: telefonoCompleto,
+       direccion: this.registerDireccion(),
+       nombreCompleto: this.registerNombreCompleto(),
+       genero: this.registerGenero(),
+       tipoDocumento: this.registerTipoDocumento(),
+       numeroDocumento: this.registerNumeroDocumento(),
+     });
     const checkRegister = setInterval(() => {
       if (this.authService.registerSuccess()) {
         this.closeModals();

@@ -171,97 +171,189 @@
             <div class="error-message">{{ registerError() }}</div>
           }
           
-          <form (ngSubmit)="doRegister()">
-            <div class="form-group">
-              <label>Usuario</label>
-              <input 
-                type="text" 
-                [(ngModel)]="registerUsername" 
-                name="username" 
-                placeholder="Elige un usuario"
-              />
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input 
-                type="email" 
-                [(ngModel)]="registerEmail" 
-                name="email" 
-                placeholder="Tu correo electrónico"
-              />
-            </div>
-            <div class="form-group">
-              <label>Contraseña</label>
-              <input 
-                type="password" 
-                [(ngModel)]="registerPassword" 
-                name="password" 
-                placeholder="Mínimo 6 caracteres"
-              />
-            </div>
-            <div class="form-group">
-              <label>Confirmar Contraseña</label>
-              <input 
-                type="password" 
-                [(ngModel)]="registerConfirmPassword" 
-                name="confirmPassword" 
-                placeholder="Repite tu contraseña"
-              />
-            </div>
-            <div class="form-group">
-              <label>Tipo de Persona</label>
-              <select [(ngModel)]="registerTipoPersona" name="tipoPersona">
-                <option value="natural">Persona Natural</option>
-                <option value="juridica">Persona Jurídica</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Rif o C.I</label>
-              <div class="rif-input-group">
-                <select [(ngModel)]="registerRifTipo" name="registerRifTipo" class="rif-select">
-                  @for (tipo of rifTipos; track tipo) {
-                    <option [value]="tipo">{{ tipo }}</option>
-                  }
-                </select>
-                <input 
-                  type="text" 
-                  [(ngModel)]="registerRif" 
-                  name="registerRif" 
-                  [placeholder]="registerTipoPersona === 'juridica' ? '12345678-9' : '12345678'"
-                  class="rif-input"
-                />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Teléfono</label>
-              <div class="telefono-input-group">
-                <select [(ngModel)]="registerTelefonoPrefijo" name="registerTelefonoPrefijo" class="telefono-select">
-                  @for (pre of telefonoPrefijos; track pre) {
-                    <option [value]="pre">{{ pre }}</option>
-                  }
-                </select>
-                <input 
-                  type="tel" 
-                  [(ngModel)]="registerTelefono" 
-                  name="registerTelefono" 
-                  placeholder="1234567"
-                  class="telefono-input"
-                />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Dirección</label>
-              <textarea 
-                [(ngModel)]="registerDireccion" 
-                name="direccion" 
-                placeholder="Dirección de entrega"
-                rows="2"
-              ></textarea>
-            </div>
-            <button type="submit" class="submit-btn">
-              Crear Cuenta
-            </button>
-          </form>
+           <form (ngSubmit)="doRegister()">
+             <div class="form-group">
+               <label>Usuario</label>
+               <input 
+                 type="text" 
+                 [(ngModel)]="registerUsername" 
+                 name="username" 
+                 placeholder="Elige un usuario"
+                 required
+               />
+             </div>
+             <div class="form-group">
+               <label>Nombre completo</label>
+               <input 
+                 type="text" 
+                 [(ngModel)]="registerNombreCompleto" 
+                 name="nombreCompleto" 
+                 placeholder="Nombre y apellido"
+                 required
+               />
+             </div>
+             <div class="form-group">
+               <label>Email</label>
+               <input 
+                 type="email" 
+                 [(ngModel)]="registerEmail" 
+                 name="email" 
+                 placeholder="Tu correo electrónico"
+                 required
+               />
+             </div>
+             <div class="form-group">
+               <label>Género</label>
+               <select [(ngModel)]="registerGenero" name="genero" required>
+                 <option value="no_especificado">No especificado</option>
+                 <option value="hombre">Hombre</option>
+                 <option value="mujer">Mujer</option>
+               </select>
+             </div>
+             <div class="form-group">
+               <label>Tipo de Persona</label>
+               <select [(ngModel)]="registerTipoPersona" name="tipoPersona" required>
+                 <option value="natural">Persona Natural</option>
+                 <option value="juridica">Persona Jurídica</option>
+               </select>
+             </div>
+             <div class="form-group">
+               <label for="tipoDocumento">Tipo de Documento</label>
+               <select
+                 id="tipoDocumento"
+                 [(ngModel)]="registerTipoDocumento"
+                 name="tipoDocumento"
+                 required
+               >
+                 <option value="cedula">Cédula</option>
+                 <option value="rif">RIF</option>
+                 <option value="rif_personal_natural">RIF Personal Natural</option>
+                 <option value="rif_v">RIF-V</option>
+                 <option value="rif_e">RIF-E</option>
+                 <option value="pasaporte">Pasaporte</option>
+                 <option value="extranjero">Cédula Extranjero</option>
+                 <option value="gobierno">Gobierno</option>
+               </select>
+             </div>
+             <div class="form-group">
+               <label for="numeroDocumento">
+                 @if (registerTipoDocumento === 'rif') {
+                   Número de RIF
+                 } @else if (registerTipoDocumento === 'cedula') {
+                   Número de Cédula
+                 } @else if (registerTipoDocumento === 'pasaporte') {
+                   Número de Pasaporte
+                 } @else if (registerTipoDocumento === 'extranjero') {
+                   Cédula de Extranjería
+                 } @else if (registerTipoDocumento === 'gobierno') {
+                   Documento de Gobierno
+                 } @else if (registerTipoDocumento === 'rif_personal_natural') {
+                   RIF Personal Natural
+                 } @else if (registerTipoDocumento === 'rif_v') {
+                   RIF-V
+                 } @else if (registerTipoDocumento === 'rif_e') {
+                   RIF-E
+                 }
+               </label>
+               <input
+                 type="text"
+                 id="numeroDocumento"
+                 [(ngModel)]="registerNumeroDocumento"
+                 name="registerNumeroDocumento"
+                 [placeholder]="
+                   registerTipoDocumento === 'rif' ? 'J-12345678-9' :
+                   registerTipoDocumento === 'cedula' ? '12345678' :
+                   registerTipoDocumento === 'pasaporte' ? 'PA12345678' :
+                   registerTipoDocumento === 'extranjero' ? 'E-12345678' :
+                   registerTipoDocumento === 'gobierno' ? 'G-12345678' :
+                   registerTipoDocumento === 'rif_personal_natural' ? 'V-12345678-9' :
+                   registerTipoDocumento === 'rif_v' ? 'V-12345678-9' :
+                   registerTipoDocumento === 'rif_e' ? 'E-12345678-9' :
+                   'Número de documento'
+                 "
+                 required
+               />
+             </div>
+             <div class="form-group">
+               <label>Teléfono</label>
+               <div class="telefono-input-group">
+                 <select [(ngModel)]="registerTelefonoPrefijo" name="registerTelefonoPrefijo" class="telefono-select">
+                   @for (pre of telefonoPrefijos; track pre) {
+                     <option [value]="pre">{{ pre }}</option>
+                   }
+                 </select>
+                 <input 
+                   type="tel" 
+                   [(ngModel)]="registerTelefono" 
+                   name="registerTelefono" 
+                   placeholder="1234567"
+                   class="telefono-input"
+                   required
+                 />
+               </div>
+             </div>
+             <div class="form-group">
+               <label>
+                 @if (registerTipoDocumento === 'rif' || registerTipoDocumento === 'rif_personal_natural' || registerTipoDocumento === 'rif_v' || registerTipoDocumento === 'rif_e') {
+                   Dirección Fiscal
+                 } @else {
+                   Dirección
+                 }
+               </label>
+               <textarea 
+                 [(ngModel)]="registerDireccion" 
+                 name="direccion" 
+                 [placeholder]="registerTipoDocumento === 'rif' || registerTipoDocumento === 'rif_personal_natural' || registerTipoDocumento === 'rif_v' || registerTipoDocumento === 'rif_e' ? 'Dirección fiscal del negocio' : 'Dirección de entrega'"
+                 rows="2"
+                 required
+               ></textarea>
+             </div>
+             <div class="form-group checkbox-group">
+               <label class="checkbox-label">
+                 <input
+                   type="checkbox"
+                   [(ngModel)]="registerAceptaTerminos"
+                   name="registerAceptaTerminos"
+                   required
+                 />
+                 <span>Acepto los <a href="/terminos" target="_blank">términos y condiciones</a> y la <a href="/privacidad" target="_blank">política de privacidad</a></span>
+               </label>
+             </div>
+             <div class="form-group checkbox-group">
+               <label class="checkbox-label">
+                 <input
+                   type="checkbox"
+                   [(ngModel)]="registerMayorEdad"
+                   name="registerMayorEdad"
+                   required
+                 />
+                 <span>Soy mayor de edad (18 años o más)</span>
+               </label>
+             </div>
+             <div class="form-group">
+               <label>Contraseña</label>
+               <input 
+                 type="password" 
+                 [(ngModel)]="registerPassword" 
+                 name="password" 
+                 placeholder="Mínimo 6 caracteres"
+                 required
+               />
+             </div>
+             <div class="form-group">
+               <label>Confirmar Contraseña</label>
+               <input 
+                 type="password" 
+                 [(ngModel)]="registerConfirmPassword" 
+                 name="confirmPassword" 
+                 placeholder="Repite tu contraseña"
+                 required
+               />
+             </div>
+             <button type="submit" class="submit-btn" [disabled]="!formComplete()">
+               Crear Cuenta
+             </button>
+           </form>
           
           <p class="modal-footer">
             ¿Ya tienes cuenta? <button type="button" (click)="openLogin()">Inicia Sesión</button>

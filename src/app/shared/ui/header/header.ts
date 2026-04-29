@@ -1,4 +1,4 @@
-import { Component, inject, signal, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, HostListener } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../data-access/auth.service';
@@ -98,24 +98,43 @@ export class Header {
   showDropdown = signal(false);
   allProducts: Product[] = [];
 
-  showLoginModal = signal(false);
-  showRegisterModal = signal(false);
-  loginUsername = '';
-  loginPassword = '';
-  registerUsername = '';
-  registerEmail = '';
-  registerPassword = '';
-  registerConfirmPassword = '';
-  registerRif = '';
-  registerRifTipo = 'V';
-  registerTelefono = '';
-  registerTelefonoPrefijo = '0412';
-  registerDireccion = '';
-  registerTipoPersona = 'natural';
-  registerError = signal('');
+   showLoginModal = signal(false);
+   showRegisterModal = signal(false);
+   loginUsername = signal('');
+   loginPassword = signal('');
+   registerUsername = signal('');
+   registerEmail = signal('');
+   registerPassword = signal('');
+   registerConfirmPassword = signal('');
+   registerRif = signal('');
+   registerRifTipo = signal('V');
+   registerTelefono = signal('');
+   registerTelefonoPrefijo = signal('0412');
+   registerDireccion = signal('');
+   registerTipoPersona = signal('natural');
+   registerError = signal('');
+   // Nuevos campos
+   registerNombreCompleto = signal('');
+   registerGenero = signal<'hombre' | 'mujer' | 'no_especificado'>('no_especificado');
+   registerTipoDocumento = signal<'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e'>('cedula');
+   registerNumeroDocumento = signal('');
+   registerAceptaTerminos = signal(false);
+   registerMayorEdad = signal(false);
 
-  rifTipos = ['V', 'E', 'J', 'G', 'P'];
-  telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
+   telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
+
+   formComplete = computed(() => {
+     return this.registerUsername().trim() !== '' &&
+            this.registerEmail().trim() !== '' &&
+            this.registerPassword().trim() !== '' &&
+            this.registerConfirmPassword().trim() !== '' &&
+            this.registerNumeroDocumento().trim() !== '' &&
+            this.registerTelefono().trim() !== '' &&
+            this.registerDireccion().trim() !== '' &&
+            this.registerNombreCompleto().trim() !== '' &&
+            this.registerMayorEdad() &&
+            this.registerAceptaTerminos();
+   });
 
   onSearchInput() {
     const query = this.searchQuery.toLowerCase().trim();
@@ -183,23 +202,30 @@ export class Header {
     this.showLoginModal.set(false);
   }
 
-  closeModals() {
-    this.showLoginModal.set(false);
-    this.showRegisterModal.set(false);
-    this.loginUsername = '';
-    this.loginPassword = '';
-    this.registerUsername = '';
-    this.registerEmail = '';
-    this.registerPassword = '';
-    this.registerConfirmPassword = '';
-    this.registerRif = '';
-    this.registerRifTipo = 'V';
-    this.registerTelefono = '';
-    this.registerTelefonoPrefijo = '0412';
-    this.registerDireccion = '';
-    this.registerTipoPersona = 'natural';
-    this.registerError.set('');
-  }
+   closeModals() {
+     this.showLoginModal.set(false);
+     this.showRegisterModal.set(false);
+     this.loginUsername.set('');
+     this.loginPassword.set('');
+     this.registerUsername.set('');
+     this.registerEmail.set('');
+     this.registerPassword.set('');
+     this.registerConfirmPassword.set('');
+     this.registerRif.set('');
+     this.registerRifTipo.set('V');
+     this.registerTelefono.set('');
+     this.registerTelefonoPrefijo.set('0412');
+     this.registerDireccion.set('');
+     this.registerTipoPersona.set('natural');
+     this.registerError.set('');
+     // Reset nuevos campos
+     this.registerNombreCompleto.set('');
+     this.registerGenero.set('no_especificado');
+     this.registerTipoDocumento.set('cedula');
+     this.registerNumeroDocumento.set('');
+     this.registerAceptaTerminos.set(false);
+     this.registerMayorEdad.set(false);
+   }
 
   doLogin() {
     if (this.loginUsername && this.loginPassword) {
@@ -216,29 +242,143 @@ export class Header {
     }
   }
 
-  doRegister() {
-    if (!this.registerUsername || !this.registerEmail || !this.registerPassword || !this.registerRif || !this.registerTelefono || !this.registerDireccion) {
-      this.registerError.set('Todos los campos son requeridos');
-      return;
-    }
-    if (this.registerPassword !== this.registerConfirmPassword) {
-      this.registerError.set('Las contraseñas no coinciden');
-      return;
-    }
-    const rifCompleto = this.registerRifTipo + '-' + this.registerRif;
-    const telefonoCompleto = this.registerTelefonoPrefijo + '-' + this.registerTelefono;
-    this.authService.register(this.registerUsername, this.registerEmail, this.registerPassword, {
-      rif: rifCompleto,
-      telefono: telefonoCompleto,
-      direccion: this.registerDireccion,
-      tipoPersona: this.registerTipoPersona,
-    });
-    const checkRegister = setInterval(() => {
-      if (this.authService.registerSuccess()) {
-        this.closeModals();
-        this.openLogin();
-        clearInterval(checkRegister);
-      }
-    }, 100);
-  }
+   doRegister() {
+     if (!this.registerUsername() || !this.registerEmail() || !this.registerPassword() || !this.registerNumeroDocumento() || !this.registerTelefono() || !this.registerDireccion() || !this.registerNombreCompleto()) {
+       this.registerError.set('Todos los campos son requeridos');
+       return;
+     }
+     if (!this.registerAceptaTerminos()) {
+       this.registerError.set('Debes aceptar los términos y condiciones');
+       return;
+     }
+     if (!this.registerMayorEdad()) {
+       this.registerError.set('Debes confirmar que eres mayor de edad');
+       return;
+     }
+     if (this.registerPassword() !== this.registerConfirmPassword()) {
+       this.registerError.set('Las contraseñas no coinciden');
+       return;
+     }
+
+     // Construir documento completo
+     let documentoCompleto = '';
+     const tipo = this.registerTipoDocumento();
+     const numero = this.registerNumeroDocumento();
+
+     switch (tipo) {
+       case 'cedula':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif':
+         documentoCompleto = this.registerTipoPersona() === 'juridica' ? 'J-' + numero : 'V-' + numero;
+         break;
+       case 'rif_personal_natural':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif_v':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif_e':
+         documentoCompleto = 'E-' + numero;
+         break;
+       case 'pasaporte':
+         documentoCompleto = numero;
+         break;
+       case 'extranjero':
+         documentoCompleto = 'E-' + numero;
+         break;
+       case 'gobierno':
+         documentoCompleto = 'G-' + numero;
+         break;
+       default:
+         documentoCompleto = numero;
+     }
+
+     const telefonoCompleto = this.registerTelefonoPrefijo() + '-' + this.registerTelefono();
+
+     this.authService.register(this.registerUsername(), this.registerEmail(), this.registerPassword(), {
+       rif: documentoCompleto,
+       telefono: telefonoCompleto,
+       direccion: this.registerDireccion(),
+       tipoPersona: this.registerTipoPersona(),
+       nombreCompleto: this.registerNombreCompleto(),
+       genero: this.registerGenero(),
+       tipoDocumento: this.registerTipoDocumento(),
+       numeroDocumento: this.registerNumeroDocumento(),
+     });
+     const checkRegister = setInterval(() => {
+       if (this.authService.registerSuccess()) {
+         this.closeModals();
+         this.openLogin();
+         clearInterval(checkRegister);
+       }
+     }, 100);
+   }
+     if (!this.registerAceptaTerminos) {
+       this.registerError.set('Debes aceptar los términos y condiciones');
+       return;
+     }
+     if (!this.registerMayorEdad) {
+       this.registerError.set('Debes confirmar que eres mayor de edad');
+       return;
+     }
+     if (this.registerPassword !== this.registerConfirmPassword) {
+       this.registerError.set('Las contraseñas no coinciden');
+       return;
+     }
+
+     // Construir documento completo
+     let documentoCompleto = '';
+     const tipo = this.registerTipoDocumento;
+     const numero = this.registerNumeroDocumento;
+
+     switch (tipo) {
+       case 'cedula':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif':
+         documentoCompleto = this.registerTipoPersona === 'juridica' ? 'J-' + numero : 'V-' + numero;
+         break;
+       case 'rif_personal_natural':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif_v':
+         documentoCompleto = 'V-' + numero;
+         break;
+       case 'rif_e':
+         documentoCompleto = 'E-' + numero;
+         break;
+       case 'pasaporte':
+         documentoCompleto = numero;
+         break;
+       case 'extranjero':
+         documentoCompleto = 'E-' + numero;
+         break;
+       case 'gobierno':
+         documentoCompleto = 'G-' + numero;
+         break;
+       default:
+         documentoCompleto = numero;
+     }
+
+     const telefonoCompleto = this.registerTelefonoPrefijo + '-' + this.registerTelefono;
+
+     this.authService.register(this.registerUsername, this.registerEmail, this.registerPassword, {
+       rif: documentoCompleto,
+       telefono: telefonoCompleto,
+       direccion: this.registerDireccion,
+       tipoPersona: this.registerTipoPersona,
+       nombreCompleto: this.registerNombreCompleto,
+       genero: this.registerGenero,
+       tipoDocumento: this.registerTipoDocumento,
+       numeroDocumento: this.registerNumeroDocumento,
+     });
+     const checkRegister = setInterval(() => {
+       if (this.authService.registerSuccess()) {
+         this.closeModals();
+         this.openLogin();
+         clearInterval(checkRegister);
+       }
+     }, 100);
+   }
 }

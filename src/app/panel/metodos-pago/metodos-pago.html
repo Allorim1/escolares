@@ -1,0 +1,110 @@
+<section class="metodos-container">
+  <div class="metodos-header">
+    <h3>Mis Métodos de Pago</h3>
+    @if (!editando()) {
+      <button class="btn-agregar" (click)="nuevoMetodo()">Agregar Método</button>
+    }
+  </div>
+
+  @if (metodos().length === 0) {
+    <div class="empty-state">
+      <p>No tienes métodos de pago guardados</p>
+      <button class="btn-agregar" (click)="nuevoMetodo()">Agregar primer método</button>
+    </div>
+  } @else {
+    <div class="metodos-list">
+      @for (metodo of metodos(); track metodo.id) {
+        <div class="metodo-item">
+          <div class="metodo-info">
+            <h4>{{ metodo.alias }}</h4>
+            <p class="metodo-details">{{ getTipoLabel(metodo.tipo) }}</p>
+            @if (metodo.titular) {
+              <p class="metodo-details">Titular: {{ metodo.titular }}</p>
+            }
+            @if (metodo.banco) {
+              <p class="metodo-details">Banco: {{ metodo.banco }}</p>
+            }
+            @if (metodo.telefono) {
+              <p class="metodo-details">Teléfono: {{ metodo.telefono }}</p>
+            }
+            @if (metodo.referencia) {
+              <p class="metodo-details">Referencia: {{ metodo.referencia }}</p>
+            }
+            @if (metodo.principal) {
+              <span class="tag principal">Principal</span>
+            }
+          </div>
+
+          <div class="metodo-actions">
+            @if (!editando()) {
+              <button class="btn-editar" (click)="editarMetodo(metodo)">Editar</button>
+              <button class="btn-eliminar" (click)="eliminarMetodo(metodo.id)">Eliminar</button>
+              <button class="btn-principal" [class.activo]="metodo.principal" (click)="establecerPrincipal(metodo.id)">
+                {{ metodo.principal ? 'Principal' : 'Hacer principal' }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (editando()) {
+    <div class="metodo-form">
+      <h4>{{ editandoId() ? 'Editar Método' : 'Nuevo Método de Pago' }}</h4>
+      <form (ngSubmit)="guardarMetodo()">
+        <div class="form-group">
+          <label>Alias</label>
+          <input type="text" [ngModel]="formAlias()" (ngModelChange)="formAlias.set($event)" name="alias" placeholder="Ej: Pago móvil personal" required />
+        </div>
+
+        <div class="form-group">
+          <label>Tipo</label>
+          <select [ngModel]="formTipo()" (ngModelChange)="formTipo.set($event)" name="tipo">
+            @for (tipo of tiposDisponibles; track tipo.value) {
+              <option [value]="tipo.value">{{ tipo.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Titular</label>
+          <input type="text" [ngModel]="formTitular()" (ngModelChange)="formTitular.set($event)" name="titular" />
+        </div>
+
+        <div class="form-group">
+          <label>Banco</label>
+          <input type="text" [ngModel]="formBanco()" (ngModelChange)="formBanco.set($event)" name="banco" />
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" [ngModel]="formTelefono()" (ngModelChange)="formTelefono.set($event)" name="telefono" />
+        </div>
+
+        <div class="form-group">
+          <label>Referencia habitual</label>
+          <input type="text" [ngModel]="formReferencia()" (ngModelChange)="formReferencia.set($event)" name="referencia" />
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [ngModel]="formPrincipal()" (ngModelChange)="formPrincipal.set($event)" name="principal" />
+            Establecer como método principal
+          </label>
+        </div>
+
+        @if (error()) {
+          <p class="form-error">{{ error() }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancelar" (click)="cancelarEdicion()">Cancelar</button>
+          <button type="submit" class="btn-guardar" [disabled]="guardando()">
+            {{ guardando() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</section>

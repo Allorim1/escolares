@@ -7,7 +7,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
-import { User, Direccion } from '../backend/models';
+import { User, Direccion, MetodoPago } from '../backend/models';
 import { OrdersBackend, OrderItem, OrderStatus } from '../backend/data-access/orders.backend';
 import { NotificationService } from '../shared/data-access/notification.service';
 import { CurrencyService } from '../shared/data-access/currency.service';
@@ -64,11 +64,13 @@ export default class CartComponent implements OnDestroy {
   showCheckoutModal = signal(false);
   checkoutStep = signal(1);
   shippingError = signal('');
+  paymentError = signal('');
   selectedAddressId = signal<string>('');
   selectedShippingRateId = signal<string>('rate-0');
   deliveryType = signal<DeliveryType>('express');
   scheduledFor = signal('');
   showAddAddress = signal(false);
+  selectedSavedPaymentId = signal('');
   newAddressNombre = '';
   newAddressDireccion = '';
   paymentData = signal<PaymentData>({
@@ -223,6 +225,11 @@ export default class CartComponent implements OnDestroy {
     return u?.direcciones || [];
   }
 
+  get userPaymentMethods(): MetodoPago[] {
+    const u = this.user;
+    return u?.metodosPago || [];
+  }
+
   paymentMethods = [
     { value: 'zelle', label: 'Zelle' },
     { value: 'efectivo', label: 'Efectivo' },
@@ -343,14 +350,18 @@ export default class CartComponent implements OnDestroy {
     const addresses = currentUser?.direcciones || [];
     const defaultAddress = addresses.length > 0 ? addresses[0] : null;
     
+    const paymentMethods = currentUser?.metodosPago || [];
+    const defaultPaymentMethod = paymentMethods.find((m) => m.principal) || paymentMethods[0];
+
     this.selectedAddressId.set(defaultAddress?.id || '');
+    this.selectedSavedPaymentId.set(defaultPaymentMethod?.id || '');
     this.paymentData.set({
       nombre: currentUser?.nombreCompleto || '',
       cedula: currentUser?.cedula || '',
       telefono: currentUser?.telefono || '',
       direccion: defaultAddress?.direccion || currentUser?.direccion || '',
-      metodoPago: 'zelle',
-      referencia: '',
+      metodoPago: defaultPaymentMethod?.tipo || 'zelle',
+      referencia: defaultPaymentMethod?.referencia || '',
       fotoComprobante: '',
     });
     this.showCheckoutModal.set(true);
@@ -369,6 +380,58 @@ export default class CartComponent implements OnDestroy {
     if (selected) {
       this.paymentData.update(p => ({ ...p, direccion: selected.direccion }));
     }
+  }
+
+  onSavedPaymentChange(paymentId: string) {
+    this.selectedSavedPaymentId.set(paymentId);
+    const selected = this.userPaymentMethods.find((m) => m.id === paymentId);
+    if (!selected) return;
+
+    this.paymentData.update((p) => ({
+      ...p,
+      metodoPago: selected.tipo,
+      referencia: selected.referencia || p.referencia,
+    }));
+    this.paymentError.set('');
+  }
+
+  guardarMetodoPagoActual() {
+    if (!this.authService.isLoggedIn()) {
+      alert('Debes iniciar sesión para guardar métodos de pago.');
+      return;
+    }
+
+    const data = this.paymentData();
+    const tipo = data.metodoPago as MetodoPago['tipo'];
+    if (tipo === 'pago_movil' || tipo === 'transferencia') {
+      alert('Para guardar Pago Móvil o Transferencia, usa "Mis métodos de pago" y completa banco/teléfono/titular.');
+      return;
+    }
+    if (tipo === 'zelle' && !data.referencia.trim()) {
+      alert('Para guardar Zelle debes indicar una referencia.');
+      return;
+    }
+    const existing = this.userPaymentMethods;
+    const alias = `Método ${existing.length + 1}`;
+    const nuevoMetodo: MetodoPago = {
+      id: Date.now().toString(),
+      alias,
+      tipo: data.metodoPago as MetodoPago['tipo'],
+      referencia: data.referencia || '',
+      principal: existing.length === 0,
+    };
+
+    this.authService.updateProfile({
+      metodosPago: [...existing, nuevoMetodo],
+    })?.subscribe({
+      next: () => {
+        this.selectedSavedPaymentId.set(nuevoMetodo.id);
+        alert('Método de pago guardado.');
+      },
+      error: () => {
+        alert('No se pudo guardar el método de pago.');
+      },
+    });
   }
 
   toggleAddAddress() {
@@ -450,6 +513,43 @@ export default class CartComponent implements OnDestroy {
     }
   }
 
+  private validarPagoCheckout(): boolean {
+    const data = this.paymentData();
+    const metodo = data.metodoPago;
+    const referencia = data.referencia.trim();
+    const tieneComprobante = !!data.fotoComprobante;
+
+    if (metodo === 'efectivo') {
+      this.paymentError.set('');
+      return true;
+    }
+
+    if (metodo === 'zelle') {
+      if (!referencia) {
+        this.paymentError.set('Para Zelle debes ingresar número de referencia.');
+        return false;
+      }
+      this.paymentError.set('');
+      return true;
+    }
+
+    if (metodo === 'pago_movil' || metodo === 'transferencia') {
+      if (!referencia) {
+        this.paymentError.set('Debes ingresar número de referencia para este método de pago.');
+        return false;
+      }
+      if (!tieneComprobante) {
+        this.paymentError.set('Debes adjuntar el comprobante para este método de pago.');
+        return false;
+      }
+      this.paymentError.set('');
+      return true;
+    }
+
+    this.paymentError.set('');
+    return true;
+  }
+
   guardarOrdenTemporal() {
     if (!this.authService.isLoggedIn()) {
       alert('Debes iniciar sesión para continuar');
@@ -497,6 +597,7 @@ export default class CartComponent implements OnDestroy {
 
   confirmarPedido() {
     if (!this.currentOrderId()) return;
+    if (!this.validarPagoCheckout()) return;
 
     const items: OrderItem[] = this.state().products.map(item => ({
       productId: item.product.id,
@@ -577,6 +678,7 @@ export default class CartComponent implements OnDestroy {
   }
 
   placeOrder() {
+    if (!this.validarPagoCheckout()) return;
     const items: OrderItem[] = this.state().products.map(item => ({
       productId: item.product.id,
       title: item.product.title,

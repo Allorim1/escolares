@@ -1,0 +1,164 @@
+.metodos-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.metodos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.btn-agregar {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
+.metodos-list {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.metodo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.metodo-item:last-child {
+  border-bottom: none;
+}
+
+.metodo-details {
+  margin: 6px 0;
+  color: #555;
+}
+
+.metodo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-editar,
+.btn-eliminar,
+.btn-principal {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-editar {
+  background: #ffc107;
+}
+
+.btn-eliminar {
+  background: #dc3545;
+  color: #fff;
+}
+
+.btn-principal {
+  background: #17a2b8;
+  color: #fff;
+}
+
+.btn-principal.activo {
+  background: #6c757d;
+}
+
+.tag.principal {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #28a745;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.metodo-form {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  margin-top: 20px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #495057;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-group input[type='checkbox'] {
+  width: auto;
+  margin-right: 8px;
+}
+
+.form-error {
+  color: #c62828;
+  font-size: 0.9rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-cancelar,
+.btn-guardar {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-cancelar {
+  background: #6c757d;
+  color: #fff;
+}
+
+.btn-guardar {
+  background: #28a745;
+  color: #fff;
+}

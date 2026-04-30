@@ -31,6 +31,7 @@ export interface User {
   cedula?: string;
   tipoPersona?: 'natural' | 'juridica';
   direcciones?: Direccion[];
+  metodosPago?: MetodoPago[];
   supervisorKey?: string;
   comentarios?: string;
 }
@@ -44,5 +45,16 @@ export interface Direccion {
   ciudad?: string;
   estado?: string;
   codigoPostal?: string;
+  principal?: boolean;
+}
+
+export interface MetodoPago {
+  id: string;
+  alias: string;
+  tipo: 'zelle' | 'efectivo' | 'transferencia' | 'pago_movil';
+  titular?: string;
+  referencia?: string;
+  banco?: string;
+  telefono?: string;
   principal?: boolean;
 }

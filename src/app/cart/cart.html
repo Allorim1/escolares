@@ -224,6 +224,18 @@
                 <h4>Método de Pago</h4>
 
                 <div class="form-group">
+                  @if (userPaymentMethods.length > 0) {
+                    <label>Método guardado</label>
+                    <select [ngModel]="selectedSavedPaymentId()" (ngModelChange)="onSavedPaymentChange($event)" name="metodoGuardado">
+                      <option value="">Selecciona un método guardado</option>
+                      @for (saved of userPaymentMethods; track saved.id) {
+                        <option [value]="saved.id">{{ saved.alias }} - {{ saved.tipo }}</option>
+                      }
+                    </select>
+                  }
+                </div>
+
+                <div class="form-group">
                   <select [(ngModel)]="paymentData().metodoPago" name="metodoPago">
                     @for (method of paymentMethods; track method.value) {
                       <option [value]="method.value">{{ method.label }}</option>
@@ -245,6 +257,16 @@
                   <label>Número de referencia</label>
                   <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Últimos 4 dígitos o número de referencia" />
                 </div>
+
+                <div class="form-group">
+                  <button type="button" class="btn-secondary" (click)="guardarMetodoPagoActual()">
+                    Guardar este método de pago
+                  </button>
+                </div>
+
+                @if (paymentError()) {
+                  <div class="error-message">{{ paymentError() }}</div>
+                }
 
                 @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia') {
                   <div class="form-group">

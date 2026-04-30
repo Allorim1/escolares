@@ -231,12 +231,11 @@ export default class CartComponent implements OnDestroy {
   ];
 
   shippingRates: ShippingRate[] = [
-    { id: 'rate-0', label: 'Propia - Ref 0.00', ref: 0.0 },
-    { id: 'rate-05', label: 'Propia - Ref 0.50', ref: 0.5 },
-    { id: 'rate-10-a', label: 'Propia - Ref 1.00 (Zona A)', ref: 1.0 },
-    { id: 'rate-10-b', label: 'Propia - Ref 1.00 (Zona B)', ref: 1.0 },
-    { id: 'rate-15', label: 'Propia - Ref 1.50', ref: 1.5 },
-    { id: 'rate-20', label: 'Propia - Ref 2.00', ref: 2.0 },
+    { id: 'rate-0', label: 'Propina - Ref 0.00', ref: 0.0 },
+    { id: 'rate-05', label: 'Propina - Ref 0.50', ref: 0.5 },
+    { id: 'rate-10-a', label: 'Propina - Ref 1.00', ref: 1.0 },
+    { id: 'rate-15', label: 'Propina - Ref 1.50', ref: 1.5 },
+    { id: 'rate-20', label: 'Propina - Ref 2.00', ref: 2.0 },
   ];
 
   price = () => {

@@ -13,11 +13,11 @@
     </div>
   } @else {
     <div class="direcciones-list">
-      @for (dir of direcciones(); track dir.id) {
+      @for (dir of direcciones(); track dir.id; let i = $index) {
         <div class="direccion-item">
           <div class="direccion-info">
-            <h4>{{ dir.alias || 'Dirección ' + (dir.id + 1) }}</h4>
-            <p class="direccion-text">{{ dir.direccion }}</p>
+            <h4>{{ getTituloDireccion(dir, i) }}</h4>
+            <p class="direccion-text">{{ dir.calle }}</p>
             <p class="direccion-details">
               {{ dir.ciudad }}, {{ dir.estado }} {{ dir.codigoPostal }}
             </p>
@@ -36,83 +36,110 @@
             }
           </div>
         </div>
-        @if (!editando() && editandoIndex() === dir.id) {
-          <div class="direccion-form">
-            <h4>Editar Dirección</h4>
-            <form (ngSubmit)="actualizarDireccion()">
-              <div class="form-group">
-                <label>Alias:</label>
-                <input type="text" [(ngModel)]="editAlias" placeholder="Ej: Casa, Trabajo, etc." />
-              </div>
-              <div class="form-group">
-                <label>Dirección:</label>
-                <input type="text" [(ngModel)]="editDireccion" placeholder="Calle, número, apartamento" required />
-              </div>
-              <div class="form-group">
-                <label>Ciudad:</label>
-                <input type="text" [(ngModel)]="editCiudad" placeholder="Ciudad" required />
-              </div>
-              <div class="form-group">
-                <label>Estado:</label>
-                <input type="text" [(ngModel)]="editEstado" placeholder="Estado" required />
-              </div>
-              <div class="form-group">
-                <label>Código Postal:</label>
-                <input type="text" [(ngModel)]="editCodigoPostal" placeholder="00000" required />
-              </div>
-              <div class="form-group">
-                <label>
-                  <input type="checkbox" [(ngModel)]="editPrincipal" />
-                  Establecer como dirección principal
-                </label>
-              </div>
-              <div class="form-actions">
-                <button type="button" class="btn-cancelar" (click)="cancelarEdicion()">Cancelar</button>
-                <button type="submit" class="btn-guardar" [disabled]="guardando()">
-                  {{ guardando() ? 'Guardando...' : 'Guardar Cambios' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        }
       }
     </div>
   }
 
-  @if (editando() && editandoIndex() === -1) {
+  @if (editando()) {
     <div class="direccion-form">
-      <h4>Nueva Dirección</h4>
-      <form (ngSubmit)="crearDireccion()">
+      <h4>{{ editandoId() ? 'Editar Dirección' : 'Nueva Dirección' }}</h4>
+      <form (ngSubmit)="guardarDireccion()">
         <div class="form-group">
           <label>Alias:</label>
-          <input type="text" [(ngModel)]="nuevoAlias" placeholder="Ej: Casa, Trabajo, etc." />
+          <input
+            type="text"
+            [ngModel]="formAlias()"
+            (ngModelChange)="formAlias.set($event)"
+            name="alias"
+            placeholder="Ej: Casa, Trabajo"
+            list="alias-sugerencias"
+            required
+          />
+          <datalist id="alias-sugerencias">
+            @for (op of aliasSugerencias(); track op) {
+              <option [value]="op"></option>
+            }
+          </datalist>
         </div>
         <div class="form-group">
-          <label>Dirección:</label>
-          <input type="text" [(ngModel)]="nuevaDireccionTexto" placeholder="Calle, número, apartamento" required />
+          <label>Calle:</label>
+          <input
+            type="text"
+            [ngModel]="formCalle()"
+            (ngModelChange)="formCalle.set($event)"
+            name="calle"
+            placeholder="Calle, número, urbanización"
+            list="calle-sugerencias"
+            required
+          />
+          <datalist id="calle-sugerencias">
+            @for (op of calleSugerencias(); track op) {
+              <option [value]="op"></option>
+            }
+          </datalist>
         </div>
         <div class="form-group">
           <label>Ciudad:</label>
-          <input type="text" [(ngModel)]="nuevaCiudad" placeholder="Ciudad" required />
+          <input
+            type="text"
+            [ngModel]="formCiudad()"
+            (ngModelChange)="formCiudad.set($event)"
+            name="ciudad"
+            placeholder="Ciudad"
+            list="ciudad-sugerencias"
+            required
+          />
+          <datalist id="ciudad-sugerencias">
+            @for (op of ciudadSugerencias(); track op) {
+              <option [value]="op"></option>
+            }
+          </datalist>
         </div>
         <div class="form-group">
           <label>Estado:</label>
-          <input type="text" [(ngModel)]="nuevoEstado" placeholder="Estado" required />
+          <input
+            type="text"
+            [ngModel]="formEstado()"
+            (ngModelChange)="formEstado.set($event)"
+            name="estado"
+            placeholder="Estado"
+            list="estado-sugerencias"
+            required
+          />
+          <datalist id="estado-sugerencias">
+            @for (op of estadoSugerencias(); track op) {
+              <option [value]="op"></option>
+            }
+          </datalist>
         </div>
         <div class="form-group">
           <label>Código Postal:</label>
-          <input type="text" [(ngModel)]="nuevoCodigoPostal" placeholder="00000" required />
+          <input
+            type="text"
+            [ngModel]="formCodigoPostal()"
+            (ngModelChange)="formCodigoPostal.set($event)"
+            name="codigoPostal"
+            placeholder="Opcional"
+          />
         </div>
         <div class="form-group">
           <label>
-            <input type="checkbox" [(ngModel)]="nuevoPrincipal" />
+            <input
+              type="checkbox"
+              [ngModel]="formPrincipal()"
+              (ngModelChange)="formPrincipal.set($event)"
+              name="principal"
+            />
             Establecer como dirección principal
           </label>
         </div>
+        @if (error()) {
+          <p class="form-error">{{ error() }}</p>
+        }
         <div class="form-actions">
-          <button type="button" class="btn-cancelar" (click)="cancelarNuevaDireccion()">Cancelar</button>
+          <button type="button" class="btn-cancelar" (click)="cancelarEdicion()">Cancelar</button>
           <button type="submit" class="btn-guardar" [disabled]="guardando()">
-            {{ guardando() ? 'Guardando...' : 'Guardar Dirección' }}
+            {{ guardando() ? 'Guardando...' : (editandoId() ? 'Guardar Cambios' : 'Guardar Dirección') }}
           </button>
         </div>
       </form>

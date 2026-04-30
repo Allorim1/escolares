@@ -203,6 +203,12 @@
   margin-top: 20px;
 }
 
+.form-error {
+  color: #c62828;
+  font-size: 0.9rem;
+  margin: 6px 0 0;
+}
+
 .btn-cancelar, .btn-guardar {
   border: none;
   padding: 10px 20px;

@@ -149,7 +149,7 @@
                 </div>
 
                 <div class="form-group">
-                  <label>Tarifa de envío (Propia)</label>
+                  <label>Tarifa de envío (Propina)</label>
                   <select [ngModel]="selectedShippingRateId()" (ngModelChange)="selectedShippingRateId.set($event)" name="shippingRate">
                     @for (rate of shippingRates; track rate.id) {
                       <option [value]="rate.id">{{ rate.label }}</option>

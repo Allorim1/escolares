@@ -59,9 +59,9 @@ export default class Pedidos implements OnInit {
     return this.statusSteps.findIndex(s => s.status === status);
   }
 
-  selectOrder(order: Order) {
-    this.selectedOrder.set(order);
-  }
+   selectOrder(order: Order) {
+     this.selectedOrder.set(order);
+   }
 
   closeDetail() {
     this.selectedOrder.set(null);

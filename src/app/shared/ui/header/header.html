@@ -120,7 +120,7 @@
 </header>
 
 @if (showLoginModal() || showRegisterModal()) {
-  <div class="modal-overlay" (click)="closeModals()">
+  <div class="modal-overlay">
     <div class="auth-modal" (click)="$event.stopPropagation()">
       <button class="modal-close" (click)="closeModals()">&times;</button>
       
@@ -180,6 +180,26 @@
                  [(ngModel)]="registerUsername" 
                  name="username" 
                  placeholder="Elige un usuario"
+                 required
+               />
+             </div>
+             <div class="form-group">
+               <label>Contraseña</label>
+               <input 
+                 type="password" 
+                 [(ngModel)]="registerPassword" 
+                 name="password" 
+                 placeholder="Mínimo 6 caracteres"
+                 required
+               />
+             </div>
+             <div class="form-group">
+               <label>Confirmar Contraseña</label>
+               <input 
+                 type="password" 
+                 [(ngModel)]="registerConfirmPassword" 
+                 name="confirmPassword" 
+                 placeholder="Repite tu contraseña"
                  required
                />
              </div>
@@ -303,47 +323,30 @@
                  required
                ></textarea>
              </div>
-             <div class="form-group checkbox-group">
-               <label class="checkbox-label">
-                 <input
-                   type="checkbox"
-                   [(ngModel)]="registerAceptaTerminos"
-                   name="registerAceptaTerminos"
-                   required
-                 />
-                 <span>Acepto los <a href="/terminos" target="_blank">términos y condiciones</a> y la <a href="/privacidad" target="_blank">política de privacidad</a></span>
-               </label>
-             </div>
-             <div class="form-group checkbox-group">
-               <label class="checkbox-label">
-                 <input
-                   type="checkbox"
-                   [(ngModel)]="registerMayorEdad"
-                   name="registerMayorEdad"
-                   required
-                 />
-                 <span>Soy mayor de edad (18 años o más)</span>
-               </label>
-             </div>
-             <div class="form-group">
-               <label>Contraseña</label>
-               <input 
-                 type="password" 
-                 [(ngModel)]="registerPassword" 
-                 name="password" 
-                 placeholder="Mínimo 6 caracteres"
-                 required
-               />
-             </div>
-             <div class="form-group">
-               <label>Confirmar Contraseña</label>
-               <input 
-                 type="password" 
-                 [(ngModel)]="registerConfirmPassword" 
-                 name="confirmPassword" 
-                 placeholder="Repite tu contraseña"
-                 required
-               />
+             <div class="consent-section">
+               <p class="consent-title">Confirmaciones finales</p>
+               <div class="form-group checkbox-group">
+                 <label class="checkbox-label">
+                   <input
+                     type="checkbox"
+                     [(ngModel)]="registerMayorEdad"
+                     name="registerMayorEdad"
+                     required
+                   />
+                   <span>Soy mayor de edad (18 años o más)</span>
+                 </label>
+               </div>
+               <div class="form-group checkbox-group">
+                 <label class="checkbox-label">
+                   <input
+                     type="checkbox"
+                     [(ngModel)]="registerAceptaTerminos"
+                     name="registerAceptaTerminos"
+                     required
+                   />
+                   <span>Acepto los <a href="/terminos" target="_blank">términos y condiciones</a> y la <a href="/privacidad" target="_blank">política de privacidad</a></span>
+                 </label>
+               </div>
              </div>
              <button type="submit" class="submit-btn" [disabled]="!formComplete()">
                Crear Cuenta

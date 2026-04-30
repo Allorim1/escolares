@@ -79,14 +79,22 @@
             <div class="summary-items">
               @for (item of state().products; track item) {
                 <div class="summary-item">
-                  <span>{{ item.quantity }}x {{ item.product.title }}</span>
-                  <span [innerHTML]="formatPrice(item.product.price * item.quantity)"></span>
+                  <img [src]="item.product.image" [alt]="item.product.title" class="summary-item-image" />
+                  <div class="summary-item-main">
+                    <span class="summary-item-title">{{ item.product.title }}</span>
+                    <span class="summary-item-qty">{{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span></span>
+                  </div>
+                  <span class="summary-item-price" [innerHTML]="formatPrice(item.product.price * item.quantity)"></span>
                 </div>
               }
             </div>
+            <div class="summary-shipping">
+              <span>Tarifa de envío ({{ getSelectedShippingRate().label }}):</span>
+              <span [innerHTML]="formatPrice(shippingCost())"></span>
+            </div>
             <div class="summary-total">
-              <span>Total:</span>
-              <span [innerHTML]="formatPrice(price())"></span>
+              <span>Total con envío:</span>
+              <span [innerHTML]="formatPrice(totalWithShipping())"></span>
             </div>
           </div>
 
@@ -139,6 +147,56 @@
                     {{ showAddAddress() ? 'Cancelar' : '+ Agregar otra dirección' }}
                   </button>
                 </div>
+
+                <div class="form-group">
+                  <label>Tarifa de envío (Propia)</label>
+                  <select [ngModel]="selectedShippingRateId()" (ngModelChange)="selectedShippingRateId.set($event)" name="shippingRate">
+                    @for (rate of shippingRates; track rate.id) {
+                      <option [value]="rate.id">{{ rate.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Tipo de entrega</label>
+                  <div class="delivery-type-options">
+                    <button
+                      type="button"
+                      class="delivery-type-btn"
+                      [class.active]="deliveryType() === 'express'"
+                      (click)="setDeliveryType('express')"
+                    >
+                      Express
+                    </button>
+                    <button
+                      type="button"
+                      class="delivery-type-btn"
+                      [class.active]="deliveryType() === 'programado'"
+                      (click)="setDeliveryType('programado')"
+                    >
+                      Programar tu pedido
+                    </button>
+                  </div>
+                </div>
+
+                @if (deliveryType() === 'programado') {
+                  <div class="form-group">
+                    <label>Fecha y hora programada</label>
+                    <input
+                      type="datetime-local"
+                      [ngModel]="scheduledFor()"
+                      (ngModelChange)="scheduledFor.set($event)"
+                      [min]="getMinScheduleDateTime()"
+                      [max]="getMaxScheduleDateTime()"
+                      name="scheduledFor"
+                    />
+                    <small class="schedule-hint">Solo puedes programar hasta 3 días después del momento de compra.</small>
+                  </div>
+                }
+
+                @if (shippingError()) {
+                  <div class="error-message">{{ shippingError() }}</div>
+                }
 
                 @if (showAddAddress()) {
                   <div class="new-address-form">

@@ -5,7 +5,7 @@ import { AuthService } from '../../data-access/auth.service';
 import { ProductsService } from '../../../products/data-access/products.service';
 import { CartStateService } from '../../data-access/cart-state.service';
 import { CurrencyService } from '../../data-access/currency.service';
-import { Product } from '../../../shared/interfaces/product.interface';
+import { Product, ProductItemCart } from '../../../shared/interfaces/product.interface';
 
 @Component({
   selector: 'app-header',
@@ -19,8 +19,12 @@ export class Header {
   private productsService = inject(ProductsService);
   private cartState = inject(CartStateService);
   currencyService = inject(CurrencyService);
+  cartPreviewOpen = signal(false);
 
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
+  cartPreviewItems = () => this.cartState.state().products.slice(0, 4);
+  cartPreviewTotal = () =>
+    this.cartState.state().products.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   constructor() {
     this.productsService.getProducts().subscribe((products) => {
@@ -88,6 +92,22 @@ export class Header {
 
   formatPrice(priceInUsd: number): string {
     return this.currencyService.formatPrice(priceInUsd);
+  }
+
+  openCartPreview() {
+    this.cartPreviewOpen.set(true);
+  }
+
+  closeCartPreview() {
+    this.cartPreviewOpen.set(false);
+  }
+
+  hasMoreCartItems(): boolean {
+    return this.cartState.state().products.length > this.cartPreviewItems().length;
+  }
+
+  getCartItemTotal(item: ProductItemCart): number {
+    return item.product.price * item.quantity;
   }
 
   searchQuery = '';

@@ -46,6 +46,10 @@ export interface CreateOrderData {
   referencia: string;
   fotoComprobante?: string;
   status?: OrderStatus;
+  deliveryType?: 'express' | 'programado';
+  scheduledFor?: string;
+  shippingRef?: number;
+  shippingLabel?: string;
 }
 
 @Injectable({

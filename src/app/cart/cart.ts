@@ -25,6 +25,14 @@ interface PaymentData {
   fotoComprobante: string;
 }
 
+type DeliveryType = 'express' | 'programado';
+
+interface ShippingRate {
+  id: string;
+  label: string;
+  ref: number;
+}
+
 const PAGO_MOVIL_INFO = {
   banco: 'Banesco',
   titular: 'Escolares C.A',
@@ -55,7 +63,11 @@ export default class CartComponent implements OnDestroy {
 
   showCheckoutModal = signal(false);
   checkoutStep = signal(1);
+  shippingError = signal('');
   selectedAddressId = signal<string>('');
+  selectedShippingRateId = signal<string>('rate-0');
+  deliveryType = signal<DeliveryType>('express');
+  scheduledFor = signal('');
   showAddAddress = signal(false);
   newAddressNombre = '';
   newAddressDireccion = '';
@@ -218,10 +230,90 @@ export default class CartComponent implements OnDestroy {
     { value: 'pago_movil', label: 'Pago Móvil' },
   ];
 
+  shippingRates: ShippingRate[] = [
+    { id: 'rate-0', label: 'Propia - Ref 0.00', ref: 0.0 },
+    { id: 'rate-05', label: 'Propia - Ref 0.50', ref: 0.5 },
+    { id: 'rate-10-a', label: 'Propia - Ref 1.00 (Zona A)', ref: 1.0 },
+    { id: 'rate-10-b', label: 'Propia - Ref 1.00 (Zona B)', ref: 1.0 },
+    { id: 'rate-15', label: 'Propia - Ref 1.50', ref: 1.5 },
+    { id: 'rate-20', label: 'Propia - Ref 2.00', ref: 2.0 },
+  ];
+
   price = () => {
     const products = this.state().products;
     return products.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   };
+
+  shippingCost = () => this.getSelectedShippingRate().ref;
+
+  totalWithShipping = () => this.price() + this.shippingCost();
+
+  getSelectedShippingRate(): ShippingRate {
+    return this.shippingRates.find((rate) => rate.id === this.selectedShippingRateId()) || this.shippingRates[0];
+  }
+
+  setDeliveryType(type: DeliveryType) {
+    this.deliveryType.set(type);
+    if (type === 'express') {
+      this.scheduledFor.set('');
+      this.shippingError.set('');
+    }
+  }
+
+  getMinScheduleDateTime(): string {
+    return this.formatDateTimeLocal(new Date());
+  }
+
+  getMaxScheduleDateTime(): string {
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 3);
+    return this.formatDateTimeLocal(maxDate);
+  }
+
+  private formatDateTimeLocal(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  private validateShippingStep(): boolean {
+    if (this.deliveryType() !== 'programado') {
+      this.shippingError.set('');
+      return true;
+    }
+
+    const scheduled = this.scheduledFor();
+    if (!scheduled) {
+      this.shippingError.set('Debes seleccionar fecha y hora para programar el pedido.');
+      return false;
+    }
+
+    const selectedDate = new Date(scheduled);
+    if (Number.isNaN(selectedDate.getTime())) {
+      this.shippingError.set('La fecha programada no es válida.');
+      return false;
+    }
+
+    const now = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 3);
+
+    if (selectedDate < now) {
+      this.shippingError.set('La fecha programada no puede ser anterior al momento actual.');
+      return false;
+    }
+
+    if (selectedDate > maxDate) {
+      this.shippingError.set('Solo puedes programar el pedido hasta 3 días después de la compra.');
+      return false;
+    }
+
+    this.shippingError.set('');
+    return true;
+  }
 
   onRemove(id: number | string) {
     this.state.remove(id);
@@ -264,6 +356,10 @@ export default class CartComponent implements OnDestroy {
     });
     this.showCheckoutModal.set(true);
     this.checkoutStep.set(1);
+    this.shippingError.set('');
+    this.selectedShippingRateId.set('rate-0');
+    this.deliveryType.set('express');
+    this.scheduledFor.set('');
     this.currentOrderId.set('');
   }
 
@@ -343,6 +439,10 @@ export default class CartComponent implements OnDestroy {
   }
 
   nextStep() {
+    if (this.checkoutStep() === 2 && !this.validateShippingStep()) {
+      return;
+    }
+
     if (this.checkoutStep() < 3) {
       this.checkoutStep.update(s => s + 1);
       if (this.checkoutStep() === 3) {
@@ -367,7 +467,7 @@ export default class CartComponent implements OnDestroy {
 
     const orderData = {
       items,
-      total: this.price(),
+      total: this.totalWithShipping(),
       nombre: this.paymentData().nombre,
       cedula: this.paymentData().cedula,
       telefono: this.paymentData().telefono,
@@ -376,6 +476,10 @@ export default class CartComponent implements OnDestroy {
       referencia: this.paymentData().referencia,
       fotoComprobante: this.paymentData().fotoComprobante,
       status: 'confirmar' as OrderStatus,
+      deliveryType: this.deliveryType(),
+      scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
+      shippingRef: this.shippingCost(),
+      shippingLabel: this.getSelectedShippingRate().label,
     };
 
     this.ordersBackend.createOrder(orderData).subscribe({
@@ -405,7 +509,7 @@ export default class CartComponent implements OnDestroy {
 
     const orderData = {
       items,
-      total: this.price(),
+      total: this.totalWithShipping(),
       nombre: this.paymentData().nombre,
       cedula: this.paymentData().cedula,
       telefono: this.paymentData().telefono,
@@ -414,6 +518,10 @@ export default class CartComponent implements OnDestroy {
       referencia: this.paymentData().referencia,
       fotoComprobante: this.paymentData().fotoComprobante,
       status: 'pendiente' as OrderStatus,
+      deliveryType: this.deliveryType(),
+      scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
+      shippingRef: this.shippingCost(),
+      shippingLabel: this.getSelectedShippingRate().label,
     };
 
     this.ordersBackend.createOrder(orderData).subscribe({
@@ -480,7 +588,7 @@ export default class CartComponent implements OnDestroy {
 
     const orderData = {
       items,
-      total: this.price(),
+      total: this.totalWithShipping(),
       nombre: this.paymentData().nombre,
       cedula: this.paymentData().cedula,
       telefono: this.paymentData().telefono,
@@ -488,6 +596,10 @@ export default class CartComponent implements OnDestroy {
       metodoPago: this.paymentData().metodoPago,
       referencia: this.paymentData().referencia,
       fotoComprobante: this.paymentData().fotoComprobante,
+      deliveryType: this.deliveryType(),
+      scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
+      shippingRef: this.shippingCost(),
+      shippingLabel: this.getSelectedShippingRate().label,
     };
 
     this.ordersBackend.createOrder(orderData).subscribe({

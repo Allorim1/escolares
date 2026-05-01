@@ -253,10 +253,12 @@
                   </div>
                 }
 
-                <div class="form-group">
-                  <label>Número de referencia</label>
-                  <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Últimos 4 dígitos o número de referencia" />
-                </div>
+                @if (paymentData().metodoPago !== 'efectivo') {
+                  <div class="form-group">
+                    <label>Número de referencia</label>
+                    <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Últimos 4 dígitos o número de referencia" />
+                  </div>
+                }
 
                 <div class="form-group">
                   <button type="button" class="btn-secondary" (click)="guardarMetodoPagoActual()">

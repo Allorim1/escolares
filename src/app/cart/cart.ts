@@ -78,7 +78,7 @@ export default class CartComponent implements OnDestroy {
     cedula: '',
     telefono: '',
     direccion: '',
-    metodoPago: 'zelle',
+    metodoPago: 'pago_movil',
     referencia: '',
     fotoComprobante: '',
   });
@@ -231,10 +231,10 @@ export default class CartComponent implements OnDestroy {
   }
 
   paymentMethods = [
+    { value: 'pago_movil', label: 'Pago Móvil' },
     { value: 'zelle', label: 'Zelle' },
     { value: 'efectivo', label: 'Efectivo' },
     { value: 'transferencia', label: 'Transferencia' },
-    { value: 'pago_movil', label: 'Pago Móvil' },
   ];
 
   shippingRates: ShippingRate[] = [
@@ -360,7 +360,7 @@ export default class CartComponent implements OnDestroy {
       cedula: currentUser?.cedula || '',
       telefono: currentUser?.telefono || '',
       direccion: defaultAddress?.direccion || currentUser?.direccion || '',
-      metodoPago: defaultPaymentMethod?.tipo || 'zelle',
+      metodoPago: defaultPaymentMethod?.tipo || 'pago_movil',
       referencia: defaultPaymentMethod?.referencia || '',
       fotoComprobante: '',
     });
@@ -493,7 +493,7 @@ export default class CartComponent implements OnDestroy {
         cedula: '',
         telefono: '',
         direccion: '',
-        metodoPago: 'zelle',
+        metodoPago: 'pago_movil',
         referencia: '',
         fotoComprobante: '',
       });

@@ -19,6 +19,8 @@ export class Perfil {
   direccion = signal('');
   telefono = signal('');
   cedula = signal('');
+  tipoPersona = signal<'natural' | 'juridica'>('natural');
+  comentarios = signal('');
   supervisorKey = signal('');
   showSupervisorKey = signal(false);
   isAdmin = signal(false);
@@ -34,6 +36,8 @@ export class Perfil {
       this.direccion.set(user.direccion || '');
       this.telefono.set(user.telefono || '');
       this.cedula.set(user.cedula || '');
+      this.tipoPersona.set(user.tipoPersona || 'natural');
+      this.comentarios.set(user.comentarios || '');
       this.supervisorKey.set(user.supervisorKey || '');
       // Determinar si el usuario tiene permisos de admin (basado en roles o permisos)
       this.isAdmin.set(this.tienePermisosAdmin(user));
@@ -91,6 +95,8 @@ export class Perfil {
       direccion: this.direccion(),
       telefono: this.telefono(),
       cedula: this.cedula(),
+      tipoPersona: this.tipoPersona(),
+      comentarios: this.comentarios(),
       supervisorKey: this.supervisorKey(),
     })?.subscribe({
       next: (user) => {

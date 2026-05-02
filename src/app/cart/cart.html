@@ -253,6 +253,16 @@
                   </div>
                 }
 
+                @if (paymentData().metodoPago === 'transferencia') {
+                  <div class="pago-movil-info">
+                    <div class="info-title">Datos para Transferencia:</div>
+                    <div class="info-row"><span>Banco:</span> <strong>{{ getTransferenciaInfo().banco }}</strong></div>
+                    <div class="info-row"><span>Titular:</span> <strong>{{ getTransferenciaInfo().titular }}</strong></div>
+                    <div class="info-row"><span>RIF:</span> <strong>{{ getTransferenciaInfo().rif }}</strong></div>
+                    <div class="info-row"><span>Número de cuenta:</span> <strong>{{ getTransferenciaInfo().numero_cuenta }}</strong></div>
+                  </div>
+                }
+
                 @if (paymentData().metodoPago !== 'efectivo') {
                   <div class="form-group">
                     <label>Número de referencia</label>

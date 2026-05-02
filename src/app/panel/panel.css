@@ -39,6 +39,25 @@
   color: #333;
 }
 
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.panel-header h2 {
+  margin: 0;
+}
+
+.shop-btn {
+  background-color: #28a745;
+}
+
+.shop-btn:hover {
+  background-color: #218838;
+}
+
 .panel-home {
   display: inline-block;
   margin-top: 2rem;

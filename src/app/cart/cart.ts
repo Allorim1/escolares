@@ -40,6 +40,13 @@ const PAGO_MOVIL_INFO = {
   telefono: '0414-4000800',
 };
 
+const TRANSFERENCIA_INFO = {
+  banco: 'Banesco',
+  titular: 'Escolares C.A',
+  rif: 'J-304883676',
+  numero_cuenta: '0134-0187-08-1871037067',
+};
+
 @Component({
   selector: 'app-cart',
   standalone: true,
@@ -102,6 +109,11 @@ export default class CartComponent implements OnDestroy {
   getPagoMovilInfo() {
     return PAGO_MOVIL_INFO;
   }
+
+  getTransferenciaInfo() {
+    return TRANSFERENCIA_INFO;
+  }
+
 
   abrirQRModal() {
     this.qrLoading.set(true);

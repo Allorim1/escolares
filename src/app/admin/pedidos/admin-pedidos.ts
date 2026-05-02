@@ -36,6 +36,8 @@ interface Order {
   historial: OrderHistorial[];
   autorizadoPor?: string;
   autorizadoNombre?: string;
+  deliveryPersonId?: string;
+  deliveryPersonName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -89,6 +91,12 @@ export class AdminPedidos implements OnInit, OnDestroy {
   dragActive = signal(false);
   facturaFile = signal<File | null>(null);
   facturaPreview = signal<string | null>(null);
+
+  // Modal de asignar repartidor
+  showAssignDeliveryModal = signal(false);
+  deliveryPersonName = signal('');
+  assignDeliveryError = signal('');
+  isAssigningDelivery = signal(false);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -526,6 +534,50 @@ export class AdminPedidos implements OnInit, OnDestroy {
         }
       });
     }
+
+  // --- Asignar repartidor ---
+  openAssignDeliveryModal() {
+    this.showAssignDeliveryModal.set(true);
+    this.deliveryPersonName.set(this.selectedOrder()?.deliveryPersonName || '');
+    this.assignDeliveryError.set('');
+  }
+
+  closeAssignDeliveryModal() {
+    this.showAssignDeliveryModal.set(false);
+  }
+
+  assignDeliveryPerson() {
+    const order = this.selectedOrder();
+    const deliveryPersonName = this.deliveryPersonName().trim();
+
+    if (!deliveryPersonName) {
+      this.assignDeliveryError.set('Por favor ingresa el nombre del repartidor');
+      return;
+    }
+    if (!order) return;
+
+    this.isAssigningDelivery.set(true);
+    this.assignDeliveryError.set('');
+
+    this.http.put<any>(`/api/orders/${order.id}/assign-delivery`, {
+      deliveryPersonId: 'manual', // por ahora usamos un ID fijo, luego podemos implementar selección de repartidores
+      deliveryPersonName
+    }).subscribe({
+      next: (updatedOrder) => {
+        this.isAssigningDelivery.set(false);
+        this.closeAssignDeliveryModal();
+        this.loadOrders();
+        if (this.selectedOrder()?.id === order.id) {
+          this.selectedOrder.set(updatedOrder);
+        }
+        alert('Repartidor asignado correctamente');
+      },
+      error: (err: any) => {
+        this.isAssigningDelivery.set(false);
+        this.assignDeliveryError.set(err.error?.error || 'Error al asignar repartidor');
+      }
+    });
+  }
 }
 
 interface OrderHistorial {

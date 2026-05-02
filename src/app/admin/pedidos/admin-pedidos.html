@@ -36,12 +36,19 @@
         <div class="pedido-card" (click)="selectOrder(order)">
           <div class="pedido-header">
             <span class="pedido-id">#{{ order.id.slice(-8) }}</span>
-            <span 
-              class="pedido-status" 
-              [style.background-color]="statusColors[order.status] || '#6c757d'"
-            >
-              {{ getStatusLabel(order.status) }}
-            </span>
+            <div class="pedido-header-right">
+              @if (order.deliveryPersonName) {
+                <span class="delivery-badge" title="Repartidor asignado: {{ order.deliveryPersonName }}">
+                  🚚 {{ order.deliveryPersonName }}
+                </span>
+              }
+              <span 
+                class="pedido-status" 
+                [style.background-color]="statusColors[order.status] || '#6c757d'"
+              >
+                {{ getStatusLabel(order.status) }}
+              </span>
+            </div>
           </div>
           
           <div class="pedido-info">
@@ -132,6 +139,9 @@
               </button>
               <p class="factura-hint">Requerido para marcar como entregado</p>
             }
+            <button class="btn-asignar-repartidor" (click)="openAssignDeliveryModal()">
+              🚚 Asignar Repartidor
+            </button>
           </div>
         }
         
@@ -164,6 +174,12 @@
               <span class="label">Dirección:</span>
               <span class="value">{{ selectedOrder()!.direccion }}</span>
             </div>
+            @if (selectedOrder()!.deliveryPersonName) {
+              <div class="detail-item full">
+                <span class="label">Repartidor asignado:</span>
+                <span class="value delivery-person">{{ selectedOrder()!.deliveryPersonName }}</span>
+              </div>
+            }
           </div>
         </div>
         
@@ -254,6 +270,42 @@
             </div>
           </div>
         }
+      </div>
+    </div>
+  </div>
+}
+
+@if (showAssignDeliveryModal()) {
+  <div class="modal-overlay" (click)="closeAssignDeliveryModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Asignar Repartidor - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+        <button class="close-btn" (click)="closeAssignDeliveryModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Repartidor *</label>
+          <input
+            type="text"
+            [value]="deliveryPersonName()"
+            (input)="deliveryPersonName.set($any($event.target).value || '')"
+            placeholder="Nombre del repartidor"
+            class="delivery-input"
+          />
+          <small class="help-text">Ingresa el nombre del repartidor asignado</small>
+        </div>
+
+        @if (assignDeliveryError()) {
+          <div class="error-message">{{ assignDeliveryError() }}</div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeAssignDeliveryModal()">Cancelar</button>
+        <button class="btn-primary" (click)="assignDeliveryPerson()" [disabled]="isAssigningDelivery() || !deliveryPersonName()">
+          {{ isAssigningDelivery() ? 'Asignando...' : 'Asignar Repartidor' }}
+        </button>
       </div>
     </div>
   </div>

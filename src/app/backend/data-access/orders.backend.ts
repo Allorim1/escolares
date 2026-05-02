@@ -21,8 +21,14 @@ export interface Order {
   direccion: string;
   metodoPago: string;
   referencia: string;
+  fotoComprobante?: string;
+  facturaImage?: string;
   status: OrderStatus;
   historial: OrderHistorial[];
+  autorizadoPor?: string;
+  autorizadoNombre?: string;
+  deliveryPersonId?: string;
+  deliveryPersonName?: string;
   createdAt: Date;
   updatedAt: Date;
 }

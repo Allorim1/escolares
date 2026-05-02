@@ -34,6 +34,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
       { label: 'Conversión', route: 'conversion', permiso: 'conversion_gestionar' },
       { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
       { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
+      { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
     ]
   },
   {

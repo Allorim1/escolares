@@ -104,6 +104,9 @@
           <p><strong>Cédula:</strong> {{ selectedOrder()?.cedula }}</p>
           <p><strong>Teléfono:</strong> {{ selectedOrder()?.telefono }}</p>
           <p><strong>Dirección:</strong> {{ selectedOrder()?.direccion }}</p>
+          @if (selectedOrder()?.deliveryPersonName) {
+            <p><strong>Repartidor asignado:</strong> {{ selectedOrder()?.deliveryPersonName }}</p>
+          }
         </div>
 
         <div class="detail-section">

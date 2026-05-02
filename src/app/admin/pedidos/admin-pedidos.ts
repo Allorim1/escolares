@@ -5,6 +5,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
+interface DeliveryPerson {
+  _id?: string;
+  id: string;
+  nombre: string;
+  telefono?: string;
+  activo: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface OrderItem {
   productId: number | string;
   title: string;
@@ -94,9 +104,11 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   // Modal de asignar repartidor
   showAssignDeliveryModal = signal(false);
-  deliveryPersonName = signal('');
+  deliveryPersons = signal<DeliveryPerson[]>([]);
+  selectedDeliveryPersonId = signal('');
   assignDeliveryError = signal('');
   isAssigningDelivery = signal(false);
+  loadingDeliveryPersons = signal(false);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -536,10 +548,27 @@ export class AdminPedidos implements OnInit, OnDestroy {
     }
 
   // --- Asignar repartidor ---
+  loadDeliveryPersons() {
+    this.loadingDeliveryPersons.set(true);
+    this.http.get<DeliveryPerson[]>('/api/delivery').subscribe({
+      next: (persons) => {
+        this.deliveryPersons.set(persons);
+        this.loadingDeliveryPersons.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading delivery persons:', err);
+        this.loadingDeliveryPersons.set(false);
+      },
+    });
+  }
+
   openAssignDeliveryModal() {
     this.showAssignDeliveryModal.set(true);
-    this.deliveryPersonName.set(this.selectedOrder()?.deliveryPersonName || '');
     this.assignDeliveryError.set('');
+    this.selectedDeliveryPersonId.set(this.selectedOrder()?.deliveryPersonId || '');
+    if (this.deliveryPersons().length === 0) {
+      this.loadDeliveryPersons();
+    }
   }
 
   closeAssignDeliveryModal() {
@@ -548,20 +577,25 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   assignDeliveryPerson() {
     const order = this.selectedOrder();
-    const deliveryPersonName = this.deliveryPersonName().trim();
-
-    if (!deliveryPersonName) {
-      this.assignDeliveryError.set('Por favor ingresa el nombre del repartidor');
+    const selectedId = this.selectedDeliveryPersonId();
+    if (!selectedId) {
+      this.assignDeliveryError.set('Por favor selecciona un repartidor');
       return;
     }
     if (!order) return;
+
+    const selectedPerson = this.deliveryPersons().find(p => p.id === selectedId);
+    if (!selectedPerson) {
+      this.assignDeliveryError.set('Repartidor no encontrado');
+      return;
+    }
 
     this.isAssigningDelivery.set(true);
     this.assignDeliveryError.set('');
 
     this.http.put<any>(`/api/orders/${order.id}/assign-delivery`, {
-      deliveryPersonId: 'manual', // por ahora usamos un ID fijo, luego podemos implementar selección de repartidores
-      deliveryPersonName
+      deliveryPersonId: selectedPerson.id,
+      deliveryPersonName: selectedPerson.nombre
     }).subscribe({
       next: (updatedOrder) => {
         this.isAssigningDelivery.set(false);

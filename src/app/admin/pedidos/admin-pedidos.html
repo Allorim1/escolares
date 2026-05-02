@@ -286,14 +286,21 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Repartidor *</label>
-          <input
-            type="text"
-            [value]="deliveryPersonName()"
-            (input)="deliveryPersonName.set($any($event.target).value || '')"
-            placeholder="Nombre del repartidor"
-            class="delivery-input"
-          />
-          <small class="help-text">Ingresa el nombre del repartidor asignado</small>
+          @if (loadingDeliveryPersons()) {
+            <div class="loading-text">Cargando repartidores...</div>
+          } @else {
+            <select
+              [value]="selectedDeliveryPersonId()"
+              (change)="selectedDeliveryPersonId.set($any($event.target).value || '')"
+              class="delivery-select"
+            >
+              <option value="">Selecciona un repartidor</option>
+              @for (person of deliveryPersons(); track person.id) {
+                <option [value]="person.id">{{ person.nombre }} {{ person.telefono ? '(' + person.telefono + ')' : '' }}</option>
+              }
+            </select>
+            <small class="help-text">Selecciona un repartidor de la lista</small>
+          }
         </div>
 
         @if (assignDeliveryError()) {
@@ -303,7 +310,7 @@
       
       <div class="modal-footer">
         <button class="btn-secondary" (click)="closeAssignDeliveryModal()">Cancelar</button>
-        <button class="btn-primary" (click)="assignDeliveryPerson()" [disabled]="isAssigningDelivery() || !deliveryPersonName()">
+        <button class="btn-primary" (click)="assignDeliveryPerson()" [disabled]="isAssigningDelivery() || !selectedDeliveryPersonId()">
           {{ isAssigningDelivery() ? 'Asignando...' : 'Asignar Repartidor' }}
         </button>
       </div>

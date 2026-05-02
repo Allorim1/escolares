@@ -56,6 +56,7 @@ export class Header {
   mobileMenuOpen = signal(false);
   userDropdownOpen = signal(false);
   private dropdownTimer: any = null;
+  private cartPreviewTimer: any = null;
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -79,6 +80,20 @@ export class Header {
   onUserDropdownLeave() {
     this.dropdownTimer = setTimeout(() => {
       this.userDropdownOpen.set(false);
+    }, 500);
+  }
+
+  onCartPreviewEnter() {
+    if (this.cartPreviewTimer) {
+      clearTimeout(this.cartPreviewTimer);
+      this.cartPreviewTimer = null;
+    }
+    this.cartPreviewOpen.set(true);
+  }
+
+  onCartPreviewLeave() {
+    this.cartPreviewTimer = setTimeout(() => {
+      this.cartPreviewOpen.set(false);
     }, 500);
   }
 

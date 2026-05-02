@@ -254,6 +254,15 @@ header.app-header {
   overflow: hidden;
   z-index: 2001;
 }
+.cart-preview-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: transparent;
+}
 
 .cart-preview-header {
   display: flex;
@@ -899,6 +908,15 @@ header.app-header {
     width: min(320px, calc(100vw - 24px));
     right: -8px;
   }
+  .cart-preview-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: transparent;
+  }
 
   .user-btn img,
   .cart-btn img {
@@ -1058,6 +1076,15 @@ header.app-header {
     width: min(300px, calc(100vw - 18px));
     right: -6px;
     top: calc(100% + 6px);
+  }
+  .cart-preview-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: transparent;
   }
 
   .cart-count {

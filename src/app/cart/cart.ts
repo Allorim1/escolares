@@ -3,7 +3,7 @@ import { CartItem } from './ui/cart-item/cart-item';
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { ProductItemCart } from '../shared/interfaces/product.interface';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
@@ -62,6 +62,7 @@ export default class CartComponent implements OnDestroy {
   private http = inject(HttpClient);
   currencyService = inject(CurrencyService);
   storeSettings = inject(StoreSettingsService);
+  private router = inject(Router);
 
   // Format price based on current currency display
   formatPrice(priceInUsd: number): string {
@@ -637,7 +638,7 @@ export default class CartComponent implements OnDestroy {
     };
 
     this.ordersBackend.createOrder(orderData).subscribe({
-      next: () => {
+      next: (order) => {
         this.state().products.forEach(item => {
           this.state.remove(item.product.id);
         });
@@ -647,6 +648,8 @@ export default class CartComponent implements OnDestroy {
           'Tu pedido ha sido confirmado y est\u00E1 pendiente de procesamiento'
         );
         this.currentOrderId.set('');
+        // Redirigir a la página de pedidos con el ID del pedido recién creado
+        this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
       },
       error: (err) => {
         console.error('Error confirmando pedido:', err);
@@ -726,6 +729,8 @@ export default class CartComponent implements OnDestroy {
           this.state.remove(item.product.id);
         });
         this.orderPlaced.set(true);
+        // Redirigir a la página de pedidos con el ID del pedido recién creado
+        this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
       },
       error: (err) => {
         console.error('Error creating order:', err);

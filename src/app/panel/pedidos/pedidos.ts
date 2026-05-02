@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { OrdersBackend, Order, OrderStatus } from '../../backend/data-access/orders.backend';
 
@@ -14,6 +14,8 @@ import { OrdersBackend, Order, OrderStatus } from '../../backend/data-access/ord
 export default class Pedidos implements OnInit {
   private ordersBackend = inject(OrdersBackend);
   private notificationService = inject(NotificationService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
   
   orders = signal<Order[]>([]);
   private previousOrders = new Map<string, Order>();
@@ -47,12 +49,30 @@ export default class Pedidos implements OnInit {
           this.previousOrders.set(order.id, order);
         });
         this.loading.set(false);
+        // After loading orders, check if there's a query param to open a specific order
+        this.checkQueryParam();
       },
       error: (err) => {
         console.error('Error loading orders:', err);
         this.loading.set(false);
       },
     });
+  }
+
+  private checkQueryParam() {
+    const orderId = this.route.snapshot.queryParamMap.get('orderId');
+    if (orderId) {
+      const order = this.orders().find(o => o.id === orderId);
+      if (order) {
+        this.selectOrder(order);
+        // Clear the query param to avoid reopening on refresh
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      }
+    }
   }
 
   getStatusIndex(status: OrderStatus): number {

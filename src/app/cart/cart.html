@@ -286,7 +286,14 @@
                 @if (paymentData().metodoPago !== 'efectivo') {
                   <div class="form-group">
                     <label>Número de referencia</label>
-                    <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Últimos 4 dígitos o número de referencia" />
+                    <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Número de referencia" />
+                  </div>
+                }
+
+                @if (paymentData().metodoPago === 'zelle') {
+                  <div class="form-group">
+                    <label>Correo de Zelle</label>
+                    <input type="email" [(ngModel)]="paymentData().correo" name="correoZelle" placeholder="Correo electrónico asociado a Zelle" />
                   </div>
                 }
 

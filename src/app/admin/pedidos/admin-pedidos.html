@@ -214,6 +214,18 @@
                 <span class="value">{{ selectedOrder()!.cedulaTitular }}</span>
               </div>
             }
+            @if (selectedOrder()!.telefono) {
+              <div class="detail-item">
+                <span class="label">Teléfono:</span>
+                <span class="value">{{ selectedOrder()!.telefono }}</span>
+              </div>
+            }
+            @if (selectedOrder()!.correo) {
+              <div class="detail-item">
+                <span class="label">Correo:</span>
+                <span class="value">{{ selectedOrder()!.correo }}</span>
+              </div>
+            }
           </div>
           
           @if (selectedOrder()!.referencia || selectedOrder()!.fotoComprobante) {

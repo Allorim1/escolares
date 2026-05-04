@@ -25,6 +25,7 @@ export interface Order {
   facturaImage?: string;
   bancoEmisor?: string;
   cedulaTitular?: string;
+  correo?: string;
   status: OrderStatus;
   historial: OrderHistorial[];
   autorizadoPor?: string;
@@ -55,6 +56,7 @@ export interface CreateOrderData {
   fotoComprobante?: string;
   bancoEmisor?: string;
   cedulaTitular?: string;
+  correo?: string;
   status?: OrderStatus;
   deliveryType?: 'express' | 'programado';
   scheduledFor?: string;

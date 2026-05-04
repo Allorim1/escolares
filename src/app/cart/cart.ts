@@ -25,6 +25,7 @@ interface PaymentData {
   fotoComprobante: string;
   bancoEmisor?: string;
   cedulaTitular?: string;
+  correo?: string;
 }
 
 type DeliveryType = 'express' | 'programado';
@@ -93,6 +94,7 @@ export default class CartComponent implements OnDestroy {
     fotoComprobante: '',
     bancoEmisor: '',
     cedulaTitular: '',
+    correo: '',
   });
   orderPlaced = signal(false);
   currentOrderId = signal<string>('');
@@ -382,6 +384,7 @@ export default class CartComponent implements OnDestroy {
       fotoComprobante: '',
       bancoEmisor: '',
       cedulaTitular: '',
+      correo: '',
     });
     this.showCheckoutModal.set(true);
     this.checkoutStep.set(1);
@@ -517,6 +520,7 @@ export default class CartComponent implements OnDestroy {
         fotoComprobante: '',
         bancoEmisor: '',
         cedulaTitular: '',
+        correo: '',
       });
     }
   }
@@ -548,6 +552,10 @@ export default class CartComponent implements OnDestroy {
     if (metodo === 'zelle') {
       if (!referencia) {
         this.paymentError.set('Para Zelle debes ingresar número de referencia.');
+        return false;
+      }
+      if (!data.correo?.trim()) {
+        this.paymentError.set('Para Zelle debes ingresar el correo electrónico asociado.');
         return false;
       }
       this.paymentError.set('');
@@ -626,6 +634,7 @@ export default class CartComponent implements OnDestroy {
       fotoComprobante: this.paymentData().fotoComprobante,
       bancoEmisor: this.paymentData().bancoEmisor,
       cedulaTitular: this.paymentData().cedulaTitular,
+      correo: this.paymentData().correo,
       status: 'confirmar' as OrderStatus,
       deliveryType: this.deliveryType(),
       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
@@ -671,6 +680,7 @@ export default class CartComponent implements OnDestroy {
       fotoComprobante: this.paymentData().fotoComprobante,
       bancoEmisor: this.paymentData().bancoEmisor,
       cedulaTitular: this.paymentData().cedulaTitular,
+      correo: this.paymentData().correo,
       status: 'pendiente' as OrderStatus,
       deliveryType: this.deliveryType(),
       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
@@ -755,6 +765,7 @@ export default class CartComponent implements OnDestroy {
       fotoComprobante: this.paymentData().fotoComprobante,
       bancoEmisor: this.paymentData().bancoEmisor,
       cedulaTitular: this.paymentData().cedulaTitular,
+      correo: this.paymentData().correo,
       deliveryType: this.deliveryType(),
       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
       shippingRef: this.shippingCost(),

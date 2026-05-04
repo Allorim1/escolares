@@ -42,6 +42,8 @@ interface Order {
   referencia: string;
   fotoComprobante: string | null | undefined;
   facturaImage?: string;
+  bancoEmisor?: string;
+  cedulaTitular?: string;
   status: string;
   historial: OrderHistorial[];
   autorizadoPor?: string;
@@ -612,31 +614,4 @@ export class AdminPedidos implements OnInit, OnDestroy {
       }
     });
   }
-}
-
-interface OrderHistorial {
-  status: string;
-  fecha: Date;
-  observaciones?: string;
-}
-
-interface Order {
-  id: string;
-  userId: string;
-  items: OrderItem[];
-  total: number;
-  nombre: string;
-  cedula: string;
-  telefono: string;
-  direccion: string;
-  metodoPago: string;
-  referencia: string;
-  fotoComprobante: string | null | undefined;
-  facturaImage?: string;
-  status: string;
-  historial: OrderHistorial[];
-  autorizadoPor?: string;
-  autorizadoNombre?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }

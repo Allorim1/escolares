@@ -113,6 +113,8 @@ export default class CartComponent implements OnDestroy {
   qrPollingSubscription: any = null;
   qrToken = signal('');
 
+  showAddressModal = signal(false);
+
   getPagoMovilInfo() {
     return PAGO_MOVIL_INFO;
   }

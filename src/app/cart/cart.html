@@ -33,6 +33,12 @@
 
     <div class="floating-summary">
       <div class="floating-summary-content">
+        <div class="floating-address-header">
+          <button class="floating-address-btn" (click)="showAddressModal.set(true)">
+            <span class="address-icon">📍</span>
+            <span class="address-label">Dirección</span>
+          </button>
+        </div>
         <h4>Resumen del Pedido</h4>
         <div class="floating-summary-row">
           <span>Subtotal:</span>
@@ -50,6 +56,33 @@
         <button class="floating-clear-btn" (click)="clearCart()">Vaciar Carrito</button>
       </div>
     </div>
+
+    @if (showAddressModal()) {
+      <div class="address-modal-overlay" (click)="showAddressModal.set(false)">
+        <div class="address-modal" (click)="$event.stopPropagation()">
+          <div class="address-modal-header">
+            <h4>Seleccionar Dirección</h4>
+            <button class="close-btn" (click)="showAddressModal.set(false)">&times;</button>
+          </div>
+          <div class="address-modal-body">
+            @if (userAddresses.length > 0) {
+              <div class="address-list">
+                @for (addr of userAddresses; track addr.id) {
+                  <div class="address-item" [class.selected]="selectedAddressId() === addr.id" (click)="onAddressChange(addr.id); showAddressModal.set(false)">
+                    <div class="address-name">{{ addr.nombre }}</div>
+                    <div class="address-detail">{{ addr.direccion }}</div>
+                  </div>
+                }
+              </div>
+              <button class="btn-secondary" (click)="toggleAddAddress()">+ Agregar otra dirección</button>
+            } @else {
+              <p class="no-address">No tienes direcciones guardadas.</p>
+              <button class="btn-secondary" (click)="toggleAddAddress()">Agregar dirección</button>
+            }
+          </div>
+        </div>
+      </div>
+    }
   } @else {
     <div class="empty-cart">
       <div class="empty-icon">🛒</div>

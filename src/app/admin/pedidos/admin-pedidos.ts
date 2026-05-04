@@ -44,6 +44,7 @@ interface Order {
   facturaImage?: string;
   bancoEmisor?: string;
   cedulaTitular?: string;
+  correo?: string;
   status: string;
   historial: OrderHistorial[];
   autorizadoPor?: string;

@@ -8,6 +8,28 @@
       <p>En este momento no es posible realizar compras. Por favor intenta más tarde.</p>
     </div>
   } @else if (state().products.length > 0) {
+    <div class="delivery-type-selector">
+      <h3>Tipo de Entrega</h3>
+      <div class="delivery-type-options">
+        <button
+          type="button"
+          class="delivery-type-btn"
+          [class.active]="deliveryType() === 'express'"
+          (click)="setDeliveryType('express')"
+        >
+          Express
+        </button>
+        <button
+          type="button"
+          class="delivery-type-btn"
+          [class.active]="deliveryType() === 'programado'"
+          (click)="setDeliveryType('programado')"
+        >
+          Programar pedido (Prepedido)
+        </button>
+      </div>
+    </div>
+
     <div class="cart-items">
       @for (item of state().products; track item) {
         <app-cart-item
@@ -198,7 +220,7 @@
                     <input type="text" [value]="userAddress" readonly class="readonly-field" />
                   }
                   <button type="button" class="add-address-btn" (click)="toggleAddAddress()">
-                    {{ showAddAddress() ? 'Cancelar' : '+ Agregar otra dirección' }}
+                    + Agregar otra dirección
                   </button>
                 </div>
 
@@ -252,19 +274,9 @@
                   <div class="error-message">{{ shippingError() }}</div>
                 }
 
-                @if (showAddAddress()) {
-                  <div class="new-address-form">
-                    <div class="form-group">
-                      <label>Nombre de esta dirección (ej: Casa, Oficina)</label>
-                      <input type="text" [(ngModel)]="newAddressNombre" placeholder="Ej: Casa" />
-                    </div>
-                    <div class="form-group">
-                      <label>Dirección completa</label>
-                      <input type="text" [(ngModel)]="newAddressDireccion" placeholder="Calle, ciudad, estado..." />
-                    </div>
-                    <button type="button" class="btn-secondary" (click)="addNewAddress()">Guardar dirección</button>
-                  </div>
-                }
+                <button type="button" class="btn-secondary" (click)="toggleAddAddress()">
+                  + Agregar otra dirección
+                </button>
 
                 <div class="step-actions">
                   <button type="button" class="btn-secondary" (click)="prevStep()">Atrás</button>
@@ -467,6 +479,50 @@
         }
         
         <button class="btn-secondary" (click)="cerrarQRModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showAddAddressModal()) {
+  <div class="modal-overlay" (click)="showAddAddressModal.set(false)">
+    <div class="checkout-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Agregar Dirección</h3>
+        <button class="close-btn" (click)="showAddAddressModal.set(false)">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre de esta dirección (ej: Casa, Oficina)</label>
+          <input type="text" [(ngModel)]="newAddressNombre" placeholder="Ej: Casa" />
+        </div>
+        <div class="form-group">
+          <label>Dirección completa</label>
+          <input type="text" [(ngModel)]="newAddressDireccion" placeholder="Calle, ciudad, estado..." />
+        </div>
+        <div class="step-actions">
+          <button type="button" class="btn-secondary" (click)="showAddAddressModal.set(false)">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="addNewAddress()">Guardar dirección</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showAddressSavedModal()) {
+  <div class="modal-overlay" (click)="showAddressSavedModal.set(false)">
+    <div class="checkout-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Dirección Guardada</h3>
+        <button class="close-btn" (click)="showAddressSavedModal.set(false)">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="order-success">
+          <div class="success-icon">✓</div>
+          <h3>¡Dirección guardada correctamente!</h3>
+          <p>La dirección ha sido agregada a tu perfil.</p>
+          <button class="btn-primary" (click)="showAddressSavedModal.set(false)">Aceptar</button>
+        </div>
       </div>
     </div>
   </div>

@@ -1200,6 +1200,52 @@
   background: #c82333;
 }
 
+/* Selector de tipo de entrega en carrito */
+.delivery-type-selector {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.delivery-type-selector h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.delivery-type-selector .delivery-type-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.delivery-type-selector .delivery-type-btn {
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.delivery-type-selector .delivery-type-btn:hover {
+  border-color: #1d63c1;
+  color: #1d63c1;
+}
+
+.delivery-type-selector .delivery-type-btn.active {
+  background: #1d63c1;
+  border-color: #1d63c1;
+  color: #fff;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .floating-summary {
@@ -1208,6 +1254,10 @@
     margin-top: 1rem;
     box-shadow: none;
     border: 1px solid #eee;
+  }
+
+  .delivery-type-selector .delivery-type-options {
+    grid-template-columns: 1fr;
   }
 }
 

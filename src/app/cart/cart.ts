@@ -114,6 +114,8 @@ export default class CartComponent implements OnDestroy {
   qrToken = signal('');
 
   showAddressModal = signal(false);
+  showAddAddressModal = signal(false);
+  showAddressSavedModal = signal(false);
 
   getPagoMovilInfo() {
     return PAGO_MOVIL_INFO;
@@ -465,7 +467,7 @@ export default class CartComponent implements OnDestroy {
   }
 
   toggleAddAddress() {
-    this.showAddAddress.set(!this.showAddAddress());
+    this.showAddAddressModal.set(true);
     this.newAddressNombre = '';
     this.newAddressDireccion = '';
   }
@@ -496,7 +498,8 @@ export default class CartComponent implements OnDestroy {
       next: (user) => {
         this.selectedAddressId.set(newDir.id);
         this.paymentData.update(p => ({ ...p, direccion: newDir.direccion }));
-        this.showAddAddress.set(false);
+        this.showAddAddressModal.set(false);
+        this.showAddressSavedModal.set(true);
         this.newAddressNombre = '';
         this.newAddressDireccion = '';
       },

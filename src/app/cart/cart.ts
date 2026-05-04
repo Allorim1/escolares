@@ -569,6 +569,11 @@ export default class CartComponent implements OnDestroy {
     const tieneComprobante = !!data.fotoComprobante;
 
     if (metodo === 'efectivo') {
+      // Para efectivo, la foto del comprobante es obligatoria
+      if (!data.fotoComprobante) {
+        this.paymentError.set('Para pago en efectivo debes adjuntar una foto del comprobante.');
+        return false;
+      }
       this.paymentError.set('');
       return true;
     }

@@ -381,9 +381,13 @@
                   <div class="error-message">{{ paymentError() }}</div>
                 }
 
-                @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia') {
+                @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia' || paymentData().metodoPago === 'efectivo') {
                   <div class="form-group">
-                    <label>Foto del comprobante</label>
+                    <label>Foto del comprobante 
+                      @if (paymentData().metodoPago === 'efectivo') {
+                        <span style="color: #dc3545; font-size: 0.9rem;">(Obligatoria)</span>
+                      }
+                    </label>
                     
                      @if (paymentData().fotoComprobante) {
                        <div class="comprobante-preview">

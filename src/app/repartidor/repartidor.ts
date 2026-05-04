@@ -17,6 +17,9 @@ interface Order {
   referencia: string;
   fotoComprobante?: string;
   facturaImage?: string;
+  bancoEmisor?: string;
+  cedulaTitular?: string;
+  correo?: string;
   status: 'confirmar' | 'pendiente' | 'procesando' | 'enviado' | 'entregado' | 'cancelado';
   historial: any[];
   autorizadoPor?: string;

@@ -358,6 +358,12 @@ export default class CartComponent implements OnDestroy {
     });
   }
 
+  clearCart() {
+    if (confirm('¿Estás seguro de que deseas vaciar el carrito? Se eliminarán todos los productos.')) {
+      this.state.clear();
+    }
+  }
+
   openCheckout() {
     // Check if purchases are disabled
     if (this.storeSettings.comprasDeshabilitadas()) {

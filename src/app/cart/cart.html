@@ -26,7 +26,28 @@
       </div>
       <div class="cart-actions">
         <a routerLink="/products" class="continue-btn">Continuar comprando</a>
+        <button class="clear-cart-btn" (click)="clearCart()">Vaciar carrito</button>
         <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
+      </div>
+    </div>
+
+    <div class="floating-summary">
+      <div class="floating-summary-content">
+        <h4>Resumen del Pedido</h4>
+        <div class="floating-summary-row">
+          <span>Subtotal:</span>
+          <span [innerHTML]="formatPrice(price())"></span>
+        </div>
+        <div class="floating-summary-row">
+          <span>Envío ({{ getSelectedShippingRate().label }}):</span>
+          <span [innerHTML]="formatPrice(shippingCost())"></span>
+        </div>
+        <div class="floating-summary-row total">
+          <span>Total:</span>
+          <span [innerHTML]="formatPrice(totalWithShipping())"></span>
+        </div>
+        <button class="floating-checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
+        <button class="floating-clear-btn" (click)="clearCart()">Vaciar Carrito</button>
       </div>
     </div>
   } @else {

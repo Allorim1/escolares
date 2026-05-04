@@ -1,7 +1,9 @@
 .cart-container {
-  max-width: 900px;
+  max-width: 700px;
   margin: 2rem auto;
   padding: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .cart-container h2 {
@@ -1140,14 +1142,46 @@
 /* Tarjeta flotante de resumen */
 .floating-summary {
   position: fixed;
-  top: 100px;
-  right: 20px;
-  width: 300px;
+  top: 120px;
+  right: 30px;
+  width: 320px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   z-index: 100;
+}
+
+/* Asegurar que el carrito no se superponga */
+.cart-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
+  margin-right: 360px; /* Espacio para la tarjeta flotante */
+}
+
+/* En móviles, eliminar margen derecho y apilar */
+@media (max-width: 768px) {
+  .cart-container {
+    max-width: 100%;
+    margin: 1rem auto;
+    padding: 1rem;
+    margin-right: auto;
+  }
+
+  .floating-summary {
+    position: static;
+    width: 100%;
+    margin-top: 1rem;
+    box-shadow: none;
+    border: 1px solid #eee;
+  }
+
+  .delivery-type-selector .delivery-type-options {
+    grid-template-columns: 1fr;
+  }
 }
 
 .floating-summary-content h4 {

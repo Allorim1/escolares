@@ -255,7 +255,7 @@ export default class CartComponent implements OnDestroy {
 
   paymentMethods = [
     { value: 'pago_movil', label: 'Pago Móvil' },
-    { value: 'zelle', label: 'Zelle' },
+   // { value: 'zelle', label: 'Zelle' },
     { value: 'efectivo', label: 'Efectivo' },
     { value: 'transferencia', label: 'Transferencia' },
   ];

@@ -44,6 +44,8 @@ export class CartStateService {
         action$.pipe(map((id) => this.remove(state, id))),
       udpate: (state, action$: Observable<ProductItemCart>) =>
         action$.pipe(map((product) => this.update(state, product))),
+      clear: (state, action$: Observable<void>) =>
+        action$.pipe(map(() => this.clear(state))),
     },
     effects: (state) => ({
       load: () => {
@@ -87,5 +89,9 @@ export class CartStateService {
     });
 
     return { products };
+  }
+
+  private clear(state: Signal<State>) {
+    return { products: [] };
   }
 }

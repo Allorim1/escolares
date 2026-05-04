@@ -277,6 +277,19 @@ export default class CartComponent implements OnDestroy {
 
   totalWithShipping = () => this.price() + this.shippingCost();
 
+  ivaTotal = () => {
+    const products = this.state().products;
+    return products.reduce((acc, item) => {
+      if (item.product.iva) {
+        const percentage = item.product.ivaPercentage || 16;
+        const priceWithVat = item.product.price * item.quantity;
+        const vatAmount = priceWithVat * (percentage / (100 + percentage));
+        return acc + vatAmount;
+      }
+      return acc;
+    }, 0);
+  };
+
   getSelectedShippingRate(): ShippingRate {
     return this.shippingRates.find((rate) => rate.id === this.selectedShippingRateId()) || this.shippingRates[0];
   }

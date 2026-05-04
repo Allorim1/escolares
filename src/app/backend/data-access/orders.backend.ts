@@ -23,6 +23,8 @@ export interface Order {
   referencia: string;
   fotoComprobante?: string;
   facturaImage?: string;
+  bancoEmisor?: string;
+  cedulaTitular?: string;
   status: OrderStatus;
   historial: OrderHistorial[];
   autorizadoPor?: string;
@@ -51,6 +53,8 @@ export interface CreateOrderData {
   metodoPago: string;
   referencia: string;
   fotoComprobante?: string;
+  bancoEmisor?: string;
+  cedulaTitular?: string;
   status?: OrderStatus;
   deliveryType?: 'express' | 'programado';
   scheduledFor?: string;

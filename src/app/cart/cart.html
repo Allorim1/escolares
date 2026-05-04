@@ -251,6 +251,18 @@
                     <div class="info-row"><span>RIF:</span> <strong>{{ getPagoMovilInfo().rif }}</strong></div>
                     <div class="info-row"><span>Teléfono:</span> <strong>{{ getPagoMovilInfo().telefono }}</strong></div>
                   </div>
+                  <div class="form-group">
+                    <label>Banco emisor</label>
+                    <input type="text" [(ngModel)]="paymentData().bancoEmisor" name="bancoEmisor" placeholder="Ej: Banesco, Mercantil, etc." />
+                  </div>
+                  <div class="form-group">
+                    <label>Teléfono del titular</label>
+                    <input type="tel" [(ngModel)]="paymentData().telefono" name="telefonoTitular" placeholder="Número de teléfono del titular" />
+                  </div>
+                  <div class="form-group">
+                    <label>Cédula del titular</label>
+                    <input type="text" [(ngModel)]="paymentData().cedulaTitular" name="cedulaTitular" placeholder="Cédula del titular" />
+                  </div>
                 }
 
                 @if (paymentData().metodoPago === 'transferencia') {
@@ -260,6 +272,14 @@
                     <div class="info-row"><span>Titular:</span> <strong>{{ getTransferenciaInfo().titular }}</strong></div>
                     <div class="info-row"><span>RIF:</span> <strong>{{ getTransferenciaInfo().rif }}</strong></div>
                     <div class="info-row"><span>Número de cuenta:</span> <strong>{{ getTransferenciaInfo().numero_cuenta }}</strong></div>
+                  </div>
+                  <div class="form-group">
+                    <label>Banco emisor</label>
+                    <input type="text" [(ngModel)]="paymentData().bancoEmisor" name="bancoEmisorTransferencia" placeholder="Ej: Banesco, Mercantil, etc." />
+                  </div>
+                  <div class="form-group">
+                    <label>Cédula del titular</label>
+                    <input type="text" [(ngModel)]="paymentData().cedulaTitular" name="cedulaTitularTransferencia" placeholder="Cédula del titular" />
                   </div>
                 }
 

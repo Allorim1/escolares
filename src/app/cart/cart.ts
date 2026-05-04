@@ -23,6 +23,8 @@ interface PaymentData {
   metodoPago: string;
   referencia: string;
   fotoComprobante: string;
+  bancoEmisor?: string;
+  cedulaTitular?: string;
 }
 
 type DeliveryType = 'express' | 'programado';
@@ -89,6 +91,8 @@ export default class CartComponent implements OnDestroy {
     metodoPago: 'pago_movil',
     referencia: '',
     fotoComprobante: '',
+    bancoEmisor: '',
+    cedulaTitular: '',
   });
   orderPlaced = signal(false);
   currentOrderId = signal<string>('');
@@ -376,6 +380,8 @@ export default class CartComponent implements OnDestroy {
       metodoPago: defaultPaymentMethod?.tipo || 'pago_movil',
       referencia: defaultPaymentMethod?.referencia || '',
       fotoComprobante: '',
+      bancoEmisor: '',
+      cedulaTitular: '',
     });
     this.showCheckoutModal.set(true);
     this.checkoutStep.set(1);
@@ -509,6 +515,8 @@ export default class CartComponent implements OnDestroy {
         metodoPago: 'pago_movil',
         referencia: '',
         fotoComprobante: '',
+        bancoEmisor: '',
+        cedulaTitular: '',
       });
     }
   }
@@ -546,13 +554,42 @@ export default class CartComponent implements OnDestroy {
       return true;
     }
 
-    if (metodo === 'pago_movil' || metodo === 'transferencia') {
-      if (!referencia) {
-        this.paymentError.set('Debes ingresar número de referencia para este método de pago.');
+    if (metodo === 'pago_movil') {
+      // Validar datos del titular
+      if (!data.bancoEmisor?.trim()) {
+        this.paymentError.set('Para Pago Móvil debes indicar el banco emisor.');
         return false;
       }
-      if (!tieneComprobante) {
-        this.paymentError.set('Debes adjuntar el comprobante para este método de pago.');
+      if (!data.telefono?.trim()) {
+        this.paymentError.set('Para Pago Móvil debes indicar el número de teléfono del titular.');
+        return false;
+      }
+      if (!data.cedulaTitular?.trim()) {
+        this.paymentError.set('Para Pago Móvil debes indicar la cédula del titular.');
+        return false;
+      }
+      // Validar referencia O foto (al menos uno)
+      if (!referencia && !tieneComprobante) {
+        this.paymentError.set('Para Pago Móvil debes ingresar número de referencia o adjuntar el comprobante de pago.');
+        return false;
+      }
+      this.paymentError.set('');
+      return true;
+    }
+
+    if (metodo === 'transferencia') {
+      // Validar datos del titular
+      if (!data.bancoEmisor?.trim()) {
+        this.paymentError.set('Para Transferencia debes indicar el banco emisor.');
+        return false;
+      }
+      if (!data.cedulaTitular?.trim()) {
+        this.paymentError.set('Para Transferencia debes indicar la cédula del titular.');
+        return false;
+      }
+      // Validar referencia O foto (al menos uno)
+      if (!referencia && !tieneComprobante) {
+        this.paymentError.set('Para Transferencia debes ingresar número de referencia o adjuntar el comprobante de pago.');
         return false;
       }
       this.paymentError.set('');
@@ -587,6 +624,8 @@ export default class CartComponent implements OnDestroy {
       metodoPago: this.paymentData().metodoPago,
       referencia: this.paymentData().referencia,
       fotoComprobante: this.paymentData().fotoComprobante,
+      bancoEmisor: this.paymentData().bancoEmisor,
+      cedulaTitular: this.paymentData().cedulaTitular,
       status: 'confirmar' as OrderStatus,
       deliveryType: this.deliveryType(),
       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
@@ -630,6 +669,8 @@ export default class CartComponent implements OnDestroy {
       metodoPago: this.paymentData().metodoPago,
       referencia: this.paymentData().referencia,
       fotoComprobante: this.paymentData().fotoComprobante,
+      bancoEmisor: this.paymentData().bancoEmisor,
+      cedulaTitular: this.paymentData().cedulaTitular,
       status: 'pendiente' as OrderStatus,
       deliveryType: this.deliveryType(),
       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
@@ -712,6 +753,8 @@ export default class CartComponent implements OnDestroy {
       metodoPago: this.paymentData().metodoPago,
       referencia: this.paymentData().referencia,
       fotoComprobante: this.paymentData().fotoComprobante,
+      bancoEmisor: this.paymentData().bancoEmisor,
+      cedulaTitular: this.paymentData().cedulaTitular,
       deliveryType: this.deliveryType(),
       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
       shippingRef: this.shippingCost(),
@@ -849,6 +892,10 @@ export default class CartComponent implements OnDestroy {
       `*Teléfono:* ${pmInfo.telefono}\n\n` +
       `*Monto:* $${this.price().toFixed(2)}\n` +
       `*Referencia:* ${data.referencia}\n\n` +
+      `*Datos del Titular del Pago:*\n` +
+      `- Banco Emisor: ${data.bancoEmisor || 'No especificado'}\n` +
+      `- Teléfono Titular: ${data.telefono || 'No especificado'}\n` +
+      `- Cédula Titular: ${data.cedulaTitular || 'No especificado'}\n\n` +
       `Adjunto foto del comprobante.`;
 
     const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;

@@ -202,6 +202,18 @@
               <span class="label">Fecha:</span>
               <span class="value">{{ formatDate(selectedOrder()!.createdAt) }}</span>
             </div>
+            @if (selectedOrder()!.bancoEmisor) {
+              <div class="detail-item">
+                <span class="label">Banco emisor:</span>
+                <span class="value">{{ selectedOrder()!.bancoEmisor }}</span>
+              </div>
+            }
+            @if (selectedOrder()!.cedulaTitular) {
+              <div class="detail-item">
+                <span class="label">Cédula titular:</span>
+                <span class="value">{{ selectedOrder()!.cedulaTitular }}</span>
+              </div>
+            }
           </div>
           
           @if (selectedOrder()!.referencia || selectedOrder()!.fotoComprobante) {

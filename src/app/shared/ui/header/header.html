@@ -122,6 +122,7 @@
         <div class="user-dropdown" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
           <a class="user-btn" (click)="toggleUserDropdown()" style="cursor: pointer">
             <img src="/usuario.png" alt="Usuario" />
+            <span class="user-greeting">Hola, {{ authService.user()?.nombre || authService.user()?.username || 'Usuario' }}</span>
           </a>
               <div class="dropdown-menu" [class.open]="userDropdownOpen()" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
                 <a routerLink="/panel/perfil" (click)="closeUserDropdown()">Perfil</a>
@@ -138,6 +139,7 @@
       } @else {
         <a class="user-btn" (click)="openLogin()" style="cursor: pointer">
           <img src="/usuario.png" alt="Usuario" />
+          <span class="user-greeting">Iniciar sesión</span>
         </a>
       }
     </div>

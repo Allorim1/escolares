@@ -98,7 +98,9 @@ header.app-header {
 
 .header-search {
   position: relative;
-  width: 300px;
+  max-width: 250px;
+  flex: 1;
+  margin: 0 20px;
 }
 
 .search-form {
@@ -241,10 +243,36 @@ header.app-header {
   color: #1a1a1a;
 }
 
-.user-btn img,
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: white;
+  cursor: pointer;
+}
+
+.user-btn img {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
 .cart-btn img {
   width: 30px;
   height: 30px;
+}
+
+.user-greeting {
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .user-greeting {
+    display: none;
+  }
 }
 
 .cart-btn {

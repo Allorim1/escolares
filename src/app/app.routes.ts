@@ -202,6 +202,10 @@ export const routes: Routes = [
         path: 'repartidores',
         loadComponent: () => import('./admin/repartidores/admin-repartidores').then((m) => m.AdminRepartidoresComponent),
       },
+      {
+        path: 'redes-sociales',
+        loadComponent: () => import('./admin/redes-sociales/admin-redes-sociales').then((m) => m.AdminRedesSociales),
+      },
     ],
   },
   {

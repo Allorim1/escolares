@@ -1,0 +1,257 @@
+<div class="redes-sociales-container">
+  <h1>Gestión de Redes Sociales</h1>
+  <p>Configura tus cuentas, responde mensajes y gestiona notificaciones.</p>
+
+  <section class="section">
+    <h2>📱 Redes Sociales</h2>
+    <p>Conecta tus cuentas de TikTok, Instagram, Telegram y Facebook.</p>
+
+    <div class="form-agregar">
+      <h3>Agregar nueva red social</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="plataforma">Plataforma</label>
+          <select id="plataforma" [(ngModel)]="nuevaRed().plataforma">
+            <option value="">Selecciona una plataforma</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Telegram">Telegram</option>
+            <option value="Facebook">Facebook</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="usuario">Usuario / Página</label>
+          <input id="usuario" type="text" [(ngModel)]="nuevaRed().usuario" placeholder="Ej: @miempresa">
+        </div>
+        <div class="form-group">
+          <label for="token">Token / Clave API</label>
+          <input id="token" type="password" [(ngModel)]="nuevaRed().token" placeholder="Token de acceso">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="nuevaRed().habilitada"> Habilitada
+          </label>
+        </div>
+        <div class="form-group">
+          <button (click)="agregarRedSocial()" class="btn btn-primary">Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Plataforma</th>
+            <th>Usuario / Página</th>
+            <th>Token</th>
+            <th>Habilitada</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (red of redesSociales(); track red.plataforma; let i = $index) {
+            <tr>
+              <td>{{ red.plataforma }}</td>
+              <td>{{ red.usuario || '—' }}</td>
+              <td>{{ red.token ? '••••••••' : '—' }}</td>
+              <td>
+                <span class="badge" [class.badge-success]="red.habilitada" [class.badge-danger]="!red.habilitada">
+                  {{ red.habilitada ? 'Sí' : 'No' }}
+                </span>
+              </td>
+              <td>
+                <button (click)="eliminarRedSocial(i)" class="btn btn-danger btn-sm">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>💬 Mensajes</h2>
+    <p>Gestiona los mensajes entrantes de tus redes sociales.</p>
+
+    <div class="mensajes-container">
+      <div class="mensajes-lista">
+        <h3>Mensajes Recibidos</h3>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Plataforma</th>
+                <th>Usuario</th>
+                <th>Mensaje</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (msg of mensajes(); track msg.id) {
+                <tr [class.selected]="mensajeSeleccionado()?.id === msg.id" (click)="seleccionarMensaje(msg)">
+                  <td>{{ msg.plataforma }}</td>
+                  <td>{{ msg.usuario }}</td>
+                  <td class="mensaje-texto">{{ msg.texto }}</td>
+                  <td>{{ msg.fecha }}</td>
+                  <td>
+                    <span class="badge" [class.badge-success]="msg.leido" [class.badge-warning]="!msg.leido">
+                      {{ msg.leido ? 'Leído' : 'Nuevo' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button (click)="eliminarMensaje(msg.id); $event.stopPropagation()" class="btn btn-danger btn-sm">Eliminar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mensaje-detalle">
+        <h3>Responder Mensaje</h3>
+        @if (mensajeSeleccionado()) {
+          <div class="detalle-contenido">
+            <p><strong>Plataforma:</strong> {{ mensajeSeleccionado().plataforma }}</p>
+            <p><strong>Usuario:</strong> {{ mensajeSeleccionado().usuario }}</p>
+            <p><strong>Fecha:</strong> {{ mensajeSeleccionado().fecha }}</p>
+            <div class="mensaje-original">
+              <strong>Mensaje original:</strong>
+              <blockquote>{{ mensajeSeleccionado().texto }}</blockquote>
+            </div>
+            <div class="form-respuesta">
+              <label for="respuesta">Tu respuesta</label>
+              <textarea id="respuesta" rows="4" [(ngModel)]="textoRespuesta()" placeholder="Escribe tu respuesta aquí..."></textarea>
+              <div class="acciones-respuesta">
+                <button (click)="enviarRespuesta()" class="btn btn-success">Enviar Respuesta</button>
+                <button (click)="textoRespuesta.set('')" class="btn btn-secondary">Limpiar</button>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <p class="sin-seleccion">Selecciona un mensaje de la lista para responder.</p>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>🤖 Respuestas Automáticas (Opcional)</h2>
+    <p>Configura respuestas automáticas para mensajes recibidos en redes sociales.</p>
+
+    <div class="form-agregar">
+      <h3>Agregar nueva respuesta</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="palabraClave">Palabra clave</label>
+          <input id="palabraClave" type="text" [(ngModel)]="nuevaRespuesta().palabraClave" placeholder="Ej: hola">
+        </div>
+        <div class="form-group">
+          <label for="respuesta">Respuesta</label>
+          <input id="respuesta" type="text" [(ngModel)]="nuevaRespuesta().respuesta" placeholder="Ej: ¡Hola! ¿En qué puedo ayudarte?">
+        </div>
+        <div class="form-group">
+          <button (click)="agregarRespuesta()" class="btn btn-primary">Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Palabra clave</th>
+            <th>Respuesta</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (respuesta of respuestasAutomaticas(); track respuesta.palabraClave; let i = $index) {
+            <tr>
+              <td>{{ respuesta.palabraClave }}</td>
+              <td>{{ respuesta.respuesta }}</td>
+              <td>
+                <button (click)="eliminarRespuesta(i)" class="btn btn-danger btn-sm">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>🔔 Notificaciones</h2>
+    <p>Configura notificaciones para eventos en redes sociales.</p>
+
+    <div class="form-agregar">
+      <h3>Agregar nueva notificación</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tipo">Tipo de evento</label>
+          <select id="tipo" [(ngModel)]="nuevaNotificacion().tipo">
+            <option value="">Selecciona un tipo</option>
+            <option value="nuevo_seguidor">Nuevo seguidor</option>
+            <option value="nuevo_mensaje">Nuevo mensaje</option>
+            <option value="nuevo_comentario">Nuevo comentario</option>
+            <option value="nueva_publicacion">Nueva publicación</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="canal">Canal</label>
+          <select id="canal" [(ngModel)]="nuevaNotificacion().canal">
+            <option value="">Selecciona un canal</option>
+            <option value="email">Email</option>
+            <option value="telegram">Telegram</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="sms">SMS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="nuevaNotificacion().activa"> Activa
+          </label>
+        </div>
+        <div class="form-group">
+          <button (click)="agregarNotificacion()" class="btn btn-primary">Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Tipo de evento</th>
+            <th>Canal</th>
+            <th>Activa</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (notificacion of notificaciones(); track notificacion.tipo; let i = $index) {
+            <tr>
+              <td>{{ notificacion.tipo }}</td>
+              <td>{{ notificacion.canal }}</td>
+              <td>
+                <span class="badge" [class.badge-success]="notificacion.activa" [class.badge-danger]="!notificacion.activa">
+                  {{ notificacion.activa ? 'Sí' : 'No' }}
+                </span>
+              </td>
+              <td>
+                <button (click)="eliminarNotificacion(i)" class="btn btn-danger btn-sm">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button (click)="guardarConfiguracion()" class="btn btn-success btn-lg">Guardar Configuración</button>
+  </div>
+</div>

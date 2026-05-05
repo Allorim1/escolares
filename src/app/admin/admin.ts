@@ -58,6 +58,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
       { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
       { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
       { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
+      { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
     ]
   }
 ];

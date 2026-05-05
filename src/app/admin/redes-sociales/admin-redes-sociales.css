@@ -220,33 +220,49 @@
 .filtro-plataformas {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  justify-content: center;
 }
 
 .filtro-btn {
-  padding: 8px 16px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  background-color: #f8f9fa;
-  color: #555;
-  font-size: 14px;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: white;
   cursor: pointer;
   transition: all 0.2s;
+  padding: 0;
 }
 
 .filtro-btn:hover {
   background-color: #e9ecef;
   border-color: #999;
+  transform: translateY(-2px);
 }
 
 .filtro-btn.active {
   background-color: #007bff;
-  color: white;
   border-color: #007bff;
+  color: white;
+}
+
+.filtro-btn svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+}
+
+.filtro-btn.active svg {
+  stroke: white;
 }
 
 .detalle-contenido p {

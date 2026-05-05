@@ -111,24 +111,45 @@
         </div>
       </div>
 
+      <div class="filtro-plataformas">
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === ''" (click)="filtroPlataforma.set('')" title="Todas">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'TikTok'" (click)="filtroPlataforma.set('TikTok')" title="TikTok">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+            <path d="M9 12v6a3 3 0 0 0 3 3h3"></path>
+            <path d="M15 9v12"></path>
+            <path d="M21 9v12"></path>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Instagram'" (click)="filtroPlataforma.set('Instagram')" title="Instagram">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Telegram'" (click)="filtroPlataforma.set('Telegram')" title="Telegram">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2.5 2.5 9.5l7 3 5-9 3 9 7-3z"></path>
+            <path d="m2.5 9.5 7 3 5-9"></path>
+            <path d="m9.5 12.5-3 7"></path>
+            <path d="m16.5 5.5-7 3"></path>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Facebook'" (click)="filtroPlataforma.set('Facebook')" title="Facebook">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+          </svg>
+        </button>
+      </div>
+
       <div class="mensaje-detalle">
-        <div class="filtro-plataformas">
-          <button class="filtro-btn" [class.active]="filtroPlataforma() === ''" (click)="filtroPlataforma.set('')">
-            📱 Todas
-          </button>
-          <button class="filtro-btn" [class.active]="filtroPlataforma() === 'TikTok'" (click)="filtroPlataforma.set('TikTok')">
-            🎵 TikTok
-          </button>
-          <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Instagram'" (click)="filtroPlataforma.set('Instagram')">
-            📸 Instagram
-          </button>
-          <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Telegram'" (click)="filtroPlataforma.set('Telegram')">
-            📨 Telegram
-          </button>
-          <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Facebook'" (click)="filtroPlataforma.set('Facebook')">
-            📘 Facebook
-          </button>
-        </div>
         <h3>Responder Mensaje</h3>
         @if (mensajeSeleccionado()) {
           <div class="detalle-contenido">

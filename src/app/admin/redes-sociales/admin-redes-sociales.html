@@ -11,7 +11,7 @@
       <div class="form-row">
         <div class="form-group">
           <label for="plataforma">Plataforma</label>
-          <select id="plataforma" [(ngModel)]="nuevaRed().plataforma">
+          <select id="plataforma" [ngModel]="nuevaRedPlataforma()" (ngModelChange)="nuevaRedPlataforma.set($event)">
             <option value="">Selecciona una plataforma</option>
             <option value="TikTok">TikTok</option>
             <option value="Instagram">Instagram</option>
@@ -21,15 +21,15 @@
         </div>
         <div class="form-group">
           <label for="usuario">Usuario / Página</label>
-          <input id="usuario" type="text" [(ngModel)]="nuevaRed().usuario" placeholder="Ej: @miempresa">
+          <input id="usuario" type="text" [ngModel]="nuevaRedUsuario()" (ngModelChange)="nuevaRedUsuario.set($event)" placeholder="Ej: @miempresa">
         </div>
         <div class="form-group">
           <label for="token">Token / Clave API</label>
-          <input id="token" type="password" [(ngModel)]="nuevaRed().token" placeholder="Token de acceso">
+          <input id="token" type="password" [ngModel]="nuevaRedToken()" (ngModelChange)="nuevaRedToken.set($event)" placeholder="Token de acceso">
         </div>
         <div class="form-group">
           <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="nuevaRed().habilitada"> Habilitada
+            <input type="checkbox" [ngModel]="nuevaRedHabilitada()" (ngModelChange)="nuevaRedHabilitada.set($event)"> Habilitada
           </label>
         </div>
         <div class="form-group">
@@ -124,7 +124,7 @@
             </div>
             <div class="form-respuesta">
               <label for="respuesta">Tu respuesta</label>
-              <textarea id="respuesta" rows="4" [(ngModel)]="textoRespuesta()" placeholder="Escribe tu respuesta aquí..."></textarea>
+              <textarea id="respuesta" rows="4" [ngModel]="textoRespuesta()" (ngModelChange)="textoRespuesta.set($event)" placeholder="Escribe tu respuesta aquí..."></textarea>
               <div class="acciones-respuesta">
                 <button (click)="enviarRespuesta()" class="btn btn-success">Enviar Respuesta</button>
                 <button (click)="textoRespuesta.set('')" class="btn btn-secondary">Limpiar</button>
@@ -147,11 +147,11 @@
       <div class="form-row">
         <div class="form-group">
           <label for="palabraClave">Palabra clave</label>
-          <input id="palabraClave" type="text" [(ngModel)]="nuevaRespuesta().palabraClave" placeholder="Ej: hola">
+          <input id="palabraClave" type="text" [ngModel]="nuevaRespuestaPalabraClave()" (ngModelChange)="nuevaRespuestaPalabraClave.set($event)" placeholder="Ej: hola">
         </div>
         <div class="form-group">
           <label for="respuesta">Respuesta</label>
-          <input id="respuesta" type="text" [(ngModel)]="nuevaRespuesta().respuesta" placeholder="Ej: ¡Hola! ¿En qué puedo ayudarte?">
+          <input id="respuesta" type="text" [ngModel]="nuevaRespuestaRespuesta()" (ngModelChange)="nuevaRespuestaRespuesta.set($event)" placeholder="Ej: ¡Hola! ¿En qué puedo ayudarte?">
         </div>
         <div class="form-group">
           <button (click)="agregarRespuesta()" class="btn btn-primary">Agregar</button>
@@ -192,7 +192,7 @@
       <div class="form-row">
         <div class="form-group">
           <label for="tipo">Tipo de evento</label>
-          <select id="tipo" [(ngModel)]="nuevaNotificacion().tipo">
+          <select id="tipo" [ngModel]="nuevaNotificacionTipo()" (ngModelChange)="nuevaNotificacionTipo.set($event)">
             <option value="">Selecciona un tipo</option>
             <option value="nuevo_seguidor">Nuevo seguidor</option>
             <option value="nuevo_mensaje">Nuevo mensaje</option>
@@ -202,7 +202,7 @@
         </div>
         <div class="form-group">
           <label for="canal">Canal</label>
-          <select id="canal" [(ngModel)]="nuevaNotificacion().canal">
+          <select id="canal" [ngModel]="nuevaNotificacionCanal()" (ngModelChange)="nuevaNotificacionCanal.set($event)">
             <option value="">Selecciona un canal</option>
             <option value="email">Email</option>
             <option value="telegram">Telegram</option>
@@ -212,7 +212,7 @@
         </div>
         <div class="form-group">
           <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="nuevaNotificacion().activa"> Activa
+            <input type="checkbox" [ngModel]="nuevaNotificacionActiva()" (ngModelChange)="nuevaNotificacionActiva.set($event)"> Activa
           </label>
         </div>
         <div class="form-group">

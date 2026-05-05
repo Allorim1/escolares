@@ -38,9 +38,18 @@ export class AdminRedesSociales implements OnInit {
     { tipo: 'nuevo_mensaje', activa: true, canal: 'telegram' },
   ]);
 
-  nuevaRed = signal<any>({ plataforma: '', habilitada: false, token: '', usuario: '' });
-  nuevaRespuesta = signal<any>({ palabraClave: '', respuesta: '' });
-  nuevaNotificacion = signal<any>({ tipo: '', activa: false, canal: '' });
+  // Señales individuales para formularios (evitan error NG5002)
+  nuevaRedPlataforma = signal('');
+  nuevaRedUsuario = signal('');
+  nuevaRedToken = signal('');
+  nuevaRedHabilitada = signal(false);
+
+  nuevaRespuestaPalabraClave = signal('');
+  nuevaRespuestaRespuesta = signal('');
+
+  nuevaNotificacionTipo = signal('');
+  nuevaNotificacionCanal = signal('');
+  nuevaNotificacionActiva = signal(false);
 
   mensajeSeleccionado = signal<any>(null);
   textoRespuesta = signal<string>('');
@@ -52,9 +61,18 @@ export class AdminRedesSociales implements OnInit {
 
   // Métodos para redes sociales
   agregarRedSocial() {
-    if (!this.nuevaRed().plataforma) return;
-    this.redesSociales.update(redes => [...redes, { ...this.nuevaRed() }]);
-    this.nuevaRed.set({ plataforma: '', habilitada: false, token: '', usuario: '' });
+    const plataforma = this.nuevaRedPlataforma().trim();
+    if (!plataforma) return;
+    this.redesSociales.update(redes => [...redes, {
+      plataforma,
+      usuario: this.nuevaRedUsuario(),
+      token: this.nuevaRedToken(),
+      habilitada: this.nuevaRedHabilitada(),
+    }]);
+    this.nuevaRedPlataforma.set('');
+    this.nuevaRedUsuario.set('');
+    this.nuevaRedToken.set('');
+    this.nuevaRedHabilitada.set(false);
   }
 
   eliminarRedSocial(index: number) {
@@ -104,9 +122,12 @@ export class AdminRedesSociales implements OnInit {
 
   // Métodos para respuestas automáticas
   agregarRespuesta() {
-    if (!this.nuevaRespuesta().palabraClave || !this.nuevaRespuesta().respuesta) return;
-    this.respuestasAutomaticas.update(respuestas => [...respuestas, { ...this.nuevaRespuesta() }]);
-    this.nuevaRespuesta.set({ palabraClave: '', respuesta: '' });
+    const palabraClave = this.nuevaRespuestaPalabraClave().trim();
+    const respuesta = this.nuevaRespuestaRespuesta().trim();
+    if (!palabraClave || !respuesta) return;
+    this.respuestasAutomaticas.update(respuestas => [...respuestas, { palabraClave, respuesta }]);
+    this.nuevaRespuestaPalabraClave.set('');
+    this.nuevaRespuestaRespuesta.set('');
   }
 
   eliminarRespuesta(index: number) {
@@ -116,9 +137,16 @@ export class AdminRedesSociales implements OnInit {
 
   // Métodos para notificaciones
   agregarNotificacion() {
-    if (!this.nuevaNotificacion().tipo) return;
-    this.notificaciones.update(notifs => [...notifs, { ...this.nuevaNotificacion() }]);
-    this.nuevaNotificacion.set({ tipo: '', activa: false, canal: '' });
+    const tipo = this.nuevaNotificacionTipo().trim();
+    if (!tipo) return;
+    this.notificaciones.update(notifs => [...notifs, {
+      tipo,
+      canal: this.nuevaNotificacionCanal(),
+      activa: this.nuevaNotificacionActiva(),
+    }]);
+    this.nuevaNotificacionTipo.set('');
+    this.nuevaNotificacionCanal.set('');
+    this.nuevaNotificacionActiva.set(false);
   }
 
   eliminarNotificacion(index: number) {

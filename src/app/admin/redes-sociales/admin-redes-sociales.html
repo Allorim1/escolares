@@ -90,7 +90,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (msg of mensajes(); track msg.id) {
+              @for (msg of mensajesFiltrados(); track msg.id) {
                 <tr [class.selected]="mensajeSeleccionado()?.id === msg.id" (click)="seleccionarMensaje(msg)">
                   <td>{{ msg.plataforma }}</td>
                   <td>{{ msg.usuario }}</td>
@@ -112,6 +112,23 @@
       </div>
 
       <div class="mensaje-detalle">
+        <div class="filtro-plataformas">
+          <button class="filtro-btn" [class.active]="filtroPlataforma() === ''" (click)="filtroPlataforma.set('')">
+            📱 Todas
+          </button>
+          <button class="filtro-btn" [class.active]="filtroPlataforma() === 'TikTok'" (click)="filtroPlataforma.set('TikTok')">
+            🎵 TikTok
+          </button>
+          <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Instagram'" (click)="filtroPlataforma.set('Instagram')">
+            📸 Instagram
+          </button>
+          <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Telegram'" (click)="filtroPlataforma.set('Telegram')">
+            📨 Telegram
+          </button>
+          <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Facebook'" (click)="filtroPlataforma.set('Facebook')">
+            📘 Facebook
+          </button>
+        </div>
         <h3>Responder Mensaje</h3>
         @if (mensajeSeleccionado()) {
           <div class="detalle-contenido">

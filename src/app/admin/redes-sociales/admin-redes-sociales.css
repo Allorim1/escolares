@@ -217,6 +217,38 @@
   color: #444;
 }
 
+.filtro-plataformas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.filtro-btn {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  background-color: #f8f9fa;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtro-btn:hover {
+  background-color: #e9ecef;
+  border-color: #999;
+}
+
+.filtro-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
 .detalle-contenido p {
   margin: 8px 0;
 }

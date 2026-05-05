@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -53,6 +53,14 @@ export class AdminRedesSociales implements OnInit {
 
   mensajeSeleccionado = signal<any>(null);
   textoRespuesta = signal<string>('');
+  filtroPlataforma = signal<string>(''); // '' = todas, 'TikTok', 'Instagram', etc.
+
+  // Mensajes filtrados por plataforma
+  mensajesFiltrados = computed(() => {
+    const filtro = this.filtroPlataforma();
+    if (!filtro) return this.mensajes();
+    return this.mensajes().filter(msg => msg.plataforma === filtro);
+  });
 
   ngOnInit() {
     // Aquí se podrían cargar datos desde un backend

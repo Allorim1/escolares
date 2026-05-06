@@ -51,20 +51,35 @@
           </tr>
         </thead>
         <tbody>
-          @for (red of redesSociales(); track red.plataforma; let i = $index) {
+          @if (loading()) {
             <tr>
-              <td>{{ red.plataforma }}</td>
-              <td>{{ red.usuario || '—' }}</td>
-              <td>{{ red.token ? '••••••••' : '—' }}</td>
-              <td>
-                <span class="badge" [class.badge-success]="red.habilitada" [class.badge-danger]="!red.habilitada">
-                  {{ red.habilitada ? 'Sí' : 'No' }}
-                </span>
-              </td>
-              <td>
-                <button (click)="eliminarRedSocial(i)" class="btn btn-danger btn-sm">Eliminar</button>
-              </td>
+              <td colspan="5" class="text-center">Cargando redes sociales...</td>
             </tr>
+          } @else if (error()) {
+            <tr>
+              <td colspan="5" class="text-center text-danger">{{ error() }}</td>
+            </tr>
+          } @else {
+            @for (red of redesSociales(); track red.id) {
+              <tr>
+                <td>{{ red.plataforma }}</td>
+                <td>{{ red.usuario || '—' }}</td>
+                <td>{{ red.token ? '••••••••' : '—' }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="red.habilitada" [class.badge-danger]="!red.habilitada">
+                    {{ red.habilitada ? 'Sí' : 'No' }}
+                  </span>
+                </td>
+                <td>
+                  <button (click)="actualizarRedSocial(red)" class="btn btn-primary btn-sm me-2">Editar</button>
+                  <button (click)="eliminarRedSocial(red)" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center">No hay redes sociales configuradas</td>
+              </tr>
+            }
           }
         </tbody>
       </table>
@@ -91,21 +106,41 @@
               </tr>
             </thead>
             <tbody>
-              @for (msg of mensajesFiltrados(); track msg.id) {
-                <tr [class.selected]="mensajeSeleccionado()?.id === msg.id" (click)="seleccionarMensaje(msg)">
-                  <td>{{ msg.plataforma }}</td>
-                  <td>{{ msg.usuario }}</td>
-                  <td class="mensaje-texto">{{ msg.texto }}</td>
-                  <td>{{ msg.fecha }}</td>
-                  <td>
-                    <span class="badge" [class.badge-success]="msg.leido" [class.badge-warning]="!msg.leido">
-                      {{ msg.leido ? 'Leído' : 'Nuevo' }}
-                    </span>
-                  </td>
-                  <td>
-                    <button (click)="eliminarMensaje(msg.id); $event.stopPropagation()" class="btn btn-danger btn-sm">Eliminar</button>
-                  </td>
+              @if (loading()) {
+                <tr>
+                  <td colspan="6" class="text-center">Cargando mensajes...</td>
                 </tr>
+              } @else if (error()) {
+                <tr>
+                  <td colspan="6" class="text-center text-danger">{{ error() }}</td>
+                </tr>
+              } @else {
+                @for (msg of mensajesFiltrados(); track msg.id) {
+                  <tr [class.selected]="mensajeSeleccionado()?.id === msg.id" (click)="seleccionarMensaje(msg)">
+                    <td>{{ msg.plataforma }}</td>
+                    <td>{{ msg.usuario }}</td>
+                    <td class="mensaje-texto">{{ msg.texto }}</td>
+                    <td>{{ msg.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>
+                      <span class="badge" [class.badge-success]="msg.leido" [class.badge-warning]="!msg.leido">
+                        {{ msg.leido ? 'Leído' : 'Nuevo' }}
+                      </span>
+                      @if (msg.respondido) {
+                        <span class="badge badge-info ms-1">Respondido</span>
+                      }
+                    </td>
+                    <td>
+                      @if (!msg.leido) {
+                        <button (click)="marcarComoLeido(msg); $event.stopPropagation()" class="btn btn-primary btn-sm me-2">Marcar como leído</button>
+                      }
+                      <button (click)="eliminarMensaje(msg); $event.stopPropagation()" class="btn btn-danger btn-sm">Eliminar</button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="text-center">No hay mensajes</td>
+                  </tr>
+                }
               }
             </tbody>
           </table>
@@ -161,7 +196,7 @@
           <div class="detalle-contenido">
             <p><strong>Plataforma:</strong> {{ mensajeSeleccionado().plataforma }}</p>
             <p><strong>Usuario:</strong> {{ mensajeSeleccionado().usuario }}</p>
-            <p><strong>Fecha:</strong> {{ mensajeSeleccionado().fecha }}</p>
+            <p><strong>Fecha:</strong> {{ mensajeSeleccionado().fecha | date:'dd/MM/yyyy HH:mm' }}</p>
             <div class="mensaje-original">
               <strong>Mensaje original:</strong>
               <blockquote>{{ mensajeSeleccionado().texto }}</blockquote>
@@ -213,14 +248,29 @@
           </tr>
         </thead>
         <tbody>
-          @for (respuesta of respuestasAutomaticas(); track respuesta.palabraClave; let i = $index) {
+          @if (loading()) {
             <tr>
-              <td>{{ respuesta.palabraClave }}</td>
-              <td>{{ respuesta.respuesta }}</td>
-              <td>
-                <button (click)="eliminarRespuesta(i)" class="btn btn-danger btn-sm">Eliminar</button>
-              </td>
+              <td colspan="3" class="text-center">Cargando respuestas automáticas...</td>
             </tr>
+          } @else if (error()) {
+            <tr>
+              <td colspan="3" class="text-center text-danger">{{ error() }}</td>
+            </tr>
+          } @else {
+            @for (respuesta of respuestasAutomaticas(); track respuesta.id) {
+              <tr>
+                <td>{{ respuesta.palabraClave }}</td>
+                <td>{{ respuesta.respuesta }}</td>
+                <td>
+                  <button (click)="actualizarRespuesta(respuesta)" class="btn btn-primary btn-sm me-2">Editar</button>
+                  <button (click)="eliminarRespuesta(respuesta)" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="text-center">No hay respuestas automáticas configuradas</td>
+              </tr>
+            }
           }
         </tbody>
       </table>
@@ -276,19 +326,34 @@
           </tr>
         </thead>
         <tbody>
-          @for (notificacion of notificaciones(); track notificacion.tipo; let i = $index) {
+          @if (loading()) {
             <tr>
-              <td>{{ notificacion.tipo }}</td>
-              <td>{{ notificacion.canal }}</td>
-              <td>
-                <span class="badge" [class.badge-success]="notificacion.activa" [class.badge-danger]="!notificacion.activa">
-                  {{ notificacion.activa ? 'Sí' : 'No' }}
-                </span>
-              </td>
-              <td>
-                <button (click)="eliminarNotificacion(i)" class="btn btn-danger btn-sm">Eliminar</button>
-              </td>
+              <td colspan="4" class="text-center">Cargando notificaciones...</td>
             </tr>
+          } @else if (error()) {
+            <tr>
+              <td colspan="4" class="text-center text-danger">{{ error() }}</td>
+            </tr>
+          } @else {
+            @for (notificacion of notificaciones(); track notificacion.id) {
+              <tr>
+                <td>{{ notificacion.tipo }}</td>
+                <td>{{ notificacion.canal }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="notificacion.activa" [class.badge-danger]="!notificacion.activa">
+                    {{ notificacion.activa ? 'Sí' : 'No' }}
+                  </span>
+                </td>
+                <td>
+                  <button (click)="actualizarNotificacion(notificacion)" class="btn btn-primary btn-sm me-2">Editar</button>
+                  <button (click)="eliminarNotificacion(notificacion)" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center">No hay notificaciones configuradas</td>
+              </tr>
+            }
           }
         </tbody>
       </table>

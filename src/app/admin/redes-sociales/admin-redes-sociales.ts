@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RedesSocialesBackend, RedSocial, MensajeRedSocial, RespuestaAutomatica, NotificacionRedSocial } from '../../backend/data-access/redes-sociales.backend';
 
 @Component({
   selector: 'app-admin-redes-sociales',
@@ -10,33 +11,13 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './admin-redes-sociales.css',
 })
 export class AdminRedesSociales implements OnInit {
+  private readonly redesSocialesBackend = inject(RedesSocialesBackend);
+
   // Señales para almacenar datos de redes sociales
-  redesSociales = signal<any[]>([
-    { plataforma: 'TikTok', habilitada: false, token: '', usuario: '' },
-    { plataforma: 'Instagram', habilitada: false, token: '', usuario: '' },
-    { plataforma: 'Telegram', habilitada: false, token: '', usuario: '' },
-    { plataforma: 'Facebook', habilitada: false, token: '', usuario: '' },
-  ]);
-
-  // Señales para mensajes entrantes
-  mensajes = signal<any[]>([
-    { id: 1, plataforma: 'Instagram', usuario: '@cliente1', texto: '¿Tienen stock del producto X?', fecha: '2025-05-05 10:30', leido: false },
-    { id: 2, plataforma: 'Facebook', usuario: 'Juan Pérez', texto: 'Quiero hacer una devolución', fecha: '2025-05-05 09:15', leido: true },
-    { id: 3, plataforma: 'Telegram', usuario: 'Maria Lopez', texto: 'Hola, ¿cuál es el horario de atención?', fecha: '2025-05-04 16:45', leido: false },
-    { id: 4, plataforma: 'TikTok', usuario: '@usuario_tiktok', texto: 'Me encantan sus productos!', fecha: '2025-05-04 14:20', leido: true },
-  ]);
-
-  // Señales para respuestas automáticas (opcional)
-  respuestasAutomaticas = signal<any[]>([
-    { palabraClave: 'hola', respuesta: '¡Hola! ¿En qué puedo ayudarte?' },
-    { palabraClave: 'precio', respuesta: 'Los precios varían según el producto. Visita nuestra tienda.' },
-  ]);
-
-  // Señales para notificaciones
-  notificaciones = signal<any[]>([
-    { tipo: 'nuevo_seguidor', activa: true, canal: 'email' },
-    { tipo: 'nuevo_mensaje', activa: true, canal: 'telegram' },
-  ]);
+  redesSociales = signal<RedSocial[]>([]);
+  mensajes = signal<MensajeRedSocial[]>([]);
+  respuestasAutomaticas = signal<RespuestaAutomatica[]>([]);
+  notificaciones = signal<NotificacionRedSocial[]>([]);
 
   // Señales individuales para formularios (evitan error NG5002)
   nuevaRedPlataforma = signal('');
@@ -51,7 +32,7 @@ export class AdminRedesSociales implements OnInit {
   nuevaNotificacionCanal = signal('');
   nuevaNotificacionActiva = signal(false);
 
-  mensajeSeleccionado = signal<any>(null);
+  mensajeSeleccionado = signal<MensajeRedSocial | null>(null);
   textoRespuesta = signal<string>('');
   filtroPlataforma = signal<string>(''); // '' = todas, 'TikTok', 'Instagram', etc.
 
@@ -62,111 +43,262 @@ export class AdminRedesSociales implements OnInit {
     return this.mensajes().filter(msg => msg.plataforma === filtro);
   });
 
-  ngOnInit() {
-    // Aquí se podrían cargar datos desde un backend
-    console.log('Componente Redes Sociales inicializado');
+  loading = signal(false);
+  error = signal<string | null>(null);
+
+  async ngOnInit() {
+    await this.cargarDatos();
   }
 
-  // Métodos para redes sociales
-  agregarRedSocial() {
-    const plataforma = this.nuevaRedPlataforma().trim();
-    if (!plataforma) return;
-    this.redesSociales.update(redes => [...redes, {
-      plataforma,
-      usuario: this.nuevaRedUsuario(),
-      token: this.nuevaRedToken(),
-      habilitada: this.nuevaRedHabilitada(),
-    }]);
-    this.nuevaRedPlataforma.set('');
-    this.nuevaRedUsuario.set('');
-    this.nuevaRedToken.set('');
-    this.nuevaRedHabilitada.set(false);
-  }
-
-  eliminarRedSocial(index: number) {
-    if (!confirm('¿Eliminar esta red social?')) return;
-    this.redesSociales.update(redes => redes.filter((_, i) => i !== index));
-  }
-
-  // Métodos para mensajes
-  seleccionarMensaje(mensaje: any) {
-    this.mensajeSeleccionado.set(mensaje);
-    this.textoRespuesta.set('');
-    if (!mensaje.leido) {
-      this.marcarComoLeido(mensaje.id);
+  async cargarDatos() {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const [redes, mensajes, respuestas, notificaciones] = await Promise.all([
+        this.redesSocialesBackend.getRedesSociales().toPromise(),
+        this.redesSocialesBackend.getMensajes().toPromise(),
+        this.redesSocialesBackend.getRespuestasAutomaticas().toPromise(),
+        this.redesSocialesBackend.getNotificaciones().toPromise(),
+      ]);
+      this.redesSociales.set(redes || []);
+      this.mensajes.set(mensajes || []);
+      this.respuestasAutomaticas.set(respuestas || []);
+      this.notificaciones.set(notificaciones || []);
+    } catch (err) {
+      console.error('Error cargando datos de redes sociales:', err);
+      this.error.set('Error al cargar datos. Por favor, intente nuevamente.');
+    } finally {
+      this.loading.set(false);
     }
   }
 
-  marcarComoLeido(id: number) {
-    this.mensajes.update(mensajes =>
-      mensajes.map(msg => msg.id === id ? { ...msg, leido: true } : msg)
-    );
+  // Métodos para redes sociales
+  async agregarRedSocial() {
+    const plataforma = this.nuevaRedPlataforma().trim();
+    const usuario = this.nuevaRedUsuario().trim();
+    if (!plataforma || !usuario) {
+      alert('Plataforma y usuario son requeridos');
+      return;
+    }
+
+    try {
+      const nuevaRed: Partial<RedSocial> = {
+        plataforma,
+        usuario,
+        token: this.nuevaRedToken().trim(),
+        habilitada: this.nuevaRedHabilitada(),
+      };
+
+      const redCreada = await this.redesSocialesBackend.createRedSocial(nuevaRed).toPromise();
+      this.redesSociales.update(redes => [...redes, redCreada]);
+      
+      this.nuevaRedPlataforma.set('');
+      this.nuevaRedUsuario.set('');
+      this.nuevaRedToken.set('');
+      this.nuevaRedHabilitada.set(false);
+    } catch (error) {
+      console.error('Error creando red social:', error);
+      alert('Error al crear red social');
+    }
   }
 
-  enviarRespuesta() {
+  async eliminarRedSocial(red: RedSocial) {
+    if (!confirm(`¿Eliminar la red social ${red.plataforma} - ${red.usuario}?`)) return;
+    
+    try {
+      await this.redesSocialesBackend.deleteRedSocial(red.id).toPromise();
+      this.redesSociales.update(redes => redes.filter(r => r.id !== red.id));
+    } catch (error) {
+      console.error('Error eliminando red social:', error);
+      alert('Error al eliminar red social');
+    }
+  }
+
+  async actualizarRedSocial(red: RedSocial) {
+    try {
+      const redActualizada = await this.redesSocialesBackend.updateRedSocial(red.id, red).toPromise();
+      this.redesSociales.update(redes => redes.map(r => r.id === red.id ? redActualizada : r));
+    } catch (error) {
+      console.error('Error actualizando red social:', error);
+      alert('Error al actualizar red social');
+    }
+  }
+
+  // Métodos para mensajes
+  seleccionarMensaje(mensaje: MensajeRedSocial) {
+    this.mensajeSeleccionado.set(mensaje);
+    this.textoRespuesta.set('');
+    if (!mensaje.leido) {
+      this.marcarComoLeido(mensaje);
+    }
+  }
+
+  async marcarComoLeido(mensaje: MensajeRedSocial) {
+    try {
+      const mensajeActualizado = await this.redesSocialesBackend.updateMensaje(mensaje.id, { leido: true }).toPromise();
+      this.mensajes.update(mensajes => mensajes.map(msg => msg.id === mensaje.id ? mensajeActualizado : msg));
+    } catch (error) {
+      console.error('Error marcando mensaje como leído:', error);
+    }
+  }
+
+  async enviarRespuesta() {
     const mensaje = this.mensajeSeleccionado();
     const respuesta = this.textoRespuesta().trim();
     if (!mensaje || !respuesta) {
       alert('Por favor, selecciona un mensaje y escribe una respuesta.');
       return;
     }
-    // Aquí se enviaría la respuesta al backend
-    console.log(`Respondiendo a ${mensaje.usuario} en ${mensaje.plataforma}: ${respuesta}`);
-    alert(`Respuesta enviada a ${mensaje.usuario} (${mensaje.plataforma})`);
-    this.textoRespuesta.set('');
-    // Simulación: agregar la respuesta al mensaje (en un caso real se enviaría a la API)
-    this.mensajes.update(mensajes =>
-      mensajes.map(msg => msg.id === mensaje.id ? { ...msg, leido: true, respondido: true } : msg)
-    );
+
+    try {
+      const mensajeActualizado = await this.redesSocialesBackend.updateMensaje(mensaje.id, { 
+        respondido: true, 
+        respuesta 
+      }).toPromise();
+      
+      this.mensajes.update(mensajes => mensajes.map(msg => msg.id === mensaje.id ? mensajeActualizado : msg));
+      this.textoRespuesta.set('');
+      alert(`Respuesta enviada a ${mensaje.usuario} (${mensaje.plataforma})`);
+    } catch (error) {
+      console.error('Error enviando respuesta:', error);
+      alert('Error al enviar respuesta');
+    }
   }
 
-  eliminarMensaje(id: number) {
+  async eliminarMensaje(mensaje: MensajeRedSocial) {
     if (!confirm('¿Eliminar este mensaje?')) return;
-    this.mensajes.update(mensajes => mensajes.filter(msg => msg.id !== id));
-    if (this.mensajeSeleccionado()?.id === id) {
-      this.mensajeSeleccionado.set(null);
+    
+    try {
+      await this.redesSocialesBackend.deleteMensaje(mensaje.id).toPromise();
+      this.mensajes.update(mensajes => mensajes.filter(msg => msg.id !== mensaje.id));
+      if (this.mensajeSeleccionado()?.id === mensaje.id) {
+        this.mensajeSeleccionado.set(null);
+      }
+    } catch (error) {
+      console.error('Error eliminando mensaje:', error);
+      alert('Error al eliminar mensaje');
     }
   }
 
   // Métodos para respuestas automáticas
-  agregarRespuesta() {
+  async agregarRespuesta() {
     const palabraClave = this.nuevaRespuestaPalabraClave().trim();
     const respuesta = this.nuevaRespuestaRespuesta().trim();
-    if (!palabraClave || !respuesta) return;
-    this.respuestasAutomaticas.update(respuestas => [...respuestas, { palabraClave, respuesta }]);
-    this.nuevaRespuestaPalabraClave.set('');
-    this.nuevaRespuestaRespuesta.set('');
+    if (!palabraClave || !respuesta) {
+      alert('Palabra clave y respuesta son requeridos');
+      return;
+    }
+
+    try {
+      const nuevaRespuesta: Partial<RespuestaAutomatica> = {
+        palabraClave,
+        respuesta,
+      };
+
+      const respuestaCreada = await this.redesSocialesBackend.createRespuestaAutomatica(nuevaRespuesta).toPromise();
+      this.respuestasAutomaticas.update(respuestas => [...respuestas, respuestaCreada]);
+      
+      this.nuevaRespuestaPalabraClave.set('');
+      this.nuevaRespuestaRespuesta.set('');
+    } catch (error) {
+      console.error('Error creando respuesta automática:', error);
+      alert('Error al crear respuesta automática');
+    }
   }
 
-  eliminarRespuesta(index: number) {
-    if (!confirm('¿Eliminar esta respuesta automática?')) return;
-    this.respuestasAutomaticas.update(respuestas => respuestas.filter((_, i) => i !== index));
+  async eliminarRespuesta(respuesta: RespuestaAutomatica) {
+    if (!confirm(`¿Eliminar la respuesta automática para "${respuesta.palabraClave}"?`)) return;
+    
+    try {
+      await this.redesSocialesBackend.deleteRespuestaAutomatica(respuesta.id).toPromise();
+      this.respuestasAutomaticas.update(respuestas => respuestas.filter(r => r.id !== respuesta.id));
+    } catch (error) {
+      console.error('Error eliminando respuesta automática:', error);
+      alert('Error al eliminar respuesta automática');
+    }
+  }
+
+  async actualizarRespuesta(respuesta: RespuestaAutomatica) {
+    try {
+      const respuestaActualizada = await this.redesSocialesBackend.updateRespuestaAutomatica(respuesta.id, respuesta).toPromise();
+      this.respuestasAutomaticas.update(respuestas => respuestas.map(r => r.id === respuesta.id ? respuestaActualizada : r));
+    } catch (error) {
+      console.error('Error actualizando respuesta automática:', error);
+      alert('Error al actualizar respuesta automática');
+    }
   }
 
   // Métodos para notificaciones
-  agregarNotificacion() {
+  async agregarNotificacion() {
     const tipo = this.nuevaNotificacionTipo().trim();
-    if (!tipo) return;
-    this.notificaciones.update(notifs => [...notifs, {
-      tipo,
-      canal: this.nuevaNotificacionCanal(),
-      activa: this.nuevaNotificacionActiva(),
-    }]);
-    this.nuevaNotificacionTipo.set('');
-    this.nuevaNotificacionCanal.set('');
-    this.nuevaNotificacionActiva.set(false);
+    const canal = this.nuevaNotificacionCanal().trim();
+    if (!tipo || !canal) {
+      alert('Tipo y canal son requeridos');
+      return;
+    }
+
+    try {
+      const nuevaNotificacion: Partial<NotificacionRedSocial> = {
+        tipo,
+        canal,
+        activa: this.nuevaNotificacionActiva(),
+      };
+
+      const notificacionCreada = await this.redesSocialesBackend.createNotificacion(nuevaNotificacion).toPromise();
+      this.notificaciones.update(notifs => [...notifs, notificacionCreada]);
+      
+      this.nuevaNotificacionTipo.set('');
+      this.nuevaNotificacionCanal.set('');
+      this.nuevaNotificacionActiva.set(false);
+    } catch (error) {
+      console.error('Error creando notificación:', error);
+      alert('Error al crear notificación');
+    }
   }
 
-  eliminarNotificacion(index: number) {
-    if (!confirm('¿Eliminar esta notificación?')) return;
-    this.notificaciones.update(notifs => notifs.filter((_, i) => i !== index));
+  async eliminarNotificacion(notificacion: NotificacionRedSocial) {
+    if (!confirm(`¿Eliminar la notificación ${notificacion.tipo}?`)) return;
+    
+    try {
+      await this.redesSocialesBackend.deleteNotificacion(notificacion.id).toPromise();
+      this.notificaciones.update(notifs => notifs.filter(n => n.id !== notificacion.id));
+    } catch (error) {
+      console.error('Error eliminando notificación:', error);
+      alert('Error al eliminar notificación');
+    }
   }
 
-  guardarConfiguracion() {
-    // Aquí se enviaría la configuración al backend
-    console.log('Guardando configuración de redes sociales:', this.redesSociales());
-    console.log('Respuestas automáticas:', this.respuestasAutomaticas());
-    console.log('Notificaciones:', this.notificaciones());
-    alert('Configuración guardada (simulación)');
+  async actualizarNotificacion(notificacion: NotificacionRedSocial) {
+    try {
+      const notificacionActualizada = await this.redesSocialesBackend.updateNotificacion(notificacion.id, notificacion).toPromise();
+      this.notificaciones.update(notifs => notifs.map(n => n.id === notificacion.id ? notificacionActualizada : n));
+    } catch (error) {
+      console.error('Error actualizando notificación:', error);
+      alert('Error al actualizar notificación');
+    }
+  }
+
+  async guardarConfiguracion() {
+    try {
+      // Guardar todas las redes sociales
+      for (const red of this.redesSociales()) {
+        await this.redesSocialesBackend.updateRedSocial(red.id, red).toPromise();
+      }
+      
+      // Guardar todas las respuestas automáticas
+      for (const respuesta of this.respuestasAutomaticas()) {
+        await this.redesSocialesBackend.updateRespuestaAutomatica(respuesta.id, respuesta).toPromise();
+      }
+      
+      // Guardar todas las notificaciones
+      for (const notificacion of this.notificaciones()) {
+        await this.redesSocialesBackend.updateNotificacion(notificacion.id, notificacion).toPromise();
+      }
+      
+      alert('Configuración guardada exitosamente');
+    } catch (error) {
+      console.error('Error guardando configuración:', error);
+      alert('Error al guardar configuración');
+    }
   }
 }

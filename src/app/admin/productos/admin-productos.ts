@@ -31,6 +31,9 @@ interface ProductFormData {
   ofertaPrecio: number;
   ratingRate: number;
   ratingCount: number;
+  colorido: boolean;
+  colores: Color[];
+  stock: number;
 }
 
 @Component({
@@ -238,6 +241,9 @@ ngOnInit() {
       ofertaPrecio: 0,
       ratingRate: 0,
       ratingCount: 0,
+      colorido: false,
+      colores: [],
+      stock: 0,
     });
     this.showModal.set(true);
   }
@@ -265,6 +271,9 @@ ngOnInit() {
       ofertaPrecio: (product as any).ofertaPrecio || 0,
       ratingRate: product.rating?.rate || 0,
       ratingCount: product.rating?.count || 0,
+      colorido: product.colorido || false,
+      colores: product.colores || [],
+      stock: product.stock || 0,
     });
     this.showModal.set(true);
   }
@@ -301,6 +310,9 @@ ngOnInit() {
         ofertaPorcentaje: data.ofertaPorcentaje,
         ofertaPrecio: data.ofertaPrecio,
         rating: { rate: data.ratingRate, count: data.ratingCount },
+        colorido: data.colorido,
+        colores: data.colores,
+        stock: data.stock,
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
@@ -336,6 +348,9 @@ ngOnInit() {
         ofertaPorcentaje: data.ofertaPorcentaje,
         ofertaPrecio: data.ofertaPrecio,
         rating: { rate: data.ratingRate, count: data.ratingCount },
+        colorido: data.colorido,
+        colores: data.colores,
+        stock: data.stock,
       }).subscribe({
         next: (updated) => {
           this.products.update((products) =>
@@ -425,10 +440,15 @@ ngOnInit() {
     this.processAdditionalFile(file);
   }
 
+  getMaxAdditionalImages(): number {
+    return this.formData().colorido ? 10 : 4;
+  }
+
   processAdditionalFile(file: File) {
     const currentImages = this.formData().images.length;
-    if (currentImages >= 4) {
-      alert('Máximo 4 imágenes adicionales permitidas');
+    const maxImages = this.getMaxAdditionalImages();
+    if (currentImages >= maxImages) {
+      alert(`Máximo ${maxImages} imágenes adicionales permitidas`);
       return;
     }
     if (!file.type.startsWith('image/')) {

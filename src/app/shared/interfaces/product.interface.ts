@@ -1,3 +1,9 @@
+export interface Color {
+  id: string;
+  nombre: string;
+  codigoHex: string;
+}
+
 export interface Product {
   category: string;
   description: string;
@@ -21,9 +27,14 @@ export interface Product {
   fichaTecnica?: { [key: string]: string };
   unidades?: number;
   estado?: 'disponible' | 'agotado';
+  colorido?: boolean;
+  colores?: Color[];
+  stock?: number;
 }
 
 export interface ProductItemCart {
   product: Product;
   quantity: number;
+  colorId?: string;
+  colorNombre?: string;
 }

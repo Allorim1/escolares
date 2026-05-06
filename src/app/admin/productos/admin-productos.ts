@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DecimalPipe } from '@angular/common';
 import { ProductsService } from '../../products/data-access/products.service';
-import { Product } from '../../shared/interfaces/product.interface';
+import { Product, Color } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
@@ -84,6 +84,9 @@ export class AdminProductos implements OnInit {
     ofertaPrecio: 0,
     ratingRate: 0,
     ratingCount: 0,
+    colorido: false,
+    colores: [],
+    stock: 0,
   });
   ofertaFieldModifiedByUser = signal<'porcentaje' | 'precio' | null>(null);
 

@@ -90,7 +90,9 @@ export class AdminRedesSociales implements OnInit {
       };
 
       const redCreada = await this.redesSocialesBackend.createRedSocial(nuevaRed).toPromise();
-      this.redesSociales.update(redes => [...redes, redCreada]);
+      if (redCreada) {
+        this.redesSociales.update(redes => [...redes, redCreada]);
+      }
       
       this.nuevaRedPlataforma.set('');
       this.nuevaRedUsuario.set('');
@@ -117,7 +119,9 @@ export class AdminRedesSociales implements OnInit {
   async actualizarRedSocial(red: RedSocial) {
     try {
       const redActualizada = await this.redesSocialesBackend.updateRedSocial(red.id, red).toPromise();
-      this.redesSociales.update(redes => redes.map(r => r.id === red.id ? redActualizada : r));
+      if (redActualizada) {
+        this.redesSociales.update(redes => redes.map(r => r.id === red.id ? redActualizada : r));
+      }
     } catch (error) {
       console.error('Error actualizando red social:', error);
       alert('Error al actualizar red social');
@@ -136,7 +140,9 @@ export class AdminRedesSociales implements OnInit {
   async marcarComoLeido(mensaje: MensajeRedSocial) {
     try {
       const mensajeActualizado = await this.redesSocialesBackend.updateMensaje(mensaje.id, { leido: true }).toPromise();
-      this.mensajes.update(mensajes => mensajes.map(msg => msg.id === mensaje.id ? mensajeActualizado : msg));
+      if (mensajeActualizado) {
+        this.mensajes.update(mensajes => mensajes.map(msg => msg.id === mensaje.id ? mensajeActualizado : msg));
+      }
     } catch (error) {
       console.error('Error marcando mensaje como leído:', error);
     }
@@ -156,7 +162,9 @@ export class AdminRedesSociales implements OnInit {
         respuesta 
       }).toPromise();
       
-      this.mensajes.update(mensajes => mensajes.map(msg => msg.id === mensaje.id ? mensajeActualizado : msg));
+      if (mensajeActualizado) {
+        this.mensajes.update(mensajes => mensajes.map(msg => msg.id === mensaje.id ? mensajeActualizado : msg));
+      }
       this.textoRespuesta.set('');
       alert(`Respuesta enviada a ${mensaje.usuario} (${mensaje.plataforma})`);
     } catch (error) {
@@ -196,7 +204,9 @@ export class AdminRedesSociales implements OnInit {
       };
 
       const respuestaCreada = await this.redesSocialesBackend.createRespuestaAutomatica(nuevaRespuesta).toPromise();
-      this.respuestasAutomaticas.update(respuestas => [...respuestas, respuestaCreada]);
+      if (respuestaCreada) {
+        this.respuestasAutomaticas.update(respuestas => [...respuestas, respuestaCreada]);
+      }
       
       this.nuevaRespuestaPalabraClave.set('');
       this.nuevaRespuestaRespuesta.set('');
@@ -221,7 +231,9 @@ export class AdminRedesSociales implements OnInit {
   async actualizarRespuesta(respuesta: RespuestaAutomatica) {
     try {
       const respuestaActualizada = await this.redesSocialesBackend.updateRespuestaAutomatica(respuesta.id, respuesta).toPromise();
-      this.respuestasAutomaticas.update(respuestas => respuestas.map(r => r.id === respuesta.id ? respuestaActualizada : r));
+      if (respuestaActualizada) {
+        this.respuestasAutomaticas.update(respuestas => respuestas.map(r => r.id === respuesta.id ? respuestaActualizada : r));
+      }
     } catch (error) {
       console.error('Error actualizando respuesta automática:', error);
       alert('Error al actualizar respuesta automática');
@@ -245,7 +257,9 @@ export class AdminRedesSociales implements OnInit {
       };
 
       const notificacionCreada = await this.redesSocialesBackend.createNotificacion(nuevaNotificacion).toPromise();
-      this.notificaciones.update(notifs => [...notifs, notificacionCreada]);
+      if (notificacionCreada) {
+        this.notificaciones.update(notifs => [...notifs, notificacionCreada]);
+      }
       
       this.nuevaNotificacionTipo.set('');
       this.nuevaNotificacionCanal.set('');
@@ -271,7 +285,9 @@ export class AdminRedesSociales implements OnInit {
   async actualizarNotificacion(notificacion: NotificacionRedSocial) {
     try {
       const notificacionActualizada = await this.redesSocialesBackend.updateNotificacion(notificacion.id, notificacion).toPromise();
-      this.notificaciones.update(notifs => notifs.map(n => n.id === notificacion.id ? notificacionActualizada : n));
+      if (notificacionActualizada) {
+        this.notificaciones.update(notifs => notifs.map(n => n.id === notificacion.id ? notificacionActualizada : n));
+      }
     } catch (error) {
       console.error('Error actualizando notificación:', error);
       alert('Error al actualizar notificación');

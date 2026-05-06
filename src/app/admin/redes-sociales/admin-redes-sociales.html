@@ -192,14 +192,14 @@
 
       <div class="mensaje-detalle">
         <h3>Responder Mensaje</h3>
-        @if (mensajeSeleccionado()) {
+        @if (mensajeSeleccionado(); as mensaje) {
           <div class="detalle-contenido">
-            <p><strong>Plataforma:</strong> {{ mensajeSeleccionado().plataforma }}</p>
-            <p><strong>Usuario:</strong> {{ mensajeSeleccionado().usuario }}</p>
-            <p><strong>Fecha:</strong> {{ mensajeSeleccionado().fecha | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p><strong>Plataforma:</strong> {{ mensaje.plataforma }}</p>
+            <p><strong>Usuario:</strong> {{ mensaje.usuario }}</p>
+            <p><strong>Fecha:</strong> {{ mensaje.fecha | date:'dd/MM/yyyy HH:mm' }}</p>
             <div class="mensaje-original">
               <strong>Mensaje original:</strong>
-              <blockquote>{{ mensajeSeleccionado().texto }}</blockquote>
+              <blockquote>{{ mensaje.texto }}</blockquote>
             </div>
             <div class="form-respuesta">
               <label for="respuesta">Tu respuesta</label>

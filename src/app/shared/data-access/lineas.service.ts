@@ -17,7 +17,7 @@ export class LineasService {
   lineas = this.backend.lineas;
   isInitialized = this.backend.isInitialized;
 
-  agregarLinea(name: string, image: string = '') {
+  agregarLinea(name: string, image = '') {
     this.backend.agregarLinea(name, image);
   }
 

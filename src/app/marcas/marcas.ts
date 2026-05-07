@@ -25,7 +25,7 @@ export class Marcas implements AfterViewInit {
 
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {
     if (isPlatformBrowser(this.platformId)) {
       effect(() => {
         const marcasVal = this.marcas();

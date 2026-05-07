@@ -28,7 +28,7 @@ export class LineasBackend {
     });
   }
 
-  agregarLinea(name: string, image: string = '') {
+  agregarLinea(name: string, image = '') {
     if (!name || !name.trim()) {
       console.error('El nombre de la línea es requerido');
       return;

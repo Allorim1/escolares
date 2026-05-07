@@ -49,7 +49,7 @@ export class Gastos implements OnInit {
 
   totales = signal({
     total: 0,
-    porCategoria: {} as { [key: string]: number },
+    porCategoria: {} as Record<string, number>,
   });
 
   ngOnInit() {
@@ -74,7 +74,7 @@ export class Gastos implements OnInit {
   calcularTotales() {
     const filtered = this.getGastosFiltrados();
     let total = 0;
-    const porCategoria: { [key: string]: number } = {};
+    const porCategoria: Record<string, number> = {};
 
     filtered.forEach((g) => {
       total += g.monto;

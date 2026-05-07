@@ -150,7 +150,7 @@ export class StoreSettingsService {
     this.setMantenimiento(newValue, this.mantenimientoTipoInternal());
   }
 
-  setMantenimiento(enabled: boolean, tipo: string = 'parcial') {
+  setMantenimiento(enabled: boolean, tipo = 'parcial') {
     this.mantenimientoInternal.set(enabled);
     this.mantenimientoTipoInternal.set(tipo);
     this.saveMantenimientoToStorage(enabled);

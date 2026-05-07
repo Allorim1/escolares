@@ -127,11 +127,11 @@ export class CostoTasa implements OnInit {
   consultaUtilidadAmount = 0;
   consultaPvpDolar = 0;
   saving = signal(false);
-  utilidadesTemp: { [key: string]: number } = {};
-  pvpDolarTemp: { [key: string]: number } = {};
-  editingPvpDolar: { [key: string]: boolean } = {};
-  nombresProductos: { [key: string]: string } = {};
-  cantidadesProductos: { [key: string]: number } = {};
+  utilidadesTemp: Record<string, number> = {};
+  pvpDolarTemp: Record<string, number> = {};
+  editingPvpDolar: Record<string, boolean> = {};
+  nombresProductos: Record<string, string> = {};
+  cantidadesProductos: Record<string, number> = {};
   paginaActual = 1;
   reportesPorPagina = 5;
 

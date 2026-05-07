@@ -39,7 +39,7 @@ export class Offers implements OnInit, AfterViewInit {
   productsEnOferta = signal<Product[]>([]);
   loading = signal(true);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
   ngOnInit() {
     this.productsService.getProducts().subscribe({

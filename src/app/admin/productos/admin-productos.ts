@@ -95,30 +95,41 @@ export class AdminProductos implements OnInit {
     ratingCount: 0,
     colorido: false,
     colores: [],
-    stock: 0,
   });
   ofertaFieldModifiedByUser = signal<'porcentaje' | 'precio' | null>(null);
 
-  formData = signal<ProductFormData>({
-    title: '',
-    price: 0,
-    description: '',
-    category: '',
-    image: '',
-    images: [],
-    marca: '',
-    lineaId: '',
-    iva: false,
-    ivaPercentage: 16,
-    estado: 'disponible',
-    enOferta: false,
-    ofertaPorcentaje: 0,
-    ofertaPrecio: 0,
-    ratingRate: 0,
-    ratingCount: 0,
-    colorido: false,
-    colores: [],
-  });
+  productCategories = signal<CategoriaProducto[]>([]);
+
+  newCategoryName = '';
+  showCategoryModal = signal(false);
+
+  ngOnInit() {
+    this.loadProductCategories();
+    this.loadProducts();
+    this.loadPreciosOcultosSetting();
+  }
+
+  loadProductCategories() {
+    this.http.get<any[]>('/api/productos-categorias').subscribe({
+      next: (data) => {
+        this.productCategories.set(data);
+      },
+      error: () => {
+        this.productCategories.set([
+          { id: 'cat-1', nombre: 'Lápices' },
+          { id: 'cat-2', nombre: 'Mochilas' },
+          { id: 'cat-3', nombre: 'Uniformes' },
+        ]);
+      }
+    });
+  }
+
+  get categorias(): CategoriaProducto[] {
+    return this.productCategories();
+  }
+
+  get categories(): string[] {
+    return ['Nueva...', ...this.productCategories().map(c => c.nombre)];
   }
 
   openCategoryModal() {

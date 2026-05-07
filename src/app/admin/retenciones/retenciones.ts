@@ -421,7 +421,7 @@ export class Retenciones implements OnInit {
       return;
     }
 
-    let lineas: string[] = [];
+    const lineas: string[] = [];
     let nComprobante = 1;
 
     for (const retencion of retencionesFiltradas) {

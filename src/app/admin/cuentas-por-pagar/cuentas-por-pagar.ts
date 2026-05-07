@@ -207,7 +207,7 @@ export class CuentasPorPagar implements OnInit {
   showCameraModal = false;
   cameraStream: MediaStream | null = null;
   videoElement: HTMLVideoElement | null = null;
-  fotoIndexEliminar: number = -1;
+  fotoIndexEliminar = -1;
   cameraCallback: ((base64: string) => void) | null = null;
 
   showQRModal = false;

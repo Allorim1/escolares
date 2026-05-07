@@ -118,7 +118,7 @@ export class CierreCaja implements OnInit {
     });
   }
 
-  agregarRC(cajaId: string, monto: number, descripcion: string = '') {
+  agregarRC(cajaId: string, monto: number, descripcion = '') {
     if (monto <= 0 || !cajaId) return;
     
     if (!this.rcEntries[cajaId]) {
@@ -198,7 +198,7 @@ export class CierreCaja implements OnInit {
     this.cargarCierres();
   }
 
-  getCajaTotal(cajaId: string, aplicarNegativos: boolean = false): number {
+  getCajaTotal(cajaId: string, aplicarNegativos = false): number {
     const caja = this.cajasValues[cajaId];
     if (!caja) return 0;
     

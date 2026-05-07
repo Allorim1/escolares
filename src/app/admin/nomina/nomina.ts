@@ -75,7 +75,7 @@ export class Nomina implements OnInit {
 
   totales = signal({
     total: 0,
-    porTipo: {} as { [key: string]: number },
+    porTipo: {} as Record<string, number>,
   });
 
   ngOnInit() {
@@ -108,7 +108,7 @@ export class Nomina implements OnInit {
   calcularTotales() {
     const filtered = this.getPagosFiltrados();
     let total = 0;
-    const porTipo: { [key: string]: number } = {};
+    const porTipo: Record<string, number> = {};
 
     filtered.forEach((p) => {
       total += p.monto;

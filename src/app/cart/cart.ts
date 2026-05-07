@@ -925,7 +925,7 @@ export default class CartComponent implements OnDestroy {
     const data = this.paymentData();
     const pmInfo = PAGO_MOVIL_INFO;
     
-    let mensaje = `*DATOS PARA PAGO MÓVIL*\n\n` +
+    const mensaje = `*DATOS PARA PAGO MÓVIL*\n\n` +
       `*Banco:* ${pmInfo.banco}\n` +
       `*Titular:* ${pmInfo.titular}\n` +
       `*RIF:* ${pmInfo.rif}\n` +

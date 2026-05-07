@@ -11,7 +11,7 @@ interface FilaResultado {
   totalOriginal: number;
   tasa: number;
   totalConvertido: number;
-  columnasExtra: { [key: string]: any };
+  columnasExtra: Record<string, any>;
 }
 
 interface ComparacionResultado {
@@ -971,7 +971,7 @@ export class Conversion {
         const tasa = todasLasTasas.get(fecha) || 0;
         const totalConvertido = tasa > 0 ? total / tasa : 0;
 
-        const columnasExtra: { [key: string]: any } = {};
+        const columnasExtra: Record<string, any> = {};
         ventasHeaders.forEach((h: string, idx: number) => {
           if (idx !== idxFechaV && idx !== idxTotalV) {
             columnasExtra[h] = row[idx];
@@ -1123,7 +1123,7 @@ export class Conversion {
       const tasa = todasLasTasas.get(fecha) || 0;
       const totalConvertido = tasa > 0 ? total / tasa : 0;
 
-      const columnasExtra: { [key: string]: any } = {};
+      const columnasExtra: Record<string, any> = {};
       ventasHeaders.forEach((h: string, idx: number) => {
         if (idx !== idxFechaV && idx !== idxTotalV) {
           columnasExtra[h] = row[idx];

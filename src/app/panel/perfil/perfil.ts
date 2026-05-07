@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../shared/data-access/auth.service';
@@ -9,7 +9,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
-export class Perfil {
+export class Perfil implements OnInit {
   authService = inject(AuthService);
 
   editando = signal(false);

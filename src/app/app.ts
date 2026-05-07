@@ -7,7 +7,7 @@ import { NotificationsComponent } from './shared/ui/notifications/notifications'
 import { ApiKeyStatusService } from './shared/data-access/api-key-status.service';
 import { StoreSettingsService } from './shared/data-access/store-settings.service';
 
-export function initTheme(platformId: Object) {
+export function initTheme(platformId: object) {
   return () => {
     if (isPlatformBrowser(platformId)) {
       // Initialize theme on app load

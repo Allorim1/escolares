@@ -157,7 +157,7 @@ export class Register {
     }
 
     // Construir el número de documento con el prefijo correspondiente
-    let documentoCompleto = this.construirDocumentoCompleto();
+    const documentoCompleto = this.construirDocumentoCompleto();
 
     const mensaje = `Hola, me acabo de registrar en Escolares y te envío las fotos de mi identificación.\n\n` +
       `Usuario: ${this.username()}\n` +

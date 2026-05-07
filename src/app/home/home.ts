@@ -593,7 +593,7 @@ export default class HomeComponent implements AfterViewInit, OnDestroy {
 
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
   emailSuscrito = '';
   mensajeSuscrito = signal('');

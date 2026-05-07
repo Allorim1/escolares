@@ -9,10 +9,10 @@ import { RouterLink } from '@angular/router';
   styleUrl: './product-rating.css',
 })
 export class ProductRating {
-  @Input() currentRate: number = 0;
-  @Input() userRate: number = 0;
-  @Input() allowRate: boolean = false;
-  @Input() count: number = 0;
+  @Input() currentRate = 0;
+  @Input() userRate = 0;
+  @Input() allowRate = false;
+  @Input() count = 0;
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
 
   @Output() rateSubmit = new EventEmitter<number>();

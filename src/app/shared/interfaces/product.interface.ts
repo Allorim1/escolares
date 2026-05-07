@@ -25,7 +25,7 @@ export interface Product {
   createdAt?: Date;
   iva?: boolean;
   ivaPercentage?: number;
-  fichaTecnica?: { [key: string]: string };
+  fichaTecnica?: Record<string, string>;
   unidades?: number;
   estado?: 'disponible' | 'agotado';
   colorido?: boolean;

@@ -36,32 +36,41 @@ interface ProductFormData {
   colores: Color[];
 }
 
+// Function to create a base64 encoded colored square
+function createColorImage(hexColor: string, size = 50): string {
+  // Create a simple SVG colored square
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <rect width="${size}" height="${size}" fill="${hexColor}"/>
+  </svg>`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
 // Default colors for easier selection
 const defaultColors: Color[] = [
-  { id: '1', nombre: 'Rojo', codigoHex: '#FF0000', imagen: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Rojo' },
-  { id: '2', nombre: 'Rojo Oscuro', codigoHex: '#8B0000', imagen: 'https://via.placeholder.com/150/8B0000/FFFFFF?text=Rojo+Oscuro' },
-  { id: '3', nombre: 'Verde', codigoHex: '#00FF00', imagen: 'https://via.placeholder.com/150/00FF00/000000?text=Verde' },
-  { id: '4', nombre: 'Verde Oscuro', codigoHex: '#006400', imagen: 'https://via.placeholder.com/150/006400/FFFFFF?text=Verde+Oscuro' },
-  { id: '5', nombre: 'Azul', codigoHex: '#0000FF', imagen: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Azul' },
-  { id: '6', nombre: 'Azul Marino', codigoHex: '#000080', imagen: 'https://via.placeholder.com/150/000080/FFFFFF?text=Azul+Marino' },
-  { id: '7', nombre: 'Azul Claro', codigoHex: '#ADD8E6', imagen: 'https://via.placeholder.com/150/ADD8E6/000000?text=Azul+Claro' },
-  { id: '8', nombre: 'Amarillo', codigoHex: '#FFFF00', imagen: 'https://via.placeholder.com/150/FFFF00/000000?text=Amarillo' },
-  { id: '9', nombre: 'Amarillo Dorado', codigoHex: '#FFD700', imagen: 'https://via.placeholder.com/150/FFD700/000000?text=Dorado' },
-  { id: '10', nombre: 'Naranja', codigoHex: '#FFA500', imagen: 'https://via.placeholder.com/150/FFA500/000000?text=Naranja' },
-  { id: '11', nombre: 'Rosa', codigoHex: '#FFC0CB', imagen: 'https://via.placeholder.com/150/FFC0CB/000000?text=Rosa' },
-  { id: '12', nombre: 'Rosa Fuerte', codigoHex: '#FF1493', imagen: 'https://via.placeholder.com/150/FF1493/FFFFFF?text=Rosa+Fuerte' },
-  { id: '13', nombre: 'Morado', codigoHex: '#800080', imagen: 'https://via.placeholder.com/150/800080/FFFFFF?text=Morado' },
-  { id: '14', nombre: 'Morado Claro', codigoHex: '#DDA0DD', imagen: 'https://via.placeholder.com/150/DDA0DD/000000?text=Morado+Claro' },
-  { id: '15', nombre: 'Negro', codigoHex: '#000000', imagen: 'https://via.placeholder.com/150/000000/FFFFFF?text=Negro' },
-  { id: '16', nombre: 'Gris', codigoHex: '#808080', imagen: 'https://via.placeholder.com/150/808080/FFFFFF?text=Gris' },
-  { id: '17', nombre: 'Gris Claro', codigoHex: '#D3D3D3', imagen: 'https://via.placeholder.com/150/D3D3D3/000000?text=Gris+Claro' },
-  { id: '18', nombre: 'Blanco', codigoHex: '#FFFFFF', imagen: 'https://via.placeholder.com/150/FFFFFF/000000?text=Blanco' },
-  { id: '19', nombre: 'Beige', codigoHex: '#F5F5DC', imagen: 'https://via.placeholder.com/150/F5F5DC/000000?text=Beige' },
-  { id: '20', nombre: 'Marrón', codigoHex: '#8B4513', imagen: 'https://via.placeholder.com/150/8B4513/FFFFFF?text=Marrón' },
-  { id: '21', nombre: 'Turquesa', codigoHex: '#40E0D0', imagen: 'https://via.placeholder.com/150/40E0D0/000000?text=Turquesa' },
-  { id: '22', nombre: 'Verde Lima', codigoHex: '#32CD32', imagen: 'https://via.placeholder.com/150/32CD32/000000?text=Lima' },
-  { id: '23', nombre: 'Índigo', codigoHex: '#4B0082', imagen: 'https://via.placeholder.com/150/4B0082/FFFFFF?text=Índigo' },
-  { id: '24', nombre: 'Coral', codigoHex: '#FF7F50', imagen: 'https://via.placeholder.com/150/FF7F50/000000?text=Coral' }
+  { id: '1', nombre: 'Rojo', codigoHex: '#FF0000', imagen: createColorImage('#FF0000') },
+  { id: '2', nombre: 'Rojo Oscuro', codigoHex: '#8B0000', imagen: createColorImage('#8B0000') },
+  { id: '3', nombre: 'Verde', codigoHex: '#00FF00', imagen: createColorImage('#00FF00') },
+  { id: '4', nombre: 'Verde Oscuro', codigoHex: '#006400', imagen: createColorImage('#006400') },
+  { id: '5', nombre: 'Azul', codigoHex: '#0000FF', imagen: createColorImage('#0000FF') },
+  { id: '6', nombre: 'Azul Marino', codigoHex: '#000080', imagen: createColorImage('#000080') },
+  { id: '7', nombre: 'Azul Claro', codigoHex: '#ADD8E6', imagen: createColorImage('#ADD8E6') },
+  { id: '8', nombre: 'Amarillo', codigoHex: '#FFFF00', imagen: createColorImage('#FFFF00') },
+  { id: '9', nombre: 'Amarillo Dorado', codigoHex: '#FFD700', imagen: createColorImage('#FFD700') },
+  { id: '10', nombre: 'Naranja', codigoHex: '#FFA500', imagen: createColorImage('#FFA500') },
+  { id: '11', nombre: 'Rosa', codigoHex: '#FFC0CB', imagen: createColorImage('#FFC0CB') },
+  { id: '12', nombre: 'Rosa Fuerte', codigoHex: '#FF1493', imagen: createColorImage('#FF1493') },
+  { id: '13', nombre: 'Morado', codigoHex: '#800080', imagen: createColorImage('#800080') },
+  { id: '14', nombre: 'Morado Claro', codigoHex: '#DDA0DD', imagen: createColorImage('#DDA0DD') },
+  { id: '15', nombre: 'Negro', codigoHex: '#000000', imagen: createColorImage('#000000') },
+  { id: '16', nombre: 'Gris', codigoHex: '#808080', imagen: createColorImage('#808080') },
+  { id: '17', nombre: 'Gris Claro', codigoHex: '#D3D3D3', imagen: createColorImage('#D3D3D3') },
+  { id: '18', nombre: 'Blanco', codigoHex: '#FFFFFF', imagen: createColorImage('#FFFFFF') },
+  { id: '19', nombre: 'Beige', codigoHex: '#F5F5DC', imagen: createColorImage('#F5F5DC') },
+  { id: '20', nombre: 'Marrón', codigoHex: '#8B4513', imagen: createColorImage('#8B4513') },
+  { id: '21', nombre: 'Turquesa', codigoHex: '#40E0D0', imagen: createColorImage('#40E0D0') },
+  { id: '22', nombre: 'Verde Lima', codigoHex: '#32CD32', imagen: createColorImage('#32CD32') },
+  { id: '23', nombre: 'Índigo', codigoHex: '#4B0082', imagen: createColorImage('#4B0082') },
+  { id: '24', nombre: 'Coral', codigoHex: '#FF7F50', imagen: createColorImage('#FF7F50') }
 ];
 
 @Component({
@@ -265,7 +274,7 @@ export class AdminProductos implements OnInit {
       id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       nombre: '',
       codigoHex: '#000000',
-      imagen: 'https://via.placeholder.com/150/000000/FFFFFF?text=Color+Personalizado'
+      imagen: createColorImage('#000000')
     };
     this.formData.update(data => ({
       ...data,
@@ -602,9 +611,32 @@ export class AdminProductos implements OnInit {
     return defaultColors;
   }
 
+  // Form getters for better binding
+  get colorFormNombre(): string {
+    return this.colorManagerForm().nombre;
+  }
+
+  set colorFormNombre(value: string) {
+    this.colorManagerForm.update(form => ({ ...form, nombre: value }));
+  }
+
+  get colorFormHex(): string {
+    return this.colorManagerForm().codigoHex;
+  }
+
+  set colorFormHex(value: string) {
+    this.onColorHexChange(value);
+  }
+
+  get colorFormImagen(): string {
+    return this.colorManagerForm().imagen;
+  }
+
   // Color management methods
   openColorManager() {
+    console.log('Opening color manager');
     this.showColorManager.set(true);
+    console.log('Color manager visible:', this.showColorManager());
   }
 
   closeColorManager() {
@@ -618,7 +650,7 @@ export class AdminProductos implements OnInit {
       id: '',
       nombre: '',
       codigoHex: '#000000',
-      imagen: ''
+      imagen: createColorImage('#000000')
     });
   }
 
@@ -633,7 +665,8 @@ export class AdminProductos implements OnInit {
     this.resetColorForm();
     this.colorManagerForm.update(form => ({
       ...form,
-      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      imagen: createColorImage(form.codigoHex)
     }));
     this.showColorManager.set(true);
   }
@@ -664,6 +697,14 @@ export class AdminProductos implements OnInit {
         defaultColors.splice(index, 1);
       }
     }
+  }
+
+  onColorHexChange(hexColor: string) {
+    this.colorManagerForm.update(form => ({
+      ...form,
+      codigoHex: hexColor,
+      imagen: createColorImage(hexColor)
+    }));
   }
 
   onColorImageSelected(event: Event) {

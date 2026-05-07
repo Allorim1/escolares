@@ -412,172 +412,10 @@
                         placeholder="0"
                       />
                       <span class="rating-suffix">reseñas</span>
-                    </div>
-                  </div>
-                </div>
-              }
-              <div class="form-actions">
-                <button type="submit" class="save-btn">Guardar</button>
-                <button type="button" class="cancel-btn" (click)="confirmCancel()">Cancelar</button>
-              </div>
-            </form>
-          </div>
-          <div class="preview-section">
-            <h4 class="preview-title">Vista Previa</h4>
-            <div class="preview-card">
-              <div class="preview-image-col">
-                <div class="preview-image-wrapper">
-                  @if (formData().estado === 'agotado') {
-                    <div class="preview-agotado-badge">Temporalmente agotado</div>
-                  }
-                  @if (formData().image) {
-                    <img class="preview-image" [src]="formData().image" [alt]="formData().title" />
-                  } @else {
-                    <div class="preview-no-image">Sin imagen</div>
-                  }
-                </div>
-                @if (formData().images.length > 0) {
-                  <div class="preview-thumbnails">
-                    @for (img of formData().images; track img) {
-                      <div class="preview-thumbnail-item" (click)="setMainImage(img)">
-                        <img [src]="img" alt="Thumbnail" />
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-              <div class="preview-info-col">
-                <h1 class="preview-title-product">
-                  {{ formData().title || 'Nombre del producto' }}
-                </h1>
-                <div class="preview-rating">
-                  <span class="star full">★</span>
-                  <span class="star full">★</span>
-                  <span class="star full">★</span>
-                  <span class="star full">★</span>
-                  <span class="star">★</span>
-                  <span class="rating-text">0.0 (0 reseñas)</span>
-                </div>
-                <div class="preview-price-section">
-                  @if (formData().price > 0) {
-                    @if (formData().enOferta && formData().ofertaPrecio > 0) {
-                      <div class="preview-offer">
-                        <span class="preview-original-price">${{ formData().price.toFixed(2) }}</span>
-                        <span class="preview-offer-price">${{ formData().ofertaPrecio | number:'1.2-2' }}</span>
-                        <span class="preview-offer-badge">{{ formData().ofertaPorcentaje | number:'1.0-0' }}% OFF</span>
-                      </div>
-                    } @else if (formData().iva) {
-                      <div class="preview-price-with-iva">
-                        <span class="preview-price-label">Precio (IVA incluido):</span>
-                        <span class="preview-price">${{ formData().price.toFixed(2) }}</span>
-                        <span class="preview-price-base">(Base: ${{ calculateIvaIncluded().base | number:'1.2-2' }} + IVA {{ formData().ivaPercentage }}%: ${{ calculateIvaIncluded().iva | number:'1.2-2' }})</span>
-                      </div>
-                    } @else {
-                      <span class="preview-price">${{ formData().price.toFixed(2) }}</span>
-                    }
-                  } @else {
-                    <span class="preview-price-placeholder">$0.00</span>
-                  }
-                </div>
-                <p class="preview-description">
-                  {{ formData().description || 'Descripción del producto...' }}
-                </p>
-                @if (formData().category || formData().marca || formData().lineaId) {
-                  <div class="preview-ficha">
-                    <h5 class="preview-ficha-title">📋 Ficha Técnica</h5>
-                    <div class="preview-ficha-grid">
-                      @if (formData().category && formData().category !== 'Nueva...') {
-                        <div class="preview-ficha-row">
-                          <span class="preview-ficha-label">Categoría</span>
-                          <span class="preview-ficha-value">{{ formData().category }}</span>
-                        </div>
-                      }
-                      @if (formData().lineaId) {
-                        <div class="preview-ficha-row">
-                          <span class="preview-ficha-label">Línea</span>
-                          <span class="preview-ficha-value">{{ getLineaNameById(formData().lineaId) }}</span>
-                        </div>
-                      }
-                      @if (formData().marca) {
-                        <div class="preview-ficha-row">
-                          <span class="preview-ficha-label">Marca</span>
-                          <span class="preview-ficha-value">{{ formData().marca }}</span>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-    </div>
+    }
   }
-
-  <div class="products-table">
-    <table>
-      <thead>
-        <tr>
-<th>Imagen</th>
-            <th>Nombre</th>
-            <th>Precio</th>
-            <th>Categoría</th>
-            <th>Marca</th>
-            <th>Línea</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (product of filteredProducts; track product.id) {
-          <tr>
-            <td><img [src]="product.image" [alt]="product.title" class="product-thumb" /></td>
-            <td>{{ product.title }}</td>
-            <td>${{ product.price.toFixed(2) }}</td>
-            <td>{{ product.category }}</td>
-            <td>{{ product.marca || '-' }}</td>
-            <td>{{ getLineaName(product) }}</td>
-            <td>
-              @if (product.estado === 'agotado') {
-                <span class="badge-agotado">Agotado</span>
-              } @else {
-                <span class="badge-disponible">Disponible</span>
-              }
-            </td>
-            <td class="actions">
-              <button class="edit-btn" (click)="showEditForm(product)">✎</button>
-              <button class="delete-btn" (click)="deleteProduct(product.id)">&times;</button>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-</div>
-
-@if (showCategoryModal()) {
-  <div class="modal-overlay" (click)="closeCategoryModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Gestionar Categorías</h3>
-        <button class="close-btn" (click)="closeCategoryModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="add-category-form">
-          <input type="text" [(ngModel)]="newCategoryName" placeholder="Nueva categoría" class="form-input" />
-          <button class="btn-primary" (click)="addCategory()">Agregar</button>
-        </div>
-        <div class="categories-list">
-          @for (cat of categorias; track cat.id) {
-            <div class="category-item">
-              <span>{{ cat.nombre }}</span>
-              <button class="btn-delete" (click)="deleteCategory(cat)">&times;</button>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
 
     <!-- Color Management Modal -->
     @if (showColorManager()) {
@@ -593,7 +431,7 @@
                 <label>Nombre del Color</label>
                 <input
                   type="text"
-                  [(ngModel)]="colorManagerForm().nombre"
+                  [(ngModel)]="colorFormNombre"
                   placeholder="Ej: Rojo Carmesí"
                   required
                 />
@@ -603,12 +441,12 @@
                 <div class="color-input-group">
                   <input
                     type="color"
-                    [(ngModel)]="colorManagerForm().codigoHex"
+                    [(ngModel)]="colorFormHex"
                     class="color-picker-input"
                   />
                   <input
                     type="text"
-                    [(ngModel)]="colorManagerForm().codigoHex"
+                    [(ngModel)]="colorFormHex"
                     placeholder="#FF0000"
                     class="color-hex-input"
                   />
@@ -617,9 +455,9 @@
               <div class="form-group">
                 <label>Imagen del Color</label>
                 <div class="image-upload-section">
-                  @if (colorManagerForm().imagen) {
+                  @if (colorFormImagen) {
                     <div class="current-image">
-                      <img [src]="colorManagerForm().imagen" alt="Color preview" class="color-preview-img" />
+                      <img [src]="colorFormImagen" alt="Color preview" class="color-preview-img" />
                     </div>
                   }
                   <input
@@ -635,7 +473,7 @@
                     </button>
                     <input
                       type="text"
-                      [(ngModel)]="colorManagerForm().imagen"
+                      [(ngModel)]="colorFormImagen"
                       placeholder="O pega URL de imagen"
                       class="image-url-input"
                     />
@@ -646,11 +484,11 @@
 
             <div class="color-preview-section">
               <h4>Vista Previa</h4>
-              <div class="color-preview-card" [style.background-color]="colorManagerForm().codigoHex">
-                @if (colorManagerForm().imagen) {
-                  <img [src]="colorManagerForm().imagen" alt="Color" class="preview-color-img" />
+              <div class="color-preview-card" [style.background-color]="colorFormHex">
+                @if (colorFormImagen) {
+                  <img [src]="colorFormImagen" alt="Color" class="preview-color-img" />
                 }
-                <span class="preview-color-name">{{ colorManagerForm().nombre || 'Nombre del Color' }}</span>
+                <span class="preview-color-name">{{ colorFormNombre || 'Nombre del Color' }}</span>
               </div>
             </div>
           </div>
@@ -659,7 +497,4 @@
             <button type="button" class="btn-save" (click)="saveColor()">Guardar Color</button>
           </div>
         </div>
-      </div>
-    }
-  </div>
-}
+    </div>

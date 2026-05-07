@@ -27,6 +27,14 @@
         <div class="form-group">
           <label for="token">Token / Clave API</label>
           <input id="token" type="password" [ngModel]="nuevaRedToken()" (ngModelChange)="nuevaRedToken.set($event)" placeholder="Token de acceso">
+          @if (nuevaRedPlataforma() === 'WhatsApp') {
+            <div class="help-text">
+              <small>
+                Para WhatsApp, el token debe ser un <strong>Access Token permanente</strong> con permisos <code>whatsapp_business_messaging</code> y <code>whatsapp_business_management</code>.
+                El campo "Usuario / Página" debe ser el <strong>Phone Number ID</strong> (numérico) de tu WhatsApp Business.
+              </small>
+            </div>
+          }
         </div>
         <div class="form-group">
           <label class="checkbox-label">

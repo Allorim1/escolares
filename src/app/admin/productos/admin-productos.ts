@@ -223,6 +223,33 @@ ngOnInit() {
     }
   }
 
+  addColor() {
+    const newColor: Color = {
+      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      nombre: '',
+      codigoHex: '#000000'
+    };
+    this.formData.update(data => ({
+      ...data,
+      colores: [...data.colores, newColor]
+    }));
+  }
+
+  removeColor(index: number) {
+    this.formData.update(data => ({
+      ...data,
+      colores: data.colores.filter((_, i) => i !== index)
+    }));
+  }
+
+  updateColor(index: number, field: keyof Color, value: string) {
+    this.formData.update(data => {
+      const updatedColores = [...data.colores];
+      updatedColores[index] = { ...updatedColores[index], [field]: value };
+      return { ...data, colores: updatedColores };
+    });
+  }
+
   showAddForm() {
     this.isAdding.set(true);
     this.editingProduct.set(null);

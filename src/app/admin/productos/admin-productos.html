@@ -112,7 +112,7 @@
               <div class="form-group">
                 <label>Imágenes Adicionales</label>
                 <div class="additional-images-container">
-                  <p class="images-limit-text">Imágenes adicionales: {{ formData().images.length }}/4</p>
+                  <p class="images-limit-text">Imágenes adicionales: {{ formData().images.length }}/{{ getMaxAdditionalImages() }}</p>
                   <input
                     #additionalFileInput
                     type="file"
@@ -120,7 +120,7 @@
                     (change)="onAdditionalImageSelected($event)"
                     style="display: none"
                   />
-                  <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= 4">
+                  <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= getMaxAdditionalImages()">
                     + Añadir
                   </button>
                   @if (formData().images.length > 0) {
@@ -262,6 +262,62 @@
                   <option value="agotado">Temporalmente agotado</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label>Stock</label>
+                <input
+                  type="number"
+                  [ngModel]="formData().stock"
+                  name="stock"
+                  (ngModelChange)="updateFormField('stock', $event)"
+                  min="0"
+                  step="1"
+                  placeholder="0"
+                />
+              </div>
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    [ngModel]="formData().colorido"
+                    name="colorido"
+                    (ngModelChange)="updateFormField('colorido', $event)"
+                  />
+                  Producto Colorido (tiene variantes de color)
+                </label>
+              </div>
+              @if (formData().colorido) {
+                <div class="form-group">
+                  <label>Colores</label>
+                  <div class="colores-list">
+                    @for (color of formData().colores; track color.id; let i = $index) {
+                      <div class="color-item">
+                        <input
+                          type="text"
+                          [(ngModel)]="color.nombre"
+                          (ngModelChange)="updateColor(i, 'nombre', $event)"
+                          placeholder="Nombre del color"
+                          class="color-nombre"
+                        />
+                        <input
+                          type="color"
+                          [(ngModel)]="color.codigoHex"
+                          (ngModelChange)="updateColor(i, 'codigoHex', $event)"
+                          class="color-picker"
+                        />
+                        <input
+                          type="text"
+                          [(ngModel)]="color.codigoHex"
+                          (ngModelChange)="updateColor(i, 'codigoHex', $event)"
+                          placeholder="#RRGGBB"
+                          class="color-hex"
+                        />
+                        <button type="button" class="btn-remove-color" (click)="removeColor(i)">×</button>
+                      </div>
+                    }
+                    <button type="button" class="btn-add-color" (click)="addColor()">+ Agregar Color</button>
+                  </div>
+                </div>
+              }
               <div class="form-group">
                 <label>Descripción</label>
                 <textarea

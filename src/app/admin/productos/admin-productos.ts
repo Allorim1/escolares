@@ -2,7 +2,6 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { DecimalPipe } from '@angular/common';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product, Color } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
@@ -76,7 +75,7 @@ const defaultColors: Color[] = [
 @Component({
   selector: 'app-admin-productos',
   standalone: true,
-  imports: [FormsModule, CommonModule, DecimalPipe],
+  imports: [FormsModule, CommonModule],
   templateUrl: './admin-productos.html',
   styleUrl: './admin-productos.css',
 })

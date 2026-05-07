@@ -3,71 +3,228 @@
   <div class="header">
     <h2>Gestión de Productos</h2>
     <div class="header-actions">
-      <button 
-        class="btn-ocultar-precios" 
-        [class.active]="preciosOcultosParaNoRegistrados()"
-        (click)="togglePreciosOcultos()"
-      >
-        @if (preciosOcultosParaNoRegistrados()) {
-          🔒 Ocultar Precios
-        } @else {
-          👁 Mostrar Precios
-        }
-      </button>
-      <button class="add-btn" (click)="showAddForm()">+ Agregar Producto</button>
+      <button class="add-btn" (click)="openColorManager()">🎨 Gestionar Colores</button>
     </div>
   </div>
 
-  <div class="filters">
-    <div class="filter-group">
-      <label>Nombre</label>
-      <input
-        type="text"
-        [(ngModel)]="filtroNombre"
-        name="filtroNombre"
-        placeholder="Buscar..."
-        class="filter-input"
-      />
-    </div>
-    <div class="filter-group">
-      <label>Categoría <button type="button" class="btn-link" (click)="openCategoryModal()" title="Gestionar categorías">⚙</button></label>
-      <select [(ngModel)]="filtroCategoria" name="filtroCategoria" class="filter-select">
-        <option value="">Todas</option>
-        @for (cat of categorias; track cat.id) {
-          <option [value]="cat.nombre">{{ cat.nombre }}</option>
-        }
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Marca</label>
-      <select [(ngModel)]="filtroMarca" name="filtroMarca" class="filter-select">
-        <option value="">Todas</option>
-        @for (marca of marcas; track marca.id) {
-          <option [value]="marca.name">{{ marca.name }}</option>
-        }
-      </select>
-    </div>
-    <button class="clear-filters-btn" (click)="filtroNombre=''; filtroCategoria=''; filtroMarca=''">
-      ✕ Limpiar
-    </button>
-  </div>
-
-  @if (isAdding() || editingProduct()) {
+  @if (showColorManager()) {
     <div class="modal-overlay">
-      <div class="modal-content modal-with-preview">
+      <div class="modal-content modal-color-manager">
         <div class="modal-header">
-          <h3>{{ isAdding() ? 'Nuevo Producto' : 'Editar Producto' }}</h3>
+          <h3>{{ editingColor() ? 'Editar Color' : 'Agregar Nuevo Color' }}</h3>
+          <button class="close-btn" (click)="closeColorManager()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="color-form-section">
+            <div class="form-group">
+              <label>Nombre del Color</label>
+              <input
+                type="text"
+                [(ngModel)]="colorFormNombre"
+                placeholder="Ej: Rojo Carmesí"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Código Hex</label>
+              <div class="color-input-group">
+                <input
+                  type="color"
+                  [(ngModel)]="colorFormHex"
+                  class="color-picker-input"
+                />
+                <input
+                  type="text"
+                  [(ngModel)]="colorFormHex"
+                  placeholder="#FF0000"
+                  class="color-hex-input"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Imagen del Color</label>
+              <div class="image-upload-section">
+                @if (colorFormImagen) {
+                  <div class="current-image">
+                    <img [src]="colorFormImagen" alt="Color preview" class="color-preview-img" />
+                  </div>
+                }
+                <input
+                  type="file"
+                  accept="image/*"
+                  (change)="onColorImageSelected($event)"
+                  #colorImageInput
+                  style="display: none;"
+                />
+                <div class="image-upload-controls">
+                  <button type="button" class="btn-upload-image" (click)="colorImageInput.click()">
+                    📁 Seleccionar Imagen
+                  </button>
+                  <input
+                    type="text"
+                    [(ngModel)]="colorFormImagen"
+                    placeholder="O pega URL de imagen"
+                    class="image-url-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="color-preview-section">
+            <h4>Vista Previa</h4>
+            <div class="color-preview-card" [style.background-color]="colorFormHex">
+              @if (colorFormImagen) {
+                <img [src]="colorFormImagen" alt="Color" class="preview-color-img" />
+              }
+              <span class="preview-color-name">{{ colorFormNombre || 'Nombre del Color' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeColorManager()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="saveColor()">Guardar Color</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
           <button class="close-btn" (click)="confirmCancel()">&times;</button>
         </div>
         <div class="modal-body-split">
           <div class="form-section">
             <form (ngSubmit)="saveProduct()">
               <div class="form-group">
-                <label>Imagen Principal</label>
-                <div class="image-upload-container">
-                  @if (uploadingImage()) {
-                    <div class="uploading">Subiendo imagen...</div>
-                  }
+                <label>Nombre</label>
+                <input
+                  type="text"
+                  [ngModel]="formData().title"
+                  (ngModelChange)="updateFormField('title', $event)"
+                  placeholder="Nombre del producto"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Precio</label>
+                <div class="price-input-group">
+                  <span class="currency-symbol">$</span>
+                  <input
+                    type="number"
+                    [ngModel]="formData().price"
+                    (ngModelChange)="updateFormField('price', $event)"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Descripción</label>
+                <textarea
+                  [ngModel]="formData().description"
+                  name="description"
+                  (ngModelChange)="updateFormField('description', $event)"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="form-actions">
+                <button type="submit" class="save-btn">Guardar</button>
+                <button type="button" class="cancel-btn" (click)="confirmCancel()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showColorManager()) {
+    <div class="modal-overlay">
+      <div class="modal-content modal-color-manager">
+        <div class="modal-header">
+          <h3>{{ editingColor() ? 'Editar Color' : 'Agregar Nuevo Color' }}</h3>
+          <button class="close-btn" (click)="closeColorManager()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="color-form-section">
+            <div class="form-group">
+              <label>Nombre del Color</label>
+              <input
+                type="text"
+                [(ngModel)]="colorFormNombre"
+                placeholder="Ej: Rojo Carmesí"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Código Hex</label>
+              <div class="color-input-group">
+                <input
+                  type="color"
+                  [(ngModel)]="colorFormHex"
+                  class="color-picker-input"
+                />
+                <input
+                  type="text"
+                  [(ngModel)]="colorFormHex"
+                  placeholder="#FF0000"
+                  class="color-hex-input"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Imagen del Color</label>
+              <div class="image-upload-section">
+                @if (colorFormImagen) {
+                  <div class="current-image">
+                    <img [src]="colorFormImagen" alt="Color preview" class="color-preview-img" />
+                  </div>
+                }
+                <input
+                  type="file"
+                  accept="image/*"
+                  (change)="onColorImageSelected($event)"
+                  #colorImageInput
+                  style="display: none;"
+                />
+                <div class="image-upload-controls">
+                  <button type="button" class="btn-upload-image" (click)="colorImageInput.click()">
+                    📁 Seleccionar Imagen
+                  </button>
+                  <input
+                    type="text"
+                    [(ngModel)]="colorFormImagen"
+                    placeholder="O pega URL de imagen"
+                    class="image-url-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="color-preview-section">
+            <h4>Vista Previa</h4>
+            <div class="color-preview-card" [style.background-color]="colorFormHex">
+              @if (colorFormImagen) {
+                <img [src]="colorFormImagen" alt="Color" class="preview-color-img" />
+              }
+              <span class="preview-color-name">{{ colorFormNombre || 'Nombre del Color' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeColorManager()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="saveColor()">Guardar Color</button>
+        </div>
+      </div>
+    </div>
+  }
                   <div 
                     class="drop-zone"
                     [class.drag-over]="dragOver()"
@@ -128,11 +285,11 @@
                       @for (img of formData().images; track img; let i = $index) {
                         <div class="additional-image-item" (click)="setMainImage(img)">
                           <img [src]="img" alt="Imagen adicional" />
-                          <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i); $event.stopPropagation()">&times;</button>
-                        </div>
-                      }
-                    </div>
-                  }
+                           <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i); $event.stopPropagation()">&times;</button>
+                         </div>
+                        }
+                      </div>
+                    }
                 </div>
               </div>
 
@@ -384,117 +541,153 @@
                   }
                 </select>
               </div>
-              @if (isRoot()) {
-                <div class="form-group rating-group">
-                  <label>Calificación (solo root)</label>
-                  <div class="rating-inputs">
-                    <div class="rating-field">
-                      <label>Puntaje</label>
-                      <input
-                        type="number"
-                        [ngModel]="formData().ratingRate"
-                        (ngModelChange)="updateFormField('ratingRate', $event)"
-                        min="0"
-                        max="5"
-                        step="0.1"
-                        placeholder="0-5"
-                      />
-                      <span class="rating-suffix">/ 5</span>
-                    </div>
-                    <div class="rating-field">
-                      <label>Cantidad</label>
-                      <input
-                        type="number"
-                        [ngModel]="formData().ratingCount"
-                        (ngModelChange)="updateFormField('ratingCount', $event)"
-                        min="0"
-                        step="1"
-                        placeholder="0"
-                      />
-                      <span class="rating-suffix">reseñas</span>
+               @if (isRoot()) {
+                 <div class="form-group rating-group">
+                   <label>Calificación (solo root)</label>
+                   <div class="rating-inputs">
+                     <div class="rating-field">
+                       <label>Puntaje</label>
+                       <input
+                         type="number"
+                         [ngModel]="formData().ratingRate"
+                         (ngModelChange)="updateFormField('ratingRate', $event)"
+                         min="0"
+                         max="5"
+                         step="0.1"
+                         placeholder="0-5"
+                       />
+                       <span class="rating-suffix">/ 5</span>
+                     </div>
+                     <div class="rating-field">
+                       <label>Cantidad</label>
+                       <input
+                         type="number"
+                         [ngModel]="formData().ratingCount"
+                         (ngModelChange)="updateFormField('ratingCount', $event)"
+                         min="0"
+                         step="1"
+                         placeholder="0"
+                       />
+                       <span class="rating-suffix">reseñas</span>
+                     </div>
+                   </div>
+                 </div>
+               }
+
+               <!-- Form Actions -->
+               <div class="form-actions">
+                 <button type="submit" class="save-btn">Guardar</button>
+                 <button type="button" class="cancel-btn" (click)="confirmCancel()">Cancelar</button>
+               </div>
+             </form>
+           </div>
+         </div>
+        </div>
+       }
+
+@if (showCategoryModal()) {
+  <div class="modal-overlay" (click)="closeCategoryModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Gestionar Categorías</h3>
+        <button class="close-btn" (click)="closeCategoryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="add-category-form">
+          <input type="text" [(ngModel)]="newCategoryName" placeholder="Nueva categoría" class="form-input" />
+          <button class="btn-primary" (click)="addCategory()">Agregar</button>
+        </div>
+        <div class="categories-list">
+          @for (cat of categorias; track cat.id) {
+            <div class="category-item">
+              <span>{{ cat.nombre }}</span>
+              <button class="btn-delete" (click)="deleteCategory(cat)">&times;</button>
+            </div>
+          }
         </div>
       </div>
-    }
-  }
+    </div>
+  </div>
+}
 
-    <!-- Color Management Modal -->
-    @if (showColorManager()) {
-      <div class="modal-overlay">
-        <div class="modal-content modal-color-manager">
-          <div class="modal-header">
-            <h3>{{ editingColor() ? 'Editar Color' : 'Agregar Nuevo Color' }}</h3>
-            <button class="close-btn" (click)="closeColorManager()">&times;</button>
+@if (showColorManager()) {
+  <div class="modal-overlay">
+    <div class="modal-content modal-color-manager">
+      <div class="modal-header">
+        <h3>{{ editingColor() ? 'Editar Color' : 'Agregar Nuevo Color' }}</h3>
+        <button class="close-btn" (click)="closeColorManager()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="color-form-section">
+          <div class="form-group">
+            <label>Nombre del Color</label>
+            <input
+              type="text"
+              [(ngModel)]="colorFormNombre"
+              placeholder="Ej: Rojo Carmesí"
+              required
+            />
           </div>
-          <div class="modal-body">
-            <div class="color-form-section">
-              <div class="form-group">
-                <label>Nombre del Color</label>
+          <div class="form-group">
+            <label>Código Hex</label>
+            <div class="color-input-group">
+              <input
+                type="color"
+                [(ngModel)]="colorFormHex"
+                class="color-picker-input"
+              />
+              <input
+                type="text"
+                [(ngModel)]="colorFormHex"
+                placeholder="#FF0000"
+                class="color-hex-input"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Imagen del Color</label>
+            <div class="image-upload-section">
+              @if (colorFormImagen) {
+                <div class="current-image">
+                  <img [src]="colorFormImagen" alt="Color preview" class="color-preview-img" />
+                </div>
+              }
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onColorImageSelected($event)"
+                #colorImageInput
+                style="display: none;"
+              />
+              <div class="image-upload-controls">
+                <button type="button" class="btn-upload-image" (click)="colorImageInput.click()">
+                  📁 Seleccionar Imagen
+                </button>
                 <input
                   type="text"
-                  [(ngModel)]="colorFormNombre"
-                  placeholder="Ej: Rojo Carmesí"
-                  required
+                  [(ngModel)]="colorFormImagen"
+                  placeholder="O pega URL de imagen"
+                  class="image-url-input"
                 />
               </div>
-              <div class="form-group">
-                <label>Código Hex</label>
-                <div class="color-input-group">
-                  <input
-                    type="color"
-                    [(ngModel)]="colorFormHex"
-                    class="color-picker-input"
-                  />
-                  <input
-                    type="text"
-                    [(ngModel)]="colorFormHex"
-                    placeholder="#FF0000"
-                    class="color-hex-input"
-                  />
-                </div>
-              </div>
-              <div class="form-group">
-                <label>Imagen del Color</label>
-                <div class="image-upload-section">
-                  @if (colorFormImagen) {
-                    <div class="current-image">
-                      <img [src]="colorFormImagen" alt="Color preview" class="color-preview-img" />
-                    </div>
-                  }
-                  <input
-                    type="file"
-                    accept="image/*"
-                    (change)="onColorImageSelected($event)"
-                    #colorImageInput
-                    style="display: none;"
-                  />
-                  <div class="image-upload-controls">
-                    <button type="button" class="btn-upload-image" (click)="colorImageInput.click()">
-                      📁 Seleccionar Imagen
-                    </button>
-                    <input
-                      type="text"
-                      [(ngModel)]="colorFormImagen"
-                      placeholder="O pega URL de imagen"
-                      class="image-url-input"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
-
-            <div class="color-preview-section">
-              <h4>Vista Previa</h4>
-              <div class="color-preview-card" [style.background-color]="colorFormHex">
-                @if (colorFormImagen) {
-                  <img [src]="colorFormImagen" alt="Color" class="preview-color-img" />
-                }
-                <span class="preview-color-name">{{ colorFormNombre || 'Nombre del Color' }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn-cancel" (click)="closeColorManager()">Cancelar</button>
-            <button type="button" class="btn-save" (click)="saveColor()">Guardar Color</button>
           </div>
         </div>
+
+        <div class="color-preview-section">
+          <h4>Vista Previa</h4>
+          <div class="color-preview-card" [style.background-color]="colorFormHex">
+            @if (colorFormImagen) {
+              <img [src]="colorFormImagen" alt="Color" class="preview-color-img" />
+            }
+            <span class="preview-color-name">{{ colorFormNombre || 'Nombre del Color' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeColorManager()">Cancelar</button>
+        <button type="button" class="btn-save" (click)="saveColor()">Guardar Color</button>
+      </div>
     </div>
+  </div>
+}

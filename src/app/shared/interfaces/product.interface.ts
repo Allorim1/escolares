@@ -2,6 +2,7 @@ export interface Color {
   id: string;
   nombre: string;
   codigoHex: string;
+  imagen: string; // Imagen requerida para cada color
 }
 
 export interface Product {
@@ -29,7 +30,7 @@ export interface Product {
   estado?: 'disponible' | 'agotado';
   colorido?: boolean;
   colores?: Color[];
-  stock?: number;
+  // stock removido según solicitud
 }
 
 export interface ProductItemCart {

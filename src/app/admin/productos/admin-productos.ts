@@ -33,8 +33,17 @@ interface ProductFormData {
   ratingCount: number;
   colorido: boolean;
   colores: Color[];
-  stock: number;
 }
+
+// Default colors for easier selection
+const defaultColors: Color[] = [
+  { id: '1', nombre: 'Rojo', codigoHex: '#FF0000', imagen: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Rojo' },
+  { id: '2', nombre: 'Verde', codigoHex: '#00FF00', imagen: 'https://via.placeholder.com/150/00FF00/000000?text=Verde' },
+  { id: '3', nombre: 'Azul', codigoHex: '#0000FF', imagen: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Azul' },
+  { id: '4', nombre: 'Amarillo', codigoHex: '#FFFF00', imagen: 'https://via.placeholder.com/150/FFFF00/000000?text=Amarillo' },
+  { id: '5', nombre: 'Negro', codigoHex: '#000000', imagen: 'https://via.placeholder.com/150/000000/FFFFFF?text=Negro' },
+  { id: '6', nombre: 'Blanco', codigoHex: '#FFFFFF', imagen: 'https://via.placeholder.com/150/FFFFFF/000000?text=Blanco' }
+];
 
 @Component({
   selector: 'app-admin-productos',
@@ -90,38 +99,26 @@ export class AdminProductos implements OnInit {
   });
   ofertaFieldModifiedByUser = signal<'porcentaje' | 'precio' | null>(null);
 
-  productCategories = signal<CategoriaProducto[]>([]);
-  
-  newCategoryName = '';
-  showCategoryModal = signal(false);
-
-  get categorias(): CategoriaProducto[] {
-    return this.productCategories();
-  }
-
-  get categories(): string[] {
-    return ['Nueva...', ...this.productCategories().map(c => c.nombre)];
-  }
-
-ngOnInit() {
-    this.loadProductCategories();
-    this.loadProducts();
-    this.loadPreciosOcultosSetting();
-  }
-
-  loadProductCategories() {
-    this.http.get<any[]>('/api/productos-categorias').subscribe({
-      next: (data) => {
-        this.productCategories.set(data);
-      },
-      error: () => {
-        this.productCategories.set([
-          { id: 'cat-1', nombre: 'Lápices' },
-          { id: 'cat-2', nombre: 'Mochilas' },
-          { id: 'cat-3', nombre: 'Uniformes' },
-        ]);
-      }
-    });
+  formData = signal<ProductFormData>({
+    title: '',
+    price: 0,
+    description: '',
+    category: '',
+    image: '',
+    images: [],
+    marca: '',
+    lineaId: '',
+    iva: false,
+    ivaPercentage: 16,
+    estado: 'disponible',
+    enOferta: false,
+    ofertaPorcentaje: 0,
+    ofertaPrecio: 0,
+    ratingRate: 0,
+    ratingCount: 0,
+    colorido: false,
+    colores: [],
+  });
   }
 
   openCategoryModal() {
@@ -227,11 +224,25 @@ ngOnInit() {
     const newColor: Color = {
       id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       nombre: '',
-      codigoHex: '#000000'
+      codigoHex: '#000000',
+      imagen: 'https://via.placeholder.com/150/000000/FFFFFF?text=Color+Personalizado'
     };
     this.formData.update(data => ({
       ...data,
       colores: [...data.colores, newColor]
+    }));
+  }
+
+  addDefaultColor(color: Color) {
+    const colorToAdd: Color = {
+      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      nombre: color.nombre,
+      codigoHex: color.codigoHex,
+      imagen: color.imagen
+    };
+    this.formData.update(data => ({
+      ...data,
+      colores: [...data.colores, colorToAdd]
     }));
   }
 
@@ -273,7 +284,6 @@ ngOnInit() {
       ratingCount: 0,
       colorido: false,
       colores: [],
-      stock: 0,
     });
     this.showModal.set(true);
   }
@@ -303,7 +313,6 @@ ngOnInit() {
       ratingCount: product.rating?.count || 0,
       colorido: product.colorido || false,
       colores: product.colores || [],
-      stock: product.stock || 0,
     });
     this.showModal.set(true);
   }
@@ -342,7 +351,6 @@ ngOnInit() {
         rating: { rate: data.ratingRate, count: data.ratingCount },
         colorido: data.colorido,
         colores: data.colores,
-        stock: data.stock,
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
@@ -380,7 +388,6 @@ ngOnInit() {
         rating: { rate: data.ratingRate, count: data.ratingCount },
         colorido: data.colorido,
         colores: data.colores,
-        stock: data.stock,
       }).subscribe({
         next: (updated) => {
           this.products.update((products) =>
@@ -549,6 +556,10 @@ ngOnInit() {
   getLineaNameById(lineaId: string): string {
     const linea = this.lineasService.getLineaById(lineaId);
     return linea?.name || '-';
+  }
+
+  get defaultColors(): Color[] {
+    return defaultColors;
   }
 
   setMainImage(img: string) {

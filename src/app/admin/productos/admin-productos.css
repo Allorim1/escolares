@@ -1232,6 +1232,14 @@ tbody tr:hover {
   text-align: center;
 }
 
+.color-imagen {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
 .btn-remove-color {
   background-color: #dc3545;
   color: white;
@@ -1268,6 +1276,62 @@ tbody tr:hover {
 
 .btn-add-color:hover {
   background-color: #218838;
+}
+
+.default-colors-section {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.default-colors-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.default-colors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.default-color-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.default-color-btn:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+}
+
+.default-color-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  object-fit: cover;
+}
+
+.default-color-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  color: #495057;
 }
 
 @media (max-width: 900px) {

@@ -262,18 +262,7 @@
                   <option value="agotado">Temporalmente agotado</option>
                 </select>
               </div>
-              <div class="form-group">
-                <label>Stock</label>
-                <input
-                  type="number"
-                  [ngModel]="formData().stock"
-                  name="stock"
-                  (ngModelChange)="updateFormField('stock', $event)"
-                  min="0"
-                  step="1"
-                  placeholder="0"
-                />
-              </div>
+
               <div class="form-group">
                 <label class="checkbox-label">
                   <input
@@ -311,11 +300,35 @@
                           placeholder="#RRGGBB"
                           class="color-hex"
                         />
+                        <input
+                          type="text"
+                          [(ngModel)]="color.imagen"
+                          (ngModelChange)="updateColor(i, 'imagen', $event)"
+                          placeholder="URL de imagen del color"
+                          class="color-imagen"
+                        />
                         <button type="button" class="btn-remove-color" (click)="removeColor(i)">×</button>
                       </div>
-                    }
-                    <button type="button" class="btn-add-color" (click)="addColor()">+ Agregar Color</button>
-                  </div>
+                     }
+                     <div class="default-colors-section">
+                       <label>Colores predeterminados (haz clic para agregar):</label>
+                       <div class="default-colors-grid">
+                         @for (color of defaultColors; track color.id) {
+                           <button
+                             type="button"
+                             class="default-color-btn"
+                             (click)="addDefaultColor(color)"
+                             [title]="color.nombre"
+                             [style.background-color]="color.codigoHex"
+                           >
+                             <img [src]="color.imagen" alt="{{ color.nombre }}" class="default-color-img" />
+                             <span class="default-color-name">{{ color.nombre }}</span>
+                           </button>
+                         }
+                       </div>
+                     </div>
+                     <button type="button" class="btn-add-color" (click)="addColor()">+ Agregar Color Personalizado</button>
+                   </div>
                 </div>
               }
               <div class="form-group">

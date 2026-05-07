@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DecimalPipe } from '@angular/common';
@@ -38,17 +39,35 @@ interface ProductFormData {
 // Default colors for easier selection
 const defaultColors: Color[] = [
   { id: '1', nombre: 'Rojo', codigoHex: '#FF0000', imagen: 'https://via.placeholder.com/150/FF0000/FFFFFF?text=Rojo' },
-  { id: '2', nombre: 'Verde', codigoHex: '#00FF00', imagen: 'https://via.placeholder.com/150/00FF00/000000?text=Verde' },
-  { id: '3', nombre: 'Azul', codigoHex: '#0000FF', imagen: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Azul' },
-  { id: '4', nombre: 'Amarillo', codigoHex: '#FFFF00', imagen: 'https://via.placeholder.com/150/FFFF00/000000?text=Amarillo' },
-  { id: '5', nombre: 'Negro', codigoHex: '#000000', imagen: 'https://via.placeholder.com/150/000000/FFFFFF?text=Negro' },
-  { id: '6', nombre: 'Blanco', codigoHex: '#FFFFFF', imagen: 'https://via.placeholder.com/150/FFFFFF/000000?text=Blanco' }
+  { id: '2', nombre: 'Rojo Oscuro', codigoHex: '#8B0000', imagen: 'https://via.placeholder.com/150/8B0000/FFFFFF?text=Rojo+Oscuro' },
+  { id: '3', nombre: 'Verde', codigoHex: '#00FF00', imagen: 'https://via.placeholder.com/150/00FF00/000000?text=Verde' },
+  { id: '4', nombre: 'Verde Oscuro', codigoHex: '#006400', imagen: 'https://via.placeholder.com/150/006400/FFFFFF?text=Verde+Oscuro' },
+  { id: '5', nombre: 'Azul', codigoHex: '#0000FF', imagen: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Azul' },
+  { id: '6', nombre: 'Azul Marino', codigoHex: '#000080', imagen: 'https://via.placeholder.com/150/000080/FFFFFF?text=Azul+Marino' },
+  { id: '7', nombre: 'Azul Claro', codigoHex: '#ADD8E6', imagen: 'https://via.placeholder.com/150/ADD8E6/000000?text=Azul+Claro' },
+  { id: '8', nombre: 'Amarillo', codigoHex: '#FFFF00', imagen: 'https://via.placeholder.com/150/FFFF00/000000?text=Amarillo' },
+  { id: '9', nombre: 'Amarillo Dorado', codigoHex: '#FFD700', imagen: 'https://via.placeholder.com/150/FFD700/000000?text=Dorado' },
+  { id: '10', nombre: 'Naranja', codigoHex: '#FFA500', imagen: 'https://via.placeholder.com/150/FFA500/000000?text=Naranja' },
+  { id: '11', nombre: 'Rosa', codigoHex: '#FFC0CB', imagen: 'https://via.placeholder.com/150/FFC0CB/000000?text=Rosa' },
+  { id: '12', nombre: 'Rosa Fuerte', codigoHex: '#FF1493', imagen: 'https://via.placeholder.com/150/FF1493/FFFFFF?text=Rosa+Fuerte' },
+  { id: '13', nombre: 'Morado', codigoHex: '#800080', imagen: 'https://via.placeholder.com/150/800080/FFFFFF?text=Morado' },
+  { id: '14', nombre: 'Morado Claro', codigoHex: '#DDA0DD', imagen: 'https://via.placeholder.com/150/DDA0DD/000000?text=Morado+Claro' },
+  { id: '15', nombre: 'Negro', codigoHex: '#000000', imagen: 'https://via.placeholder.com/150/000000/FFFFFF?text=Negro' },
+  { id: '16', nombre: 'Gris', codigoHex: '#808080', imagen: 'https://via.placeholder.com/150/808080/FFFFFF?text=Gris' },
+  { id: '17', nombre: 'Gris Claro', codigoHex: '#D3D3D3', imagen: 'https://via.placeholder.com/150/D3D3D3/000000?text=Gris+Claro' },
+  { id: '18', nombre: 'Blanco', codigoHex: '#FFFFFF', imagen: 'https://via.placeholder.com/150/FFFFFF/000000?text=Blanco' },
+  { id: '19', nombre: 'Beige', codigoHex: '#F5F5DC', imagen: 'https://via.placeholder.com/150/F5F5DC/000000?text=Beige' },
+  { id: '20', nombre: 'Marrón', codigoHex: '#8B4513', imagen: 'https://via.placeholder.com/150/8B4513/FFFFFF?text=Marrón' },
+  { id: '21', nombre: 'Turquesa', codigoHex: '#40E0D0', imagen: 'https://via.placeholder.com/150/40E0D0/000000?text=Turquesa' },
+  { id: '22', nombre: 'Verde Lima', codigoHex: '#32CD32', imagen: 'https://via.placeholder.com/150/32CD32/000000?text=Lima' },
+  { id: '23', nombre: 'Índigo', codigoHex: '#4B0082', imagen: 'https://via.placeholder.com/150/4B0082/FFFFFF?text=Índigo' },
+  { id: '24', nombre: 'Coral', codigoHex: '#FF7F50', imagen: 'https://via.placeholder.com/150/FF7F50/000000?text=Coral' }
 ];
 
 @Component({
   selector: 'app-admin-productos',
   standalone: true,
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, CommonModule, DecimalPipe],
   templateUrl: './admin-productos.html',
   styleUrl: './admin-productos.css',
 })
@@ -102,6 +121,16 @@ export class AdminProductos implements OnInit {
 
   newCategoryName = '';
   showCategoryModal = signal(false);
+
+  // Color management
+  showColorManager = signal(false);
+  editingColor = signal<Color | null>(null);
+  colorManagerForm = signal<Color>({
+    id: '',
+    nombre: '',
+    codigoHex: '#000000',
+    imagen: ''
+  });
 
   ngOnInit() {
     this.loadProductCategories();
@@ -571,6 +600,93 @@ export class AdminProductos implements OnInit {
 
   get defaultColors(): Color[] {
     return defaultColors;
+  }
+
+  // Color management methods
+  openColorManager() {
+    this.showColorManager.set(true);
+  }
+
+  closeColorManager() {
+    this.showColorManager.set(false);
+    this.editingColor.set(null);
+    this.resetColorForm();
+  }
+
+  resetColorForm() {
+    this.colorManagerForm.set({
+      id: '',
+      nombre: '',
+      codigoHex: '#000000',
+      imagen: ''
+    });
+  }
+
+  editColor(color: Color) {
+    this.editingColor.set(color);
+    this.colorManagerForm.set({ ...color });
+    this.showColorManager.set(true);
+  }
+
+  addNewColor() {
+    this.editingColor.set(null);
+    this.resetColorForm();
+    this.colorManagerForm.update(form => ({
+      ...form,
+      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+    }));
+    this.showColorManager.set(true);
+  }
+
+  saveColor() {
+    const formData = this.colorManagerForm();
+    if (!formData.nombre.trim() || !formData.imagen.trim()) {
+      alert('Por favor complete todos los campos requeridos');
+      return;
+    }
+
+    // In a real app, this would save to a database
+    // For now, we'll just update the local array
+    const colorIndex = defaultColors.findIndex(c => c.id === formData.id);
+    if (colorIndex >= 0) {
+      defaultColors[colorIndex] = { ...formData };
+    } else {
+      defaultColors.push({ ...formData });
+    }
+
+    this.closeColorManager();
+  }
+
+  deleteColor(color: Color) {
+    if (confirm(`¿Está seguro de eliminar el color "${color.nombre}"?`)) {
+      const index = defaultColors.findIndex(c => c.id === color.id);
+      if (index >= 0) {
+        defaultColors.splice(index, 1);
+      }
+    }
+  }
+
+  onColorImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen no puede exceder 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.colorManagerForm.update(form => ({ ...form, imagen: base64 }));
+    };
+    reader.readAsDataURL(file);
   }
 
   setMainImage(img: string) {

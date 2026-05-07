@@ -310,23 +310,28 @@
                         <button type="button" class="btn-remove-color" (click)="removeColor(i)">×</button>
                       </div>
                      }
-                     <div class="default-colors-section">
-                       <label>Colores predeterminados (haz clic para agregar):</label>
-                       <div class="default-colors-grid">
-                         @for (color of defaultColors; track color.id) {
-                           <button
-                             type="button"
-                             class="default-color-btn"
-                             (click)="addDefaultColor(color)"
-                             [title]="color.nombre"
-                             [style.background-color]="color.codigoHex"
-                           >
-                             <img [src]="color.imagen" alt="{{ color.nombre }}" class="default-color-img" />
-                             <span class="default-color-name">{{ color.nombre }}</span>
-                           </button>
-                         }
-                       </div>
-                     </div>
+                      <div class="default-colors-section">
+                        <div class="default-colors-header">
+                          <label>Colores predeterminados (haz clic para agregar):</label>
+                          <button type="button" class="btn-manage-colors" (click)="openColorManager()">
+                            ⚙ Gestionar Colores
+                          </button>
+                        </div>
+                        <div class="default-colors-grid">
+                          @for (color of defaultColors; track color.id) {
+                            <button
+                              type="button"
+                              class="default-color-btn"
+                              (click)="addDefaultColor(color)"
+                              [title]="color.nombre"
+                              [style.background-color]="color.codigoHex"
+                            >
+                              <img [src]="color.imagen" alt="{{ color.nombre }}" class="default-color-img" />
+                              <span class="default-color-name">{{ color.nombre }}</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
                      <button type="button" class="btn-add-color" (click)="addColor()">+ Agregar Color Personalizado</button>
                    </div>
                 </div>
@@ -573,5 +578,88 @@
         </div>
       </div>
     </div>
+
+    <!-- Color Management Modal -->
+    @if (showColorManager()) {
+      <div class="modal-overlay">
+        <div class="modal-content modal-color-manager">
+          <div class="modal-header">
+            <h3>{{ editingColor() ? 'Editar Color' : 'Agregar Nuevo Color' }}</h3>
+            <button class="close-btn" (click)="closeColorManager()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="color-form-section">
+              <div class="form-group">
+                <label>Nombre del Color</label>
+                <input
+                  type="text"
+                  [(ngModel)]="colorManagerForm().nombre"
+                  placeholder="Ej: Rojo Carmesí"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Código Hex</label>
+                <div class="color-input-group">
+                  <input
+                    type="color"
+                    [(ngModel)]="colorManagerForm().codigoHex"
+                    class="color-picker-input"
+                  />
+                  <input
+                    type="text"
+                    [(ngModel)]="colorManagerForm().codigoHex"
+                    placeholder="#FF0000"
+                    class="color-hex-input"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Imagen del Color</label>
+                <div class="image-upload-section">
+                  @if (colorManagerForm().imagen) {
+                    <div class="current-image">
+                      <img [src]="colorManagerForm().imagen" alt="Color preview" class="color-preview-img" />
+                    </div>
+                  }
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onColorImageSelected($event)"
+                    #colorImageInput
+                    style="display: none;"
+                  />
+                  <div class="image-upload-controls">
+                    <button type="button" class="btn-upload-image" (click)="colorImageInput.click()">
+                      📁 Seleccionar Imagen
+                    </button>
+                    <input
+                      type="text"
+                      [(ngModel)]="colorManagerForm().imagen"
+                      placeholder="O pega URL de imagen"
+                      class="image-url-input"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="color-preview-section">
+              <h4>Vista Previa</h4>
+              <div class="color-preview-card" [style.background-color]="colorManagerForm().codigoHex">
+                @if (colorManagerForm().imagen) {
+                  <img [src]="colorManagerForm().imagen" alt="Color" class="preview-color-img" />
+                }
+                <span class="preview-color-name">{{ colorManagerForm().nombre || 'Nombre del Color' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeColorManager()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="saveColor()">Guardar Color</button>
+          </div>
+        </div>
+      </div>
+    }
   </div>
 }

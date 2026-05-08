@@ -90,7 +90,7 @@
   <!-- Product Form Modal -->
   @if (showModal()) {
     <div class="modal-overlay" (click)="cancelEdit()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content modal-product-form" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingProduct() ? 'Editar Producto' : 'Agregar Nuevo Producto' }}</h3>
           <button class="close-btn" (click)="cancelEdit()">&times;</button>
@@ -99,31 +99,211 @@
           <div class="modal-body-split">
             <div class="form-section">
               <form (ngSubmit)="saveProduct()">
-                <div class="form-group">
-                  <label>Nombre</label>
-                  <input
-                    type="text"
-                    [ngModel]="formData().title"
-                    (ngModelChange)="updateFormField('title', $event)"
-                    placeholder="Nombre del producto"
-                    required
-                  />
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Imagen Principal</label>
+                    <div class="image-upload-section">
+                      <div
+                        class="drop-zone"
+                        [class.drag-over]="dragOver()"
+                        [class.has-image]="formData().image"
+                        (dragover)="onDragOver($event)"
+                        (dragleave)="onDragLeave($event)"
+                        (drop)="onDrop($event)"
+                      >
+                        @if (formData().image) {
+                          <img [src]="formData().image" alt="Preview" class="drop-preview-img" />
+                        } @else {
+                          <div class="drop-zone-content">
+                            <span class="drop-icon">🖼️</span>
+                            <span class="drop-text">Arrastra una imagen aquí</span>
+                            <span class="drop-subtext">o</span>
+                          </div>
+                        }
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        (change)="onFileSelected($event)"
+                        class="file-input"
+                        #fileInput
+                      />
+                      <button type="button" class="upload-btn" (click)="fileInput.click()">
+                        📁 Seleccionar imagen
+                      </button>
+                      <div class="url-input-group">
+                        <span class="url-separator">o pega una URL:</span>
+                        <input
+                          type="text"
+                          [ngModel]="formData().image"
+                          name="image"
+                          (ngModelChange)="updateFormField('image', $event)"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Imágenes Adicionales</label>
+                    <div class="additional-images-container">
+                      <p class="images-limit-text">Imágenes adicionales: {{ formData().images.length }}/{{ getMaxAdditionalImages() }}</p>
+                      <input
+                        #additionalFileInput
+                        type="file"
+                        accept="image/*"
+                        (change)="onAdditionalImageSelected($event)"
+                        style="display: none"
+                      />
+                      <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= getMaxAdditionalImages()">
+                        + Añadir
+                      </button>
+                      @if (formData().images.length > 0) {
+                        <div class="additional-images-grid">
+                          @for (img of formData().images; track img; let i = $index) {
+                            <div class="additional-image-item" (click)="setMainImage(img)">
+                              <img [src]="img" alt="Imagen adicional" />
+                              <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i); $event.stopPropagation()">&times;</button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
                 </div>
 
-                <div class="form-group">
-                  <label>Precio</label>
-                  <div class="price-input-group">
-                    <span class="currency-symbol">$</span>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Nombre</label>
                     <input
-                      type="number"
-                      [ngModel]="formData().price"
-                      (ngModelChange)="updateFormField('price', $event)"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
+                      type="text"
+                      [ngModel]="formData().title"
+                      name="title"
+                      (ngModelChange)="updateFormField('title', $event)"
                       required
                     />
                   </div>
+                  <div class="form-group">
+                    <label>Precio (IVA incluido)</label>
+                    <input
+                      type="number"
+                      [ngModel]="formData().price"
+                      name="price"
+                      (ngModelChange)="updateFormField('price', $event)"
+                      step="0.01"
+                      required
+                    />
+                    @if (formData().iva && formData().price > 0) {
+                      <div class="iva-preview">
+                        <span>Base: </span>
+                        <strong>{{ calculateIvaIncluded().base | number:'1.2-2' }}</strong>
+                        <span> | IVA ({{ formData().ivaPercentage }}%): </span>
+                        <strong>{{ calculateIvaIncluded().iva | number:'1.2-2' }}</strong>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="iva-group">
+                    <div class="iva-header">
+                      <label class="iva-toggle-label">
+                        <span>Incluir IVA</span>
+                        <div class="toggle-switch">
+                          <input
+                            type="checkbox"
+                            [ngModel]="formData().iva"
+                            name="iva"
+                            (ngModelChange)="updateFormField('iva', $event)"
+                          />
+                          <span class="toggle-slider"></span>
+                        </div>
+                      </label>
+                    </div>
+                    @if (formData().iva) {
+                      <div class="iva-percentage-input">
+                        <span class="iva-suffix">%</span>
+                        <input
+                          type="number"
+                          [ngModel]="formData().ivaPercentage"
+                          name="ivaPercentage"
+                          (ngModelChange)="updateFormField('ivaPercentage', $event)"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          class="iva-input"
+                          placeholder="16"
+                        />
+                        <span class="iva-info">IVA %</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="iva-group">
+                    <div class="iva-header">
+                      <label class="iva-toggle-label">
+                        <span>Producto en Oferta</span>
+                        <div class="toggle-switch">
+                          <input
+                            type="checkbox"
+                            [ngModel]="formData().enOferta"
+                            name="enOferta"
+                            (ngModelChange)="updateFormField('enOferta', $event)"
+                          />
+                          <span class="toggle-slider"></span>
+                        </div>
+                      </label>
+                    </div>
+                    @if (formData().enOferta) {
+                      <div class="oferta-inputs">
+                        <div class="oferta-field">
+                          <label>Descuento %</label>
+                          <input
+                            type="number"
+                            [ngModel]="formData().ofertaPorcentaje"
+                            (ngModelChange)="onOfertaPorcentajeChange($event)"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            placeholder="0"
+                            [disabled]="ofertaFieldModifiedByUser() === 'precio'"
+                          />
+                          <span class="oferta-suffix">%</span>
+                        </div>
+                        <div class="oferta-field">
+                          <label>Precio Oferta</label>
+                          <input
+                            type="number"
+                            [ngModel]="formData().ofertaPrecio"
+                            (ngModelChange)="onOfertaPrecioChange($event)"
+                            step="0.01"
+                            min="0"
+                            [max]="formData().price"
+                            placeholder="0.00"
+                            [disabled]="ofertaFieldModifiedByUser() === 'porcentaje'"
+                          />
+                        </div>
+                        @if (formData().price > 0 && formData().ofertaPrecio > 0) {
+                          <div class="oferta-preview">
+                            <span>Ahorras: </span>
+                            <strong>{{ (formData().price - formData().ofertaPrecio) | number:'1.2-2' }}</strong>
+                            <span> ({{ formData().ofertaPorcentaje | number:'1.1-1' }}% dto)</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Estado</label>
+                  <select
+                    [ngModel]="formData().estado"
+                    name="estado"
+                    (ngModelChange)="updateFormField('estado', $event)"
+                  >
+                    <option value="disponible">Disponible</option>
+                    <option value="agotado">Temporalmente agotado</option>
+                  </select>
                 </div>
 
                 <div class="form-group">
@@ -137,32 +317,79 @@
                   ></textarea>
                 </div>
 
-                <div class="form-group">
-                  <label>Categoría</label>
-                  <select
-                    [ngModel]="formData().category"
-                    name="category"
-                    (ngModelChange)="updateFormField('category', $event)"
-                  >
-                    @for (cat of categorias; track cat.id) {
-                      <option [value]="cat.nombre">{{ cat.nombre }}</option>
-                    }
-                  </select>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Categoría</label>
+                    <select
+                      [ngModel]="formData().category"
+                      name="category"
+                      (ngModelChange)="updateFormField('category', $event)"
+                    >
+                      @for (cat of categorias; track cat.id) {
+                        <option [value]="cat.nombre">{{ cat.nombre }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Marca (opcional)</label>
+                    <select
+                      [ngModel]="formData().marca"
+                      name="marca"
+                      (ngModelChange)="updateFormField('marca', $event)"
+                    >
+                      <option value="">Sin marca</option>
+                      @for (marca of marcas; track marca.id) {
+                        <option [value]="marca.name">{{ marca.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Línea (opcional)</label>
+                    <select
+                      [ngModel]="formData().lineaId"
+                      name="lineaId"
+                      (ngModelChange)="updateFormField('lineaId', $event)"
+                    >
+                      <option value="">Sin línea</option>
+                      @for (linea of lineas; track linea.id) {
+                        <option [value]="linea.id">{{ linea.name }}</option>
+                      }
+                    </select>
+                  </div>
                 </div>
 
-                <div class="form-group">
-                  <label>Marca (opcional)</label>
-                  <select
-                    [ngModel]="formData().marca"
-                    name="marca"
-                    (ngModelChange)="updateFormField('marca', $event)"
-                  >
-                    <option value="">Sin marca</option>
-                    @for (marca of marcas; track marca.id) {
-                      <option [value]="marca.name">{{ marca.name }}</option>
-                    }
-                  </select>
-                </div>
+                @if (isRoot()) {
+                  <div class="form-group rating-group">
+                    <label>Calificación (solo root)</label>
+                    <div class="rating-inputs">
+                      <div class="rating-field">
+                        <label>Puntaje</label>
+                        <input
+                          type="number"
+                          [ngModel]="formData().ratingRate"
+                          (ngModelChange)="updateFormField('ratingRate', $event)"
+                          min="0"
+                          max="5"
+                          step="0.1"
+                          placeholder="0-5"
+                        />
+                        <span class="rating-suffix">/ 5</span>
+                      </div>
+                      <div class="rating-field">
+                        <label>Cantidad</label>
+                        <input
+                          type="number"
+                          [ngModel]="formData().ratingCount"
+                          (ngModelChange)="updateFormField('ratingCount', $event)"
+                          min="0"
+                          step="1"
+                          placeholder="0"
+                        />
+                        <span class="rating-suffix">reseñas</span>
+                      </div>
+                    </div>
+                  </div>
+                }
 
                 <!-- Form Actions -->
                 <div class="form-actions">
@@ -171,46 +398,49 @@
                 </div>
               </form>
             </div>
-            <div class="image-section">
-              <div class="form-group">
-                <label>Imagen</label>
-                <div
-                  class="drop-zone"
-                  [class.drag-over]="dragOver()"
-                  [class.has-image]="formData().image"
-                  (dragover)="onDragOver($event)"
-                  (dragleave)="onDragLeave($event)"
-                  (drop)="onDrop($event)"
-                >
+            <div class="preview-section">
+              <div class="product-preview-card">
+                <div class="preview-header">
+                  <h4>Vista Previa del Producto</h4>
+                </div>
+                <div class="preview-image">
                   @if (formData().image) {
-                    <img [src]="formData().image" alt="Preview" class="drop-preview-img" />
+                    <img [src]="formData().image" [alt]="formData().title" />
                   } @else {
-                    <div class="drop-zone-content">
-                      <span class="drop-icon">🖼️</span>
-                      <span class="drop-text">Arrastra una imagen aquí</span>
-                      <span class="drop-subtext">o</span>
+                    <div class="no-image-placeholder">
+                      <span>🖼️</span>
+                      <p>Sin imagen</p>
                     </div>
                   }
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  (change)="onFileSelected($event)"
-                  class="file-input"
-                  #fileInput
-                />
-                <button type="button" class="upload-btn" (click)="fileInput.click()">
-                  📁 Seleccionar imagen
-                </button>
-                <div class="url-input-group">
-                  <span class="url-separator">o pega una URL:</span>
-                  <input
-                    type="text"
-                    [ngModel]="formData().image"
-                    name="image"
-                    (ngModelChange)="updateFormField('image', $event)"
-                    placeholder="https://..."
-                  />
+                <div class="preview-content">
+                  <h3 class="preview-title">{{ formData().title || 'Nombre del producto' }}</h3>
+                  <div class="preview-price">
+                    @if (formData().enOferta && formData().ofertaPrecio > 0) {
+                      <span class="original-price">${{ formData().price | number:'1.2-2' }}</span>
+                      <span class="offer-price">${{ formData().ofertaPrecio | number:'1.2-2' }}</span>
+                      <span class="discount-badge">{{ formData().ofertaPorcentaje | number:'1.0-0' }}% OFF</span>
+                    } @else {
+                      <span class="regular-price">${{ formData().price | number:'1.2-2' }}</span>
+                    }
+                  </div>
+                  <div class="preview-description">
+                    <p>{{ formData().description || 'Descripción del producto...' }}</p>
+                  </div>
+                  <div class="preview-meta">
+                    <span class="category-badge">{{ formData().category || 'Sin categoría' }}</span>
+                    @if (formData().marca) {
+                      <span class="brand-badge">{{ formData().marca }}</span>
+                    }
+                    <span class="status-badge" [class.available]="formData().estado === 'disponible'" [class.out-of-stock]="formData().estado === 'agotado'">
+                      {{ formData().estado === 'disponible' ? 'Disponible' : 'Agotado' }}
+                    </span>
+                  </div>
+                  @if (formData().iva && formData().price > 0) {
+                    <div class="preview-tax-info">
+                      <small>Incluye IVA ({{ formData().ivaPercentage }}%)</small>
+                    </div>
+                  }
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ProductsService } from '../../products/data-access/products.service';
-import { Product, Color } from '../../shared/interfaces/product.interface';
+import { Product } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
@@ -31,46 +31,7 @@ interface ProductFormData {
   ofertaPrecio: number;
   ratingRate: number;
   ratingCount: number;
-  colorido: boolean;
-  colores: Color[];
 }
-
-// Function to create a base64 encoded colored square
-function createColorImage(hexColor: string, size = 50): string {
-  // Create a simple SVG colored square
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <rect width="${size}" height="${size}" fill="${hexColor}"/>
-  </svg>`;
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
-}
-
-// Default colors for easier selection
-const defaultColors: Color[] = [
-  { id: '1', nombre: 'Rojo', codigoHex: '#FF0000', imagen: createColorImage('#FF0000') },
-  { id: '2', nombre: 'Rojo Oscuro', codigoHex: '#8B0000', imagen: createColorImage('#8B0000') },
-  { id: '3', nombre: 'Verde', codigoHex: '#00FF00', imagen: createColorImage('#00FF00') },
-  { id: '4', nombre: 'Verde Oscuro', codigoHex: '#006400', imagen: createColorImage('#006400') },
-  { id: '5', nombre: 'Azul', codigoHex: '#0000FF', imagen: createColorImage('#0000FF') },
-  { id: '6', nombre: 'Azul Marino', codigoHex: '#000080', imagen: createColorImage('#000080') },
-  { id: '7', nombre: 'Azul Claro', codigoHex: '#ADD8E6', imagen: createColorImage('#ADD8E6') },
-  { id: '8', nombre: 'Amarillo', codigoHex: '#FFFF00', imagen: createColorImage('#FFFF00') },
-  { id: '9', nombre: 'Amarillo Dorado', codigoHex: '#FFD700', imagen: createColorImage('#FFD700') },
-  { id: '10', nombre: 'Naranja', codigoHex: '#FFA500', imagen: createColorImage('#FFA500') },
-  { id: '11', nombre: 'Rosa', codigoHex: '#FFC0CB', imagen: createColorImage('#FFC0CB') },
-  { id: '12', nombre: 'Rosa Fuerte', codigoHex: '#FF1493', imagen: createColorImage('#FF1493') },
-  { id: '13', nombre: 'Morado', codigoHex: '#800080', imagen: createColorImage('#800080') },
-  { id: '14', nombre: 'Morado Claro', codigoHex: '#DDA0DD', imagen: createColorImage('#DDA0DD') },
-  { id: '15', nombre: 'Negro', codigoHex: '#000000', imagen: createColorImage('#000000') },
-  { id: '16', nombre: 'Gris', codigoHex: '#808080', imagen: createColorImage('#808080') },
-  { id: '17', nombre: 'Gris Claro', codigoHex: '#D3D3D3', imagen: createColorImage('#D3D3D3') },
-  { id: '18', nombre: 'Blanco', codigoHex: '#FFFFFF', imagen: createColorImage('#FFFFFF') },
-  { id: '19', nombre: 'Beige', codigoHex: '#F5F5DC', imagen: createColorImage('#F5F5DC') },
-  { id: '20', nombre: 'Marrón', codigoHex: '#8B4513', imagen: createColorImage('#8B4513') },
-  { id: '21', nombre: 'Turquesa', codigoHex: '#40E0D0', imagen: createColorImage('#40E0D0') },
-  { id: '22', nombre: 'Verde Lima', codigoHex: '#32CD32', imagen: createColorImage('#32CD32') },
-  { id: '23', nombre: 'Índigo', codigoHex: '#4B0082', imagen: createColorImage('#4B0082') },
-  { id: '24', nombre: 'Coral', codigoHex: '#FF7F50', imagen: createColorImage('#FF7F50') }
-];
 
 @Component({
   selector: 'app-admin-productos',
@@ -98,7 +59,7 @@ export class AdminProductos implements OnInit {
   uploadingImage = signal(false);
   dragOver = signal(false);
   preciosOcultosParaNoRegistrados = signal(false);
-  
+
   filtroCategoria = '';
   filtroMarca = '';
   filtroNombre = '';
@@ -107,8 +68,8 @@ export class AdminProductos implements OnInit {
     title: '',
     price: 0,
     description: '',
-    category: '',
-    image: '',
+    category: 'electronics',
+    image: 'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg',
     images: [],
     marca: '',
     lineaId: '',
@@ -120,29 +81,17 @@ export class AdminProductos implements OnInit {
     ofertaPrecio: 0,
     ratingRate: 0,
     ratingCount: 0,
-    colorido: false,
-    colores: [],
   });
-  ofertaFieldModifiedByUser = signal<'porcentaje' | 'precio' | null>(null);
+
+  ofertaFieldModifiedByUser = signal<string | null>(null);
 
   productCategories = signal<CategoriaProducto[]>([]);
-
   newCategoryName = '';
   showCategoryModal = signal(false);
 
-  // Color management
-  showColorManager = signal(false);
-  editingColor = signal<Color | null>(null);
-  colorManagerForm = signal<Color>({
-    id: '',
-    nombre: '',
-    codigoHex: '#000000',
-    imagen: ''
-  });
-
   ngOnInit() {
-    this.loadProductCategories();
     this.loadProducts();
+    this.loadProductCategories();
     this.loadPreciosOcultosSetting();
   }
 
@@ -161,14 +110,6 @@ export class AdminProductos implements OnInit {
     });
   }
 
-  get categorias(): CategoriaProducto[] {
-    return this.productCategories();
-  }
-
-  get categories(): string[] {
-    return ['Nueva...', ...this.productCategories().map(c => c.nombre)];
-  }
-
   openCategoryModal() {
     this.newCategoryName = '';
     this.showCategoryModal.set(true);
@@ -181,7 +122,7 @@ export class AdminProductos implements OnInit {
   addCategory() {
     const nombre = this.newCategoryName.trim();
     if (!nombre) return;
-    
+
     this.http.post<any>('/api/productos-categorias', { nombre }).subscribe({
       next: () => {
         this.loadProductCategories();
@@ -192,12 +133,40 @@ export class AdminProductos implements OnInit {
 
   deleteCategory(cat: CategoriaProducto) {
     if (!confirm(`¿Eliminar categoría "${cat.nombre}"?`)) return;
-    
+
     this.http.delete<any>(`/api/productos-categorias/${cat.id}`).subscribe({
-      next: () => {
-        this.loadProductCategories();
-      }
     });
+  }
+
+  get filteredProducts(): Product[] {
+    let filtered = this.products();
+
+    if (this.filtroNombre) {
+      const nombre = this.filtroNombre.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.title.toLowerCase().includes(nombre)
+      );
+    }
+
+    if (this.filtroCategoria) {
+      filtered = filtered.filter(p => p.category === this.filtroCategoria);
+    }
+
+    if (this.filtroMarca) {
+      filtered = filtered.filter(p =>
+        p.marca?.toLowerCase() === this.filtroMarca.toLowerCase()
+      );
+    }
+
+    return filtered;
+  }
+
+  get categories(): string[] {
+    return ['Nueva...', ...this.productCategories().map(c => c.nombre)];
+  }
+
+  get categorias(): CategoriaProducto[] {
+    return this.productCategories();
   }
 
   get marcas(): Marca[] {
@@ -208,53 +177,30 @@ export class AdminProductos implements OnInit {
     return this.lineasService.lineas();
   }
 
-  get filteredProducts(): Product[] {
-    let filtered = this.products();
-    
-    if (this.filtroNombre) {
-      const nombre = this.filtroNombre.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.title.toLowerCase().includes(nombre)
-      );
-    }
-    
-    if (this.filtroCategoria) {
-      filtered = filtered.filter(p => p.category === this.filtroCategoria);
-    }
-    
-    if (this.filtroMarca) {
-      filtered = filtered.filter(p => 
-        p.marca?.toLowerCase() === this.filtroMarca.toLowerCase()
-      );
-    }
-    
-    return filtered;
-  }
-
   loadProducts() {
     this.productsService.getProducts().subscribe({
       next: (products) => this.products.set(products),
-      error: (err) => console.error('Error loading products:', err),
     });
   }
 
   loadPreciosOcultosSetting() {
-    this.http.get<{ hidden: boolean }>('/api/settings/ocultar-precios').subscribe({
+    this.http.get<any>('/api/config/precios-ocultos').subscribe({
       next: (data) => {
         this.preciosOcultosParaNoRegistrados.set(data.hidden);
       },
-      error: () => {}
+      error: () => {
+        this.preciosOcultosParaNoRegistrados.set(false);
+      }
     });
   }
 
   togglePreciosOcultos() {
     const nuevoValor = !this.preciosOcultosParaNoRegistrados();
-    this.http.put<{ success: boolean }>('/api/settings/ocultar-precios', { hidden: nuevoValor }).subscribe({
+    this.http.post<any>('/api/config/precios-ocultos', { hidden: nuevoValor }).subscribe({
       next: () => {
         this.preciosOcultosParaNoRegistrados.set(nuevoValor);
       },
-      error: (err) => {
-        console.error('Error guardando setting:', err);
+      error: () => {
         alert('Error al guardar la configuración');
       }
     });
@@ -262,51 +208,6 @@ export class AdminProductos implements OnInit {
 
   updateFormField(field: keyof ProductFormData, value: string | number | boolean) {
     this.formData.update((data) => ({ ...data, [field]: value }));
-    // Reset offer field tracking when offer is disabled
-    if (field === 'enOferta' && value === false) {
-      this.ofertaFieldModifiedByUser.set(null);
-    }
-  }
-
-  addColor() {
-    const newColor: Color = {
-      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      nombre: '',
-      codigoHex: '#000000',
-      imagen: createColorImage('#000000')
-    };
-    this.formData.update(data => ({
-      ...data,
-      colores: [...data.colores, newColor]
-    }));
-  }
-
-  addDefaultColor(color: Color) {
-    const colorToAdd: Color = {
-      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      nombre: color.nombre,
-      codigoHex: color.codigoHex,
-      imagen: color.imagen
-    };
-    this.formData.update(data => ({
-      ...data,
-      colores: [...data.colores, colorToAdd]
-    }));
-  }
-
-  removeColor(index: number) {
-    this.formData.update(data => ({
-      ...data,
-      colores: data.colores.filter((_, i) => i !== index)
-    }));
-  }
-
-  updateColor(index: number, field: keyof Color, value: string) {
-    this.formData.update(data => {
-      const updatedColores = [...data.colores];
-      updatedColores[index] = { ...updatedColores[index], [field]: value };
-      return { ...data, colores: updatedColores };
-    });
   }
 
   showAddForm() {
@@ -330,17 +231,13 @@ export class AdminProductos implements OnInit {
       ofertaPrecio: 0,
       ratingRate: 0,
       ratingCount: 0,
-      colorido: false,
-      colores: [],
     });
     this.showModal.set(true);
   }
 
-
-
   showEditForm(product: Product) {
-    this.editingProduct.set(product);
     this.isAdding.set(false);
+    this.editingProduct.set(product);
     this.ofertaFieldModifiedByUser.set(null);
     this.formData.set({
       title: product.title,
@@ -350,30 +247,30 @@ export class AdminProductos implements OnInit {
       image: product.image,
       images: product.images || [],
       marca: product.marca || '',
-      lineaId: (product as any).lineaId || '',
+      lineaId: product.lineaId || '',
       iva: product.iva || false,
       ivaPercentage: product.ivaPercentage || 16,
       estado: product.estado || 'disponible',
-      enOferta: (product as any).enOferta || false,
+      enOferta: product.enOferta || false,
       ofertaPorcentaje: (product as any).ofertaPorcentaje || 0,
       ofertaPrecio: (product as any).ofertaPrecio || 0,
       ratingRate: product.rating?.rate || 0,
       ratingCount: product.rating?.count || 0,
-      colorido: product.colorido || false,
-      colores: product.colores || [],
     });
     this.showModal.set(true);
   }
 
   cancelEdit() {
-    this.showModal.set(false);
-    this.isAdding.set(false);
-    this.editingProduct.set(null);
+    if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
+      this.showModal.set(false);
+      this.editingProduct.set(null);
+    }
   }
 
   confirmCancel() {
-    if (confirm('Perderás toda la información sin guardar')) {
-      this.cancelEdit();
+    if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
+      this.showModal.set(false);
+      this.editingProduct.set(null);
     }
   }
 
@@ -397,8 +294,6 @@ export class AdminProductos implements OnInit {
         ofertaPorcentaje: data.ofertaPorcentaje,
         ofertaPrecio: data.ofertaPrecio,
         rating: { rate: data.ratingRate, count: data.ratingCount },
-        colorido: data.colorido,
-        colores: data.colores,
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
@@ -434,19 +329,17 @@ export class AdminProductos implements OnInit {
         ofertaPorcentaje: data.ofertaPorcentaje,
         ofertaPrecio: data.ofertaPrecio,
         rating: { rate: data.ratingRate, count: data.ratingCount },
-        colorido: data.colorido,
-        colores: data.colores,
       }).subscribe({
         next: (updated) => {
           this.products.update((products) =>
-            products.map((p) => (p.id === updated.id ? updated : p))
+            products.map((p) => (p.id === productId ? updated : p))
           );
+          if (data.lineaId) {
+            this.lineasService.agregarProductoALinea(data.lineaId, updated.id);
+          }
           if (data.enOferta && data.ofertaPrecio > 0) {
-            console.log('Editando - Agregando oferta:', productId, data.ofertaPrecio);
-            this.ofertasBackend.agregarOferta(productId, data.ofertaPrecio);
-          } else {
-            console.log('Editando - Eliminando oferta:', productId);
-            this.ofertasBackend.eliminarOferta(productId);
+            console.log('Actualizando oferta:', updated.id, data.ofertaPrecio);
+            this.ofertasBackend.agregarOferta(updated.id, data.ofertaPrecio);
           }
           this.cancelEdit();
         },
@@ -455,17 +348,13 @@ export class AdminProductos implements OnInit {
           alert('Error al actualizar producto');
         }
       });
-    } else {
-      this.cancelEdit();
     }
   }
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
-
-    const file = input.files[0];
-    this.processFile(file);
+    this.processFile(input.files[0]);
   }
 
   onDragOver(event: DragEvent) {
@@ -484,12 +373,9 @@ export class AdminProductos implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver.set(false);
-    
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
-
-    const file = files[0];
-    this.processFile(file);
+    this.processFile(files[0]);
   }
 
   processFile(file: File) {
@@ -504,7 +390,6 @@ export class AdminProductos implements OnInit {
     }
 
     this.uploadingImage.set(true);
-    
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result as string;
@@ -521,12 +406,11 @@ export class AdminProductos implements OnInit {
   onAdditionalImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
-    const file = input.files[0];
-    this.processAdditionalFile(file);
+    this.processAdditionalFile(input.files[0]);
   }
 
   getMaxAdditionalImages(): number {
-    return this.formData().colorido ? 10 : 4;
+    return 4;
   }
 
   processAdditionalFile(file: File) {
@@ -559,9 +443,9 @@ export class AdminProductos implements OnInit {
   }
 
   removeAdditionalImage(index: number) {
-    this.formData.update(data => ({ 
-      ...data, 
-      images: data.images.filter((_, i) => i !== index) 
+    this.formData.update(data => ({
+      ...data,
+      images: data.images.filter((_, i) => i !== index)
     }));
   }
 
@@ -606,129 +490,6 @@ export class AdminProductos implements OnInit {
     return linea?.name || '-';
   }
 
-  get defaultColors(): Color[] {
-    return defaultColors;
-  }
-
-  // Form getters for better binding
-  get colorFormNombre(): string {
-    return this.colorManagerForm().nombre;
-  }
-
-  set colorFormNombre(value: string) {
-    this.colorManagerForm.update(form => ({ ...form, nombre: value }));
-  }
-
-  get colorFormHex(): string {
-    return this.colorManagerForm().codigoHex;
-  }
-
-  set colorFormHex(value: string) {
-    this.onColorHexChange(value);
-  }
-
-  get colorFormImagen(): string {
-    return this.colorManagerForm().imagen;
-  }
-
-  // Color management methods
-  openColorManager() {
-    console.log('Opening color manager');
-    this.showColorManager.set(true);
-    console.log('Color manager visible:', this.showColorManager());
-  }
-
-  closeColorManager() {
-    this.showColorManager.set(false);
-    this.editingColor.set(null);
-    this.resetColorForm();
-  }
-
-  resetColorForm() {
-    this.colorManagerForm.set({
-      id: '',
-      nombre: '',
-      codigoHex: '#000000',
-      imagen: createColorImage('#000000')
-    });
-  }
-
-  editColor(color: Color) {
-    this.editingColor.set(color);
-    this.colorManagerForm.set({ ...color });
-    this.showColorManager.set(true);
-  }
-
-  addNewColor() {
-    this.editingColor.set(null);
-    this.resetColorForm();
-    this.colorManagerForm.update(form => ({
-      ...form,
-      id: `color-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      imagen: createColorImage(form.codigoHex)
-    }));
-    this.showColorManager.set(true);
-  }
-
-  saveColor() {
-    const formData = this.colorManagerForm();
-    if (!formData.nombre.trim() || !formData.imagen.trim()) {
-      alert('Por favor complete todos los campos requeridos');
-      return;
-    }
-
-    // In a real app, this would save to a database
-    // For now, we'll just update the local array
-    const colorIndex = defaultColors.findIndex(c => c.id === formData.id);
-    if (colorIndex >= 0) {
-      defaultColors[colorIndex] = { ...formData };
-    } else {
-      defaultColors.push({ ...formData });
-    }
-
-    this.closeColorManager();
-  }
-
-  deleteColor(color: Color) {
-    if (confirm(`¿Está seguro de eliminar el color "${color.nombre}"?`)) {
-      const index = defaultColors.findIndex(c => c.id === color.id);
-      if (index >= 0) {
-        defaultColors.splice(index, 1);
-      }
-    }
-  }
-
-  onColorHexChange(hexColor: string) {
-    this.colorManagerForm.update(form => ({
-      ...form,
-      codigoHex: hexColor,
-      imagen: createColorImage(hexColor)
-    }));
-  }
-
-  onColorImageSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || !input.files[0]) return;
-
-    const file = input.files[0];
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen no puede exceder 5MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      this.colorManagerForm.update(form => ({ ...form, imagen: base64 }));
-    };
-    reader.readAsDataURL(file);
-  }
-
   setMainImage(img: string) {
     const currentMain = this.formData().image;
     const currentImages = this.formData().images.filter(i => i !== img);
@@ -748,56 +509,40 @@ export class AdminProductos implements OnInit {
   }
 
   calculateOfferPrice(): number {
-    const price = this.formData().price || 0;
-    const ofertaPrice = this.formData().ofertaPrecio || 0;
-    const ofertaPorcentaje = this.formData().ofertaPorcentaje || 0;
-    
     if (this.formData().enOferta) {
+      const ofertaPrice = this.formData().ofertaPrecio || 0;
+      const ofertaPorcentaje = this.formData().ofertaPorcentaje || 0;
       if (ofertaPrice > 0 && ofertaPorcentaje === 0) {
         return ofertaPrice;
-      } else if (ofertaPorcentaje > 0 && ofertaPrice === 0) {
-        return price - (price * ofertaPorcentaje / 100);
+      }
+      const price = this.formData().price || 0;
+      if (ofertaPorcentaje > 0) {
+        return price * (1 - ofertaPorcentaje / 100);
       }
     }
-    return 0;
+    return this.formData().price || 0;
   }
 
   onOfertaPorcentajeChange(value: any) {
-    const numValue = Number(value);
+    const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue >= 0) {
-      // Limit to 100% max and round to 1 decimal place
-      const limitedValue = Math.min(numValue, 100);
-      const roundedValue = Math.round(limitedValue * 10) / 10;
-      const price = this.formData().price || 0;
-      const calculatedPrice = Math.round((price * (1 - roundedValue / 100)) * 100) / 100;
-      this.formData.update(data => ({
-        ...data,
-        ofertaPorcentaje: roundedValue,
-        ofertaPrecio: calculatedPrice
-      }));
+      this.formData.update(data => ({ ...data, ofertaPorcentaje: numValue }));
       this.ofertaFieldModifiedByUser.set('porcentaje');
-    } else {
-      this.formData.update(data => ({ ...data, ofertaPorcentaje: 0, ofertaPrecio: 0 }));
+      this.formData.update(data => ({ ...data, ofertaPrecio: this.calculateOfferPrice() }));
       this.ofertaFieldModifiedByUser.set(null);
     }
   }
 
   onOfertaPrecioChange(value: any) {
-    const numValue = Number(value);
-    const price = this.formData().price || 0;
+    const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue >= 0) {
-      // Limit to not exceed the original price
-      const limitedValue = Math.min(numValue, price);
-      const precioRedondeado = Math.round(limitedValue * 100) / 100;
-      const calculatedPorcentaje = price > 0 ? Math.round(((price - precioRedondeado) / price) * 1000) / 10 : 0;
-      this.formData.update(data => ({
-        ...data,
-        ofertaPrecio: precioRedondeado,
-        ofertaPorcentaje: calculatedPorcentaje
-      }));
+      this.formData.update(data => ({ ...data, ofertaPrecio: numValue }));
       this.ofertaFieldModifiedByUser.set('precio');
-    } else {
-      this.formData.update(data => ({ ...data, ofertaPrecio: 0, ofertaPorcentaje: 0 }));
+      const price = this.formData().price || 0;
+      if (price > 0) {
+        const porcentaje = ((price - numValue) / price) * 100;
+        this.formData.update(data => ({ ...data, ofertaPorcentaje: porcentaje }));
+      }
       this.ofertaFieldModifiedByUser.set(null);
     }
   }

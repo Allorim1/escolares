@@ -3,94 +3,10 @@
   <div class="header">
     <h2>Gestión de Productos</h2>
     <div class="header-actions">
-      <button class="add-btn" (click)="openColorManager()">🎨 Gestionar Colores</button>
       <button class="add-btn" (click)="showAddForm()">+ Agregar Producto</button>
     </div>
   </div>
 
-
-<!-- Color Manager Modal -->
-@if (showColorManager()) {
-  <div class="modal-overlay" (click)="closeColorManager()">
-    <div class="modal-content modal-color-manager" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ editingColor() ? 'Editar Color' : 'Agregar Nuevo Color' }}</h3>
-        <button class="close-btn" (click)="closeColorManager()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="color-form-section">
-          <div class="form-group">
-            <label>Nombre del Color</label>
-            <input
-              type="text"
-              [(ngModel)]="colorFormNombre"
-              placeholder="Ej: Rojo Carmesí"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label>Código Hex</label>
-            <div class="color-input-group">
-              <input
-                type="color"
-                [(ngModel)]="colorFormHex"
-                class="color-picker-input"
-              />
-              <input
-                type="text"
-                [(ngModel)]="colorFormHex"
-                placeholder="#FF0000"
-                class="color-hex-input"
-              />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Imagen del Color</label>
-            <div class="image-upload-section">
-              @if (colorFormImagen) {
-                <div class="current-image">
-                  <img [src]="colorFormImagen" alt="Color preview" class="color-preview-img" />
-                </div>
-              }
-              <input
-                type="file"
-                accept="image/*"
-                (change)="onColorImageSelected($event)"
-                #colorImageInput
-                style="display: none;"
-              />
-              <div class="image-upload-controls">
-                <button type="button" class="btn-upload-image" (click)="colorImageInput.click()">
-                  📁 Seleccionar Imagen
-                </button>
-                <input
-                  type="text"
-                  [(ngModel)]="colorFormImagen"
-                  placeholder="O pega URL de imagen"
-                  class="image-url-input"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="color-preview-section">
-          <h4>Vista Previa</h4>
-          <div class="color-preview-card" [style.background-color]="colorFormHex">
-            @if (colorFormImagen) {
-              <img [src]="colorFormImagen" alt="Color" class="preview-color-img" />
-            }
-            <span class="preview-color-name">{{ colorFormNombre || 'Nombre del Color' }}</span>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeColorManager()">Cancelar</button>
-        <button type="button" class="btn-save" (click)="saveColor()">Guardar Color</button>
-      </div>
-    </div>
-  </div>
-}
 
 <!-- Category Modal -->
 @if (showCategoryModal()) {

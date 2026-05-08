@@ -3,6 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RedesSocialesBackend, RedSocial, MensajeRedSocial, RespuestaAutomatica, NotificacionRedSocial } from '../../backend/data-access/redes-sociales.backend';
 
+// Interfaces para el sistema de chat
+interface Chat {
+  usuario: string;
+  plataforma: string;
+  mensajes: ChatMessage[];
+  ultimoMensaje: MensajeRedSocial;
+  tieneNoLeidos: boolean;
+  noLeidosCount: number;
+}
+
+interface ChatMessage extends MensajeRedSocial {
+  esRespuesta: boolean;
+}
+
 @Component({
   selector: 'app-admin-redes-sociales',
   standalone: true,
@@ -32,22 +46,109 @@ export class AdminRedesSociales implements OnInit {
   nuevaNotificacionCanal = signal('');
   nuevaNotificacionActiva = signal(false);
 
-  mensajeSeleccionado = signal<MensajeRedSocial | null>(null);
-  textoRespuesta = signal<string>('');
+  // Chat system signals
+  chatSeleccionado = signal<Chat | null>(null);
+  nuevoMensajeTexto = signal<string>('');
+  archivoSeleccionadoSignal = signal<File | null>(null);
+  mostrarNotificacionMensaje = signal<boolean>(false);
+  ultimoMensajeNotificado = signal<MensajeRedSocial | null>(null);
+
   filtroPlataforma = signal<string>(''); // '' = todas, 'TikTok', 'Instagram', etc.
 
-  // Mensajes filtrados por plataforma
-  mensajesFiltrados = computed(() => {
-    const filtro = this.filtroPlataforma();
-    if (!filtro) return this.mensajes();
-    return this.mensajes().filter(msg => msg.plataforma === filtro);
+  // Chats agrupados por usuario
+  chats = computed(() => {
+    const mensajes = this.mensajes();
+    const chatsMap = new Map<string, Chat>();
+
+    // Agrupar mensajes por usuario y plataforma
+    mensajes.forEach(mensaje => {
+      const key = `${mensaje.usuario}-${mensaje.plataforma}`;
+      if (!chatsMap.has(key)) {
+        chatsMap.set(key, {
+          usuario: mensaje.usuario,
+          plataforma: mensaje.plataforma,
+          mensajes: [],
+          ultimoMensaje: mensaje,
+          tieneNoLeidos: false,
+          noLeidosCount: 0
+        });
+      }
+
+      const chat = chatsMap.get(key)!;
+      chat.mensajes.push({
+        ...mensaje,
+        esRespuesta: mensaje.respondido // Asumimos que si está respondido, es nuestra respuesta
+      });
+
+      // Actualizar último mensaje
+      if (mensaje.fecha > chat.ultimoMensaje.fecha) {
+        chat.ultimoMensaje = mensaje;
+      }
+
+      // Contar mensajes no leídos
+      if (!mensaje.leido) {
+        chat.tieneNoLeidos = true;
+        chat.noLeidosCount++;
+      }
+    });
+
+    // Ordenar mensajes dentro de cada chat por fecha
+    chatsMap.forEach(chat => {
+      chat.mensajes.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+    });
+
+    // Convertir a array y ordenar por último mensaje
+    return Array.from(chatsMap.values()).sort((a, b) =>
+      b.ultimoMensaje.fecha.getTime() - a.ultimoMensaje.fecha.getTime()
+    );
   });
 
   loading = signal(false);
   error = signal<string | null>(null);
+  private mensajesInterval: any;
 
   async ngOnInit() {
     await this.cargarDatos();
+    this.iniciarVerificacionMensajes();
+  }
+
+  ngOnDestroy() {
+    if (this.mensajesInterval) {
+      clearInterval(this.mensajesInterval);
+    }
+  }
+
+  private iniciarVerificacionMensajes() {
+    // Verificar nuevos mensajes cada 30 segundos
+    this.mensajesInterval = setInterval(async () => {
+      try {
+        const mensajesActuales = await this.redesSocialesBackend.getMensajes().toPromise();
+        if (mensajesActuales) {
+          const mensajesPrevios = this.mensajes();
+          const nuevosMensajes = mensajesActuales.filter(msg =>
+            !mensajesPrevios.some(prev => prev.id === msg.id)
+          );
+
+          if (nuevosMensajes.length > 0) {
+            this.mensajes.set(mensajesActuales);
+
+            // Mostrar notificación del último mensaje nuevo
+            const ultimoNuevo = nuevosMensajes[nuevosMensajes.length - 1];
+            if (!ultimoNuevo.leido) {
+              this.ultimoMensajeNotificado.set(ultimoNuevo);
+              this.mostrarNotificacionMensaje.set(true);
+
+              // Ocultar notificación automáticamente después de 5 segundos
+              setTimeout(() => {
+                this.mostrarNotificacionMensaje.set(false);
+              }, 5000);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error verificando nuevos mensajes:', error);
+      }
+    }, 30000); // 30 segundos
   }
 
   async cargarDatos() {
@@ -136,64 +237,177 @@ export class AdminRedesSociales implements OnInit {
     }
   }
 
-  // Métodos para mensajes
-  seleccionarMensaje(mensaje: MensajeRedSocial) {
-    this.mensajeSeleccionado.set(mensaje);
-    this.textoRespuesta.set('');
-    if (!mensaje.leido) {
-      this.marcarComoLeido(mensaje);
+  // Métodos para chats
+  seleccionarChat(chat: Chat) {
+    this.chatSeleccionado.set(chat);
+    this.nuevoMensajeTexto.set('');
+    this.archivoSeleccionadoSignal.set(null);
+    // Marcar todos los mensajes del chat como leídos
+    if (chat.tieneNoLeidos) {
+      this.marcarChatComoLeido(chat);
     }
   }
 
-  async marcarComoLeido(mensaje: MensajeRedSocial) {
+  async marcarChatComoLeido(chat: Chat) {
     try {
-      const mensajeActualizado = await this.redesSocialesBackend.updateMensaje(mensaje.id, { leido: true }).toPromise();
-      if (mensajeActualizado) {
-        this.mensajes.update(mensajes => mensajes.map(msg => msg.id === mensaje.id ? mensajeActualizado : msg));
-      }
+      const updates = chat.mensajes
+        .filter(msg => !msg.leido)
+        .map(msg => this.redesSocialesBackend.updateMensaje(msg.id, { leido: true }).toPromise());
+
+      await Promise.all(updates);
+
+      // Actualizar los mensajes localmente
+      this.mensajes.update(mensajes =>
+        mensajes.map(msg => {
+          const chatMensaje = chat.mensajes.find(cm => cm.id === msg.id);
+          return chatMensaje ? { ...msg, leido: true } : msg;
+        })
+      );
     } catch (error) {
-      console.error('Error marcando mensaje como leído:', error);
+      console.error('Error marcando chat como leído:', error);
     }
   }
 
-  async enviarRespuesta() {
-    const mensaje = this.mensajeSeleccionado();
-    const respuesta = this.textoRespuesta().trim();
-    if (!mensaje || !respuesta) {
-      alert('Por favor, selecciona un mensaje y escribe una respuesta.');
+  async enviarMensajeChat() {
+    const chat = this.chatSeleccionado();
+    const texto = this.nuevoMensajeTexto().trim();
+    const archivo = this.archivoSeleccionadoSignal();
+
+    if (!chat || (!texto && !archivo)) {
       return;
     }
 
     try {
-      const mensajeActualizado = await this.redesSocialesBackend.updateMensaje(mensaje.id, { 
-        respondido: true, 
-        respuesta 
-      }).toPromise();
-      
-      if (mensajeActualizado) {
-        this.mensajes.update(mensajes => mensajes.map(msg => msg.id === mensaje.id ? mensajeActualizado : msg));
+      let mediaType: string | undefined;
+      let mediaUrl: string | undefined;
+      let mediaCaption: string | undefined;
+      let mediaFilename: string | undefined;
+
+      // Si hay archivo adjunto, subirlo primero
+      if (archivo) {
+        const formData = new FormData();
+        formData.append('file', archivo);
+
+        const uploadResponse = await fetch('/api/redes-sociales/upload-media', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Error al subir el archivo');
+        }
+
+        const uploadData = await uploadResponse.json();
+        mediaUrl = uploadData.url;
+        mediaType = uploadData.mimetype.startsWith('image/') ? 'image' :
+                   uploadData.mimetype.startsWith('video/') ? 'video' : 'document';
+        mediaFilename = uploadData.filename;
+
+        if (texto) {
+          mediaCaption = texto;
+        }
       }
-      this.textoRespuesta.set('');
-      alert(`Respuesta enviada a ${mensaje.usuario} (${mensaje.plataforma})`);
+
+      // Crear el mensaje de respuesta en la base de datos
+      const nuevoMensaje: Partial<MensajeRedSocial> = {
+        plataforma: chat.plataforma,
+        usuario: chat.usuario,
+        texto: texto || undefined,
+        leido: true,
+        respondido: true,
+        mediaType,
+        mediaUrl,
+        mediaCaption,
+        mediaFilename
+      };
+
+      const mensajeCreado = await this.redesSocialesBackend.createMensaje(nuevoMensaje).toPromise();
+
+      if (mensajeCreado) {
+        // Marcar como respondido para enviar por la plataforma
+        await this.redesSocialesBackend.updateMensaje(mensajeCreado.id, {
+          respondido: true,
+          respuesta: texto,
+          mediaType,
+          mediaUrl,
+          mediaCaption,
+          mediaFilename
+        }).toPromise();
+
+        // Agregar el mensaje al chat localmente
+        this.mensajes.update(mensajes => [...mensajes, mensajeCreado]);
+
+        this.nuevoMensajeTexto.set('');
+        this.archivoSeleccionadoSignal.set(null);
+      }
     } catch (error) {
-      console.error('Error enviando respuesta:', error);
-      alert('Error al enviar respuesta');
+      console.error('Error enviando mensaje:', error);
+      alert('Error al enviar mensaje: ' + (error as Error).message);
     }
+  }
+
+  onArchivoSeleccionado(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.archivoSeleccionadoSignal.set(file);
+    }
+  }
+
+  removerArchivo() {
+    this.archivoSeleccionadoSignal.set(null);
+  }
+
+  archivoSeleccionado() {
+    return this.archivoSeleccionadoSignal();
   }
 
   async eliminarMensaje(mensaje: MensajeRedSocial) {
     if (!confirm('¿Eliminar este mensaje?')) return;
-    
+
     try {
       await this.redesSocialesBackend.deleteMensaje(mensaje.id).toPromise();
       this.mensajes.update(mensajes => mensajes.filter(msg => msg.id !== mensaje.id));
-      if (this.mensajeSeleccionado()?.id === mensaje.id) {
-        this.mensajeSeleccionado.set(null);
+      // Si el chat seleccionado ya no tiene mensajes, deseleccionarlo
+      const chat = this.chatSeleccionado();
+      if (chat && chat.mensajes.every(msg => msg.id !== mensaje.id) && chat.mensajes.length <= 1) {
+        this.chatSeleccionado.set(null);
       }
     } catch (error) {
       console.error('Error eliminando mensaje:', error);
       alert('Error al eliminar mensaje');
     }
+  }
+
+  getPlatformIcon(plataforma: string): string {
+    switch (plataforma) {
+      case 'WhatsApp': return '📱';
+      case 'Instagram': return '📸';
+      case 'Facebook': return '👥';
+      case 'TikTok': return '🎵';
+      case 'Telegram': return '✈️';
+      default: return '💬';
+    }
+  }
+
+  getUserDisplayName(usuario: string): string {
+    // Si es un ID numérico largo (probablemente Instagram/Facebook), mostrar abreviado
+    if (/^\d{10,}$/.test(usuario)) {
+      return `Usuario ${usuario.slice(-4)}`;
+    }
+    // Si parece un número de teléfono
+    if (/^\+\d+/.test(usuario)) {
+      return usuario.replace(/(\+\d{1,3})\d{6}(\d{3})/, '$1****$2');
+    }
+    return usuario;
+  }
+
+  cerrarNotificacionMensaje() {
+    this.mostrarNotificacionMensaje.set(false);
+    this.ultimoMensajeNotificado.set(null);
   }
 
   // Métodos para respuestas automáticas

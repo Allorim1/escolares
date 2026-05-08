@@ -2,6 +2,23 @@
   <h1>Gestión de Redes Sociales</h1>
   <p>Configura tus cuentas, responde mensajes y gestiona notificaciones.</p>
 
+  <!-- Notificación de nuevo mensaje -->
+  @if (mostrarNotificacionMensaje()) {
+    <div class="mensaje-notificacion" (click)="cerrarNotificacionMensaje()">
+      <div class="notificacion-icon">💬</div>
+      <div class="notificacion-content">
+        <div class="notificacion-title">Nuevo mensaje</div>
+        @if (ultimoMensajeNotificado(); as mensaje) {
+          <div class="notificacion-text">
+            <strong>{{ getUserDisplayName(mensaje.usuario) }}</strong> desde <strong>{{ mensaje.plataforma }}</strong>
+          </div>
+          <div class="notificacion-preview">{{ mensaje.texto }}</div>
+        }
+      </div>
+      <button class="notificacion-close" (click)="cerrarNotificacionMensaje(); $event.stopPropagation()">&times;</button>
+    </div>
+  }
+
   <section class="section">
     <h2>📱 Redes Sociales</h2>
     <p>Conecta tus cuentas de TikTok, Instagram, Telegram, Facebook y WhatsApp.</p>
@@ -107,59 +124,42 @@
     <p>Gestiona los mensajes entrantes de tus redes sociales.</p>
 
     <div class="mensajes-container">
-      <div class="mensajes-lista">
-        <h3>Mensajes Recibidos</h3>
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Plataforma</th>
-                <th>Usuario</th>
-                <th>Mensaje</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (loading()) {
-                <tr>
-                  <td colspan="6" class="text-center">Cargando mensajes...</td>
-                </tr>
-              } @else if (error()) {
-                <tr>
-                  <td colspan="6" class="text-center text-danger">{{ error() }}</td>
-                </tr>
-              } @else {
-                @for (msg of mensajesFiltrados(); track msg.id) {
-                  <tr [class.selected]="mensajeSeleccionado()?.id === msg.id" (click)="seleccionarMensaje(msg)">
-                    <td>{{ msg.plataforma }}</td>
-                    <td>{{ msg.usuario }}</td>
-                    <td class="mensaje-texto">{{ msg.texto }}</td>
-                    <td>{{ msg.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-                    <td>
-                      <span class="badge" [class.badge-success]="msg.leido" [class.badge-warning]="!msg.leido">
-                        {{ msg.leido ? 'Leído' : 'Nuevo' }}
-                      </span>
-                      @if (msg.respondido) {
-                        <span class="badge badge-info ms-1">Respondido</span>
-                      }
-                    </td>
-                    <td>
-                      @if (!msg.leido) {
-                        <button (click)="marcarComoLeido(msg); $event.stopPropagation()" class="btn btn-primary btn-sm me-2">Marcar como leído</button>
-                      }
-                      <button (click)="eliminarMensaje(msg); $event.stopPropagation()" class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                  </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="6" class="text-center">No hay mensajes</td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
+      <div class="chats-sidebar">
+        <h3>Chats</h3>
+        <div class="chats-list">
+          @if (loading()) {
+            <div class="chat-loading">Cargando chats...</div>
+          } @else if (error()) {
+            <div class="chat-error">{{ error() }}</div>
+          } @else {
+            @for (chat of chats(); track chat.usuario + chat.plataforma) {
+              <div
+                class="chat-item"
+                [class.selected]="chatSeleccionado()?.usuario === chat.usuario && chatSeleccionado()?.plataforma === chat.plataforma"
+                [class.has-unread]="chat.tieneNoLeidos"
+                (click)="seleccionarChat(chat)"
+              >
+                <div class="chat-avatar">
+                  <span class="platform-icon">{{ getPlatformIcon(chat.plataforma) }}</span>
+                </div>
+                <div class="chat-info">
+                  <div class="chat-header">
+                    <span class="chat-user">{{ getUserDisplayName(chat.usuario) }}</span>
+                    <span class="chat-time">{{ chat.ultimoMensaje.fecha | date:'HH:mm' }}</span>
+                  </div>
+                  <div class="chat-preview">
+                    <span class="chat-platform">{{ chat.plataforma }}</span>
+                    <span class="chat-message">{{ chat.ultimoMensaje.texto | slice:0:50 }}{{ chat.ultimoMensaje.texto.length > 50 ? '...' : '' }}</span>
+                  </div>
+                  @if (chat.tieneNoLeidos) {
+                    <div class="unread-badge">{{ chat.noLeidosCount }}</div>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <div class="no-chats">No hay chats disponibles</div>
+            }
+          }
         </div>
       </div>
 
@@ -206,28 +206,94 @@
         </button>
       </div>
 
-      <div class="mensaje-detalle">
-        <h3>Responder Mensaje</h3>
-        @if (mensajeSeleccionado(); as mensaje) {
-          <div class="detalle-contenido">
-            <p><strong>Plataforma:</strong> {{ mensaje.plataforma }}</p>
-            <p><strong>Usuario:</strong> {{ mensaje.usuario }}</p>
-            <p><strong>Fecha:</strong> {{ mensaje.fecha | date:'dd/MM/yyyy HH:mm' }}</p>
-            <div class="mensaje-original">
-              <strong>Mensaje original:</strong>
-              <blockquote>{{ mensaje.texto }}</blockquote>
+      <div class="chat-area">
+        @if (chatSeleccionado(); as chat) {
+          <div class="chat-header">
+            <div class="chat-user-info">
+              <span class="platform-icon">{{ getPlatformIcon(chat.plataforma) }}</span>
+              <span class="chat-user-name">{{ getUserDisplayName(chat.usuario) }}</span>
+              <span class="chat-platform-badge">{{ chat.plataforma }}</span>
             </div>
-            <div class="form-respuesta">
-              <label for="respuesta">Tu respuesta</label>
-              <textarea id="respuesta" rows="4" [ngModel]="textoRespuesta()" (ngModelChange)="textoRespuesta.set($event)" placeholder="Escribe tu respuesta aquí..."></textarea>
-              <div class="acciones-respuesta">
-                <button (click)="enviarRespuesta()" class="btn btn-success">Enviar Respuesta</button>
-                <button (click)="textoRespuesta.set('')" class="btn btn-secondary">Limpiar</button>
-              </div>
+            <div class="chat-actions">
+              <button (click)="marcarChatComoLeido(chat)" class="btn btn-sm btn-outline">Marcar como leído</button>
             </div>
           </div>
+
+          <div class="chat-messages" #messagesContainer>
+            @for (mensaje of chat.mensajes; track mensaje.id) {
+              <div class="message" [class.own]="mensaje.esRespuesta" [class.other]="!mensaje.esRespuesta">
+                <div class="message-content">
+                  @if (mensaje.mediaUrl) {
+                    @if (mensaje.mediaType?.startsWith('image/')) {
+                      <img [src]="mensaje.mediaUrl" [alt]="mensaje.mediaCaption || 'Imagen'" class="message-image" />
+                    } @else if (mensaje.mediaType?.startsWith('video/')) {
+                      <video controls class="message-video">
+                        <source [src]="mensaje.mediaUrl" [type]="mensaje.mediaType">
+                      </video>
+                    } @else {
+                      <div class="message-file">
+                        <span class="file-icon">📎</span>
+                        <a [href]="mensaje.mediaUrl" target="_blank" class="file-link">{{ mensaje.mediaFilename || 'Archivo' }}</a>
+                      </div>
+                    }
+                  }
+                  @if (mensaje.texto) {
+                    <div class="message-text">{{ mensaje.texto }}</div>
+                  }
+                  @if (mensaje.mediaCaption) {
+                    <div class="message-caption">{{ mensaje.mediaCaption }}</div>
+                  }
+                  <div class="message-time">{{ mensaje.fecha | date:'HH:mm' }}</div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="chat-input-area">
+            <div class="message-input-container">
+              <textarea
+                [ngModel]="nuevoMensajeTexto()"
+                (ngModelChange)="nuevoMensajeTexto.set($event)"
+                (keydown.enter)="$event.shiftKey || enviarMensajeChat(); $event.preventDefault()"
+                placeholder="Escribe un mensaje..."
+                rows="1"
+                class="message-input"
+                #messageInput
+              ></textarea>
+
+              <div class="message-actions">
+                <input
+                  type="file"
+                  #fileInput
+                  (change)="onArchivoSeleccionado($event)"
+                  accept="image/*,video/*,audio/*,application/*"
+                  style="display: none"
+                />
+                <button (click)="fileInput.click()" class="btn btn-outline btn-sm" title="Adjuntar archivo">
+                  📎
+                </button>
+                <button (click)="enviarMensajeChat()" class="btn btn-primary btn-sm" [disabled]="!nuevoMensajeTexto().trim() && !archivoSeleccionado()">
+                  Enviar
+                </button>
+              </div>
+            </div>
+
+            @if (archivoSeleccionado()) {
+              <div class="file-preview">
+                <div class="file-info">
+                  <span class="file-icon">📄</span>
+                  <span class="file-name">{{ archivoSeleccionado()?.name }}</span>
+                  <button (click)="removerArchivo()" class="btn btn-sm btn-danger">×</button>
+                </div>
+              </div>
+            }
+          </div>
         } @else {
-          <p class="sin-seleccion">Selecciona un mensaje de la lista para responder.</p>
+          <div class="no-chat-selected">
+            <div class="no-chat-icon">💬</div>
+            <h4>Selecciona un chat</h4>
+            <p>Elige un chat de la lista para ver los mensajes y responder</p>
+          </div>
         }
       </div>
     </div>

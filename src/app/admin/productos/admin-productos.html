@@ -140,35 +140,38 @@
                         placeholder="https://..."
                       />
                     </div>
+
+                    <!-- Imágenes Adicionales -->
+                    <div class="additional-images-section">
+                      <div class="additional-images-header">
+                        <label>Imágenes Adicionales</label>
+                        <span class="images-limit-text">{{ formData().images.length }}/{{ getMaxAdditionalImages() }}</span>
+                      </div>
+                      <input
+                        #additionalFileInput
+                        type="file"
+                        accept="image/*"
+                        (change)="onAdditionalImageSelected($event)"
+                        style="display: none"
+                      />
+                      <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= getMaxAdditionalImages()">
+                        + Añadir imagen
+                      </button>
+                      @if (formData().images.length > 0) {
+                        <div class="additional-images-grid">
+                          @for (img of formData().images; track img; let i = $index) {
+                            <div class="additional-image-item" (click)="setMainImage(img)">
+                              <img [src]="img" alt="Imagen adicional" />
+                              <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i); $event.stopPropagation()">&times;</button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
                   </div>
                 </div>
 
-                <div class="form-group">
-                  <label>Imágenes Adicionales</label>
-                  <div class="additional-images-container">
-                    <p class="images-limit-text">Imágenes adicionales: {{ formData().images.length }}/{{ getMaxAdditionalImages() }}</p>
-                    <input
-                      #additionalFileInput
-                      type="file"
-                      accept="image/*"
-                      (change)="onAdditionalImageSelected($event)"
-                      style="display: none"
-                    />
-                    <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= getMaxAdditionalImages()">
-                      + Añadir
-                    </button>
-                    @if (formData().images.length > 0) {
-                      <div class="additional-images-grid">
-                        @for (img of formData().images; track img; let i = $index) {
-                          <div class="additional-image-item" (click)="setMainImage(img)">
-                            <img [src]="img" alt="Imagen adicional" />
-                            <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i); $event.stopPropagation()">&times;</button>
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
-                </div>
+
 
                 <div class="form-row">
                   <div class="form-group">
@@ -401,10 +404,10 @@
                 <h4>Vista Previa del Producto</h4>
               </div>
               <div class="product-card-preview">
-                @if (formData().enOferta && formData().ofertaPrecio > 0) {
-                  <div class="oferta-badge">OFERTA -{{ formData().ofertaPorcentaje | number:'1.0-0' }}%</div>
-                }
-                <div class="preview-image-container">
+                <div class="preview-image-container" style="position: relative;">
+                  @if (formData().enOferta && formData().ofertaPrecio > 0) {
+                    <div class="oferta-badge">OFERTA -{{ formData().ofertaPorcentaje | number:'1.0-0' }}%</div>
+                  }
                   @if (formData().image) {
                     <img [src]="formData().image" [alt]="formData().title" class="preview-product-image" />
                   } @else {

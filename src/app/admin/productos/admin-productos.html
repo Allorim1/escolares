@@ -99,76 +99,74 @@
           <div class="modal-body-split">
             <div class="form-section">
               <form (ngSubmit)="saveProduct()">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>Imagen Principal</label>
-                    <div class="image-upload-section">
-                      <div
-                        class="drop-zone"
-                        [class.drag-over]="dragOver()"
-                        [class.has-image]="formData().image"
-                        (dragover)="onDragOver($event)"
-                        (dragleave)="onDragLeave($event)"
-                        (drop)="onDrop($event)"
-                      >
-                        @if (formData().image) {
-                          <img [src]="formData().image" alt="Preview" class="drop-preview-img" />
-                        } @else {
-                          <div class="drop-zone-content">
-                            <span class="drop-icon">🖼️</span>
-                            <span class="drop-text">Arrastra una imagen aquí</span>
-                            <span class="drop-subtext">o</span>
-                          </div>
-                        }
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        (change)="onFileSelected($event)"
-                        class="file-input"
-                        #fileInput
-                      />
-                      <button type="button" class="upload-btn" (click)="fileInput.click()">
-                        📁 Seleccionar imagen
-                      </button>
-                      <div class="url-input-group">
-                        <span class="url-separator">o pega una URL:</span>
-                        <input
-                          type="text"
-                          [ngModel]="formData().image"
-                          name="image"
-                          (ngModelChange)="updateFormField('image', $event)"
-                          placeholder="https://..."
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Imágenes Adicionales</label>
-                    <div class="additional-images-container">
-                      <p class="images-limit-text">Imágenes adicionales: {{ formData().images.length }}/{{ getMaxAdditionalImages() }}</p>
-                      <input
-                        #additionalFileInput
-                        type="file"
-                        accept="image/*"
-                        (change)="onAdditionalImageSelected($event)"
-                        style="display: none"
-                      />
-                      <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= getMaxAdditionalImages()">
-                        + Añadir
-                      </button>
-                      @if (formData().images.length > 0) {
-                        <div class="additional-images-grid">
-                          @for (img of formData().images; track img; let i = $index) {
-                            <div class="additional-image-item" (click)="setMainImage(img)">
-                              <img [src]="img" alt="Imagen adicional" />
-                              <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i); $event.stopPropagation()">&times;</button>
-                            </div>
-                          }
+                <div class="form-group">
+                  <label>Imagen Principal</label>
+                  <div class="image-upload-section">
+                    <div
+                      class="drop-zone"
+                      [class.drag-over]="dragOver()"
+                      [class.has-image]="formData().image"
+                      (dragover)="onDragOver($event)"
+                      (dragleave)="onDragLeave($event)"
+                      (drop)="onDrop($event)"
+                    >
+                      @if (formData().image) {
+                        <img [src]="formData().image" alt="Preview" class="drop-preview-img" />
+                      } @else {
+                        <div class="drop-zone-content">
+                          <span class="drop-icon">🖼️</span>
+                          <span class="drop-text">Arrastra una imagen aquí</span>
+                          <span class="drop-subtext">o</span>
                         </div>
                       }
                     </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      (change)="onFileSelected($event)"
+                      class="file-input"
+                      #fileInput
+                    />
+                    <button type="button" class="upload-btn" (click)="fileInput.click()">
+                      📁 Seleccionar imagen
+                    </button>
+                    <div class="url-input-group">
+                      <span class="url-separator">o pega una URL:</span>
+                      <input
+                        type="text"
+                        [ngModel]="formData().image"
+                        name="image"
+                        (ngModelChange)="updateFormField('image', $event)"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Imágenes Adicionales</label>
+                  <div class="additional-images-container">
+                    <p class="images-limit-text">Imágenes adicionales: {{ formData().images.length }}/{{ getMaxAdditionalImages() }}</p>
+                    <input
+                      #additionalFileInput
+                      type="file"
+                      accept="image/*"
+                      (change)="onAdditionalImageSelected($event)"
+                      style="display: none"
+                    />
+                    <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= getMaxAdditionalImages()">
+                      + Añadir
+                    </button>
+                    @if (formData().images.length > 0) {
+                      <div class="additional-images-grid">
+                        @for (img of formData().images; track img; let i = $index) {
+                          <div class="additional-image-item" (click)="setMainImage(img)">
+                            <img [src]="img" alt="Imagen adicional" />
+                            <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i); $event.stopPropagation()">&times;</button>
+                          </div>
+                        }
+                      </div>
+                    }
                   </div>
                 </div>
 
@@ -399,13 +397,16 @@
               </form>
             </div>
             <div class="preview-section">
-              <div class="product-preview-card">
-                <div class="preview-header">
-                  <h4>Vista Previa del Producto</h4>
-                </div>
-                <div class="preview-image">
+              <div class="preview-header">
+                <h4>Vista Previa del Producto</h4>
+              </div>
+              <div class="product-card-preview">
+                @if (formData().enOferta && formData().ofertaPrecio > 0) {
+                  <div class="oferta-badge">OFERTA -{{ formData().ofertaPorcentaje | number:'1.0-0' }}%</div>
+                }
+                <div class="preview-image-container">
                   @if (formData().image) {
-                    <img [src]="formData().image" [alt]="formData().title" />
+                    <img [src]="formData().image" [alt]="formData().title" class="preview-product-image" />
                   } @else {
                     <div class="no-image-placeholder">
                       <span>🖼️</span>
@@ -413,34 +414,30 @@
                     </div>
                   }
                 </div>
-                <div class="preview-content">
-                  <h3 class="preview-title">{{ formData().title || 'Nombre del producto' }}</h3>
-                  <div class="preview-price">
-                    @if (formData().enOferta && formData().ofertaPrecio > 0) {
-                      <span class="original-price">${{ formData().price | number:'1.2-2' }}</span>
-                      <span class="offer-price">${{ formData().ofertaPrecio | number:'1.2-2' }}</span>
-                      <span class="discount-badge">{{ formData().ofertaPorcentaje | number:'1.0-0' }}% OFF</span>
-                    } @else {
-                      <span class="regular-price">${{ formData().price | number:'1.2-2' }}</span>
-                    }
-                  </div>
-                  <div class="preview-description">
-                    <p>{{ formData().description || 'Descripción del producto...' }}</p>
-                  </div>
-                  <div class="preview-meta">
-                    <span class="category-badge">{{ formData().category || 'Sin categoría' }}</span>
+                <div class="preview-card-body">
+                  <h5 class="preview-card-title">{{ formData().title || 'Nombre del producto' }}</h5>
+                  <p class="preview-card-text">{{ formData().description || 'Descripción del producto...' }}</p>
+                  @if (formData().enOferta && formData().ofertaPrecio > 0) {
+                    <div class="oferta-price">
+                      <span class="precio-original">${{ formData().price | number:'1.2-2' }}</span>
+                      <span class="precio-oferta">${{ formData().ofertaPrecio | number:'1.2-2' }}</span>
+                    </div>
+                  } @else {
+                    <p class="preview-card-price">${{ formData().price | number:'1.2-2' }}</p>
+                  }
+                  <div class="preview-card-meta">
+                    <span class="meta-label">Categoría:</span>
+                    <span class="meta-value">{{ formData().category || 'Sin categoría' }}</span>
                     @if (formData().marca) {
-                      <span class="brand-badge">{{ formData().marca }}</span>
+                      <span class="meta-label">Marca:</span>
+                      <span class="meta-value">{{ formData().marca }}</span>
                     }
+                  </div>
+                  <div class="preview-status">
                     <span class="status-badge" [class.available]="formData().estado === 'disponible'" [class.out-of-stock]="formData().estado === 'agotado'">
                       {{ formData().estado === 'disponible' ? 'Disponible' : 'Agotado' }}
                     </span>
                   </div>
-                  @if (formData().iva && formData().price > 0) {
-                    <div class="preview-tax-info">
-                      <small>Incluye IVA ({{ formData().ivaPercentage }}%)</small>
-                    </div>
-                  }
                 </div>
               </div>
             </div>

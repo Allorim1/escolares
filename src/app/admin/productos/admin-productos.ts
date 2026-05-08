@@ -64,6 +64,10 @@ export class AdminProductos implements OnInit {
   filtroMarca = '';
   filtroNombre = '';
 
+  // Pagination
+  currentPage = signal(1);
+  itemsPerPage = 12;
+
   formData = signal<ProductFormData>({
     title: '',
     price: 0,
@@ -138,6 +142,8 @@ export class AdminProductos implements OnInit {
     });
   }
 
+  private _lastFilterState = '';
+
   get filteredProducts(): Product[] {
     let filtered = this.products();
 
@@ -158,7 +164,51 @@ export class AdminProductos implements OnInit {
       );
     }
 
+    // Reset page if filters changed
+    const currentFilterState = `${this.filtroNombre}-${this.filtroCategoria}-${this.filtroMarca}`;
+    if (currentFilterState !== this._lastFilterState) {
+      this._lastFilterState = currentFilterState;
+      this.currentPage.set(1);
+    }
+
     return filtered;
+  }
+
+  get paginatedProducts(): Product[] {
+    const filtered = this.filteredProducts;
+    const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return filtered.slice(startIndex, endIndex);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+  }
+
+  get hasPreviousPage(): boolean {
+    return this.currentPage() > 1;
+  }
+
+  get hasNextPage(): boolean {
+    return this.currentPage() < this.totalPages;
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage.set(page);
+    }
+  }
+
+  previousPage() {
+    if (this.hasPreviousPage) {
+      this.currentPage.update(p => p - 1);
+    }
+  }
+
+  nextPage() {
+    if (this.hasNextPage) {
+      this.currentPage.update(p => p + 1);
+    }
   }
 
   get categories(): string[] {

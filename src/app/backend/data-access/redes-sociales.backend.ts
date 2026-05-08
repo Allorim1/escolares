@@ -21,6 +21,10 @@ export interface MensajeRedSocial {
   leido: boolean;
   respondido: boolean;
   respuesta?: string;
+  mediaType?: string;
+  mediaUrl?: string;
+  mediaCaption?: string;
+  mediaFilename?: string;
   createdAt: Date;
   updatedAt: Date;
 }

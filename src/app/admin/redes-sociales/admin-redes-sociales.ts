@@ -410,6 +410,13 @@ export class AdminRedesSociales implements OnInit {
     this.ultimoMensajeNotificado.set(null);
   }
 
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      this.enviarMensajeChat();
+      event.preventDefault();
+    }
+  }
+
   // Métodos para respuestas automáticas
   async agregarRespuesta() {
     const palabraClave = this.nuevaRespuestaPalabraClave().trim();

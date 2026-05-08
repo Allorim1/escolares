@@ -254,7 +254,7 @@
               <textarea
                 [ngModel]="nuevoMensajeTexto()"
                 (ngModelChange)="nuevoMensajeTexto.set($event)"
-                (keydown.enter)="$event.shiftKey || enviarMensajeChat(); $event.preventDefault()"
+                (keydown)="onKeyDown($event)"
                 placeholder="Escribe un mensaje..."
                 rows="1"
                 class="message-input"

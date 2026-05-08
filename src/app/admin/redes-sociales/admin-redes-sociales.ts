@@ -81,6 +81,14 @@ export class AdminRedesSociales implements OnInit {
       return;
     }
 
+    // Validación específica para Instagram
+    if (plataforma === 'Instagram') {
+      if (!/^\d+$/.test(usuario)) {
+        alert('Para Instagram, el campo "Usuario / Página" debe contener solo el ID numérico de la página de Facebook (sin @)');
+        return;
+      }
+    }
+
     try {
       const nuevaRed: Partial<RedSocial> = {
         plataforma,

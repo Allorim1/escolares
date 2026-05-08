@@ -22,7 +22,15 @@
         </div>
         <div class="form-group">
           <label for="usuario">Usuario / Página</label>
-          <input id="usuario" type="text" [ngModel]="nuevaRedUsuario()" (ngModelChange)="nuevaRedUsuario.set($event)" placeholder="Ej: @miempresa">
+          <input id="usuario" type="text" [ngModel]="nuevaRedUsuario()" (ngModelChange)="nuevaRedUsuario.set($event)" [placeholder]="nuevaRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'">
+          @if (nuevaRedPlataforma() === 'Instagram') {
+            <div class="help-text">
+              <small>
+                Para Instagram, ingresa el <strong>ID de página de Facebook</strong> (numérico) asociado a tu cuenta de Instagram Business.
+                <br>No uses @ en este campo.
+              </small>
+            </div>
+          }
         </div>
         <div class="form-group">
           <label for="token">Token / Clave API</label>

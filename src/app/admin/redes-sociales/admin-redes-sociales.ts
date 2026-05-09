@@ -55,10 +55,11 @@ export class AdminRedesSociales implements OnInit {
 
   filtroPlataforma = signal<string>(''); // '' = todas, 'TikTok', 'Instagram', etc.
 
-  // Chats agrupados por usuario
+  // Chats agrupados por usuario y filtrados por plataforma
   chats = computed(() => {
     const mensajes = this.mensajes();
-    console.log('Calculando chats con mensajes:', mensajes.length);
+    const filtroActual = this.filtroPlataforma();
+    console.log('Calculando chats con mensajes:', mensajes.length, 'filtro:', filtroActual);
 
     if (mensajes.length === 0) {
       console.log('No hay mensajes para procesar');
@@ -67,8 +68,15 @@ export class AdminRedesSociales implements OnInit {
 
     const chatsMap = new Map<string, Chat>();
 
+    // Filtrar mensajes por plataforma si hay un filtro activo
+    const mensajesFiltrados = filtroActual
+      ? mensajes.filter(mensaje => mensaje.plataforma === filtroActual)
+      : mensajes;
+
+    console.log('Mensajes después del filtro:', mensajesFiltrados.length);
+
     // Agrupar mensajes por usuario y plataforma
-    mensajes.forEach((mensaje, index) => {
+    mensajesFiltrados.forEach((mensaje, index) => {
       console.log(`Mensaje ${index}:`, {
         id: mensaje.id,
         usuario: mensaje.usuario,

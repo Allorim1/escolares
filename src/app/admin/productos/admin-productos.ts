@@ -183,20 +183,18 @@ export class AdminProductos implements OnInit {
     return filtered.slice(startIndex, endIndex);
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-  }
+  
 
   get hasPreviousPage(): boolean {
     return this.currentPage() > 1;
   }
 
   get hasNextPage(): boolean {
-    return this.currentPage() < this.totalPages;
+    return this.currentPage() < this.totalPages();
   }
 
   goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
+    if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
   }

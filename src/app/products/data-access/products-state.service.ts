@@ -2,13 +2,15 @@ import { Injectable, inject, computed, signal } from '@angular/core';
 import { Product } from '../../shared/interfaces/product.interface';
 import { ProductsService } from './products.service';
 import { signalSlice } from 'ngxtension/signal-slice';
-import { catchError, map, of, Subject } from 'rxjs';
+import { catchError, map, of, Subject, startWith, switchMap } from 'rxjs';
 
 interface State {
-    products: Product[];
-    status: 'loading' | 'success' | 'error',
-    page: number;
-}
+     products: Product[];
+     status: 'loading' | 'success' | 'error',
+     page: number,
+     total: number,
+     totalPages: number
+ }
 
 @Injectable()
 export class ProductsStateService {
@@ -19,6 +21,8 @@ export class ProductsStateService {
         products: [],
         status: 'loading' as const,
         page: 1,
+        total: 0,
+        totalPages: 0
     }
 
     private pageSize = 8;
@@ -26,23 +30,25 @@ export class ProductsStateService {
 
     // computed signals to drive button disabled state
     hasNext = computed(() => {
-        const total = this.allProducts().length;
-        return this.state.page() * this.pageSize < total;
+      const state = this.state();
+      return state.page < state.totalPages;
     });
 
-    hasPrev = computed(() => this.state.page() > 1);
+    hasPrev = computed(() => this.state().page > 1);
 
     changePage$ = new Subject<number>();
 
     private sliceForPage(page: number) {
-        const start = (page - 1) * this.pageSize;
-        return this.allProducts().slice(start, start + this.pageSize);
+      // This method is kept for compatibility but is no longer used
+      // Pagination is now handled by the backend
+      return [];
     }
 
     private loadAll$ = this.changePage$.pipe(
       startWith(1),
-      switchMap((page) => this.productsService.getProducts(page, this.pageSize)),
+      switchMap((page: number) => this.productsService.getProducts(page, this.pageSize)),
       map((response: any) => {
+        // Store only current page products for the list
         this.allProducts.set(response.products);
         return {
           products: response.products,

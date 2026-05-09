@@ -66,7 +66,9 @@ export class AdminProductos implements OnInit {
 
   // Pagination
   currentPage = signal(1);
-  itemsPerPage = 12;
+  itemsPerPage = 20;
+  totalProducts = signal(0);
+  totalPages = signal(0);
 
   formData = signal<ProductFormData>({
     title: '',
@@ -94,7 +96,7 @@ export class AdminProductos implements OnInit {
   showCategoryModal = signal(false);
 
   ngOnInit() {
-    this.loadProducts();
+    this.loadProducts(this.currentPage());
     this.loadProductCategories();
     this.loadPreciosOcultosSetting();
   }
@@ -146,6 +148,12 @@ export class AdminProductos implements OnInit {
 
   get filteredProducts(): Product[] {
     let filtered = this.products();
+    
+    const currentFilterState = `${this.filtroNombre}-${this.filtroCategoria}-${this.filtroMarca}`;
+    if (currentFilterState !== this._lastFilterState) {
+      this._lastFilterState = currentFilterState;
+      this.currentPage.set(1); // Reset to first page when filters change
+    }
 
     if (this.filtroNombre) {
       const nombre = this.filtroNombre.toLowerCase();
@@ -153,24 +161,17 @@ export class AdminProductos implements OnInit {
         p.title.toLowerCase().includes(nombre)
       );
     }
-
+    
     if (this.filtroCategoria) {
       filtered = filtered.filter(p => p.category === this.filtroCategoria);
     }
-
+    
     if (this.filtroMarca) {
       filtered = filtered.filter(p =>
         p.marca?.toLowerCase() === this.filtroMarca.toLowerCase()
       );
     }
-
-    // Reset page if filters changed
-    const currentFilterState = `${this.filtroNombre}-${this.filtroCategoria}-${this.filtroMarca}`;
-    if (currentFilterState !== this._lastFilterState) {
-      this._lastFilterState = currentFilterState;
-      this.currentPage.set(1);
-    }
-
+    
     return filtered;
   }
 
@@ -202,12 +203,14 @@ export class AdminProductos implements OnInit {
   previousPage() {
     if (this.hasPreviousPage) {
       this.currentPage.update(p => p - 1);
+      this.loadProducts(this.currentPage());
     }
   }
 
   nextPage() {
     if (this.hasNextPage) {
       this.currentPage.update(p => p + 1);
+      this.loadProducts(this.currentPage());
     }
   }
 
@@ -227,9 +230,23 @@ export class AdminProductos implements OnInit {
     return this.lineasService.lineas();
   }
 
-  loadProducts() {
-    this.productsService.getProducts().subscribe({
-      next: (products) => this.products.set(products),
+  loadProducts(page: number = 1) {
+    this.loading.set(true);
+    this.productsService.getProducts(page, 20).subscribe({
+      next: (response: any) => {
+        this.products.set(response.products);
+        this.totalProducts = response.total;
+        this.totalPages = response.totalPages;
+        this.currentPage = response.page;
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.products.set([]);
+        this.totalProducts = 0;
+        this.totalPages = 0;
+        this.currentPage = 1;
+      }
     });
   }
 
@@ -347,6 +364,8 @@ export class AdminProductos implements OnInit {
       }).subscribe({
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
+          // Reload current page to show the new product
+          this.loadProducts(this.currentPage());
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
           }
@@ -381,9 +400,11 @@ export class AdminProductos implements OnInit {
         rating: { rate: data.ratingRate, count: data.ratingCount },
       }).subscribe({
         next: (updated) => {
-          this.products.update((products) =>
-            products.map((p) => (p.id === productId ? updated : p))
-          );
+            this.products.update((products) => 
+                products.map((p) => (p.id === productId ? updated : p))
+            );
+            // Reload current page to show the updated product
+            this.loadProducts(this.currentPage());
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, updated.id);
           }

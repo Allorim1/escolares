@@ -58,11 +58,15 @@ export class AdminRedesSociales implements OnInit {
   // Chats agrupados por usuario
   chats = computed(() => {
     const mensajes = this.mensajes();
+    console.log('Calculando chats con mensajes:', mensajes.length);
+
     const chatsMap = new Map<string, Chat>();
 
     // Agrupar mensajes por usuario y plataforma
     mensajes.forEach(mensaje => {
       const key = `${mensaje.usuario}-${mensaje.plataforma}`;
+      console.log('Procesando mensaje:', { key, usuario: mensaje.usuario, plataforma: mensaje.plataforma, texto: mensaje.texto?.substring(0, 50) });
+
       if (!chatsMap.has(key)) {
         chatsMap.set(key, {
           usuario: mensaje.usuario,
@@ -92,13 +96,16 @@ export class AdminRedesSociales implements OnInit {
       }
     });
 
+    const chatsArray = Array.from(chatsMap.values());
+    console.log('Chats calculados:', chatsArray.length, chatsArray.map(c => ({ usuario: c.usuario, plataforma: c.plataforma, mensajes: c.mensajes.length })));
+
     // Ordenar mensajes dentro de cada chat por fecha
     chatsMap.forEach(chat => {
       chat.mensajes.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
     });
 
     // Convertir a array y ordenar por último mensaje
-    return Array.from(chatsMap.values()).sort((a, b) =>
+    return chatsArray.sort((a, b) =>
       b.ultimoMensaje.fecha.getTime() - a.ultimoMensaje.fecha.getTime()
     );
   });
@@ -174,6 +181,23 @@ export class AdminRedesSociales implements OnInit {
         this.redesSocialesBackend.getRespuestasAutomaticas().toPromise(),
         this.redesSocialesBackend.getNotificaciones().toPromise(),
       ]);
+      console.log('Datos cargados:', {
+        redes: redes?.length || 0,
+        mensajes: mensajes?.length || 0,
+        respuestas: respuestas?.length || 0,
+        notificaciones: notificaciones?.length || 0
+      });
+
+      if (mensajes && mensajes.length > 0) {
+        console.log('Primeros mensajes:', mensajes.slice(0, 3).map(m => ({
+          id: m.id,
+          usuario: m.usuario,
+          plataforma: m.plataforma,
+          texto: m.texto?.substring(0, 50),
+          fecha: m.fecha
+        })));
+      }
+
       this.redesSociales.set(redes || []);
       this.mensajes.set(mensajes || []);
       this.respuestasAutomaticas.set(respuestas || []);

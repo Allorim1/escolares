@@ -59,7 +59,7 @@
        <div class="pagination">
          <button
            class="pagination-btn"
-           [disabled]="!hasPreviousPage()"
+           [disabled]="!hasPreviousPage"
            (click)="previousPage()"
          >
            ← Anterior
@@ -72,7 +72,7 @@
 
          <button
            class="pagination-btn"
-           [disabled]="!hasNextPage()"
+           [disabled]="!hasNextPage"
            (click)="nextPage()"
          >
            Siguiente →

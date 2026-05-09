@@ -67,8 +67,8 @@ export class AdminProductos implements OnInit {
   // Pagination
   currentPage = signal(1);
   itemsPerPage = 20;
-  totalProducts = signal(0);
-  totalPages = signal(0);
+  totalProducts = signal(0);  // From backend API
+  totalPages = signal(0);     // From backend API
   loading = signal(false);
 
   formData = signal<ProductFormData>({
@@ -236,17 +236,17 @@ export class AdminProductos implements OnInit {
     this.productsService.getProducts(page, 20).subscribe({
       next: (response: any) => {
         this.products.set(response.products);
-        this.totalProducts = response.total;
-        this.totalPages = response.totalPages;
-        this.currentPage = response.page;
+        this.totalProducts.set(response.total);
+        this.totalPages.set(response.totalPages);
+        this.currentPage.set(response.page);
         this.loading.set(false);
       },
       error: () => {
         this.loading.set(false);
         this.products.set([]);
-        this.totalProducts = 0;
-        this.totalPages = 0;
-        this.currentPage = 1;
+        this.totalProducts.set(0);
+        this.totalPages.set(0);
+        this.currentPage.set(1);
       }
     });
   }

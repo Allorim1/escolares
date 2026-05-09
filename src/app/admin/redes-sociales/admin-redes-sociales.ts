@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RedesSocialesBackend, RedSocial, MensajeRedSocial, RespuestaAutomatica, NotificacionRedSocial } from '../../backend/data-access/redes-sociales.backend';
@@ -24,7 +24,7 @@ interface ChatMessage extends MensajeRedSocial {
   templateUrl: './admin-redes-sociales.html',
   styleUrl: './admin-redes-sociales.css',
 })
-export class AdminRedesSociales implements OnInit {
+export class AdminRedesSociales implements OnInit, OnDestroy {
   private readonly redesSocialesBackend = inject(RedesSocialesBackend);
 
   // Señales para almacenar datos de redes sociales
@@ -148,14 +148,81 @@ export class AdminRedesSociales implements OnInit {
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
+  private mensajesPollingInterval: any;
+
   async ngOnInit() {
     await this.cargarDatos();
     this.iniciarVerificacionMensajes();
+    this.iniciarPollingMensajes();
   }
 
   ngOnDestroy() {
     if (this.mensajesInterval) {
       clearInterval(this.mensajesInterval);
+    }
+    if (this.mensajesPollingInterval) {
+      clearInterval(this.mensajesPollingInterval);
+    }
+  }
+
+  private iniciarPollingMensajes() {
+    // Actualizar mensajes cada 10 segundos para mostrar mensajes nuevos en tiempo real
+    this.mensajesPollingInterval = setInterval(() => {
+      this.actualizarMensajes();
+    }, 10000); // 10 segundos
+  }
+
+  // Método para verificar el estado de los webhooks
+  async verificarEstadoWebhooks() {
+    try {
+      const response = await fetch('/api/redes-sociales/check-config');
+      if (response.ok) {
+        const config = await response.json();
+        console.log('📊 Estado de configuración de webhooks:', config);
+
+        if (!config.instagram.webhook_verify_token.includes('CONFIGURADO')) {
+          alert('⚠️ Advertencia: El token de verificación de Instagram no está configurado. Los webhooks no funcionarán correctamente.');
+        }
+
+        if (!config.database.messages_collection_exists) {
+          alert('⚠️ Advertencia: La colección de mensajes no existe en la base de datos.');
+        }
+
+        return config;
+      }
+    } catch (error) {
+      console.error('Error verificando estado de webhooks:', error);
+    }
+    return null;
+  }
+
+  // Método para enviar mensaje de prueba
+  async enviarMensajePrueba() {
+    const plataforma = prompt('Plataforma (Instagram/WhatsApp):', 'Instagram');
+    const usuario = prompt('ID de usuario:');
+    const texto = prompt('Mensaje de prueba:');
+
+    if (!plataforma || !usuario || !texto) return;
+
+    try {
+      const response = await fetch('/api/redes-sociales/test-send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ plataforma, usuario, texto })
+      });
+
+      if (response.ok) {
+        alert('✅ Mensaje de prueba enviado exitosamente');
+        await this.cargarDatos(); // Recargar datos
+      } else {
+        alert('❌ Error al enviar mensaje de prueba');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('❌ Error de conexión');
     }
   }
 
@@ -191,16 +258,28 @@ export class AdminRedesSociales implements OnInit {
 
           // Mostrar notificación para mensajes nuevos no leídos
           if (nuevosMensajes.length > 0) {
+            console.log(`📨 ${nuevosMensajes.length} nuevos mensajes recibidos`);
+
             const ultimoNuevo = nuevosMensajes.find(msg => !msg.leido);
             if (ultimoNuevo) {
               this.ultimoMensajeNotificado.set(ultimoNuevo);
               this.mostrarNotificacionMensaje.set(true);
 
-              // Auto-ocultar notificación
+              // Auto-ocultar notificación después de 5 segundos
               setTimeout(() => {
                 this.mostrarNotificacionMensaje.set(false);
               }, 5000);
             }
+
+          // Si hay un chat seleccionado, hacer scroll para mostrar el nuevo mensaje
+          if (this.chatSeleccionado()) {
+            setTimeout(() => this.scrollToBottom(), 100);
+          }
+
+          // Mostrar indicador de nuevos mensajes en la pestaña del navegador
+          if (nuevosMensajes.some(msg => !msg.leido)) {
+            this.actualizarTituloPestana(true);
+          }
           }
         }
       },
@@ -341,6 +420,7 @@ export class AdminRedesSociales implements OnInit {
     // Marcar todos los mensajes del chat como leídos
     if (chat.tieneNoLeidos) {
       this.marcarChatComoLeido(chat);
+      this.actualizarTituloPestana(false); // Resetear indicador cuando se marca como leído
     }
     // Scroll to bottom
     this.scrollToBottom();
@@ -628,6 +708,15 @@ export class AdminRedesSociales implements OnInit {
         const element = this.messagesContainer.nativeElement;
         element.scrollTop = element.scrollHeight;
       }, 100);
+    }
+  }
+
+  private actualizarTituloPestana(tieneNuevosMensajes: boolean): void {
+    const tituloBase = 'Redes Sociales - Admin';
+    if (tieneNuevosMensajes) {
+      document.title = `🔔 ${tituloBase}`;
+    } else {
+      document.title = tituloBase;
     }
   }
 

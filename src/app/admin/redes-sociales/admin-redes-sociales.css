@@ -99,14 +99,41 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
-.chats-sidebar h3 {
+.chats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin: 0;
   padding: 1.25rem 1.5rem;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chats-header h3 {
+  margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chats-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chats-actions .btn {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.chats-actions .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
 }
 
 .chats-list {

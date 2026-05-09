@@ -125,7 +125,20 @@
 
     <div class="mensajes-container">
       <div class="chats-sidebar">
-        <h3>Chats</h3>
+        <div class="chats-header">
+          <h3>Chats</h3>
+          <div class="chats-actions">
+            <button class="btn btn-sm btn-outline" (click)="cargarDatos()" title="Actualizar">
+              🔄
+            </button>
+            <button class="btn btn-sm btn-outline" (click)="verificarEstadoWebhooks()" title="Verificar Webhooks">
+              ⚙️
+            </button>
+            <button class="btn btn-sm btn-outline" (click)="enviarMensajePrueba()" title="Mensaje de Prueba">
+              📤
+            </button>
+          </div>
+        </div>
         <div class="chats-list">
           @if (loading()) {
             <div class="chat-loading">Cargando chats...</div>

@@ -118,36 +118,49 @@ export class AdminRedesSociales implements OnInit {
     }
   }
 
-  private iniciarVerificacionMensajes() {
-    // Verificar nuevos mensajes cada 30 segundos
-    this.mensajesInterval = setInterval(async () => {
-      try {
-        const mensajesActuales = await this.redesSocialesBackend.getMensajes().toPromise();
-        if (mensajesActuales) {
-          const mensajesPrevios = this.mensajes();
-          const nuevosMensajes = mensajesActuales.filter(msg =>
-            !mensajesPrevios.some(prev => prev.id === msg.id)
-          );
+  // Método para actualizar mensajes en tiempo real vía polling
+  private actualizarMensajes() {
+    // Este método se llama desde el intervalo para actualizar mensajes
+    this.redesSocialesBackend.getMensajes().subscribe({
+      next: (mensajesActuales) => {
+        const mensajesPrevios = this.mensajes();
+        const mensajesActualesArray = mensajesActuales || [];
 
+        // Filtrar mensajes nuevos
+        const nuevosMensajes = mensajesActualesArray.filter(msg =>
+          !mensajesPrevios.some(prev => prev.id === msg.id)
+        );
+
+        // Actualizar si hay cambios
+        if (nuevosMensajes.length > 0 || mensajesActualesArray.length !== mensajesPrevios.length) {
+          console.log('Actualizando mensajes desde polling:', { nuevos: nuevosMensajes.length, total: mensajesActualesArray.length });
+          this.mensajes.set(mensajesActualesArray);
+
+          // Mostrar notificación para mensajes nuevos no leídos
           if (nuevosMensajes.length > 0) {
-            this.mensajes.set(mensajesActuales);
-
-            // Mostrar notificación del último mensaje nuevo
-            const ultimoNuevo = nuevosMensajes[nuevosMensajes.length - 1];
-            if (!ultimoNuevo.leido) {
+            const ultimoNuevo = nuevosMensajes.find(msg => !msg.leido);
+            if (ultimoNuevo) {
               this.ultimoMensajeNotificado.set(ultimoNuevo);
               this.mostrarNotificacionMensaje.set(true);
 
-              // Ocultar notificación automáticamente después de 5 segundos
+              // Auto-ocultar notificación
               setTimeout(() => {
                 this.mostrarNotificacionMensaje.set(false);
               }, 5000);
             }
           }
         }
-      } catch (error) {
-        console.error('Error verificando nuevos mensajes:', error);
+      },
+      error: (error) => {
+        console.error('Error actualizando mensajes:', error);
       }
+    });
+  }
+
+  private iniciarVerificacionMensajes() {
+    // Verificar nuevos mensajes cada 30 segundos
+    this.mensajesInterval = setInterval(() => {
+      this.actualizarMensajes();
     }, 30000); // 30 segundos
   }
 
@@ -337,8 +350,8 @@ export class AdminRedesSociales implements OnInit {
           mediaFilename
         }).toPromise();
 
-        // Agregar el mensaje al chat localmente
-        this.mensajes.update(mensajes => [...mensajes, mensajeCreado]);
+        // Forzar actualización inmediata de mensajes para que aparezca el nuevo mensaje
+        this.actualizarMensajes();
 
         this.nuevoMensajeTexto.set('');
         this.archivoSeleccionadoSignal.set(null);

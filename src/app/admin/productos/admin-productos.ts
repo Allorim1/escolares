@@ -64,9 +64,12 @@ export class AdminProductos implements OnInit {
   filtroMarca = '';
   filtroNombre = '';
 
-   // Pagination
-   currentPage = signal(1);
-   itemsPerPage = 20;
+  // Pagination
+  currentPage = signal(1);
+  itemsPerPage = 20;
+  totalProducts = signal(0);
+  totalPages = signal(0);
+  loading = signal(false);
    totalProducts = signal(0);
    totalPages = signal(0);
 

@@ -26,12 +26,12 @@ export class Header {
   cartPreviewTotal = () =>
     this.cartState.state().products.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
-  constructor() {
-    this.productsService.getProducts().subscribe((products) => {
-      this.allProducts = products;
-    });
-    this.initDarkMode();
-  }
+    constructor() {
+      this.productsService.getProducts(1, 100).subscribe((response: any) => {
+        this.allProducts = response.products;
+      });
+      this.initDarkMode();
+    }
 
   private initDarkMode() {
     if (typeof window !== 'undefined') {

@@ -60,12 +60,26 @@ export class AdminRedesSociales implements OnInit {
     const mensajes = this.mensajes();
     console.log('Calculando chats con mensajes:', mensajes.length);
 
+    if (mensajes.length === 0) {
+      console.log('No hay mensajes para procesar');
+      return [];
+    }
+
     const chatsMap = new Map<string, Chat>();
 
     // Agrupar mensajes por usuario y plataforma
-    mensajes.forEach(mensaje => {
+    mensajes.forEach((mensaje, index) => {
+      console.log(`Mensaje ${index}:`, {
+        id: mensaje.id,
+        usuario: mensaje.usuario,
+        plataforma: mensaje.plataforma,
+        texto: mensaje.texto?.substring(0, 50),
+        fecha: mensaje.fecha,
+        leido: mensaje.leido,
+        respondido: mensaje.respondido
+      });
+
       const key = `${mensaje.usuario}-${mensaje.plataforma}`;
-      console.log('Procesando mensaje:', { key, usuario: mensaje.usuario, plataforma: mensaje.plataforma, texto: mensaje.texto?.substring(0, 50) });
 
       if (!chatsMap.has(key)) {
         chatsMap.set(key, {
@@ -81,11 +95,11 @@ export class AdminRedesSociales implements OnInit {
       const chat = chatsMap.get(key)!;
       chat.mensajes.push({
         ...mensaje,
-        esRespuesta: mensaje.respondido // Asumimos que si está respondido, es nuestra respuesta
+        esRespuesta: mensaje.respondido
       });
 
       // Actualizar último mensaje
-      if (mensaje.fecha > chat.ultimoMensaje.fecha) {
+      if (new Date(mensaje.fecha) > new Date(chat.ultimoMensaje.fecha)) {
         chat.ultimoMensaje = mensaje;
       }
 
@@ -97,16 +111,26 @@ export class AdminRedesSociales implements OnInit {
     });
 
     const chatsArray = Array.from(chatsMap.values());
-    console.log('Chats calculados:', chatsArray.length, chatsArray.map(c => ({ usuario: c.usuario, plataforma: c.plataforma, mensajes: c.mensajes.length })));
+    console.log('Chats calculados:', chatsArray.length);
+    chatsArray.forEach((chat, index) => {
+      console.log(`Chat ${index}:`, {
+        usuario: chat.usuario,
+        plataforma: chat.plataforma,
+        mensajesCount: chat.mensajes.length,
+        ultimoMensaje: chat.ultimoMensaje.texto?.substring(0, 30),
+        tieneNoLeidos: chat.tieneNoLeidos,
+        noLeidosCount: chat.noLeidosCount
+      });
+    });
 
     // Ordenar mensajes dentro de cada chat por fecha
-    chatsMap.forEach(chat => {
-      chat.mensajes.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+    chatsArray.forEach(chat => {
+      chat.mensajes.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
     });
 
     // Convertir a array y ordenar por último mensaje
     return chatsArray.sort((a, b) =>
-      b.ultimoMensaje.fecha.getTime() - a.ultimoMensaje.fecha.getTime()
+      new Date(b.ultimoMensaje.fecha).getTime() - new Date(a.ultimoMensaje.fecha).getTime()
     );
   });
 
@@ -127,11 +151,18 @@ export class AdminRedesSociales implements OnInit {
 
   // Método para actualizar mensajes en tiempo real vía polling
   private actualizarMensajes() {
-    // Este método se llama desde el intervalo para actualizar mensajes
     this.redesSocialesBackend.getMensajes().subscribe({
       next: (mensajesActuales) => {
         const mensajesPrevios = this.mensajes();
-        const mensajesActualesArray = mensajesActuales || [];
+        let mensajesActualesArray = mensajesActuales || [];
+
+        // Asegurar que las fechas sean objetos Date
+        mensajesActualesArray = mensajesActualesArray.map(msg => ({
+          ...msg,
+          fecha: new Date(msg.fecha),
+          createdAt: new Date(msg.createdAt),
+          updatedAt: new Date(msg.updatedAt)
+        }));
 
         // Filtrar mensajes nuevos
         const nuevosMensajes = mensajesActualesArray.filter(msg =>
@@ -194,12 +225,32 @@ export class AdminRedesSociales implements OnInit {
           usuario: m.usuario,
           plataforma: m.plataforma,
           texto: m.texto?.substring(0, 50),
-          fecha: m.fecha
+          fecha: m.fecha,
+          fechaType: typeof m.fecha,
+          leido: m.leido,
+          respondido: m.respondido
         })));
+
+        // Verificar si las fechas son válidas
+        mensajes.forEach((msg, index) => {
+          const fecha = new Date(msg.fecha);
+          if (isNaN(fecha.getTime())) {
+            console.error(`Mensaje ${index} tiene fecha inválida:`, msg.fecha);
+          }
+        });
       }
 
       this.redesSociales.set(redes || []);
-      this.mensajes.set(mensajes || []);
+
+      // Asegurar que las fechas sean objetos Date
+      const mensajesConFechas = (mensajes || []).map(msg => ({
+        ...msg,
+        fecha: new Date(msg.fecha),
+        createdAt: new Date(msg.createdAt),
+        updatedAt: new Date(msg.updatedAt)
+      }));
+
+      this.mensajes.set(mensajesConFechas);
       this.respuestasAutomaticas.set(respuestas || []);
       this.notificaciones.set(notificaciones || []);
     } catch (err) {
@@ -239,7 +290,7 @@ export class AdminRedesSociales implements OnInit {
       if (redCreada) {
         this.redesSociales.update(redes => [...redes, redCreada]);
       }
-      
+
       this.nuevaRedPlataforma.set('');
       this.nuevaRedUsuario.set('');
       this.nuevaRedToken.set('');
@@ -250,27 +301,20 @@ export class AdminRedesSociales implements OnInit {
     }
   }
 
+  async actualizarRedSocial(red: RedSocial) {
+    // Implementar lógica para actualizar
+    console.log('Actualizar red social:', red);
+  }
+
   async eliminarRedSocial(red: RedSocial) {
-    if (!confirm(`¿Eliminar la red social ${red.plataforma} - ${red.usuario}?`)) return;
-    
+    if (!confirm(`¿Eliminar la configuración de ${red.plataforma}?`)) return;
+
     try {
       await this.redesSocialesBackend.deleteRedSocial(red.id).toPromise();
       this.redesSociales.update(redes => redes.filter(r => r.id !== red.id));
     } catch (error) {
       console.error('Error eliminando red social:', error);
       alert('Error al eliminar red social');
-    }
-  }
-
-  async actualizarRedSocial(red: RedSocial) {
-    try {
-      const redActualizada = await this.redesSocialesBackend.updateRedSocial(red.id, red).toPromise();
-      if (redActualizada) {
-        this.redesSociales.update(redes => redes.map(r => r.id === red.id ? redActualizada : r));
-      }
-    } catch (error) {
-      console.error('Error actualizando red social:', error);
-      alert('Error al actualizar red social');
     }
   }
 
@@ -402,23 +446,123 @@ export class AdminRedesSociales implements OnInit {
     return this.archivoSeleccionadoSignal();
   }
 
-  async eliminarMensaje(mensaje: MensajeRedSocial) {
-    if (!confirm('¿Eliminar este mensaje?')) return;
+  // Métodos para respuestas automáticas
+  async agregarRespuesta() {
+    const palabraClave = this.nuevaRespuestaPalabraClave().trim();
+    const respuesta = this.nuevaRespuestaRespuesta().trim();
+    if (!palabraClave || !respuesta) {
+      alert('Palabra clave y respuesta son requeridos');
+      return;
+    }
 
     try {
-      await this.redesSocialesBackend.deleteMensaje(mensaje.id).toPromise();
-      this.mensajes.update(mensajes => mensajes.filter(msg => msg.id !== mensaje.id));
-      // Si el chat seleccionado ya no tiene mensajes, deseleccionarlo
-      const chat = this.chatSeleccionado();
-      if (chat && chat.mensajes.every(msg => msg.id !== mensaje.id) && chat.mensajes.length <= 1) {
-        this.chatSeleccionado.set(null);
+      const nuevaRespuesta: Partial<RespuestaAutomatica> = {
+        palabraClave,
+        respuesta,
+      };
+
+      const respuestaCreada = await this.redesSocialesBackend.createRespuestaAutomatica(nuevaRespuesta).toPromise();
+      if (respuestaCreada) {
+        this.respuestasAutomaticas.update(respuestas => [...respuestas, respuestaCreada]);
       }
+
+      this.nuevaRespuestaPalabraClave.set('');
+      this.nuevaRespuestaRespuesta.set('');
     } catch (error) {
-      console.error('Error eliminando mensaje:', error);
-      alert('Error al eliminar mensaje');
+      console.error('Error creando respuesta automática:', error);
+      alert('Error al crear respuesta automática');
     }
   }
 
+  async actualizarRespuesta(respuesta: RespuestaAutomatica) {
+    // Implementar lógica para actualizar
+    console.log('Actualizar respuesta:', respuesta);
+  }
+
+  async eliminarRespuesta(respuesta: RespuestaAutomatica) {
+    if (!confirm(`¿Eliminar la respuesta automática para "${respuesta.palabraClave}"?`)) return;
+
+    try {
+      await this.redesSocialesBackend.deleteRespuestaAutomatica(respuesta.id).toPromise();
+      this.respuestasAutomaticas.update(respuestas => respuestas.filter(r => r.id !== respuesta.id));
+    } catch (error) {
+      console.error('Error eliminando respuesta automática:', error);
+      alert('Error al eliminar respuesta automática');
+    }
+  }
+
+  // Métodos para notificaciones
+  async agregarNotificacion() {
+    const tipo = this.nuevaNotificacionTipo().trim();
+    const canal = this.nuevaNotificacionCanal().trim();
+    if (!tipo || !canal) {
+      alert('Tipo y canal son requeridos');
+      return;
+    }
+
+    try {
+      const nuevaNotificacion: Partial<NotificacionRedSocial> = {
+        tipo,
+        canal,
+        activa: this.nuevaNotificacionActiva(),
+      };
+
+      const notificacionCreada = await this.redesSocialesBackend.createNotificacion(nuevaNotificacion).toPromise();
+      if (notificacionCreada) {
+        this.notificaciones.update(notifs => [...notifs, notificacionCreada]);
+      }
+
+      this.nuevaNotificacionTipo.set('');
+      this.nuevaNotificacionCanal.set('');
+      this.nuevaNotificacionActiva.set(false);
+    } catch (error) {
+      console.error('Error creando notificación:', error);
+      alert('Error al crear notificación');
+    }
+  }
+
+  async actualizarNotificacion(notificacion: NotificacionRedSocial) {
+    // Implementar lógica para actualizar
+    console.log('Actualizar notificación:', notificacion);
+  }
+
+  async eliminarNotificacion(notificacion: NotificacionRedSocial) {
+    if (!confirm(`¿Eliminar la notificación "${notificacion.tipo}"?`)) return;
+
+    try {
+      await this.redesSocialesBackend.deleteNotificacion(notificacion.id).toPromise();
+      this.notificaciones.update(notifs => notifs.filter(n => n.id !== notificacion.id));
+    } catch (error) {
+      console.error('Error eliminando notificación:', error);
+      alert('Error al eliminar notificación');
+    }
+  }
+
+  async guardarConfiguracion() {
+    try {
+      // Actualizar redes sociales
+      for (const red of this.redesSociales()) {
+        await this.redesSocialesBackend.updateRedSocial(red.id, red).toPromise();
+      }
+
+      // Actualizar respuestas automáticas
+      for (const respuesta of this.respuestasAutomaticas()) {
+        await this.redesSocialesBackend.updateRespuestaAutomatica(respuesta.id, respuesta).toPromise();
+      }
+
+      // Actualizar notificaciones
+      for (const notificacion of this.notificaciones()) {
+        await this.redesSocialesBackend.updateNotificacion(notificacion.id, notificacion).toPromise();
+      }
+
+      alert('Configuración guardada exitosamente');
+    } catch (error) {
+      console.error('Error guardando configuración:', error);
+      alert('Error al guardar configuración');
+    }
+  }
+
+  // Métodos auxiliares
   getPlatformIcon(plataforma: string): string {
     switch (plataforma) {
       case 'WhatsApp': return '📱';
@@ -447,6 +591,10 @@ export class AdminRedesSociales implements OnInit {
     this.ultimoMensajeNotificado.set(null);
   }
 
+  trackByChat(index: number, chat: Chat): string {
+    return `${chat.usuario}-${chat.plataforma}`;
+  }
+
   onKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
       this.enviarMensajeChat();
@@ -454,133 +602,21 @@ export class AdminRedesSociales implements OnInit {
     }
   }
 
-  // Métodos para respuestas automáticas
-  async agregarRespuesta() {
-    const palabraClave = this.nuevaRespuestaPalabraClave().trim();
-    const respuesta = this.nuevaRespuestaRespuesta().trim();
-    if (!palabraClave || !respuesta) {
-      alert('Palabra clave y respuesta son requeridos');
-      return;
-    }
+  // Métodos para mensajes (legacy)
+  async eliminarMensaje(mensaje: MensajeRedSocial) {
+    if (!confirm('¿Eliminar este mensaje?')) return;
 
     try {
-      const nuevaRespuesta: Partial<RespuestaAutomatica> = {
-        palabraClave,
-        respuesta,
-      };
-
-      const respuestaCreada = await this.redesSocialesBackend.createRespuestaAutomatica(nuevaRespuesta).toPromise();
-      if (respuestaCreada) {
-        this.respuestasAutomaticas.update(respuestas => [...respuestas, respuestaCreada]);
-      }
-      
-      this.nuevaRespuestaPalabraClave.set('');
-      this.nuevaRespuestaRespuesta.set('');
-    } catch (error) {
-      console.error('Error creando respuesta automática:', error);
-      alert('Error al crear respuesta automática');
-    }
-  }
-
-  async eliminarRespuesta(respuesta: RespuestaAutomatica) {
-    if (!confirm(`¿Eliminar la respuesta automática para "${respuesta.palabraClave}"?`)) return;
-    
-    try {
-      await this.redesSocialesBackend.deleteRespuestaAutomatica(respuesta.id).toPromise();
-      this.respuestasAutomaticas.update(respuestas => respuestas.filter(r => r.id !== respuesta.id));
-    } catch (error) {
-      console.error('Error eliminando respuesta automática:', error);
-      alert('Error al eliminar respuesta automática');
-    }
-  }
-
-  async actualizarRespuesta(respuesta: RespuestaAutomatica) {
-    try {
-      const respuestaActualizada = await this.redesSocialesBackend.updateRespuestaAutomatica(respuesta.id, respuesta).toPromise();
-      if (respuestaActualizada) {
-        this.respuestasAutomaticas.update(respuestas => respuestas.map(r => r.id === respuesta.id ? respuestaActualizada : r));
+      await this.redesSocialesBackend.deleteMensaje(mensaje.id).toPromise();
+      this.mensajes.update(mensajes => mensajes.filter(msg => msg.id !== mensaje.id));
+      // Si el chat seleccionado ya no tiene mensajes, deseleccionarlo
+      const chat = this.chatSeleccionado();
+      if (chat && chat.mensajes.every(msg => msg.id !== mensaje.id) && chat.mensajes.length <= 1) {
+        this.chatSeleccionado.set(null);
       }
     } catch (error) {
-      console.error('Error actualizando respuesta automática:', error);
-      alert('Error al actualizar respuesta automática');
-    }
-  }
-
-  // Métodos para notificaciones
-  async agregarNotificacion() {
-    const tipo = this.nuevaNotificacionTipo().trim();
-    const canal = this.nuevaNotificacionCanal().trim();
-    if (!tipo || !canal) {
-      alert('Tipo y canal son requeridos');
-      return;
-    }
-
-    try {
-      const nuevaNotificacion: Partial<NotificacionRedSocial> = {
-        tipo,
-        canal,
-        activa: this.nuevaNotificacionActiva(),
-      };
-
-      const notificacionCreada = await this.redesSocialesBackend.createNotificacion(nuevaNotificacion).toPromise();
-      if (notificacionCreada) {
-        this.notificaciones.update(notifs => [...notifs, notificacionCreada]);
-      }
-      
-      this.nuevaNotificacionTipo.set('');
-      this.nuevaNotificacionCanal.set('');
-      this.nuevaNotificacionActiva.set(false);
-    } catch (error) {
-      console.error('Error creando notificación:', error);
-      alert('Error al crear notificación');
-    }
-  }
-
-  async eliminarNotificacion(notificacion: NotificacionRedSocial) {
-    if (!confirm(`¿Eliminar la notificación ${notificacion.tipo}?`)) return;
-    
-    try {
-      await this.redesSocialesBackend.deleteNotificacion(notificacion.id).toPromise();
-      this.notificaciones.update(notifs => notifs.filter(n => n.id !== notificacion.id));
-    } catch (error) {
-      console.error('Error eliminando notificación:', error);
-      alert('Error al eliminar notificación');
-    }
-  }
-
-  async actualizarNotificacion(notificacion: NotificacionRedSocial) {
-    try {
-      const notificacionActualizada = await this.redesSocialesBackend.updateNotificacion(notificacion.id, notificacion).toPromise();
-      if (notificacionActualizada) {
-        this.notificaciones.update(notifs => notifs.map(n => n.id === notificacion.id ? notificacionActualizada : n));
-      }
-    } catch (error) {
-      console.error('Error actualizando notificación:', error);
-      alert('Error al actualizar notificación');
-    }
-  }
-
-  async guardarConfiguracion() {
-    try {
-      // Guardar todas las redes sociales
-      for (const red of this.redesSociales()) {
-        await this.redesSocialesBackend.updateRedSocial(red.id, red).toPromise();
-      }
-      
-      // Guardar todas las respuestas automáticas
-      for (const respuesta of this.respuestasAutomaticas()) {
-        await this.redesSocialesBackend.updateRespuestaAutomatica(respuesta.id, respuesta).toPromise();
-      }
-      
-      // Guardar todas las notificaciones
-      for (const notificacion of this.notificaciones()) {
-        await this.redesSocialesBackend.updateNotificacion(notificacion.id, notificacion).toPromise();
-      }
-      
-      alert('Configuración guardada exitosamente');
-    } catch (error) {
-      console.error('Error guardando configuración:', error);
-      alert('Error al guardar configuración');
+      console.error('Error eliminando mensaje:', error);
+      alert('Error al eliminar mensaje');
     }
   }
 }

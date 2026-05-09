@@ -132,31 +132,30 @@
           } @else if (error()) {
             <div class="chat-error">{{ error() }}</div>
           } @else {
-            @for (chat of chats(); track chat.usuario + chat.plataforma) {
-              <div
-                class="chat-item"
-                [class.selected]="chatSeleccionado()?.usuario === chat.usuario && chatSeleccionado()?.plataforma === chat.plataforma"
-                [class.has-unread]="chat.tieneNoLeidos"
-                (click)="seleccionarChat(chat)"
-              >
-                <div class="chat-avatar">
-                  <span class="platform-icon">{{ getPlatformIcon(chat.plataforma) }}</span>
-                </div>
-                <div class="chat-info">
-                  <div class="chat-header">
-                    <span class="chat-user">{{ getUserDisplayName(chat.usuario) }}</span>
-                    <span class="chat-time">{{ chat.ultimoMensaje.fecha | date:'HH:mm' }}</span>
-                  </div>
-                  <div class="chat-preview">
-                    <span class="chat-platform">{{ chat.plataforma }}</span>
-                    <span class="chat-message">{{ chat.ultimoMensaje.texto | slice:0:50 }}{{ chat.ultimoMensaje.texto.length > 50 ? '...' : '' }}</span>
-                  </div>
-                  @if (chat.tieneNoLeidos) {
-                    <div class="unread-badge">{{ chat.noLeidosCount }}</div>
-                  }
-                </div>
+            <div *ngFor="let chat of chats(); trackBy: trackByChat"
+              class="chat-item"
+              [class.selected]="chatSeleccionado()?.usuario === chat.usuario && chatSeleccionado()?.plataforma === chat.plataforma"
+              [class.has-unread]="chat.tieneNoLeidos"
+              (click)="seleccionarChat(chat)"
+            >
+              <div class="chat-avatar">
+                <span class="platform-icon">{{ getPlatformIcon(chat.plataforma) }}</span>
               </div>
-            } @empty {
+              <div class="chat-info">
+                <div class="chat-header">
+                  <span class="chat-user">{{ getUserDisplayName(chat.usuario) }}</span>
+                  <span class="chat-time">{{ chat.ultimoMensaje.fecha | date:'HH:mm' }}</span>
+                </div>
+                <div class="chat-preview">
+                  <span class="chat-platform">{{ chat.plataforma }}</span>
+                  <span class="chat-message">{{ chat.ultimoMensaje.texto | slice:0:50 }}{{ chat.ultimoMensaje.texto.length > 50 ? '...' : '' }}</span>
+                </div>
+                @if (chat.tieneNoLeidos) {
+                  <div class="unread-badge">{{ chat.noLeidosCount }}</div>
+                }
+              </div>
+            </div>
+            @if (chats().length === 0) {
               <div class="no-chats">No hay chats disponibles</div>
             }
           }

@@ -67,8 +67,6 @@ export class AdminProductos implements OnInit {
   // Pagination
   currentPage = signal(1);
   itemsPerPage = 20;
-  totalProducts = signal(0);
-  totalPages = signal(0);
 
   formData = signal<ProductFormData>({
     title: '',

@@ -70,8 +70,6 @@ export class AdminProductos implements OnInit {
   totalProducts = signal(0);
   totalPages = signal(0);
   loading = signal(false);
-   totalProducts = signal(0);
-   totalPages = signal(0);
 
   formData = signal<ProductFormData>({
     title: '',

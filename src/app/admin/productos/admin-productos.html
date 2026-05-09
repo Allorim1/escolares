@@ -55,24 +55,24 @@
     </div>
 
      <!-- Pagination -->
-     @if (totalPages > 1) {
+     @if (totalPages() > 1) {
        <div class="pagination">
          <button
            class="pagination-btn"
-           [disabled]="!hasPreviousPage"
+           [disabled]="!hasPreviousPage()"
            (click)="previousPage()"
          >
            ← Anterior
          </button>
 
          <span class="pagination-info">
-           Página {{ currentPage }} de {{ totalPages }}
-           (Mostrando {{ paginatedProducts.length }} de {{ totalProducts }} productos)
+           Página {{ currentPage() }} de {{ totalPages() }}
+           (Mostrando {{ paginatedProducts.length }} de {{ totalProducts() }} productos)
          </span>
 
          <button
            class="pagination-btn"
-           [disabled]="!hasNextPage"
+           [disabled]="!hasNextPage()"
            (click)="nextPage()"
          >
            Siguiente →

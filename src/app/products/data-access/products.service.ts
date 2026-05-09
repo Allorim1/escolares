@@ -13,9 +13,11 @@ import { Product } from "../../shared/interfaces/product.interface";
     providedIn: 'root'
 })
 export class ProductsService extends BaseHttpService {
-  getProducts(): Observable<Product[]> {
-    // fetch all records; no params needed
-    return this.http.get<any[]>(`${this.apiUrl}/products`);
+  getProducts(page: number = 1, limit: number = 20): Observable<any> {
+    // fetch with pagination
+    return this.http.get<any>(`${this.apiUrl}/products`, {
+      params: { page: page.toString(), limit: limit.toString() }
+    });
   }
 
   getProduct(id: string): Observable<Product> {

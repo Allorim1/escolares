@@ -148,7 +148,7 @@
                 </div>
                 <div class="chat-preview">
                   <span class="chat-platform">{{ chat.plataforma }}</span>
-                  <span class="chat-message">{{ chat.ultimoMensaje.texto | slice:0:50 }}{{ chat.ultimoMensaje.texto.length > 50 ? '...' : '' }}</span>
+                   <span class="chat-message">{{ chat.ultimoMensaje.texto | slice:0:50 }}</span>
                 </div>
                 @if (chat.tieneNoLeidos) {
                   <div class="unread-badge">{{ chat.noLeidosCount }}</div>

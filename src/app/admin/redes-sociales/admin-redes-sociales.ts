@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RedesSocialesBackend, RedSocial, MensajeRedSocial, RespuestaAutomatica, NotificacionRedSocial } from '../../backend/data-access/redes-sociales.backend';
@@ -138,6 +138,8 @@ export class AdminRedesSociales implements OnInit {
   error = signal<string | null>(null);
   private mensajesInterval: any;
 
+  @ViewChild('messagesContainer') messagesContainer!: ElementRef;
+
   async ngOnInit() {
     await this.cargarDatos();
     this.iniciarVerificacionMensajes();
@@ -173,6 +175,11 @@ export class AdminRedesSociales implements OnInit {
         if (nuevosMensajes.length > 0 || mensajesActualesArray.length !== mensajesPrevios.length) {
           console.log('Actualizando mensajes desde polling:', { nuevos: nuevosMensajes.length, total: mensajesActualesArray.length });
           this.mensajes.set(mensajesActualesArray);
+
+          // Scroll to bottom if there's a selected chat and new messages
+          if (this.chatSeleccionado() && (nuevosMensajes.length > 0)) {
+            this.scrollToBottom();
+          }
 
           // Mostrar notificación para mensajes nuevos no leídos
           if (nuevosMensajes.length > 0) {
@@ -327,6 +334,8 @@ export class AdminRedesSociales implements OnInit {
     if (chat.tieneNoLeidos) {
       this.marcarChatComoLeido(chat);
     }
+    // Scroll to bottom
+    this.scrollToBottom();
   }
 
   async marcarChatComoLeido(chat: Chat) {
@@ -423,6 +432,9 @@ export class AdminRedesSociales implements OnInit {
 
         this.nuevoMensajeTexto.set('');
         this.archivoSeleccionadoSignal.set(null);
+
+        // Scroll to bottom to show the new message
+        this.scrollToBottom();
       }
     } catch (error) {
       console.error('Error enviando mensaje:', error);
@@ -599,6 +611,15 @@ export class AdminRedesSociales implements OnInit {
     if (event.key === 'Enter' && !event.shiftKey) {
       this.enviarMensajeChat();
       event.preventDefault();
+    }
+  }
+
+  private scrollToBottom(): void {
+    if (this.messagesContainer) {
+      setTimeout(() => {
+        const element = this.messagesContainer.nativeElement;
+        element.scrollTop = element.scrollHeight;
+      }, 100);
     }
   }
 

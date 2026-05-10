@@ -13,7 +13,7 @@ export class MongoDBService {
     const user = process.env['mongodb_user'] || 'escolares_test';
     const pass = process.env['mongodb_pass'] || 'u0k8aKhXvjG0IzLD';
     const cluster = process.env['mongodb_cluster'] || 'escolares';
-    return `mongodb://127.0.0.1:27017/main`;
+    return `mongodb://172.26.12.0:27017/main`;
   }
 
   async connect(): Promise<boolean> {

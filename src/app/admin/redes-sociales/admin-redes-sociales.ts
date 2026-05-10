@@ -52,6 +52,7 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   archivoSeleccionadoSignal = signal<File | null>(null);
   mostrarNotificacionMensaje = signal<boolean>(false);
   ultimoMensajeNotificado = signal<MensajeRedSocial | null>(null);
+  modalChatAbierto = signal<boolean>(false);
 
   filtroPlataforma = signal<string>(''); // '' = todas, 'TikTok', 'Instagram', etc.
 
@@ -422,8 +423,15 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
       this.marcarChatComoLeido(chat);
       this.actualizarTituloPestana(false); // Resetear indicador cuando se marca como leído
     }
-    // Scroll to bottom
-    this.scrollToBottom();
+    // Abrir el modal
+    this.modalChatAbierto.set(true);
+  }
+
+  cerrarModalChat() {
+    this.modalChatAbierto.set(false);
+    this.chatSeleccionado.set(null);
+    this.nuevoMensajeTexto.set('');
+    this.archivoSeleccionadoSignal.set(null);
   }
 
   async marcarChatComoLeido(chat: Chat) {

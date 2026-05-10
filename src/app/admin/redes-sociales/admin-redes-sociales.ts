@@ -704,6 +704,11 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   }
 
   onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && this.modalChatAbierto()) {
+      this.cerrarModalChat();
+      event.preventDefault();
+      return;
+    }
     if (event.key === 'Enter' && !event.shiftKey) {
       this.enviarMensajeChat();
       event.preventDefault();

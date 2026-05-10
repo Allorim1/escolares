@@ -673,11 +673,11 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   // Métodos auxiliares
   getPlatformIcon(plataforma: string): string {
     switch (plataforma) {
-      case 'WhatsApp': return '📱';
-      case 'Instagram': return '📸';
-      case 'Facebook': return '👥';
-      case 'TikTok': return '🎵';
-      case 'Telegram': return '✈️';
+      case 'WhatsApp': return '🟢';
+      case 'Instagram': return '🟠';
+      case 'Facebook': return '🔵';
+      case 'TikTok': return '⚫';
+      case 'Telegram': return '🔷';
       default: return '💬';
     }
   }

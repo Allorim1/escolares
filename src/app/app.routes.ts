@@ -118,10 +118,18 @@ export const routes: Routes = [
         path: 'lineas',
         loadComponent: () => import('./admin/lineas/admin-lineas').then((m) => m.AdminLineas),
       },
-      {
-        path: 'ofertas',
-        loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
-      },
+{
+    path: 'offers',
+    loadComponent: () => import('./offers/offers').then((m) => m.Offers),
+  },
+  {
+    path: 'terminos',
+    loadComponent: () => import('./terminos/terminos').then((m) => m.Terminos),
+  },
+  {
+    path: 'privacidad',
+    loadComponent: () => import('./privacidad/privacidad').then((m) => m.Privacidad),
+  },
       {
         path: 'usuarios',
         loadComponent: () => import('./admin/usuarios/admin-usuarios').then((m) => m.AdminUsuarios),

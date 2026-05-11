@@ -82,7 +82,7 @@
             <th>Habilitada</th>
             <th>Acciones</th>
           </tr>
-        </thead>
+</thead>
         <tbody>
           @if (loading()) {
             <tr>
@@ -97,7 +97,7 @@
               <tr>
                 <td>{{ red.plataforma }}</td>
                 <td>{{ red.usuario || '—' }}</td>
-<td>{{ red.token ? '••••••••' : '—' }}</td>
+                <td>{{ red.token ? '••••••••' : '—' }}</td>
                 <td>
                   <span class="badge" [class.badge-success]="red.habilitada" [class.badge-danger]="!red.habilitada">
                     {{ red.habilitada ? 'Sí' : 'No' }}
@@ -113,60 +113,59 @@
                 <td colspan="5" class="text-center">No hay redes sociales configuradas</td>
               </tr>
             }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Modal para editar red social -->
-        @if (modalEditarRedAbierto()) {
-          <div class="modal-overlay" (click)="cerrarModalEditarRed()">
-            <div class="modal-content" (click)="$event.stopPropagation()">
-              <div class="modal-header">
-                <h3>Editar Red Social</h3>
-                <button class="btn btn-sm btn-outline" (click)="cerrarModalEditarRed()">✕</button>
+          }
+        </tbody>
+        </table>
+      </div>
+      <!-- Modal para editar red social -->
+    @if (modalEditarRedAbierto()) {
+      <div class="modal-overlay" (click)="cerrarModalEditarRed()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Editar Red Social</h3>
+            <button class="btn btn-sm btn-outline" (click)="cerrarModalEditarRed()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-plataforma">Plataforma</label>
+                <select id="edit-plataforma" [ngModel]="editRedPlataforma()" (ngModelChange)="editRedPlataforma.set($event)">
+                  <option value="TikTok">TikTok</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Telegram">Telegram</option>
+                  <option value="Facebook">Facebook</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                </select>
               </div>
-              <div class="modal-body">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="edit-plataforma">Plataforma</label>
-                    <select id="edit-plataforma" [ngModel]="editRedPlataforma()" (ngModelChange)="editRedPlataforma.set($event)">
-                      <option value="TikTok">TikTok</option>
-                      <option value="Instagram">Instagram</option>
-                      <option value="Telegram">Telegram</option>
-                      <option value="Facebook">Facebook</option>
-                      <option value="WhatsApp">WhatsApp</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="edit-usuario">Usuario / Página</label>
-                    <input id="edit-usuario" type="text" [ngModel]="editRedUsuario()" (ngModelChange)="editRedUsuario.set($event)" [placeholder]="editRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'">
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="edit-token">Token / Clave API</label>
-                    <input id="edit-token" type="password" [ngModel]="editRedToken()" (ngModelChange)="editRedToken.set($event)" placeholder="Token de acceso">
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="checkbox-label">
-                      <input type="checkbox" [ngModel]="editRedHabilitada()" (ngModelChange)="editRedHabilitada.set($event)"> Habilitada
-                    </label>
-                  </div>
-                </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-usuario">Usuario / Página</label>
+                <input id="edit-usuario" type="text" [ngModel]="editRedUsuario()" (ngModelChange)="editRedUsuario.set($event)" [placeholder]="editRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'">
               </div>
-              <div class="modal-footer">
-                <button (click)="cerrarModalEditarRed()" class="btn btn-outline">Cancelar</button>
-                <button (click)="guardarEdicionRedSocial()" class="btn btn-primary">Guardar cambios</button>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-token">Token / Clave API</label>
+                <input id="edit-token" type="password" [ngModel]="editRedToken()" (ngModelChange)="editRedToken.set($event)" placeholder="Token de acceso">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="editRedHabilitada()" (ngModelChange)="editRedHabilitada.set($event)"> Habilitada
+                </label>
               </div>
             </div>
           </div>
-        }
+          <div class="modal-footer">
+            <button (click)="cerrarModalEditarRed()" class="btn btn-outline">Cancelar</button>
+            <button (click)="guardarEdicionRedSocial()" class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </div>
       </div>
-    </section>
+    }
+  </section>
 
     <section class="section">
       <h2>💬 Mensajes</h2>

@@ -155,6 +155,7 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
     await this.cargarDatos();
     this.iniciarVerificacionMensajes();
     this.iniciarPollingMensajes();
+    this.conectarSSE();
   }
 
   ngOnDestroy() {
@@ -290,11 +291,88 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
     });
   }
 
-  private iniciarVerificacionMensajes() {
+private iniciarVerificacionMensajes() {
     // Verificar nuevos mensajes cada 30 segundos
     this.mensajesInterval = setInterval(() => {
       this.actualizarMensajes();
     }, 30000); // 30 segundos
+  }
+
+  // Conexión SSE para recibir mensajes en tiempo real
+  private sseSource: EventSource | null = null;
+
+  private conectarSSE() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const baseUrl = window.location.origin;
+    const sseUrl = `${baseUrl}/api/redes-sociales/events/messages`;
+
+    try {
+      this.sseSource = new EventSource(sseUrl);
+
+      this.sseSource.addEventListener('message', (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'nuevo-mensaje' && data.mensaje) {
+            const mensajesPrevios = this.mensajes();
+            const nuevoMensaje = {
+              ...data.mensaje,
+              fecha: new Date(data.mensaje.fecha),
+              createdAt: new Date(data.mensaje.createdAt),
+              updatedAt: new Date(data.mensaje.updatedAt)
+            };
+
+            // Verificar si el mensaje ya existe
+            if (!mensajesPrevios.some((m: any) => m.id === nuevoMensaje.id)) {
+              const nuevosMensajes = [nuevoMensaje, ...mensajesPrevios];
+              this.mensajes.set(nuevosMensajes);
+
+              // Mostrar notificación
+              this.ultimoMensajeNotificado.set(nuevoMensaje);
+              this.mostrarNotificacionMensaje.set(true);
+
+              // Auto-ocultar notificación
+              setTimeout(() => {
+                this.mostrarNotificacionMensaje.set(false);
+              }, 5000);
+
+              // Scroll si hay chat abierto
+              if (this.chatSeleccionado()) {
+                setTimeout(() => this.scrollToBottom(), 100);
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing SSE message:', e);
+        }
+      });
+
+      this.sseSource.addEventListener('error', (err) => {
+        console.error('SSE connection error:', err);
+        // Reconectar después de 5 segundos
+        setTimeout(() => {
+          if (this.sseSource) {
+            this.sseSource.close();
+            this.conectarSSE();
+          }
+        }, 5000);
+      });
+    } catch (error) {
+      console.error('Error connecting to SSE:', error);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.mensajesInterval) {
+      clearInterval(this.mensajesInterval);
+    }
+    if (this.mensajesPollingInterval) {
+      clearInterval(this.mensajesPollingInterval);
+    }
+    if (this.sseSource) {
+      this.sseSource.close();
+    }
   }
 
   async cargarDatos() {
@@ -513,6 +591,17 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
       const mensajeCreado = await this.redesSocialesBackend.createMensaje(nuevoMensaje).toPromise();
 
       if (mensajeCreado) {
+        // Agregar el mensaje inmediatamente a la lista para actualización visual instantánea
+        const mensajeConFechas = {
+          ...mensajeCreado,
+          fecha: new Date(mensajeCreado.fecha),
+          createdAt: new Date(mensajeCreado.createdAt),
+          updatedAt: new Date(mensajeCreado.updatedAt)
+        };
+        
+        const mensajesActuales = this.mensajes();
+        this.mensajes.set([mensajeConFechas, ...mensajesActuales]);
+
         // Marcar como respondido para enviar por la plataforma
         await this.redesSocialesBackend.updateMensaje(mensajeCreado.id, {
           respondido: true,
@@ -523,14 +612,11 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
           mediaFilename
         }).toPromise();
 
-        // Forzar actualización inmediata de mensajes para que aparezca el nuevo mensaje
-        this.actualizarMensajes();
-
         this.nuevoMensajeTexto.set('');
         this.archivoSeleccionadoSignal.set(null);
 
         // Scroll to bottom to show the new message
-        this.scrollToBottom();
+        setTimeout(() => this.scrollToBottom(), 50);
       }
     } catch (error) {
       console.error('Error enviando mensaje:', error);

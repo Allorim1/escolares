@@ -363,7 +363,7 @@ export class AdminProductos implements OnInit {
         next: (newProduct) => {
           this.products.update((p) => [...p, newProduct]);
           // Reload current page to show the new product
-          this.loadProducts(this.currentPage());
+          this.loadProducts();
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
           }
@@ -402,7 +402,7 @@ export class AdminProductos implements OnInit {
                 products.map((p) => (p.id === productId ? updated : p))
             );
             // Reload current page to show the updated product
-            this.loadProducts(this.currentPage());
+            this.loadProducts();
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, updated.id);
           }

@@ -1,8 +1,8 @@
-import { Injectable, inject, computed, signal } from '@angular/core';
+import { Injectable, inject, computed, signal, Signal } from '@angular/core';
 import { Product } from '../../shared/interfaces/product.interface';
 import { ProductsService } from './products.service';
 import { signalSlice } from 'ngxtension/signal-slice';
-import { catchError, map, of, Subject, startWith, switchMap, tap } from 'rxjs';
+import { catchError, map, of, Subject, startWith, switchMap } from 'rxjs';
 
 interface State {
      products: Product[];
@@ -27,14 +27,6 @@ export class ProductsStateService {
 
     private pageSize = 8;
     allProducts = signal<Product[]>([]);
-
-    // computed signals to drive button disabled state
-    hasNext = computed(() => {
-      const state = this.state();
-      return state.page() < state.totalPages();
-    });
-
-    hasPrev = computed(() => this.state().page() > 1);
 
     changePage$ = new Subject<number>();
 
@@ -64,5 +56,12 @@ export class ProductsStateService {
             this.loadAll$
         ]
     })
+
+    // computed signals to drive button disabled state
+    hasNext = computed(() => {
+      return this.state().page < this.state().totalPages;
+    });
+
+    hasPrev = computed(() => this.state().page > 1);
 
 }

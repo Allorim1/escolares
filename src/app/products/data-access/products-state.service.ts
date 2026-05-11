@@ -2,7 +2,7 @@ import { Injectable, inject, computed, signal } from '@angular/core';
 import { Product } from '../../shared/interfaces/product.interface';
 import { ProductsService } from './products.service';
 import { signalSlice } from 'ngxtension/signal-slice';
-import { catchError, map, of, Subject, startWith, switchMap } from 'rxjs';
+import { catchError, map, of, Subject, startWith, switchMap, tap } from 'rxjs';
 
 interface State {
      products: Product[];
@@ -31,30 +31,25 @@ export class ProductsStateService {
     // computed signals to drive button disabled state
     hasNext = computed(() => {
       const state = this.state();
-      return state.page < state.totalPages;
+      return state.page() < state.totalPages();
     });
 
-    hasPrev = computed(() => this.state().page > 1);
+    hasPrev = computed(() => this.state().page() > 1);
 
     changePage$ = new Subject<number>();
 
-    private sliceForPage(page: number) {
-      // This method is kept for compatibility but is no longer used
-      // Pagination is now handled by the backend
-      return [];
-    }
-
     private loadAll$ = this.changePage$.pipe(
       startWith(1),
-      switchMap((page: number) => this.productsService.getProducts(page, this.pageSize)),
+      switchMap(() => this.productsService.getProducts()),
       map((response: any) => {
-        // Store only current page products for the list
-        this.allProducts.set(response.products);
+        const products: Product[] = response.products || response;
+        const total = products.length;
+        this.allProducts.set(products);
         return {
-          products: response.products,
+          products,
           status: 'success' as const,
-          total: response.total,
-          totalPages: response.totalPages
+          total,
+          totalPages: Math.ceil(total / this.pageSize)
         };
       }),
       catchError(() => of({ products: [], status: 'error' as const, total: 0, totalPages: 0 }))
@@ -66,13 +61,7 @@ export class ProductsStateService {
             this.changePage$.pipe(
                 map((page) => ({ page, status: 'loading' as const }))
             ),
-            this.loadAll$,
-            this.changePage$.pipe(
-                map((page) => ({
-                    products: this.sliceForPage(page),
-                    status: 'success' as const
-                }))
-            )
+            this.loadAll$
         ]
     })
 

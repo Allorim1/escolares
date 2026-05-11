@@ -3,20 +3,20 @@ import { BaseHttpService } from "../../shared/data-access/base-http.service";
 import { Observable } from "rxjs";
 import { Product } from "../../shared/interfaces/product.interface";
 
-// the fake store API doesn't really support paging – it only accepts a
-// `limit` parameter that always returns the first N items.  To make
-// pagination behave predictably we pull the entire list once and let the
-// caller slice it locally.  This keeps the component/service logic simple
-// and avoids repeated network requests for partial data.
-
 @Injectable({
     providedIn: 'root'
 })
 export class ProductsService extends BaseHttpService {
-  getProducts(page: number = 1, limit: number = 20): Observable<any> {
-    // fetch with pagination
+  // Fetch all products at once - frontend handles pagination locally
+  // to avoid the double-pagination bug where backend pagination
+  // conflicts with frontend slicing
+  getProducts(): Observable<{ products: Product[], total: number }> {
+    return this.http.get<{ products: Product[], total: number }>(`${this.apiUrl}/products`);
+  }
+
+  searchProducts(search: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/products`, {
-      params: { page: page.toString(), limit: limit.toString() }
+      params: { search }
     });
   }
 

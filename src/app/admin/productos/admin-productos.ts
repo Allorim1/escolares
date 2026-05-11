@@ -229,14 +229,14 @@ export class AdminProductos implements OnInit {
     return this.lineasService.lineas();
   }
 
-  loadProducts(page: number = 1) {
+  loadProducts() {
     this.loading.set(true);
-    this.productsService.getProducts(page, 20).subscribe({
+    this.productsService.getProducts().subscribe({
       next: (response: any) => {
-        this.products.set(response.products);
-        this.totalProducts.set(response.total);
-        this.totalPages.set(response.totalPages);
-        this.currentPage.set(response.page);
+        const products: Product[] = response.products || response;
+        this.products.set(products);
+        this.totalProducts.set(products.length);
+        this.totalPages.set(Math.ceil(products.length / this.itemsPerPage));
         this.loading.set(false);
       },
       error: () => {
@@ -244,7 +244,6 @@ export class AdminProductos implements OnInit {
         this.products.set([]);
         this.totalProducts.set(0);
         this.totalPages.set(0);
-        this.currentPage.set(1);
       }
     });
   }

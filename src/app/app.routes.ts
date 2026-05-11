@@ -45,8 +45,12 @@ export const routes: Routes = [
     component: Lineas,
   },
   {
-    path: 'offers',
-    component: Offers,
+    path: 'terminos',
+    loadComponent: () => import('./terminos/terminos').then((m) => m.Terminos),
+  },
+  {
+    path: 'privacidad',
+    loadComponent: () => import('./privacidad/privacidad').then((m) => m.Privacidad),
   },
   {
     path: 'panel',
@@ -110,7 +114,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./admin/productos/admin-productos').then((m) => m.AdminProductos),
       },
-      {
+{
         path: 'marcas',
         loadComponent: () => import('./admin/marcas/admin-marcas').then((m) => m.AdminMarcas),
       },
@@ -118,18 +122,6 @@ export const routes: Routes = [
         path: 'lineas',
         loadComponent: () => import('./admin/lineas/admin-lineas').then((m) => m.AdminLineas),
       },
-{
-    path: 'offers',
-    loadComponent: () => import('./offers/offers').then((m) => m.Offers),
-  },
-  {
-    path: 'terminos',
-    loadComponent: () => import('./terminos/terminos').then((m) => m.Terminos),
-  },
-  {
-    path: 'privacidad',
-    loadComponent: () => import('./privacidad/privacidad').then((m) => m.Privacidad),
-  },
       {
         path: 'usuarios',
         loadComponent: () => import('./admin/usuarios/admin-usuarios').then((m) => m.AdminUsuarios),

@@ -39,6 +39,14 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   nuevaRedToken = signal('');
   nuevaRedHabilitada = signal(false);
 
+  // Señales para edición de red social
+  editandoRedSocial = signal<RedSocial | null>(null);
+  editRedPlataforma = signal('');
+  editRedUsuario = signal('');
+  editRedToken = signal('');
+  editRedHabilitada = signal(false);
+  modalEditarRedAbierto = signal(false);
+
   nuevaRespuestaPalabraClave = signal('');
   nuevaRespuestaRespuesta = signal('');
 
@@ -466,8 +474,61 @@ private iniciarVerificacionMensajes() {
   }
 
   async actualizarRedSocial(red: RedSocial) {
-    // Implementar lógica para actualizar
-    console.log('Actualizar red social:', red);
+    this.editandoRedSocial.set(red);
+    this.editRedPlataforma.set(red.plataforma);
+    this.editRedUsuario.set(red.usuario || '');
+    this.editRedToken.set(red.token || '');
+    this.editRedHabilitada.set(red.habilitada);
+    this.modalEditarRedAbierto.set(true);
+  }
+
+  async guardarEdicionRedSocial() {
+    const red = this.editandoRedSocial();
+    if (!red) return;
+
+    const plataforma = this.editRedPlataforma().trim();
+    const usuario = this.editRedUsuario().trim();
+
+    if (!plataforma || !usuario) {
+      alert('Plataforma y usuario son requeridos');
+      return;
+    }
+
+    if (plataforma === 'Instagram') {
+      if (!/^\d+$/.test(usuario)) {
+        alert('Para Instagram, el campo "Usuario / Página" debe contener solo el ID numérico de la página de Facebook (sin @)');
+        return;
+      }
+    }
+
+    try {
+      const redActualizada = await this.redesSocialesBackend.updateRedSocial(red.id, {
+        plataforma,
+        usuario,
+        token: this.editRedToken().trim(),
+        habilitada: this.editRedHabilitada()
+      }).toPromise();
+
+      if (redActualizada) {
+        this.redesSociales.update(redes =>
+          redes.map(r => r.id === red.id ? redActualizada : r)
+        );
+      }
+
+      this.cerrarModalEditarRed();
+    } catch (error) {
+      console.error('Error actualizando red social:', error);
+      alert('Error al actualizar red social');
+    }
+  }
+
+  cerrarModalEditarRed() {
+    this.modalEditarRedAbierto.set(false);
+    this.editandoRedSocial.set(null);
+    this.editRedPlataforma.set('');
+    this.editRedUsuario.set('');
+    this.editRedToken.set('');
+    this.editRedHabilitada.set(false);
   }
 
   async eliminarRedSocial(red: RedSocial) {

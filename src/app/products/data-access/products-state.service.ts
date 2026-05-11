@@ -1,4 +1,4 @@
-import { Injectable, inject, computed, signal, Signal } from '@angular/core';
+import { Injectable, inject, computed, signal } from '@angular/core';
 import { Product } from '../../shared/interfaces/product.interface';
 import { ProductsService } from './products.service';
 import { signalSlice } from 'ngxtension/signal-slice';

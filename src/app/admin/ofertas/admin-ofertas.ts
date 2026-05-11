@@ -41,7 +41,7 @@ export class AdminOfertas implements OnInit {
 
   ngOnInit() {
     this.productsService.getProducts().subscribe({
-      next: (products) => this.allProducts.set(products),
+      next: (response) => this.allProducts.set(response.products),
       error: (err) => console.error('Error loading products:', err),
     });
   }

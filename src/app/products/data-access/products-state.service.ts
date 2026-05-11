@@ -33,7 +33,7 @@ export class ProductsStateService {
     private loadAll$ = this.changePage$.pipe(
       startWith(1),
       switchMap(() => this.productsService.getProducts()),
-      map((response: any) => {
+      map((response: {products: Product[], total: number}) => {
         const products: Product[] = response.products || response;
         const total = products.length;
         this.allProducts.set(products);

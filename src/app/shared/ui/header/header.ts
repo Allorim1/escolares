@@ -27,7 +27,7 @@ export class Header {
     this.cartState.state().products.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
     constructor() {
-      this.productsService.getProducts(1, 100).subscribe((response: any) => {
+      this.productsService.getProducts().subscribe((response: any) => {
         this.allProducts = response.products;
       });
       this.initDarkMode();

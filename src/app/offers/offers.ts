@@ -43,9 +43,9 @@ export class Offers implements OnInit, AfterViewInit {
 
     ngOnInit() {
     this.productsService.getProducts().subscribe({
-      next: (products: Product[]) => {
+      next: (response: {products: Product[], total: number}) => {
         const ofertaIds = this.ofertasService.ofertas().map((o) => o.productId);
-        this.productsEnOferta.set(products.filter((p: Product) => ofertaIds.includes(p.id as any)));
+        this.productsEnOferta.set(response.products.filter((p: Product) => ofertaIds.includes(p.id as any)));
         this.loading.set(false);
       },
       error: (err) => {

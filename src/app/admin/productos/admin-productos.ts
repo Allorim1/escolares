@@ -97,7 +97,7 @@ export class AdminProductos implements OnInit {
   showCategoryModal = signal(false);
 
   ngOnInit() {
-    this.loadProducts(this.currentPage());
+    this.loadProducts();
     this.loadProductCategories();
     this.loadPreciosOcultosSetting();
   }
@@ -202,14 +202,14 @@ export class AdminProductos implements OnInit {
   previousPage() {
     if (this.hasPreviousPage) {
       this.currentPage.update(p => p - 1);
-      this.loadProducts(this.currentPage());
+      this.loadProducts();
     }
   }
 
   nextPage() {
     if (this.hasNextPage) {
       this.currentPage.update(p => p + 1);
-      this.loadProducts(this.currentPage());
+      this.loadProducts();
     }
   }
 

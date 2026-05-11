@@ -33,6 +33,7 @@ header.app-header {
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
+  max-width: 1200px;
 }
 
 @media (max-width: 768px) {
@@ -101,25 +102,6 @@ header.app-header {
   width: 400px;
   flex: 0 0 auto;
   margin: 0 auto;
-}
-
-.header-bottom {
-  background: rgba(255, 255, 255, 0.1);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 8px 20px;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.header-bottom .controls {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  width: 100%;
-  max-width: 1200px;
-  justify-content: space-between;
 }
 
 .search-form {
@@ -221,25 +203,20 @@ header.app-header {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .nav-btn.primary {
-  flex: 0 0 auto;
+  background: var(--white);
+  color: var(--blue);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .nav-btn:hover {
   background: rgba(255, 255, 255, 0.06);
-}
-
-.nav-btn.primary {
-  background: var(--white);
-  color: var(--blue);
-  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .hover-underline {

@@ -158,15 +158,6 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
     this.conectarSSE();
   }
 
-  ngOnDestroy() {
-    if (this.mensajesInterval) {
-      clearInterval(this.mensajesInterval);
-    }
-    if (this.mensajesPollingInterval) {
-      clearInterval(this.mensajesPollingInterval);
-    }
-  }
-
   private iniciarPollingMensajes() {
     // Actualizar mensajes cada 10 segundos para mostrar mensajes nuevos en tiempo real
     this.mensajesPollingInterval = setInterval(() => {

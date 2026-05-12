@@ -9,6 +9,7 @@ import { Feedback } from './feedback/feedback';
 import { Lineas } from './lineas/lineas';
 import { Offers } from './offers/offers';
 import { adminGuard } from './shared/guards/admin.guard';
+import { repartidorGuard } from './shared/guards/repartidor.guard';
 import { Admin } from './admin/admin';
 
 export const routes: Routes = [
@@ -211,6 +212,7 @@ export const routes: Routes = [
   {
     path: 'repartidor',
     loadComponent: () => import('./repartidor/repartidor').then((m) => m.RepartidorComponent),
+    canActivate: [repartidorGuard],
   },
   {
     path: '**',

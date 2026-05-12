@@ -1,8 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, signal, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrderTrackingMapComponent } from './order-tracking-map/order-tracking-map';
+import { AuthService } from '../shared/data-access/auth.service';
 
 interface Order {
   _id?: string;
@@ -47,86 +48,104 @@ interface Order {
   styleUrls: ['./repartidor.css']
 })
 export class RepartidorComponent implements OnInit {
-  orders = signal<Order[]>([]);
-  loading = signal(true);
-  selectedStatus = signal<Order['status'] | ''>('');
-  selectedOrderMap = signal<string>('');
-  watchId: number | null = null;
+   orders = signal<Order[]>([]);
+   loading = signal(true);
+   selectedStatus = signal<Order['status'] | ''>('');
+   selectedOrderMap = signal<string>('');
+   watchId: number | null = null;
+   deliveryPersonId: string | null = null;
 
-  constructor(private http: HttpClient) {}
+   private authService = inject(AuthService);
 
-  ngOnInit() {
-    this.loadOrders();
-    this.watchLocation();
-  }
+   constructor(private http: HttpClient) {}
 
-  ngOnDestroy() {
-    if (this.watchId) {
-      navigator.geolocation.clearWatch(this.watchId);
-    }
-  }
+   ngOnInit() {
+     const user = this.authService.currentUser();
+     this.deliveryPersonId = user?.deliveryPersonId || null;
+     
+     this.loadOrders();
+     this.watchLocation();
+   }
 
-  watchLocation() {
-    if (!navigator.geolocation) return;
-    
-    this.watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        this.updateMyLocation(latitude, longitude);
-      },
-      (error) => console.error('Geolocation error:', error),
-      { enableHighAccuracy: true, maximumAge: 30000 }
-    );
-  }
+   ngOnDestroy() {
+     if (this.watchId) {
+       navigator.geolocation.clearWatch(this.watchId);
+     }
+   }
 
-  updateMyLocation(lat: number, lng: number) {
-    const repartidorId = localStorage.getItem('userId');
-    if (!repartidorId) return;
+   watchLocation() {
+     if (!navigator.geolocation) return;
+     
+     this.watchId = navigator.geolocation.watchPosition(
+       (position) => {
+         const { latitude, longitude } = position.coords;
+         this.updateMyLocation(latitude, longitude);
+       },
+       (error) => console.error('Geolocation error:', error),
+       { enableHighAccuracy: true, maximumAge: 30000 }
+     );
+   }
 
-    this.http.put(`/api/delivery/${repartidorId}/location`, { lat, lng }).subscribe({
-      error: (err) => console.error('Error updating location:', err)
-    });
-  }
+   updateMyLocation(lat: number, lng: number) {
+     if (!this.deliveryPersonId) return;
 
-  loadOrders() {
-    this.loading.set(true);
-    this.http.get<Order[]>('/api/orders/delivery/assigned').subscribe({
-      next: (data) => {
-        this.orders.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Error cargando pedidos:', err);
-        this.loading.set(false);
-      }
-    });
-  }
+     const token = localStorage.getItem('accessToken');
+     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
-  updateOrderStatus(order: Order, newStatus: Order['status']) {
-    if (!confirm(`¿Cambiar estado a "${newStatus}"?`)) return;
-    this.http.put(`/api/orders/${order._id}/status`, { status: newStatus }).subscribe({
-      next: () => {
-        this.loadOrders();
-      },
-      error: (err) => {
-        console.error('Error actualizando estado:', err);
-        alert('Error al actualizar estado');
-      }
-    });
-  }
+     this.http.put(`/api/delivery/${this.deliveryPersonId}/location`, { lat, lng }, { headers }).subscribe({
+       error: (err) => console.error('Error updating location:', err)
+     });
+   }
 
-  showMap(orderId: string) {
-    this.selectedOrderMap.set(orderId);
-  }
+   loadOrders() {
+     this.loading.set(true);
+     const token = localStorage.getItem('accessToken');
+     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+     
+     this.http.get<Order[]>('/api/orders/delivery/assigned', { headers }).subscribe({
+       next: (data) => {
+         this.orders.set(data);
+         this.loading.set(false);
+       },
+       error: (err) => {
+         console.error('Error cargando pedidos:', err);
+         this.loading.set(false);
+       }
+     });
+   }
 
-  filterOrders() {
-    const status = this.selectedStatus();
-    if (!status) return this.loadOrders();
-    this.http.get<Order[]>(`/api/orders/delivery/assigned?status=${status}`).subscribe({
-      next: (data) => this.orders.set(data),
-      error: (err) => console.error('Error filtrando pedidos:', err)
-    });
-  }
+updateOrderStatus(order: Order, newStatus: Order['status']) {
+     if (!confirm(`¿Cambiar estado a "${newStatus}"?`)) return;
+     
+     const token = localStorage.getItem('accessToken');
+     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+     
+     this.http.put(`/api/orders/${order._id}/status`, { status: newStatus }, { headers }).subscribe({
+       next: () => {
+         this.loadOrders();
+       },
+       error: (err) => {
+         console.error('Error actualizando estado:', err);
+         alert('Error al actualizar estado');
+       }
+     });
+   }
+
+   showMap(orderId: string) {
+     this.selectedOrderMap.set(orderId);
+   }
+
+   filterOrders() {
+     const status = this.selectedStatus();
+     const token = localStorage.getItem('accessToken');
+     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+     
+     if (!status) return this.loadOrders();
+     this.http.get<Order[]>(`/api/orders/delivery/assigned?status=${status}`, { headers }).subscribe({
+       next: (data) => this.orders.set(data),
+       error: (err) => console.error('Error filtrando pedidos:', err)
+     });
+   }
 
   getStatusColor(status: Order['status']): string {
     const colors: Record<Order['status'], string> = {

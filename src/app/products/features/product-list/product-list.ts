@@ -657,7 +657,7 @@ export default class ProductList implements OnInit {
   // paginated filtered products
   paginatedProducts = computed(() => {
     const page = this.productsState.state.page();
-    const pageSize = 8;
+    const pageSize = 28;
     const start = (page - 1) * pageSize;
     return this.filteredProducts().slice(start, start + pageSize);
   });
@@ -681,3 +681,4 @@ export default class ProductList implements OnInit {
     }
   }
 }
+

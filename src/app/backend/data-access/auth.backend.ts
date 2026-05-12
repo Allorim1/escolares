@@ -101,7 +101,9 @@ export class AuthBackend {
         // Start token renewal service after successful login
         this.tokenRenewalService.start();
         this.loginLoading.set(false);
-        if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root') {
+        if (response.rol === 'repartidor') {
+          this.router.navigate(['/repartidor']);
+        } else if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root') {
           this.router.navigate(['/admin/inicio']);
         } else {
           this.router.navigate(['/panel/perfil']);

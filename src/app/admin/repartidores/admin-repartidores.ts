@@ -28,7 +28,9 @@ export class AdminRepartidoresComponent implements OnInit {
   formData = signal({
     nombre: '',
     telefono: '',
-    activo: true
+    activo: true,
+    email: '',
+    password: ''
   });
 
   constructor(private http: HttpClient) {}
@@ -50,7 +52,9 @@ export class AdminRepartidoresComponent implements OnInit {
     this.formData.set({
       nombre: '',
       telefono: '',
-      activo: true
+      activo: true,
+      email: '',
+      password: ''
     });
     this.showModal.set(true);
   }
@@ -61,7 +65,9 @@ export class AdminRepartidoresComponent implements OnInit {
     this.formData.set({
       nombre: person.nombre,
       telefono: person.telefono || '',
-      activo: person.activo
+      activo: person.activo,
+      email: '',
+      password: ''
     });
     this.showModal.set(true);
   }
@@ -80,6 +86,10 @@ export class AdminRepartidoresComponent implements OnInit {
     }
 
     if (this.isAdding()) {
+      if (!data.email || !data.password) {
+        alert('Email y password son requeridos para crear el repartidor');
+        return;
+      }
       this.http.post<DeliveryPerson>('/api/delivery', data).subscribe({
         next: () => {
           this.loadDeliveryPersons();
@@ -93,7 +103,14 @@ export class AdminRepartidoresComponent implements OnInit {
     } else {
       const person = this.editingPerson();
       if (!person?._id) return;
-      this.http.put<DeliveryPerson>(`/api/delivery/${person._id}`, data).subscribe({
+      const updateData: any = {
+        nombre: data.nombre,
+        telefono: data.telefono,
+        activo: data.activo
+      };
+      if (data.email) updateData.email = data.email;
+      if (data.password) updateData.password = data.password;
+      this.http.put<DeliveryPerson>(`/api/delivery/${person._id}`, updateData).subscribe({
         next: () => {
           this.loadDeliveryPersons();
           this.cancelEdit();
@@ -118,7 +135,11 @@ export class AdminRepartidoresComponent implements OnInit {
   }
 
   toggleActivo(person: DeliveryPerson) {
-    const updated = { ...person, activo: !person.activo };
+    const updated = { 
+      nombre: person.nombre, 
+      telefono: person.telefono, 
+      activo: !person.activo 
+    };
     this.http.put<DeliveryPerson>(`/api/delivery/${person._id}`, updated).subscribe({
       next: () => this.loadDeliveryPersons(),
       error: (err) => {

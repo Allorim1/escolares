@@ -82,6 +82,30 @@
               />
             </div>
             <div class="form-group">
+              <label for="email">Email {{ isAdding() ? '*' : '(dejar vacío para no cambiar)' }}</label>
+              <input
+                type="email"
+                id="email"
+                class="form-control"
+                [(ngModel)]="formData().email"
+                name="email"
+                [required]="isAdding()"
+                placeholder="Ej: juan@email.com"
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">Password {{ isAdding() ? '*' : '(dejar vacío para no cambiar)' }}</label>
+              <input
+                type="password"
+                id="password"
+                class="form-control"
+                [(ngModel)]="formData().password"
+                name="password"
+                [required]="isAdding()"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <div class="form-group">
               <label>
                 <input
                   type="checkbox"

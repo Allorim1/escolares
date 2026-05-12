@@ -43,6 +43,7 @@
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
     "@types/express": "^5.0.1",
+    "@types/googlemaps": "^3.43.3",
     "@types/node": "^20.17.19",
     "@types/pdfmake": "^0.3.2",
     "angular-eslint": "21.2.0",

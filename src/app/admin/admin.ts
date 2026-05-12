@@ -52,9 +52,9 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
     items: [
       { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
       { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
-      { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
-      { label: 'Marcas', route: 'marcas', permiso: 'marcas_ver' },
-      { label: 'Líneas', route: 'lineas', permiso: 'lineas_ver' },
+{ label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
+      { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
+      { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
       { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
       { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
       { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },

@@ -2,10 +2,33 @@
   <div class="header">
     <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
     <h2>Gestión de Líneas</h2>
+    @if (isOwner()) {
+      <button class="add-btn" (click)="isAdding.set(true)">+ Agregar Línea</button>
+    }
   </div>
 
   @if (!isOwner()) {
-    <div class="message">Solo el owner puede modificar las líneas</div>
+    <div class="message">Solo el usuario root puede modificar las líneas</div>
+  }
+
+  @if (isAdding()) {
+    <div class="add-form">
+      <button type="button" class="back-btn" (click)="isAdding.set(false)">← Volver</button>
+      <div class="form-group">
+        <label>Nombre de la línea</label>
+        <input
+          type="text"
+          [ngModel]="newLineaName()"
+          (ngModelChange)="newLineaName.set($event)"
+          placeholder="Nombre de la línea"
+          class="linea-input"
+        />
+      </div>
+      <div class="form-actions">
+        <button class="save-btn" (click)="agregarLinea()">Agregar</button>
+        <button class="cancel-btn" (click)="isAdding.set(false)">Cancelar</button>
+      </div>
+    </div>
   }
 
   @if (!selectedLinea()) {

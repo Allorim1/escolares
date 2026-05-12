@@ -1559,3 +1559,23 @@ h2 {
   outline: none;
   border-color: #c82333;
 }
+
+.popup-small {
+  min-width: 350px;
+  max-width: 90%;
+}
+
+.input-api-key-modal {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: white;
+  color: #333;
+}
+
+.input-api-key-modal:focus {
+  outline: none;
+  border-color: #1d63c1;
+}

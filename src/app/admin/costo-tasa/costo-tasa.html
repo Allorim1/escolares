@@ -8,18 +8,6 @@
       <div class="header-actions-tasa">
         @if (isRoot()) {
           <button class="btn-dolarvzla" (click)="abrirDolarVzla()">💵 Api Key</button>
-          @if (showApiKeyInput) {
-            <div class="api-key-container">
-              <input 
-                type="text" 
-                [(ngModel)]="dolarApiKey" 
-                placeholder="API Key"
-                class="input-api-key"
-                (keydown.enter)="guardarApiKey()"
-              />
-              <button class="btn-small" (click)="guardarApiKey()">Guardar</button>
-            </div>
-          }
         }
         <button class="refresh-btn" (click)="loadTasas()" [disabled]="loadingTasa()">
           @if (loadingTasa()) {
@@ -30,6 +18,30 @@
         </button>
       </div>
     </div>
+
+    @if (showApiKeyModal) {
+      <div class="popup-overlay" (click)="showApiKeyModal = false">
+        <div class="popup-content popup-small" (click)="$event.stopPropagation()">
+          <h3>API Key de DolarVzla</h3>
+          <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
+            Ingresa tu API key de <a href="https://www.dolarvzla.com/settings/api/" target="_blank">dolarvzla.com</a>
+          </p>
+          <div class="form-group">
+            <input 
+              type="text" 
+              [(ngModel)]="dolarApiKey" 
+              placeholder="API Key"
+              class="input-api-key-modal"
+              (keydown.enter)="guardarApiKey()"
+            />
+          </div>
+          <div class="popup-buttons">
+            <button class="cancel-btn" (click)="showApiKeyModal = false">Cancelar</button>
+            <button class="save-btn" (click)="guardarApiKey()">Guardar</button>
+          </div>
+        </div>
+      </div>
+    }
     @if (tasaError()) {
       <div class="tasa-error">{{ tasaError() }}</div>
     }

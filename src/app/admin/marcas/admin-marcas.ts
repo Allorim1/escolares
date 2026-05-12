@@ -27,7 +27,7 @@ export class AdminMarcas {
 
   isOwner(): boolean {
     const rol = this.authService.user()?.rol;
-    return rol === 'owner' || rol === 'root';
+    return rol === 'root';
   }
 
   showMessage(text: string, type: 'success' | 'error' = 'success') {

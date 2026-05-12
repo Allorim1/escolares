@@ -70,6 +70,7 @@ export class CostoTasa implements OnInit {
   dolarApiKey = '';
   apiKeyLoaded = false;
   hasApiKey = false;
+  showApiKeyModal = false;
 
   isRoot(): boolean {
     return this.authService.user()?.rol === 'root';
@@ -158,14 +159,14 @@ export class CostoTasa implements OnInit {
   }
 
   abrirDolarVzla() {
-    if (this.showApiKeyInput) {
-      this.showApiKeyInput = false;
+    if (this.showApiKeyModal) {
+      this.showApiKeyModal = false;
       this.dolarApiKey = '';
       return;
     }
 
     if (!this.hasApiKey) {
-      this.showApiKeyInput = true;
+      this.showApiKeyModal = true;
       this.dolarApiKey = '';
       window.open('https://www.dolarvzla.com/settings/api/', '_blank');
       return;
@@ -178,7 +179,7 @@ export class CostoTasa implements OnInit {
       error: (err: any) => {
         console.error('Error checking tasas:', err);
         if (err.status === 401 || err.error?.apiKeyExpired || err.name === 'TimeoutError') {
-          this.showApiKeyInput = true;
+          this.showApiKeyModal = true;
           this.dolarApiKey = '';
         } else {
           window.open('https://www.dolarvzla.com/settings/api/', '_blank');

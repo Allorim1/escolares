@@ -22,9 +22,12 @@ export class AdminLineas implements OnInit {
   selectedLinea = signal<Linea | null>(null);
   showAddProduct = signal(false);
   productFilter = signal('');
+  isAdding = signal(false);
+  newLineaName = signal('');
 
   isOwner(): boolean {
-    return this.authService.user()?.rol === 'owner';
+    const rol = this.authService.user()?.rol;
+    return rol === 'root';
   }
 
   ngOnInit() {
@@ -67,6 +70,16 @@ export class AdminLineas implements OnInit {
     if (!this.showAddProduct()) {
       this.productFilter.set('');
     }
+  }
+
+  agregarLinea() {
+    const name = this.newLineaName();
+    if (!name || !name.trim()) {
+      return;
+    }
+    this.lineasService.agregarLinea(name.trim());
+    this.newLineaName.set('');
+    this.isAdding.set(false);
   }
 
   addProductToLinea(productId: number | string) {

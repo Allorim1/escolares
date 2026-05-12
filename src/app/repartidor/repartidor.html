@@ -16,6 +16,15 @@
     </div>
   </div>
 
+  @if (selectedOrderMap()) {
+    <div class="map-modal">
+      <div class="map-content">
+        <button class="btn-close" (click)="selectedOrderMap.set('')">×</button>
+        <app-order-tracking-map [orderId]="selectedOrderMap()"></app-order-tracking-map>
+      </div>
+    </div>
+  }
+
   @if (loading()) {
     <div class="loading">Cargando pedidos...</div>
   } @else {
@@ -31,11 +40,16 @@
           <div class="order-body">
             <p><strong>Cliente:</strong> {{ order.nombre }}</p>
             <p><strong>Teléfono:</strong> {{ order.telefono }}</p>
-            <p><strong>Dirección:</strong> {{ order.direccion }}</p>
+            <p><strong>Dirección:</strong> {{ order.direccionCompleta || order.direccion }}</p>
             <p><strong>Total:</strong> {{ order.total | currency:'USD':'symbol':'1.2-2' }}</p>
             <p><strong>Fecha:</strong> {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
             @if (order.deliveryPersonName) {
               <p><strong>Repartidor asignado:</strong> {{ order.deliveryPersonName }}</p>
+            }
+            @if (order.latitud && order.longitud) {
+              <button class="btn btn-sm btn-info" (click)="showMap(order.id)">
+                <i class="fas fa-map-marker-alt"></i> Ver en Mapa
+              </button>
             }
           </div>
           <div class="order-footer">

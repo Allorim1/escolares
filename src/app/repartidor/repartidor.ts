@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { OrderTrackingMapComponent } from './order-tracking-map/order-tracking-map';
 
 interface Order {
   _id?: string;
@@ -13,6 +14,9 @@ interface Order {
   cedula: string;
   telefono: string;
   direccion: string;
+  direccionCompleta?: string;
+  latitud?: number;
+  longitud?: number;
   metodoPago: string;
   referencia: string;
   fotoComprobante?: string;
@@ -26,6 +30,11 @@ interface Order {
   autorizadoNombre?: string;
   deliveryPersonId?: string;
   deliveryPersonName?: string;
+  repartidorUbicacion?: {
+    lat: number;
+    lng: number;
+    timestamp: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,7 +42,7 @@ interface Order {
 @Component({
   selector: 'app-repartidor',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, OrderTrackingMapComponent],
   templateUrl: './repartidor.html',
   styleUrls: ['./repartidor.css']
 })
@@ -41,16 +50,46 @@ export class RepartidorComponent implements OnInit {
   orders = signal<Order[]>([]);
   loading = signal(true);
   selectedStatus = signal<Order['status'] | ''>('');
+  selectedOrderMap = signal<string>('');
+  watchId: number | null = null;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.loadOrders();
+    this.watchLocation();
+  }
+
+  ngOnDestroy() {
+    if (this.watchId) {
+      navigator.geolocation.clearWatch(this.watchId);
+    }
+  }
+
+  watchLocation() {
+    if (!navigator.geolocation) return;
+    
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        this.updateMyLocation(latitude, longitude);
+      },
+      (error) => console.error('Geolocation error:', error),
+      { enableHighAccuracy: true, maximumAge: 30000 }
+    );
+  }
+
+  updateMyLocation(lat: number, lng: number) {
+    const repartidorId = localStorage.getItem('userId');
+    if (!repartidorId) return;
+
+    this.http.put(`/api/delivery/${repartidorId}/location`, { lat, lng }).subscribe({
+      error: (err) => console.error('Error updating location:', err)
+    });
   }
 
   loadOrders() {
     this.loading.set(true);
-    // Endpoint que devuelve los pedidos asignados al repartidor actual
     this.http.get<Order[]>('/api/orders/delivery/assigned').subscribe({
       next: (data) => {
         this.orders.set(data);
@@ -74,6 +113,10 @@ export class RepartidorComponent implements OnInit {
         alert('Error al actualizar estado');
       }
     });
+  }
+
+  showMap(orderId: string) {
+    this.selectedOrderMap.set(orderId);
   }
 
   filterOrders() {

@@ -55,6 +55,17 @@ export class LineasBackend {
     });
   }
 
+  actualizarLinea(id: string, name: string, image = '') {
+    this.http.put<Linea>(`${this.API_URL}/${id}`, { name, image }).subscribe({
+      next: (updatedLinea) => {
+        this.lineas.update((lineas) => lineas.map((l) => (l.id === id ? updatedLinea : l)));
+      },
+      error: (error) => {
+        console.error('Error updating linea:', error);
+      },
+    });
+  }
+
   agregarProductoALinea(lineaId: string, productId: number | string) {
     this.http.post<Linea>(`${this.API_URL}/${lineaId}/products`, { productId }).subscribe({
       next: (updatedLinea) => {

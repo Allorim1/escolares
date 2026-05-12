@@ -33,6 +33,10 @@ export class LineasService {
     this.backend.eliminarProductoDeLinea(lineaId, productId);
   }
 
+  actualizarLinea(id: string, name: string, image = '') {
+    this.backend.actualizarLinea(id, name, image);
+  }
+
   getLineaById(id: string): Linea | undefined {
     return this.backend.getLineaById(id);
   }

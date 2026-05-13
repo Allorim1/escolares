@@ -55,7 +55,126 @@
       </button>
     </form>
 
+    <div class="recovery-links">
+      <button type="button" class="recovery-btn" (click)="openRecovery('username')">¿Olvidaste tu usuario?</button>
+      <button type="button" class="recovery-btn" (click)="openRecovery('password')">¿Olvidaste tu contraseña?</button>
+    </div>
+
     <a class="back-link" routerLink="/">Volver al inicio</a>
     <a class="register-link" routerLink="/register">Crear cuenta</a>
   </div>
+
+  @if (recoveryMode()) {
+    <div class="recovery-overlay">
+      <div class="recovery-modal">
+        <h3>
+          @if (recoveryMode() === 'username') {
+            Recuperar Usuario
+          } @else {
+            Recuperar Contraseña
+          }
+        </h3>
+
+        @if (recoveryStep() === 'email') {
+          <div class="form-group">
+            <label for="recoveryEmail">Email</label>
+            <input
+              id="recoveryEmail"
+              type="email"
+              [ngModel]="recoveryEmail()"
+              name="recoveryEmail"
+              (ngModelChange)="recoveryEmail.set($event)"
+              placeholder="Ingresa tu email registrado"
+              required
+            />
+          </div>
+
+          @if (recoveryMode() === 'password') {
+            <div class="form-group">
+              <label for="recoveryUsername">Usuario (opcional)</label>
+              <input
+                id="recoveryUsername"
+                type="text"
+                [ngModel]="recoveryUsername()"
+                name="recoveryUsername"
+                (ngModelChange)="recoveryUsername.set($event)"
+                placeholder="O ingresa tu usuario"
+              />
+            </div>
+          }
+        }
+
+        @if (recoveryStep() === 'otp') {
+          <div class="form-group">
+            <label for="otp">Código OTP</label>
+            <input
+              id="otp"
+              type="text"
+              [ngModel]="otp()"
+              name="otp"
+              (ngModelChange)="otp.set($event)"
+              placeholder="Ingresa el código de 6 dígitos"
+              maxlength="6"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="newPassword">Nueva Contraseña</label>
+            <input
+              id="newPassword"
+              type="password"
+              [ngModel]="newPassword()"
+              name="newPassword"
+              (ngModelChange)="newPassword.set($event)"
+              placeholder="Ingresa nueva contraseña"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirmar Contraseña</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              [ngModel]="confirmPassword()"
+              name="confirmPassword"
+              (ngModelChange)="confirmPassword.set($event)"
+              placeholder="Confirma nueva contraseña"
+            />
+          </div>
+        }
+
+        @if (recoveryError()) {
+          <div class="error-message">{{ recoveryError() }}</div>
+        }
+
+        @if (recoverySuccess()) {
+          <div class="success-message">{{ recoverySuccess() }}</div>
+        }
+
+        <div class="modal-buttons">
+          <button type="button" class="cancel-btn" (click)="closeRecovery()">Cancelar</button>
+          
+          @if (recoveryStep() === 'email') {
+            <button type="button" class="save-btn" (click)="sendRecovery()" [disabled]="recoveryLoading()">
+              @if (recoveryLoading()) {
+                Enviando...
+              } @else {
+                Enviar
+              }
+            </button>
+          }
+
+          @if (recoveryStep() === 'otp') {
+            <button type="button" class="save-btn" (click)="verifyOtp()" [disabled]="recoveryLoading()">
+              @if (recoveryLoading()) {
+                Verificando...
+              } @else {
+                Cambiar Contraseña
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>

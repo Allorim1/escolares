@@ -61,7 +61,7 @@ export class AdminInicio implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadStats();
-    if (this.isRoot()) {
+    if (this.isRoot) {
       this.apiKeyStatusService.loadApiKeyRenewalInfo();
       this.startCountdown();
     }

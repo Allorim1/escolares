@@ -162,61 +162,129 @@
   text-decoration: none;
 }
 
-.back-link:hover {
+.register-link {
+  display: block;
+  text-align: center;
+  margin-top: 0.75rem;
+  color: #667eea;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+}
+
+.recovery-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+.recovery-btn {
+  background: none;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.25rem;
+}
+
+.recovery-btn:hover {
+  text-decoration: underline;
+}
+
+/* Recovery Modal */
+.recovery-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.recovery-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+}
+
+.recovery-modal h3 {
+  margin: 0 0 1.5rem;
   color: #333;
+  text-align: center;
+}
+
+.success-message {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.cancel-btn, .save-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-btn {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.cancel-btn:hover {
+  background: #e5e7eb;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.save-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 @media (max-width: 480px) {
-  .login-container {
-    min-height: 100vh;
-    padding: 0.75rem;
-    align-items: flex-start;
-    padding-top: 2rem;
+  .recovery-modal {
+    padding: 1.5rem;
   }
 
-  .login-card {
-    padding: 1.25rem;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 100%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  .modal-buttons {
+    flex-direction: column;
   }
 
-  .login-card h2 {
-    font-size: 1.35rem;
-  }
-
-  .subtitle {
-    font-size: 0.85rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .form-group {
-    margin-bottom: 0.875rem;
-  }
-
-  .form-group label {
-    font-size: 0.875rem;
-  }
-
-  .form-group input {
-    padding: 0.75rem 0.875rem;
-    font-size: 16px;
-    min-height: 44px;
-    border-radius: 6px;
-  }
-
-  .login-btn {
-    padding: 0.875rem;
-    font-size: 0.95rem;
-    min-height: 48px;
-    border-radius: 6px;
-    touch-action: manipulation;
-  }
-
-  .back-link {
-    margin-top: 1.25rem;
-    padding: 0.5rem;
-    font-size: 0.9rem;
+  .recovery-links {
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }

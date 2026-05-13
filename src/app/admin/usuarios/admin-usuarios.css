@@ -175,7 +175,7 @@
   background: white;
   border-radius: 12px;
   width: 100%;
-  max-width: 450px;
+  max-width: 650px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -201,7 +201,9 @@
 }
 
 .modal-body {
-  padding: 1.5rem;
+   padding: 1rem 1.5rem;
+   max-height: 70vh;
+   overflow-y: auto;
 }
 
 .form-group {
@@ -293,7 +295,20 @@
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 10px;
+}
+
+.form-section {
+  margin-bottom: 12px;
+}
+
+.form-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .form-grid .form-group {

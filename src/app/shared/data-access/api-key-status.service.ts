@@ -7,8 +7,12 @@ import { HttpClient } from '@angular/common/http';
 export class ApiKeyStatusService {
   private _apiKeyExpired = signal(false);
   private _preciosOcultosParaNoRegistrados = signal(false);
+  private _lastRenewalDate = signal<Date | null>(null);
+  private _hasApiKey = signal(false);
   apiKeyExpired = this._apiKeyExpired.asReadonly();
   preciosOcultosParaNoRegistrados = this._preciosOcultosParaNoRegistrados.asReadonly();
+  lastRenewalDate = this._lastRenewalDate.asReadonly();
+  hasApiKey = this._hasApiKey.asReadonly();
 
   constructor(private http: HttpClient) {}
 
@@ -27,5 +31,20 @@ export class ApiKeyStatusService {
       },
       error: () => {}
     });
+  }
+
+  loadApiKeyRenewalInfo() {
+    this.http.get<{ hasApiKey: boolean; lastRenewalDate: string | null }>('/api/settings/api-key-renewal-info').subscribe({
+      next: (data) => {
+        this._hasApiKey.set(data.hasApiKey);
+        this._lastRenewalDate.set(data.lastRenewalDate ? new Date(data.lastRenewalDate) : null);
+      },
+      error: () => {}
+    });
+  }
+
+  updateApiKeyRenewalDate() {
+    this._lastRenewalDate.set(new Date());
+    this._hasApiKey.set(true);
   }
 }

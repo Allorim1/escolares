@@ -41,7 +41,9 @@ export class AdminInicio implements OnInit, OnDestroy {
   }
   
   showApiKeyModal = false;
+  showSuccessModal = false;
   dolarApiKey = '';
+  savingApiKey = false;
   
   stats = signal<DashboardStats>({
     totalProveedores: 0,
@@ -88,7 +90,7 @@ export class AdminInicio implements OnInit, OnDestroy {
       const diff = nextRenewal.getTime() - now.getTime();
       
       if (diff <= 0) {
-        this.countdown.set('Â¡Puedes renovar la API key!');
+        this.countdown.set('¡Puedes renovar la API key!');
         return;
       }
       
@@ -115,16 +117,24 @@ export class AdminInicio implements OnInit, OnDestroy {
   
   guardarApiKey() {
     if (!this.dolarApiKey.trim()) {
-      alert('Ingresa una API key vÃ¡lida');
+      alert('Ingresa una API key válida');
       return;
     }
+    
+    this.savingApiKey = true;
     
     this.http.put('/api/settings/dolar-api-key', { apiKey: this.dolarApiKey.trim() }).subscribe({
       next: () => {
         this.apiKeyStatusService.updateApiKeyRenewalDate();
+        this.savingApiKey = false;
         this.closeApiKeyModal();
+        this.showSuccessModal = true;
+        setTimeout(() => {
+          this.showSuccessModal = false;
+        }, 2000);
       },
       error: (err) => {
+        this.savingApiKey = false;
         alert('Error al guardar la API key: ' + (err.error?.error || 'Error desconocido'));
       }
     });

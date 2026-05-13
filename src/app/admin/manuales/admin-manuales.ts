@@ -11,6 +11,8 @@ interface Paso {
   titulo: string;
   descripcion: string;
   imagen?: string;
+  video?: string;
+  videoDuration?: number;
 }
 
 interface Manual {
@@ -131,8 +133,7 @@ export class AdminManuales implements OnInit {
       id: this.generarId(),
       numero: this.formPasos.length + 1,
       titulo: '',
-      descripcion: '',
-      imagen: ''
+      descripcion: ''
     };
     this.formPasos.push(nuevoPaso);
   }
@@ -176,6 +177,54 @@ export class AdminManuales implements OnInit {
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  onVideoSelected(event: any, pasoIndex: number) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      this.error.set('El archivo debe ser un video');
+      return;
+    }
+
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+
+    video.onloadedmetadata = () => {
+      const duration = video.duration;
+      if (duration > 60) {
+        this.error.set('El video no puede durar más de 1 minuto');
+        URL.revokeObjectURL(video.src);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.formPasos[pasoIndex].video = e.target?.result as string;
+        this.formPasos[pasoIndex].videoDuration = Math.round(duration);
+      };
+      reader.readAsDataURL(file);
+      URL.revokeObjectURL(video.src);
+    };
+
+    video.onerror = () => {
+      this.error.set('Error al leer el video');
+      URL.revokeObjectURL(video.src);
+    };
+  }
+
+  removeVideo(pasoIndex: number) {
+    this.formPasos[pasoIndex].video = undefined;
+    this.formPasos[pasoIndex].videoDuration = undefined;
+  }
+
+  formatDuration(seconds: number): string {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
   guardarManual() {

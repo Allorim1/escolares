@@ -170,13 +170,19 @@ export class AdminManuales implements OnInit {
 
   onImageSelected(event: any, pasoIndex: number) {
     const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.formPasos[pasoIndex].imagen = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const maxSize = 500 * 1024; // 500KB limit for images
+    if (file.size > maxSize) {
+      this.error.set('La imagen no puede pesar más de 500KB');
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.formPasos[pasoIndex].imagen = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   onVideoSelected(event: any, pasoIndex: number) {
@@ -185,6 +191,12 @@ export class AdminManuales implements OnInit {
 
     if (!file.type.startsWith('video/')) {
       this.error.set('El archivo debe ser un video');
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB limit for videos
+    if (file.size > maxSize) {
+      this.error.set('El video no puede pesar más de 10MB');
       return;
     }
 

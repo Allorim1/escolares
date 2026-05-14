@@ -126,16 +126,25 @@
                 </div>
                 
 <div class="form-group">
-                   <label>Video (máx. 1 minuto, 30MB)</label>
+                   <label>Video por archivo (máx. 1 minuto, 30MB)</label>
                    <input type="file" accept="video/*" (change)="onVideoSelected($event, i)" />
-                  <ng-container *ngIf="paso.video">
-                    <div class="video-preview">
-                      <video [src]="paso.video" controls></video>
-                      <span class="video-duration">Duración: {{ formatDuration(paso.videoDuration || 0) }}</span>
-                      <button class="btn-quitar-video" (click)="removeVideo(i)">Quitar video</button>
-                    </div>
-                  </ng-container>
-                </div>
+                   <ng-container *ngIf="paso.video && !paso.videoUrl">
+                     <div class="video-preview">
+                       <video [src]="paso.video" controls></video>
+                       <span class="video-duration">Duración: {{ formatDuration(paso.videoDuration || 0) }}</span>
+                       <button class="btn-quitar-video" (click)="removeVideo(i)">Quitar video</button>
+                     </div>
+                   </ng-container>
+                 </div>
+                 
+                 <div class="form-group">
+                   <label>Video por enlace (YouTube, Vimeo, etc.)</label>
+                   <input type="url" [(ngModel)]="paso.videoUrl" placeholder="https://www.youtube.com/watch?v=..." (blur)="updateVideoFromUrl(i)" />
+                   <ng-container *ngIf="paso.videoUrl">
+                     <div class="video-preview" [innerHTML]="getEmbedUrl(paso.videoUrl)"></div>
+                     <button class="btn-quitar-video" (click)="removeVideoUrl(i)">Quitar enlace</button>
+                   </ng-container>
+                 </div>
               </div>
             </div>
           </div>
@@ -178,12 +187,15 @@
                 <img [src]="paso.imagen" alt="Captura del paso {{ paso.numero }}" />
               </div>
             </ng-container>
-            <ng-container *ngIf="paso.video">
-              <div class="view-video">
-                <video [src]="paso.video" controls></video>
-                <span class="video-duration-badge">Duración: {{ paso.videoDuration }}s</span>
-              </div>
-            </ng-container>
+<ng-container *ngIf="paso.video && !paso.videoUrl">
+               <div class="view-video">
+                 <video [src]="paso.video" controls></video>
+                 <span class="video-duration-badge">Duración: {{ paso.videoDuration }}s</span>
+               </div>
+             </ng-container>
+             <ng-container *ngIf="paso.videoUrl">
+               <div class="view-video" [innerHTML]="getEmbedUrl(paso.videoUrl)"></div>
+             </ng-container>
           </div>
         </div>
       </div>

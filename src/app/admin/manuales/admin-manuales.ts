@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 interface Paso {
   id: string;
@@ -12,6 +13,7 @@ interface Paso {
   descripcion: string;
   imagen?: string;
   video?: string;
+  videoUrl?: string;
   videoDuration?: number;
 }
 
@@ -36,6 +38,7 @@ export class AdminManuales implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private sanitizer = inject(DomSanitizer);
 
   manuales = signal<Manual[]>([]);
   cargando = signal(true);
@@ -239,6 +242,44 @@ export class AdminManuales implements OnInit {
   removeVideo(pasoIndex: number) {
     this.formPasos[pasoIndex].video = undefined;
     this.formPasos[pasoIndex].videoDuration = undefined;
+  }
+
+  removeVideoUrl(pasoIndex: number) {
+    this.formPasos[pasoIndex].videoUrl = undefined;
+  }
+
+  updateVideoFromUrl(pasoIndex: number) {
+    const url = this.formPasos[pasoIndex].videoUrl;
+    if (url && !this.isValidVideoUrl(url)) {
+      this.error.set('URL de video no válida. Soportamos YouTube y Vimeo.');
+      return;
+    }
+  }
+
+  isValidVideoUrl(url: string): boolean {
+    const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+    const vimeoPattern = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/;
+    return youtubePattern.test(url) || vimeoPattern.test(url);
+  }
+
+  getEmbedUrl(url: string): SafeHtml {
+    if (!url) return '';
+    
+    let embedHtml = '';
+    
+    const youtubeMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    if (youtubeMatch) {
+      embedHtml = `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${youtubeMatch[1]}" frameborder="0" allowfullscreen></iframe>`;
+      return this.sanitizer.bypassSecurityTrustHtml(embedHtml);
+    }
+    
+    const vimeoMatch = url.match(/(?:www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)/);
+    if (vimeoMatch) {
+      embedHtml = `<iframe width="100%" height="200" src="https://player.vimeo.com/video/${vimeoMatch[3]}" frameborder="0" allowfullscreen></iframe>`;
+      return this.sanitizer.bypassSecurityTrustHtml(embedHtml);
+    }
+    
+    return this.sanitizer.bypassSecurityTrustHtml('<p>URL no compatible</p>');
   }
 
   formatDuration(seconds: number): string {

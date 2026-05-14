@@ -77,31 +77,17 @@
 
         @if (recoveryStep() === 'email') {
           <div class="form-group">
-            <label for="recoveryEmail">Email</label>
+            <label for="recoveryEmail">Email o Usuario</label>
             <input
               id="recoveryEmail"
-              type="email"
+              type="text"
               [ngModel]="recoveryEmail()"
               name="recoveryEmail"
               (ngModelChange)="recoveryEmail.set($event)"
-              placeholder="Ingresa tu email registrado"
+              placeholder="Ingresa tu email o usuario registrado"
               required
             />
           </div>
-
-          @if (recoveryMode() === 'password') {
-            <div class="form-group">
-              <label for="recoveryUsername">Usuario (opcional)</label>
-              <input
-                id="recoveryUsername"
-                type="text"
-                [ngModel]="recoveryUsername()"
-                name="recoveryUsername"
-                (ngModelChange)="recoveryUsername.set($event)"
-                placeholder="O ingresa tu usuario"
-              />
-            </div>
-          }
         }
 
         @if (recoveryStep() === 'otp') {

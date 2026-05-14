@@ -160,6 +160,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
           })
         );
       }
+      // Don't interfere with other errors - let them propagate
       return throwError(() => error);
     }),
   );

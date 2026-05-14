@@ -27,7 +27,7 @@ import { HttpClient } from '@angular/common/http';
     otp = signal('');
     newPassword = signal('');
     confirmPassword = signal('');
-    recoveryStep = signal<'email' | 'otp' | 'reset'>('email');
+    recoveryStep = signal<'email' | 'otp' | 'reset' | 'success'>('email');
     recoveryError = signal<string | null>(null);
     recoverySuccess = signal<string | null>(null);
     recoveryLoading = signal(false);
@@ -67,78 +67,89 @@ openRecovery(mode: 'username' | 'password') {
    }
  
 sendRecovery() {
-      const mode = this.recoveryMode();
-      const identifier = this.recoveryEmail();
+       const mode = this.recoveryMode();
+       const identifier = this.recoveryEmail();
 
-      if (!identifier) {
-        this.recoveryError.set('Por favor ingresa tu email o usuario');
-        return;
-      }
+       console.log('sendRecovery called with identifier:', identifier, 'mode:', mode);
 
-      this.recoveryLoading.set(true);
-      this.recoveryError.set(null);
-      this.recoveryIdentifier.set(identifier); // Store the identifier for later use
+       if (!identifier) {
+         this.recoveryError.set('Por favor ingresa tu email o usuario');
+         return;
+       }
 
-      if (mode === 'username') {
-        this.http.post<{ username: string; message: string }>('/api/auth/recover-username', { email: identifier }).subscribe({
-          next: (res) => {
-            this.recoverySuccess.set(`Tu usuario es: ${res.username}. Se envió a tu correo registrado.`);
-            this.recoveryLoading.set(false);
-          },
-          error: (err) => {
-            this.recoveryError.set(err.error?.error || 'Error al recuperar usuario');
-            this.recoveryLoading.set(false);
-          }
-        });
-      } else {
-        this.http.post<{ message: string; email: string }>('/api/auth/send-otp', { usernameOrEmail: identifier }).subscribe({
-          next: () => {
-            this.recoveryStep.set('otp');
-            this.recoveryLoading.set(false);
-          },
-          error: (err) => {
-            this.recoveryError.set(err.error?.error || 'Error al enviar OTP');
-            this.recoveryLoading.set(false);
-          }
-        });
-      }
-    }
+       this.recoveryLoading.set(true);
+       this.recoveryError.set(null);
+       this.recoveryIdentifier.set(identifier); // Store the identifier for later use
+       console.log('Stored recoveryIdentifier:', this.recoveryIdentifier());
 
-    verifyOtp() {
-      const identifier = this.recoveryIdentifier(); // Use stored identifier
-      const otpValue = this.otp();
-      const newPass = this.newPassword();
-      const confirmPass = this.confirmPassword();
+       if (mode === 'username') {
+         this.http.post<{ username: string; message: string }>('/api/auth/recover-username', { email: identifier }).subscribe({
+           next: (res) => {
+             this.recoverySuccess.set(`Tu usuario es: ${res.username}. Se envió a tu correo registrado.`);
+             this.recoveryLoading.set(false);
+           },
+           error: (err) => {
+             this.recoveryError.set(err.error?.error || 'Error al recuperar usuario');
+             this.recoveryLoading.set(false);
+           }
+         });
+       } else {
+         this.http.post<{ message: string; email: string }>('/api/auth/send-otp', { usernameOrEmail: identifier }).subscribe({
+           next: () => {
+             this.recoveryStep.set('otp');
+             this.recoveryLoading.set(false);
+           },
+           error: (err) => {
+             this.recoveryError.set(err.error?.error || 'Error al enviar OTP');
+             this.recoveryLoading.set(false);
+           }
+         });
+       }
+     }
 
-      if (!otpValue) {
-        this.recoveryError.set('Por favor ingresa el OTP');
-        return;
-      }
+verifyOtp() {
+       const identifier = this.recoveryIdentifier(); // Use stored identifier
+       const otpValue = this.otp();
+       const newPass = this.newPassword();
+       const confirmPass = this.confirmPassword();
 
-      if (!newPass || !confirmPass) {
-        this.recoveryError.set('Por favor completa ambos campos de contraseña');
-        return;
-      }
+       console.log('verifyOtp called with:', { identifier, otpValue, hasNewPass: !!newPass, hasConfirmPass: !!confirmPass });
 
-      if (newPass !== confirmPass) {
-        this.recoveryError.set('Las contraseñas no coinciden');
-        return;
-      }
+       if (!identifier) {
+         this.recoveryError.set('Error: No se ha proporcionado el identificador. Por favor, reinicia el proceso de recuperación.');
+         return;
+       }
 
-      this.recoveryLoading.set(true);
-      this.recoveryError.set(null);
+       if (!otpValue) {
+         this.recoveryError.set('Por favor ingresa el OTP');
+         return;
+       }
 
-      this.http.post('/api/auth/reset-password', { usernameOrEmail: identifier, otp: otpValue, newPassword: newPass }).subscribe({
-        next: () => {
-          this.recoveryStep.set('email');
-          this.recoveryMode.set(null);
-          this.recoverySuccess.set('Contraseña actualizada correctamente');
-          this.recoveryLoading.set(false);
-        },
-        error: (err) => {
-          this.recoveryError.set(err.error?.error || err.message || 'Error al verificar OTP');
-          this.recoveryLoading.set(false);
-        }
-      });
-    }
+       if (!newPass || !confirmPass) {
+         this.recoveryError.set('Por favor completa ambos campos de contraseña');
+         return;
+       }
+
+       if (newPass !== confirmPass) {
+         this.recoveryError.set('Las contraseñas no coinciden');
+         return;
+       }
+
+       this.recoveryLoading.set(true);
+       this.recoveryError.set(null);
+
+       this.http.post('/api/auth/reset-password', { usernameOrEmail: identifier, otp: otpValue, newPassword: newPass }, { withCredentials: true }).subscribe({
+         next: (res) => {
+           console.log('Password reset success:', res);
+           this.recoveryStep.set('success');
+         },
+         error: (err) => {
+           console.error('verifyOtp error:', err);
+           const errorMsg = err.error?.error || err.message || 'Error al verificar OTP';
+           console.error('Full error response:', { status: err.status, error: err.error, message: err.message });
+           this.recoveryError.set(errorMsg);
+           this.recoveryLoading.set(false);
+         }
+       });
+     }
  }

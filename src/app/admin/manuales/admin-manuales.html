@@ -113,7 +113,7 @@
                   <textarea [(ngModel)]="paso.descripcion" rows="3" placeholder="Describe este paso en detalle..."></textarea>
                 </div>
 <div class="form-group">
-                   <label>Captura de Pantalla (máx. 500KB)</label>
+                   <label>Captura de Pantalla (máx. 5MB)</label>
                    <input type="file" accept="image/*" (change)="onImageSelected($event, i)" />
                   <ng-container *ngIf="paso.imagen">
                     <div class="imagen-preview">
@@ -124,7 +124,7 @@
                 </div>
                 
 <div class="form-group">
-                   <label>Video (máx. 1 minuto, 10MB)</label>
+                   <label>Video (máx. 1 minuto, 30MB)</label>
                    <input type="file" accept="video/*" (change)="onVideoSelected($event, i)" />
                   <ng-container *ngIf="paso.video">
                     <div class="video-preview">

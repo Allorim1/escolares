@@ -168,24 +168,28 @@ export class AdminManuales implements OnInit {
     }
   }
 
-  onImageSelected(event: any, pasoIndex: number) {
+  async onImageSelected(event: any, pasoIndex: number) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const maxSize = 500 * 1024; // 500KB limit for images
+    const maxSize = 5 * 1024 * 1024; // 5MB limit for images
     if (file.size > maxSize) {
-      this.error.set('La imagen no puede pesar más de 500KB');
+      this.error.set('La imagen no puede pesar más de 5MB');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.formPasos[pasoIndex].imagen = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response: any = await this.http.post('/api/manuales/upload-image', formData).toPromise();
+      this.formPasos[pasoIndex].imagen = response.url;
+    } catch (err: any) {
+      this.error.set(err.error?.error || 'Error al subir la imagen');
+    }
   }
 
-  onVideoSelected(event: any, pasoIndex: number) {
+  async onVideoSelected(event: any, pasoIndex: number) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -194,9 +198,9 @@ export class AdminManuales implements OnInit {
       return;
     }
 
-    const maxSize = 10 * 1024 * 1024; // 10MB limit for videos
+    const maxSize = 30 * 1024 * 1024; // 30MB limit for videos
     if (file.size > maxSize) {
-      this.error.set('El video no puede pesar más de 10MB');
+      this.error.set('El video no puede pesar más de 30MB');
       return;
     }
 
@@ -204,7 +208,7 @@ export class AdminManuales implements OnInit {
     video.preload = 'metadata';
     video.src = URL.createObjectURL(file);
 
-    video.onloadedmetadata = () => {
+    video.onloadedmetadata = async () => {
       const duration = video.duration;
       if (duration > 60) {
         this.error.set('El video no puede durar más de 1 minuto');
@@ -212,13 +216,18 @@ export class AdminManuales implements OnInit {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.formPasos[pasoIndex].video = e.target?.result as string;
-        this.formPasos[pasoIndex].videoDuration = Math.round(duration);
-      };
-      reader.readAsDataURL(file);
       URL.revokeObjectURL(video.src);
+
+      try {
+        const formData = new FormData();
+        formData.append('video', file);
+
+        const response: any = await this.http.post('/api/manuales/upload-video', formData).toPromise();
+        this.formPasos[pasoIndex].video = response.url;
+        this.formPasos[pasoIndex].videoDuration = Math.round(duration);
+      } catch (err: any) {
+        this.error.set(err.error?.error || 'Error al subir el video');
+      }
     };
 
     video.onerror = () => {

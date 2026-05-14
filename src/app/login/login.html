@@ -77,14 +77,20 @@
 
         @if (recoveryStep() === 'email') {
           <div class="form-group">
-            <label for="recoveryEmail">Email o Usuario</label>
+            <label for="recoveryEmail">
+              @if (recoveryMode() === 'username') {
+                Email o Usuario
+              } @else {
+                Email o Usuario registrado
+              }
+            </label>
             <input
               id="recoveryEmail"
               type="text"
               [ngModel]="recoveryEmail()"
               name="recoveryEmail"
               (ngModelChange)="recoveryEmail.set($event)"
-              placeholder="Ingresa tu email o usuario registrado"
+              placeholder="Ingresa tu email o usuario"
               required
             />
           </div>

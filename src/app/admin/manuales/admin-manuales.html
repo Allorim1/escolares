@@ -10,14 +10,6 @@
     </div>
   </ng-container>
 
-  <ng-container *ngIf="error()">
-    <div class="error-message" (click)="clearMessages()">{{ error() }}</div>
-  </ng-container>
-
-  <ng-container *ngIf="success()">
-    <div class="success-message" (click)="clearMessages()">{{ success() }}</div>
-  </ng-container>
-
   <ng-container *ngIf="cargando()">
     <div class="cargando">Cargando manuales...</div>
   </ng-container>

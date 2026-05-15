@@ -340,12 +340,12 @@ export class AdminManuales implements OnInit {
 
     this.http.post('/api/manuales', manualData).subscribe({
       next: () => {
-        this.success.set('Manual creado correctamente');
+        this.notificationModal.success('Manual creado correctamente');
         this.cargarManuales();
         this.closeModal();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al crear manual');
+        this.notificationModal.error(err.error?.error || 'Error al crear manual');
       },
     });
   }
@@ -363,12 +363,12 @@ export class AdminManuales implements OnInit {
 
     this.http.put(`/api/manuales/${manual.id}`, manualData).subscribe({
       next: () => {
-        this.success.set('Manual actualizado correctamente');
+        this.notificationModal.success('Manual actualizado correctamente');
         this.cargarManuales();
         this.closeModal();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al actualizar manual');
+        this.notificationModal.error(err.error?.error || 'Error al actualizar manual');
       },
     });
   }
@@ -380,11 +380,11 @@ export class AdminManuales implements OnInit {
 
     this.http.delete(`/api/manuales/${manual.id}`).subscribe({
       next: () => {
-        this.success.set('Manual eliminado correctamente');
+        this.notificationModal.success('Manual eliminado correctamente');
         this.cargarManuales();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al eliminar manual');
+        this.notificationModal.error(err.error?.error || 'Error al eliminar manual');
       },
     });
   }
@@ -401,11 +401,6 @@ export class AdminManuales implements OnInit {
       month: 'long',
       day: 'numeric',
     });
-  }
-
-  clearMessages() {
-    this.error.set(null);
-    this.success.set(null);
   }
 
   private generarId(): string {

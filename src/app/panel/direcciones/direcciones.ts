@@ -24,7 +24,7 @@ interface DireccionUsuario extends Direccion {
 })
 export class Direcciones {
   authService = inject(AuthService);
-  mapsService = inject(GoogleMapsService, { optional: true });
+  mapsService = inject(GoogleMapsService);
 
   direcciones = signal<DireccionUsuario[]>([]);
   editando = signal(false);

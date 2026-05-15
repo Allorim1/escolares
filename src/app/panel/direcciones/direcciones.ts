@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService, Direccion } from '../../shared/data-access/auth.service';
+import { GoogleMapsService } from '../../shared/services/google-maps.service';
 
 interface DireccionUsuario extends Direccion {
   alias?: string;
@@ -9,6 +10,9 @@ interface DireccionUsuario extends Direccion {
   estado?: string;
   codigoPostal?: string;
   principal?: boolean;
+  latitud?: number;
+  longitud?: number;
+  placeId?: string;
 }
 
 @Component({
@@ -20,6 +24,7 @@ interface DireccionUsuario extends Direccion {
 })
 export class Direcciones {
   authService = inject(AuthService);
+  mapsService = inject(GoogleMapsService, { optional: true });
 
   direcciones = signal<DireccionUsuario[]>([]);
   editando = signal(false);
@@ -33,6 +38,12 @@ export class Direcciones {
   formEstado = signal('');
   formCodigoPostal = signal('');
   formPrincipal = signal(false);
+  formPlaceId = signal('');
+  formLatitud = signal<number | null>(null);
+  formLongitud = signal<number | null>(null);
+
+  autocompleteResults = signal<any[]>([]);
+  buscandoAutocomplete = signal(false);
 
   readonly estadosVenezuela = [
     'Amazonas', 'Anzoátegui', 'Apure', 'Aragua', 'Barinas', 'Bolívar', 'Carabobo',
@@ -125,6 +136,9 @@ export class Direcciones {
     this.formEstado.set(dir.estado || '');
     this.formCodigoPostal.set(dir.codigoPostal || '');
     this.formPrincipal.set(!!dir.principal);
+    this.formLatitud.set(dir.latitud || null);
+    this.formLongitud.set(dir.longitud || null);
+    this.formPlaceId.set(dir.placeId || '');
     this.error.set('');
   }
 
@@ -148,6 +162,9 @@ export class Direcciones {
     const estado = this.formEstado().trim();
     const codigoPostal = this.formCodigoPostal().trim();
     const principal = this.formPrincipal();
+    const latitud = this.formLatitud();
+    const longitud = this.formLongitud();
+    const placeId = this.formPlaceId();
 
     if (!alias || !calle || !ciudad || !estado) {
       this.error.set('Alias, calle, ciudad y estado son obligatorios.');
@@ -166,6 +183,9 @@ export class Direcciones {
       codigoPostal,
       principal,
       direccion: this.armarDireccion(calle, ciudad, estado),
+      latitud: latitud || undefined,
+      longitud: longitud || undefined,
+      placeId: placeId || undefined,
     };
 
     let updated: DireccionUsuario[];
@@ -200,6 +220,9 @@ export class Direcciones {
       estado: d.estado || '',
       codigoPostal: d.codigoPostal || '',
       principal: !!d.principal,
+      latitud: d.latitud || null,
+      longitud: d.longitud || null,
+      placeId: d.placeId || null,
     }));
 
     const req = this.authService.updateProfile({ direcciones: payload as any });
@@ -245,5 +268,54 @@ export class Direcciones {
 
   getTituloDireccion(dir: DireccionUsuario, index: number): string {
     return (dir.alias || dir.nombre || `Dirección ${index + 1}`).trim();
+  }
+
+  buscarDireccion(query: string) {
+    if (!query || query.length < 3) {
+      this.autocompleteResults.set([]);
+      return;
+    }
+    
+    this.buscandoAutocomplete.set(true);
+    this.mapsService?.autocomplete(query).then(results => {
+      this.autocompleteResults.set(results || []);
+      this.buscandoAutocomplete.set(false);
+    }).catch(() => {
+      this.autocompleteResults.set([]);
+      this.buscandoAutocomplete.set(false);
+    });
+  }
+
+  seleccionarAutocomplete(result: any) {
+    if (!result) return;
+    
+    this.autocompleteResults.set([]);
+    this.formCalle.set(result.description || '');
+    this.formPlaceId.set(result.place_id || '');
+    
+    if (result.place_id) {
+      this.mapsService?.geocodePlaceId(result.place_id).then(geo => {
+        if (geo?.results?.[0]) {
+          const components = geo.results[0].address_components || [];
+          let ciudad = '';
+          let estado = '';
+          
+          for (const comp of components) {
+            if (comp.types.includes('locality')) ciudad = comp.long_name;
+            if (comp.types.includes('administrative_area_level_1')) estado = comp.long_name;
+          }
+          
+          const geometry = geo.results[0].geometry?.location || {};
+          this.formCiudad.set(ciudad);
+          this.formEstado.set(estado);
+          this.formLatitud.set(geometry.lat || null);
+          this.formLongitud.set(geometry.lng || null);
+        }
+      });
+    }
+  }
+
+  limpiarAutocomplete() {
+    setTimeout(() => this.autocompleteResults.set([]), 200);
   }
 }

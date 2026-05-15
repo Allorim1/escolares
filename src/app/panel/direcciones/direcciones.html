@@ -66,17 +66,25 @@
           <input
             type="text"
             [ngModel]="formCalle()"
-            (ngModelChange)="formCalle.set($event)"
+            (ngModelChange)="formCalle.set($event); buscarDireccion($event)"
+            (blur)="limpiarAutocomplete()"
             name="calle"
             placeholder="Calle, número, urbanización"
-            list="calle-sugerencias"
+            autocomplete="off"
             required
           />
-          <datalist id="calle-sugerencias">
-            @for (op of calleSugerencias(); track op) {
-              <option [value]="op"></option>
-            }
-          </datalist>
+          @if (autocompleteResults().length > 0) {
+            <div class="autocomplete-dropdown">
+              @for (result of autocompleteResults(); track result.place_id) {
+                <div class="autocomplete-item" (mousedown)="seleccionarAutocomplete(result)">
+                  {{ result.description }}
+                </div>
+              }
+            </div>
+          }
+          @if (buscandoAutocomplete()) {
+            <div class="autocomplete-loading">Buscando...</div>
+          }
         </div>
         <div class="form-group">
           <label>Ciudad:</label>

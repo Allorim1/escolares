@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { User } from '../../backend/models';
 import { RolesBackend, Rol } from '../../backend/data-access/roles.backend';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface UserWithRol extends User {
   rolName?: string;
@@ -37,6 +38,7 @@ export class AdminUsuarios implements OnInit {
   private rolesBackend = inject(RolesBackend);
   private http = inject(HttpClient);
   private router = inject(Router);
+  private notificationModal = inject(NotificationModalService);
 
   usuarios = signal<UserWithRol[]>([]);
   roles = signal<Rol[]>([]);
@@ -171,9 +173,10 @@ export class AdminUsuarios implements OnInit {
     this.authService.updateUserRol(user.id, rol, rolId).subscribe({
       next: () => {
         this.cargarUsuarios();
+        this.notificationModal.success('Rol actualizado correctamente');
       },
-      error: (err) => {
-        this.error.set(err.error?.error || 'Error al cambiar rol');
+      error: () => {
+        this.error.set('Error al cambiar rol');
       },
     });
   }
@@ -191,6 +194,7 @@ export class AdminUsuarios implements OnInit {
       next: () => {
         this.newPassword = '';
         this.userDetailsTab.set('info');
+        this.notificationModal.success('Contraseña actualizada correctamente');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al cambiar contraseña');
@@ -207,6 +211,7 @@ export class AdminUsuarios implements OnInit {
         next: () => {
           this.closeUserDetails();
           this.cargarUsuarios();
+          this.notificationModal.success('Usuario eliminado correctamente');
         },
         error: (err) => {
           this.error.set(err.error?.error || 'Error al eliminar usuario');
@@ -232,6 +237,7 @@ export class AdminUsuarios implements OnInit {
       next: () => {
         this.cargarUsuarios();
         this.closeUserDetails();
+        this.notificationModal.success('Usuario guardado correctamente');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al guardar usuario');
@@ -259,6 +265,7 @@ export class AdminUsuarios implements OnInit {
           this.editingUser.set({ ...updatedUser, comentarios: nuevoComentario });
         }
         this.newComentario = '';
+        this.notificationModal.success('Comentario agregado correctamente');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al agregar comentario');
@@ -346,6 +353,7 @@ export class AdminUsuarios implements OnInit {
       next: () => {
         this.cargarUsuarios();
         this.closeCreateUser();
+        this.notificationModal.success('Usuario creado correctamente');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al crear usuario');

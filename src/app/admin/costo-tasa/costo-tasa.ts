@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../shared/data-access/api-key-status.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface Tasa {
   costo: number;
@@ -58,9 +59,10 @@ interface Reporte {
 export class CostoTasa implements OnInit {
   @ViewChild('tablaCostos') tablaCostos!: ElementRef;
 
-  private http = inject(HttpClient);
-  private authService = inject(AuthService);
-  private apiKeyStatusService = inject(ApiKeyStatusService);
+private http = inject(HttpClient);
+   private authService = inject(AuthService);
+   private apiKeyStatusService = inject(ApiKeyStatusService);
+   private notificationService = inject(NotificationModalService);
 
   private readonly API_DOLAR = '/api/tasas';
   private readonly API_COSTOS = '/api/costos';
@@ -400,6 +402,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('Producto guardado correctamente', 'Éxito');
       });
   }
 
@@ -425,6 +428,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('Cantidad guardada correctamente', 'Éxito');
       });
   }
 
@@ -467,6 +471,7 @@ export class CostoTasa implements OnInit {
         this.loadReportes();
         if (result?.id) {
           this.reporteSeleccionadoId = result.id;
+          this.notificationService.success('Reporte creado correctamente', 'Éxito');
         }
       });
   }
@@ -523,6 +528,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('Costo guardado correctamente', 'Éxito');
       });
   }
 
@@ -537,6 +543,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('Costo eliminado correctamente', 'Éxito');
       });
   }
 
@@ -562,8 +569,8 @@ export class CostoTasa implements OnInit {
         ivaActivo: checked,
         iva: nuevoIva,
         pvpBsf: Math.round(pvpBsf * 100) / 100,
-        pvpDolar: Math.round(pvpDolar * 100) / 100,
-      })
+pvpDolar: Math.round(pvpDolar * 100) / 100,
+       })
       .pipe(
         catchError((err) => {
           console.error('Error actualizando IVA:', err);
@@ -572,6 +579,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('IVA actualizado correctamente', 'Éxito');
       });
   }
 
@@ -627,6 +635,7 @@ export class CostoTasa implements OnInit {
       .subscribe(() => {
         delete this.utilidadesTemp[index];
         this.loadReportes();
+        this.notificationService.success('Utilidad actualizada correctamente', 'Éxito');
       });
   }
 
@@ -689,6 +698,7 @@ export class CostoTasa implements OnInit {
         delete this.pvpDolarTemp[index];
         this.editingPvpDolar[index] = false;
         this.loadReportes();
+        this.notificationService.success('PVP dólar actualizado correctamente', 'Éxito');
       });
   }
 

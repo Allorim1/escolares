@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 @Component({
   selector: 'app-perfil',
@@ -11,6 +12,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 })
 export class Perfil implements OnInit {
   authService = inject(AuthService);
+  private notificationModal = inject(NotificationModalService);
 
   editando = signal(false);
   guardando = signal(false);
@@ -102,12 +104,12 @@ export class Perfil implements OnInit {
       next: (user) => {
         this.guardando.set(false);
         this.editando.set(false);
-        alert('Perfil actualizado correctamente');
+        this.notificationModal.success('Perfil actualizado correctamente');
       },
       error: (err) => {
         this.guardando.set(false);
         console.error('Error guardando perfil:', err);
-        alert('Error al guardar el perfil');
+        this.notificationModal.error('Error al guardar el perfil');
       }
     });
   }

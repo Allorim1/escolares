@@ -4,6 +4,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Header } from './shared/ui/header/header';
 import { Footer } from './shared/ui/footer/footer';
 import { NotificationsComponent } from './shared/ui/notifications/notifications';
+import { NotificationModalComponent } from './shared/ui/notification-modal/notification-modal.component';
 import { ApiKeyStatusService } from './shared/data-access/api-key-status.service';
 import { StoreSettingsService } from './shared/data-access/store-settings.service';
 
@@ -22,7 +23,7 @@ export function initTheme(platformId: object) {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Header, Footer, NotificationsComponent],
+  imports: [RouterOutlet, Header, Footer, NotificationsComponent, NotificationModalComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
 })

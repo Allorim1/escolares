@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TitleCasePipe } from '@angular/common';
 import { RolesBackend, Rol, Permiso } from '../../backend/data-access/roles.backend';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 @Component({
   selector: 'app-admin-roles',
@@ -12,6 +13,7 @@ import { RolesBackend, Rol, Permiso } from '../../backend/data-access/roles.back
 })
 export class AdminRoles implements OnInit {
   private rolesBackend = inject(RolesBackend);
+  private notificationModal = inject(NotificationModalService);
 
   roles = signal<Rol[]>([]);
   permisos = signal<Permiso[]>([]);
@@ -136,10 +138,10 @@ export class AdminRoles implements OnInit {
         next: () => {
           this.loadData();
           this.closeModal();
-          alert('Rol actualizado correctamente');
+          this.notificationModal.success('Rol actualizado correctamente');
         },
         error: (err) => {
-          alert(err.error?.error || 'Error al actualizar rol');
+          this.notificationModal.error(err.error?.error || 'Error al actualizar rol');
         }
       });
     } else {
@@ -147,10 +149,10 @@ export class AdminRoles implements OnInit {
         next: () => {
           this.loadData();
           this.closeModal();
-          alert('Rol creado correctamente');
+          this.notificationModal.success('Rol creado correctamente');
         },
         error: (err) => {
-          alert(err.error?.error || 'Error al crear rol');
+          this.notificationModal.error(err.error?.error || 'Error al crear rol');
         }
       });
     }
@@ -164,10 +166,10 @@ export class AdminRoles implements OnInit {
     this.rolesBackend.deleteRol(id).subscribe({
       next: () => {
         this.loadData();
-        alert('Rol eliminado correctamente');
+        this.notificationModal.success('Rol eliminado correctamente');
       },
       error: (err) => {
-        alert(err.error?.error || 'Error al eliminar rol');
+        this.notificationModal.error(err.error?.error || 'Error al eliminar rol');
       }
     });
   }

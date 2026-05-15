@@ -8,6 +8,7 @@ import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface CategoriaProducto {
   id: string;
@@ -47,6 +48,7 @@ export class AdminProductos implements OnInit {
   private http = inject(HttpClient);
   private ofertasBackend = inject(OfertasBackend);
   private authService = inject(AuthService);
+  private notificationModal = inject(NotificationModalService);
 
   isRoot(): boolean {
     return this.authService.user()?.rol === 'root';
@@ -372,10 +374,11 @@ export class AdminProductos implements OnInit {
             this.ofertasBackend.agregarOferta(newProduct.id, data.ofertaPrecio);
           }
           this.cancelEdit();
+          this.notificationModal.success('Producto creado correctamente');
         },
         error: (err) => {
           console.error('Error creating product:', err);
-          alert('Error al crear producto');
+          this.notificationModal.error('Error al crear producto');
         }
       });
     } else if (this.editingProduct()) {
@@ -411,10 +414,11 @@ export class AdminProductos implements OnInit {
             this.ofertasBackend.agregarOferta(updated.id, data.ofertaPrecio);
           }
           this.cancelEdit();
+          this.notificationModal.success('Producto actualizado correctamente');
         },
         error: (err) => {
           console.error('Error updating product:', err);
-          alert('Error al actualizar producto');
+          this.notificationModal.error('Error al actualizar producto');
         }
       });
     }
@@ -538,10 +542,11 @@ export class AdminProductos implements OnInit {
       this.http.delete<any>(`/api/products/${id}`).subscribe({
         next: () => {
           this.products.update((products) => products.filter((p) => p.id !== id));
+          this.notificationModal.success('Producto eliminado correctamente');
         },
         error: (err) => {
           console.error('Error deleting product:', err);
-          alert('Error al eliminar producto');
+          this.notificationModal.error('Error al eliminar producto');
         }
       });
     }

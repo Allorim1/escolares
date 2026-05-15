@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ExcelService, DatosComprobante, EstructuraExcel } from '../../shared/data-access/excel.service';
 import { RegistroService } from '../../shared/data-access/registro.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -65,9 +66,10 @@ interface Retencion {
   styleUrl: './retenciones.css',
 })
 export class Retenciones implements OnInit {
-  private http = inject(HttpClient);
-  private excelService = inject(ExcelService);
-  registroService = inject(RegistroService);
+private http = inject(HttpClient);
+   private excelService = inject(ExcelService);
+   registroService = inject(RegistroService);
+   private notificationService = inject(NotificationModalService);
 
   private API = '/api/proveedores';
 
@@ -133,8 +135,12 @@ export class Retenciones implements OnInit {
           `Eliminó retención ${retencion?.numero || ''} - Factura ${retencion?.facturaNumero || ''}`,
           { retencion: retencion }
         );
+        this.notificationService.success('Retención eliminada correctamente', 'Éxito');
       },
-      error: (err) => console.error('Error eliminando retención:', err)
+      error: (err) => {
+        console.error('Error eliminando retención:', err);
+        this.notificationService.error('Error al eliminar retención');
+      }
     });
   }
 
@@ -290,18 +296,19 @@ export class Retenciones implements OnInit {
         iva: factura.iva,
         retenido: factura.iva75 || 0
       }).subscribe({
-        next: () => {
-          this.ultimoNumero = parseInt(this.comprobanteNumero.slice(-8));
-          this.http.put('/api/retenciones/ultimo', { ultimoNumero: this.ultimoNumero }).subscribe();
-          this.cargarRetenciones();
-          this.generarNumeroComprobante();
-          this.registroService.registrar(
-            'crear',
-            'Retenciones',
-            `Generó comprobante de retención ${this.comprobanteNumero} - Proveedor: ${proveedor.nombre}`,
-            { numero: this.comprobanteNumero, proveedor: proveedor.rif, factura: factura.numero }
-          );
-        },
+next: () => {
+           this.ultimoNumero = parseInt(this.comprobanteNumero.slice(-8));
+           this.http.put('/api/retenciones/ultimo', { ultimoNumero: this.ultimoNumero }).subscribe();
+           this.cargarRetenciones();
+           this.generarNumeroComprobante();
+           this.notificationService.success('Retención generada correctamente', 'Éxito');
+           this.registroService.registrar(
+             'crear',
+             'Retenciones',
+             `Generó comprobante de retención ${this.comprobanteNumero} - Proveedor: ${proveedor.nombre}`,
+             { numero: this.comprobanteNumero, proveedor: proveedor.rif, factura: factura.numero }
+           );
+         },
         error: (err) => {
           if (err.error?.error === 'Ya existe una retención para esta factura') {
             alert('Ya existe una retención para esta factura');
@@ -467,6 +474,7 @@ export class Retenciones implements OnInit {
     window.URL.revokeObjectURL(url);
     
     this.mensajeTXT.set(`TXT generado con ${lineas.length} registro(s)`);
+    this.notificationService.success(`TXT generado con ${lineas.length} registro(s)`, 'Éxito');
     this.registroService.registrar(
       'crear',
       'Retenciones',

@@ -14,17 +14,14 @@ import { HttpClient } from '@angular/common/http';
         <div class="info-panel">
           <h4>{{ order()?.nombre }}</h4>
           <p><strong>Dirección:</strong> {{ order()?.direccionCompleta || order()?.direccion }}</p>
-          @if (deliveryPerson()) {
-            <p><strong>Repartidor:</strong> {{ deliveryPerson()?.nombre }}</p>
-          }
           @if (estimatedTime()) {
             <p class="estimated-time">⏱️ Llegada estimada: {{ estimatedTime() }}</p>
           }
         </div>
       }
-      @if (showAcceptButton && order() && order()?.status === 'pendiente') {
-        <button class="btn-accept" (click)="acceptOrder()">
-          <i class="fas fa-check"></i> Aceptar Pedido
+      @if (showStartButton && order() && order()?.status === 'procesando') {
+        <button class="btn-start" (click)="startOrder()">
+          <i class="fas fa-truck"></i> Iniciar entrega
         </button>
       }
     </div>
@@ -61,11 +58,11 @@ import { HttpClient } from '@angular/common/http';
       color: #007bff;
       font-weight: bold;
     }
-    .btn-accept {
+    .btn-start {
       position: absolute;
       bottom: 10px;
       right: 10px;
-      background: #28a745;
+      background: #007bff;
       color: white;
       border: none;
       padding: 10px 20px;
@@ -78,8 +75,8 @@ import { HttpClient } from '@angular/common/http';
       gap: 8px;
       transition: background 0.2s;
     }
-    .btn-accept:hover {
-      background: #218838;
+    .btn-start:hover {
+      background: #0056b3;
     }
   `]
 })
@@ -87,15 +84,16 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   @Input() orderId!: string;
   @Input() showAcceptButton = false;
-  @Output() orderAccepted = new EventEmitter<string>();
+  @Input() showStartButton = false;
+  @Output() orderStarted = new EventEmitter<string>();
   
   order = signal<any>(null);
-  deliveryPerson = signal<any>(null);
   estimatedTime = signal<string>('');
   map: google.maps.Map | null = null;
   orderMarker: google.maps.Marker | null = null;
   driverMarker: google.maps.Marker | null = null;
   directionsRenderer: google.maps.DirectionsRenderer | null = null;
+  watchId: number | null = null;
 
   constructor(private mapsService: GoogleMapsService, private http: HttpClient) {}
 
@@ -106,6 +104,13 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   async ngAfterViewInit() {
     await this.mapsService.loadApi();
     await this.initMap();
+    this.startLocationTracking();
+  }
+
+  ngOnDestroy() {
+    if (this.watchId) {
+      navigator.geolocation.clearWatch(this.watchId);
+    }
   }
 
   async loadTrackingData() {
@@ -114,7 +119,6 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
     try {
       const response: any = await this.http.get(`/api/delivery/order/${this.orderId}/tracking`).toPromise();
       this.order.set(response.order);
-      this.deliveryPerson.set(response.deliveryPerson);
       
       if (response.directions) {
         this.estimatedTime.set(response.directions.duration?.text || '');
@@ -145,18 +149,38 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
     this.orderMarker = this.mapsService.createMarker({
       position: { lat: order.latitud, lng: order.longitud },
       map: this.map,
-      title: 'Destino'
+      title: 'Destino - Cliente'
     });
+  }
 
-    if (this.deliveryPerson()?.ultimaUbicacion) {
-      const loc = this.deliveryPerson().ultimaUbicacion;
+  startLocationTracking() {
+    if (!navigator.geolocation) return;
+    
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        this.updateMapWithLocation({ lat: latitude, lng: longitude });
+      },
+      (error) => console.error('Geolocation error:', error),
+      { enableHighAccuracy: true, maximumAge: 60000 }
+    );
+  }
+
+  async updateMapWithLocation(location: { lat: number; lng: number }) {
+    if (!this.map) return;
+
+    if (!this.driverMarker) {
       this.driverMarker = this.mapsService.createMarker({
-        position: { lat: loc.lat, lng: loc.lng },
+        position: location,
         map: this.map,
         title: 'Repartidor'
       });
+    } else {
+      this.driverMarker.setPosition(location);
+    }
 
-      await this.calculateAndDisplayRoute({ lat: loc.lat, lng: loc.lng });
+    if (this.directionsRenderer && this.order()) {
+      await this.calculateAndDisplayRoute(location);
     }
   }
 
@@ -168,28 +192,16 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
         driverLocation,
         { lat: this.order().latitud, lng: this.order().longitud }
       );
-      if (this.directionsRenderer) {
-        this.directionsRenderer.setDirections(result);
-        this.estimatedTime.set(result.routes[0].legs[0].duration?.text || '');
-      }
+      this.directionsRenderer?.setDirections(result);
+      this.estimatedTime.set(result.routes[0].legs[0].duration?.text || '');
     } catch (e) {
       console.log('Could not calculate route');
     }
   }
 
-  async updateDriverLocation(location: { lat: number; lng: number }) {
-    if (this.driverMarker) {
-      this.driverMarker.setPosition(location);
-    }
-    
-    if (this.map && this.order()?.latitud && this.order()?.longitud) {
-      await this.calculateAndDisplayRoute(location);
-    }
-  }
-
-  acceptOrder() {
+  startOrder() {
     if (this.orderId) {
-      this.orderAccepted.emit(this.orderId);
+      this.orderStarted.emit(this.orderId);
     }
   }
 }

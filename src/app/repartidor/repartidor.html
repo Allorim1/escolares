@@ -4,9 +4,9 @@
     <div class="filters">
       <select class="form-select" [(ngModel)]="selectedStatus" (change)="filterOrders()">
         <option value="">Todos los estados</option>
-        <option value="pendiente">Pendiente</option>
         <option value="procesando">Procesando</option>
-        <option value="enviado">Enviado</option>
+        <option value="procesado">Aceptado</option>
+        <option value="enviado">En camino</option>
         <option value="entregado">Entregado</option>
         <option value="cancelado">Cancelado</option>
       </select>
@@ -22,8 +22,9 @@
         <button class="btn-close" (click)="selectedOrderMap.set('')">×</button>
         <app-order-tracking-map 
           [orderId]="selectedOrderMap()" 
-          [showAcceptButton]="true"
-          (orderAccepted)="onOrderAccepted($event)">
+          [showAcceptButton]="false"
+          [showStartButton]="true"
+          (orderStarted)="onOrderStarted($event)">
         </app-order-tracking-map>
       </div>
     </div>
@@ -48,32 +49,29 @@
             <p><strong>Total:</strong> {{ order.total | currency:'USD':'symbol':'1.2-2' }}</p>
             <p><strong>Fecha:</strong> {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
             @if (order.deliveryPersonName) {
-              <p><strong>Repartidor asignado:</strong> {{ order.deliveryPersonName }}</p>
+              <p><strong>Repartidor:</strong> {{ order.deliveryPersonName }}</p>
             }
             @if (order.latitud && order.longitud) {
               <button class="btn btn-sm btn-info" (click)="showMap(order)">
-                <i class="fas fa-map-marker-alt"></i> Ver en Mapa
+                <i class="fas fa-map-marker-alt"></i> Ver Dirección
               </button>
             }
           </div>
           <div class="order-footer">
             <div class="actions">
-              @if (order.status === 'pendiente') {
+              @if (order.status === 'procesando') {
                 <button class="btn btn-sm btn-success" (click)="acceptOrder(order)">
-                  <i class="fas fa-check"></i> Aceptar Pedido
-                </button>
-                <button class="btn btn-sm btn-primary" (click)="updateOrderStatus(order, 'procesando')">
-                  <i class="fas fa-cog"></i> Procesar
+                  <i class="fas fa-check"></i> Aceptar
                 </button>
               }
-              @if (order.status === 'procesando' || order.status === 'enviado') {
-                <button class="btn btn-sm btn-primary" (click)="updateOrderStatus(order, 'enviado')">
-                  <i class="fas fa-truck"></i> Marcar como Enviado
+              @if (order.status === 'procesado') {
+                <button class="btn btn-sm btn-primary" (click)="startOrder(order)">
+                  <i class="fas fa-truck"></i> En camino
                 </button>
               }
               @if (order.status === 'enviado') {
                 <button class="btn btn-sm btn-success" (click)="updateOrderStatus(order, 'entregado')">
-                  <i class="fas fa-check"></i> Marcar como Entregado
+                  <i class="fas fa-check"></i> Entregar
                 </button>
               }
             </div>

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, signal, ViewChild, ElementRef, AfterViewInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
 import { HttpClient } from '@angular/common/http';
@@ -22,6 +22,11 @@ import { HttpClient } from '@angular/common/http';
           }
         </div>
       }
+      @if (showAcceptButton && order() && order()?.status === 'pendiente') {
+        <button class="btn-accept" (click)="acceptOrder()">
+          <i class="fas fa-check"></i> Aceptar Pedido
+        </button>
+      }
     </div>
   `,
   styles: [`
@@ -37,7 +42,7 @@ import { HttpClient } from '@angular/common/http';
     }
     .info-panel {
       position: absolute;
-      bottom: 10px;
+      bottom: 50px;
       left: 10px;
       background: white;
       padding: 10px;
@@ -56,11 +61,33 @@ import { HttpClient } from '@angular/common/http';
       color: #007bff;
       font-weight: bold;
     }
+    .btn-accept {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .btn-accept:hover {
+      background: #218838;
+    }
   `]
 })
 export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
   @Input() orderId!: string;
+  @Input() showAcceptButton = false;
+  @Output() orderAccepted = new EventEmitter<string>();
   
   order = signal<any>(null);
   deliveryPerson = signal<any>(null);
@@ -78,7 +105,7 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
 
   async ngAfterViewInit() {
     await this.mapsService.loadApi();
-    this.initMap();
+    await this.initMap();
   }
 
   async loadTrackingData() {
@@ -97,7 +124,7 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
     }
   }
 
-  initMap() {
+  async initMap() {
     const order = this.order();
     if (!order || !order.latitud || !order.longitud) return;
 
@@ -128,6 +155,25 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
         map: this.map,
         title: 'Repartidor'
       });
+
+      await this.calculateAndDisplayRoute({ lat: loc.lat, lng: loc.lng });
+    }
+  }
+
+  async calculateAndDisplayRoute(driverLocation: { lat: number; lng: number }) {
+    if (!this.order()?.latitud || !this.order()?.longitud) return;
+    
+    try {
+      const result = await this.mapsService.getDirections(
+        driverLocation,
+        { lat: this.order().latitud, lng: this.order().longitud }
+      );
+      if (this.directionsRenderer) {
+        this.directionsRenderer.setDirections(result);
+        this.estimatedTime.set(result.routes[0].legs[0].duration?.text || '');
+      }
+    } catch (e) {
+      console.log('Could not calculate route');
     }
   }
 
@@ -137,18 +183,13 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
     }
     
     if (this.map && this.order()?.latitud && this.order()?.longitud) {
-      try {
-        const result = await this.mapsService.getDirections(
-          location,
-          { lat: this.order().latitud, lng: this.order().longitud }
-        );
-        if (this.directionsRenderer) {
-          this.directionsRenderer.setDirections(result);
-          this.estimatedTime.set(result.routes[0].legs[0].duration?.text || '');
-        }
-      } catch (e) {
-        console.log('Could not update directions');
-      }
+      await this.calculateAndDisplayRoute(location);
+    }
+  }
+
+  acceptOrder() {
+    if (this.orderId) {
+      this.orderAccepted.emit(this.orderId);
     }
   }
 }

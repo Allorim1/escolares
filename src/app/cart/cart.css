@@ -1338,7 +1338,7 @@
   text-align: left;
 }
 
-/* Modal de dirección */
+/* Modal de dirección - posición fija superpuesta al header */
 .address-modal-overlay {
   position: fixed;
   top: 0;
@@ -1348,9 +1348,9 @@
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: flex-start;
-  justify-content: flex-end;
+  justify-content: center;
   z-index: 2000;
-  padding: 1rem;
+  padding-top: 80px;
 }
 
 .address-modal {
@@ -1358,20 +1358,20 @@
   border-radius: 12px;
   width: 100%;
   max-width: 400px;
-  max-height: 80vh;
+  max-height: calc(100vh - 100px);
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease;
+  animation: fadeInDown 0.3s ease;
 }
 
-@keyframes slideIn {
+@keyframes fadeInDown {
   from {
-    transform: translateX(100%);
     opacity: 0;
+    transform: translateY(-20px);
   }
   to {
-    transform: translateX(0);
     opacity: 1;
+    transform: translateY(0);
   }
 }
 

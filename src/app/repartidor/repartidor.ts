@@ -49,11 +49,12 @@ interface Order {
 })
 export class RepartidorComponent implements OnInit {
    orders = signal<Order[]>([]);
-   loading = signal(true);
-   selectedStatus = signal<Order['status'] | ''>('');
-   selectedOrderMap = signal<string>('');
-   watchId: number | null = null;
-   deliveryPersonId: string | null = null;
+    loading = signal(true);
+    selectedStatus = signal<Order['status'] | ''>('');
+    selectedOrderMap = signal<string>('');
+    currentOrder = signal<Order | null>(null);
+    watchId: number | null = null;
+    deliveryPersonId: string | null = null;
 
    private authService = inject(AuthService);
 
@@ -131,9 +132,35 @@ updateOrderStatus(order: Order, newStatus: Order['status']) {
      });
    }
 
-   showMap(orderId: string) {
-     this.selectedOrderMap.set(orderId);
-   }
+showMap(order: Order) {
+      this.selectedOrderMap.set(order.id);
+      this.currentOrder.set(order);
+    }
+
+    acceptOrder(order: Order) {
+      if (!confirm(`¿Aceptar el pedido #${order.id}?`)) return;
+      
+      const token = localStorage.getItem('accessToken');
+      const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+      
+      this.http.put(`/api/orders/${order._id}/accept`, {}, { headers }).subscribe({
+        next: () => {
+          this.loadOrders();
+        },
+        error: (err) => {
+          console.error('Error aceptando pedido:', err);
+          alert('Error al aceptar el pedido');
+        }
+      });
+    }
+
+    onOrderAccepted(orderId: string) {
+      const order = this.orders().find(o => o.id === orderId);
+      if (order) {
+        this.acceptOrder(order);
+      }
+      this.selectedOrderMap.set('');
+    }
 
    filterOrders() {
      const status = this.selectedStatus();

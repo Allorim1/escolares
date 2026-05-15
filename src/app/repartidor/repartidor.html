@@ -20,7 +20,11 @@
     <div class="map-modal">
       <div class="map-content">
         <button class="btn-close" (click)="selectedOrderMap.set('')">×</button>
-        <app-order-tracking-map [orderId]="selectedOrderMap()"></app-order-tracking-map>
+        <app-order-tracking-map 
+          [orderId]="selectedOrderMap()" 
+          [showAcceptButton]="true"
+          (orderAccepted)="onOrderAccepted($event)">
+        </app-order-tracking-map>
       </div>
     </div>
   }
@@ -47,14 +51,22 @@
               <p><strong>Repartidor asignado:</strong> {{ order.deliveryPersonName }}</p>
             }
             @if (order.latitud && order.longitud) {
-              <button class="btn btn-sm btn-info" (click)="showMap(order.id)">
+              <button class="btn btn-sm btn-info" (click)="showMap(order)">
                 <i class="fas fa-map-marker-alt"></i> Ver en Mapa
               </button>
             }
           </div>
           <div class="order-footer">
             <div class="actions">
-              @if (order.status === 'pendiente' || order.status === 'procesando') {
+              @if (order.status === 'pendiente') {
+                <button class="btn btn-sm btn-success" (click)="acceptOrder(order)">
+                  <i class="fas fa-check"></i> Aceptar Pedido
+                </button>
+                <button class="btn btn-sm btn-primary" (click)="updateOrderStatus(order, 'procesando')">
+                  <i class="fas fa-cog"></i> Procesar
+                </button>
+              }
+              @if (order.status === 'procesando' || order.status === 'enviado') {
                 <button class="btn btn-sm btn-primary" (click)="updateOrderStatus(order, 'enviado')">
                   <i class="fas fa-truck"></i> Marcar como Enviado
                 </button>

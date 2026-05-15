@@ -138,36 +138,41 @@ export class AdminManuales implements OnInit {
       titulo: '',
       descripcion: ''
     };
-    this.formPasos.push(nuevoPaso);
+    this.formPasos = [...this.formPasos, nuevoPaso];
   }
 
   eliminarPaso(index: number) {
-    this.formPasos.splice(index, 1);
+    this.formPasos = this.formPasos.filter((_, i) => i !== index);
     // Renumber steps
     this.formPasos.forEach((paso, i) => {
       paso.numero = i + 1;
     });
+    this.formPasos = [...this.formPasos];
   }
 
   moverPasoArriba(index: number) {
     if (index > 0) {
-      const temp = this.formPasos[index];
-      this.formPasos[index] = this.formPasos[index - 1];
-      this.formPasos[index - 1] = temp;
-      this.formPasos.forEach((paso, i) => {
+      const newPasos = [...this.formPasos];
+      const temp = newPasos[index];
+      newPasos[index] = newPasos[index - 1];
+      newPasos[index - 1] = temp;
+      newPasos.forEach((paso, i) => {
         paso.numero = i + 1;
       });
+      this.formPasos = newPasos;
     }
   }
 
   moverPasoAbajo(index: number) {
     if (index < this.formPasos.length - 1) {
-      const temp = this.formPasos[index];
-      this.formPasos[index] = this.formPasos[index + 1];
-      this.formPasos[index + 1] = temp;
-      this.formPasos.forEach((paso, i) => {
+      const newPasos = [...this.formPasos];
+      const temp = newPasos[index];
+      newPasos[index] = newPasos[index + 1];
+      newPasos[index + 1] = temp;
+      newPasos.forEach((paso, i) => {
         paso.numero = i + 1;
       });
+      this.formPasos = newPasos;
     }
   }
 
@@ -242,10 +247,17 @@ export class AdminManuales implements OnInit {
   removeVideo(pasoIndex: number) {
     this.formPasos[pasoIndex].video = undefined;
     this.formPasos[pasoIndex].videoDuration = undefined;
+    this.formPasos = [...this.formPasos];
   }
 
   removeVideoUrl(pasoIndex: number) {
     this.formPasos[pasoIndex].videoUrl = undefined;
+    this.formPasos = [...this.formPasos];
+  }
+
+  removeImage(pasoIndex: number) {
+    this.formPasos[pasoIndex].imagen = undefined;
+    this.formPasos = [...this.formPasos];
   }
 
   updateVideoFromUrl(pasoIndex: number) {
@@ -273,9 +285,9 @@ export class AdminManuales implements OnInit {
       return this.sanitizer.bypassSecurityTrustHtml(embedHtml);
     }
     
-    const vimeoMatch = url.match(/(?:www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)/);
+    const vimeoMatch = url.match(/(?:www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|)(\d+)/);
     if (vimeoMatch) {
-      embedHtml = `<iframe width="100%" height="200" src="https://player.vimeo.com/video/${vimeoMatch[3]}" frameborder="0" allowfullscreen></iframe>`;
+      embedHtml = `<iframe width="100%" height="200" src="https://player.vimeo.com/video/${vimeoMatch[1]}" frameborder="0" allowfullscreen></iframe>`;
       return this.sanitizer.bypassSecurityTrustHtml(embedHtml);
     }
     

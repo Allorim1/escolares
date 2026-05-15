@@ -7,56 +7,204 @@ import { HttpClient } from '@angular/common/http';
   selector: 'app-order-tracking-map',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="tracking-map-container">
-      <div #mapContainer class="map"></div>
-      @if (order()) {
-        <div class="info-panel">
-          <h4>{{ order()?.nombre }}</h4>
-          <p><strong>Dirección:</strong> {{ order()?.direccionCompleta || order()?.direccion }}</p>
-          @if (estimatedTime()) {
-            <p class="estimated-time">⏱️ Llegada estimada: {{ estimatedTime() }}</p>
-          }
+template: `
+    <div class="tracking-container">
+      <div class="map-section">
+        <div #mapContainer class="map"></div>
+        @if (order()) {
+          <div class="map-info-panel">
+            <p class="est-cliente"><i class="fas fa-map-marker-alt"></i> Destino: {{ order()?.direccionCompleta || order()?.direccion }}</p>
+            @if (estimatedTime()) {
+              <p class="estimado"><i class="fas fa-clock"></i> Llegada: {{ estimatedTime() }}</p>
+            }
+          </div>
+        }
+        @if (showStartButton && order() && order()?.status === 'procesado') {
+          <button class="btn-start" (click)="startOrder()">
+            <i class="fas fa-truck"></i> Iniciar entrega
+          </button>
+        }
+      </div>
+
+      <div class="details-section">
+        <div class="details-header">
+          <h3><i class="fas fa-box"></i> Detalles del Pedido</h3>
         </div>
-      }
-      @if (showStartButton && order() && order()?.status === 'procesando') {
-        <button class="btn-start" (click)="startOrder()">
-          <i class="fas fa-truck"></i> Iniciar entrega
-        </button>
-      }
+        @if (order()) {
+          <div class="order-details">
+            <div class="detail-row">
+              <span class="label">Cliente:</span>
+              <span class="value">{{ order()?.nombre }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Teléfono:</span>
+              <span class="value">{{ order()?.telefono }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Fecha:</span>
+              <span class="value">{{ order()?.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="items-section">
+              <h4><i class="fas fa-shopping-cart"></i> Productos</h4>
+              <div class="items-list">
+                @for (item of order()?.items; track item.productId) {
+                  <div class="item-card">
+                    @if (item.image) {
+                      <img [src]="item.image" [alt]="item.title" class="item-image" />
+                    }
+                    <div class="item-info">
+                      <p class="item-title">{{ item.title }}</p>
+                      <p class="item-qty">Cant: {{ item.quantity }}</p>
+                      <p class="item-price">{{ item.price | currency:'USD':'symbol':'1.2-2' }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="total-section">
+              <span class="total-label">Total:</span>
+              <span class="total-value">{{ order()?.total | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            @if (order()?.referencia) {
+              <div class="instructions-section">
+                <h4><i class="fas fa-sticky-note"></i> Instrucciones</h4>
+                <p class="instructions">{{ order()?.referencia }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
     </div>
   `,
   styles: [`
-    .tracking-map-container {
+    .tracking-container {
+      display: flex;
+      height: 100%;
+      gap: 1px;
+    }
+    .map-section {
+      flex: 1;
       position: relative;
-      width: 100%;
-      height: 400px;
     }
     .map {
       width: 100%;
       height: 100%;
-      border-radius: 8px;
+      min-height: 500px;
+      border-radius: 8px 0 0 8px;
     }
-    .info-panel {
+    .map-info-panel {
       position: absolute;
-      bottom: 50px;
+      bottom: 10px;
       left: 10px;
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      max-width: 250px;
+      background: rgba(255,255,255,0.95);
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      max-width: 280px;
     }
-    .info-panel h4 {
-      margin: 0 0 5px 0;
+    .est-cliente, .estimado {
+      margin: 2px 0;
+      font-size: 12px;
+      color: #333;
     }
-    .info-panel p {
-      margin: 5px 0;
+    .details-section {
+      width: 350px;
+      background: #f8f9fa;
+      border-radius: 0 8px 8px 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .details-header {
+      padding: 15px 20px;
+      background: #007bff;
+      color: white;
+      border-radius: 0 8px 0 0;
+    }
+    .details-header h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .order-details {
+      padding: 15px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .detail-row .label {
+      color: #666;
       font-size: 14px;
     }
-    .estimated-time {
-      color: #007bff;
+    .detail-row .value {
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .items-section h4, .instructions-section h4 {
+      margin: 15px 0 10px;
+      font-size: 14px;
+      color: #333;
+    }
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .item-card {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .item-image {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .item-info {
+      flex: 1;
+    }
+    .item-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .item-qty, .item-price {
+      margin: 2px 0;
+      font-size: 12px;
+      color: #666;
+    }
+    .total-section {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 0;
+      margin-top: 10px;
+      border-top: 2px solid #007bff;
+    }
+    .total-label {
       font-weight: bold;
+      font-size: 16px;
+    }
+    .total-value {
+      font-weight: bold;
+      font-size: 16px;
+      color: #007bff;
+    }
+    .instructions-section {
+      margin-top: 15px;
+    }
+    .instructions {
+      margin: 5px 0 0;
+      padding: 10px;
+      background: #fff3cd;
+      border-radius: 4px;
+      font-size: 13px;
     }
     .btn-start {
       position: absolute;

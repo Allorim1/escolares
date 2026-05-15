@@ -51,14 +51,12 @@
             @if (order.deliveryPersonName) {
               <p><strong>Repartidor:</strong> {{ order.deliveryPersonName }}</p>
             }
-            @if (order.latitud && order.longitud) {
-              <button class="btn btn-sm btn-info" (click)="showMap(order)">
-                <i class="fas fa-map-marker-alt"></i> Ver Dirección
-              </button>
-            }
           </div>
           <div class="order-footer">
             <div class="actions">
+              <button class="btn btn-sm btn-info" (click)="showMap(order)">
+                <i class="fas fa-eye"></i> Ver Detalles
+              </button>
               @if (order.status === 'procesando') {
                 <button class="btn btn-sm btn-success" (click)="acceptOrder(order)">
                   <i class="fas fa-check"></i> Aceptar

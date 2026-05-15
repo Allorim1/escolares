@@ -12,12 +12,14 @@ template: `
       <div class="map-section">
         <div #mapContainer class="map"></div>
         @if (order()) {
-          <div class="map-info-panel">
-            <p class="est-cliente"><i class="fas fa-map-marker-alt"></i> Destino: {{ order()?.direccionCompleta || order()?.direccion }}</p>
-            @if (estimatedTime()) {
-              <p class="estimado"><i class="fas fa-clock"></i> Llegada: {{ estimatedTime() }}</p>
-            }
-          </div>
+          @if (order()?.latitud && order()?.longitud) {
+            <div class="map-info-panel">
+              <p class="est-cliente"><i class="fas fa-map-marker-alt"></i> Destino: {{ order()?.direccionCompleta || order()?.direccion }}</p>
+              @if (estimatedTime()) {
+                <p class="estimado"><i class="fas fa-clock"></i> Llegada: {{ estimatedTime() }}</p>
+              }
+            </div>
+          }
         }
         @if (showStartButton && order() && order()?.status === 'procesado') {
           <button class="btn-start" (click)="startOrder()">
@@ -44,6 +46,12 @@ template: `
               <span class="label">Fecha:</span>
               <span class="value">{{ order()?.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
             </div>
+            @if (order()?.latitud && order()?.longitud) {
+              <div class="detail-row">
+                <span class="label">Ubicación:</span>
+                <span class="value">{{ order()?.direccionCompleta || order()?.direccion }}</span>
+              </div>
+            }
             <div class="items-section">
               <h4><i class="fas fa-shopping-cart"></i> Productos</h4>
               <div class="items-list">
@@ -278,7 +286,13 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
 
   async initMap() {
     const order = this.order();
-    if (!order || !order.latitud || !order.longitud) return;
+    if (!order || !order.latitud || !order.longitud) {
+      // Still try to init map with default center if no coordinates
+      this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
+        zoom: 10
+      });
+      return;
+    }
 
     this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
       center: { lat: order.latitud, lng: order.longitud },

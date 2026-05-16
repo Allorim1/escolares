@@ -52,23 +52,41 @@
       </div>
 
       <div class="modal-body">
-        <div class="form-section">
-          <div class="form-section-title">Información de Acceso</div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Usuario *</label>
-              <input type="text" [(ngModel)]="newUser.username" placeholder="Nombre de usuario" />
-            </div>
-            <div class="form-group">
-              <label>Contraseña *</label>
-              <input type="password" [(ngModel)]="newUser.password" placeholder="Contraseña" />
-            </div>
-            <div class="form-group">
-              <label>Email *</label>
-              <input type="email" [(ngModel)]="newUser.email" placeholder="correo@ejemplo.com" />
-            </div>
-          </div>
-        </div>
+<div class="form-section">
+           <div class="form-section-title">Información de Acceso</div>
+           <div class="form-grid">
+             <div class="form-group">
+               <label>Usuario *</label>
+               <input type="text" [(ngModel)]="newUser.username" placeholder="Nombre de usuario" />
+             </div>
+             <div class="form-group">
+               <label>Contraseña *</label>
+               <input type="password" [(ngModel)]="newUser.password" placeholder="Contraseña" />
+             </div>
+             <div class="form-group">
+               <label>Email *</label>
+               <input type="email" [(ngModel)]="newUser.email" placeholder="correo@ejemplo.com" />
+             </div>
+<div class="form-group">
+                <label>Rol</label>
+                <select [(ngModel)]="newUser.rol" (change)="newUser.rolId = undefined">
+                  <option value="usuario">Usuario</option>
+                  <option value="owner">Owner</option>
+                </select>
+              </div>
+              @if (newUser.rol === 'usuario' && roles().length > 0) {
+                <div class="form-group">
+                  <label>Seleccionar Rol Específico</label>
+                  <select [(ngModel)]="newUser.rolId">
+                    <option value="">-- Seleccionar rol --</option>
+                    @for (rol of roles(); track rol.id) {
+                      <option [value]="rol.id">{{ rol.nombre }}</option>
+                    }
+                  </select>
+                </div>
+              }
+           </div>
+         </div>
 
         <div class="form-section">
           <div class="form-section-title">Datos Personales</div>
@@ -231,41 +249,101 @@
           }
         }
 
-        @if (userDetailsTab() === 'rol') {
-          <div class="rol-info">
-            <div class="form-group">
-              <label>Seleccionar Rol</label>
-              <select class="rol-select" [(ngModel)]="selectedUserRolData">
-                <option value="usuario">Usuario</option>
-                <option value="owner">Owner</option>
-                @for (rol of roles(); track rol.id) {
-                  <option [value]="'usuario:' + rol.id">{{ rol.nombre }}</option>
-                }
-              </select>
+@if (userDetailsTab() === 'rol') {
+            <div class="rol-info">
+              <div class="form-group">
+                <label>Seleccionar Rol</label>
+                <select class="rol-select" [(ngModel)]="selectedUserRolData">
+                  <option value="usuario">Usuario</option>
+                  <option value="owner">Owner</option>
+                  @for (rol of roles(); track rol.id) {
+                    <option [value]="'usuario:' + rol.id">{{ rol.nombre }}</option>
+                  }
+                </select>
+              </div>
+              
+              @if (getSelectedRolFromId(); as selectedRol) {
+                <div class="rol-permisos-section">
+                  <div class="rol-permisos-header">
+                    <h4>Permisos del Rol: {{ selectedRol.nombre }}</h4>
+                    <button class="btn-edit-permisos" (click)="openEditPermisos(selectedRol)">Editar Permisos</button>
+                  </div>
+                  <div class="permisos-list">
+                    @if (getPermisosDelRol().length === 0) {
+                      <p class="no-permisos">Este rol no tiene permisos asignados</p>
+                    } @else {
+                      @for (permiso of getPermisosDelRol(); track permiso.id) {
+                        <div class="permiso-item">
+                          <span class="permiso-nombre">{{ permiso.nombre }}</span>
+                          <span class="permiso-modulo">{{ permiso.modulo }}</span>
+                        </div>
+                      }
+                    }
+                  </div>
+                  <p class="permisos-count">{{ getPermisosCount() }} permisos asignados</p>
+                </div>
+              }
             </div>
-          </div>
-        }
+          }
 
-        @if (userDetailsTab() === 'password') {
-          <div class="form-group">
-            <label>Nueva Contraseña</label>
-            <input type="password" [(ngModel)]="newPassword" placeholder="Ingrese nueva contraseña" />
-          </div>
-        }
-      </div>
+@if (userDetailsTab() === 'password') {
+           <div class="form-group">
+             <label>Nueva Contraseña</label>
+             <input type="password" [(ngModel)]="newPassword" placeholder="Ingrese nueva contraseña" />
+           </div>
+         }
+       </div>
 
-      <div class="modal-footer">
-        @if (userDetailsTab() === 'info') {
-          <button class="btn-danger" (click)="confirmDeleteUserFromDetails()">Eliminar</button>
-          <button class="btn-primary" (click)="saveUserDetails()">Guardar</button>
-        }
-        @if (userDetailsTab() === 'rol') {
-          <button class="btn-primary" (click)="saveUserRoleFromDetails()">Guardar Rol</button>
-        }
-        @if (userDetailsTab() === 'password') {
-          <button class="btn-primary" (click)="changePasswordFromDetails()">Cambiar Contraseña</button>
-        }
-      </div>
-    </div>
-  </div>
-}
+       <div class="modal-footer">
+         @if (userDetailsTab() === 'info') {
+           <button class="btn-danger" (click)="confirmDeleteUserFromDetails()">Eliminar</button>
+           <button class="btn-primary" (click)="saveUserDetails()">Guardar</button>
+         }
+         @if (userDetailsTab() === 'rol') {
+           <button class="btn-primary" (click)="saveUserRoleFromDetails()">Guardar Rol</button>
+         }
+         @if (userDetailsTab() === 'password') {
+           <button class="btn-primary" (click)="changePasswordFromDetails()">Cambiar Contraseña</button>
+         }
+       </div>
+     </div>
+   </div>
+ }
+
+ @if (editRolPermisosState().show && editRolPermisosState().rol) {
+   <div class="modal-overlay" (click)="closeEditPermisos()">
+     <div class="modal-content" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>Editar Permisos: {{ editRolPermisosState().rol?.nombre }}</h3>
+         <button class="close-btn" (click)="closeEditPermisos()">&times;</button>
+       </div>
+       
+       <div class="modal-body">
+         <div class="permisos-edit-grid">
+           @for (modulo of getModulos(); track modulo) {
+             <div class="modulo-section">
+               <h5>{{ modulo }}</h5>
+<div class="permisos-checkboxes">
+                  @for (permiso of getPermisosPorModulo(modulo); track permiso.id) {
+                   <label class="permiso-checkbox">
+                     <input 
+                       type="checkbox" 
+                       [checked]="isPermisoSelected(permiso.id)"
+                       (change)="togglePermiso(permiso.id)"
+                     />
+                     <span>{{ permiso.nombre }}</span>
+                   </label>
+                 }
+               </div>
+             </div>
+           }
+         </div>
+       </div>
+       
+       <div class="modal-footer">
+         <button class="btn-secondary" (click)="closeEditPermisos()">Cancelar</button>
+         <button class="btn-primary" (click)="saveRolPermisos()">Guardar Permisos</button>
+       </div>
+     </div>
+   </div>
+ }

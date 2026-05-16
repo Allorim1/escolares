@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { User } from '../../backend/models';
-import { RolesBackend, Rol } from '../../backend/data-access/roles.backend';
+import { RolesBackend, Rol, Permiso } from '../../backend/data-access/roles.backend';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface UserWithRol extends User {
@@ -24,6 +24,14 @@ interface NewUser {
   tipoDocumento: 'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e';
   numeroDocumento: string;
   genero: 'hombre' | 'mujer' | 'no_especificado';
+  rol: 'owner' | 'usuario';
+  rolId?: string;
+}
+
+interface EditRolPermisosState {
+  show: boolean;
+  rol?: Rol;
+  permisosSeleccionados: string[];
 }
 
 @Component({
@@ -41,9 +49,14 @@ export class AdminUsuarios implements OnInit {
   private notificationModal = inject(NotificationModalService);
 
   usuarios = signal<UserWithRol[]>([]);
+  usuariosFiltrados = signal<UserWithRol[]>([]);
   roles = signal<Rol[]>([]);
+  permisos = signal<Permiso[]>([]);
   cargando = signal(true);
   error = signal<string | null>(null);
+
+  filtroTexto = '';
+  filtroTipo: 'todos' | 'admin' | 'comun' = 'todos';
 
   selectedUser = signal<UserWithRol | null>(null);
   editingUser = signal<UserWithRol | null>(null);
@@ -61,12 +74,19 @@ export class AdminUsuarios implements OnInit {
     password: '',
     tipoDocumento: 'cedula',
     numeroDocumento: '',
-    genero: 'no_especificado'
+    genero: 'no_especificado',
+    rol: 'usuario',
+    rolId: undefined
   };
 
   userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
   selectedUserRolData = '';
   newPassword = '';
+  
+  editRolPermisosState = signal<EditRolPermisosState>({
+    show: false,
+    permisosSeleccionados: []
+  });
 
   ngOnInit() {
     if (!this.esRoot()) {
@@ -79,13 +99,29 @@ export class AdminUsuarios implements OnInit {
   cargarDatos() {
     this.cargando.set(true);
     
-    this.rolesBackend.getRoles().subscribe({
-      next: (roles) => {
-        this.roles.set(roles);
-        this.cargarUsuarios();
+    this.rolesBackend.getPermisos().subscribe({
+      next: (permisos) => {
+        this.permisos.set(permisos);
+        this.rolesBackend.getRoles().subscribe({
+          next: (roles) => {
+            this.roles.set(roles);
+            this.cargarUsuarios();
+          },
+          error: () => {
+            this.cargarUsuarios();
+          }
+        });
       },
       error: () => {
-        this.cargarUsuarios();
+        this.rolesBackend.getRoles().subscribe({
+          next: (roles) => {
+            this.roles.set(roles);
+            this.cargarUsuarios();
+          },
+          error: () => {
+            this.cargarUsuarios();
+          }
+        });
       }
     });
   }
@@ -100,7 +136,7 @@ export class AdminUsuarios implements OnInit {
         this.usuarios.set(usersWithRoles);
         this.cargando.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.error.set('Error al cargar usuarios');
         this.cargando.set(false);
       },
@@ -160,6 +196,81 @@ export class AdminUsuarios implements OnInit {
       return this.roles().find(r => r.id === rolId);
     }
     return undefined;
+  }
+
+  getPermisosDelRol(): Permiso[] {
+    const rol = this.getSelectedRolFromId();
+    if (!rol) return [];
+    return this.permisos().filter(p => rol.permisos.includes(p.id));
+  }
+
+  getPermisosCount(): number {
+    return this.getSelectedRolFromId()?.permisos?.length || 0;
+  }
+
+  openEditPermisos(rol?: Rol) {
+    const rolToEdit = rol || this.getSelectedRolFromId();
+    if (!rolToEdit) return;
+    
+    this.editRolPermisosState.set({
+      show: true,
+      rol: rolToEdit,
+      permisosSeleccionados: [...(rolToEdit.permisos || [])]
+    });
+  }
+
+  closeEditPermisos() {
+    this.editRolPermisosState.set({
+      show: false,
+      permisosSeleccionados: []
+    });
+  }
+
+  togglePermiso(permisoId: string) {
+    const currentState = this.editRolPermisosState();
+    const index = currentState.permisosSeleccionados.indexOf(permisoId);
+    
+    if (index >= 0) {
+      this.editRolPermisosState.set({
+        ...currentState,
+        permisosSeleccionados: currentState.permisosSeleccionados.filter(p => p !== permisoId)
+      });
+    } else {
+      this.editRolPermisosState.set({
+        ...currentState,
+        permisosSeleccionados: [...currentState.permisosSeleccionados, permisoId]
+      });
+    }
+  }
+
+  isPermisoSelected(permisoId: string): boolean {
+    return this.editRolPermisosState().permisosSeleccionados.includes(permisoId);
+  }
+
+  saveRolPermisos() {
+    const state = this.editRolPermisosState();
+    if (!state.rol) return;
+
+    this.rolesBackend.updateRol(state.rol.id, { permisos: state.permisosSeleccionados }).subscribe({
+      next: () => {
+        this.rolesBackend.getRoles().subscribe({
+          next: (roles) => this.roles.set(roles)
+        });
+        this.closeEditPermisos();
+        this.notificationModal.success('Permisos del rol actualizados correctamente');
+      },
+      error: () => {
+        this.error.set('Error al actualizar permisos del rol');
+      }
+    });
+  }
+
+  getModulos(): string[] {
+    return Array.from(new Set(this.permisos().map(p => p.modulo)));
+  }
+
+  getPermisosPorModulo(modulo: string): Permiso[] {
+    return this.permisos().filter(p => p.modulo === modulo);
   }
 
   saveUserRoleFromDetails() {
@@ -286,7 +397,9 @@ export class AdminUsuarios implements OnInit {
       password: '',
       tipoDocumento: 'cedula',
       numeroDocumento: '',
-      genero: 'no_especificado'
+      genero: 'no_especificado',
+      rol: 'usuario',
+      rolId: undefined
     };
   }
 
@@ -349,6 +462,8 @@ export class AdminUsuarios implements OnInit {
       tipoDocumento: tipo,
       numeroDocumento: numero,
       genero: userData.genero,
+      rol: userData.rol,
+      rolId: userData.rolId,
     }).subscribe({
       next: () => {
         this.cargarUsuarios();

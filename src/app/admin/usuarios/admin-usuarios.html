@@ -13,6 +13,28 @@
   @if (cargando()) {
     <div class="cargando">Cargando usuarios...</div>
   } @else {
+    <div class="filtros-usuarios">
+      <div class="busqueda-container">
+        <input 
+          type="text" 
+          placeholder="Buscar por nombre, cédula o email..." 
+          [value]="filtroTexto"
+          (input)="onFiltroTextoChange($any($event.target).value)"
+          class="busqueda-input"
+        />
+      </div>
+      <div class="filtro-tipo-container">
+        <select 
+          [value]="filtroTipo"
+          (change)="onFiltroTipoChange($any($event.target).value)"
+          class="filtro-tipo-select"
+        >
+          <option value="todos">Todos</option>
+          <option value="admin">Administrativo</option>
+          <option value="comun">Común</option>
+        </select>
+      </div>
+    </div>
     <button class="btn-crear-usuario" (click)="openCreateUser()">+ Crear Usuario</button>
     <table class="usuarios-table">
       <thead>
@@ -24,7 +46,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (usuario of usuarios(); track usuario.id) {
+        @for (usuario of usuariosFiltrados; track usuario.id) {
           <tr>
             <td>{{ usuario.username }}</td>
             <td>{{ usuario.email }}</td>

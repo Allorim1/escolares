@@ -48,8 +48,42 @@ export class AdminUsuarios implements OnInit {
   private router = inject(Router);
   private notificationModal = inject(NotificationModalService);
 
+  filtrarUsuarios() {
+    let resultado = this.usuarios();
+    const texto = this.filtroTexto.toLowerCase().trim();
+    const tipo = this.filtroTipo;
+
+    if (texto) {
+      resultado = resultado.filter(u =>
+        (u.username?.toLowerCase().includes(texto)) ||
+        (u.nombreCompleto?.toLowerCase().includes(texto)) ||
+        (u.cedula?.toLowerCase().includes(texto)) ||
+        (u.email?.toLowerCase().includes(texto))
+      );
+    }
+
+    if (tipo === 'admin') {
+      resultado = resultado.filter(u => u.rol === 'root' || u.rol === 'owner');
+    } else if (tipo === 'comun') {
+      resultado = resultado.filter(u => u.rol === 'usuario');
+    }
+
+    return resultado;
+  }
+
+  onFiltroTextoChange(valor: string) {
+    this.filtroTexto = valor;
+  }
+
+  onFiltroTipoChange(valor: 'todos' | 'admin' | 'comun') {
+    this.filtroTipo = valor;
+  }
+
+  get usuariosFiltrados(): UserWithRol[] {
+    return this.filtrarUsuarios();
+  }
+
   usuarios = signal<UserWithRol[]>([]);
-  usuariosFiltrados = signal<UserWithRol[]>([]);
   roles = signal<Rol[]>([]);
   permisos = signal<Permiso[]>([]);
   cargando = signal(true);

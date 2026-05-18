@@ -9,6 +9,7 @@ interface DeliveryPerson {
   nombre: string;
   telefono?: string;
   activo: boolean;
+  fotoDNI?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,8 +31,10 @@ export class AdminRepartidoresComponent implements OnInit {
     telefono: '',
     activo: true,
     email: '',
-    password: ''
+    password: '',
+    fotoDNI: ''
   });
+  selectedDNIFile: File | null = null;
 
   constructor(private http: HttpClient) {}
 
@@ -54,12 +57,14 @@ export class AdminRepartidoresComponent implements OnInit {
       telefono: '',
       activo: true,
       email: '',
-      password: ''
+      password: '',
+      fotoDNI: ''
     });
+    this.selectedDNIFile = null;
     this.showModal.set(true);
   }
 
-  showEditForm(person: DeliveryPerson) {
+  async showEditForm(person: DeliveryPerson) {
     this.editingPerson.set(person);
     this.isAdding.set(false);
     this.formData.set({
@@ -67,9 +72,18 @@ export class AdminRepartidoresComponent implements OnInit {
       telefono: person.telefono || '',
       activo: person.activo,
       email: '',
-      password: ''
+      password: '',
+      fotoDNI: person.fotoDNI || ''
     });
+    this.selectedDNIFile = null;
     this.showModal.set(true);
+  }
+
+  onDNIFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedDNIFile = file;
+    }
   }
 
   cancelEdit() {
@@ -91,9 +105,13 @@ export class AdminRepartidoresComponent implements OnInit {
         return;
       }
       this.http.post<DeliveryPerson>('/api/delivery', data).subscribe({
-        next: () => {
-          this.loadDeliveryPersons();
-          this.cancelEdit();
+        next: (newPerson) => {
+          if (this.selectedDNIFile && newPerson.id) {
+            this.uploadDNI(newPerson.id);
+          } else {
+            this.loadDeliveryPersons();
+            this.cancelEdit();
+          }
         },
         error: (err) => {
           console.error('Error creando repartidor:', err);
@@ -102,7 +120,7 @@ export class AdminRepartidoresComponent implements OnInit {
       });
     } else {
       const person = this.editingPerson();
-      if (!person?._id) return;
+      if (!person?.id) return;
       const updateData: any = {
         nombre: data.nombre,
         telefono: data.telefono,
@@ -110,10 +128,15 @@ export class AdminRepartidoresComponent implements OnInit {
       };
       if (data.email) updateData.email = data.email;
       if (data.password) updateData.password = data.password;
-      this.http.put<DeliveryPerson>(`/api/delivery/${person._id}`, updateData).subscribe({
+      const personId = person.id;
+      this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe({
         next: () => {
-          this.loadDeliveryPersons();
-          this.cancelEdit();
+          if (this.selectedDNIFile) {
+            this.uploadDNI(personId);
+          } else {
+            this.loadDeliveryPersons();
+            this.cancelEdit();
+          }
         },
         error: (err) => {
           console.error('Error actualizando repartidor:', err);
@@ -123,9 +146,27 @@ export class AdminRepartidoresComponent implements OnInit {
     }
   }
 
+  uploadDNI(personId: string) {
+    if (!this.selectedDNIFile) return;
+    
+    const formData = new FormData();
+    formData.append('dni', this.selectedDNIFile);
+    
+    this.http.post<DeliveryPerson>(`/api/delivery/${personId}/dni`, formData).subscribe({
+      next: () => {
+        this.loadDeliveryPersons();
+        this.cancelEdit();
+      },
+      error: (err) => {
+        console.error('Error subiendo DNI:', err);
+        alert('Error al subir foto de DNI');
+      }
+    });
+  }
+
   deletePerson(person: DeliveryPerson) {
     if (!confirm(`¿Eliminar repartidor "${person.nombre}"?`)) return;
-    this.http.delete(`/api/delivery/${person._id}`).subscribe({
+    this.http.delete(`/api/delivery/${person.id}`).subscribe({
       next: () => this.loadDeliveryPersons(),
       error: (err) => {
         console.error('Error eliminando repartidor:', err);
@@ -140,7 +181,7 @@ export class AdminRepartidoresComponent implements OnInit {
       telefono: person.telefono, 
       activo: !person.activo 
     };
-    this.http.put<DeliveryPerson>(`/api/delivery/${person._id}`, updated).subscribe({
+    this.http.put<DeliveryPerson>(`/api/delivery/${person.id}`, updated).subscribe({
       next: () => this.loadDeliveryPersons(),
       error: (err) => {
         console.error('Error cambiando estado:', err);

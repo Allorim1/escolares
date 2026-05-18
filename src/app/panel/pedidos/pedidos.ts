@@ -1,13 +1,26 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { OrdersBackend, Order, OrderStatus } from '../../backend/data-access/orders.backend';
+import { HttpClient } from '@angular/common/http';
+
+interface DeliveryPerson {
+  _id?: string;
+  id: string;
+  nombre: string;
+  telefono?: string;
+  activo: boolean;
+  fotoDNI?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 @Component({
   selector: 'app-pedidos',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, DatePipe],
+  imports: [RouterLink, CurrencyPipe, DatePipe, CommonModule, FormsModule],
   templateUrl: './pedidos.html',
   styleUrls: ['./pedidos.css'],
 })
@@ -16,11 +29,17 @@ export default class Pedidos implements OnInit {
   private notificationService = inject(NotificationService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private http = inject(HttpClient);
   
   orders = signal<Order[]>([]);
   private previousOrders = new Map<string, Order>();
   loading = signal(true);
   selectedOrder = signal<Order | null>(null);
+
+  // Modal de ficha técnica del repartidor
+  showDeliveryPersonModal = signal(false);
+  selectedDeliveryPerson = signal<DeliveryPerson | null>(null);
+  deliveryPersonLoading = signal(false);
 
   statusSteps: { status: OrderStatus; label: string; icon: string }[] = [
     { status: 'pendiente', label: 'Pedido recibido', icon: '📋' },
@@ -95,5 +114,26 @@ export default class Pedidos implements OnInit {
   getStatusIcon(status: OrderStatus): string {
     const step = this.statusSteps.find(s => s.status === status);
     return step?.icon || '📦';
+  }
+
+  openDeliveryPersonModal(deliveryPersonId: string) {
+    if (!deliveryPersonId) return;
+    this.deliveryPersonLoading.set(true);
+    this.http.get<DeliveryPerson>(`/api/delivery/${deliveryPersonId}`).subscribe({
+      next: (person) => {
+        this.selectedDeliveryPerson.set(person);
+        this.showDeliveryPersonModal.set(true);
+        this.deliveryPersonLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading delivery person:', err);
+        this.deliveryPersonLoading.set(false);
+      }
+    });
+  }
+
+  closeDeliveryPersonModal() {
+    this.showDeliveryPersonModal.set(false);
+    this.selectedDeliveryPerson.set(null);
   }
 }

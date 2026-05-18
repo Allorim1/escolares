@@ -174,12 +174,17 @@
               <span class="label">Dirección:</span>
               <span class="value">{{ selectedOrder()!.direccion }}</span>
             </div>
-            @if (selectedOrder()!.deliveryPersonName) {
-              <div class="detail-item full">
-                <span class="label">Repartidor asignado:</span>
-                <span class="value delivery-person">{{ selectedOrder()!.deliveryPersonName }}</span>
-              </div>
-            }
+@if (selectedOrder()!.deliveryPersonName) {
+               <div class="detail-item full">
+                 <span class="label">Repartidor asignado:</span>
+                 <span class="value delivery-person">
+                   {{ selectedOrder()!.deliveryPersonName }}
+                   <button class="btn-view-delivery-profile" (click)="openDeliveryPersonModal(selectedOrder()!.deliveryPersonId!)">
+                     📋 Ver ficha
+                   </button>
+                 </span>
+               </div>
+             }
           </div>
         </div>
         
@@ -300,49 +305,100 @@
 }
 
 @if (showAssignDeliveryModal()) {
-  <div class="modal-overlay" (click)="closeAssignDeliveryModal()">
-    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Asignar Repartidor - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
-        <button class="close-btn" (click)="closeAssignDeliveryModal()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Repartidor *</label>
-          @if (loadingDeliveryPersons()) {
-            <div class="loading-text">Cargando repartidores...</div>
-          } @else {
-            <select
-              [value]="selectedDeliveryPersonId()"
-              (change)="selectedDeliveryPersonId.set($any($event.target).value || '')"
-              class="delivery-select"
-            >
-              <option value="">Selecciona un repartidor</option>
-              @for (person of deliveryPersons(); track person.id) {
-                <option [value]="person.id">{{ person.nombre }} {{ person.telefono ? '(' + person.telefono + ')' : '' }}</option>
-              }
-            </select>
-            <small class="help-text">Selecciona un repartidor de la lista</small>
-          }
-        </div>
+   <div class="modal-overlay" (click)="closeAssignDeliveryModal()">
+     <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>Asignar Repartidor - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+         <button class="close-btn" (click)="closeAssignDeliveryModal()">&times;</button>
+       </div>
+       
+       <div class="modal-body">
+         <div class="form-group">
+           <label>Repartidor *</label>
+           @if (loadingDeliveryPersons()) {
+             <div class="loading-text">Cargando repartidores...</div>
+           } @else {
+             <select
+               [value]="selectedDeliveryPersonId()"
+               (change)="selectedDeliveryPersonId.set($any($event.target).value || '')"
+               class="delivery-select"
+             >
+               <option value="">Selecciona un repartidor</option>
+               @for (person of deliveryPersons(); track person.id) {
+                 <option [value]="person.id">{{ person.nombre }} {{ person.telefono ? '(' + person.telefono + ')' : '' }}</option>
+               }
+             </select>
+             <small class="help-text">Selecciona un repartidor de la lista</small>
+           }
+         </div>
 
-        @if (assignDeliveryError()) {
-          <div class="error-message">{{ assignDeliveryError() }}</div>
-        }
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeAssignDeliveryModal()">Cancelar</button>
-        <button class="btn-primary" (click)="assignDeliveryPerson()" [disabled]="isAssigningDelivery() || !selectedDeliveryPersonId()">
-          {{ isAssigningDelivery() ? 'Asignando...' : 'Asignar Repartidor' }}
-        </button>
-      </div>
-    </div>
-  </div>
-}
+         @if (assignDeliveryError()) {
+           <div class="error-message">{{ assignDeliveryError() }}</div>
+         }
+       </div>
+       
+       <div class="modal-footer">
+         <button class="btn-secondary" (click)="closeAssignDeliveryModal()">Cancelar</button>
+         <button class="btn-primary" (click)="assignDeliveryPerson()" [disabled]="isAssigningDelivery() || !selectedDeliveryPersonId()">
+           {{ isAssigningDelivery() ? 'Asignando...' : 'Asignar Repartidor' }}
+         </button>
+       </div>
+     </div>
+   </div>
+ }
 
-@if (imageModalOpen()) {
+ @if (showDeliveryPersonModal()) {
+   <div class="modal-overlay" (click)="closeDeliveryPersonModal()">
+     <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>📋 Ficha Técnica del Repartidor</h3>
+         <button class="close-btn" (click)="closeDeliveryPersonModal()">&times;</button>
+       </div>
+       
+       <div class="modal-body">
+         @if (selectedDeliveryPerson()) {
+           <div class="delivery-person-profile">
+             <div class="profile-section">
+               <h4>Datos Personales</h4>
+               <div class="profile-grid">
+                 <div class="profile-item">
+                   <span class="label">Nombre:</span>
+                   <span class="value">{{ selectedDeliveryPerson()!.nombre }}</span>
+                 </div>
+                 @if (selectedDeliveryPerson()!.telefono) {
+                   <div class="profile-item">
+                     <span class="label">Teléfono:</span>
+                     <span class="value">{{ selectedDeliveryPerson()!.telefono }}</span>
+                   </div>
+                 }
+                 <div class="profile-item">
+                   <span class="label">Estado:</span>
+                   <span class="value">
+                     <span class="status-badge" [class.active]="selectedDeliveryPerson()!.activo" [class.inactive]="!selectedDeliveryPerson()!.activo">
+                       {{ selectedDeliveryPerson()!.activo ? 'Activo' : 'Inactivo' }}
+                     </span>
+                   </span>
+                 </div>
+               </div>
+             </div>
+
+             @if (selectedDeliveryPerson()!.fotoDNI) {
+               <div class="profile-section">
+                 <h4>Foto de DNI</h4>
+                 <div class="dni-image-container">
+                   <img [src]="selectedDeliveryPerson()!.fotoDNI" alt="DNI del repartidor" class="dni-image" />
+                   <a [href]="selectedDeliveryPerson()!.fotoDNI" target="_blank" class="btn-view-dni">🔍 Ver en tamaño original</a>
+                 </div>
+               </div>
+             }
+           </div>
+         }
+       </div>
+     </div>
+   </div>
+ }
+
+ @if (imageModalOpen()) {
   <div class="image-modal-overlay" (click)="closeImageModal()">
     <div class="image-modal-content" (click)="$event.stopPropagation()">
       <button class="image-modal-close" (click)="closeImageModal()">✕</button>

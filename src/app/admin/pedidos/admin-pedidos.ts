@@ -6,14 +6,15 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
 interface DeliveryPerson {
-  _id?: string;
-  id: string;
-  nombre: string;
-  telefono?: string;
-  activo: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+   _id?: string;
+   id: string;
+   nombre: string;
+   telefono?: string;
+   activo: boolean;
+   fotoDNI?: string;
+   createdAt: Date;
+   updatedAt: Date;
+ }
 
 interface OrderItem {
   productId: number | string;
@@ -105,13 +106,17 @@ export class AdminPedidos implements OnInit, OnDestroy {
   facturaFile = signal<File | null>(null);
   facturaPreview = signal<string | null>(null);
 
-  // Modal de asignar repartidor
-  showAssignDeliveryModal = signal(false);
-  deliveryPersons = signal<DeliveryPerson[]>([]);
-  selectedDeliveryPersonId = signal('');
-  assignDeliveryError = signal('');
-  isAssigningDelivery = signal(false);
-  loadingDeliveryPersons = signal(false);
+// Modal de asignar repartidor
+   showAssignDeliveryModal = signal(false);
+   deliveryPersons = signal<DeliveryPerson[]>([]);
+   selectedDeliveryPersonId = signal('');
+   assignDeliveryError = signal('');
+   isAssigningDelivery = signal(false);
+   loadingDeliveryPersons = signal(false);
+
+   // Modal de ficha técnica del repartidor
+   showDeliveryPersonModal = signal(false);
+   selectedDeliveryPerson = signal<DeliveryPerson | null>(null);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -614,5 +619,18 @@ export class AdminPedidos implements OnInit, OnDestroy {
         this.assignDeliveryError.set(err.error?.error || 'Error al asignar repartidor');
       }
     });
+  }
+
+  openDeliveryPersonModal(personId: string) {
+    const person = this.deliveryPersons().find(p => p.id === personId);
+    if (person) {
+      this.selectedDeliveryPerson.set(person);
+      this.showDeliveryPersonModal.set(true);
+    }
+  }
+
+  closeDeliveryPersonModal() {
+    this.showDeliveryPersonModal.set(false);
+    this.selectedDeliveryPerson.set(null);
   }
 }

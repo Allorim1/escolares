@@ -5,6 +5,15 @@ import { FormsModule } from '@angular/forms';
 import { OrderTrackingMapComponent } from './order-tracking-map/order-tracking-map';
 import { AuthService } from '../shared/data-access/auth.service';
 
+interface DeliveryPerson {
+  id: string;
+  nombre: string;
+  telefono?: string;
+  activo: boolean;
+  userId?: string;
+  fotoDNI?: string;
+}
+
 interface Order {
   _id?: string;
   id: string;
@@ -60,13 +69,26 @@ export class RepartidorComponent implements OnInit {
 
    constructor(private http: HttpClient) {}
 
-   ngOnInit() {
-     const user = this.authService.currentUser();
-     this.deliveryPersonId = user?.deliveryPersonId || null;
-     
-     this.loadOrders();
-     this.watchLocation();
-   }
+ngOnInit() {
+      const user = this.authService.currentUser();
+      const currentUserId = user?.id;
+      
+      // Fetch delivery person by userId since the relationship is stored as deliveryPerson.userId
+      const token = localStorage.getItem('accessToken');
+      const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+      
+      this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`).subscribe({
+        next: (person) => {
+          this.deliveryPersonId = person.id;
+          this.loadOrders();
+          this.watchLocation();
+        },
+        error: (err) => {
+          console.error('Error loading delivery person:', err);
+          this.loadOrders(); // Still try to load orders even if delivery person lookup fails
+        }
+      });
+    }
 
    ngOnDestroy() {
      if (this.watchId) {

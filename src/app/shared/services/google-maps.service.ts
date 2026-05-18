@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -15,9 +16,16 @@ export class GoogleMapsService {
   async loadApi(): Promise<void> {
     if (this.isLoaded) return;
     
+    const apiKey = environment.googleMapsApiKey || '';
+    
+    if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
+      console.warn('Google Maps API key not configured. Please set googleMapsApiKey in environment.ts');
+      return Promise.reject(new Error('Google Maps API key not configured'));
+    }
+    
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env["MAPS_API_KEY"]}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
       script.onload = () => {

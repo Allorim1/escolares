@@ -115,93 +115,113 @@ export class RepartidorComponent implements OnInit {
      });
    }
 
- updateOrderStatus(order: Order, newStatus: Order['status']) {
-     if (!confirm(`¿Cambiar estado a "${this.getStatusText(newStatus)}"?`)) return;
-     
-     const token = localStorage.getItem('accessToken');
-     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
-     
-     this.http.put(`/api/orders/${order.id}/status`, { status: newStatus }, { headers }).subscribe({
-       next: () => {
-         this.loadOrders();
-       },
-       error: (err) => {
-         console.error('Error actualizando estado:', err);
-         alert('Error al actualizar estado');
-       }
-     });
-   }
+updateOrderStatus(order: Order, newStatus: Order['status']) {
+    if (!confirm(`¿Cambiar estado a "${this.getStatusText(newStatus)}"?`)) return;
 
-showMap(order: Order) {
-       this.selectedOrderMap.set(order.id);
-       this.currentOrder.set(order);
-     }
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
-     acceptOrder(order: Order) {
-       if (!confirm(`¿Aceptar el pedido #${order.id}?`)) return;
-       
-       const token = localStorage.getItem('accessToken');
-       const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
-       
-       this.http.put(`/api/orders/${order.id}/accept`, {}, { headers }).subscribe({
-         next: () => {
-           this.loadOrders();
-         },
-         error: (err) => {
-           console.error('Error aceptando pedido:', err);
-           alert('Error al aceptar el pedido');
-         }
-       });
-     }
+    this.http.put(`/api/orders/${order.id}/status`, { status: newStatus }, { headers }).subscribe({
+      next: () => {
+        this.loadOrders();
+      },
+      error: (err) => {
+        console.error('Error actualizando estado:', err);
+        alert('Error al actualizar estado');
+      }
+    });
+  }
 
-     startOrder(order: Order) {
-       if (!confirm(`¿Iniciar entrega del pedido #${order.id}?`)) return;
-       this.updateOrderStatus(order, 'enviado');
-     }
+  showMap(order: Order) {
+    this.selectedOrderMap.set(order.id);
+    this.currentOrder.set(order);
+  }
 
-     onOrderStarted(orderId: string) {
-       const order = this.orders().find(o => o.id === orderId);
-       if (order) {
-         this.startOrder(order);
-       }
-       this.selectedOrderMap.set('');
-     }
+  acceptOrder(order: Order) {
+    if (!confirm(`¿Aceptar el pedido #${order.id}?`)) return;
 
-   filterOrders() {
-     const status = this.selectedStatus();
-     const token = localStorage.getItem('accessToken');
-     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
-     
-     if (!status) return this.loadOrders();
-     this.http.get<Order[]>(`/api/orders/delivery/assigned?status=${status}`, { headers }).subscribe({
-       next: (data) => this.orders.set(data),
-       error: (err) => console.error('Error filtrando pedidos:', err)
-     });
-   }
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
-getStatusColor(status: Order['status']): string {
-      const colors: Record<Order['status'], string> = {
-        confirmar: 'warning',
-        pendiente: 'info',
-        procesando: 'primary',
-        procesado: 'primary',
-        enviado: 'success',
-        entregado: 'success',
-        cancelado: 'danger'
-      };
-      return colors[status] || 'secondary';
+    this.http.put(`/api/orders/${order.id}/accept`, {}, { headers }).subscribe({
+      next: () => {
+        this.loadOrders();
+      },
+      error: (err) => {
+        console.error('Error aceptando pedido:', err);
+        alert('Error al aceptar el pedido');
+      }
+    });
+  }
+
+  rejectOrder(order: Order) {
+    const motivo = prompt('¿Cuál es el motivo del rechazo? (Opcional)');
+    if (!confirm(`¿Rechazar el pedido #${order.id}?${motivo ? `\nMotivo: ${motivo}` : ''}`)) return;
+
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+
+    const body = motivo ? { motivo } : {};
+
+    this.http.put(`/api/orders/${order.id}/reject`, body, { headers }).subscribe({
+      next: () => {
+        this.loadOrders();
+      },
+      error: (err) => {
+        console.error('Error rechazando pedido:', err);
+        alert('Error al rechazar el pedido');
+      }
+    });
+  }
+
+  startOrder(order: Order) {
+    if (!confirm(`¿Iniciar entrega del pedido #${order.id}?`)) return;
+    this.updateOrderStatus(order, 'enviado');
+  }
+
+  onOrderStarted(orderId: string) {
+    const order = this.orders().find(o => o.id === orderId);
+    if (order) {
+      this.startOrder(order);
     }
+    this.selectedOrderMap.set('');
+  }
 
-    getStatusText(status: Order['status']): string {
-      const texts: Record<Order['status'], string> = {
-        confirmar: 'Confirmar',
-        pendiente: 'Pendiente',
-        procesando: 'Procesando',
-        procesado: 'Aceptado',
-        enviado: 'En camino',
-        entregado: 'Entregado',
-        cancelado: 'Cancelado'
-      };
-      return texts[status] || status;
-    }
- }
+  filterOrders() {
+    const status = this.selectedStatus();
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+
+    if (!status) return this.loadOrders();
+    this.http.get<Order[]>(`/api/orders/delivery/assigned?status=${status}`, { headers }).subscribe({
+      next: (data) => this.orders.set(data),
+      error: (err) => console.error('Error filtrando pedidos:', err)
+    });
+  }
+
+  getStatusColor(status: Order['status']): string {
+    const colors: Record<Order['status'], string> = {
+      confirmar: 'warning',
+      pendiente: 'info',
+      procesando: 'primary',
+      procesado: 'primary',
+      enviado: 'success',
+      entregado: 'success',
+      cancelado: 'danger'
+    };
+    return colors[status] || 'secondary';
+  }
+
+  getStatusText(status: Order['status']): string {
+    const texts: Record<Order['status'], string> = {
+      confirmar: 'Confirmar',
+      pendiente: 'Pendiente',
+      procesando: 'Procesando',
+      procesado: 'Aceptado',
+      enviado: 'En camino',
+      entregado: 'Entregado',
+      cancelado: 'Cancelado'
+    };
+    return texts[status] || status;
+  }
+}

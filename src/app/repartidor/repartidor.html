@@ -63,6 +63,9 @@
                 </button>
               }
               @if (order.status === 'procesado') {
+                <button class="btn btn-sm btn-danger" (click)="rejectOrder(order)">
+                  <i class="fas fa-times"></i> Rechazar
+                </button>
                 <button class="btn btn-sm btn-primary" (click)="startOrder(order)">
                   <i class="fas fa-truck"></i> En camino
                 </button>

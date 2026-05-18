@@ -10,7 +10,14 @@ import { HttpClient } from '@angular/common/http';
 template: `
     <div class="tracking-container">
       <div class="map-section">
-        <div #mapContainer class="map"></div>
+        @if (mapError()) {
+          <div class="map-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>{{ mapError() }}</p>
+          </div>
+        } @else {
+          <div #mapContainer class="map"></div>
+        }
         @if (order()) {
           @if (order()?.latitud && order()?.longitud) {
             <div class="map-info-panel">
@@ -234,6 +241,28 @@ template: `
     .btn-start:hover {
       background: #0056b3;
     }
+    .map-error {
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+      border-radius: 8px 0 0 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8d7da;
+      color: #721c24;
+      padding: 20px;
+    }
+    .map-error i {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    .map-error p {
+      margin: 0;
+      font-size: 14px;
+      text-align: center;
+    }
   `]
 })
 export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
@@ -250,6 +279,7 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   driverMarker: google.maps.Marker | null = null;
   directionsRenderer: google.maps.DirectionsRenderer | null = null;
   watchId: number | null = null;
+  mapError = signal<string>('');
 
   constructor(private mapsService: GoogleMapsService, private http: HttpClient) {}
 
@@ -258,9 +288,14 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   }
 
   async ngAfterViewInit() {
-    await this.mapsService.loadApi();
-    await this.initMap();
-    this.startLocationTracking();
+    try {
+      await this.mapsService.loadApi();
+      await this.initMap();
+      this.startLocationTracking();
+    } catch (error: any) {
+      this.mapError.set(error.message || 'Error loading map');
+      console.error('Map initialization error:', error);
+    }
   }
 
   ngOnDestroy() {
@@ -286,33 +321,46 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
 
   async initMap() {
     const order = this.order();
+    
+    // Wait for the container to have dimensions
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     if (!order || !order.latitud || !order.longitud) {
       // Still try to init map with default center if no coordinates
       this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
         zoom: 10
       });
-      return;
+    } else {
+      this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
+        center: { lat: order.latitud, lng: order.longitud },
+        zoom: 14
+      });
+
+      this.directionsRenderer = new google.maps.DirectionsRenderer({
+        map: this.map,
+        suppressMarkers: true,
+        polylineOptions: {
+          strokeColor: '#007bff',
+          strokeWeight: 5
+        }
+      });
+
+      this.orderMarker = this.mapsService.createMarker({
+        position: { lat: order.latitud, lng: order.longitud },
+        map: this.map,
+        title: 'Destino - Cliente'
+      });
     }
-
-    this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
-      center: { lat: order.latitud, lng: order.longitud },
-      zoom: 14
-    });
-
-    this.directionsRenderer = new google.maps.DirectionsRenderer({
-      map: this.map,
-      suppressMarkers: true,
-      polylineOptions: {
-        strokeColor: '#007bff',
-        strokeWeight: 5
-      }
-    });
-
-    this.orderMarker = this.mapsService.createMarker({
-      position: { lat: order.latitud, lng: order.longitud },
-      map: this.map,
-      title: 'Destino - Cliente'
-    });
+    
+// Trigger resize to ensure map renders correctly
+     setTimeout(() => {
+       if (this.map) {
+         const gm = google.maps as any;
+         if (gm.event) {
+           gm.event.trigger(this.map, 'resize');
+         }
+       }
+     }, 200);
   }
 
   startLocationTracking() {

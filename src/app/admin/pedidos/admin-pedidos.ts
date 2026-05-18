@@ -622,10 +622,24 @@ export class AdminPedidos implements OnInit, OnDestroy {
   }
 
   openDeliveryPersonModal(personId: string) {
-    const person = this.deliveryPersons().find(p => p.id === personId);
+    let person = this.deliveryPersons().find(p => p.id === personId);
     if (person) {
       this.selectedDeliveryPerson.set(person);
       this.showDeliveryPersonModal.set(true);
+    } else {
+      this.loadingDeliveryPersons.set(true);
+      this.http.get<DeliveryPerson>(`/api/delivery/${personId}`).subscribe({
+        next: (p) => {
+          this.loadingDeliveryPersons.set(false);
+          this.selectedDeliveryPerson.set(p);
+          this.showDeliveryPersonModal.set(true);
+        },
+        error: (err) => {
+          this.loadingDeliveryPersons.set(false);
+          console.error('Error loading delivery person:', err);
+          this.notificationService.error('Error', 'No se pudo cargar la ficha del repartidor');
+        }
+      });
     }
   }
 

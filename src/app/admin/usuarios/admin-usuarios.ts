@@ -63,9 +63,22 @@ export class AdminUsuarios implements OnInit {
     }
 
     if (tipo === 'admin') {
-      resultado = resultado.filter(u => u.rol === 'root' || u.rol === 'owner');
+      resultado = resultado.filter(u => {
+        if (u.rol === 'root' || u.rol === 'owner') return true;
+        if (u.rolId) {
+          const rol = this.roles().find(r => r.id === u.rolId);
+          if (rol && rol.permisos && rol.permisos.length > 0) return true;
+        }
+        return false;
+      });
     } else if (tipo === 'comun') {
-      resultado = resultado.filter(u => u.rol === 'usuario');
+      resultado = resultado.filter(u => {
+        if (u.rol === 'root' || u.rol === 'owner') return false;
+        if (!u.rolId) return true;
+        const rol = this.roles().find(r => r.id === u.rolId);
+        if (!rol || !rol.permisos || rol.permisos.length === 0) return true;
+        return false;
+      });
     }
 
     return resultado;

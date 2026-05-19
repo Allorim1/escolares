@@ -72,6 +72,14 @@ export default class CartComponent implements OnDestroy {
   constructor() {
     // Trigger product loading for recommendations
     this.productsState.changePage$.next(1);
+
+    // Auto-show recommendations modal when cart has products
+    setTimeout(() => {
+      const products = this.state().products;
+      if (products.length > 0 && this.recommendedProducts().length > 0) {
+        this.showRecommendationsModal.set(true);
+      }
+    }, 100);
   }
 
   // Recommended products for last-minute addition (excludes products already in cart)
@@ -89,8 +97,9 @@ export default class CartComponent implements OnDestroy {
     return this.currencyService.formatPrice(priceInUsd);
   }
 
-  showCheckoutModal = signal(false);
-  checkoutStep = signal(1);
+showCheckoutModal = signal(false);
+   showRecommendationsModal = signal(false);
+   checkoutStep = signal(1);
   shippingError = signal('');
   paymentError = signal('');
   selectedAddressId = signal<string>('');
@@ -405,6 +414,10 @@ paymentMethods = [
       'Producto agregado',
       `${product.title} se ha agregado a tu carrito`
     );
+  }
+
+  closeRecommendationsModal() {
+    this.showRecommendationsModal.set(false);
   }
 
   openCheckout() {

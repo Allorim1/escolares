@@ -47,33 +47,46 @@
         <span class="total-price" [innerHTML]="formatPrice(price())"></span>
       </div>
 <div class="cart-actions">
-         <a routerLink="/products" class="continue-btn">Continuar comprando</a>
-         <button class="clear-cart-btn" (click)="clearCart()">Vaciar carrito</button>
-         <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
-       </div>
-     </div>
+          <a routerLink="/products" class="continue-btn">Continuar comprando</a>
+          <button class="clear-cart-btn" (click)="clearCart()">Vaciar carrito</button>
+          <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
+          @if (recommendedProducts().length > 0) {
+            <button class="btn-secondary" (click)="showRecommendationsModal.set(true)" style="margin-left: 0.5rem;">
+              Ver recomendaciones
+            </button>
+          }
+        </div>
+      </div>
 
-     @if (state().products.length > 0 && recommendedProducts().length > 0) {
-       <div class="recommendations-carousel">
-         <h4 class="recommendations-title">Productos recomendados para agregar</h4>
-         <div class="recommendations-track">
-           @for (product of recommendedProducts(); track product.id) {
-             <div class="recommendation-card">
-               <img [src]="product.image" [alt]="product.title" class="recommendation-image" />
-               <div class="recommendation-info">
-                 <span class="recommendation-name">{{ product.title }}</span>
-                 <span class="recommendation-price" [innerHTML]="formatPrice(product.price)"></span>
-               </div>
-               <button class="recommendation-add-btn" (click)="addRecommendedProduct(product)" title="Agregar al carrito">
-                 +
-               </button>
-             </div>
-           }
-         </div>
-       </div>
-     }
+      @if (showRecommendationsModal() && state().products.length > 0 && recommendedProducts().length > 0) {
+        <div class="recommendations-modal-overlay" (click)="closeRecommendationsModal()">
+          <div class="recommendations-modal" (click)="$event.stopPropagation()">
+            <div class="recommendations-modal-header">
+              <h4>Productos recomendados para agregar</h4>
+              <button class="modal-close-btn" (click)="closeRecommendationsModal()">&times;</button>
+            </div>
+            <div class="recommendations-grid">
+              @for (product of recommendedProducts(); track product.id) {
+                <div class="recommendation-card">
+                  <img [src]="product.image" [alt]="product.title" class="recommendation-image" />
+                  <div class="recommendation-info">
+                    <span class="recommendation-name">{{ product.title }}</span>
+                    <span class="recommendation-price" [innerHTML]="formatPrice(product.price)"></span>
+                  </div>
+                  <button class="recommendation-add-btn" (click)="addRecommendedProduct(product)" title="Agregar al carrito">
+                    +
+                  </button>
+                </div>
+              }
+            </div>
+            <div class="recommendations-modal-footer">
+              <button class="btn-secondary" (click)="closeRecommendationsModal()">Continuar con la compra</button>
+            </div>
+          </div>
+        </div>
+      }
 
-     <div class="floating-summary">
+      <div class="floating-summary">
       <div class="floating-summary-content">
         <div class="floating-address-header">
           <button class="floating-address-btn" (click)="showAddressModal.set(true)">

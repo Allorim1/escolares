@@ -1532,17 +1532,102 @@
   .recommendations-track {
     grid-template-columns: 1fr;
   }
-  
+
   .recommendation-card {
     padding: 0.75rem;
   }
-  
+
   .recommendation-image {
     width: 50px;
     height: 50px;
   }
-  
+
   .recommendation-name {
     font-size: 0.85rem;
   }
+}
+
+/* Recommendations Modal */
+.recommendations-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.recommendations-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.recommendations-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #eee;
+}
+
+.recommendations-modal-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close-btn:hover {
+  background: #f5f5f5;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.recommendations-modal-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.btn-secondary {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-secondary:hover {
+  background: #e5e5e5;
 }

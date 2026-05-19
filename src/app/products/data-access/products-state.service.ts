@@ -12,7 +12,9 @@ interface State {
      totalPages: number
  }
 
-@Injectable()
+@Injectable({
+    providedIn: 'root',
+})
 export class ProductsStateService {
 
     private productsService = inject(ProductsService);

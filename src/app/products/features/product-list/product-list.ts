@@ -486,10 +486,10 @@ export default class ProductList implements OnInit {
     );
     if (!cartItem) return;
     
-    if (cartItem.quantity <= 1) {
+if (cartItem.quantity <= 1) {
       this.cartState.remove(product.id);
     } else {
-      this.cartState.udpate({ product, quantity: cartItem.quantity - 1 });
+      this.cartState.update({ product, quantity: cartItem.quantity - 1 });
     }
   }
 

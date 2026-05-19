@@ -69,6 +69,11 @@ export default class CartComponent implements OnDestroy {
   private router = inject(Router);
   private productsState = inject(ProductsStateService);
 
+  constructor() {
+    // Trigger product loading for recommendations
+    this.productsState.changePage$.next(1);
+  }
+
   // Recommended products for last-minute addition (excludes products already in cart)
   recommendedProducts = computed(() => {
     const allProducts = this.productsState.allProducts();
@@ -375,14 +380,14 @@ paymentMethods = [
   }
 
   onIncrease(product: ProductItemCart) {
-    this.state.udpate({
+    this.state.update({
       product: product.product,
       quantity: product.quantity + 1,
     });
   }
 
   onDecrease(product: ProductItemCart) {
-    this.state.udpate({
+    this.state.update({
       ...product,
       quantity: product.quantity - 1,
     });

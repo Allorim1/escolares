@@ -128,12 +128,12 @@ export class Header {
   searchQuery = '';
   suggestions = signal<Product[]>([]);
   showDropdown = signal(false);
-  allProducts: Product[] = [];
+  allProducts = signal<Product[]>([]);
   selectedCategory = signal<string>('');
 
   categories = computed(() => {
     const cats = new Set<string>();
-    this.allProducts.forEach(p => {
+    this.allProducts().forEach(p => {
       if (p.category) cats.add(p.category);
     });
     return Array.from(cats).sort();
@@ -177,14 +177,14 @@ export class Header {
   onSearchInput() {
     const query = this.searchQuery.toLowerCase().trim();
     if (query.length > 0 || this.selectedCategory()) {
-      let filtered = this.allProducts;
+      let filtered = this.allProducts();
       
       if (this.selectedCategory()) {
-        filtered = filtered.filter(p => p.category === this.selectedCategory());
+        filtered = filtered.filter((p: Product) => p.category === this.selectedCategory());
       }
       
       if (query.length > 0) {
-        filtered = filtered.filter(p => p.title.toLowerCase().includes(query));
+        filtered = filtered.filter((p: Product) => p.title.toLowerCase().includes(query));
       }
       
       this.suggestions.set(filtered.slice(0, 5));

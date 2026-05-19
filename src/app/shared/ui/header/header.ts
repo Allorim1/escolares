@@ -67,6 +67,9 @@ export class Header {
     if (!target.closest('.user-dropdown')) {
       this.userDropdownOpen.set(false);
     }
+    if (!target.closest('.header-search')) {
+      this.showDropdown.set(false);
+    }
   }
 
   onUserDropdownEnter() {
@@ -194,7 +197,9 @@ export class Header {
       this.suggestions.set(filtered.slice(0, 5));
       this.showDropdown.set(true);
     } else {
-      this.showDropdown.set(false);
+      // Show dropdown with categories even when no query/category selected
+      this.suggestions.set([]);
+      this.showDropdown.set(true);
     }
   }
 
@@ -231,7 +236,7 @@ export class Header {
   hideDropdown() {
     setTimeout(() => {
       this.showDropdown.set(false);
-    }, 200);
+    }, 300);
   }
 
   logout() {

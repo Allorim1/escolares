@@ -1558,16 +1558,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2001;
   padding: 1rem;
 }
 
 .recommendations-modal {
   background: white;
   border-radius: 12px;
-  max-width: 500px;
   width: 100%;
-  max-height: 80vh;
+  max-width: 600px;
+  max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
@@ -1607,7 +1607,7 @@
 
 .recommendations-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
   padding: 1rem 1.25rem;
 }
@@ -1630,4 +1630,23 @@
 
 .btn-secondary:hover {
   background: #e5e5e5;
+}
+
+@media (max-width: 768px) {
+  .recommendations-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .recommendations-modal {
+    max-width: 100%;
+    max-height: 90vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
 }

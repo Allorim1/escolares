@@ -1434,3 +1434,115 @@
   color: #666;
   margin-bottom: 1rem;
 }
+
+/* Recommended Products Carousel */
+.recommendations-carousel {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(248, 249, 250, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.recommendations-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.recommendations-track {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.recommendation-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  transition: all 0.2s;
+}
+
+.recommendation-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(29, 99, 193, 0.2);
+}
+
+.recommendation-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.recommendation-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.recommendation-name {
+  display: block;
+  font-size: 0.8rem;
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recommendation-price {
+  display: block;
+  font-size: 0.75rem;
+  color: #1d63c1;
+  font-weight: 600;
+}
+
+.recommendation-add-btn {
+  width: 24px;
+  height: 24px;
+  background: rgba(29, 99, 193, 0.1);
+  color: #1d63c1;
+  border: none;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.recommendation-add-btn:hover {
+  background: #1d63c1;
+  color: white;
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .recommendations-track {
+    grid-template-columns: 1fr;
+  }
+  
+  .recommendation-card {
+    padding: 0.75rem;
+  }
+  
+  .recommendation-image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .recommendation-name {
+    font-size: 0.85rem;
+  }
+}

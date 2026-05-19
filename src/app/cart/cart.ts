@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnDestroy, computed } from '@angular/core';
 import { CartItem } from './ui/cart-item/cart-item';
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { ProductItemCart } from '../shared/interfaces/product.interface';
@@ -12,6 +12,7 @@ import { OrdersBackend, OrderItem, OrderStatus } from '../backend/data-access/or
 import { NotificationService } from '../shared/data-access/notification.service';
 import { CurrencyService } from '../shared/data-access/currency.service';
 import { StoreSettingsService } from '../shared/data-access/store-settings.service';
+import { ProductsStateService } from '../products/data-access/products-state.service';
 
 const CART_IMPORTS = [CartItem, RouterLink, FormsModule, DatePipe];
 
@@ -66,6 +67,17 @@ export default class CartComponent implements OnDestroy {
   currencyService = inject(CurrencyService);
   storeSettings = inject(StoreSettingsService);
   private router = inject(Router);
+  private productsState = inject(ProductsStateService);
+
+  // Recommended products for last-minute addition (excludes products already in cart)
+  recommendedProducts = computed(() => {
+    const allProducts = this.productsState.allProducts();
+    const cartProductIds = new Set(this.state().products.map(p => p.product.id));
+    return allProducts
+      .filter(p => !cartProductIds.has(p.id) && p.estado !== 'agotado')
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 8);
+  });
 
   // Format price based on current currency display
   formatPrice(priceInUsd: number): string {
@@ -379,6 +391,14 @@ export default class CartComponent implements OnDestroy {
     if (confirm('¿Estás seguro de que deseas vaciar el carrito? Se eliminarán todos los productos.')) {
       this.state.clear();
     }
+  }
+
+  addRecommendedProduct(product: ProductItemCart['product']) {
+    this.state.add({ product, quantity: 1 });
+    this.notificationService.success(
+      'Producto agregado',
+      `${product.title} se ha agregado a tu carrito`
+    );
   }
 
   openCheckout() {

@@ -129,6 +129,15 @@ export class Header {
   suggestions = signal<Product[]>([]);
   showDropdown = signal(false);
   allProducts: Product[] = [];
+  selectedCategory = signal<string>('');
+
+  categories = computed(() => {
+    const cats = new Set<string>();
+    this.allProducts.forEach(p => {
+      if (p.category) cats.add(p.category);
+    });
+    return Array.from(cats).sort();
+  });
 
   showLoginModal = signal(false);
   showRegisterModal = signal(false);
@@ -167,14 +176,32 @@ export class Header {
 
   onSearchInput() {
     const query = this.searchQuery.toLowerCase().trim();
-    if (query.length > 0) {
-      this.suggestions.set(
-        this.allProducts.filter((p) => p.title.toLowerCase().includes(query)).slice(0, 5),
-      );
+    if (query.length > 0 || this.selectedCategory()) {
+      let filtered = this.allProducts;
+      
+      if (this.selectedCategory()) {
+        filtered = filtered.filter(p => p.category === this.selectedCategory());
+      }
+      
+      if (query.length > 0) {
+        filtered = filtered.filter(p => p.title.toLowerCase().includes(query));
+      }
+      
+      this.suggestions.set(filtered.slice(0, 5));
       this.showDropdown.set(true);
     } else {
       this.showDropdown.set(false);
     }
+  }
+
+  selectCategory(category: string) {
+    this.selectedCategory.set(category);
+    this.onSearchInput();
+  }
+
+  clearCategory() {
+    this.selectedCategory.set('');
+    this.onSearchInput();
   }
 
   selectProduct(product: Product) {
@@ -186,10 +213,13 @@ export class Header {
   }
 
   search() {
-    if (this.searchQuery.trim()) {
-      this.router.navigate(['/products'], {
-        queryParams: { search: this.searchQuery.trim() },
-      });
+    const query = this.searchQuery.trim();
+    if (query || this.selectedCategory()) {
+      const queryParams: any = {};
+      if (query) queryParams.search = query;
+      if (this.selectedCategory()) queryParams.category = this.selectedCategory();
+      
+      this.router.navigate(['/products'], { queryParams });
       this.showDropdown.set(false);
     }
   }

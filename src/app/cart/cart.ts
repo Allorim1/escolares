@@ -265,11 +265,12 @@ export default class CartComponent implements OnDestroy {
     return u?.metodosPago || [];
   }
 
-  paymentMethods = [
+paymentMethods = [
     { value: 'pago_movil', label: 'Pago Móvil' },
-   // { value: 'zelle', label: 'Zelle' },
+    // { value: 'zelle', label: 'Zelle' },
     { value: 'efectivo', label: 'Efectivo' },
     { value: 'transferencia', label: 'Transferencia' },
+    { value: 'punto_venta', label: 'Punto de Venta' },
   ];
 
   shippingRates: ShippingRate[] = [
@@ -649,6 +650,12 @@ export default class CartComponent implements OnDestroy {
         this.paymentError.set('Para Transferencia debes ingresar número de referencia o adjuntar el comprobante de pago.');
         return false;
       }
+      this.paymentError.set('');
+      return true;
+    }
+
+    if (metodo === 'punto_venta') {
+      // Punto de Venta no requiere foto ni referencia, solo procesa el pedido
       this.paymentError.set('');
       return true;
     }

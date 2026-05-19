@@ -156,6 +156,9 @@
                 @if (authService.isAdmin()) {
                   <a routerLink="/admin" (click)="closeUserDropdown()">Panel Admin</a>
                 }
+                @if (authService.user()?.rol === 'repartidor') {
+                  <a routerLink="/repartidor" (click)="closeUserDropdown()">Panel Repartidor</a>
+                }
                 <button (click)="logout()">Cerrar sesión</button>
               </div>
         </div>

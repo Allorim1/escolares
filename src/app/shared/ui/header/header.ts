@@ -101,6 +101,10 @@ export class Header {
     return this.authService.user()?.rol === 'root';
   }
 
+  isRepartidor(): boolean {
+    return this.authService.user()?.rol === 'repartidor';
+  }
+
   toggleCurrency() {
     this.currencyService.toggleCurrency();
   }

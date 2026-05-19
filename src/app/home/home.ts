@@ -601,7 +601,7 @@ export default class HomeComponent implements AfterViewInit, OnDestroy {
   private autoScrollInterval: any;
 
   get duplicatedMarcas() {
-    const original = this.marcas();
+    const original = this.marcas() || [];
     return [...original, ...original, ...original, ...original];
   }
 

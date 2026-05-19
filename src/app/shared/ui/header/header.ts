@@ -146,6 +146,8 @@ export class Header {
     return Array.from(cats).sort();
   });
 
+  dropdownAnchor = signal<'category' | 'search' | null>(null);
+
   showLoginModal = signal(false);
   showRegisterModal = signal(false);
   loginUsername = signal('');
@@ -195,17 +197,30 @@ export class Header {
       }
       
       this.suggestions.set(filtered.slice(0, 5));
+      this.dropdownAnchor.set('search');
       this.showDropdown.set(true);
     } else {
-      // Show dropdown with categories even when no query/category selected
       this.suggestions.set([]);
-      this.showDropdown.set(true);
+      this.dropdownAnchor.set(null);
+      this.showDropdown.set(false);
     }
   }
 
   selectCategory(category: string) {
     this.selectedCategory.set(category);
     this.onSearchInput();
+    this.showDropdown.set(false);
+  }
+
+  toggleCategoryDropdown() {
+    if (this.dropdownAnchor() === 'category') {
+      this.showDropdown.set(false);
+      this.dropdownAnchor.set(null);
+    } else {
+      this.suggestions.set([]);
+      this.dropdownAnchor.set('category');
+      this.showDropdown.set(true);
+    }
   }
 
   clearCategory() {

@@ -10,15 +10,15 @@
 <div class="header-search">
        <form (ngSubmit)="search()" class="search-form">
          <div class="search-input-container">
-           <button 
-             type="button" 
-             class="category-btn"
-             (click)="clearCategory(); showDropdown.set(!showDropdown());"
-             [class.active]="selectedCategory()"
-             title="Filtrar por categoría"
-           >
-             {{ selectedCategory() || 'Todas' }}
-           </button>
+<button 
+              type="button" 
+              class="category-btn"
+              (click)="toggleCategoryDropdown()"
+              [class.active]="selectedCategory()"
+              title="Filtrar por categoría"
+            >
+              {{ selectedCategory() || 'Todas' }}
+            </button>
            <input
              type="text"
              [(ngModel)]="searchQuery"
@@ -48,31 +48,31 @@
          </button>
        </form>
 
-       @if (showDropdown()) {
-         <div class="search-dropdown">
-           @if (!selectedCategory()) {
-             <div class="category-filter-section">
-               <div class="category-filter-label">Filtrar por categoría:</div>
-               <div class="category-filter-options">
-                 @for (cat of categories(); track cat) {
-                   <button type="button" class="category-filter-btn" (mousedown)="selectCategory(cat)">
-                     {{ cat }}
-                   </button>
-                 }
-               </div>
-             </div>
-           }
-           @for (product of suggestions(); track product.id) {
-             <a class="search-dropdown-item" (mousedown)="selectProduct(product)">
-               <img [src]="product.image" [alt]="product.title" />
-               <div class="item-info">
-                 <div class="item-title">{{ product.title }}</div>
-                 <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
-               </div>
-             </a>
-           }
-         </div>
-       }
+@if (showDropdown()) {
+          <div class="search-dropdown">
+            @if (dropdownAnchor() === 'category') {
+              <div class="category-filter-section">
+                <div class="category-filter-label">Filtrar por categoría:</div>
+                <div class="category-filter-options">
+                  @for (cat of categories(); track cat) {
+                    <button type="button" class="category-filter-btn" (mousedown)="selectCategory(cat)">
+                      {{ cat }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+            @for (product of suggestions(); track product.id) {
+              <a class="search-dropdown-item" (mousedown)="selectProduct(product)">
+                <img [src]="product.image" [alt]="product.title" />
+                <div class="item-info">
+                  <div class="item-title">{{ product.title }}</div>
+                  <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
+                </div>
+              </a>
+            }
+          </div>
+        }
      </div>
 
     <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Menú">

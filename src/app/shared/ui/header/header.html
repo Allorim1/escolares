@@ -19,16 +19,15 @@
             >
               {{ selectedCategory() || 'Todas' }}
             </button>
-           <input
-             type="text"
-             [(ngModel)]="searchQuery"
-             name="search"
-             placeholder="Buscar productos..."
-             class="search-input"
-             (input)="onSearchInput()"
-             (focus)="onSearchInput()"
-             (blur)="hideDropdown()"
-           />
+<input
+              type="text"
+              [(ngModel)]="searchQuery"
+              name="search"
+              placeholder="Buscar productos..."
+              class="search-input"
+              (input)="onSearchInput()"
+              (focus)="onSearchInput()"
+            />
          </div>
          <button type="submit" class="search-btn">
            <svg

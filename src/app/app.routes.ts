@@ -79,6 +79,10 @@ export const routes: Routes = [
         loadComponent: () => import('./panel/metodos-pago/metodos-pago').then((m) => m.MetodosPago),
       },
       {
+        path: 'favoritos',
+        loadComponent: () => import('./panel/favoritos/favoritos').then((m) => m.Favoritos),
+      },
+      {
         path: '',
         redirectTo: 'perfil',
         pathMatch: 'full',

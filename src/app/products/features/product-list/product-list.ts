@@ -10,6 +10,7 @@ import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.
 import { CartStateService } from '../../../shared/data-access/cart-state.service';
 import { OfertasService } from '../../../shared/data-access/ofertas.service';
 import { OfertasBackend } from '../../../backend/data-access/ofertas.backend';
+import { FavoritesService } from '../../../shared/data-access/favorites.service';
 import { Product } from '../../../shared/interfaces/product.interface';
 
 @Component({
@@ -446,6 +447,7 @@ export default class ProductList implements OnInit {
   cartState = inject(CartStateService).state;
   private ofertasService = inject(OfertasService);
   private ofertasBackend = inject(OfertasBackend);
+  favoritesService = inject(FavoritesService);
 
   selectedProduct = signal<Product | null>(null);
   modalQuantity = signal(1);
@@ -561,11 +563,19 @@ if (cartItem.quantity <= 1) {
     return this.ofertasService.getOfertaPrice(product.id as any);
   }
 
-  getDescuento(product: Product): number {
+getDescuento(product: Product): number {
     const ofertaPrice = this.getOfertaPrice(product);
     if (!ofertaPrice) return 0;
     const descuento = ((product.price - ofertaPrice) / product.price) * 100;
     return Math.round(descuento);
+  }
+
+  toggleFavorito(product: Product) {
+    this.favoritesService.toggleFavorito(product.id);
+  }
+
+  isFavorito(productId: number | string): boolean {
+    return this.favoritesService.isFavorito(productId);
   }
 
   filterText = signal('');

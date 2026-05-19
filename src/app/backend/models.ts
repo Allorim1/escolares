@@ -35,6 +35,7 @@ export interface User {
   metodosPago?: MetodoPago[];
   supervisorKey?: string;
   comentarios?: string;
+  favoritos?: (number | string)[];
 }
 
 export interface Direccion {

@@ -48,30 +48,52 @@
        </form>
 
 @if (showDropdown()) {
-          <div class="search-dropdown">
-            @if (dropdownAnchor() === 'category') {
-              <div class="category-filter-section">
-                <div class="category-filter-label">Filtrar por categoría:</div>
-                <div class="category-filter-options">
-                  @for (cat of categories(); track cat) {
-                    <button type="button" class="category-filter-btn" (mousedown)="selectCategory(cat)">
-                      {{ cat }}
-                    </button>
-                  }
-                </div>
-              </div>
-            }
-            @for (product of suggestions(); track product.id) {
-              <a class="search-dropdown-item" (mousedown)="selectProduct(product)">
-                <img [src]="product.image" [alt]="product.title" />
-                <div class="item-info">
-                  <div class="item-title">{{ product.title }}</div>
-                  <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
-                </div>
-              </a>
-            }
-          </div>
-        }
+           <div class="search-dropdown">
+             @if (dropdownAnchor() === 'category') {
+               <div class="category-filter-section">
+                 <div class="category-filter-label">Filtrar por categoría:</div>
+                 <div class="category-filter-options">
+                   @for (cat of categories(); track cat) {
+                     <button type="button" class="category-filter-btn" (mousedown)="selectCategory(cat)">
+                       {{ cat }}
+                     </button>
+                   }
+                 </div>
+               </div>
+             }
+             @if (dropdownAnchor() === 'search') {
+               @if (searchHistory().length > 0 && suggestions().length === 0 && searchQuery.length === 0) {
+                 <div class="search-history-section">
+                   <div class="search-history-header">
+                     <span>Búsquedas recientes</span>
+                     <button type="button" class="clear-history-btn" (mousedown)="clearSearchHistory()" title="Limpiar historial">
+                       Limpiar
+                     </button>
+                   </div>
+                   @for (item of searchHistory(); track item) {
+                     <div class="search-history-item">
+                       <button type="button" class="history-text" (mousedown)="selectFromHistory(item)">
+                         {{ item }}
+                       </button>
+                       <button type="button" class="remove-history-btn" (mousedown)="removeFromHistory(item)" title="Eliminar">
+                         ×
+                       </button>
+                     </div>
+                   }
+                 </div>
+               }
+             }
+             @for (product of suggestions(); track product.id) {
+               <a class="search-dropdown-item" (mousedown)="selectProduct(product)">
+                 <img [src]="product.image" [alt]="product.title" />
+                 <div class="item-info">
+                   <div class="item-title">{{ product.title }}</div>
+                   <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
+                 </div>
+               </a>
+             }
+           </div>
+         }
      </div>
 
     <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Menú">

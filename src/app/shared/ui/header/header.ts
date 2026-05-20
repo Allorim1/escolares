@@ -42,6 +42,52 @@ export class Header {
     }
   }
 
+  private loadSearchHistory(): string[] {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('escolares-search-history');
+        return saved ? JSON.parse(saved) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  private saveSearchHistory(history: string[]) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('escolares-search-history', JSON.stringify(history));
+    }
+  }
+
+  private addToSearchHistory(query: string) {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    
+    const current = this.searchHistory();
+    const filtered = current.filter(item => item.toLowerCase() !== trimmed.toLowerCase());
+    const updated = [trimmed, ...filtered].slice(0, 10);
+    this.searchHistory.set(updated);
+    this.saveSearchHistory(updated);
+  }
+
+  clearSearchHistory() {
+    this.searchHistory.set([]);
+    this.saveSearchHistory([]);
+  }
+
+  removeFromHistory(item: string) {
+    const current = this.searchHistory();
+    const updated = current.filter(h => h !== item);
+    this.searchHistory.set(updated);
+    this.saveSearchHistory(updated);
+  }
+
+  selectFromHistory(item: string) {
+    this.searchQuery = item;
+    this.onSearchInput();
+  }
+
   toggleDarkMode() {
     const current = document.documentElement.getAttribute('data-theme');
     const isDark = current === 'dark';
@@ -137,6 +183,7 @@ export class Header {
   showDropdown = signal(false);
   allProducts = signal<Product[]>([]);
   selectedCategory = signal<string>('');
+  searchHistory = signal<string[]>(this.loadSearchHistory());
 
   categories = computed(() => {
     const cats = new Set<string>();
@@ -199,6 +246,10 @@ export class Header {
       this.suggestions.set(filtered.slice(0, 5));
       this.dropdownAnchor.set('search');
       this.showDropdown.set(true);
+    } else if (this.searchHistory().length > 0 && !this.selectedCategory()) {
+      this.suggestions.set([]);
+      this.dropdownAnchor.set('search');
+      this.showDropdown.set(true);
     } else {
       this.suggestions.set([]);
       this.dropdownAnchor.set(null);
@@ -239,6 +290,8 @@ export class Header {
   search() {
     const query = this.searchQuery.trim();
     if (query || this.selectedCategory()) {
+      if (query) this.addToSearchHistory(query);
+      
       const queryParams: any = {};
       if (query) queryParams.search = query;
       if (this.selectedCategory()) queryParams.category = this.selectedCategory();

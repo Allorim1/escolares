@@ -108,6 +108,137 @@
           </div>
         </div>
       }
+
+      @if (showCheckoutModal()) {
+        <div class="checkout-modal-overlay" (click)="closeCheckout()">
+          <div class="checkout-modal" (click)="$event.stopPropagation()">
+            <div class="checkout-modal-header">
+              <h3>Finalizar Compra</h3>
+              <button class="modal-close-btn" (click)="closeCheckout()">&times;</button>
+            </div>
+
+            @if (checkoutStep() === 1) {
+              <div class="checkout-step-1">
+                <h4>Datos de Envío</h4>
+
+                @if (authService.isLoggedIn() && userAddresses.length > 0) {
+                  <div class="form-group">
+                    <label>Dirección de entrega:</label>
+                    <select [(ngModel)]="selectedAddressId">
+                      @for (addr of userAddresses; track addr.id) {
+                        <option [value]="addr.id">{{ addr.nombre }}: {{ addr.direccion }}</option>
+                      }
+                    </select>
+                  </div>
+                }
+
+                <div class="form-group">
+                  <label>Nombre completo:</label>
+                  <input [(ngModel)]="paymentData().nombre" placeholder="Nombre completo" />
+                </div>
+
+                <div class="form-group">
+                  <label>Cédula:</label>
+                  <input [(ngModel)]="paymentData().cedula" placeholder="Cédula" />
+                </div>
+
+                <div class="form-group">
+                  <label>Teléfono:</label>
+                  <input [(ngModel)]="paymentData().telefono" placeholder="Teléfono" />
+                </div>
+
+                <div class="form-group">
+                  <label>Dirección:</label>
+                  <input [(ngModel)]="paymentData().direccion" placeholder="Dirección de entrega" />
+                </div>
+
+                <div class="shipping-rates">
+                  <h4>Tarifa de envío (propina al repartidor)</h4>
+                  <div class="shipping-rate-options">
+                    @for (rate of shippingRates; track rate.id) {
+                      <button
+                        type="button"
+                        class="shipping-rate-circle"
+                        [class.selected]="selectedShippingRateId() === rate.id"
+                        (click)="selectedShippingRateId.set(rate.id)"
+                        [title]="rate.label"
+                      >
+                        <span class="rate-amount">{{ rate.ref }}₲</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="checkout-actions">
+                  <button class="btn-secondary" (click)="closeCheckout()">Cancelar</button>
+                  <button class="btn-primary" (click)="nextStep()">Continuar</button>
+                </div>
+              </div>
+            }
+
+            @if (checkoutStep() === 2) {
+              <div class="checkout-step-2">
+                <h4>Método de Pago</h4>
+
+                <div class="payment-methods">
+                  <button
+                    type="button"
+                    class="payment-method-circle"
+                    [class.selected]="paymentData().metodoPago === 'pago_movil'"
+                    (click)="paymentData.update(p => ({ ...p, metodoPago: 'pago_movil' }))"
+                  >
+                    Pago Móvil
+                  </button>
+                  <button
+                    type="button"
+                    class="payment-method-circle"
+                    [class.selected]="paymentData().metodoPago === 'transferencia'"
+                    (click)="paymentData.update(p => ({ ...p, metodoPago: 'transferencia' }))"
+                  >
+                    Transferencia
+                  </button>
+                  <button
+                    type="button"
+                    class="payment-method-circle"
+                    [class.selected]="paymentData().metodoPago === 'zelle'"
+                    (click)="paymentData.update(p => ({ ...p, metodoPago: 'zelle' }))"
+                  >
+                    Zelle
+                  </button>
+                </div>
+
+                @if (paymentData().metodoPago === 'pago_movil') {
+                  <div class="payment-info">
+                    <p><strong>Banco:</strong> {{ getPagoMovilInfo().banco }}</p>
+                    <p><strong>Titular:</strong> {{ getPagoMovilInfo().titular }}</p>
+                    <p><strong>RIF:</strong> {{ getPagoMovilInfo().rif }}</p>
+                    <p><strong>Teléfono:</strong> {{ getPagoMovilInfo().telefono }}</p>
+                  </div>
+                }
+
+                @if (paymentData().metodoPago === 'transferencia') {
+                  <div class="payment-info">
+                    <p><strong>Banco:</strong> {{ getTransferenciaInfo().banco }}</p>
+                    <p><strong>Titular:</strong> {{ getTransferenciaInfo().titular }}</p>
+                    <p><strong>RIF:</strong> {{ getTransferenciaInfo().rif }}</p>
+                    <p><strong>Cuenta:</strong> {{ getTransferenciaInfo().numero_cuenta }}</p>
+                  </div>
+                }
+
+                <div class="form-group">
+                  <label>Referencia:</label>
+                  <input [(ngModel)]="paymentData().referencia" placeholder="Número de referencia" />
+                </div>
+
+                <div class="checkout-actions">
+                  <button class="btn-secondary" (click)="checkoutStep.set(1)">Atrás</button>
+                  <button class="btn-primary" (click)="placeOrder()">Finalizar Pedido</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
     } @else {
       <div class="empty-cart">
         <div class="empty-icon">🛒</div>
@@ -149,4 +280,4 @@
        </div>
      </div>
    }
-  </section>
+</section>

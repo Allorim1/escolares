@@ -1714,6 +1714,69 @@
   border-radius: 50%;
 }
 
+/* Shipping Rate Circle Selector */
+.shipping-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.75rem;
+}
+
+.shipping-rate-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  background: #f8f9fa;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.shipping-rate-circle:hover {
+  border-color: #1d63c1;
+  background: #e8f0fe;
+}
+
+.shipping-rate-circle.active {
+  border-color: #1d63c1;
+  background: #1d63c1;
+  color: white;
+}
+
+.shipping-rate-circle-inner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.shipping-rate-circle.active .shipping-rate-circle-inner {
+  background: white;
+}
+
+.shipping-rate-circle.active .shipping-rate-circle-inner::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #1d63c1;
+  border-radius: 50%;
+}
+
+.shipping-rate-label {
+  font-size: 0.75rem;
+  text-align: center;
+}
+
 .payment-method-name {
   font-size: 0.85rem;
   text-align: center;
@@ -1721,6 +1784,21 @@
 
 @media (max-width: 768px) {
   .payment-options-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .shipping-options-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .shipping-rate-circle {
+    padding: 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .shipping-options-grid {
     grid-template-columns: 1fr;
   }
 }

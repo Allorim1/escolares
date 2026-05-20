@@ -288,11 +288,19 @@
 
                 <div class="form-group">
                   <label>Tarifa de envío (Propina)</label>
-                  <select [ngModel]="selectedShippingRateId()" (ngModelChange)="selectedShippingRateId.set($event)" name="shippingRate">
+                  <div class="shipping-options-grid">
                     @for (rate of shippingRates; track rate.id) {
-                      <option [value]="rate.id">{{ rate.label }}</option>
+                      <button
+                        type="button"
+                        class="shipping-rate-circle"
+                        [class.active]="selectedShippingRateId() === rate.id"
+                        (click)="selectedShippingRateId.set(rate.id)"
+                      >
+                        <span class="shipping-rate-circle-inner"></span>
+                        <span class="shipping-rate-label">{{ rate.ref > 0 ? '$' + rate.ref.toFixed(2) : 'Ninguna' }}</span>
+                      </button>
                     }
-                  </select>
+                  </div>
                 </div>
 
                 <div class="form-group">

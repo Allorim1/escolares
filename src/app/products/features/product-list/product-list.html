@@ -203,7 +203,7 @@
                          style="width: 32px; height: 32px; border: 1px solid #ddd; background: #f8f8f8; border-radius: 4px; font-size: 1.1rem; cursor: pointer;"
                          (click)="$event.stopPropagation(); decreaseCardQuantity(product)"
                        >-</button>
-                       <span style="min-width: 30px; text-align: center; font-weight: 600;">{{ getCardQuantity(product.id)() }}</span>
+                       <span style="min-width: 30px; text-align: center; font-weight: 600;">{{ getCardQuantity(product.id) }}</span>
                        <button 
                          type="button" 
                          class="qty-btn"

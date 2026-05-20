@@ -69,7 +69,7 @@ export class CartStateService {
     this.lastAddTime.set(product.product.id, now);
     
     const isInCart = state().products.find(
-      (productInCart) => productInCart.product.id == product.product.id,
+      (productInCart) => productInCart.product.id === product.product.id,
     );
 
     if (!isInCart) {
@@ -88,23 +88,23 @@ export class CartStateService {
     };
   }
 
-  private remove(state: Signal<State>, id: number | string) {
-    return {
-      products: state().products.filter((product) => product.product.id != id),
-    };
-  }
+   private remove(state: Signal<State>, id: number | string) {
+     return {
+       products: state().products.filter((product) => product.product.id !== id),
+     };
+   }
 
-  private update(state: Signal<State>, product: ProductItemCart) {
-    const products = state().products.map((productInCart) => {
-      if (productInCart.product.id == product.product.id) {
-        return { ...productInCart, quantity: product.quantity };
-      }
-
-      return productInCart;
-    });
-
-    return { products };
-  }
+   private update(state: Signal<State>, product: ProductItemCart) {
+     const products = state().products.map((productInCart) => {
+       if (productInCart.product.id === product.product.id) {
+         return { ...productInCart, quantity: product.quantity };
+       }
+ 
+       return productInCart;
+     });
+ 
+     return { products };
+   }
 
   private clear(state: Signal<State>) {
     return { products: [] };

@@ -1,9 +1,43 @@
 .cart-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1.5rem;
-  position: relative;
-  z-index: 1;
+   max-width: 1200px;
+   margin: 2rem auto;
+   padding: 1.5rem;
+   position: relative;
+   z-index: 1;
+   display: flex;
+   gap: 2rem;
+}
+
+.cart-main-content {
+   flex: 1;
+   min-width: 0;
+}
+
+.floating-summary {
+   width: 320px;
+   background: white;
+   border-radius: 12px;
+   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+   padding: 1.5rem;
+   z-index: 100;
+   margin-top: 0;
+   position: sticky;
+   top: 2rem;
+   align-self: flex-start;
+}
+
+@media (max-width: 768px) {
+   .cart-container {
+       flex-direction: column;
+   }
+   
+   .floating-summary {
+       position: static;
+       width: 100%;
+       margin-top: 2rem;
+       box-shadow: none;
+       border: 1px solid #eee;
+   }
 }
 
 .cart-container h2 {
@@ -1543,6 +1577,7 @@
 
 /* Recommendations Modal */
 .recommendations-modal-overlay {
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;

@@ -1,177 +1,153 @@
 <section class="cart-container">
-  <h2>Tu Carrito de Compras</h2>
+   <h2>Tu Carrito de Compras</h2>
 
-  @if (storeSettings.comprasDeshabilitadas()) {
-    <div class="compras-deshabilitadas">
-      <div class="compras-icon">🛇</div>
-      <h3>Compras Temporalmente Deshabilitadas</h3>
-      <p>En este momento no es posible realizar compras. Por favor intenta más tarde.</p>
-    </div>
-  } @else if (state().products.length > 0) {
-    <div class="delivery-type-selector">
-      <h3>Tipo de Entrega</h3>
-      <div class="delivery-type-options">
-        <button
-          type="button"
-          class="delivery-type-btn"
-          [class.active]="deliveryType() === 'express'"
-          (click)="setDeliveryType('express')"
-        >
-          Express
-        </button>
-        <button
-          type="button"
-          class="delivery-type-btn"
-          [class.active]="deliveryType() === 'programado'"
-          (click)="setDeliveryType('programado')"
-        >
-          Programar pedido (Prepedido)
-        </button>
-      </div>
-    </div>
+   @if (storeSettings.comprasDeshabilitadas()) {
+     <div class="compras-deshabilitadas">
+       <div class="compras-icon">🛇</div>
+       <h3>Compras Temporalmente Deshabilitadas</h3>
+       <p>En este momento no es posible realizar compras. Por favor intenta más tarde.</p>
+     </div>
+   } @else if (state().products.length > 0) {
+     <div class="cart-main-content">
+       <div class="delivery-type-selector">
+         <h3>Tipo de Entrega</h3>
+         <div class="delivery-type-options">
+           <button
+             type="button"
+             class="delivery-type-btn"
+             [class.active]="deliveryType() === 'express'"
+             (click)="setDeliveryType('express')"
+           >
+             Express
+           </button>
+           <button
+             type="button"
+             class="delivery-type-btn"
+             [class.active]="deliveryType() === 'programado'"
+             (click)="setDeliveryType('programado')"
+           >
+             Programar pedido (Prepedido)
+           </button>
+         </div>
+       </div>
 
-    <div class="cart-items">
-      @for (item of state().products; track item) {
-        <app-cart-item
-          [productCartItem]="item"
-          (onRemove)="onRemove($event)"
-          (onIncrease)="onIncrease($event)"
-          (onDecrease)="onDecrease($event)"
-          (onSaveForLater)="saveForLater($event)"
-        ></app-cart-item>
-      }
-    </div>
+       <div class="cart-items">
+         @for (item of state().products; track item) {
+           <app-cart-item
+             [productCartItem]="item"
+             (onRemove)="onRemove($event)"
+             (onIncrease)="onIncrease($event)"
+             (onDecrease)="onDecrease($event)"
+             (onSaveForLater)="saveForLater($event)"
+           ></app-cart-item>
+         }
+       </div>
 
-    <div class="cart-summary">
-      <div class="summary-row total">
-        <span>Total:</span>
-        <span class="total-price" [innerHTML]="formatPrice(price())"></span>
-      </div>
-<div class="cart-actions">
-          <a routerLink="/products" class="continue-btn">Continuar comprando</a>
-          <button class="clear-cart-btn" (click)="clearCart()">Vaciar carrito</button>
-          <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
-        </div>
-      </div>
+       <div class="cart-summary">
+         <div class="summary-row total">
+           <span>Total:</span>
+           <span class="total-price" [innerHTML]="formatPrice(price())"></span>
+         </div>
+       </div>
 
-      @if (savedForLater().length > 0) {
-        <div class="saved-for-later-section">
-          <h3>Guardados para más tarde</h3>
-          <div class="saved-items-grid">
-            @for (product of savedForLater(); track product.id) {
-              <div class="saved-item-card">
-                <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
-                <div class="saved-item-info">
-                  <span class="saved-item-title">{{ product.title }}</span>
-                  <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
-                </div>
-                <div class="saved-item-actions">
-                  <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
-                    🛒
-                  </button>
-                  <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
-                    ✕
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
+       <div class="cart-actions">
+         <a routerLink="/products" class="continue-btn">Continuar comprando</a>
+         <button class="clear-cart-btn" (click)="clearCart()">Vaciar carrito</button>
+         <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
+       </div>
 
-      @if (showRecommendationsModal() && state().products.length > 0 && recommendedProducts().length > 0) {
-        <div class="recommendations-modal-overlay" (click)="closeRecommendationsModal()">
-          <div class="recommendations-modal" (click)="$event.stopPropagation()">
-            <div class="recommendations-modal-header">
-              <h4>Productos recomendados para agregar</h4>
-              <button class="modal-close-btn" (click)="closeRecommendationsModal()">&times;</button>
-            </div>
-            <div class="recommendations-grid">
-              @for (product of recommendedProducts(); track product.id) {
-                <div class="recommendation-card">
-                  <img [src]="product.image" [alt]="product.title" class="recommendation-image" />
-                  <div class="recommendation-info">
-                    <span class="recommendation-name">{{ product.title }}</span>
-                    <span class="recommendation-price" [innerHTML]="formatPrice(product.price)"></span>
-                  </div>
-                  <button class="recommendation-add-btn" (click)="addRecommendedProduct(product)" title="Agregar al carrito">
-                    +
-                  </button>
-                </div>
-              }
-            </div>
-            <div class="recommendations-modal-footer">
-              <button class="btn-secondary" (click)="closeRecommendationsModal()">Continuar con la compra</button>
-            </div>
-          </div>
-        </div>
-      }
+       @if (savedForLater().length > 0) {
+         <div class="saved-for-later-section">
+           <h3>Guardados para más tarde</h3>
+           <div class="saved-items-grid">
+             @for (product of savedForLater(); track product.id) {
+               <div class="saved-item-card">
+                 <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
+                 <div class="saved-item-info">
+                   <span class="saved-item-title">{{ product.title }}</span>
+                   <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
+                 </div>
+                 <div class="saved-item-actions">
+                   <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
+                     🛒
+                   </button>
+                   <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
+                     ✕
+                   </button>
+                 </div>
+               </div>
+             }
+           </div>
+         </div>
+       }
 
-      <div class="floating-summary">
-      <div class="floating-summary-content">
-        <div class="floating-address-header">
-          <button class="floating-address-btn" (click)="showAddressModal.set(true)">
-            <span class="address-icon">📍</span>
-            <span class="address-label">Dirección</span>
-          </button>
-        </div>
-        <h4>Resumen del Pedido</h4>
-        <div class="floating-summary-row">
-          <span>Subtotal:</span>
-          <span [innerHTML]="formatPrice(price())"></span>
-        </div>
-        <div class="floating-summary-row">
-          <span>Envío ({{ getSelectedShippingRate().label }}):</span>
-          <span [innerHTML]="formatPrice(shippingCost())"></span>
-        </div>
-        <div class="floating-summary-row">
-          <span>IVA:</span>
-          <span [innerHTML]="formatPrice(ivaTotal())"></span>
-        </div>
-        <div class="floating-summary-row total">
-          <span>Total:</span>
-          <span [innerHTML]="formatPrice(totalWithShipping())"></span>
-        </div>
-        <button class="floating-checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
-        <button class="floating-clear-btn" (click)="clearCart()">Vaciar Carrito</button>
-      </div>
-    </div>
+       @if (showRecommendationsModal() && state().products.length > 0 && recommendedProducts().length > 0) {
+         <div class="recommendations-modal-overlay" (click)="closeRecommendationsModal()">
+           <div class="recommendations-modal" (click)="$event.stopPropagation()">
+             <div class="recommendations-modal-header">
+               <h4>Productos recomendados para agregar</h4>
+               <button class="modal-close-btn" (click)="closeRecommendationsModal()">&times;</button>
+             </div>
+             <div class="recommendations-grid">
+               @for (product of recommendedProducts(); track product.id) {
+                 <div class="recommendation-card">
+                   <img [src]="product.image" [alt]="product.title" class="recommendation-image" />
+                   <div class="recommendation-info">
+                     <span class="recommendation-name">{{ product.title }}</span>
+                     <span class="recommendation-price" [innerHTML]="formatPrice(product.price)"></span>
+                   </div>
+                   <button class="recommendation-add-btn" (click)="addRecommendedProduct(product)" title="Agregar al carrito">
+                     +
+                   </button>
+                 </div>
+               }
+             </div>
+             <div class="recommendations-modal-footer">
+               <button class="btn-secondary" (click)="closeRecommendationsModal()">Continuar con la compra</button>
+             </div>
+           </div>
+         </div>
+       }
+     </div>
 
-    @if (showAddressModal()) {
-      <div class="address-modal-overlay" (click)="showAddressModal.set(false)">
-        <div class="address-modal" (click)="$event.stopPropagation()">
-          <div class="address-modal-header">
-            <h4>Seleccionar Dirección</h4>
-            <button class="close-btn" (click)="showAddressModal.set(false)">&times;</button>
-          </div>
-          <div class="address-modal-body">
-            @if (userAddresses.length > 0) {
-              <div class="address-list">
-                @for (addr of userAddresses; track addr.id) {
-                  <div class="address-item" [class.selected]="selectedAddressId() === addr.id" (click)="onAddressChange(addr.id); showAddressModal.set(false)">
-                    <div class="address-name">{{ addr.nombre }}</div>
-                    <div class="address-detail">{{ addr.direccion }}</div>
-                  </div>
-                }
-              </div>
-              <button class="btn-secondary" (click)="toggleAddAddress()">+ Agregar otra dirección</button>
-            } @else {
-              <p class="no-address">No tienes direcciones guardadas.</p>
-              <button class="btn-secondary" (click)="toggleAddAddress()">Agregar dirección</button>
-            }
-          </div>
-        </div>
-      </div>
-    }
-  } @else {
-    <div class="empty-cart">
-      <div class="empty-icon">🛒</div>
-      <h3>Tu carrito está vacío</h3>
-      <p>¡Explora nuestros productos y encuentra lo que necesitas!</p>
-      <a routerLink="/products" class="shop-btn">Ver Productos</a>
-    </div>
-  }
-</section>
+     <div class="floating-summary">
+       <div class="floating-summary-content">
+         <div class="floating-address-header">
+           <button class="floating-address-btn" (click)="showAddressModal.set(true)">
+             <span class="address-icon">📍</span>
+             <span class="address-label">Dirección</span>
+           </button>
+         </div>
+         <h4>Resumen del Pedido</h4>
+         <div class="floating-summary-row">
+           <span>Subtotal:</span>
+           <span [innerHTML]="formatPrice(price())"></span>
+         </div>
+         <div class="floating-summary-row">
+           <span>Envío ({{ getSelectedShippingRate().label }}):</span>
+           <span [innerHTML]="formatPrice(shippingCost())"></span>
+         </div>
+         <div class="floating-summary-row">
+           <span>IVA:</span>
+           <span [innerHTML]="formatPrice(ivaTotal())"></span>
+         </div>
+         <div class="floating-summary-row total">
+           <span>Total:</span>
+           <span [innerHTML]="formatPrice(totalWithShipping())"></span>
+         </div>
+         <button class="floating-checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
+         <button class="floating-clear-btn" (click)="clearCart()">Vaciar Carrito</button>
+       </div>
+     </div>
+   } @else {
+     <div class="empty-cart">
+       <div class="empty-icon">🛒</div>
+       <h3>Tu carrito está vacío</h3>
+       <p>¡Explora nuestros productos y encuentra lo que necesitas!</p>
+       <a routerLink="/products" class="shop-btn">Ver Productos</a>
+     </div>
+   }
+ </section>
 
 @if (showCheckoutModal()) {
   <div class="modal-overlay">

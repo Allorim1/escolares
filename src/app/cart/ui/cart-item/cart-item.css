@@ -100,6 +100,25 @@
   color: #ff6b35;
 }
 
+.save-later-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #999;
+  transition: all 0.2s;
+}
+
+.save-later-btn:hover {
+  background: #fef3c7;
+  color: #d97706;
+}
+
 .remove-btn {
   width: 40px;
   height: 40px;

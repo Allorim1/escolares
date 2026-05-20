@@ -126,14 +126,6 @@ export default class CartComponent implements OnDestroy {
   constructor() {
     // Trigger product loading for recommendations
     this.productsState.changePage$.next(1);
-
-    // Auto-show recommendations modal when cart has products
-    setTimeout(() => {
-      const products = this.state().products;
-      if (products.length > 0 && this.recommendedProducts().length > 0) {
-        this.showRecommendationsModal.set(true);
-      }
-    }, 100);
   }
 
   // Recommended products for last-minute addition (excludes products already in cart)
@@ -481,9 +473,9 @@ paymentMethods = [
     }
 
     const products = this.state().products;
-    const hasRecommended = this.recommendedProducts().length > 0;
-
-    if (products.length > 0 && hasRecommended) {
+    
+    // Always show recommendations modal first if there are products in cart
+    if (products.length > 0) {
       this.showRecommendationsModal.set(true);
       this._pendingCheckout = true;
       return;

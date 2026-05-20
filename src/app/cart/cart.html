@@ -51,11 +51,6 @@
           <a routerLink="/products" class="continue-btn">Continuar comprando</a>
           <button class="clear-cart-btn" (click)="clearCart()">Vaciar carrito</button>
           <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
-          @if (recommendedProducts().length > 0) {
-            <button class="btn-secondary" (click)="showRecommendationsModal.set(true)" style="margin-left: 0.5rem;">
-              Ver recomendaciones
-            </button>
-          }
         </div>
       </div>
 

@@ -50,17 +50,16 @@ export class FavoritesService {
     const current = this.favoritos();
     const exists = current.includes(productId);
     
-    if (exists) {
-      this.favoritos.set(current.filter(id => id !== productId));
-    } else {
-      this.favoritos.set([...current, productId]);
-    }
+    const updated = exists 
+      ? current.filter(id => id !== productId)
+      : [...current, productId];
     
+    this.favoritos.set(updated);
     this.saveToStorage();
     
     const user = this.authService.user();
     if (user) {
-      this.authService.updateProfile({ favoritos: this.favoritos() });
+      this.authService.updateProfile({ favoritos: updated });
     }
   }
 

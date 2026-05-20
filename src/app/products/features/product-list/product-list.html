@@ -110,7 +110,7 @@
           padding: 0.5rem;
         "
       >
-        @for (product of paginatedProducts(); track product; let i = $index) {
+        @for (product of paginatedProducts(); track product.id; let i = $index) {
           <div
             class="card card-hover"
             [class.oferta-card]="isEnOferta(product)"

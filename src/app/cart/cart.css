@@ -1,7 +1,7 @@
 .cart-container {
-  max-width: 700px;
+  max-width: 800px;
   margin: 2rem auto;
-  padding: 2rem;
+  padding: 1.5rem;
   position: relative;
   z-index: 1;
 }
@@ -9,7 +9,7 @@
 .cart-container h2 {
   font-size: 2rem;
   color: #333;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 
@@ -1141,34 +1141,32 @@
 
 /* Tarjeta flotante de resumen */
 .floating-summary {
-  position: fixed;
-  top: 120px;
-  right: 30px;
   width: 320px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
   z-index: 100;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 2rem;
 }
 
 /* Asegurar que el carrito no se superponga */
-.cart-container {
-  max-width: 700px;
-  margin: 2rem auto;
-  padding: 2rem;
-  position: relative;
-  z-index: 1;
-  margin-right: 360px; /* Espacio para la tarjeta flotante */
-}
+/* Removed margin-right for better centering */
+/* The floating summary is now positioned separately */
 
-/* En móviles, eliminar margen derecho y apilar */
+/* Mobile styles - stack elements vertically */
 @media (max-width: 768px) {
   .cart-container {
     max-width: 100%;
     margin: 1rem auto;
     padding: 1rem;
-    margin-right: auto;
+  }
+
+  .cart-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .floating-summary {
@@ -1177,10 +1175,6 @@
     margin-top: 1rem;
     box-shadow: none;
     border: 1px solid #eee;
-  }
-
-  .delivery-type-selector .delivery-type-options {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -1549,7 +1543,6 @@
 
 /* Recommendations Modal */
 .recommendations-modal-overlay {
-  position: fixed;
   top: 0;
   left: 0;
   right: 0;

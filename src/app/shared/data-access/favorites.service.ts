@@ -1,7 +1,6 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { AuthService } from './auth.service';
 import { ProductsStateService } from '../../products/data-access/products-state.service';
-import { Product } from '../interfaces/product.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -9,22 +8,27 @@ import { Product } from '../interfaces/product.interface';
 export class FavoritesService {
   private authService = inject(AuthService);
   private productsState = inject(ProductsStateService);
+  private lastToggleTime: Map<string | number, number> = new Map<string | number, number>();
+  private readonly DEBOUNCE_MS = 300;
 
   favoritos = signal<(number | string)[]>([]);
+  private loadedFromStorage = false;
 
   constructor() {
-    // Load favorites from localStorage
     const saved = localStorage.getItem('escolares-favoritos');
     if (saved) {
       this.favoritos.set(JSON.parse(saved));
+      this.loadedFromStorage = true;
     }
 
-    // Listen to auth changes to sync with user.favoritos
     effect(() => {
       const user = this.authService.user();
-      if (user?.favoritos && user.favoritos.length > 0) {
-        this.favoritos.set(user.favoritos);
-        this.saveToStorage();
+      if (user?.favoritos && user.favoritos.length > 0 && !this.loadedFromStorage) {
+        const current = this.favoritos();
+        if (JSON.stringify(current) !== JSON.stringify(user.favoritos)) {
+          this.favoritos.set(user.favoritos);
+          this.saveToStorage();
+        }
       }
     });
   }
@@ -34,6 +38,15 @@ export class FavoritesService {
   }
 
   toggleFavorito(productId: number | string): void {
+    const now = Date.now();
+    const lastToggle = this.lastToggleTime.get(productId) || 0;
+    
+    if (now - lastToggle < this.DEBOUNCE_MS) {
+      return;
+    }
+    
+    this.lastToggleTime.set(productId, now);
+    
     const current = this.favoritos();
     const exists = current.includes(productId);
     
@@ -45,7 +58,6 @@ export class FavoritesService {
     
     this.saveToStorage();
     
-    // Update user if logged in
     const user = this.authService.user();
     if (user) {
       this.authService.updateProfile({ favoritos: this.favoritos() });

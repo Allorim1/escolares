@@ -14,6 +14,8 @@ interface State {
 })
 export class CartStateService {
   private _storageService = inject(StorageService);
+  private lastAddTime: Map<string | number, number> = new Map<string | number, number>();
+  private readonly DEBOUNCE_MS = 300;
 
   private initialState: State = {
     products: [],
@@ -57,6 +59,15 @@ export class CartStateService {
   });
 
   private add(state: Signal<State>, product: ProductItemCart) {
+    const now = Date.now();
+    const lastAdd = this.lastAddTime.get(product.product.id) || 0;
+    
+    if (now - lastAdd < this.DEBOUNCE_MS) {
+      return { products: state().products };
+    }
+    
+    this.lastAddTime.set(product.product.id, now);
+    
     const isInCart = state().products.find(
       (productInCart) => productInCart.product.id == product.product.id,
     );
@@ -67,9 +78,13 @@ export class CartStateService {
       };
     }
 
-    isInCart.quantity += 1;
+    const updatedProducts = state().products.map((p) => 
+      p.product.id === product.product.id 
+        ? { ...p, quantity: p.quantity + 1 } 
+        : p
+    );
     return {
-      products: [...state().products],
+      products: updatedProducts,
     };
   }
 

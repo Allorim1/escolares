@@ -467,12 +467,12 @@ export default class ProductList implements OnInit {
     return `transform-origin: ${this.mouseX()}% ${this.mouseY()}%;`;
   }
 
-  getCardQuantity = (productId: string | number) => computed(() => {
+  getCardQuantity(productId: string | number): number {
     const cartItem = this.cartState().products.find(
       (p: any) => p.product.id === productId
     );
     return cartItem ? cartItem.quantity : 0;
-  });
+  }
 
   addToCardFromCard(product: Product) {
     this.cartState.add({ product, quantity: 1 });

@@ -474,6 +474,18 @@ export default class ProductList implements OnInit {
     return cartItem ? cartItem.quantity : 0;
   }
 
+  readonly productsInCart = computed(() => {
+    const products = this.cartState().products;
+    return new Set(products.map((p: any) => p.product.id));
+  });
+
+  readonly productQuantities = computed(() => {
+    const products = this.cartState().products;
+    const map = new Map<string | number, number>();
+    products.forEach((p: any) => map.set(p.product.id, p.quantity));
+    return map;
+  });
+
   addToCardFromCard(product: Product) {
     this.cartState.add({ product, quantity: 1 });
   }

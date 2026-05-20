@@ -26,17 +26,17 @@
    align-self: flex-start;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
    .cart-container {
-       flex-direction: column;
+       max-width: 100%;
+       margin: 1.5rem auto;
+       padding: 1rem;
+       gap: 1.5rem;
    }
    
    .floating-summary {
-       position: static;
-       width: 100%;
-       margin-top: 2rem;
-       box-shadow: none;
-       border: 1px solid #eee;
+       width: 280px;
+       padding: 1rem;
    }
 }
 
@@ -1129,6 +1129,21 @@
     border-radius: 12px 12px 0 0;
     max-height: 85vh;
   }
+
+  .floating-summary {
+    width: 260px;
+    padding: 1rem;
+  }
+
+  .floating-address-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .floating-summary-row {
+    padding: 0.4rem 0;
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1171,45 +1186,23 @@
   .btn-archivo-comprobante {
     width: 100%;
   }
-}
-
-/* Tarjeta flotante de resumen */
-.floating-summary {
-  width: 320px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  z-index: 100;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 2rem;
-}
-
-/* Asegurar que el carrito no se superponga */
-/* Removed margin-right for better centering */
-/* The floating summary is now positioned separately */
-
-/* Mobile styles - stack elements vertically */
-@media (max-width: 768px) {
-  .cart-container {
-    max-width: 100%;
-    margin: 1rem auto;
-    padding: 1rem;
-  }
-
-  .cart-container h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
 
   .floating-summary {
-    position: static;
-    width: 100%;
-    margin-top: 1rem;
-    box-shadow: none;
-    border: 1px solid #eee;
+    width: 240px;
+    padding: 0.75rem;
   }
+}
+
+.floating-summary {
+   width: 320px;
+   background: white;
+   border-radius: 12px;
+   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+   padding: 1.5rem;
+   z-index: 100;
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 2rem;
 }
 
 .floating-summary-content h4 {

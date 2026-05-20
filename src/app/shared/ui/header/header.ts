@@ -28,7 +28,7 @@ export class Header {
 
     constructor() {
       this.productsService.getProducts().subscribe((response: any) => {
-        this.allProducts = response.products;
+        this.allProducts.set(response.products);
       });
       this.initDarkMode();
     }

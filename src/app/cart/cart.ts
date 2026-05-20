@@ -474,17 +474,35 @@ paymentMethods = [
     );
   }
 
-  closeRecommendationsModal() {
-    this.showRecommendationsModal.set(false);
-  }
-
   openCheckout() {
-    // Check if purchases are disabled
     if (this.storeSettings.comprasDeshabilitadas()) {
       alert('Las compras están temporalmente deshabilitadas. Por favor intenta más tarde.');
       return;
     }
 
+    const products = this.state().products;
+    const hasRecommended = this.recommendedProducts().length > 0;
+
+    if (products.length > 0 && hasRecommended) {
+      this.showRecommendationsModal.set(true);
+      this._pendingCheckout = true;
+      return;
+    }
+
+    this.startCheckout();
+  }
+
+  private _pendingCheckout = false;
+
+  closeRecommendationsModal() {
+    this.showRecommendationsModal.set(false);
+    if (this._pendingCheckout) {
+      this._pendingCheckout = false;
+      this.startCheckout();
+    }
+  }
+
+  private startCheckout() {
     const currentUser = this.authService.user();
     const addresses = currentUser?.direcciones || [];
     const defaultAddress = addresses.length > 0 ? addresses[0] : null;

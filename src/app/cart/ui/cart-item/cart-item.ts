@@ -9,18 +9,20 @@ import { CurrencyService } from '../../../shared/data-access/currency.service';
   styleUrls: ['./cart-item.css'],
 })
 export class CartItem {
-  currencyService = inject(CurrencyService);
-  
-  productCartItem = input.required<ProductItemCart>();
+   currencyService = inject(CurrencyService);
+   
+   productCartItem = input.required<ProductItemCart>();
 
-  onRemove = output<number | string>();
+   onRemove = output<number | string>();
 
-  onIncrease = output<ProductItemCart>();
+   onIncrease = output<ProductItemCart>();
 
-  onDecrease = output<ProductItemCart>();
+   onDecrease = output<ProductItemCart>();
 
-  // Format price based on current currency display
-  formatPrice(priceInUsd: number): string {
-    return this.currencyService.formatPrice(priceInUsd);
-  }
+   onSaveForLater = output<ProductItemCart['product']>();
+
+   // Format price based on current currency display
+   formatPrice(priceInUsd: number): string {
+     return this.currencyService.formatPrice(priceInUsd);
+   }
 }

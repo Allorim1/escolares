@@ -59,15 +59,69 @@ const TRANSFERENCIA_INFO = {
   styleUrl: './cart.css',
 })
 export default class CartComponent implements OnDestroy {
-  state = inject(CartStateService).state;
-  authService = inject(AuthService);
-  private ordersBackend = inject(OrdersBackend);
-  private notificationService = inject(NotificationService);
-  private http = inject(HttpClient);
-  currencyService = inject(CurrencyService);
-  storeSettings = inject(StoreSettingsService);
-  private router = inject(Router);
-  private productsState = inject(ProductsStateService);
+   state = inject(CartStateService).state;
+   authService = inject(AuthService);
+   private ordersBackend = inject(OrdersBackend);
+   private notificationService = inject(NotificationService);
+   private http = inject(HttpClient);
+   currencyService = inject(CurrencyService);
+   storeSettings = inject(StoreSettingsService);
+   private router = inject(Router);
+   private productsState = inject(ProductsStateService);
+
+   // Saved for later products
+   savedForLater = signal<ProductItemCart['product'][]>(this.loadSavedForLater());
+
+   private loadSavedForLater(): ProductItemCart['product'][] {
+     if (typeof window !== 'undefined') {
+       try {
+         const saved = localStorage.getItem('escolares-saved-for-later');
+         return saved ? JSON.parse(saved) : [];
+       } catch {
+         return [];
+       }
+     }
+     return [];
+   }
+
+   private saveSavedForLater(products: ProductItemCart['product'][]) {
+     if (typeof window !== 'undefined') {
+       localStorage.setItem('escolares-saved-for-later', JSON.stringify(products));
+     }
+   }
+
+   saveForLater(product: ProductItemCart['product']) {
+     const current = this.savedForLater();
+     if (!current.find(p => p.id === product.id)) {
+       const updated = [...current, product];
+       this.savedForLater.set(updated);
+       this.saveSavedForLater(updated);
+     }
+     this.state.remove(product.id);
+     this.notificationService.success(
+       'Guardado para más tarde',
+       `${product.title} se ha guardado para comprar después`
+     );
+   }
+
+   moveToCart(product: ProductItemCart['product']) {
+     const current = this.savedForLater();
+     const updated = current.filter(p => p.id !== product.id);
+     this.savedForLater.set(updated);
+     this.saveSavedForLater(updated);
+     this.state.add({ product, quantity: 1 });
+     this.notificationService.success(
+       'Producto agregado',
+       `${product.title} se ha agregado al carrito`
+     );
+   }
+
+   removeFromSaved(productId: string | number) {
+     const current = this.savedForLater();
+     const updated = current.filter(p => p.id !== productId);
+     this.savedForLater.set(updated);
+     this.saveSavedForLater(updated);
+   }
 
   constructor() {
     // Trigger product loading for recommendations
@@ -286,6 +340,10 @@ paymentMethods = [
     { value: 'transferencia', label: 'Transferencia' },
     { value: 'punto_venta', label: 'Punto de Venta' },
   ];
+
+  selectPaymentMethod(method: string) {
+    this.paymentData.update(p => ({ ...p, metodoPago: method }));
+  }
 
   shippingRates: ShippingRate[] = [
     { id: 'rate-0', label: 'Propina - Ref 0.00', ref: 0.0 },

@@ -1643,3 +1643,84 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Payment Method Circle Selector */
+.payment-methods-selector {
+  margin-bottom: 1rem;
+}
+
+.payment-methods-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.payment-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.payment-method-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.payment-method-circle:hover {
+  border-color: #1d63c1;
+  background: #e8f0fe;
+}
+
+.payment-method-circle.active {
+  border-color: #1d63c1;
+  background: #1d63c1;
+  color: white;
+}
+
+.payment-circle-inner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.payment-method-circle.active .payment-circle-inner {
+  background: white;
+}
+
+.payment-method-circle.active .payment-circle-inner::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #1d63c1;
+  border-radius: 50%;
+}
+
+.payment-method-name {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .payment-options-grid {
+    grid-template-columns: 1fr;
+  }
+}

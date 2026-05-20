@@ -37,9 +37,35 @@
           (onRemove)="onRemove($event)"
           (onIncrease)="onIncrease($event)"
           (onDecrease)="onDecrease($event)"
+          (onSaveForLater)="saveForLater($event)"
         ></app-cart-item>
       }
     </div>
+
+    @if (savedForLater().length > 0) {
+      <div class="saved-for-later-section">
+        <h3>Guardados para más tarde</h3>
+        <div class="saved-items-grid">
+          @for (product of savedForLater(); track product.id) {
+            <div class="saved-item-card">
+              <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
+              <div class="saved-item-info">
+                <span class="saved-item-title">{{ product.title }}</span>
+                <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
+              </div>
+              <div class="saved-item-actions">
+                <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
+                  🛒
+                </button>
+                <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
+                  ✕
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
 
     <div class="cart-summary">
       <div class="summary-row total">
@@ -338,13 +364,22 @@
                   }
                 </div>
 
-                <div class="form-group">
-                  <select [(ngModel)]="paymentData().metodoPago" name="metodoPago">
-                    @for (method of paymentMethods; track method.value) {
-                      <option [value]="method.value">{{ method.label }}</option>
-                    }
-                  </select>
-                </div>
+<div class="payment-methods-selector">
+                   <div class="payment-methods-label">Método de pago</div>
+                   <div class="payment-options-grid">
+                     @for (method of paymentMethods; track method.value) {
+                       <button
+                         type="button"
+                         class="payment-method-circle"
+                         [class.active]="paymentData().metodoPago === method.value"
+                         (click)="selectPaymentMethod(method.value)"
+                       >
+                         <span class="payment-circle-inner"></span>
+                         <span class="payment-method-name">{{ method.label }}</span>
+                       </button>
+                     }
+                   </div>
+                 </div>
 
                 @if (paymentData().metodoPago === 'pago_movil') {
                   <div class="pago-movil-info">

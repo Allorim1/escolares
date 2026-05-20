@@ -1,5 +1,5 @@
 .cart-container {
-   max-width: 1200px;
+   max-width: 1400px;
    margin: 2rem auto;
    padding: 1.5rem;
    position: relative;
@@ -9,12 +9,12 @@
 }
 
 .cart-main-content {
-   flex: 1;
+   flex: 1 1 0;
    min-width: 0;
 }
 
 .floating-summary {
-   width: 320px;
+   width: 340px;
    background: white;
    border-radius: 12px;
    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -24,6 +24,7 @@
    position: sticky;
    top: 2rem;
    align-self: flex-start;
+   flex-shrink: 0;
 }
 
 @media (max-width: 1024px) {
@@ -35,16 +36,24 @@
    }
    
    .floating-summary {
-       width: 280px;
+       width: 300px;
        padding: 1rem;
    }
 }
 
 .cart-container h2 {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 1.5rem;
-  text-align: center;
+   font-size: 2rem;
+   color: #333;
+   margin-bottom: 1.5rem;
+   text-align: center;
+}
+
+.cart-title {
+   font-size: 2rem;
+   color: #333;
+   margin-bottom: 1.5rem;
+   text-align: center;
+   width: 100%;
 }
 
 .cart-items {
@@ -1194,15 +1203,15 @@
 }
 
 .floating-summary {
-   width: 320px;
-   background: white;
-   border-radius: 12px;
-   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-   padding: 1.5rem;
-   z-index: 100;
-   margin-left: auto;
-   margin-right: auto;
-   margin-top: 2rem;
+    width: 340px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    z-index: 100;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2rem;
 }
 
 .floating-summary-content h4 {

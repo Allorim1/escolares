@@ -1,115 +1,124 @@
 <section class="cart-container">
-   <h2>Tu Carrito de Compras</h2>
+   <div class="cart-main-content">
+     <h2 class="cart-title">Tu Carrito de Compras</h2>
 
-   @if (storeSettings.comprasDeshabilitadas()) {
-     <div class="compras-deshabilitadas">
-       <div class="compras-icon">🛇</div>
-       <h3>Compras Temporalmente Deshabilitadas</h3>
-       <p>En este momento no es posible realizar compras. Por favor intenta más tarde.</p>
-     </div>
-   } @else if (state().products.length > 0) {
-     <div class="cart-main-content">
-       <div class="delivery-type-selector">
-         <h3>Tipo de Entrega</h3>
-         <div class="delivery-type-options">
-           <button
-             type="button"
-             class="delivery-type-btn"
-             [class.active]="deliveryType() === 'express'"
-             (click)="setDeliveryType('express')"
-           >
-             Express
-           </button>
-           <button
-             type="button"
-             class="delivery-type-btn"
-             [class.active]="deliveryType() === 'programado'"
-             (click)="setDeliveryType('programado')"
-           >
-             Programar pedido (Prepedido)
-           </button>
-         </div>
-       </div>
+    @if (storeSettings.comprasDeshabilitadas()) {
+      <div class="compras-deshabilitadas">
+        <div class="compras-icon">🛇</div>
+        <h3>Compras Temporalmente Deshabilitadas</h3>
+        <p>En este momento no es posible realizar compras. Por favor intenta más tarde.</p>
+      </div>
+    } @else if (state().products.length > 0) {
+      <div class="delivery-type-selector">
+        <h3>Tipo de Entrega</h3>
+        <div class="delivery-type-options">
+          <button
+            type="button"
+            class="delivery-type-btn"
+            [class.active]="deliveryType() === 'express'"
+            (click)="setDeliveryType('express')"
+          >
+            Express
+          </button>
+          <button
+            type="button"
+            class="delivery-type-btn"
+            [class.active]="deliveryType() === 'programado'"
+            (click)="setDeliveryType('programado')"
+          >
+            Programar pedido (Prepedido)
+          </button>
+        </div>
+      </div>
 
-       <div class="cart-items">
-         @for (item of state().products; track item) {
-           <app-cart-item
-             [productCartItem]="item"
-             (onRemove)="onRemove($event)"
-             (onIncrease)="onIncrease($event)"
-             (onDecrease)="onDecrease($event)"
-             (onSaveForLater)="saveForLater($event)"
-           ></app-cart-item>
-         }
-       </div>
+      <div class="cart-items">
+        @for (item of state().products; track item) {
+          <app-cart-item
+            [productCartItem]="item"
+            (onRemove)="onRemove($event)"
+            (onIncrease)="onIncrease($event)"
+            (onDecrease)="onDecrease($event)"
+            (onSaveForLater)="saveForLater($event)"
+          ></app-cart-item>
+        }
+      </div>
 
-       <div class="cart-summary">
-         <div class="summary-row total">
-           <span>Total:</span>
-           <span class="total-price" [innerHTML]="formatPrice(price())"></span>
-         </div>
-       </div>
+      <div class="cart-summary">
+        <div class="summary-row total">
+          <span>Total:</span>
+          <span class="total-price" [innerHTML]="formatPrice(price())"></span>
+        </div>
+      </div>
 
-       <div class="cart-actions">
-         <a routerLink="/products" class="continue-btn">Continuar comprando</a>
-         <button class="clear-cart-btn" (click)="clearCart()">Vaciar carrito</button>
-         <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
-       </div>
+      <div class="cart-actions">
+        <a routerLink="/products" class="continue-btn">Continuar comprando</a>
+        <button class="clear-cart-btn" (click)="clearCart()">Vaciar carrito</button>
+        <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
+      </div>
 
-       @if (savedForLater().length > 0) {
-         <div class="saved-for-later-section">
-           <h3>Guardados para más tarde</h3>
-           <div class="saved-items-grid">
-             @for (product of savedForLater(); track product.id) {
-               <div class="saved-item-card">
-                 <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
-                 <div class="saved-item-info">
-                   <span class="saved-item-title">{{ product.title }}</span>
-                   <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
-                 </div>
-                 <div class="saved-item-actions">
-                   <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
-                     🛒
-                   </button>
-                   <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
-                     ✕
-                   </button>
-                 </div>
-               </div>
-             }
-           </div>
-         </div>
-       }
+      @if (savedForLater().length > 0) {
+        <div class="saved-for-later-section">
+          <h3>Guardados para más tarde</h3>
+          <div class="saved-items-grid">
+            @for (product of savedForLater(); track product.id) {
+              <div class="saved-item-card">
+                <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
+                <div class="saved-item-info">
+                  <span class="saved-item-title">{{ product.title }}</span>
+                  <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
+                </div>
+                <div class="saved-item-actions">
+                  <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
+                    🛒
+                  </button>
+                  <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
 
-       @if (showRecommendationsModal() && state().products.length > 0 && recommendedProducts().length > 0) {
-         <div class="recommendations-modal-overlay" (click)="closeRecommendationsModal()">
-           <div class="recommendations-modal" (click)="$event.stopPropagation()">
-             <div class="recommendations-modal-header">
-               <h4>Productos recomendados para agregar</h4>
-               <button class="modal-close-btn" (click)="closeRecommendationsModal()">&times;</button>
-             </div>
-             <div class="recommendations-grid">
-               @for (product of recommendedProducts(); track product.id) {
-                 <div class="recommendation-card">
-                   <img [src]="product.image" [alt]="product.title" class="recommendation-image" />
-                   <div class="recommendation-info">
-                     <span class="recommendation-name">{{ product.title }}</span>
-                     <span class="recommendation-price" [innerHTML]="formatPrice(product.price)"></span>
-                   </div>
-                   <button class="recommendation-add-btn" (click)="addRecommendedProduct(product)" title="Agregar al carrito">
-                     +
-                   </button>
-                 </div>
-               }
-             </div>
-             <div class="recommendations-modal-footer">
-               <button class="btn-secondary" (click)="closeRecommendationsModal()">Continuar con la compra</button>
-             </div>
-           </div>
-         </div>
-       }
-     </div>
+      @if (showRecommendationsModal() && state().products.length > 0 && recommendedProducts().length > 0) {
+        <div class="recommendations-modal-overlay" (click)="closeRecommendationsModal()">
+          <div class="recommendations-modal" (click)="$event.stopPropagation()">
+            <div class="recommendations-modal-header">
+              <h4>Productos recomendados para agregar</h4>
+              <button class="modal-close-btn" (click)="closeRecommendationsModal()">&times;</button>
+            </div>
+            <div class="recommendations-grid">
+              @for (product of recommendedProducts(); track product.id) {
+                <div class="recommendation-card">
+                  <img [src]="product.image" [alt]="product.title" class="recommendation-image" />
+                  <div class="recommendation-info">
+                    <span class="recommendation-name">{{ product.title }}</span>
+                    <span class="recommendation-price" [innerHTML]="formatPrice(product.price)"></span>
+                  </div>
+                  <button class="recommendation-add-btn" (click)="addRecommendedProduct(product)" title="Agregar al carrito">
+                    +
+                  </button>
+                </div>
+              }
+            </div>
+            <div class="recommendations-modal-footer">
+              <button class="btn-secondary" (click)="closeRecommendationsModal()">Continuar con la compra</button>
+            </div>
+          </div>
+        </div>
+      }
+    } @else {
+      <div class="empty-cart">
+        <div class="empty-icon">🛒</div>
+        <h3>Tu carrito está vacío</h3>
+        <p>¡Explora nuestros productos y encuentra lo que necesitas!</p>
+        <a routerLink="/products" class="shop-btn">Ver Productos</a>
+      </div>
+    }
+   </div>
 
+   @if (state().products.length > 0) {
      <div class="floating-summary">
        <div class="floating-summary-content">
          <div class="floating-address-header">
@@ -139,446 +148,5 @@
          <button class="floating-clear-btn" (click)="clearCart()">Vaciar Carrito</button>
        </div>
      </div>
-   } @else {
-     <div class="empty-cart">
-       <div class="empty-icon">🛒</div>
-       <h3>Tu carrito está vacío</h3>
-       <p>¡Explora nuestros productos y encuentra lo que necesitas!</p>
-       <a routerLink="/products" class="shop-btn">Ver Productos</a>
-     </div>
    }
- </section>
-
-@if (showCheckoutModal()) {
-  <div class="modal-overlay">
-    <div class="checkout-modal">
-      @if (orderPlaced()) {
-        <div class="order-success">
-          <div class="success-icon">✓</div>
-          <h3>¡Pedido Confirmado!</h3>
-          <p>Tu pedido ha sido recibido exitosamente.</p>
-          <p class="success-detail">Nos contactaremos contigo pronto para coordinar la entrega.</p>
-          <button class="btn-primary" (click)="closeCheckout()">Aceptar</button>
-        </div>
-      } @else {
-        <div class="modal-header">
-          <h3>Finalizar Compra</h3>
-          <button class="close-btn" (click)="closeCheckout()">&times;</button>
-        </div>
-
-        <div class="checkout-steps">
-          <div class="step" [class.active]="checkoutStep() >= 1" [class.completed]="checkoutStep() > 1">
-            <span class="step-number">1</span>
-            <span class="step-label">Datos</span>
-          </div>
-          <div class="step-line" [class.active]="checkoutStep() > 1"></div>
-          <div class="step" [class.active]="checkoutStep() >= 2" [class.completed]="checkoutStep() > 2">
-            <span class="step-number">2</span>
-            <span class="step-label">Envío</span>
-          </div>
-          <div class="step-line" [class.active]="checkoutStep() > 2"></div>
-          <div class="step" [class.active]="checkoutStep() >= 3">
-            <span class="step-number">3</span>
-            <span class="step-label">Pago</span>
-          </div>
-        </div>
-
-        <div class="modal-body">
-          <div class="order-summary">
-            <h4>Resumen del Pedido</h4>
-            <div class="summary-items">
-              @for (item of state().products; track item) {
-                <div class="summary-item">
-                  <img [src]="item.product.image" [alt]="item.product.title" class="summary-item-image" />
-                  <div class="summary-item-main">
-                    <span class="summary-item-title">{{ item.product.title }}</span>
-                    <span class="summary-item-qty">{{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span></span>
-                  </div>
-                  <span class="summary-item-price" [innerHTML]="formatPrice(item.product.price * item.quantity)"></span>
-                </div>
-              }
-            </div>
-            <div class="summary-shipping">
-              <span>Tarifa de envío ({{ getSelectedShippingRate().label }}):</span>
-              <span [innerHTML]="formatPrice(shippingCost())"></span>
-            </div>
-            <div class="summary-iva">
-              <span>IVA:</span>
-              <span [innerHTML]="formatPrice(ivaTotal())"></span>
-            </div>
-            <div class="summary-total">
-              <span>Total con envío:</span>
-              <span [innerHTML]="formatPrice(totalWithShipping())"></span>
-            </div>
-          </div>
-
-          <form class="payment-form" (ngSubmit)="placeOrder()">
-            @if (checkoutStep() === 1) {
-              <div class="step-content">
-                <h4>Datos del Cliente</h4>
-                
-                @if (user) {
-                  <p class="user-info">Datos de: {{ userName }} ({{ userEmail }})</p>
-                }
-                
-                <div class="form-group">
-                  <label>Nombre completo</label>
-                  <input type="text" [value]="userName" readonly class="readonly-field" />
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>Cédula</label>
-                    <input type="text" [value]="userCedula" readonly class="readonly-field" />
-                  </div>
-                  <div class="form-group">
-                    <label>Teléfono</label>
-                    <input type="tel" [value]="userPhone" readonly class="readonly-field" />
-                  </div>
-                </div>
-
-                <div class="step-actions">
-                  <button type="button" class="btn-primary" (click)="nextStep()">Continuar a Envío</button>
-                </div>
-              </div>
-            }
-
-            @if (checkoutStep() === 2) {
-              <div class="step-content">
-                <h4>Dirección de Envío</h4>
-
-                <div class="form-group">
-                  @if (userAddresses.length > 0) {
-                    <select [ngModel]="selectedAddressId()" (ngModelChange)="onAddressChange($event)" name="direccion">
-                      @for (addr of userAddresses; track addr.id) {
-                        <option [value]="addr.id">{{ addr.nombre }} - {{ addr.direccion }}</option>
-                      }
-                    </select>
-                  } @else {
-                    <input type="text" [value]="userAddress" readonly class="readonly-field" />
-                  }
-                  <button type="button" class="add-address-btn" (click)="toggleAddAddress()">
-                    + Agregar otra dirección
-                  </button>
-                </div>
-
-                <div class="form-group">
-                  <label>Tarifa de envío (Propina)</label>
-                  <div class="shipping-options-grid">
-                    @for (rate of shippingRates; track rate.id) {
-                      <button
-                        type="button"
-                        class="shipping-rate-circle"
-                        [class.active]="selectedShippingRateId() === rate.id"
-                        (click)="selectedShippingRateId.set(rate.id)"
-                      >
-                        <span class="shipping-rate-circle-inner"></span>
-                        <span class="shipping-rate-label">{{ rate.ref > 0 ? '$' + rate.ref.toFixed(2) : 'Ninguna' }}</span>
-                      </button>
-                    }
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label>Tipo de entrega</label>
-                  <div class="delivery-type-options">
-                    <button
-                      type="button"
-                      class="delivery-type-btn"
-                      [class.active]="deliveryType() === 'express'"
-                      (click)="setDeliveryType('express')"
-                    >
-                      Express
-                    </button>
-                    <button
-                      type="button"
-                      class="delivery-type-btn"
-                      [class.active]="deliveryType() === 'programado'"
-                      (click)="setDeliveryType('programado')"
-                    >
-                      Programar tu pedido
-                    </button>
-                  </div>
-                </div>
-
-                @if (deliveryType() === 'programado') {
-                  <div class="form-group">
-                    <label>Fecha y hora programada</label>
-                    <input
-                      type="datetime-local"
-                      [ngModel]="scheduledFor()"
-                      (ngModelChange)="scheduledFor.set($event)"
-                      [min]="getMinScheduleDateTime()"
-                      [max]="getMaxScheduleDateTime()"
-                      name="scheduledFor"
-                    />
-                    <small class="schedule-hint">Solo puedes programar hasta 3 días después del momento de compra.</small>
-                  </div>
-                }
-
-                @if (shippingError()) {
-                  <div class="error-message">{{ shippingError() }}</div>
-                }
-
-                <div class="step-actions">
-                  <button type="button" class="btn-secondary" (click)="prevStep()">Atrás</button>
-                  <button type="button" class="btn-primary" (click)="nextStep()">Continuar a Pago</button>
-                </div>
-              </div>
-            }
-
-            @if (checkoutStep() === 3) {
-              <div class="step-content">
-                <h4>Método de Pago</h4>
-
-                <div class="form-group">
-                  @if (userPaymentMethods.length > 0) {
-                    <label>Método guardado</label>
-                    <select [ngModel]="selectedSavedPaymentId()" (ngModelChange)="onSavedPaymentChange($event)" name="metodoGuardado">
-                      <option value="">Selecciona un método guardado</option>
-                      @for (saved of userPaymentMethods; track saved.id) {
-                        <option [value]="saved.id">{{ saved.alias }} - {{ saved.tipo }}</option>
-                      }
-                    </select>
-                  }
-                </div>
-
-<div class="payment-methods-selector">
-                   <div class="payment-methods-label">Método de pago</div>
-                   <div class="payment-options-grid">
-                     @for (method of paymentMethods; track method.value) {
-                       <button
-                         type="button"
-                         class="payment-method-circle"
-                         [class.active]="paymentData().metodoPago === method.value"
-                         (click)="selectPaymentMethod(method.value)"
-                       >
-                         <span class="payment-circle-inner"></span>
-                         <span class="payment-method-name">{{ method.label }}</span>
-                       </button>
-                     }
-                   </div>
-                 </div>
-
-                @if (paymentData().metodoPago === 'pago_movil') {
-                  <div class="pago-movil-info">
-                    <div class="info-title">Datos para Pago Móvil:</div>
-                    <div class="info-row"><span>Banco:</span> <strong>{{ getPagoMovilInfo().banco }}</strong></div>
-                    <div class="info-row"><span>Titular:</span> <strong>{{ getPagoMovilInfo().titular }}</strong></div>
-                    <div class="info-row"><span>RIF:</span> <strong>{{ getPagoMovilInfo().rif }}</strong></div>
-                    <div class="info-row"><span>Teléfono:</span> <strong>{{ getPagoMovilInfo().telefono }}</strong></div>
-                  </div>
-                  <div class="form-group">
-                    <label>Banco emisor</label>
-                    <input type="text" [(ngModel)]="paymentData().bancoEmisor" name="bancoEmisor" placeholder="Ej: Banesco, Mercantil, etc." />
-                  </div>
-                  <div class="form-group">
-                    <label>Teléfono del titular</label>
-                    <input type="tel" [(ngModel)]="paymentData().telefono" name="telefonoTitular" placeholder="Número de teléfono del titular" />
-                  </div>
-                  <div class="form-group">
-                    <label>Cédula del titular</label>
-                    <input type="text" [(ngModel)]="paymentData().cedulaTitular" name="cedulaTitular" placeholder="Cédula del titular" />
-                  </div>
-                }
-
-                @if (paymentData().metodoPago === 'transferencia') {
-                  <div class="pago-movil-info">
-                    <div class="info-title">Datos para Transferencia:</div>
-                    <div class="info-row"><span>Banco:</span> <strong>{{ getTransferenciaInfo().banco }}</strong></div>
-                    <div class="info-row"><span>Titular:</span> <strong>{{ getTransferenciaInfo().titular }}</strong></div>
-                    <div class="info-row"><span>RIF:</span> <strong>{{ getTransferenciaInfo().rif }}</strong></div>
-                    <div class="info-row"><span>Número de cuenta:</span> <strong>{{ getTransferenciaInfo().numero_cuenta }}</strong></div>
-                  </div>
-                  <div class="form-group">
-                    <label>Banco emisor</label>
-                    <input type="text" [(ngModel)]="paymentData().bancoEmisor" name="bancoEmisorTransferencia" placeholder="Ej: Banesco, Mercantil, etc." />
-                  </div>
-                  <div class="form-group">
-                    <label>Cédula del titular</label>
-                    <input type="text" [(ngModel)]="paymentData().cedulaTitular" name="cedulaTitularTransferencia" placeholder="Cédula del titular" />
-                  </div>
-                }
-
-                @if (paymentData().metodoPago !== 'efectivo') {
-                  <div class="form-group">
-                    <label>Número de referencia</label>
-                    <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Número de referencia" />
-                  </div>
-                }
-
-                @if (paymentData().metodoPago === 'zelle') {
-                  <div class="form-group">
-                    <label>Correo de Zelle</label>
-                    <input type="email" [(ngModel)]="paymentData().correo" name="correoZelle" placeholder="Correo electrónico asociado a Zelle" />
-                  </div>
-                }
-
-                <div class="form-group">
-                  <button type="button" class="btn-secondary" (click)="guardarMetodoPagoActual()">
-                    Guardar este método de pago
-                  </button>
-                </div>
-
-                @if (paymentError()) {
-                  <div class="error-message">{{ paymentError() }}</div>
-                }
-
-                @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia' || paymentData().metodoPago === 'efectivo') {
-                  <div class="form-group">
-                    <label>Foto del comprobante 
-                      @if (paymentData().metodoPago === 'efectivo') {
-                        <span style="color: #dc3545; font-size: 0.9rem;">(Obligatoria)</span>
-                      }
-                    </label>
-                    
-                     @if (paymentData().fotoComprobante) {
-                       <div class="comprobante-preview">
-                         <img [src]="paymentData().fotoComprobante" alt="Comprobante" />
-                         <button type="button" class="btn-eliminar" (click)="eliminarComprobante()">✕</button>
-                       </div>
-                     } @else {
-                       <div class="upload-area" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
-                         <label class="btn-archivo-comprobante">
-                           📁 Arrastra y suelta tu archivo aquí o haz clic para buscar
-                           <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
-                         </label>
-                       </div>
-                     }
-                  </div>
-                }
-
-                 @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia') {
-                   <div class="whatsapp-section">
-                     <button type="button" class="btn-whatsapp" disabled>
-                       📱 Enviar comprobante por WhatsApp
-                     </button>
-                     <p class="whatsapp-hint">Después de enviar, adjunta la foto en WhatsApp</p>
-                   </div>
-                 }
-
-                @if (currentOrderId()) {
-                  <div class="confirm-order-section">
-                    @if (tieneComprobantePago()) {
-                      <p class="confirm-text-paid">✅ Pago registrado - Esperando confirmación</p>
-                      <div class="confirm-actions">
-                        <button type="button" class="btn-confirmar" (click)="confirmarPedido()">Confirmar Pedido</button>
-                      </div>
-                    } @else {
-                      <p class="confirm-text">Tu pedido está listo. ¿Deseas confirmarlo?</p>
-                      <div class="confirm-actions">
-                        <button type="button" class="btn-cancelar" (click)="cancelarPedido()">Cancelar</button>
-                        <button type="button" class="btn-confirmar" (click)="confirmarPedido()">Confirmar Pedido</button>
-                      </div>
-                    }
-                  </div>
-                } @else {
-                  <div class="step-actions">
-                    <button type="button" class="btn-secondary" (click)="prevStep()">Atrás</button>
-                    <button type="button" class="btn-primary" disabled>Cargando...</button>
-                  </div>
-                }
-              </div>
-            }
-          </form>
-        </div>
-      }
-    </div>
-  </div>
-}
-
-@if (showCamera()) {
-  <div class="camera-modal" (click)="cerrarCamera()">
-    <div class="camera-content" (click)="$event.stopPropagation()">
-      <div class="camera-header">
-        <h3>Capturar Comprobante</h3>
-        <button class="close-btn" (click)="cerrarCamera()">&times;</button>
-      </div>
-      <div class="camera-body">
-        <video id="cameraVideoPago" autoplay playsinline></video>
-      </div>
-      <div class="camera-footer">
-        <button class="btn-cancel" (click)="cerrarCamera()">Cancelar</button>
-        <button class="btn-capture" (click)="capturarComprobante()">📸 Capturar</button>
-      </div>
-    </div>
-  </div>
-}
-
-@if (showQRModal()) {
-  <div class="modal-overlay" (click)="cerrarQRModal()">
-    <div class="qr-modal" (click)="$event.stopPropagation()">
-      <div class="qr-modal-header">
-        <h3>📱 Escanear desde Celular</h3>
-        <button class="close-btn" (click)="cerrarQRModal()">✕</button>
-      </div>
-      <div class="qr-modal-body">
-        <p class="qr-instructions">Escanea este código QR con tu celular para subir una foto del comprobante de pago</p>
-        
-        @if (qrLoading()) {
-          <div class="qr-loading">Generando código QR...</div>
-        }
-        
-        @if (qrFotoRecibida()) {
-          <div class="qr-success">
-            <div class="qr-success-icon">✓</div>
-            <p>¡Foto recibida!</p>
-            <img [src]="paymentData().fotoComprobante" alt="Comprobante" class="qr-preview-image">
-          </div>
-        } @else {
-          @if (qrCodeData()) {
-            <img [src]="qrCodeData()" alt="QR Code" class="qr-code-image">
-            <p class="qr-expire">Expira: {{ qrExpiracion() | date:'HH:mm:ss' }}</p>
-            <p class="qr-polling">⏳ Esperando foto del celular...</p>
-          }
-        }
-        
-        <button class="btn-secondary" (click)="cerrarQRModal()">Cerrar</button>
-      </div>
-    </div>
-  </div>
-}
-
-@if (showAddAddressModal()) {
-  <div class="modal-overlay" (click)="showAddAddressModal.set(false)">
-    <div class="checkout-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Agregar Dirección</h3>
-        <button class="close-btn" (click)="showAddAddressModal.set(false)">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Nombre de esta dirección (ej: Casa, Oficina)</label>
-          <input type="text" [(ngModel)]="newAddressNombre" placeholder="Ej: Casa" />
-        </div>
-        <div class="form-group">
-          <label>Dirección completa</label>
-          <input type="text" [(ngModel)]="newAddressDireccion" placeholder="Calle, ciudad, estado..." />
-        </div>
-        <div class="step-actions">
-          <button type="button" class="btn-secondary" (click)="showAddAddressModal.set(false)">Cancelar</button>
-          <button type="button" class="btn-primary" (click)="addNewAddress()">Guardar dirección</button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-@if (showAddressSavedModal()) {
-  <div class="modal-overlay" (click)="showAddressSavedModal.set(false)">
-    <div class="checkout-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Dirección Guardada</h3>
-        <button class="close-btn" (click)="showAddressSavedModal.set(false)">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="order-success">
-          <div class="success-icon">✓</div>
-          <h3>¡Dirección guardada correctamente!</h3>
-          <p>La dirección ha sido agregada a tu perfil.</p>
-          <button class="btn-primary" (click)="showAddressSavedModal.set(false)">Aceptar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
+  </section>

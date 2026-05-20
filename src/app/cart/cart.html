@@ -42,31 +42,6 @@
       }
     </div>
 
-    @if (savedForLater().length > 0) {
-      <div class="saved-for-later-section">
-        <h3>Guardados para más tarde</h3>
-        <div class="saved-items-grid">
-          @for (product of savedForLater(); track product.id) {
-            <div class="saved-item-card">
-              <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
-              <div class="saved-item-info">
-                <span class="saved-item-title">{{ product.title }}</span>
-                <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
-              </div>
-              <div class="saved-item-actions">
-                <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
-                  🛒
-                </button>
-                <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
-                  ✕
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
-
     <div class="cart-summary">
       <div class="summary-row total">
         <span>Total:</span>
@@ -83,6 +58,31 @@
           }
         </div>
       </div>
+
+      @if (savedForLater().length > 0) {
+        <div class="saved-for-later-section">
+          <h3>Guardados para más tarde</h3>
+          <div class="saved-items-grid">
+            @for (product of savedForLater(); track product.id) {
+              <div class="saved-item-card">
+                <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
+                <div class="saved-item-info">
+                  <span class="saved-item-title">{{ product.title }}</span>
+                  <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
+                </div>
+                <div class="saved-item-actions">
+                  <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
+                    🛒
+                  </button>
+                  <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
 
       @if (showRecommendationsModal() && state().products.length > 0 && recommendedProducts().length > 0) {
         <div class="recommendations-modal-overlay" (click)="closeRecommendationsModal()">

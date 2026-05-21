@@ -36,6 +36,7 @@ export class HistoricoCompra implements OnInit {
     this.ordersBackend.getOrders().subscribe({
       next: (response: any) => {
         let orders: Order[] = [];
+        // Handle array response or object with orders/data property
         if (Array.isArray(response)) {
           orders = response;
         } else if (response && typeof response === 'object') {
@@ -50,6 +51,7 @@ export class HistoricoCompra implements OnInit {
       },
       error: (err) => {
         console.error('Error loading orders:', err);
+        this.orders.set([]);
         this.loading.set(false);
         this.notificationService.error('Error', 'No se pudieron cargar los pedidos');
       },

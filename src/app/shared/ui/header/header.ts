@@ -26,12 +26,14 @@ export class Header {
   cartPreviewTotal = () =>
     this.cartState.state().products.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
-    constructor() {
-      this.productsService.getProducts().subscribe((response: any) => {
-        this.allProducts.set(response.products);
-      });
-      this.initDarkMode();
-    }
+constructor() {
+     this.productsService.getProducts().subscribe((response: any) => {
+       // Handle both {products: [...]} and array responses
+       const products = Array.isArray(response) ? response : (response?.products || []);
+       this.allProducts.set(products);
+     });
+     this.initDarkMode();
+   }
 
   private initDarkMode() {
     if (typeof window !== 'undefined') {
@@ -185,13 +187,14 @@ export class Header {
   selectedCategory = signal<string>('');
   searchHistory = signal<string[]>(this.loadSearchHistory());
 
-  categories = computed(() => {
-    const cats = new Set<string>();
-    this.allProducts().forEach(p => {
-      if (p.category) cats.add(p.category);
-    });
-    return Array.from(cats).sort();
-  });
+categories = computed(() => {
+     const cats = new Set<string>();
+     const products = this.allProducts() || [];
+     products.forEach(p => {
+       if (p.category) cats.add(p.category);
+     });
+     return Array.from(cats).sort();
+   });
 
   dropdownAnchor = signal<'category' | 'search' | null>(null);
 

@@ -655,23 +655,25 @@ export default class HomeComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  prev() {
-    const originalLength = this.marcas().length;
-    if (this.currentIndex > originalLength) {
-      this.currentIndex--;
-    } else {
-      this.currentIndex = this.totalMarcas - this.visibleCount - 1;
-    }
-  }
+prev() {
+     const marcasArray = this.marcas() || [];
+     const originalLength = marcasArray.length;
+     if (this.currentIndex > originalLength) {
+       this.currentIndex--;
+     } else {
+       this.currentIndex = this.totalMarcas - this.visibleCount - 1;
+     }
+   }
 
-  next() {
-    const originalLength = this.marcas().length;
-    if (this.currentIndex < this.totalMarcas - this.visibleCount) {
-      this.currentIndex++;
-    } else {
-      this.currentIndex = originalLength;
-    }
-  }
+   next() {
+     const marcasArray = this.marcas() || [];
+     const originalLength = marcasArray.length;
+     if (this.currentIndex < this.totalMarcas - this.visibleCount) {
+       this.currentIndex++;
+     } else {
+       this.currentIndex = originalLength;
+     }
+   }
 
   pauseAutoScroll() {
     if (this.autoScrollInterval) {

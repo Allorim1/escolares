@@ -32,22 +32,25 @@ export class ProductsStateService {
 
     changePage$ = new Subject<number>();
 
-    private loadAll$ = this.changePage$.pipe(
-      startWith(1),
-      switchMap(() => this.productsService.getProducts()),
-      map((response: {products: Product[], total: number}) => {
-        const products: Product[] = response.products || response;
-        const total = products.length;
-        this.allProducts.set(products);
-        return {
-          products,
-          status: 'success' as const,
-          total,
-          totalPages: Math.ceil(total / this.pageSize)
-        };
-      }),
-      catchError(() => of({ products: [], status: 'error' as const, total: 0, totalPages: 0 }))
-    );
+private loadAll$ = this.changePage$.pipe(
+       startWith(1),
+       switchMap(() => this.productsService.getProducts()),
+       map((response: any) => {
+         // Handle both {products: [...], total: number} and {products: [...], pagination: {...}} formats
+         const products: Product[] = Array.isArray(response) 
+           ? response 
+           : (Array.isArray(response?.products) ? response.products : []);
+         const total = products.length;
+         this.allProducts.set(products);
+         return {
+           products,
+           status: 'success' as const,
+           total,
+           totalPages: Math.ceil(total / this.pageSize)
+         };
+       }),
+       catchError(() => of({ products: [], status: 'error' as const, total: 0, totalPages: 0 }))
+     );
 
     state = signalSlice({
         initialState: this.initialState,

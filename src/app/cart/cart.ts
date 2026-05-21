@@ -128,15 +128,16 @@ export default class CartComponent implements OnDestroy {
     this.productsState.changePage$.next(1);
   }
 
-  // Recommended products for last-minute addition (excludes products already in cart)
-  recommendedProducts = computed(() => {
-    const allProducts = this.productsState.allProducts();
-    const cartProductIds = new Set(this.state().products.map(p => p.product.id));
-    return allProducts
-      .filter(p => !cartProductIds.has(p.id) && p.estado !== 'agotado')
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 8);
-  });
+// Recommended products for last-minute addition (excludes products already in cart)
+   recommendedProducts = computed(() => {
+     const allProducts = this.productsState.allProducts() || [];
+     const cartProducts = this.state().products || [];
+     const cartProductIds = new Set(cartProducts.map(p => p.product.id));
+     return allProducts
+       .filter(p => !cartProductIds.has(p.id) && p.estado !== 'agotado')
+       .sort(() => Math.random() - 0.5)
+       .slice(0, 8);
+   });
 
   // Format price based on current currency display
   formatPrice(priceInUsd: number): string {
@@ -345,27 +346,27 @@ paymentMethods = [
     { id: 'rate-20', label: 'Propina - Ref 2.00', ref: 2.0 },
   ];
 
-  price = () => {
-    const products = this.state().products;
-    return products.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  };
+price = () => {
+     const products = this.state().products || [];
+     return products.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+   };
 
-  shippingCost = () => this.getSelectedShippingRate().ref;
+   shippingCost = () => this.getSelectedShippingRate().ref;
 
-  totalWithShipping = () => this.price() + this.shippingCost();
+   totalWithShipping = () => this.price() + this.shippingCost();
 
-  ivaTotal = () => {
-    const products = this.state().products;
-    return products.reduce((acc, item) => {
-      if (item.product.iva) {
-        const percentage = item.product.ivaPercentage || 16;
-        const priceWithVat = item.product.price * item.quantity;
-        const vatAmount = priceWithVat * (percentage / (100 + percentage));
-        return acc + vatAmount;
-      }
-      return acc;
-    }, 0);
-  };
+   ivaTotal = () => {
+     const products = this.state().products || [];
+     return products.reduce((acc, item) => {
+       if (item.product.iva) {
+         const percentage = item.product.ivaPercentage || 16;
+         const priceWithVat = item.product.price * item.quantity;
+         const vatAmount = priceWithVat * (percentage / (100 + percentage));
+         return acc + vatAmount;
+       }
+       return acc;
+     }, 0);
+   };
 
   getSelectedShippingRate(): ShippingRate {
     return this.shippingRates.find((rate) => rate.id === this.selectedShippingRateId()) || this.shippingRates[0];
@@ -750,19 +751,20 @@ paymentMethods = [
     return true;
   }
 
-  guardarOrdenTemporal() {
-    if (!this.authService.isLoggedIn()) {
-      alert('Debes iniciar sesión para continuar');
-      return;
-    }
+guardarOrdenTemporal() {
+     if (!this.authService.isLoggedIn()) {
+       alert('Debes iniciar sesión para continuar');
+       return;
+     }
 
-    const items: OrderItem[] = this.state().products.map(item => ({
-      productId: item.product.id,
-      title: item.product.title,
-      price: item.product.price,
-      quantity: item.quantity,
-      image: item.product.image,
-    }));
+     const products = this.state().products || [];
+     const items: OrderItem[] = products.map(item => ({
+       productId: item.product.id,
+       title: item.product.title,
+       price: item.product.price,
+       quantity: item.quantity,
+       image: item.product.image,
+     }));
 
     const orderData = {
       items,
@@ -798,17 +800,18 @@ paymentMethods = [
     });
   }
 
-  confirmarPedido() {
-    if (!this.currentOrderId()) return;
-    if (!this.validarPagoCheckout()) return;
+confirmarPedido() {
+     if (!this.currentOrderId()) return;
+     if (!this.validarPagoCheckout()) return;
 
-    const items: OrderItem[] = this.state().products.map(item => ({
-      productId: item.product.id,
-      title: item.product.title,
-      price: item.product.price,
-      quantity: item.quantity,
-      image: item.product.image,
-    }));
+     const products = this.state().products || [];
+     const items: OrderItem[] = products.map(item => ({
+       productId: item.product.id,
+       title: item.product.title,
+       price: item.product.price,
+       quantity: item.quantity,
+       image: item.product.image,
+     }));
 
     const orderData = {
       items,
@@ -830,20 +833,21 @@ paymentMethods = [
       shippingLabel: this.getSelectedShippingRate().label,
     };
 
-    this.ordersBackend.createOrder(orderData).subscribe({
-      next: (order) => {
-        this.state().products.forEach(item => {
-          this.state.remove(item.product.id);
-        });
-        this.orderPlaced.set(true);
-        this.notificationService.success(
-          'Pedido Confirmado',
-          'Tu pedido ha sido confirmado y est\u00E1 pendiente de procesamiento'
-        );
-        this.currentOrderId.set('');
-        // Redirigir a la página de pedidos con el ID del pedido recién creado
-        this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
-      },
+this.ordersBackend.createOrder(orderData).subscribe({
+       next: (order) => {
+         const products = this.state().products || [];
+         products.forEach(item => {
+           this.state.remove(item.product.id);
+         });
+         this.orderPlaced.set(true);
+         this.notificationService.success(
+           'Pedido Confirmado',
+           'Tu pedido ha sido confirmado y est\u00E1 pendiente de procesamiento'
+         );
+         this.currentOrderId.set('');
+         // Redirigir a la página de pedidos con el ID del pedido recién creado
+         this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
+       },
       error: (err) => {
         console.error('Error confirmando pedido:', err);
         alert('Error al confirmar el pedido.');
@@ -885,15 +889,16 @@ paymentMethods = [
     }
   }
 
-  placeOrder() {
-    if (!this.validarPagoCheckout()) return;
-    const items: OrderItem[] = this.state().products.map(item => ({
-      productId: item.product.id,
-      title: item.product.title,
-      price: item.product.price,
-      quantity: item.quantity,
-      image: item.product.image,
-    }));
+placeOrder() {
+     if (!this.validarPagoCheckout()) return;
+     const products = this.state().products || [];
+     const items: OrderItem[] = products.map(item => ({
+       productId: item.product.id,
+       title: item.product.title,
+       price: item.product.price,
+       quantity: item.quantity,
+       image: item.product.image,
+     }));
 
     const orderData = {
       items,
@@ -914,20 +919,21 @@ paymentMethods = [
       shippingLabel: this.getSelectedShippingRate().label,
     };
 
-    this.ordersBackend.createOrder(orderData).subscribe({
-      next: (order) => {
-        console.log('Order created:', order);
-        this.notificationService.success(
-          'Pedido Creado',
-          'Tu pedido ha sido creado exitosamente. N\u00FAmero: #' + order.id.slice(-8)
-        );
-        this.state().products.forEach(item => {
-          this.state.remove(item.product.id);
-        });
-        this.orderPlaced.set(true);
-        // Redirigir a la página de pedidos con el ID del pedido recién creado
-        this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
-      },
+this.ordersBackend.createOrder(orderData).subscribe({
+       next: (order) => {
+         console.log('Order created:', order);
+         this.notificationService.success(
+           'Pedido Creado',
+           'Tu pedido ha sido creado exitosamente. N\u00FAmero: #' + order.id.slice(-8)
+         );
+         const products = this.state().products || [];
+         products.forEach(item => {
+           this.state.remove(item.product.id);
+         });
+         this.orderPlaced.set(true);
+         // Redirigir a la página de pedidos con el ID del pedido recién creado
+         this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
+       },
       error: (err) => {
         console.error('Error creating order:', err);
         alert('Error al crear el pedido. Por favor intenta de nuevo.');

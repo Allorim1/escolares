@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { OrdersBackend, Order } from '../../backend/data-access/orders.backend';
+import { OrdersBackend, Order, OrderStatus } from '../../backend/data-access/orders.backend';
 import { CartStateService } from '../../shared/data-access/cart-state.service';
 import { NotificationService } from '../../shared/data-access/notification.service';
 
@@ -19,6 +19,14 @@ export class HistoricoCompra implements OnInit {
 
   orders = signal<Order[]>([]);
   loading = signal(true);
+  selectedOrder = signal<Order | null>(null);
+
+  statusSteps: { status: OrderStatus; label: string; icon: string }[] = [
+    { status: 'pendiente', label: 'Pedido recibido', icon: '📋' },
+    { status: 'procesando', label: 'En proceso', icon: '⚙️' },
+    { status: 'enviado', label: 'Enviado', icon: '🚚' },
+    { status: 'entregado', label: 'Entregado', icon: '✅' },
+  ];
 
   ngOnInit() {
     this.loadOrders();
@@ -38,7 +46,30 @@ export class HistoricoCompra implements OnInit {
     });
   }
 
-  repeatOrder(order: Order) {
+  selectOrder(order: Order) {
+    this.selectedOrder.set(order);
+  }
+
+  closeDetail() {
+    this.selectedOrder.set(null);
+  }
+
+  getStatusIndex(status: OrderStatus): number {
+    return this.statusSteps.findIndex(s => s.status === status);
+  }
+
+  getStatusLabel(status: OrderStatus): string {
+    const step = this.statusSteps.find(s => s.status === status);
+    return step?.label || status;
+  }
+
+  getStatusIcon(status: OrderStatus): string {
+    const step = this.statusSteps.find(s => s.status === status);
+    return step?.icon || '📦';
+  }
+
+  repeatOrder(event: MouseEvent, order: Order) {
+    event.stopPropagation();
     if (!order.items || order.items.length === 0) return;
 
     order.items.forEach(item => {

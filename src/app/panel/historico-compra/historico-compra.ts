@@ -34,7 +34,17 @@ export class HistoricoCompra implements OnInit {
 
   loadOrders() {
     this.ordersBackend.getOrders().subscribe({
-      next: (orders) => {
+      next: (response: any) => {
+        let orders: Order[] = [];
+        if (Array.isArray(response)) {
+          orders = response;
+        } else if (response && typeof response === 'object') {
+          if (Array.isArray(response.orders)) {
+            orders = response.orders;
+          } else if (Array.isArray(response.data)) {
+            orders = response.data;
+          }
+        }
         this.orders.set(orders);
         this.loading.set(false);
       },
@@ -70,9 +80,10 @@ export class HistoricoCompra implements OnInit {
 
   repeatOrder(event: MouseEvent, order: Order) {
     event.stopPropagation();
-    if (!order.items || order.items.length === 0) return;
+    const items = order.items || [];
+    if (!Array.isArray(items) || items.length === 0) return;
 
-    order.items.forEach(item => {
+    items.forEach(item => {
       this.cartState.state.add({
         product: {
           id: item.productId,

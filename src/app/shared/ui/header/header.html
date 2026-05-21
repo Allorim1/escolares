@@ -174,8 +174,9 @@
                 <a routerLink="/panel/pedidos" (click)="closeUserDropdown()">Mis pedidos</a>
 <a routerLink="/panel/direcciones" (click)="closeUserDropdown()">Mis direcciones</a>
                         <a routerLink="/panel/metodos-pago" (click)="closeUserDropdown()">Mis métodos de pago</a>
-                        <a routerLink="/panel/favoritos" (click)="closeUserDropdown()">Mis favoritos</a>
-                @if (authService.isAdmin()) {
+<a routerLink="/panel/favoritos" (click)="closeUserDropdown()">Mis favoritos</a>
+                 <a routerLink="/panel/historico-compra" (click)="closeUserDropdown()">Histórico de compra</a>
+                 @if (authService.isAdmin()) {
                   <a routerLink="/admin" (click)="closeUserDropdown()">Panel Admin</a>
                 }
                 @if (authService.user()?.rol === 'repartidor') {

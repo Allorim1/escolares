@@ -83,6 +83,10 @@ export const routes: Routes = [
         loadComponent: () => import('./panel/favoritos/favoritos').then((m) => m.Favoritos),
       },
       {
+        path: 'historico-compra',
+        loadComponent: () => import('./panel/historico-compra/historico-compra').then((m) => m.HistoricoCompra),
+      },
+      {
         path: '',
         redirectTo: 'perfil',
         pathMatch: 'full',

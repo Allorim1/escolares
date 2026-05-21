@@ -1,0 +1,44 @@
+<section class="historico-compra-container">
+  <h3>Histórico de Compras</h3>
+
+  @if (loading()) {
+    <div class="loading">Cargando historial de compras...</div>
+  } @else if (orders().length === 0) {
+    <div class="empty-orders">
+      <div class="empty-icon">🛍️</div>
+      <p>Aún no tienes ninguna compra registrada.</p>
+      <a routerLink="/products" class="shop-btn">Ir a la tienda</a>
+    </div>
+  } @else {
+    <div class="orders-list">
+      @for (order of orders(); track order.id) {
+        <div class="order-card">
+          <div class="order-header">
+            <div class="order-id">
+              <span class="label">Pedido #</span>
+              <span class="value">{{ order.id }}</span>
+            </div>
+            <div class="order-date">
+              {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
+            </div>
+          </div>
+
+          <div class="order-summary">
+            <div class="order-items">
+              {{ order.items.length }} producto(s)
+            </div>
+            <div class="order-total">
+              {{ order.total | currency }}
+            </div>
+          </div>
+
+          <div class="order-actions">
+            <button class="btn-repeat" (click)="repeatOrder(order)">
+              🛒 Repetir compra
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

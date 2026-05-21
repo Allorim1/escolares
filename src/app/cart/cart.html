@@ -56,31 +56,6 @@
         <button class="checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
       </div>
 
-      @if (savedForLater().length > 0) {
-        <div class="saved-for-later-section">
-          <h3>Guardados para más tarde</h3>
-          <div class="saved-items-grid">
-            @for (product of savedForLater(); track product.id) {
-              <div class="saved-item-card">
-                <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
-                <div class="saved-item-info">
-                  <span class="saved-item-title">{{ product.title }}</span>
-                  <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
-                </div>
-                <div class="saved-item-actions">
-                  <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
-                    🛒
-                  </button>
-                  <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
-                    ✕
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
       @if (showRecommendationsModal() && state().products.length > 0 && recommendedProducts().length > 0) {
         <div class="recommendations-modal-overlay" (click)="closeRecommendationsModal()">
           <div class="recommendations-modal" (click)="$event.stopPropagation()">
@@ -543,17 +518,42 @@
   </div>
 }
 
-    } @else {
-      <div class="empty-cart">
-        <div class="empty-icon">🛒</div>
-        <h3>Tu carrito está vacío</h3>
-        <p>¡Explora nuestros productos y encuentra lo que necesitas!</p>
-        <a routerLink="/products" class="shop-btn">Ver Productos</a>
+} @else {
+       <div class="empty-cart">
+         <div class="empty-icon">🛒</div>
+         <h3>Tu carrito está vacío</h3>
+         <p>¡Explora nuestros productos y encuentra lo que necesitas!</p>
+         <a routerLink="/products" class="shop-btn">Ver Productos</a>
+       </div>
+     }
+    </div>
+
+    @if (savedForLater().length > 0) {
+      <div class="saved-for-later-section">
+        <h3>Guardados para más tarde</h3>
+        <div class="saved-items-grid">
+          @for (product of savedForLater(); track product.id) {
+            <div class="saved-item-card">
+              <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
+              <div class="saved-item-info">
+                <span class="saved-item-title">{{ product.title }}</span>
+                <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
+              </div>
+              <div class="saved-item-actions">
+                <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
+                  🛒
+                </button>
+                <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
+                  ✕
+                </button>
+              </div>
+            </div>
+          }
+        </div>
       </div>
     }
-   </div>
 
-   @if (state().products.length > 0) {
+    @if (state().products.length > 0) {
      <div class="floating-summary">
        <div class="floating-summary-content">
          <div class="floating-address-header">

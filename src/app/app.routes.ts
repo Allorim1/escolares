@@ -1,10 +1,10 @@
-import { HomeComponent } from './home/home';
+import HomeComponent from './home/home';
 import { Marcas } from './marcas/marcas';
 import { AboutMe } from './about-me/about-me';
 import { HowBuy } from './how-buy/how-buy';
 import { Feedback } from './feedback/feedback';
 import { Lineas } from './lineas/lineas';
-import { Panel } from './panel/panel';
+import Panel from './panel/panel';
 import { Offers } from './offers/offers';
 import { adminGuard } from './shared/guards/admin.guard';
 import { repartidorGuard } from './shared/guards/repartidor.guard';
@@ -200,7 +200,7 @@ export const routes: Routes = [
   },
   {
     path: 'notifications',
-    loadComponent: () => import('./shared/ui/notifications/notifications').then((m) => m.Notifications),
+     loadComponent: () => import('./shared/ui/notifications/notifications').then((m) => m.NotificationsComponent),
   },
   {
     path: '**',

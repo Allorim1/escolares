@@ -7,7 +7,7 @@ import { Noticia } from '../../shared/data-access/noticias.service';
 @Component({
   selector: 'app-admin-noticias',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-noticias.html',
   styleUrl: './admin-noticias.css',
 })

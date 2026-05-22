@@ -6,6 +6,7 @@ import { ProductsService } from '../../../products/data-access/products.service'
 import { CartStateService } from '../../data-access/cart-state.service';
 import { CurrencyService } from '../../data-access/currency.service';
 import { Product, ProductItemCart } from '../../../shared/interfaces/product.interface';
+import { NoticiasService } from '../../data-access/noticias.service';
 
 @Component({
   selector: 'app-header',
@@ -18,22 +19,37 @@ export class Header {
   private router = inject(Router);
   private productsService = inject(ProductsService);
   private cartState = inject(CartStateService);
+  private noticiasService = inject(NoticiasService);
   currencyService = inject(CurrencyService);
   cartPreviewOpen = signal(false);
+  notificationCount = signal(0);
 
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
   cartPreviewItems = () => this.cartState.state().products.slice(0, 4);
   cartPreviewTotal = () =>
     this.cartState.state().products.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
-constructor() {
-     this.productsService.getProducts().subscribe((response: any) => {
-       // Handle both {products: [...]} and array responses
-       const products = Array.isArray(response) ? response : (response?.products || []);
-       this.allProducts.set(products);
-     });
-     this.initDarkMode();
-   }
+  constructor() {
+      this.productsService.getProducts().subscribe((response: any) => {
+        // Handle both {products: [...]} and array responses
+        const products = Array.isArray(response) ? response : (response?.products || []);
+        this.allProducts.set(products);
+      });
+      this.initDarkMode();
+      this.loadNotificationCount();
+    }
+
+  private loadNotificationCount() {
+    this.noticiasService.getNoticias().subscribe({
+      next: (noticias) => {
+        const unreadCount = noticias.filter(n => n.activa).length;
+        this.notificationCount.set(unreadCount);
+      },
+      error: (error) => {
+        console.error('Error loading notification count:', error);
+      }
+    });
+  }
 
   private initDarkMode() {
     if (typeof window !== 'undefined') {

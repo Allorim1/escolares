@@ -1,0 +1,46 @@
+<div class="noticias-page">
+  <div class="page-header">
+    <h1>Noticias y Actualizaciones</h1>
+    <p class="page-subtitle">Últimas noticias enviadas desde el panel de administración</p>
+  </div>
+
+  @if (loading) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Cargando noticias...</p>
+    </div>
+  } @else if (error) {
+    <div class="error-container">
+      <p class="error-message">{{ error }}</p>
+      <button class="btn-retry" (click)="loadNoticias()">Reintentar</button>
+    </div>
+  } @else if (noticias.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p>No hay noticias disponibles actualmente.</p>
+      <p class="empty-subtitle">Vuelve pronto para ver las últimas actualizaciones.</p>
+    </div>
+  } @else {
+    <div class="noticias-grid">
+      @for (noticia of noticias; track noticia.id) {
+        <div class="noticia-card" [class.importante]="noticia.importante">
+          <div class="noticia-header">
+            <h2 class="noticia-titulo">{{ noticia.titulo }}</h2>
+            @if (noticia.importante) {
+              <span class="badge importante">Importante</span>
+            }
+          </div>
+          <div class="noticia-fecha">
+            <span>{{ formattedFecha(noticia.fecha) }}</span>
+          </div>
+          <div class="noticia-contenido">
+            <p [innerHTML]="noticia.contenido"></p>
+          </div>
+          <div class="noticia-actions">
+            <a href="#" class="btn-leer-mas">Leer más</a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

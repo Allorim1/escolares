@@ -1,12 +1,10 @@
-import { Routes } from '@angular/router';
-
-import HomeComponent from './home/home';
-import Panel from './panel/panel';
+import { HomeComponent } from './home/home';
 import { Marcas } from './marcas/marcas';
 import { AboutMe } from './about-me/about-me';
 import { HowBuy } from './how-buy/how-buy';
 import { Feedback } from './feedback/feedback';
 import { Lineas } from './lineas/lineas';
+import { Panel } from './panel/panel';
 import { Offers } from './offers/offers';
 import { adminGuard } from './shared/guards/admin.guard';
 import { repartidorGuard } from './shared/guards/repartidor.guard';
@@ -74,29 +72,7 @@ export const routes: Routes = [
         path: 'direcciones',
         loadComponent: () => import('./panel/direcciones/direcciones').then((m) => m.Direcciones),
       },
-      {
-        path: 'metodos-pago',
-        loadComponent: () => import('./panel/metodos-pago/metodos-pago').then((m) => m.MetodosPago),
-      },
-      {
-        path: 'favoritos',
-        loadComponent: () => import('./panel/favoritos/favoritos').then((m) => m.Favoritos),
-      },
-      {
-        path: 'historico-compra',
-        loadComponent: () => import('./panel/historico-compra/historico-compra').then((m) => m.HistoricoCompra),
-      },
-      {
-        path: '',
-        redirectTo: 'perfil',
-        pathMatch: 'full',
-      },
     ],
-  },
-  {
-    path: 'login',
-    loadComponent: () => import('./login/login').then((m) => m.Login),
-    canActivate: [noAuthGuard],
   },
   {
     path: 'register',
@@ -126,7 +102,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./admin/productos/admin-productos').then((m) => m.AdminProductos),
       },
-{
+      {
         path: 'marcas',
         loadComponent: () => import('./admin/marcas/admin-marcas').then((m) => m.AdminMarcas),
       },
@@ -159,8 +135,8 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/cuentas-por-pagar/cuentas-por-pagar').then((m) => m.CuentasPorPagar),
       },
       {
-        path: 'historico-costos',
-        loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
+        path: 'noticias',
+        loadComponent: () => import('./admin/noticias/admin-noticias').then((m) => m.AdminNoticiasComponent),
       },
       {
         path: 'retenciones',
@@ -169,6 +145,10 @@ export const routes: Routes = [
       {
         path: 'conversion',
         loadComponent: () => import('./admin/conversion/conversion').then((m) => m.Conversion),
+      },
+      {
+        path: 'noticias',
+        loadComponent: () => import('./admin/noticias/admin-noticias').then((m) => m.AdminNoticiasComponent),
       },
       {
         path: 'pedidos',
@@ -224,6 +204,14 @@ export const routes: Routes = [
     path: 'repartidor',
     loadComponent: () => import('./repartidor/repartidor').then((m) => m.RepartidorComponent),
     canActivate: [repartidorGuard],
+  },
+  {
+    path: 'noticias',
+    loadComponent: () => import('./noticias/noticias').then((m) => m.NoticiasComponent),
+  },
+  {
+    path: 'notifications',
+    loadComponent: () => import('./shared/ui/notifications/notifications').then((m) => m.Notifications),
   },
   {
     path: '**',

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NoticiasService } from '../../shared/data-access/noticias.service';
-import { Noticia } from '../../shared/data-access/noticias.service';
+import { NoticiasService } from '../shared/data-access/noticias.service';
+import { Noticia } from '../shared/data-access/noticias.service';
 
 @Component({
   selector: 'app-noticias',
@@ -37,13 +37,13 @@ export class NoticiasComponent {
     });
   }
 
-  get formattedFecha(fecha: string | Date): string {
-    if (!fecha) return '';
-    const date = new Date(fecha);
-    return date.toLocaleDateString('es-VE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
+   formattedFecha(fecha: string | Date): string {
+     if (!fecha) return '';
+     const date = new Date(fecha);
+     return date.toLocaleDateString('es-VE', {
+       year: 'numeric',
+       month: 'long',
+       day: 'numeric'
+     });
+   }
 }

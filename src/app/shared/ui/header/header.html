@@ -104,74 +104,149 @@
       </svg>
     </button>
 
-    <div class="header-icons">
-      <button class="dark-toggle" (click)="toggleDarkMode(); $event.stopPropagation()" [title]="isDarkMode() ? 'Modo claro' : 'Modo oscuro'">
-        @if (isDarkMode()) {
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
-        } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        }
-      </button>
-      <a class="notification-btn" routerLink="/notifications">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-        @if (notificationCount() > 0) {
-          <span class="notification-badge">{{ notificationCount() }}</span>
-        }
-      </a>
-      <div class="cart-hover-container" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
-        <a class="cart-btn" routerLink="/cart">
-          <img src="/cart.png" alt="Carrito" />
-          @if (cartCount() > 0) {
-            <span class="cart-count">{{ cartCount() }}</span>
-          }
-        </a>
+     <div class="header-icons">
+       <button class="dark-toggle" (click)="toggleDarkMode(); $event.stopPropagation()" [title]="isDarkMode() ? 'Modo claro' : 'Modo oscuro'">
+         @if (isDarkMode()) {
+           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+         } @else {
+           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+         }
+       </button>
+       @if (authService.isLoggedIn()) {
+         <div class="user-dropdown" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
+           <a class="user-btn" (click)="toggleUserDropdown()" style="cursor: pointer">
+             <img src="/usuario.png" alt="Usuario" />
+             <span class="user-greeting">Hola, {{ authService.user()?.nombreCompleto || authService.user()?.username || 'Usuario' }}</span>
+           </a>
+               <div class="dropdown-menu" [class.open]="userDropdownOpen()" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
+                 <a routerLink="/panel/perfil" (click)="closeUserDropdown()">Perfil</a>
+                 <a routerLink="/panel/ajustes" (click)="closeUserDropdown()">Ajustes</a>
+                 <a routerLink="/panel/pedidos" (click)="closeUserDropdown()">Mis pedidos</a>
+             <a routerLink="/panel/direcciones" (click)="closeUserDropdown()">Mis direcciones</a>
+                         <a routerLink="/panel/metodos-pago" (click)="closeUserDropdown()">Mis métodos de pago</a>
+             <a routerLink="/panel/favoritos" (click)="closeUserDropdown()">Mis favoritos</a>
+                  <a routerLink="/panel/historico-compra" (click)="closeUserDropdown()">Histórico de compra</a>
+                  @if (authService.isAdmin()) {
+                   <a routerLink="/admin" (click)="closeUserDropdown()">Panel Admin</a>
+                 }
+                 @if (authService.user()?.rol === 'repartidor') {
+                   <a routerLink="/repartidor" (click)="closeUserDropdown()">Panel Repartidor</a>
+                 }
+                 <button (click)="logout()">Cerrar sesión</button>
+               </div>
+         </div>
+       } @else {
+         <a class="user-btn" (click)="openLogin()" style="cursor: pointer">
+           <img src="/usuario.png" alt="Usuario" />
+           <span class="user-greeting">Iniciar sesión</span>
+         </a>
+       }
+       <a class="notification-btn" routerLink="/noticias">
+         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+         </svg>
+         @if (notificationCount() > 0) {
+           <span class="notification-badge">{{ notificationCount() }}</span>
+         }
+       </a>
+       <div class="cart-hover-container" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
+         <a class="cart-btn" routerLink="/cart">
+           <img src="/cart.png" alt="Carrito" />
+           @if (cartCount() > 0) {
+             <span class="cart-count">{{ cartCount() }}</span>
+           }
+         </a>
 
-        @if (cartPreviewOpen()) {
-          <div class="cart-preview-dropdown" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
-            <div class="cart-preview-header">
-              <span>Mi carrito</span>
-              <span>{{ cartCount() }} producto(s)</span>
-            </div>
+         @if (cartPreviewOpen()) {
+           <div class="cart-preview-dropdown" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
+             <div class="cart-preview-header">
+               <span>Mi carrito</span>
+               <span>{{ cartCount() }} producto(s)</span>
+             </div>
 
-            @if (cartPreviewItems().length > 0) {
-              <div class="cart-preview-items">
-                @for (item of cartPreviewItems(); track item.product.id) {
-                  <a class="cart-preview-item" routerLink="/cart">
-                    <img [src]="item.product.image" [alt]="item.product.title" />
-                    <div class="preview-item-info">
-                      <div class="preview-item-title">{{ item.product.title }}</div>
-                      <div class="preview-item-meta">
-                        {{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span>
-                      </div>
-                    </div>
-                    <div class="preview-item-total" [innerHTML]="formatPrice(getCartItemTotal(item))"></div>
-                  </a>
-                }
-              </div>
+             @if (cartPreviewItems().length > 0) {
+               <div class="cart-preview-items">
+                 @for (item of cartPreviewItems(); track item.product.id) {
+                   <a class="cart-preview-item" routerLink="/cart">
+                     <img [src]="item.product.image" [alt]="item.product.title" />
+                     <div class="preview-item-info">
+                       <div class="preview-item-title">{{ item.product.title }}</div>
+                       <div class="preview-item-meta">
+                         {{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span>
+                       </div>
+                     </div>
+                     <div class="preview-item-total" [innerHTML]="formatPrice(getCartItemTotal(item))"></div>
+                   </a>
+                 }
+               </div>
 
-              @if (hasMoreCartItems()) {
-                <div class="cart-preview-more">Y más productos en tu carrito...</div>
-              }
+               @if (hasMoreCartItems()) {
+                 <div class="cart-preview-more">Y más productos en tu carrito...</div>
+               }
 
-              <div class="cart-preview-footer">
-                <div class="cart-preview-total">
-                  <span>Total:</span>
-                  <strong [innerHTML]="formatPrice(cartPreviewTotal())"></strong>
-                </div>
-                <a class="cart-preview-action" routerLink="/cart">Ver carrito</a>
-              </div>
-            } @else {
-              <div class="cart-preview-empty">
-                Tu carrito está vacío.
-              </div>
-            }
-          </div>
-        }
-      </div>
-      @if (authService.isLoggedIn()) {
+               <div class="cart-preview-footer">
+                 <div class="cart-preview-total">
+                   <span>Total:</span>
+                   <strong [innerHTML]="formatPrice(cartPreviewTotal())"></strong>
+                 </div>
+                 <a class="cart-preview-action" routerLink="/cart">Ver carrito</a>
+               </div>
+             } @else {
+               <div class="cart-preview-empty">
+                 Tu carrito está vacío.
+               }
+             }
+           </div>
+         }
+       </div>
+     </div>
+
+             @if (cartPreviewItems().length > 0) {
+               <div class="cart-preview-items">
+                 @for (item of cartPreviewItems(); track item.product.id) {
+                   <a class="cart-preview-item" routerLink="/cart">
+                     <img [src]="item.product.image" [alt]="item.product.title" />
+                     <div class="preview-item-info">
+                       <div class="preview-item-title">{{ item.product.title }}</div>
+                       <div class="preview-item-meta">
+                         {{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span>
+                       </div>
+                     </div>
+                     <div class="preview-item-total" [innerHTML]="formatPrice(getCartItemTotal(item))"></div>
+                   </a>
+                 }
+               </div>
+
+               @if (hasMoreCartItems()) {
+                 <div class="cart-preview-more">Y más productos en tu carrito...</div>
+               }
+
+               <div class="cart-preview-footer">
+                 <div class="cart-preview-total">
+                   <span>Total:</span>
+                   <strong [innerHTML]="formatPrice(cartPreviewTotal())"></strong>
+                 </div>
+                 <a class="cart-preview-action" routerLink="/cart">Ver carrito</a>
+               </div>
+             } @else {
+               <div class="cart-preview-empty">
+                 Tu carrito está vacío.
+               }
+             }
+           </div>
+         }
+       </div>
+       <a class="notification-btn" routerLink="/noticias">
+         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+         </svg>
+         @if (notificationCount() > 0) {
+           <span class="notification-badge">{{ notificationCount() }}</span>
+         }
+       </a>
+       @if (authService.isLoggedIn()) {
         <div class="user-dropdown" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
           <a class="user-btn" (click)="toggleUserDropdown()" style="cursor: pointer">
             <img src="/usuario.png" alt="Usuario" />

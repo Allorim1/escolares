@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NoticiasService } from '../../../shared/data-access/noticias.service';
-import { Noticia } from '../../../shared/data-access/noticias.service';
+import { NoticiasService } from '../../shared/data-access/noticias.service';
+import { Noticia } from '../../shared/data-access/noticias.service';
 
 @Component({
   selector: 'app-admin-noticias',
@@ -28,73 +28,73 @@ export class AdminNoticiasComponent {
     this.loadNoticias();
   }
 
-  loadNoticias() {
-    this.loading = true;
-    this.error = null;
-    this.noticiasService.getNoticias().subscribe({
-      next: (data) => {
-        this.noticias = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading noticias:', err);
-        this.error = 'Error al cargar las noticias';
-        this.loading = false;
-      }
-    });
-  }
+   loadNoticias() {
+     this.loading = true;
+     this.error = null;
+     this.noticiasService.getNoticias().subscribe({
+       next: (data: Noticia[]) => {
+         this.noticias = data;
+         this.loading = false;
+       },
+       error: (err: any) => {
+         console.error('Error loading noticias:', err);
+         this.error = 'Error al cargar las noticias';
+         this.loading = false;
+       }
+     });
+   }
 
-  crearNoticia() {
-    if (!this.nuevaNoticia.titulo.trim() || !this.nuevaNoticia.contenido.trim()) {
-      return;
-    }
-    
-    this.noticiasService.crearNoticia(this.nuevaNoticia).subscribe({
-      next: (noticiaCreada) => {
-        this.noticias.unshift(noticiaCreada);
-        this.nuevaNoticia = {
-          titulo: '',
-          contenido: '',
-          activa: true,
-          importante: false
-        };
-      },
-      error: (err) => {
-        console.error('Error creating noticia:', err);
-        this.error = 'Error al crear la noticia';
-      }
-    });
-  }
+   crearNoticia() {
+     if (!this.nuevaNoticia['titulo'].trim() || !this.nuevaNoticia['contenido'].trim()) {
+       return;
+     }
+     
+     this.noticiasService.crearNoticia(this.nuevaNoticia).subscribe({
+       next: (noticiaCreada: Noticia) => {
+         this.noticias.unshift(noticiaCreada);
+         this.nuevaNoticia = {
+           titulo: '',
+           contenido: '',
+           activa: true,
+           importante: false
+         };
+       },
+       error: (err: any) => {
+         console.error('Error creating noticia:', err);
+         this.error = 'Error al crear la noticia';
+       }
+     });
+   }
 
-  toggleActiva(noticia: Noticia) {
-    this.noticiasService.actualizarNoticia(noticia.id, { activa: !noticia.activa }).subscribe({
-      next: (noticiaActualizada) => {
-        const index = this.noticias.findIndex(n => n.id === noticia.id);
-        if (index !== -1) {
-          this.noticias[index] = noticiaActualizada;
-        }
-      },
-      error: (err) => {
-        console.error('Error updating noticia:', err);
-        this.error = 'Error al actualizar la noticia';
-      }
-    });
-  }
+   toggleActiva(noticia: Noticia) {
+     this.noticiasService.actualizarNoticia(noticia.id, { activa: !noticia.activa }).subscribe({
+       next: (noticiaActualizada: Noticia) => {
+         const index = this.noticias.findIndex(n => n.id === noticia.id);
+         if (index !== -1) {
+           this.noticias[index] = noticiaActualizada;
+         }
+       },
+       error: (err: any) => {
+         console.error('Error updating noticia:', err);
+         this.error = 'Error al actualizar la noticia';
+       }
+     });
+   }
 
-  toggleImportante(noticia: Noticia) {
-    this.noticiasService.actualizarNoticia(noticia.id, { importante: !noticia.importante }).subscribe({
-      next: (noticiaActualizada) => {
-        const index = this.noticias.findIndex(n => n.id === noticia.id);
-        if (index !== -1) {
-          this.noticias[index] = noticiaActualizada;
-        }
-      },
-      error: (err) => {
-        console.error('Error updating noticia:', err);
-        this.error = 'Error al actualizar la noticia';
-      }
-    });
-  }
+   toggleImportante(noticia: Noticia) {
+     this.noticiasService.actualizarNoticia(noticia.id, { importante: !noticia.importante }).subscribe({
+       next: (noticiaActualizada: Noticia) => {
+         const index = this.noticias.findIndex(n => n.id === noticia.id);
+         if (index !== -1) {
+           this.noticias[index] = noticiaActualizada;
+         }
+       },
+       error: (err: any) => {
+         console.error('Error updating noticia:', err);
+         this.error = 'Error al actualizar la noticia';
+       }
+     });
+   }
 
   iniciarEdicion(noticia: Noticia) {
     this.editingId = noticia.id;
@@ -106,10 +106,10 @@ export class AdminNoticiasComponent {
     };
   }
 
-  guardarEdicion() {
-    if (!this.editingId || !this.nuevaNoticia.titulo.trim() || !this.nuevaNoticia.contenido.trim()) {
-      return;
-    }
+   guardarEdicion() {
+     if (!this.editingId || !this.nuevaNoticia['titulo'].trim() || !this.nuevaNoticia['contenido'].trim()) {
+       return;
+     }
     
     this.noticiasService.actualizarNoticia(this.editingId, this.nuevaNoticia).subscribe({
       next: (noticiaActualizada) => {
@@ -152,13 +152,13 @@ export class AdminNoticiasComponent {
     });
   }
 
-  get formattedFecha(fecha: string | Date): string {
-    if (!fecha) return '';
-    const date = new Date(fecha);
-    return date.toLocaleDateString('es-VE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
+   formattedFecha(fecha: string | Date): string {
+     if (!fecha) return '';
+     const date = new Date(fecha);
+     return date.toLocaleDateString('es-VE', {
+       year: 'numeric',
+       month: 'long',
+       day: 'numeric'
+     });
+   }
 }

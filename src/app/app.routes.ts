@@ -10,6 +10,7 @@ import { adminGuard } from './shared/guards/admin.guard';
 import { repartidorGuard } from './shared/guards/repartidor.guard';
 import { noAuthGuard } from './shared/guards/no-auth.guard';
 import { Admin } from './admin/admin';
+import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
@@ -134,22 +135,10 @@ export const routes: Routes = [
         path: 'cuentas-por-pagar',
         loadComponent: () => import('./admin/cuentas-por-pagar/cuentas-por-pagar').then((m) => m.CuentasPorPagar),
       },
-      {
-        path: 'noticias',
-        loadComponent: () => import('./admin/noticias/admin-noticias').then((m) => m.AdminNoticiasComponent),
-      },
-      {
-        path: 'retenciones',
-        loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
-      },
-      {
-        path: 'conversion',
-        loadComponent: () => import('./admin/conversion/conversion').then((m) => m.Conversion),
-      },
-      {
-        path: 'noticias',
-        loadComponent: () => import('./admin/noticias/admin-noticias').then((m) => m.AdminNoticiasComponent),
-      },
+       {
+         path: 'noticias',
+         loadComponent: () => import('./admin/noticias/admin-noticias').then((m) => m.AdminNoticiasComponent),
+       },
       {
         path: 'pedidos',
         loadComponent: () => import('./admin/pedidos/admin-pedidos').then((m) => m.AdminPedidos),

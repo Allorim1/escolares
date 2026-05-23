@@ -70,8 +70,8 @@ export class RepartidorComponent implements OnInit {
    constructor(private http: HttpClient) {}
 
 ngOnInit() {
-      const user = this.authService.currentUser();
-      const currentUserId = user?.id;
+       const user = this.authService.user();
+       const currentUserId = user?.id;
       
       // Fetch delivery person by userId since the relationship is stored as deliveryPerson.userId
       const token = localStorage.getItem('accessToken');

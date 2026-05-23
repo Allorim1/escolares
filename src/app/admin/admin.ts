@@ -162,7 +162,7 @@ export class Admin implements OnInit {
       },
       error: (err: any) => {
         console.error('Error checking API key status:', err);
-        if (err.status === 401 || err.error?.apiKeyExpired || err.name === 'TimeoutError') {
+        if (err.error?.apiKeyExpired) {
           this.apiKeyStatusService.setApiKeyExpired(true);
         }
         this.apiKeyStatusLoaded.set(true);

@@ -72,7 +72,13 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
   if (typeof window !== 'undefined' && window.localStorage) {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      const publicEndpointsWithoutAuth = ['/api/tasas', '/api/settings/tasas-status'];
+      const publicEndpointsWithoutAuth = [
+        '/api/tasas', 
+        '/api/settings/tasas-status', 
+        '/api/costos',
+        '/api/facturas',
+        '/api/proveedores'
+      ];
       const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
       
       if (!isValidJWTToken(token)) {
@@ -104,10 +110,10 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
                 return next(req);
               } else {
                 isRefreshing = false;
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
                 if (!isPublicEndpoint) {
+                  localStorage.removeItem('accessToken');
+                  localStorage.removeItem('refreshToken');
+                  localStorage.removeItem('user');
                   router.navigate(['/login']);
                 }
                 return throwError(() => new Error(data.error || 'Token expirado'));
@@ -115,10 +121,10 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
             }),
             catchError((error: any) => {
               isRefreshing = false;
-              localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
-              localStorage.removeItem('user');
               if (!isPublicEndpoint) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
                 router.navigate(['/login']);
               }
               return throwError(() => new Error('Sesión expirada'));
@@ -137,7 +143,13 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      const publicEndpointsWithoutAuth = ['/api/tasas', '/api/settings/tasas-status'];
+      const publicEndpointsWithoutAuth = [
+        '/api/tasas', 
+        '/api/settings/tasas-status', 
+        '/api/costos',
+        '/api/facturas',
+        '/api/proveedores'
+      ];
       const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
       
       if (error.status === 401 && !isPublicEndpoint) {
@@ -153,22 +165,22 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
                   Authorization: `Bearer ${data.accessToken}`,
                 },
               });
-              return next(req);
-            } else {
+return next(req);
+              } else {
+                if (!isPublicEndpoint) {
+                  localStorage.removeItem('accessToken');
+                  localStorage.removeItem('refreshToken');
+                  localStorage.removeItem('user');
+                  router.navigate(['/login']);
+                }
+                return throwError(() => new Error(data.error || 'Token expirado'));
+              }
+            }),
+catchError(() => {
+            if (!isPublicEndpoint) {
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
-              if (!isPublicEndpoint) {
-                router.navigate(['/login']);
-              }
-              return throwError(() => new Error(data.error || 'Token expirado'));
-            }
-          }),
-          catchError(() => {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            if (!isPublicEndpoint) {
               router.navigate(['/login']);
             }
             return throwError(() => new Error('Sesión expirada'));

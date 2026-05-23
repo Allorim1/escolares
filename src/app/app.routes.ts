@@ -187,6 +187,10 @@ export const routes: Routes = [
         path: 'redes-sociales',
         loadComponent: () => import('./admin/redes-sociales/admin-redes-sociales').then((m) => m.AdminRedesSociales),
       },
+      {
+        path: 'historico-costos',
+        loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
+      },
     ],
   },
   {

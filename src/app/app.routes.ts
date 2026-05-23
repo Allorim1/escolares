@@ -188,8 +188,20 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/redes-sociales/admin-redes-sociales').then((m) => m.AdminRedesSociales),
       },
       {
+        path: 'conversion',
+        loadComponent: () => import('./admin/conversion/conversion').then((m) => m.Conversion),
+      },
+      {
         path: 'historico-costos',
         loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
+      },
+      {
+        path: 'ofertas',
+        loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
+      },
+      {
+        path: 'retenciones',
+        loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
       },
     ],
   },

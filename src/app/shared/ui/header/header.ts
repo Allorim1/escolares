@@ -10,7 +10,7 @@ import { NoticiasService } from '../../data-access/noticias.service';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, FormsModule],
+  imports: [FormsModule],
   templateUrl: './header.html',
   styleUrls: ['./header.css'],
 })

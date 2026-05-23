@@ -31,7 +31,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
       { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
       { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
       { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
-      { label: 'Conversión', route: 'conversion', permiso: 'conversion_gestionar' },
+      { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
       { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
       { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
       { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },

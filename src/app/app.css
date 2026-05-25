@@ -2,6 +2,9 @@
 :root {
   --blue: #0d6efd;
   --white: #fff;
+  --primary-color: #1d63c1;
+  --primary-dark: #154a8f;
+  --error-color: #dc3545;
   
   /* Light mode (default) */
   --bg-primary: #ffffff;
@@ -43,6 +46,9 @@
   --footer-text: #e4e4e4;
   --hover-bg: #2d2d2d;
   --modal-overlay: rgba(0, 0, 0, 0.7);
+  --primary-color: #3d85d9;
+  --primary-dark: #5ba0e9;
+  --error-color: #ff6b6b;
 }
 
 body {

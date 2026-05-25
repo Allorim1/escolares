@@ -85,7 +85,7 @@ private http = inject(HttpClient);
     dolar: 0,
     euro: 0,
     binance: 0,
-    pvpBsf: 0,
+pvpBsf: 0,
     pvpDolar: 0,
   });
 
@@ -97,6 +97,20 @@ private http = inject(HttpClient);
   binance = signal(0);
 
   tasaPvp = signal<'dolar' | 'euro' | 'binance'>('dolar');
+
+  get diferencialEuro(): number {
+    const dolar = this.dolar();
+    const euro = this.euro();
+    if (dolar === 0) return 0;
+    return ((euro - dolar) / dolar) * 100;
+  }
+
+  get diferencialBinance(): number {
+    const dolar = this.dolar();
+    const binance = this.binance();
+    if (dolar === 0) return 0;
+    return ((binance - dolar) / dolar) * 100;
+  }
 
   loadingTasa = signal(false);
   tasaError = signal<string | null>(null);

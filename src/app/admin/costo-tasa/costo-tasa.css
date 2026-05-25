@@ -153,6 +153,21 @@ h2 {
   font-weight: 700;
 }
 
+.tasa-diferencial {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  opacity: 0.9;
+}
+
+.tasa-diferencial.positivo {
+  color: #4ade80;
+}
+
+.tasa-diferencial.negativo {
+  color: #f87171;
+}
+
 .tasa-radio {
   display: flex;
   align-items: center;

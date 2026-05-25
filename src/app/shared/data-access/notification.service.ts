@@ -9,6 +9,7 @@ export interface Notification {
   duration?: number;
   icon?: string;
   imageUrl?: string;
+  url?: string;
 }
 
 @Injectable({
@@ -62,5 +63,18 @@ export class NotificationService {
   // Método para mostrar notificación con imagen
   showWithImage(notification: Omit<Notification, 'id'>): string {
     return this.show(notification);
+  }
+
+  // Notificación de nueva noticia
+  newsNotification(titulo: string, preview: string, noticiaId: string, duration = 10000): string {
+    const previewText = preview.length > 100 ? preview.substring(0, 100) + '...' : preview;
+    return this.show({
+      type: 'info',
+      title: '📰 ¡Nueva Noticia!',
+      message: previewText,
+      duration,
+      url: `/noticias#${noticiaId}`,
+      icon: '📰'
+    });
   }
 }

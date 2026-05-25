@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/data-access/base-http.service';
 import { Observable } from 'rxjs';
+import { NotificationService } from './notification.service';
+import { inject } from '@angular/core';
 
 export interface Noticia {
   id: string;
@@ -15,6 +17,8 @@ export interface Noticia {
   providedIn: 'root'
 })
 export class NoticiasService extends BaseHttpService {
+  private notificationService = inject(NotificationService);
+
   getNoticias(): Observable<Noticia[]> {
     return this.http.get<Noticia[]>(`${this.apiUrl}/noticias`);
   }
@@ -28,7 +32,21 @@ export class NoticiasService extends BaseHttpService {
   }
 
   crearNoticia(noticia: Omit<Noticia, 'id' | 'fecha'>): Observable<Noticia> {
-    return this.http.post<Noticia>(`${this.apiUrl}/noticias`, noticia);
+    return new Observable(observer => {
+      this.http.post<Noticia>(`${this.apiUrl}/noticias`, noticia).subscribe({
+        next: (noticiaCreada) => {
+          const preview = noticiaCreada.contenido.replace(/[#*[\]]/g, '').substring(0, 100);
+          this.notificationService.newsNotification(
+            noticiaCreada.titulo,
+            preview,
+            noticiaCreada.id
+          );
+          observer.next(noticiaCreada);
+          observer.complete();
+        },
+        error: (err) => observer.error(err)
+      });
+    });
   }
 
   actualizarNoticia(id: string, noticia: Partial<Noticia>): Observable<Noticia> {

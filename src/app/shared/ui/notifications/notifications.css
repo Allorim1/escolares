@@ -19,6 +19,17 @@
   animation: slideIn 0.3s ease-out;
   min-width: 300px;
   border-left: 4px solid;
+  cursor: default;
+}
+
+.notification.clickable {
+  cursor: pointer;
+}
+
+.notification.clickable:hover {
+  transform: translateX(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 }
 
 .notification.success {

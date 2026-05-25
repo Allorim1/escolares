@@ -1,6 +1,8 @@
 <div class="notifications-container">
   @for (notification of notificationService.notifications; track notification.id) {
-    <div class="notification notification-{{ notification.type }}">
+    <div class="notification notification-{{ notification.type }}" 
+         [class.clickable]="notification.url"
+         (click)="notification.url && navigateToNews(notification.url)">
       @if (notification.icon) {
         <span class="notification-icon">{{ notification.icon }}</span>
       }
@@ -11,7 +13,7 @@
           <img [src]="notification.imageUrl" class="notification-image" alt="Producto" />
         }
       </div>
-      <button class="notification-close" (click)="notificationService.remove(notification.id)">
+      <button class="notification-close" (click)="notificationService.remove(notification.id); $event.stopPropagation()">
         ×
       </button>
     </div>

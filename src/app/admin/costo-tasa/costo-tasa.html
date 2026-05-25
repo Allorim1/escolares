@@ -61,6 +61,9 @@
       </div>
       <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'euro'">
         <label class="tasa-radio">
+          <span class="tasa-diferencial" [class.positivo]="diferencialEuro >= 0" [class.negativo]="diferencialEuro < 0">
+            ({{ diferencialEuro >= 0 ? '+' : '' }}{{ diferencialEuro.toFixed(2) }}%)
+          </span>
           <input
             type="radio"
             name="tasaPvp"
@@ -70,13 +73,13 @@
           />
           <span class="tasa-label">EUR:</span>
           <span class="tasa-value">Bs {{ euro().toFixed(2) }}</span>
-          <span class="tasa-diferencial" [class.positivo]="diferencialEuro >= 0" [class.negativo]="diferencialEuro < 0">
-            ({{ diferencialEuro >= 0 ? '+' : '' }}{{ diferencialEuro.toFixed(2) }}%)
-          </span>
         </label>
       </div>
       <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'binance'">
         <label class="tasa-radio">
+          <span class="tasa-diferencial" [class.positivo]="diferencialBinance >= 0" [class.negativo]="diferencialBinance < 0">
+            ({{ diferencialBinance >= 0 ? '+' : '' }}{{ diferencialBinance.toFixed(2) }}%)
+          </span>
           <input
             type="radio"
             name="tasaPvp"
@@ -86,9 +89,6 @@
           />
           <span class="tasa-label">Binance:</span>
           <span class="tasa-value">$ {{ binance().toFixed(2) }}</span>
-          <span class="tasa-diferencial" [class.positivo]="diferencialBinance >= 0" [class.negativo]="diferencialBinance < 0">
-            ({{ diferencialBinance >= 0 ? '+' : '' }}{{ diferencialBinance.toFixed(2) }}%)
-          </span>
         </label>
       </div>
       <button class="consulta-btn-small" (click)="consultaUnica()">🔍 Consulta Única</button>

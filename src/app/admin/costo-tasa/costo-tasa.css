@@ -137,6 +137,7 @@ h2 {
   border-radius: 8px;
   border: 2px solid transparent;
   transition: border-color 0.2s;
+  position: relative;
 }
 
 .tasa-item.seleccionado {
@@ -154,10 +155,14 @@ h2 {
 }
 
 .tasa-diferencial {
-  font-size: 0.9rem;
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-left: 0.5rem;
-  opacity: 0.9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .tasa-diferencial.positivo {

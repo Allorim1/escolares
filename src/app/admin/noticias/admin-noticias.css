@@ -11,12 +11,12 @@
 
 .page-header h1 {
   font-size: 2.5rem;
-  color: var(--text-primary);
+  color: #212529;
   margin-bottom: 0.5rem;
 }
 
 .page-subtitle {
-  color: var(--text-secondary);
+  color: #6c757d;
   font-size: 1.1rem;
   max-width: 600px;
   margin: 0 auto;
@@ -36,7 +36,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--primary-color);
+  border-top: 4px solid #1d63c1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1.5rem;
@@ -48,12 +48,12 @@
 }
 
 .error-message {
-  color: var(--error-color);
+  color: #dc3545;
   margin-bottom: 1rem;
 }
 
 .btn-retry {
-  background: var(--primary-color);
+  background: #1d63c1;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -64,7 +64,7 @@
 }
 
 .btn-retry:hover {
-  background: var(--primary-dark);
+  background: #1557b8;
 }
 
 .empty-icon {
@@ -74,7 +74,7 @@
 }
 
 .empty-state p {
-  color: var(--text-secondary);
+  color: #6c757d;
   margin-bottom: 0.5rem;
 }
 
@@ -95,7 +95,7 @@
 .noticia-form h2 {
   margin-top: 0;
   margin-bottom: 1.5rem;
-  color: var(--text-primary);
+  color: #212529;
   font-size: 1.5rem;
 }
 
@@ -107,7 +107,7 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #6c757d;
 }
 
 .form-group input,
@@ -139,13 +139,17 @@
 }
 
 .tab-btn.active {
-  background: var(--primary-color);
+  background: #1d63c1;
   color: white;
-  border-color: var(--primary-color);
+  border-color: #1d63c1;
 }
 
 .tab-btn:hover:not(.active) {
   background: #e9ecef;
+}
+
+.tab-btn.active:hover {
+  background: #1557b8;
 }
 
 .preview-content {
@@ -159,7 +163,7 @@
 
 .preview-content h1, .preview-content h2, .preview-content h3 {
   margin: 0.75rem 0;
-  color: var(--text-primary);
+  color: #212529;
 }
 
 .preview-content p {
@@ -206,27 +210,27 @@
 }
 
 .preview-content blockquote {
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid #1d63c1;
   padding-left: 1rem;
   margin: 0.5rem 0;
-  color: var(--text-secondary);
+  color: #6c757d;
 }
 
 .preview-content a {
-  color: var(--primary-color);
+  color: #1d63c1;
   text-decoration: underline;
 }
 
 .markdown-help {
   margin-top: 0.5rem;
-  color: var(--text-muted);
+  color: #adb5bd;
   font-size: 0.75rem;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #1d63c1;
   box-shadow: 0 0 0 2px rgba(29, 99, 193, 0.25);
 }
 
@@ -258,7 +262,7 @@
 }
 
 .btn-primary {
-  background: var(--primary-color);
+  background: #1d63c1;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -269,12 +273,12 @@
 }
 
 .btn-primary:hover {
-  background: var(--primary-dark);
+  background: #1557b8;
 }
 
 .btn-secondary {
   background: #f8f9fa;
-  color: var(--text-secondary);
+  color: #6c757d;
   border: 1px solid #ddd;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -352,7 +356,7 @@
   margin-bottom: 1.5rem;
   padding: 1.5rem;
   border-bottom: 1px solid #eee;
-  color: var(--text-primary);
+  color: #212529;
   font-size: 1.5rem;
 }
 
@@ -372,11 +376,11 @@
 
 .noticia-row.editing {
   background: #f8f9ff;
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid #1d63c1;
 }
 
 .noticia-row.importante {
-  border-left-color: var(--error-color);
+  border-left-color: #dc3545;
 }
 
 .noticia-cell {
@@ -385,7 +389,7 @@
 
 .noticia-titulo {
   font-weight: 600;
-  color: var(--text-primary);
+  color: #212529;
 }
 
 .noticia-titulo input {
@@ -396,7 +400,7 @@
 }
 
 .noticia-fecha {
-  color: var(--text-muted);
+  color: #adb5bd;
 }
 
 .noticia-estado {
@@ -427,7 +431,7 @@
 }
 
 .badge.importante {
-  background: var(--error-color);
+  background: #dc3545;
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;

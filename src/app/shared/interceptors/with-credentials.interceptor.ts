@@ -73,14 +73,14 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       const publicEndpointsWithoutAuth = [
-        '/api/tasas', 
-        '/api/settings/tasas-status', 
+        '/api/tasas',
+        '/api/settings/tasas-status',
         '/api/costos',
         '/api/facturas',
         '/api/proveedores'
       ];
       const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
-      
+
       if (!isValidJWTToken(token)) {
         if (!isPublicEndpoint) {
           localStorage.removeItem('accessToken');
@@ -90,7 +90,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
         }
         return next(req);
       }
-      
+
       if (isTokenExpiringSoon(token)) {
         if (!isRefreshing) {
           isRefreshing = true;
@@ -132,7 +132,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
           );
         }
       }
-      
+
       req = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`,
@@ -144,14 +144,15 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       const publicEndpointsWithoutAuth = [
-        '/api/tasas', 
-        '/api/settings/tasas-status', 
+        '/api/tasas',
+        '/api/settings/tasas-status',
         '/api/costos',
         '/api/facturas',
-        '/api/proveedores'
+        '/api/proveedores',
+        '/api/noticias'
       ];
       const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
-      
+
       if (error.status === 401 && !isPublicEndpoint) {
         return from(refreshToken()).pipe(
           switchMap((data: any) => {
@@ -165,18 +166,18 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
                   Authorization: `Bearer ${data.accessToken}`,
                 },
               });
-return next(req);
-              } else {
-                if (!isPublicEndpoint) {
-                  localStorage.removeItem('accessToken');
-                  localStorage.removeItem('refreshToken');
-                  localStorage.removeItem('user');
-                  router.navigate(['/login']);
-                }
-                return throwError(() => new Error(data.error || 'Token expirado'));
+              return next(req);
+            } else {
+              if (!isPublicEndpoint) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+                router.navigate(['/login']);
               }
-            }),
-catchError(() => {
+              return throwError(() => new Error(data.error || 'Token expirado'));
+            }
+          }),
+          catchError(() => {
             if (!isPublicEndpoint) {
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
@@ -187,7 +188,6 @@ catchError(() => {
           })
         );
       }
-      // Don't interfere with other errors - let them propagate
       return throwError(() => error);
     }),
   );

@@ -30,20 +30,20 @@ export class AdminNoticiasComponent {
   }
 
 loadNoticias() {
-      this.loading = true;
-      this.error = null;
-      this.noticiasService.getNoticiasAdmin().subscribe({
-       next: (data: Noticia[]) => {
-         this.noticias = data;
-         this.loading = false;
-       },
-       error: (err: any) => {
-         console.error('Error loading noticias:', err);
-         this.error = 'Error al cargar las noticias';
-         this.loading = false;
-       }
-     });
-   }
+    this.loading = true;
+    this.error = null;
+    this.noticiasService.getNoticiasAdmin().subscribe({
+     next: (data: Noticia[]) => {
+        this.noticias = data;
+        this.loading = false;
+      },
+      error: (err: any) => {
+        console.error('Error loading noticias:', err);
+        this.error = err.error?.error || err.message || 'Error al cargar las noticias';
+        this.loading = false;
+      }
+    });
+  }
 
    crearNoticia() {
      if (!this.nuevaNoticia['titulo'].trim() || !this.nuevaNoticia['contenido'].trim()) {

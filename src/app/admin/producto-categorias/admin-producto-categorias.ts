@@ -22,6 +22,7 @@ export class AdminProductoCategorias implements OnInit {
   formDescripcion = '';
   formImagen = '';
   formOrden = 0;
+  imagenError = signal(false);
 
   ngOnInit() {
     this.loadCategorias();
@@ -46,6 +47,7 @@ export class AdminProductoCategorias implements OnInit {
     this.formDescripcion = '';
     this.formImagen = '';
     this.formOrden = 0;
+    this.imagenError.set(false);
     this.showModal.set(true);
   }
 
@@ -55,6 +57,7 @@ export class AdminProductoCategorias implements OnInit {
     this.formDescripcion = categoria.descripcion || '';
     this.formImagen = categoria.imagen || '';
     this.formOrden = categoria.orden;
+    this.imagenError.set(false);
     this.showModal.set(true);
   }
 
@@ -63,8 +66,13 @@ export class AdminProductoCategorias implements OnInit {
     this.editingCategoria.set(null);
   }
 
+  onImagenError() {
+    this.imagenError.set(true);
+  }
+
   saveCategoria() {
     if (!this.formNombre) return;
+    this.imagenError.set(false);
 
     const data = {
       nombre: this.formNombre,

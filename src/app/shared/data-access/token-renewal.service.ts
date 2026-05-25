@@ -12,8 +12,8 @@ interface TokenData {
 })
 export class TokenRenewalService {
   private refreshInterval: any = null;
-  private readonly CHECK_INTERVAL_MS = 3 * 60 * 1000; // Check every 3 minutes
-  private readonly RENEW_BEFORE_MS = 10 * 60 * 1000; // Renew 10 minutes before expiration
+  private readonly CHECK_INTERVAL_MS = 15 * 60 * 1000; // Check every 15 minutes
+  private readonly RENEW_BEFORE_MS = 60 * 60 * 1000; // Renew 1 hour before expiration
   private readonly STORAGE_KEY = 'token_renewal_data';
   
   private ngZone = inject(NgZone);

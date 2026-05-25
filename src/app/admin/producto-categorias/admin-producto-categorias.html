@@ -2,14 +2,15 @@
   <h2>Gestión de Categorías de Productos</h2>
   
   <div class="actions">
-    <button class="btn-primary" (click)="openCreateModal()">Nueva Categoría</button>
+    <button class="btn-primary" (click)="openCreateModal()">✨ Nueva Categoría</button>
   </div>
 
   @if (loading()) {
-    <div class="loading">Cargando...</div>
+    <div class="loading">Cargando categorías...</div>
   } @else if (categorias().length === 0) {
     <div class="empty">
       <p>No hay categorías creadas.</p>
+      <button class="btn-primary" (click)="openCreateModal()" style="margin-top: 1rem;">Crear primera categoría</button>
     </div>
   } @else {
     <div class="categorias-list">
@@ -18,14 +19,18 @@
           <div class="categoria-header">
             @if (cat.imagen) {
               <img [src]="cat.imagen" [alt]="cat.nombre" class="categoria-img" />
+            } @else {
+              <div class="categoria-img" style="background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.75rem;">
+                Sin imagen
+              </div>
             }
             <div class="categoria-info">
               <h3>{{ cat.nombre }}</h3>
               <span class="orden">Orden: {{ cat.orden }}</span>
             </div>
             <div class="categoria-actions">
-              <button class="btn-small" (click)="openEditModal(cat)">Editar</button>
-              <button class="btn-small btn-danger" (click)="deleteCategoria(cat)">Eliminar</button>
+              <button class="btn-small" (click)="openEditModal(cat)">✏️ Editar</button>
+              <button class="btn-small btn-danger" (click)="deleteCategoria(cat)">🗑️</button>
             </div>
           </div>
           @if (cat.descripcion) {
@@ -52,19 +57,31 @@
         <div class="form-group">
           <label>Descripción</label>
           <textarea [(ngModel)]="formDescripcion" placeholder="Descripción (opcional)"></textarea>
+          <div class="form-hint">Breve descripción de la categoría</div>
         </div>
         <div class="form-group">
           <label>Imagen URL</label>
           <input type="text" [(ngModel)]="formImagen" placeholder="URL de la imagen (opcional)" />
+          <div class="form-hint">Enlace a la imagen de la categoría</div>
+          @if (formImagen && !imagenError()) {
+            <div class="imagen-preview">
+              <img 
+                [src]="formImagen" 
+                alt="Preview" 
+                (error)="onImagenError()"
+              />
+            </div>
+          }
         </div>
         <div class="form-group">
           <label>Orden</label>
           <input type="number" [(ngModel)]="formOrden" placeholder="0" />
+          <div class="form-hint">Orden de visualización (menor aparece primero)</div>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
-        <button class="btn-primary" (click)="saveCategoria()">Guardar</button>
+        <button class="btn-primary" (click)="saveCategoria()">💾 Guardar</button>
       </div>
     </div>
   </div>

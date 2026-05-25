@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NoticiasService } from '../../shared/data-access/noticias.service';
 import { Noticia } from '../../shared/data-access/noticias.service';
+import { catchError, finalize, of, timeout } from 'rxjs';
 
 @Component({
   selector: 'app-admin-noticias',
@@ -29,18 +30,22 @@ export class AdminNoticiasComponent {
     this.loadNoticias();
   }
 
-loadNoticias() {
+  loadNoticias() {
     this.loading = true;
     this.error = null;
-    this.noticiasService.getNoticiasAdmin().subscribe({
-     next: (data: Noticia[]) => {
-        this.noticias = data;
-        this.loading = false;
-      },
-      error: (err: any) => {
+    this.noticiasService.getNoticiasAdmin().pipe(
+      timeout(15000),
+      catchError(err => {
         console.error('Error loading noticias:', err);
         this.error = err.error?.error || err.message || 'Error al cargar las noticias';
+        return of([]);
+      }),
+      finalize(() => {
         this.loading = false;
+      })
+    ).subscribe({
+      next: (data: Noticia[]) => {
+        this.noticias = data;
       }
     });
   }

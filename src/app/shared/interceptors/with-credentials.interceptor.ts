@@ -38,7 +38,7 @@ function isTokenExpiringSoon(token: string): boolean {
   const expDate = new Date(payload.exp * 1000);
   const now = new Date();
   const diffMinutes = (expDate.getTime() - now.getTime()) / (1000 * 60);
-  return diffMinutes < 5;
+  return diffMinutes < 30;
 }
 
 async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: string; error?: string }> {

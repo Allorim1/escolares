@@ -34,7 +34,7 @@
             <span>{{ formattedFecha(noticia.fecha) }}</span>
           </div>
           <div class="noticia-contenido">
-            <p [innerHTML]="noticia.contenido"></p>
+            <div [innerHTML]="noticia.contenido | markdown"></div>
           </div>
           <div class="noticia-actions">
             <a href="#" class="btn-leer-mas">Leer más</a>

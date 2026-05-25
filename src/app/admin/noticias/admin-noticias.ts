@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { NoticiasService } from '../../shared/data-access/noticias.service';
 import { Noticia } from '../../shared/data-access/noticias.service';
 import { catchError, finalize, of, timeout } from 'rxjs';
+import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 
 @Component({
   selector: 'app-admin-noticias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MarkdownPipe],
   templateUrl: './admin-noticias.html',
   styleUrl: './admin-noticias.css',
 })
@@ -17,6 +18,7 @@ export class AdminNoticiasComponent {
   loading = true;
   error: string | null = null;
   editingId: string | null = null;
+  previewMode = false;
   nuevaNoticia: Omit<Noticia, 'id' | 'fecha'> = {
     titulo: '',
     contenido: '',

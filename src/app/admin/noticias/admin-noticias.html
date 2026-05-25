@@ -28,8 +28,21 @@
         
         <div class="form-group">
           <label for="contenido">Contenido *</label>
-          <textarea id="contenido" [(ngModel)]="nuevaNoticia.contenido" name="contenido" rows="5" required
-                    placeholder="Ingresa el contenido de la noticia"></textarea>
+          <div class="contenido-tabs">
+            <button type="button" class="tab-btn" [class.active]="!previewMode" (click)="previewMode = false">Editar</button>
+            <button type="button" class="tab-btn" [class.active]="previewMode" (click)="previewMode = true">Vista Previa</button>
+          </div>
+          @if (!previewMode) {
+            <textarea id="contenido" [(ngModel)]="nuevaNoticia.contenido" name="contenido" rows="8" required
+                      placeholder="Ingresa el contenido de la noticia (soporta Markdown)"></textarea>
+          } @else {
+            <div class="preview-content">
+              <div [innerHTML]="nuevaNoticia.contenido | markdown"></div>
+            </div>
+          }
+          <div class="markdown-help">
+            <small><strong>Markdown soportado:</strong> **negrita**, *cursiva*, [enlace](url), # encabezados, - listas</small>
+          </div>
         </div>
         
         <div class="form-group options">

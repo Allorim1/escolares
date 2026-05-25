@@ -1,16 +1,23 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpEvent } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError, switchMap, from } from 'rxjs';
+import { Observable, catchError, throwError, switchMap, from } from 'rxjs';
 
 let isRefreshing = false;
+
+const publicEndpointsWithoutAuth = [
+  '/api/tasas',
+  '/api/settings/tasas-status',
+  '/api/costos',
+  '/api/facturas',
+  '/api/proveedores',
+  '/api/noticias'
+];
 
 function isValidJWTToken(token: string): boolean {
   const parts = token.split('.');
   if (parts.length !== 3) return false;
-  // Verify the parts are non-empty base64 strings
   if (!parts[0] || !parts[1] || !parts[2]) return false;
-  // Try to decode the payload to verify it's valid base64 JSON
   try {
     atob(parts[1]);
     return true;
@@ -31,8 +38,7 @@ function decodeToken(token: string): any {
 }
 
 function isTokenExpiringSoon(token: string): boolean {
-  // First validate the token format
-  if (!isValidJWTToken(token)) return false; // Invalid tokens are not "expiring soon"
+  if (!isValidJWTToken(token)) return false;
   const payload = decodeToken(token);
   if (!payload || !payload.exp) return true;
   const expDate = new Date(payload.exp * 1000);
@@ -45,7 +51,6 @@ async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: st
   const refreshTokenValue = localStorage.getItem('refreshToken');
   if (!refreshTokenValue) return { error: 'No refresh token' };
 
-  // Validate refresh token format before trying to refresh
   if (!isValidJWTToken(refreshTokenValue)) {
     return { error: 'Invalid refresh token format' };
   }
@@ -68,40 +73,37 @@ async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: st
 
 export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
+  const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
+
+  // Skip all auth logic for public endpoints
+  if (isPublicEndpoint) {
+    return next(req);
+  }
 
   if (typeof window !== 'undefined' && window.localStorage) {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      const publicEndpointsWithoutAuth = [
-        '/api/tasas',
-        '/api/settings/tasas-status',
-        '/api/costos',
-        '/api/facturas',
-        '/api/proveedores'
-      ];
-      const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
-
+      // Validate token format
       if (!isValidJWTToken(token)) {
-        if (!isPublicEndpoint) {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          router.navigate(['/login']);
-        }
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        router.navigate(['/login']);
         return next(req);
       }
 
+      // Token refresh if expiring soon
       if (isTokenExpiringSoon(token)) {
         if (!isRefreshing) {
           isRefreshing = true;
           return from(refreshToken()).pipe(
             switchMap((data: any) => {
+              isRefreshing = false;
               if (data.accessToken) {
                 localStorage.setItem('accessToken', data.accessToken);
                 if (data.refreshToken) {
                   localStorage.setItem('refreshToken', data.refreshToken);
                 }
-                isRefreshing = false;
                 req = req.clone({
                   setHeaders: {
                     Authorization: `Bearer ${data.accessToken}`,
@@ -109,30 +111,49 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
                 });
                 return next(req);
               } else {
-                isRefreshing = false;
-                if (!isPublicEndpoint) {
-                  localStorage.removeItem('accessToken');
-                  localStorage.removeItem('refreshToken');
-                  localStorage.removeItem('user');
-                  router.navigate(['/login']);
-                }
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+                router.navigate(['/login']);
                 return throwError(() => new Error(data.error || 'Token expirado'));
               }
             }),
             catchError((error: any) => {
               isRefreshing = false;
-              if (!isPublicEndpoint) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                router.navigate(['/login']);
-              }
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('refreshToken');
+              localStorage.removeItem('user');
+              router.navigate(['/login']);
               return throwError(() => new Error('Sesión expirada'));
             })
           );
         }
+        // If already refreshing, wait for it
+        return new Observable<HttpEvent<unknown>>(subscriber => {
+          const checkRefresh = () => {
+            if (!isRefreshing) {
+              const newToken = localStorage.getItem('accessToken');
+              if (newToken && isValidJWTToken(newToken)) {
+                req = req.clone({
+                  setHeaders: {
+                    Authorization: `Bearer ${newToken}`,
+                  },
+                });
+              }
+              next(req).subscribe({
+                next: event => subscriber.next(event),
+                error: err => subscriber.error(err),
+                complete: () => subscriber.complete()
+              });
+            } else {
+              setTimeout(checkRefresh, 100);
+            }
+          };
+          checkRefresh();
+        });
       }
 
+      // Add Authorization header with valid token
       req = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`,
@@ -143,17 +164,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      const publicEndpointsWithoutAuth = [
-        '/api/tasas',
-        '/api/settings/tasas-status',
-        '/api/costos',
-        '/api/facturas',
-        '/api/proveedores',
-        '/api/noticias'
-      ];
-      const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
-
-      if (error.status === 401 && !isPublicEndpoint) {
+      if (error.status === 401) {
         return from(refreshToken()).pipe(
           switchMap((data: any) => {
             if (data.accessToken) {
@@ -168,22 +179,18 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
               });
               return next(req);
             } else {
-              if (!isPublicEndpoint) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                router.navigate(['/login']);
-              }
-              return throwError(() => new Error(data.error || 'Token expirado'));
-            }
-          }),
-          catchError(() => {
-            if (!isPublicEndpoint) {
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
               router.navigate(['/login']);
+              return throwError(() => new Error(data.error || 'Token expirado'));
             }
+          }),
+          catchError(() => {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            router.navigate(['/login']);
             return throwError(() => new Error('Sesión expirada'));
           })
         );

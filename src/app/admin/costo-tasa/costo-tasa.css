@@ -137,7 +137,6 @@ h2 {
   border-radius: 8px;
   border: 2px solid transparent;
   transition: border-color 0.2s;
-  position: relative;
 }
 
 .tasa-item.seleccionado {
@@ -145,24 +144,20 @@ h2 {
   background: rgba(29, 99, 193, 0.1);
 }
 
-.tasa-label {
-  font-weight: 600;
-}
-
-.tasa-value {
-  font-size: 1.2rem;
-  font-weight: 700;
+.tasa-wrapper {
+  position: relative;
 }
 
 .tasa-diferencial {
   position: absolute;
-  top: 4px;
+  top: -22px;
   right: 8px;
   font-size: 0.75rem;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
 }
 
 .tasa-diferencial.positivo {
@@ -171,6 +166,11 @@ h2 {
 
 .tasa-diferencial.negativo {
   color: #f87171;
+}
+
+.tasa-value {
+  font-size: 1.2rem;
+  font-weight: 700;
 }
 
 .tasa-radio {

@@ -19,6 +19,10 @@ export class NoticiasService extends BaseHttpService {
     return this.http.get<Noticia[]>(`${this.apiUrl}/noticias`);
   }
 
+  getNoticiasAdmin(): Observable<Noticia[]> {
+    return this.http.get<Noticia[]>(`${this.apiUrl}/noticias/admin`);
+  }
+
   getNoticiaById(id: string): Observable<Noticia> {
     return this.http.get<Noticia>(`${this.apiUrl}/noticias/${id}`);
   }

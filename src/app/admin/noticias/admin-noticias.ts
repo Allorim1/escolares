@@ -29,10 +29,10 @@ export class AdminNoticiasComponent {
     this.loadNoticias();
   }
 
-   loadNoticias() {
-     this.loading = true;
-     this.error = null;
-     this.noticiasService.getNoticias().subscribe({
+loadNoticias() {
+      this.loading = true;
+      this.error = null;
+      this.noticiasService.getNoticiasAdmin().subscribe({
        next: (data: Noticia[]) => {
          this.noticias = data;
          this.loading = false;

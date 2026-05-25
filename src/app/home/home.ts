@@ -9,15 +9,18 @@ import {
   QueryList,
   Inject,
   PLATFORM_ID,
+  OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MarcasService } from '../shared/data-access/marcas.service';
+import { NoticiasService, Noticia } from '../shared/data-access/noticias.service';
+import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, MarkdownPipe],
   templateUrl: './home.html',
   styles: [
     `
@@ -581,12 +584,89 @@ import { MarcasService } from '../shared/data-access/marcas.service';
           height: 24px;
         }
       }
+
+      .noticias-section {
+        width: 100%;
+        max-width: 1200px;
+        margin: 3rem auto;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .noticias-section h2 {
+        font-size: 2rem;
+        color: #1d63c1;
+        margin-bottom: 1.5rem;
+      }
+
+      .noticias-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .noticia-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: left;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+      }
+
+      .noticia-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .noticia-card.importante {
+        border-left: 4px solid #007bff;
+      }
+
+      .noticia-card h3 {
+        font-size: 1.2rem;
+        color: #333;
+        margin: 0 0 0.5rem;
+      }
+
+      .noticia-fecha {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.75rem;
+      }
+
+      .noticia-contenido {
+        font-size: 0.95rem;
+        color: #555;
+        line-height: 1.6;
+      }
+
+      .noticia-contenido ::ng-deep p {
+        margin: 0.5rem 0;
+      }
+
+      .noticia-contenido ::ng-deep h1,
+      .noticia-contenido ::ng-deep h2,
+      .noticia-contenido ::ng-deep h3 {
+        margin: 1rem 0 0.5rem;
+      }
+
+      @media (max-width: 768px) {
+        .noticias-section {
+          padding: 1rem;
+        }
+
+        .noticias-grid {
+          grid-template-columns: 1fr;
+        }
+      }
     `,
   ],
 })
-export default class HomeComponent implements AfterViewInit, OnDestroy {
+export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private marcasService = inject(MarcasService);
+  private noticiasService = inject(NoticiasService);
   marcas = this.marcasService.marcas;
+  noticias = signal<Noticia[]>([]);
   currentIndex = 0;
   visibleCount = 4;
   bannerIndex = 0;
@@ -625,6 +705,28 @@ export default class HomeComponent implements AfterViewInit, OnDestroy {
     if (this.autoScrollInterval) {
       clearInterval(this.autoScrollInterval);
     }
+  }
+
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadNoticias();
+    }
+  }
+
+  loadNoticias() {
+    this.noticiasService.getNoticias().subscribe({
+      next: (data) => this.noticias.set(data),
+      error: (err) => console.error('Error loading noticias:', err)
+    });
+  }
+
+  formattedFecha(fecha: string | Date): string {
+    const date = new Date(fecha);
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   }
 
   private revealAll() {

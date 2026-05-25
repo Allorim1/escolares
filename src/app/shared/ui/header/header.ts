@@ -7,6 +7,7 @@ import { CartStateService } from '../../data-access/cart-state.service';
 import { CurrencyService } from '../../data-access/currency.service';
 import { Product, ProductItemCart } from '../../../shared/interfaces/product.interface';
 import { NoticiasService } from '../../data-access/noticias.service';
+import { NotificationService } from '../../data-access/notification.service';
 
 @Component({
   selector: 'app-header',
@@ -20,6 +21,7 @@ export class Header {
   private productsService = inject(ProductsService);
   private cartState = inject(CartStateService);
   private noticiasService = inject(NoticiasService);
+  private notificationService = inject(NotificationService);
   currencyService = inject(CurrencyService);
   cartPreviewOpen = signal(false);
   notificationCount = signal(0);
@@ -28,6 +30,9 @@ export class Header {
   cartPreviewItems = () => this.cartState.state().products.slice(0, 4);
   cartPreviewTotal = () =>
     this.cartState.state().products.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+  notifications = () => this.notificationService.notifications;
+  hasNotifications = () => this.notificationService.notifications.length > 0;
 
   constructor() {
       this.productsService.getProducts().subscribe((response: any) => {
@@ -121,6 +126,8 @@ export class Header {
   userDropdownOpen = signal(false);
   private dropdownTimer: any = null;
   private cartPreviewTimer: any = null;
+  notificationsOpen = signal(false);
+  notificationsTimer: any = null;
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -337,6 +344,33 @@ categories = computed(() => {
 
   closeMobileMenu() {
     this.mobileMenuOpen.set(false);
+  }
+
+  onNotificationsEnter() {
+    if (this.notificationsTimer) {
+      clearTimeout(this.notificationsTimer);
+      this.notificationsTimer = null;
+    }
+    this.notificationsOpen.set(true);
+  }
+
+  onNotificationsLeave() {
+    this.notificationsTimer = setTimeout(() => {
+      this.notificationsOpen.set(false);
+    }, 500);
+  }
+
+  openNotifications() {
+    this.notificationsOpen.set(true);
+  }
+
+  closeNotifications() {
+    this.notificationsOpen.set(false);
+  }
+
+  navigateToNotif(url: string) {
+    this.closeNotifications();
+    this.router.navigateByUrl(url);
   }
 
   toggleUserDropdown() {

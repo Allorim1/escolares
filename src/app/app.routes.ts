@@ -53,28 +53,40 @@ export const routes: Routes = [
     path: 'privacidad',
     loadComponent: () => import('./privacidad/privacidad').then((m) => m.Privacidad),
   },
-  {
-    path: 'panel',
-    component: Panel,
-    children: [
-      {
-        path: 'perfil',
-        loadComponent: () => import('./panel/perfil/perfil').then((m) => m.Perfil),
+{
+        path: 'panel',
+        component: Panel,
+        children: [
+          {
+            path: 'perfil',
+            loadComponent: () => import('./panel/perfil/perfil').then((m) => m.Perfil),
+          },
+          {
+            path: 'ajustes',
+            loadComponent: () => import('./panel/ajustes').then((m) => m.Ajustes),
+          },
+          {
+            path: 'pedidos',
+            loadComponent: () => import('./panel/pedidos/pedidos').then((m) => m.default),
+          },
+          {
+            path: 'direcciones',
+            loadComponent: () => import('./panel/direcciones/direcciones').then((m) => m.Direcciones),
+          },
+          {
+            path: 'historico-compra',
+            loadComponent: () => import('./panel/historico-compra/historico-compra').then((m) => m.HistoricoCompra),
+          },
+          {
+            path: 'favoritos',
+            loadComponent: () => import('./panel/favoritos/favoritos').then((m) => m.Favoritos),
+          },
+          {
+            path: 'metodos-pago',
+            loadComponent: () => import('./panel/metodos-pago/metodos-pago').then((m) => m.MetodosPago),
+          },
+        ],
       },
-      {
-        path: 'ajustes',
-        loadComponent: () => import('./panel/ajustes').then((m) => m.Ajustes),
-      },
-      {
-        path: 'pedidos',
-        loadComponent: () => import('./panel/pedidos/pedidos').then((m) => m.default),
-      },
-      {
-        path: 'direcciones',
-        loadComponent: () => import('./panel/direcciones/direcciones').then((m) => m.Direcciones),
-      },
-    ],
-  },
   {
     path: 'register',
     loadComponent: () => import('./register/register').then((m) => m.Register),

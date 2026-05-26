@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NoticiasService } from '../../shared/data-access/noticias.service';
 import { Noticia } from '../../shared/data-access/noticias.service';
-import { catchError, finalize, of, timeout } from 'rxjs';
+import { catchError, of, timeout } from 'rxjs';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 
 @Component({
@@ -35,25 +35,36 @@ export class AdminNoticiasComponent {
   loadNoticias() {
     this.loading = true;
     this.error = null;
+    
+    const timeoutId = setTimeout(() => {
+      console.warn('News load timeout - forcing loading false');
+      this.loading = false;
+    }, 15000);
+    
     this.noticiasService.getNoticiasAdmin().pipe(
       timeout(10000),
       catchError(err => {
         console.error('Error loading noticias:', err);
-        if (err.name === 'TimeoutError') {
-          this.error = 'Tiempo de espera agotado. Intente nuevamente.';
-        } else {
-          this.error = err.error?.error || err.message || 'Error al cargar las noticias';
-        }
+        this.error = err.name === 'TimeoutError' 
+          ? 'Tiempo de espera agotado. Intente nuevamente.' 
+          : (err.error?.error || err.message || 'Error al cargar las noticias');
         return of([]);
-      }),
-      finalize(() => {
-        this.loading = false;
       })
     ).subscribe({
       next: (data: Noticia[]) => {
+        clearTimeout(timeoutId);
+        console.log('Noticias cargadas:', data.length);
         this.noticias = data;
+        this.loading = false;
       },
-      error: () => {
+      error: (err) => {
+        clearTimeout(timeoutId);
+        console.error('Subscribe error:', err);
+        this.loading = false;
+      },
+      complete: () => {
+        clearTimeout(timeoutId);
+        console.log('Observable completed');
         this.loading = false;
       }
     });

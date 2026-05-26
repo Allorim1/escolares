@@ -11,8 +11,20 @@ const publicEndpointsWithoutAuth = [
   '/api/costos',
   '/api/facturas',
   '/api/proveedores',
-  '/api/noticias'
 ];
+
+function isPublicEndpoint(url: string): boolean {
+  // Check for exact public endpoints
+  if (publicEndpointsWithoutAuth.some(endpoint => url.includes(endpoint))) {
+    return true;
+  }
+  // Only /api/noticias (without path) is public, not /api/noticias/admin or /api/noticias/user-notifications
+  const noticiasMatch = url.match(/\/api\/noticias(\?|$)/);
+  if (noticiasMatch && !url.includes('/admin') && !url.includes('/user-')) {
+    return true;
+  }
+  return false;
+}
 
 function isValidJWTToken(token: string): boolean {
   const parts = token.split('.');
@@ -72,13 +84,12 @@ async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: st
 }
 
 export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
-  const router = inject(Router);
-  const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
+   const router = inject(Router);
 
-  // Skip all auth logic for public endpoints
-  if (isPublicEndpoint) {
-    return next(req);
-  }
+   // Skip all auth logic for public endpoints
+   if (isPublicEndpoint(req.url)) {
+     return next(req);
+   }
 
   if (typeof window !== 'undefined' && window.localStorage) {
     const token = localStorage.getItem('accessToken');

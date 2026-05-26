@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { BaseHttpService } from '../../shared/data-access/base-http.service';
+import { BaseHttpService } from './base-http.service';
 import { Observable } from 'rxjs';
 import { NotificationService } from './notification.service';
 
@@ -28,7 +28,10 @@ export class NoticiasService extends BaseHttpService {
           observer.next(noticias);
           observer.complete();
         },
-        error: (err) => observer.error(err)
+        error: (err) => {
+          console.error('Error loading noticias:', err);
+          observer.error(err);
+        }
       });
     });
   }

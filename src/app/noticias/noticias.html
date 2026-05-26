@@ -36,9 +36,9 @@
           <div class="noticia-contenido">
             <div [innerHTML]="noticia.contenido | markdown"></div>
           </div>
-          <div class="noticia-actions">
-            <a href="#" class="btn-leer-mas">Leer más</a>
-          </div>
+<div class="noticia-actions">
+             <button class="btn-leer-mas" (click)="scrollToNoticia(noticia.id)">Leer más</button>
+           </div>
         </div>
       }
     </div>

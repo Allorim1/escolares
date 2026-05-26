@@ -1,9 +1,8 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NoticiasService } from '../shared/data-access/noticias.service';
 import { Noticia } from '../shared/data-access/noticias.service';
 import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
-import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-noticias',
@@ -12,14 +11,13 @@ import { ActivatedRoute } from '@angular/router';
   templateUrl: './noticias.html',
   styleUrl: './noticias.css',
 })
-export class NoticiasComponent implements AfterViewInit {
+export class NoticiasComponent implements OnInit, AfterViewInit {
   noticias: Noticia[] = [];
   loading = true;
   error: string | null = null;
 
   constructor(
-    private noticiasService: NoticiasService,
-    private route: ActivatedRoute
+    private noticiasService: NoticiasService
   ) {}
 
   ngOnInit() {
@@ -27,23 +25,39 @@ export class NoticiasComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    setTimeout(() => {
-      this.scrollToNews();
-    });
+    this.scrollToNews();
+  }
+
+  scrollToNoticia(id: string) {
+    window.location.hash = id;
+    this.scrollToNews();
   }
 
   loadNoticias() {
     this.loading = true;
     this.error = null;
+    
+    const timeout = setTimeout(() => {
+      if (this.loading) {
+        this.loading = false;
+        this.error = 'Tiempo de espera agotado. Intente recargar la página.';
+      }
+    }, 10000);
+
     this.noticiasService.getNoticias().subscribe({
       next: (data) => {
+        clearTimeout(timeout);
         this.noticias = data;
         this.loading = false;
-        setTimeout(() => this.scrollToNews());
       },
       error: (err) => {
+        clearTimeout(timeout);
         console.error('Error loading noticias:', err);
-        this.error = 'Error al cargar las noticias';
+        this.error = 'Error al cargar las noticias. Verifique la conexión.';
+        this.loading = false;
+      },
+      complete: () => {
+        clearTimeout(timeout);
         this.loading = false;
       }
     });

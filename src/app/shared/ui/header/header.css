@@ -581,10 +581,11 @@ header.app-header {
 }
 
 .header-icons {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
+     display: flex;
+     gap: 12px;
+     align-items: center;
+     position: relative;
+ }
 
 .notification-btn {
     position: relative;
@@ -1471,24 +1472,21 @@ header.app-header {
 }
 
 /* Notifications dropdown */
-.header-icons {
-  position: relative;
-}
-
-.notifications-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 150px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 280px;
-  max-width: 320px;
-  z-index: 1001;
-  padding: 12px;
-  max-height: 300px;
-  overflow-y: auto;
-}
+ 
+ .notifications-dropdown {
+   position: absolute;
+   top: 100%;
+   right: 0;
+   background: white;
+   border-radius: 8px;
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+   min-width: 280px;
+   max-width: 320px;
+   z-index: 1001;
+   padding: 12px;
+   max-height: 300px;
+   overflow-y: auto;
+ }
 
 .notifications-header {
   font-size: 14px;

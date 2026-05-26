@@ -157,6 +157,12 @@ export class Header implements OnInit, OnDestroy {
     if (!target.closest('.header-search')) {
       this.showDropdown.set(false);
     }
+    // Close notifications dropdown when clicking outside
+    const notifBtn = target.closest('.notification-btn');
+    const notifDropdown = target.closest('.notifications-dropdown');
+    if (!notifBtn && !notifDropdown) {
+      this.notificationsOpen.set(false);
+    }
   }
 
   onUserDropdownEnter() {
@@ -393,12 +399,16 @@ categories = computed(() => {
     const notificacion = this.noticiasService.userNotificaciones().find(n => n.noticiaId === id);
     if (notificacion) {
       this.noticiasService.markNotificationAsRead(notificacion.id).subscribe({
+        next: () => {},
         error: (err: Error) => {
           console.error('Error marking notification as read:', err);
         }
       });
     }
-    this.router.navigate(['/noticias'], { fragment: id });
+    // Navigate after ensuring dropdown is closed
+    setTimeout(() => {
+      this.router.navigate(['/noticias'], { fragment: id });
+    }, 100);
   }
 
   truncateContent(content: string, length: number = 100): string {

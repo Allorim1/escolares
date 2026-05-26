@@ -1,0 +1,88 @@
+<div class="admin-repartidor">
+  <div class="page-header">
+    <h1>Mis Pedidos Asignados</h1>
+    <div class="filters">
+      <select class="form-select" [(ngModel)]="selectedStatus" (change)="filterOrders()">
+        <option value="">Todos los estados</option>
+        <option value="procesando">Procesando</option>
+        <option value="procesado">Aceptado</option>
+        <option value="enviado">En camino</option>
+        <option value="entregado">Entregado</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+      <button class="btn btn-secondary" (click)="loadOrders()">
+        <i class="fas fa-sync-alt"></i> Actualizar
+      </button>
+    </div>
+  </div>
+
+  @if (selectedOrderMap()) {
+    <div class="map-modal">
+      <div class="map-content">
+        <button class="btn-close" (click)="selectedOrderMap.set('')">×</button>
+        <app-order-tracking-map 
+          [orderId]="selectedOrderMap()" 
+          [showAcceptButton]="false"
+          [showStartButton]="true"
+          (orderStarted)="onOrderStarted($event)">
+        </app-order-tracking-map>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading">Cargando pedidos...</div>
+  } @else {
+    <div class="orders-grid">
+      @for (order of orders(); track order._id) {
+        <div class="order-card">
+          <div class="order-header">
+            <h3>Pedido #{{ order.id }}</h3>
+            <span class="badge badge-{{ getStatusColor(order.status) }}">
+              {{ getStatusText(order.status) }}
+            </span>
+          </div>
+          <div class="order-body">
+            <p><strong>Cliente:</strong> {{ order.nombre }}</p>
+            <p><strong>Teléfono:</strong> {{ order.telefono }}</p>
+            <p><strong>Dirección:</strong> {{ order.direccionCompleta || order.direccion }}</p>
+            <p><strong>Total:</strong> {{ order.total | currency:'USD':'symbol':'1.2-2' }}</p>
+            <p><strong>Fecha:</strong> {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+            @if (order.deliveryPersonName) {
+              <p><strong>Repartidor:</strong> {{ order.deliveryPersonName }}</p>
+            }
+          </div>
+          <div class="order-footer">
+            <div class="actions">
+              <button class="btn btn-sm btn-info" (click)="showMap(order)">
+                <i class="fas fa-eye"></i> Ver Detalles
+              </button>
+              @if (order.status === 'procesando') {
+                <button class="btn btn-sm btn-success" (click)="acceptOrder(order)">
+                  <i class="fas fa-check"></i> Aceptar
+                </button>
+              }
+              @if (order.status === 'procesado') {
+                <button class="btn btn-sm btn-danger" (click)="rejectOrder(order)">
+                  <i class="fas fa-times"></i> Rechazar
+                </button>
+                <button class="btn btn-sm btn-primary" (click)="startOrder(order)">
+                  <i class="fas fa-truck"></i> En camino
+                </button>
+              }
+              @if (order.status === 'enviado') {
+                <button class="btn btn-sm btn-success" (click)="updateOrderStatus(order, 'entregado')">
+                  <i class="fas fa-check"></i> Entregar
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <p>No tienes pedidos asignados.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

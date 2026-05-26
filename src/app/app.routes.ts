@@ -5,11 +5,9 @@ import { HowBuy } from './how-buy/how-buy';
 import { Feedback } from './feedback/feedback';
 import { Lineas } from './lineas/lineas';
 import Panel from './panel/panel';
-import { Offers } from './offers/offers';
-import { adminGuard } from './shared/guards/admin.guard';
-import { repartidorGuard } from './shared/guards/repartidor.guard';
-import { noAuthGuard } from './shared/guards/no-auth.guard';
 import { Admin } from './admin/admin';
+import { adminOrRepartidorGuard } from './shared/guards/admin-or-repartidor.guard';
+import { noAuthGuard } from './shared/guards/no-auth.guard';
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
@@ -95,12 +93,11 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: Admin,
-    canActivate: [adminGuard],
+    canActivate: [adminOrRepartidorGuard],
     children: [
       {
         path: '',
-        redirectTo: 'inicio',
-        pathMatch: 'full',
+        loadComponent: () => import('./admin/admin-redirect').then((m) => m.AdminRedirectComponent),
       },
       {
         path: 'inicio',
@@ -215,12 +212,16 @@ export const routes: Routes = [
         path: 'retenciones',
         loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
       },
+      {
+        path: 'repartidor',
+        loadComponent: () => import('./admin/repartidor/admin-repartidor').then((m) => m.AdminRepartidorComponent),
+      },
     ],
   },
   {
     path: 'repartidor',
-    loadComponent: () => import('./repartidor/repartidor').then((m) => m.RepartidorComponent),
-    canActivate: [repartidorGuard],
+    redirectTo: 'admin/repartidor',
+    pathMatch: 'full',
   },
   {
     path: 'noticias',

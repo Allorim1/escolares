@@ -168,7 +168,7 @@ export class AuthBackend {
     }
   }
 
-  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario', rolId?: string) {
+  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario' | 'repartidor', rolId?: string) {
     return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
   }
 
@@ -178,3 +178,4 @@ export class AuthBackend {
     }
   }
 }
+

@@ -50,7 +50,7 @@ export class AuthService {
     return this.backend.getAllUsers();
   }
 
-  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario', rolId?: string) {
+  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario' | 'repartidor', rolId?: string) {
     return this.backend.updateUserRol(targetUserId, rol, rolId);
   }
 

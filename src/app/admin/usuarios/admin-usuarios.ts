@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+﻿import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -13,20 +13,20 @@ interface UserWithRol extends User {
 }
 
 interface NewUser {
-  username: string;
-  email: string;
-  nombreCompleto: string;
-  apellido: string;
-  telefono: string;
-  direccion: string;
-  comentarios: string;
-  password: string;
-  tipoDocumento: 'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e';
-  numeroDocumento: string;
-  genero: 'hombre' | 'mujer' | 'no_especificado';
-  rol: 'owner' | 'usuario';
-  rolId?: string;
-}
+   username: string;
+   email: string;
+   nombreCompleto: string;
+   apellido: string;
+   telefono: string;
+   direccion: string;
+   comentarios: string;
+   password: string;
+   tipoDocumento: 'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e';
+   numeroDocumento: string;
+   genero: 'hombre' | 'mujer' | 'no_especificado';
+   rol: 'owner' | 'usuario' | 'repartidor';
+   rolId?: string;
+ }
 
 interface EditRolPermisosState {
   show: boolean;
@@ -216,6 +216,8 @@ export class AdminUsuarios implements OnInit {
         return 'Root';
       case 'owner':
         return 'Owner';
+      case 'repartidor':
+        return 'Repartidor';
       case 'usuario':
         return 'Usuario';
       default:
@@ -325,7 +327,7 @@ export class AdminUsuarios implements OnInit {
     if (!user) return;
 
     const rolParts = this.selectedUserRolData.split(':');
-    const rol = rolParts[0] as 'owner' | 'usuario';
+    const rol = rolParts[0] as 'owner' | 'usuario' | 'repartidor';
     const rolId = rolParts[1] || undefined;
 
     this.authService.updateUserRol(user.id, rol, rolId).subscribe({

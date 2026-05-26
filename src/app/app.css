@@ -55,7 +55,7 @@ body {
   background-color: var(--bg-primary);
 }
 
-button.nav-btn {
+a.nav-btn {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: var(--white);
@@ -71,19 +71,19 @@ button.nav-btn {
 }
 
 /* estado normal del primario */
-button.nav-btn.primary {
+a.nav-btn.primary {
   background: var(--white);
   color: var(--blue);
   border-color: rgba(0, 0, 0, 0.08);
 }
 
 /* estilos al pasar el ratón */
-button.nav-btn:hover {
+a.nav-btn:hover {
   background: var(--white);
   color: var(--blue);
 }
 
-button.nav-btn.primary:hover {
+a.nav-btn.primary:hover {
   background: var(--blue);
   color: var(--white);
 }

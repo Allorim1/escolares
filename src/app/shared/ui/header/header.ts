@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../data-access/auth.service';
 import { ProductsService } from '../../../products/data-access/products.service';
@@ -10,7 +10,7 @@ import { NoticiasService, Noticia, UserNotificacion } from '../../data-access/no
 
 @Component({
   selector: 'app-header',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './header.html',
   styleUrls: ['./header.css'],
 })
@@ -148,6 +148,10 @@ export class Header implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
+    // Don't close mobile menu if clicking on a nav link
+    if (target.closest('a[routerLink]')) {
+      return;
+    }
     if (!target.closest('.mobile-menu-btn') && !target.closest('.mobile-nav')) {
       this.mobileMenuOpen.set(false);
     }

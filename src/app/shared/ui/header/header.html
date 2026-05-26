@@ -3,9 +3,9 @@
 </div>
 <header class="app-header" role="banner">
   <div class="header-top">
-    <a class="brand" routerLink="/">
-      <img src="/ESCOLARES RR PNG BLANCO.png" alt="Escolares logo" class="brand-logo" />
-    </a>
+<a class="brand" routerLink="/">
+       <img src="/ESCOLARES RR PNG BLANCO.png" alt="Escolares logo" class="brand-logo" />
+     </a>
 
     <div class="header-search">
        <form (ngSubmit)="search()" class="search-form">
@@ -114,11 +114,11 @@
           </button>
           
           @if (authService.isLoggedIn()) {
-            <div class="user-dropdown" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
-              <a class="user-btn" (click)="toggleUserDropdown()" style="cursor: pointer">
-                <img src="/usuario.png" alt="Usuario" />
-                <span class="user-greeting">Hola, {{ authService.user()?.nombreCompleto || authService.user()?.username || 'Usuario' }}</span>
-              </a>
+<div class="user-dropdown" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
+               <a class="user-btn" (click)="toggleUserDropdown()" style="cursor: pointer">
+                 <img src="/usuario.png" alt="Usuario" />
+                 <span class="user-greeting">Hola, {{ authService.user()?.nombreCompleto || authService.user()?.username || 'Usuario' }}</span>
+               </a>
                   <div class="dropdown-menu" [class.open]="userDropdownOpen()" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
                     <a routerLink="/panel/perfil" (click)="closeUserDropdown()">Perfil</a>
                     <a routerLink="/panel/ajustes" (click)="closeUserDropdown()">Ajustes</a>
@@ -143,7 +143,7 @@
             </a>
           }
 <a class="notification-btn" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
@@ -187,9 +187,9 @@
               </div>
             }
            
-           <div class="cart-hover-container" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
-            <a class="cart-btn" routerLink="/cart">
-              <img src="/cart.png" alt="Carrito" />
+<div class="cart-hover-container" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
+             <a class="cart-btn" routerLink="/cart">
+               <img src="/cart.png" alt="Carrito" />
               @if (cartCount() > 0) {
                 <span class="cart-count">{{ cartCount() }}</span>
               }
@@ -241,28 +241,28 @@
   </div>
 
   <div class="header-bottom">
-    <nav class="controls" role="navigation" aria-label="Principal">
-      <a class="nav-btn primary liquid" routerLink="/">Inicio</a>
-      <a class="nav-btn liquid" routerLink="/products">Productos</a>
-      <a class="nav-btn liquid" routerLink="/lineas">Líneas</a>
-      <a class="nav-btn liquid" routerLink="/marcas">Marcas</a>
-      <a class="nav-btn liquid" routerLink="/about-me">¿Quiénes somos?</a>
-      <a class="nav-btn liquid" routerLink="/how-buy">¿Cómo comprar?</a>
-      <a class="nav-btn liquid" routerLink="/offers">Ofertas</a>
-      <a class="nav-btn liquid" routerLink="/feedback">Contáctanos</a>
-    </nav>
+<nav class="controls" role="navigation" aria-label="Principal">
+       <a class="nav-btn primary liquid" routerLink="/">Inicio</a>
+       <a class="nav-btn liquid" routerLink="/products">Productos</a>
+       <a class="nav-btn liquid" routerLink="/lineas">Líneas</a>
+       <a class="nav-btn liquid" routerLink="/marcas">Marcas</a>
+       <a class="nav-btn liquid" routerLink="/about-me">¿Quiénes somos?</a>
+       <a class="nav-btn liquid" routerLink="/how-buy">¿Cómo comprar?</a>
+       <a class="nav-btn liquid" routerLink="/offers">Ofertas</a>
+       <a class="nav-btn liquid" routerLink="/feedback">Contáctanos</a>
+     </nav>
   </div>
 
-  <nav class="mobile-nav" [class.open]="mobileMenuOpen()">
-    <a routerLink="/" (click)="closeMobileMenu()">Inicio</a>
-    <a routerLink="/products" (click)="closeMobileMenu()">Productos</a>
-    <a routerLink="/lineas" (click)="closeMobileMenu()">Líneas</a>
-    <a routerLink="/marcas" (click)="closeMobileMenu()">Marcas</a>
-    <a routerLink="/about-me" (click)="closeMobileMenu()">¿Quiénes somos?</a>
-    <a routerLink="/how-buy" (click)="closeMobileMenu()">¿Cómo comprar?</a>
-    <a routerLink="/offers" (click)="closeMobileMenu()">Ofertas</a>
-    <a routerLink="/feedback" (click)="closeMobileMenu()">Contáctanos</a>
-  </nav>
+<nav class="mobile-nav" [class.open]="mobileMenuOpen()">
+      <a routerLink="/" (click)="closeMobileMenu()">Inicio</a>
+      <a routerLink="/products" (click)="closeMobileMenu()">Productos</a>
+      <a routerLink="/lineas" (click)="closeMobileMenu()">Líneas</a>
+      <a routerLink="/marcas" (click)="closeMobileMenu()">Marcas</a>
+      <a routerLink="/about-me" (click)="closeMobileMenu()">¿Quiénes somos?</a>
+      <a routerLink="/how-buy" (click)="closeMobileMenu()">¿Cómo comprar?</a>
+      <a routerLink="/offers" (click)="closeMobileMenu()">Ofertas</a>
+      <a routerLink="/feedback" (click)="closeMobileMenu()">Contáctanos</a>
+    </nav>
 </header>
 
 @if (showLoginModal() || showRegisterModal()) {

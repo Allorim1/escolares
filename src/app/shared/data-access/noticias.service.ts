@@ -30,6 +30,7 @@ export class NoticiasService extends BaseHttpService {
         },
         error: (err) => {
           console.error('Error loading noticias:', err);
+          this.activeNoticias.set([]);
           observer.error(err);
         }
       });

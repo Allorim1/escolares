@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnInit } from '@angular/core';
+import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NoticiasService } from '../shared/data-access/noticias.service';
 import { Noticia } from '../shared/data-access/noticias.service';
@@ -11,10 +11,11 @@ import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
   templateUrl: './noticias.html',
   styleUrl: './noticias.css',
 })
-export class NoticiasComponent implements OnInit, AfterViewInit {
+export class NoticiasComponent implements OnInit, AfterViewInit, OnDestroy {
   noticias: Noticia[] = [];
   loading = true;
   error: string | null = null;
+  private hashChangeHandler = () => this.scrollToNews();
 
   constructor(
     private noticiasService: NoticiasService
@@ -25,12 +26,16 @@ export class NoticiasComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.scrollToNews();
+    setTimeout(() => this.scrollToNews());
+    window.addEventListener('hashchange', this.hashChangeHandler);
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('hashchange', this.hashChangeHandler);
   }
 
   scrollToNoticia(id: string) {
     window.location.hash = id;
-    this.scrollToNews();
   }
 
   loadNoticias() {
@@ -49,6 +54,7 @@ export class NoticiasComponent implements OnInit, AfterViewInit {
         clearTimeout(timeout);
         this.noticias = data;
         this.loading = false;
+        setTimeout(() => this.scrollToNews(), 100);
       },
       error: (err) => {
         clearTimeout(timeout);

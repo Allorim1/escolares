@@ -644,13 +644,34 @@ import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
         margin: 0.5rem 0;
       }
 
-      .noticia-contenido ::ng-deep h1,
-      .noticia-contenido ::ng-deep h2,
-      .noticia-contenido ::ng-deep h3 {
-        margin: 1rem 0 0.5rem;
-      }
+.noticia-contenido ::ng-deep h1,
+       .noticia-contenido ::ng-deep h2,
+       .noticia-contenido ::ng-deep h3 {
+         margin: 1rem 0 0.5rem;
+       }
 
-      @media (max-width: 768px) {
+       .btn-ver-mas {
+         display: inline-block;
+         margin-top: 1.5rem;
+         padding: 0.75rem 1.5rem;
+         background: #1d63c1;
+         color: white;
+         text-decoration: none;
+         border-radius: 6px;
+         font-weight: 500;
+         transition: background 0.3s;
+       }
+
+       .btn-ver-mas:hover {
+         background: #1557b0;
+       }
+
+       .no-noticias {
+         color: #666;
+         font-style: italic;
+       }
+
+       @media (max-width: 768px) {
         .noticias-section {
           padding: 1rem;
         }
@@ -667,6 +688,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private noticiasService = inject(NoticiasService);
   marcas = this.marcasService.marcas;
   noticias = signal<Noticia[]>([]);
+  noticiasLoaded = signal(false);
   currentIndex = 0;
   visibleCount = 4;
   bannerIndex = 0;
@@ -715,8 +737,14 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loadNoticias() {
     this.noticiasService.getNoticias().subscribe({
-      next: () => this.noticias.set(this.noticiasService.activeNoticias()),
-      error: (err) => console.error('Error loading noticias:', err)
+      next: () => {
+        this.noticias.set(this.noticiasService.activeNoticias());
+        this.noticiasLoaded.set(true);
+      },
+      error: (err) => {
+        console.error('Error loading noticias:', err);
+        this.noticiasLoaded.set(true);
+      }
     });
   }
 

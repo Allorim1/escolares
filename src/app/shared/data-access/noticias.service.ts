@@ -1,8 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { BaseHttpService } from '../../shared/data-access/base-http.service';
 import { Observable } from 'rxjs';
 import { NotificationService } from './notification.service';
-import { inject } from '@angular/core';
 
 export interface Noticia {
   id: string;
@@ -14,13 +13,24 @@ export interface Noticia {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NoticiasService extends BaseHttpService {
   private notificationService = inject(NotificationService);
+  activeNoticias = signal<Noticia[]>([]);
 
   getNoticias(): Observable<Noticia[]> {
-    return this.http.get<Noticia[]>(`${this.apiUrl}/noticias`);
+    return new Observable(observer => {
+      this.http.get<Noticia[]>(`${this.apiUrl}/noticias`).subscribe({
+        next: (noticias) => {
+          const activas = noticias.filter(n => n.activa);
+          this.activeNoticias.set(activas);
+          observer.next(noticias);
+          observer.complete();
+        },
+        error: (err) => observer.error(err)
+      });
+    });
   }
 
   getNoticiasAdmin(): Observable<Noticia[]> {

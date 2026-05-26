@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, HostListener } from '@angular/core';
-import { RouterLink, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../data-access/auth.service';
 import { ProductsService } from '../../../products/data-access/products.service';
@@ -7,7 +7,6 @@ import { CartStateService } from '../../data-access/cart-state.service';
 import { CurrencyService } from '../../data-access/currency.service';
 import { Product, ProductItemCart } from '../../../shared/interfaces/product.interface';
 import { NoticiasService } from '../../data-access/noticias.service';
-import { NotificationService } from '../../data-access/notification.service';
 
 @Component({
   selector: 'app-header',
@@ -21,18 +20,17 @@ export class Header {
   private productsService = inject(ProductsService);
   private cartState = inject(CartStateService);
   private noticiasService = inject(NoticiasService);
-  private notificationService = inject(NotificationService);
   currencyService = inject(CurrencyService);
   cartPreviewOpen = signal(false);
-  notificationCount = signal(0);
+  notificationCount = computed(() => this.noticiasService.activeNoticias().length);
 
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
   cartPreviewItems = () => this.cartState.state().products.slice(0, 4);
   cartPreviewTotal = () =>
     this.cartState.state().products.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
-  notifications = () => this.notificationService.notifications;
-  hasNotifications = () => this.notificationService.notifications.length > 0;
+notifications = () => this.noticiasService.activeNoticias();
+   hasNotifications = () => this.noticiasService.activeNoticias().length > 0;
 
   constructor() {
       this.productsService.getProducts().subscribe((response: any) => {
@@ -46,12 +44,8 @@ export class Header {
 
   private loadNotificationCount() {
     this.noticiasService.getNoticias().subscribe({
-      next: (noticias) => {
-        const unreadCount = noticias.filter(n => n.activa).length;
-        this.notificationCount.set(unreadCount);
-      },
-      error: (error) => {
-        console.error('Error loading notification count:', error);
+      error: (err: Error) => {
+        console.error('Error loading notification count:', err);
       }
     });
   }
@@ -364,13 +358,21 @@ categories = computed(() => {
     this.notificationsOpen.set(true);
   }
 
-  closeNotifications() {
+  closeNotifications(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.notificationsOpen.set(false);
   }
 
-  navigateToNotif(url: string) {
+  navigateToNoticia(id: string) {
     this.closeNotifications();
-    this.router.navigateByUrl(url);
+    this.router.navigate(['/noticias'], { fragment: id });
+  }
+
+  truncateContent(content: string, length: number = 100): string {
+    if (!content) return '';
+    return content.length > length ? content.substring(0, length) + '...' : content;
   }
 
   toggleUserDropdown() {

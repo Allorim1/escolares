@@ -715,7 +715,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loadNoticias() {
     this.noticiasService.getNoticias().subscribe({
-      next: (data) => this.noticias.set(data),
+      next: () => this.noticias.set(this.noticiasService.activeNoticias()),
       error: (err) => console.error('Error loading noticias:', err)
     });
   }

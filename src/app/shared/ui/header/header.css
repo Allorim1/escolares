@@ -1550,14 +1550,18 @@ header.app-header {
   font-size: 13px;
 }
 
-.notifications-footer {
-  display: block;
-  text-align: center;
-  padding: 8px;
-  color: #1d63c1;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  border-top: 1px solid #eee;
-  margin-top: 8px;
-}
+.notifications-footer:hover {
+   background: #f9fafb;
+ }
+
+ .notification-importante-badge {
+   background: #ffd700;
+   color: #1a1a1a;
+   font-size: 9px;
+   font-weight: 700;
+   padding: 2px 6px;
+   border-radius: 4px;
+   flex-shrink: 0;
+   align-self: flex-start;
+   margin-left: 4px;
+ }

@@ -152,31 +152,34 @@
              }
            </a>
            
-           @if (notificationsOpen()) {
-             <div class="notifications-dropdown" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
-               <div class="notifications-header">
-                 <span>Notificaciones</span>
-               </div>
-               @if (hasNotifications()) {
-                 <div class="notifications-list">
-                   @for (notif of notifications(); track notif.id) {
-                     <div class="notification-item" [class.clickable]="notif.url" (click)="notif.url && navigateToNotif(notif.url)">
-                       <div class="notification-item-icon">{{ notif.icon || '📰' }}</div>
-                       <div class="notification-item-content">
-                         <div class="notification-item-title">{{ notif.title }}</div>
-                         <div class="notification-item-message">{{ notif.message }}</div>
-                       </div>
-                     </div>
-                   }
-                 </div>
-               } @else {
-                 <div class="notifications-empty">
-                   No hay notificaciones nuevas
-                 </div>
-               }
-               <a class="notifications-footer" routerLink="/noticias" (click)="closeNotifications()">Ver todas las noticias</a>
-             </div>
-           }
+@if (notificationsOpen()) {
+              <div class="notifications-dropdown" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
+                <div class="notifications-header">
+                  <span>Notificaciones</span>
+                </div>
+                @if (hasNotifications()) {
+                  <div class="notifications-list">
+                    @for (noticia of notifications(); track noticia.id) {
+                      <div class="notification-item clickable" tabindex="0" (click)="navigateToNoticia(noticia.id)" (keyup.enter)="navigateToNoticia(noticia.id)" (keyup.space)="navigateToNoticia(noticia.id)">
+                        <div class="notification-item-icon">📰</div>
+                        <div class="notification-item-content">
+                          <div class="notification-item-title">{{ noticia.titulo }}</div>
+                          <div class="notification-item-message">{{ truncateContent(noticia.contenido) }}</div>
+                        </div>
+                        @if (noticia.importante) {
+                          <span class="notification-importante-badge">Importante</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="notifications-empty">
+                    No hay notificaciones nuevas
+                  </div>
+                }
+                <a class="notifications-footer" routerLink="/noticias" (click)="closeNotifications($event)">Ver todas las noticias</a>
+              </div>
+            }
            
            <div class="cart-hover-container" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
             <a class="cart-btn" routerLink="/cart">

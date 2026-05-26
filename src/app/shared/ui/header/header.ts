@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../data-access/auth.service';
@@ -6,7 +6,7 @@ import { ProductsService } from '../../../products/data-access/products.service'
 import { CartStateService } from '../../data-access/cart-state.service';
 import { CurrencyService } from '../../data-access/currency.service';
 import { Product, ProductItemCart } from '../../../shared/interfaces/product.interface';
-import { NoticiasService } from '../../data-access/noticias.service';
+import { NoticiasService, Noticia, UserNotificacion } from '../../data-access/noticias.service';
 
 @Component({
   selector: 'app-header',
@@ -14,7 +14,7 @@ import { NoticiasService } from '../../data-access/noticias.service';
   templateUrl: './header.html',
   styleUrls: ['./header.css'],
 })
-export class Header {
+export class Header implements OnInit, OnDestroy {
   authService = inject(AuthService);
   private router = inject(Router);
   private productsService = inject(ProductsService);
@@ -22,15 +22,17 @@ export class Header {
   private noticiasService = inject(NoticiasService);
   currencyService = inject(CurrencyService);
   cartPreviewOpen = signal(false);
-  notificationCount = computed(() => this.noticiasService.activeNoticias().length);
+  unreadCount = computed(() => this.noticiasService.userNotificaciones().filter(n => !n.leido).length);
 
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
   cartPreviewItems = () => this.cartState.state().products.slice(0, 4);
   cartPreviewTotal = () =>
     this.cartState.state().products.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
-notifications = () => this.noticiasService.activeNoticias();
-   hasNotifications = () => this.noticiasService.activeNoticias().length > 0;
+  notifications = () => this.noticiasService.userNotificaciones();
+  hasNotifications = () => this.noticiasService.userNotificaciones().length > 0;
+
+  private notificationsSubscription: any;
 
   constructor() {
       this.productsService.getProducts().subscribe((response: any) => {
@@ -42,10 +44,30 @@ notifications = () => this.noticiasService.activeNoticias();
       this.loadNotificationCount();
     }
 
+  ngOnInit() {
+    if (this.authService.isLoggedIn()) {
+      this.loadUserNotifications();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.notificationsSubscription) {
+      this.notificationsSubscription.unsubscribe();
+    }
+  }
+
   private loadNotificationCount() {
     this.noticiasService.getNoticias().subscribe({
       error: (err: Error) => {
         console.error('Error loading notification count:', err);
+      }
+    });
+  }
+
+  private loadUserNotifications() {
+    this.notificationsSubscription = this.noticiasService.getUserNotifications().subscribe({
+      error: (err: Error) => {
+        console.error('Error loading user notifications:', err);
       }
     });
   }
@@ -367,6 +389,15 @@ categories = computed(() => {
 
   navigateToNoticia(id: string) {
     this.closeNotifications();
+    // Marcar la notificación como leída
+    const notificacion = this.noticiasService.userNotificaciones().find(n => n.noticiaId === id);
+    if (notificacion) {
+      this.noticiasService.markNotificationAsRead(notificacion.id).subscribe({
+        error: (err: Error) => {
+          console.error('Error marking notification as read:', err);
+        }
+      });
+    }
     this.router.navigate(['/noticias'], { fragment: id });
   }
 

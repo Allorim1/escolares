@@ -12,12 +12,23 @@ export interface Noticia {
   importante: boolean;
 }
 
+export interface UserNotificacion {
+  id: string;
+  userId: string;
+  noticiaId: string;
+  leido: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  noticia?: Noticia | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class NoticiasService extends BaseHttpService {
   private notificationService = inject(NotificationService);
   activeNoticias = signal<Noticia[]>([]);
+  userNotificaciones = signal<UserNotificacion[]>([]);
 
   getNoticias(): Observable<Noticia[]> {
     return new Observable(observer => {
@@ -35,6 +46,43 @@ export class NoticiasService extends BaseHttpService {
         }
       });
     });
+  }
+
+  getUserNotifications(): Observable<UserNotificacion[]> {
+    return new Observable(observer => {
+      this.http.get<UserNotificacion[]>(`${this.apiUrl}/noticias/user-notifications`).subscribe({
+        next: (notificaciones) => {
+          this.userNotificaciones.set(notificaciones);
+          observer.next(notificaciones);
+          observer.complete();
+        },
+        error: (err) => {
+          console.error('Error loading user notifications:', err);
+          this.userNotificaciones.set([]);
+          observer.error(err);
+        }
+      });
+    });
+  }
+
+  markNotificationAsRead(id: string): Observable<any> {
+    return new Observable(observer => {
+      this.http.put(`${this.apiUrl}/noticias/user-notifications/${id}/read`, {}).subscribe({
+        next: (result) => {
+          this.userNotificaciones.update(notifs => notifs.map(n => n.id === id ? { ...n, leido: true } : n));
+          observer.next(result);
+          observer.complete();
+        },
+        error: (err) => {
+          console.error('Error marking notification as read:', err);
+          observer.error(err);
+        }
+      });
+    });
+  }
+
+  getUnreadCount(): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.apiUrl}/noticias/user-notifications/unread-count`);
   }
 
   getNoticiasAdmin(): Observable<Noticia[]> {

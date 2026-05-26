@@ -148,10 +148,6 @@ export class Header implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    // Don't close mobile menu if clicking on a nav link
-    if (target.closest('a[routerLink]')) {
-      return;
-    }
     if (!target.closest('.mobile-menu-btn') && !target.closest('.mobile-nav')) {
       this.mobileMenuOpen.set(false);
     }

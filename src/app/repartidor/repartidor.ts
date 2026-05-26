@@ -70,25 +70,30 @@ export class RepartidorComponent implements OnInit {
    constructor(private http: HttpClient) {}
 
 ngOnInit() {
-       const user = this.authService.user();
-       const currentUserId = user?.id;
-      
-      // Fetch delivery person by userId since the relationship is stored as deliveryPerson.userId
-      const token = localStorage.getItem('accessToken');
-      const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
-      
-      this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`).subscribe({
-        next: (person) => {
-          this.deliveryPersonId = person.id;
-          this.loadOrders();
-          this.watchLocation();
-        },
-        error: (err) => {
-          console.error('Error loading delivery person:', err);
-          this.loadOrders(); // Still try to load orders even if delivery person lookup fails
+        const user = this.authService.user();
+        const currentUserId = user?.id;
+
+        // Use deliveryPersonId from user if available (set during login/registration)
+        if (user?.deliveryPersonId) {
+          this.deliveryPersonId = user.deliveryPersonId;
         }
-      });
-    }
+
+        // Fetch delivery person by userId since the relationship is stored as deliveryPerson.userId
+        const token = localStorage.getItem('accessToken');
+        const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+
+        this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`).subscribe({
+          next: (person) => {
+            this.deliveryPersonId = person.id;
+            this.loadOrders();
+            this.watchLocation();
+          },
+          error: (err) => {
+            console.error('Error loading delivery person:', err);
+            this.loadOrders(); // Still try to load orders even if delivery person lookup fails
+          }
+        });
+      }
 
    ngOnDestroy() {
      if (this.watchId) {

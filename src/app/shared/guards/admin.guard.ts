@@ -34,8 +34,8 @@ export const adminGuard: CanActivateFn = () => {
 
   const user = authService.user();
   
-  // Check if user is valid admin
-  if (user && (user.isAdmin || user.rol === 'owner' || user.rol === 'root' || user.rolId)) {
+// Check if user is valid admin
+   if (user && (user.isAdmin || user.rol === 'owner' || user.rol === 'root')) {
     // Also validate that the access token is valid and not expired
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');

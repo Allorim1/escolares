@@ -49,14 +49,13 @@ function decodeToken(token: string): any {
   }
 }
 
-function isTokenExpiringSoon(token: string): boolean {
-  if (!isValidJWTToken(token)) return false;
+function isTokenExpired(token: string): boolean {
+  if (!isValidJWTToken(token)) return true;
   const payload = decodeToken(token);
   if (!payload || !payload.exp) return true;
   const expDate = new Date(payload.exp * 1000);
   const now = new Date();
-  const diffMinutes = (expDate.getTime() - now.getTime()) / (1000 * 60);
-  return diffMinutes < 30;
+  return expDate <= now;
 }
 
 async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: string; error?: string }> {
@@ -91,91 +90,121 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
      return next(req);
    }
 
-  if (typeof window !== 'undefined' && window.localStorage) {
+if (typeof window !== 'undefined' && window.localStorage) {
     const token = localStorage.getItem('accessToken');
-    if (token) {
-      // Validate token format
-      if (!isValidJWTToken(token)) {
+    const refreshTokenValue = localStorage.getItem('refreshToken');
+
+    // Check if we have any token at all
+    if (!token && !refreshTokenValue) {
+      return next(req);
+    }
+
+    // If only refresh token exists (no access token), validate it
+    if (!token && (!refreshTokenValue || !isValidJWTToken(refreshTokenValue) || isTokenExpired(refreshTokenValue))) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      router.navigate(['/login']);
+      return next(req);
+    }
+
+    // Validate token format
+    if (!isValidJWTToken(token)) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      router.navigate(['/login']);
+      return next(req);
+    }
+
+    // If access token is expired or expiring soon, try to refresh
+    if (isTokenExpired(token)) {
+      if (!refreshTokenValue || !isValidJWTToken(refreshTokenValue) || isTokenExpired(refreshTokenValue)) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         router.navigate(['/login']);
         return next(req);
       }
-
-      // Token refresh if expiring soon
-      if (isTokenExpiringSoon(token)) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-          return from(refreshToken()).pipe(
-            switchMap((data: any) => {
-              isRefreshing = false;
-              if (data.accessToken) {
-                localStorage.setItem('accessToken', data.accessToken);
-                if (data.refreshToken) {
-                  localStorage.setItem('refreshToken', data.refreshToken);
-                }
-                req = req.clone({
-                  setHeaders: {
-                    Authorization: `Bearer ${data.accessToken}`,
-                  },
-                });
-                return next(req);
-              } else {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                router.navigate(['/login']);
-                return throwError(() => new Error(data.error || 'Token expirado'));
+      // Refresh token is valid, proceed to refresh
+      if (!isRefreshing) {
+        isRefreshing = true;
+        return from(refreshToken()).pipe(
+          switchMap((data: any) => {
+            isRefreshing = false;
+            if (data.accessToken) {
+              localStorage.setItem('accessToken', data.accessToken);
+              if (data.refreshToken) {
+                localStorage.setItem('refreshToken', data.refreshToken);
               }
-            }),
-            catchError((error: any) => {
-              isRefreshing = false;
+              const clonedReq = req.clone({
+                setHeaders: {
+                  Authorization: `Bearer ${data.accessToken}`,
+                },
+              });
+              return next(clonedReq);
+            } else {
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
               router.navigate(['/login']);
-              return throwError(() => new Error('Sesión expirada'));
-            })
-          );
-        }
-        // If already refreshing, wait for it
-        return new Observable<HttpEvent<unknown>>(subscriber => {
-          const checkRefresh = () => {
-            if (!isRefreshing) {
-              const newToken = localStorage.getItem('accessToken');
-              if (newToken && isValidJWTToken(newToken)) {
-                req = req.clone({
-                  setHeaders: {
-                    Authorization: `Bearer ${newToken}`,
-                  },
-                });
-              }
-              next(req).subscribe({
-                next: event => subscriber.next(event),
-                error: err => subscriber.error(err),
-                complete: () => subscriber.complete()
-              });
-            } else {
-              setTimeout(checkRefresh, 100);
+              return throwError(() => new Error(data.error || 'Token expirado'));
             }
-          };
-          checkRefresh();
-        });
+          }),
+          catchError((error: any) => {
+            isRefreshing = false;
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            router.navigate(['/login']);
+            return throwError(() => new Error('Sesión expirada'));
+          })
+        );
       }
-
-      // Add Authorization header with valid token
-      req = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
+      // If already refreshing, wait for it
+      return new Observable<HttpEvent<unknown>>(subscriber => {
+        const checkRefresh = () => {
+          if (!isRefreshing) {
+            const newToken = localStorage.getItem('accessToken');
+            if (newToken && isValidJWTToken(newToken)) {
+              req = req.clone({
+                setHeaders: {
+                  Authorization: `Bearer ${newToken}`,
+                },
+              });
+            }
+            next(req).subscribe({
+              next: event => subscriber.next(event),
+              error: err => subscriber.error(err),
+              complete: () => subscriber.complete()
+            });
+          } else {
+            setTimeout(checkRefresh, 100);
+          }
+        };
+        checkRefresh();
       });
     }
+
+    // Add Authorization header with valid token
+    req = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  return next(req).pipe(
+return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
+        const storedRefreshToken = localStorage.getItem('refreshToken');
+        if (!storedRefreshToken || !isValidJWTToken(storedRefreshToken) || isTokenExpired(storedRefreshToken)) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.navigate(['/login']);
+          return throwError(() => new Error('Sesión expirada'));
+        }
         return from(refreshToken()).pipe(
           switchMap((data: any) => {
             if (data.accessToken) {
@@ -183,12 +212,12 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
               if (data.refreshToken) {
                 localStorage.setItem('refreshToken', data.refreshToken);
               }
-              req = req.clone({
+              const clonedReq = req.clone({
                 setHeaders: {
                   Authorization: `Bearer ${data.accessToken}`,
                 },
               });
-              return next(req);
+              return next(clonedReq);
             } else {
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');

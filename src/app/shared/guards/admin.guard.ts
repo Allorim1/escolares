@@ -35,33 +35,50 @@ export const adminGuard: CanActivateFn = () => {
   const user = authService.user();
   
 // Check if user is valid admin
-   if (user && (user.isAdmin || user.rol === 'owner' || user.rol === 'root')) {
-    // Also validate that the access token is valid and not expired
-    const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-    
-    // If no tokens at all, user needs to login again
-    if (!accessToken && !refreshToken) {
-      router.navigate(['/login']);
-      return false;
-    }
-    
-    // If access token is invalid or expired, check refresh token
-    if (!accessToken || isTokenExpired(accessToken)) {
-      if (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken)) {
-        // Both tokens are invalid/expired, need to login again
+    if (user && (user.isAdmin || user.rol === 'owner' || user.rol === 'root')) {
+      // Also validate that the access token is valid and not expired
+      const accessToken = localStorage.getItem('accessToken');
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      // If no tokens at all, user needs to login again
+      if (!accessToken && !refreshToken) {
+        router.navigate(['/login']);
+        return false;
+      }
+      
+      // If only refresh token exists, validate it
+      if (!accessToken && (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken))) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         router.navigate(['/login']);
         return false;
       }
-      // Refresh token is valid, allow access (interceptor will refresh)
+      
+      // Validate access token format
+      if (!isValidJWTToken(accessToken)) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        router.navigate(['/login']);
+        return false;
+      }
+      
+      // If access token is expired, check refresh token
+      if (isTokenExpired(accessToken)) {
+        if (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken)) {
+          // Both tokens are invalid/expired, need to login again
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.navigate(['/login']);
+          return false;
+        }
+        // Refresh token is valid, allow access (interceptor will refresh)
+      }
+
       return true;
     }
-    
-    return true;
-  }
 
   router.navigate(['/login']);
   return false;

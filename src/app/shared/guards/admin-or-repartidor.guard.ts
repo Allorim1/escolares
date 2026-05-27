@@ -36,7 +36,7 @@ export const adminOrRepartidorGuard: CanActivateFn = () => {
   
   const hasAccess = user && (user.isAdmin || user.rol === 'owner' || user.rol === 'root' || user.rol === 'repartidor');
   
-  if (hasAccess) {
+if (hasAccess) {
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
     
@@ -45,7 +45,26 @@ export const adminOrRepartidorGuard: CanActivateFn = () => {
       return false;
     }
     
-    if (!accessToken || isTokenExpired(accessToken)) {
+    // If only refresh token exists, validate it
+    if (!accessToken && (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken))) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      router.navigate(['/login']);
+      return false;
+    }
+    
+    // Validate access token format
+    if (!isValidJWTToken(accessToken)) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      router.navigate(['/login']);
+      return false;
+    }
+    
+    // If access token is expired, check refresh token
+    if (isTokenExpired(accessToken)) {
       if (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken)) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
@@ -53,9 +72,8 @@ export const adminOrRepartidorGuard: CanActivateFn = () => {
         router.navigate(['/login']);
         return false;
       }
-      return true;
     }
-    
+
     return true;
   }
 

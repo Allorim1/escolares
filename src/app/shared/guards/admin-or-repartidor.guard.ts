@@ -31,14 +31,16 @@ function isTokenExpired(token: string | null): boolean {
 }
 
 export const adminOrRepartidorGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
+   const authService = inject(AuthService);
+   const router = inject(Router);
 
-  const user = authService.user();
-  
-  const hasAccess = user && (user.isAdmin || user.rol === 'owner' || user.rol === 'root' || user.rol === 'repartidor');
-  
-if (hasAccess) {
+   const user = authService.user();
+   console.log('adminOrRepartidorGuard - user:', user);
+   
+   const hasAccess = user && (user.isAdmin || user.rol === 'owner' || user.rol === 'root' || user.rol === 'repartidor');
+   console.log('adminOrRepartidorGuard - hasAccess:', hasAccess, 'rol:', user?.rol, 'isAdmin:', user?.isAdmin);
+   
+   if (hasAccess) {
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
     

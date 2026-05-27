@@ -1,6 +1,7 @@
 .admin-container {
   display: flex;
   min-height: 100vh;
+  padding-top: 105px;
 }
 
 .api-key-warning {
@@ -17,11 +18,6 @@
   z-index: 10000 !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
   display: block !important;
-}
-
-.admin-container {
-  display: flex;
-  min-height: 100vh;
 }
 
 .admin-sidebar {
@@ -239,9 +235,10 @@
 
   .admin-sidebar {
     padding: 0.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    width: 100%;
+    flex-direction: column;
+    position: static;
+    z-index: auto;
     background: #1a1a1a;
   }
 
@@ -309,6 +306,7 @@
   .admin-content {
     padding: 0.5rem;
     width: 100%;
+    margin-top: 12px;
   }
 
   .logout-btn {
@@ -322,5 +320,6 @@
   .api-key-warning {
     padding: 10px !important;
     font-size: 12px !important;
+    top: 65px;
   }
 }

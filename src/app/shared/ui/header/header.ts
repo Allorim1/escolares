@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../data-access/auth.service';
 import { ProductsService } from '../../../products/data-access/products.service';
@@ -23,6 +23,7 @@ export class Header implements OnInit, OnDestroy {
   currencyService = inject(CurrencyService);
   cartPreviewOpen = signal(false);
   unreadCount = computed(() => this.noticiasService.userNotificaciones().filter(n => !n.leido).length);
+  isAdminRoute = signal(false);
 
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
   cartPreviewItems = () => this.cartState.state().products.slice(0, 4);
@@ -47,6 +48,11 @@ export class Header implements OnInit, OnDestroy {
     if (this.authService.isLoggedIn()) {
       this.loadUserNotifications();
     }
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.isAdminRoute.set(event.urlAfterRedirects.startsWith('/admin') || event.urlAfterRedirects.startsWith('/repartidor'));
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -185,7 +191,7 @@ export class Header implements OnInit, OnDestroy {
     this.cartPreviewOpen.set(true);
   }
 
-  onCartPreviewLeave() {
+onCartPreviewLeave() {
     this.cartPreviewTimer = setTimeout(() => {
       this.cartPreviewOpen.set(false);
     }, 500);
@@ -193,10 +199,6 @@ export class Header implements OnInit, OnDestroy {
 
   isRoot(): boolean {
     return this.authService.user()?.rol === 'root';
-  }
-
-  isRepartidor(): boolean {
-    return this.authService.user()?.rol === 'repartidor';
   }
 
   toggleCurrency() {

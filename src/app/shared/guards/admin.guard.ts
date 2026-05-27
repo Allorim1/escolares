@@ -2,7 +2,8 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../data-access/auth.service';
 
-function isValidJWTToken(token: string): boolean {
+function isValidJWTToken(token: string | null): boolean {
+  if (!token) return false;
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return false;
@@ -14,7 +15,8 @@ function isValidJWTToken(token: string): boolean {
   }
 }
 
-function isTokenExpired(token: string): boolean {
+function isTokenExpired(token: string | null): boolean {
+  if (!token) return true;
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return true;
@@ -56,7 +58,7 @@ export const adminGuard: CanActivateFn = () => {
       }
       
       // Validate access token format
-      if (!isValidJWTToken(accessToken)) {
+      if (!accessToken || !isValidJWTToken(accessToken)) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');

@@ -2,7 +2,8 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../data-access/auth.service';
 
-function isValidJWTToken(token: string): boolean {
+function isValidJWTToken(token: string | null): boolean {
+  if (!token) return false;
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return false;
@@ -14,7 +15,8 @@ function isValidJWTToken(token: string): boolean {
   }
 }
 
-function isTokenExpired(token: string): boolean {
+function isTokenExpired(token: string | null): boolean {
+  if (!token) return true;
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return true;
@@ -37,21 +39,12 @@ export const noAuthGuard: CanActivateFn = () => {
   // Check if user is already logged in with valid tokens
   if (user) {
     const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-    
-    // If no tokens at all, allow access to login
-    if (!accessToken && !refreshToken) {
-      return true;
-    }
     
     // If access token is valid, redirect to profile
     if (accessToken && isValidJWTToken(accessToken) && !isTokenExpired(accessToken)) {
       router.navigate(['/panel/perfil']);
       return false;
     }
-    
-    // If tokens are expired/invalid, allow access to login (interceptor will handle refresh attempts)
-  }
   }
   
   // User not logged in or tokens expired, allow access to login

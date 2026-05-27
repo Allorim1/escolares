@@ -26,7 +26,8 @@ function isPublicEndpoint(url: string): boolean {
   return false;
 }
 
-function isValidJWTToken(token: string): boolean {
+function isValidJWTToken(token: string | null): boolean {
+  if (!token) return false;
   const parts = token.split('.');
   if (parts.length !== 3) return false;
   if (!parts[0] || !parts[1] || !parts[2]) return false;
@@ -38,7 +39,8 @@ function isValidJWTToken(token: string): boolean {
   }
 }
 
-function decodeToken(token: string): any {
+function decodeToken(token: string | null): any {
+  if (!token) return null;
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
@@ -49,8 +51,8 @@ function decodeToken(token: string): any {
   }
 }
 
-function isTokenExpired(token: string): boolean {
-  if (!isValidJWTToken(token)) return true;
+function isTokenExpired(token: string | null): boolean {
+  if (!token || !isValidJWTToken(token)) return true;
   const payload = decodeToken(token);
   if (!payload || !payload.exp) return true;
   const expDate = new Date(payload.exp * 1000);

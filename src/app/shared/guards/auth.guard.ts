@@ -41,6 +41,12 @@ export const authGuard: CanActivateFn = () => {
     return false;
   }
   
+  // Repartidores deben ir al admin, no al panel de usuario
+  if (user.rol === 'repartidor') {
+    router.navigate(['/admin/repartidor']);
+    return false;
+  }
+  
   const accessToken = localStorage.getItem('accessToken');
   const refreshToken = localStorage.getItem('refreshToken');
   

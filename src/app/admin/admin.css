@@ -1,7 +1,18 @@
 .admin-container {
   display: flex;
   min-height: 100vh;
-  padding-top: 105px;
+}
+
+@media (max-width: 768px) {
+  .admin-container {
+    padding-top: 60px;
+  }
+}
+
+@media (min-width: 769px) {
+  .admin-container {
+    padding-top: 50px;
+  }
 }
 
 .api-key-warning {

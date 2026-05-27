@@ -1,6 +1,8 @@
-<div class="announcement-bar">
-  <p>Hacemos envíos al nivel nacional</p>
-</div>
+@if (!isAdminRoute()) {
+  <div class="announcement-bar">
+    <p>Hacemos envíos al nivel nacional</p>
+  </div>
+}
 <header class="app-header" role="banner" [class.admin-route]="isAdminRoute()">
   <div class="header-top">
 <a class="brand" routerLink="/">

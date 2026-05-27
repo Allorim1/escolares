@@ -17,6 +17,7 @@ header.app-header {
   width: 100%;
   box-sizing: border-box;
   gap: 12px;
+  min-height: 50px;
 }
 
 .header-bottom {
@@ -870,16 +871,26 @@ header.app-header {
   .app-header.admin-route .cart-hover-container {
     display: none !important;
   }
-  
+
   .app-header.admin-route .header-top {
     justify-content: space-between;
+    background: #1d63c1;
+    min-height: 60px;
   }
 }
 
 @media (min-width: 769px) {
+  .app-header.admin-route .header-search,
+  .app-header.admin-route .header-bottom,
   .app-header.admin-route .mobile-menu-btn,
-  .app-header.admin-route .mobile-nav {
+  .app-header.admin-route .cart-hover-container {
     display: none !important;
+  }
+
+  .app-header.admin-route .header-top {
+    background: #1d63c1;
+    padding: 8px 16px;
+    height: 45px;
   }
 }
 

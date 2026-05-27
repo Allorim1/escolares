@@ -10,6 +10,9 @@ export class MarkdownPipe implements PipeTransform {
     
     let html = value;
     
+    // Images - ![alt](url)
+    html = html.replace(/!\[(.*?)\]\((.*?)\)/gim, '<img src="$2" alt="$1" class="markdown-image">');
+    
     // Headers
     html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
     html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
@@ -22,7 +25,13 @@ export class MarkdownPipe implements PipeTransform {
     html = html.replace(/\*(.*)\*/gim, '<em>$1</em>');
     
     // Links
-    html = html.replace(/\[(.*)\]\((.*)\)/gim, '<a href="$2" target="_blank">$1</a>');
+    html = html.replace(/\[(.*)\]\((.*)\)/gim, '<a href="$2" target="_blank" class="markdown-link">$1</a>');
+    
+    // YouTube videos - youtube: VIDEO_ID
+    html = html.replace(/^youtube:\s*(\S+)$/gim, '<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
+    
+    // Vimeo videos - vimeo: VIDEO_ID
+    html = html.replace(/^vimeo:\s*(\S+)$/gim, '<div class="video-wrapper"><iframe src="https://player.vimeo.com/video/$1" frameborder="0" allowfullscreen></iframe></div>');
     
     // Unordered lists
     html = html.replace(/^\s*[-*]\s+(.*)/gim, '<li>$1</li>');
@@ -45,7 +54,7 @@ export class MarkdownPipe implements PipeTransform {
     const paragraphs = html.split(/\n\s*\n/);
     html = paragraphs.map(p => {
       if (!p.trim()) return '';
-      if (p.includes('<h') || p.includes('<ul>') || p.includes('<blockquote>') || p.includes('<pre>')) {
+      if (p.includes('<h') || p.includes('<ul>') || p.includes('<blockquote>') || p.includes('<pre>') || p.includes('<img') || p.includes('<div class="video-wrapper">')) {
         return p;
       }
       return `<p>${p.trim()}</p>`;

@@ -28,20 +28,46 @@
         
         <div class="form-group">
           <label for="contenido">Contenido *</label>
-          <div class="contenido-tabs">
-            <button type="button" class="tab-btn" [class.active]="!previewMode" (click)="previewMode = false">Editar</button>
-            <button type="button" class="tab-btn" [class.active]="previewMode" (click)="previewMode = true">Vista Previa</button>
-          </div>
-          @if (!previewMode) {
-            <textarea id="contenido" [(ngModel)]="nuevaNoticia.contenido" name="contenido" rows="8" required
-                      placeholder="Ingresa el contenido de la noticia (soporta Markdown)"></textarea>
-          } @else {
-            <div class="preview-content">
-              <div [innerHTML]="nuevaNoticia.contenido | markdown"></div>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('header')" title="Encabezado">H</button>
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('bold')" title="Negrita"><b>B</b></button>
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('italic')" title="Cursiva"><i>I</i></button>
+              </div>
+              <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('link')" title="Enlace">🔗</button>
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('image')" title="Imagen">🖼️</button>
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('youtube')" title="YouTube">▶️</button>
+              </div>
+              <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('list')" title="Lista">• Lista</button>
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('code')" title="Código">&lt;/&gt;</button>
+                <button type="button" class="toolbar-btn" (click)="insertMarkdown('blockquote')" title="Cita">""</button>
+              </div>
             </div>
-          }
+            
+            <div class="contenido-tabs">
+              <button type="button" class="tab-btn" [class.active]="!previewMode" (click)="previewMode = false">Editar</button>
+              <button type="button" class="tab-btn" [class.active]="previewMode" (click)="previewMode = true">Vista Previa</button>
+            </div>
+            
+            @if (!previewMode) {
+              <textarea id="contenido" [(ngModel)]="nuevaNoticia.contenido" name="contenido" rows="10" required
+                        placeholder="Escribe el contenido de la noticia..."></textarea>
+            } @else {
+              <div class="preview-content">
+                <div [innerHTML]="nuevaNoticia.contenido | markdown"></div>
+              </div>
+            }
+          </div>
+          
           <div class="markdown-help">
-            <small><strong>Markdown soportado:</strong> **negrita**, *cursiva*, [enlace](url), # encabezados, - listas</small>
+            <small>
+              <strong>Formato soportado:</strong> 
+              Encabezados (#), negrita (**texto**), cursiva (*texto*), enlaces [texto](url), 
+              imágenes ![alt](url), videos (youtube: ID o vimeo: ID), listas (- item), código (`código`)
+            </small>
           </div>
         </div>
         

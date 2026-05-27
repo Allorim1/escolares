@@ -70,12 +70,8 @@ export class Register {
     effect(() => {
       if (this.authService.registerSuccess()) {
         this.loading.set(false);
-        this.registroOk.set(true);
-        this.mostrarModalConfirmacion.set(true);
-        setTimeout(() => {
-          this.authService.registerSuccess.set(false);
-          this.router.navigate(['/login']);
-        }, 3000);
+        this.authService.registerSuccess.set(false);
+        this.router.navigate(['/login']);
       }
     });
 

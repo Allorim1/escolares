@@ -6,7 +6,7 @@ import { ProductsService } from '../../../products/data-access/products.service'
 import { CartStateService } from '../../data-access/cart-state.service';
 import { CurrencyService } from '../../data-access/currency.service';
 import { Product, ProductItemCart } from '../../../shared/interfaces/product.interface';
-import { NoticiasService, Noticia, UserNotificacion } from '../../data-access/noticias.service';
+import { NoticiasService } from '../../data-access/noticias.service';
 
 @Component({
   selector: 'app-header',
@@ -35,14 +35,13 @@ export class Header implements OnInit, OnDestroy {
   private notificationsSubscription: any;
 
   constructor() {
-      this.productsService.getProducts().subscribe((response: any) => {
-        // Handle both {products: [...]} and array responses
-        const products = Array.isArray(response) ? response : (response?.products || []);
-        this.allProducts.set(products);
-      });
-      this.initDarkMode();
-      this.loadNotificationCount();
-    }
+    this.productsService.getProducts().subscribe((response: any) => {
+      const products = Array.isArray(response) ? response : (response?.products || []);
+      this.allProducts.set(products);
+    });
+    this.initDarkMode();
+    this.loadNotificationCount();
+  }
 
   ngOnInit() {
     if (this.authService.isLoggedIn()) {
@@ -102,7 +101,7 @@ export class Header implements OnInit, OnDestroy {
   private addToSearchHistory(query: string) {
     const trimmed = query.trim();
     if (!trimmed) return;
-    
+
     const current = this.searchHistory();
     const filtered = current.filter(item => item.toLowerCase() !== trimmed.toLowerCase());
     const updated = [trimmed, ...filtered].slice(0, 10);
@@ -157,7 +156,6 @@ export class Header implements OnInit, OnDestroy {
     if (!target.closest('.header-search')) {
       this.showDropdown.set(false);
     }
-    // Close notifications dropdown when clicking outside
     const notifBtn = target.closest('.notification-btn');
     const notifDropdown = target.closest('.notifications-dropdown');
     if (!notifBtn && !notifDropdown) {
@@ -232,65 +230,30 @@ export class Header implements OnInit, OnDestroy {
   selectedCategory = signal<string>('');
   searchHistory = signal<string[]>(this.loadSearchHistory());
 
-categories = computed(() => {
-     const cats = new Set<string>();
-     const products = this.allProducts() || [];
-     products.forEach(p => {
-       if (p.category) cats.add(p.category);
-     });
-     return Array.from(cats).sort();
-   });
+  categories = computed(() => {
+    const cats = new Set<string>();
+    const products = this.allProducts() || [];
+    products.forEach(p => {
+      if (p.category) cats.add(p.category);
+    });
+    return Array.from(cats).sort();
+  });
 
   dropdownAnchor = signal<'category' | 'search' | null>(null);
-
-  showLoginModal = signal(false);
-  showRegisterModal = signal(false);
-  loginUsername = signal('');
-  loginPassword = signal('');
-  registerUsername = signal('');
-  registerEmail = signal('');
-  registerPassword = signal('');
-  registerConfirmPassword = signal('');
-  registerNombreCompleto = signal('');
-  registerGenero = signal<'hombre' | 'mujer' | 'no_especificado'>('no_especificado');
-  registerTipoDocumento = signal<'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e'>('cedula');
-  registerNumeroDocumento = signal('');
-  registerTelefono = signal('');
-  registerTelefonoPrefijo = signal('0412');
-  registerDireccion = signal('');
-
-  registerAceptaTerminos = signal(false);
-  registerMayorEdad = signal(false);
-  registerError = signal('');
-
-  telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
-
-  formComplete = computed(() => {
-    return this.registerUsername().trim() !== '' &&
-           this.registerEmail().trim() !== '' &&
-           this.registerPassword().trim() !== '' &&
-           this.registerConfirmPassword().trim() !== '' &&
-           this.registerNumeroDocumento().trim() !== '' &&
-           this.registerTelefono().trim() !== '' &&
-           this.registerDireccion().trim() !== '' &&
-           this.registerNombreCompleto().trim() !== '' &&
-           this.registerMayorEdad() &&
-           this.registerAceptaTerminos();
-  });
 
   onSearchInput() {
     const query = this.searchQuery.toLowerCase().trim();
     if (query.length > 0 || this.selectedCategory()) {
       let filtered = this.allProducts();
-      
+
       if (this.selectedCategory()) {
         filtered = filtered.filter((p: Product) => p.category === this.selectedCategory());
       }
-      
+
       if (query.length > 0) {
         filtered = filtered.filter((p: Product) => p.title.toLowerCase().includes(query));
       }
-      
+
       this.suggestions.set(filtered.slice(0, 5));
       this.dropdownAnchor.set('search');
       this.showDropdown.set(true);
@@ -339,11 +302,11 @@ categories = computed(() => {
     const query = this.searchQuery.trim();
     if (query || this.selectedCategory()) {
       if (query) this.addToSearchHistory(query);
-      
+
       const queryParams: any = {};
       if (query) queryParams.search = query;
       if (this.selectedCategory()) queryParams.category = this.selectedCategory();
-      
+
       this.router.navigate(['/products'], { queryParams });
       this.showDropdown.set(false);
     }
@@ -395,7 +358,6 @@ categories = computed(() => {
 
   navigateToNoticia(id: string) {
     this.closeNotifications();
-    // Marcar la notificación como leída
     const notificacion = this.noticiasService.userNotificaciones().find(n => n.noticiaId === id);
     if (notificacion) {
       this.noticiasService.markNotificationAsRead(notificacion.id).subscribe({
@@ -405,7 +367,6 @@ categories = computed(() => {
         }
       });
     }
-    // Navigate after ensuring dropdown is closed
     setTimeout(() => {
       this.router.navigate(['/noticias'], { fragment: id });
     }, 100);
@@ -425,120 +386,10 @@ categories = computed(() => {
   }
 
   openLogin() {
-    this.showLoginModal.set(true);
-    this.showRegisterModal.set(false);
+    this.router.navigate(['/login']);
   }
 
   openRegister() {
-    this.showRegisterModal.set(true);
-    this.showLoginModal.set(false);
-  }
-
-   closeModals() {
-     this.showLoginModal.set(false);
-     this.showRegisterModal.set(false);
-     this.loginUsername.set('');
-     this.loginPassword.set('');
-     this.registerUsername.set('');
-     this.registerEmail.set('');
-     this.registerPassword.set('');
-     this.registerConfirmPassword.set('');
-     this.registerNumeroDocumento.set('');
-     this.registerTelefono.set('');
-     this.registerDireccion.set('');
-     // Reset nuevos campos
-     this.registerNombreCompleto.set('');
-     this.registerGenero.set('no_especificado');
-     this.registerTipoDocumento.set('cedula');
-     this.registerTelefonoPrefijo.set('0412');
-     this.registerAceptaTerminos.set(false);
-     this.registerMayorEdad.set(false);
-   }
-
-  doLogin() {
-    if (this.loginUsername() && this.loginPassword()) {
-      this.authService.login(this.loginUsername(), this.loginPassword());
-      const checkLogin = setInterval(() => {
-        if (this.authService.isLoggedIn()) {
-          this.closeModals();
-          clearInterval(checkLogin);
-        }
-        if (!this.authService.loginLoading() && !this.authService.isLoggedIn()) {
-          clearInterval(checkLogin);
-        }
-      }, 100);
-    }
-  }
-
-  doRegister() {
-    if (!this.registerUsername() || !this.registerEmail() || !this.registerPassword() || !this.registerNumeroDocumento() || !this.registerTelefono() || !this.registerDireccion() || !this.registerNombreCompleto()) {
-      this.registerError.set('Todos los campos son requeridos');
-      return;
-    }
-    if (!this.registerAceptaTerminos()) {
-      this.registerError.set('Debes aceptar los términos y condiciones');
-      return;
-    }
-    if (!this.registerMayorEdad()) {
-      this.registerError.set('Debes confirmar que eres mayor de edad');
-      return;
-    }
-    if (this.registerPassword() !== this.registerConfirmPassword()) {
-      this.registerError.set('Las contraseñas no coinciden');
-      return;
-    }
-
-     // Construir documento completo
-     let documentoCompleto = '';
-     const tipo = this.registerTipoDocumento();
-     const numero = this.registerNumeroDocumento();
-
-     switch (tipo) {
-       case 'cedula':
-         documentoCompleto = 'V-' + numero;
-         break;
-       case 'rif':
-         documentoCompleto = 'J-' + numero; // Assuming juridica as default since Tipo de Persona was removed
-         break;
-       case 'rif_personal_natural':
-         documentoCompleto = 'V-' + numero;
-         break;
-       case 'rif_v':
-         documentoCompleto = 'V-' + numero;
-         break;
-       case 'rif_e':
-         documentoCompleto = 'E-' + numero;
-         break;
-       case 'pasaporte':
-         documentoCompleto = numero;
-         break;
-       case 'extranjero':
-         documentoCompleto = 'E-' + numero;
-         break;
-       case 'gobierno':
-         documentoCompleto = 'G-' + numero;
-         break;
-       default:
-         documentoCompleto = numero;
-     }
-
-    const telefonoCompleto = this.registerTelefonoPrefijo() + '-' + this.registerTelefono();
-
-     this.authService.register(this.registerUsername(), this.registerEmail(), this.registerPassword(), {
-       rif: documentoCompleto,
-       telefono: telefonoCompleto,
-       direccion: this.registerDireccion(),
-       nombreCompleto: this.registerNombreCompleto(),
-       genero: this.registerGenero(),
-       tipoDocumento: this.registerTipoDocumento(),
-       numeroDocumento: this.registerNumeroDocumento(),
-     });
-    const checkRegister = setInterval(() => {
-      if (this.authService.registerSuccess()) {
-        this.closeModals();
-        this.openLogin();
-        clearInterval(checkRegister);
-      }
-    }, 100);
+    this.router.navigate(['/register']);
   }
 }

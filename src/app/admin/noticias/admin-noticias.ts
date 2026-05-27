@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NoticiasService } from '../../shared/data-access/noticias.service';
-import { Noticia } from '../../shared/data-access/noticias.service';
+import { NoticiasService, Noticia } from '../../shared/data-access/noticias.service';
 import { catchError, of, timeout } from 'rxjs';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 
@@ -13,7 +12,7 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
   templateUrl: './admin-noticias.html',
   styleUrl: './admin-noticias.css',
 })
-export class AdminNoticiasComponent {
+export class AdminNoticiasComponent implements OnInit {
   noticias: Noticia[] = [];
   loading = true;
   error: string | null = null;
@@ -30,6 +29,72 @@ export class AdminNoticiasComponent {
 
   ngOnInit() {
     this.loadNoticias();
+  }
+
+  insertMarkdown(type: string) {
+    const textarea = document.querySelector('textarea[name="contenido"]') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = this.nuevaNoticia.contenido;
+    const before = value.substring(0, start);
+    const after = value.substring(end);
+    const selected = value.substring(start, end);
+    
+    let insertText = '';
+    let cursorOffset = 0;
+    
+    switch(type) {
+      case 'header':
+        insertText = selected ? `# ${selected}` : '# ';
+        cursorOffset = selected ? 0 : 2;
+        break;
+      case 'bold':
+        insertText = selected ? `**${selected}**` : '**texto**';
+        cursorOffset = selected ? -2 : -7;
+        break;
+      case 'italic':
+        insertText = selected ? `*${selected}*` : '*texto*';
+        cursorOffset = selected ? 0 : -5;
+        break;
+      case 'link':
+        insertText = selected ? `[${selected}](url)` : '[texto](url)';
+        cursorOffset = selected ? -5 : -11;
+        break;
+      case 'image':
+        insertText = `![alt](url)`;
+        cursorOffset = -5;
+        break;
+      case 'youtube':
+        const ytId = prompt('Ingresa el ID del video de YouTube (ej: dQw4w9WgXcQ):');
+        if (ytId) {
+          insertText = `youtube: ${ytId}`;
+        } else {
+          return;
+        }
+        cursorOffset = 0;
+        break;
+      case 'list':
+        insertText = `- ${selected || 'item de lista'}`;
+        cursorOffset = 0;
+        break;
+      case 'code':
+        insertText = selected ? `\`${selected}\`` : '`código`';
+        cursorOffset = selected ? 0 : -7;
+        break;
+      case 'blockquote':
+        insertText = selected ? `> ${selected}` : '> cita';
+        cursorOffset = 0;
+        break;
+    }
+    
+    this.nuevaNoticia.contenido = before + insertText + after;
+    setTimeout(() => {
+      textarea.focus();
+      const newPos = start + insertText.length + cursorOffset;
+      textarea.setSelectionRange(newPos, newPos);
+    }, 0);
   }
 
   loadNoticias() {

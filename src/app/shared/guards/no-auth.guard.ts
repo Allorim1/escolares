@@ -50,11 +50,8 @@ export const noAuthGuard: CanActivateFn = () => {
       return false;
     }
     
-    // If only refresh token is valid, let them try login (interceptor will refresh)
-    if (refreshToken && isValidJWTToken(refreshToken) && !isTokenExpired(refreshToken)) {
-      router.navigate(['/panel/perfil']);
-      return false;
-    }
+    // If tokens are expired/invalid, allow access to login (interceptor will handle refresh attempts)
+  }
   }
   
   // User not logged in or tokens expired, allow access to login

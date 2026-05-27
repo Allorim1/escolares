@@ -22,7 +22,7 @@
               {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}
             </div>
           </div>
-          
+
           <div class="order-status-tracker">
             @for (step of statusSteps; track step.status; let i = $index) {
               <div class="tracker-step" [class.completed]="getStatusIndex(order.status) > i" [class.active]="order.status === step.status">
@@ -104,9 +104,9 @@
           <p><strong>Cédula:</strong> {{ selectedOrder()?.cedula }}</p>
           <p><strong>Teléfono:</strong> {{ selectedOrder()?.telefono }}</p>
           <p><strong>Dirección:</strong> {{ selectedOrder()?.direccion }}</p>
-@if (selectedOrder()?.deliveryPersonName) {
-             <p><strong>Repartidor asignado:</strong> {{ selectedOrder()?.deliveryPersonName }} <button class="btn-view-delivery" (click)="openDeliveryPersonModal(selectedOrder()!.deliveryPersonId!)">📋 Ver ficha</button></p>
-           }
+          @if (selectedOrder()?.deliveryPersonName) {
+            <p><strong>Repartidor asignado:</strong> {{ selectedOrder()?.deliveryPersonName }} <button class="btn-view-delivery" (click)="openDeliveryPersonModal(selectedOrder()!.deliveryPersonId!)">📋 Ver ficha</button></p>
+          }
         </div>
 
         <div class="detail-section">
@@ -134,66 +134,66 @@
                   @if (h.observaciones) {
                     <div class="historial-obs">{{ h.observaciones }}</div>
                   }
-<div class="historial-date">{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
-                 </div>
-               </div>
-             }
-           </div>
-         </div>
-       </div>
-     </div>
-   </div>
- }
+                  <div class="historial-date">{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
 
- @if (showDeliveryPersonModal()) {
-   <div class="modal-overlay" (click)="closeDeliveryPersonModal()">
-     <div class="order-detail-modal" (click)="$event.stopPropagation()">
-       <div class="modal-header">
-         <h3>📋 Ficha Técnica del Repartidor</h3>
-         <button class="close-btn" (click)="closeDeliveryPersonModal()">&times;</button>
-       </div>
-       
-       <div class="modal-body">
-         @if (deliveryPersonLoading()) {
-           <div class="loading">Cargando información del repartidor...</div>
-         } @else if (selectedDeliveryPerson()) {
-           <div class="delivery-person-profile">
-             <div class="profile-section">
-               <h4>Datos Personales</h4>
-               <div class="profile-grid">
-                 <div class="profile-item">
-                   <span class="label">Nombre:</span>
-                   <span class="value">{{ selectedDeliveryPerson()!.nombre }}</span>
-                 </div>
-                 @if (selectedDeliveryPerson()!.telefono) {
-                   <div class="profile-item">
-                     <span class="label">Teléfono:</span>
-                     <span class="value">{{ selectedDeliveryPerson()!.telefono }}</span>
-                   </div>
-                 }
-                 <div class="profile-item">
-                   <span class="label">Estado:</span>
-                   <span class="value">
-                     <span class="status-badge" [class.active]="selectedDeliveryPerson()!.activo" [class.inactive]="!selectedDeliveryPerson()!.activo">
-                       {{ selectedDeliveryPerson()!.activo ? 'Activo' : 'Inactivo' }}
-                     </span>
-                   </span>
-                 </div>
-               </div>
-             </div>
+@if (showDeliveryPersonModal()) {
+  <div class="modal-overlay" (click)="closeDeliveryPersonModal()">
+    <div class="order-detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📋 Ficha Técnica del Repartidor</h3>
+        <button class="close-btn" (click)="closeDeliveryPersonModal()">&times;</button>
+      </div>
 
-             @if (selectedDeliveryPerson()?.fotoDNI) {
-               <div class="profile-section">
-                 <h4>Foto de DNI</h4>
-                 <div class="dni-image-container">
-                   <img [src]="selectedDeliveryPerson()!.fotoDNI" alt="DNI del repartidor" class="dni-image" />
-                   <a [href]="selectedDeliveryPerson()!.fotoDNI" target="_blank" class="btn-view-dni">🔍 Ver en tamaño original</a>
-                 </div>
-               </div>
-             }
-           </div>
-         }
-       </div>
-     </div>
-   </div>
- }
+      <div class="modal-body">
+        @if (deliveryPersonLoading()) {
+          <div class="loading">Cargando información del repartidor...</div>
+        } @else if (selectedDeliveryPerson()) {
+          <div class="delivery-person-profile">
+            <div class="profile-section">
+              <h4>Datos Personales</h4>
+              <div class="profile-grid">
+                <div class="profile-item">
+                  <span class="label">Nombre:</span>
+                  <span class="value">{{ selectedDeliveryPerson()!.nombre }}</span>
+                </div>
+                @if (selectedDeliveryPerson()!.telefono) {
+                  <div class="profile-item">
+                    <span class="label">Teléfono:</span>
+                    <span class="value">{{ selectedDeliveryPerson()!.telefono }}</span>
+                  </div>
+                }
+                <div class="profile-item">
+                  <span class="label">Estado:</span>
+                  <span class="value">
+                    <span class="status-badge" [class.active]="selectedDeliveryPerson()!.activo" [class.inactive]="!selectedDeliveryPerson()!.activo">
+                      {{ selectedDeliveryPerson()!.activo ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            @if (selectedDeliveryPerson()?.fotoDNI) {
+              <div class="profile-section">
+                <h4>Foto de DNI</h4>
+                <div class="dni-image-container">
+                  <img [src]="selectedDeliveryPerson()!.fotoDNI" alt="DNI del repartidor" class="dni-image" />
+                  <a [href]="selectedDeliveryPerson()!.fotoDNI" target="_blank" class="btn-view-dni">🔍 Ver en tamaño original</a>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

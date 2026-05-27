@@ -8,6 +8,8 @@ import Panel from './panel/panel';
 import { Admin } from './admin/admin';
 import { adminOrRepartidorGuard } from './shared/guards/admin-or-repartidor.guard';
 import { noAuthGuard } from './shared/guards/no-auth.guard';
+import { Login } from './login/login';
+import { authGuard } from './shared/guards/auth.guard';
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
@@ -52,42 +54,53 @@ export const routes: Routes = [
     loadComponent: () => import('./privacidad/privacidad').then((m) => m.Privacidad),
   },
 {
-        path: 'panel',
-        component: Panel,
-        children: [
-          {
-            path: 'perfil',
-            loadComponent: () => import('./panel/perfil/perfil').then((m) => m.Perfil),
-          },
-          {
-            path: 'ajustes',
-            loadComponent: () => import('./panel/ajustes').then((m) => m.Ajustes),
-          },
-          {
-            path: 'pedidos',
-            loadComponent: () => import('./panel/pedidos/pedidos').then((m) => m.default),
-          },
-          {
-            path: 'direcciones',
-            loadComponent: () => import('./panel/direcciones/direcciones').then((m) => m.Direcciones),
-          },
-          {
-            path: 'historico-compra',
-            loadComponent: () => import('./panel/historico-compra/historico-compra').then((m) => m.HistoricoCompra),
-          },
-          {
-            path: 'favoritos',
-            loadComponent: () => import('./panel/favoritos/favoritos').then((m) => m.Favoritos),
-          },
-          {
-            path: 'metodos-pago',
-            loadComponent: () => import('./panel/metodos-pago/metodos-pago').then((m) => m.MetodosPago),
-          },
-        ],
+    path: 'panel',
+    component: Panel,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        redirectTo: 'perfil',
+        pathMatch: 'full',
       },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./panel/perfil/perfil').then((m) => m.Perfil),
+      },
+      {
+        path: 'ajustes',
+        loadComponent: () => import('./panel/ajustes').then((m) => m.Ajustes),
+      },
+      {
+        path: 'pedidos',
+        loadComponent: () => import('./panel/pedidos/pedidos').then((m) => m.default),
+      },
+      {
+        path: 'direcciones',
+        loadComponent: () => import('./panel/direcciones/direcciones').then((m) => m.Direcciones),
+      },
+      {
+        path: 'historico-compra',
+        loadComponent: () => import('./panel/historico-compra/historico-compra').then((m) => m.HistoricoCompra),
+      },
+      {
+        path: 'favoritos',
+        loadComponent: () => import('./panel/favoritos/favoritos').then((m) => m.Favoritos),
+      },
+      {
+        path: 'metodos-pago',
+        loadComponent: () => import('./panel/metodos-pago/metodos-pago').then((m) => m.MetodosPago),
+      },
+    ],
+  },
   {
     path: 'register',
     loadComponent: () => import('./register/register').then((m) => m.Register),
+    canActivate: [noAuthGuard],
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./login/login').then((m) => m.Login),
     canActivate: [noAuthGuard],
   },
   {

@@ -1,6 +1,8 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../data-access/auth.service';
+import { firstValueFrom } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 function isValidJWTToken(token: string | null): boolean {
   if (!token) return false;
@@ -30,9 +32,31 @@ function isTokenExpired(token: string | null): boolean {
   }
 }
 
-export const adminGuard: CanActivateFn = () => {
+async function renewAccessToken(http: HttpClient): Promise<boolean> {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) return false;
+
+  try {
+    const res = await firstValueFrom(
+      http.post<any>('/api/auth/refresh', { refreshToken })
+    );
+    if (res.accessToken) {
+      localStorage.setItem('accessToken', res.accessToken);
+      if (res.refreshToken) {
+        localStorage.setItem('refreshToken', res.refreshToken);
+      }
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export const adminGuard: CanActivateFn = async () => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const http = inject(HttpClient);
 
   const user = authService.user();
   
@@ -66,7 +90,7 @@ export const adminGuard: CanActivateFn = () => {
         return false;
       }
       
-      // If access token is expired, check refresh token
+      // If access token is expired, try to refresh with valid refresh token
       if (isTokenExpired(accessToken)) {
         if (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken)) {
           // Both tokens are invalid/expired, need to login again
@@ -76,7 +100,15 @@ export const adminGuard: CanActivateFn = () => {
           router.navigate(['/login']);
           return false;
         }
-        // Refresh token is valid, allow access (interceptor will refresh)
+        // Refresh token is valid, try to renew the access token
+        const renewed = await renewAccessToken(http);
+        if (!renewed) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.navigate(['/login']);
+          return false;
+        }
       }
 
       return true;

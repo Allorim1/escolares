@@ -142,7 +142,7 @@ export class TokenRenewalService {
       const res = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Include cookies if needed
+        credentials: 'include',
         body: JSON.stringify({ refreshToken: refreshTokenValue })
       });
 

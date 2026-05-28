@@ -72,6 +72,7 @@ async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: st
     const res = await fetch('/api/auth/refresh', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ refreshToken: refreshTokenValue })
     });
     const data = await res.json();

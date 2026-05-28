@@ -18,9 +18,14 @@
         </tr>
       </thead>
       <tbody>
-        @for (person of deliveryPersons(); track person._id) {
-          <tr>
-            <td>{{ person.nombre }}</td>
+        @for (person of combinedList(); track person._id) {
+          <tr [class.user-repartidor]="person.isUser">
+            <td>
+              {{ person.nombre }}
+              @if (person.isUser) {
+                <span class="badge badge-info ml-2">Usuario</span>
+              }
+            </td>
             <td>{{ person.telefono || 'N/A' }}</td>
             <td>
               <span class="badge" [class.badge-success]="person.activo" [class.badge-danger]="!person.activo">
@@ -29,15 +34,19 @@
             </td>
             <td>{{ person.createdAt | date:'dd/MM/yyyy' }}</td>
             <td class="actions">
-              <button class="btn btn-sm btn-info" (click)="showEditForm(person)">
-                <i class="fas fa-edit"></i> Editar
-              </button>
-              <button class="btn btn-sm btn-warning" (click)="toggleActivo(person)">
-                {{ person.activo ? 'Desactivar' : 'Activar' }}
-              </button>
-              <button class="btn btn-sm btn-danger" (click)="deletePerson(person)">
-                <i class="fas fa-trash"></i> Eliminar
-              </button>
+              @if (!person.isUser) {
+                <button class="btn btn-sm btn-info" (click)="showEditForm(person)">
+                  <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-sm btn-warning" (click)="toggleActivo(person)">
+                  {{ person.activo ? 'Desactivar' : 'Activar' }}
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="deletePerson(person)">
+                  <i class="fas fa-trash"></i> Eliminar
+                </button>
+              } @else {
+                <span class="text-muted">Gestionar en Usuarios</span>
+              }
             </td>
           </tr>
         } @empty {

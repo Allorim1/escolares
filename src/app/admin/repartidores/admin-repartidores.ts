@@ -12,6 +12,7 @@ interface DeliveryPerson {
   fotoDNI?: string;
   createdAt: Date;
   updatedAt: Date;
+  isUser?: boolean;
 }
 
 @Component({
@@ -23,6 +24,8 @@ interface DeliveryPerson {
 })
 export class AdminRepartidoresComponent implements OnInit {
   deliveryPersons = signal<DeliveryPerson[]>([]);
+  repartidorUsers = signal<DeliveryPerson[]>([]);
+  combinedList = signal<DeliveryPerson[]>([]);
   showModal = signal(false);
   editingPerson = signal<DeliveryPerson | null>(null);
   isAdding = signal(false);
@@ -40,13 +43,43 @@ export class AdminRepartidoresComponent implements OnInit {
 
   ngOnInit() {
     this.loadDeliveryPersons();
+    this.loadRepartidorUsers();
   }
 
   loadDeliveryPersons() {
     this.http.get<DeliveryPerson[]>('/api/delivery').subscribe({
-      next: (data) => this.deliveryPersons.set(data),
+      next: (data) => {
+        this.deliveryPersons.set(data);
+        this.updateCombinedList();
+      },
       error: (err) => console.error('Error cargando repartidores:', err)
     });
+  }
+
+  loadRepartidorUsers() {
+    this.http.get<any[]>('/api/users?role=repartidor').subscribe({
+      next: (users) => {
+        const repartidores = users.map(user => ({
+          id: user._id,
+          nombre: user.nombreCompleto || user.username,
+          telefono: user.telefono,
+          activo: user.activo,
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(user.updatedAt),
+          isUser: true
+        }));
+        this.repartidorUsers.set(repartidores);
+        this.updateCombinedList();
+      },
+      error: (err) => console.error('Error cargando usuarios repartidores:', err)
+    });
+  }
+
+  updateCombinedList() {
+    this.combinedList.set([
+      ...this.deliveryPersons(),
+      ...this.repartidorUsers()
+    ]);
   }
 
   showAddForm() {

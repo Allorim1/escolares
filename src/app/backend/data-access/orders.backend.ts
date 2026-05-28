@@ -71,10 +71,13 @@ export interface CreateOrderData {
 export class OrdersBackend {
   private readonly API_URL = '/api/orders';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   getOrders(): Observable<Order[]> {
-    const user = inject(AuthService).user();
+    const user = this.authService.user();
     if (user?.rol === 'repartidor') {
       return this.http.get<Order[]>(`${this.API_URL}?deliveryPersonId=${user.id}`);
     }

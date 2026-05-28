@@ -4,6 +4,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { OrdersBackend } from '../../backend/data-access/orders.backend';
 
 interface DeliveryPerson {
    _id?: string;
@@ -77,6 +78,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
+  private ordersBackend = inject(OrdersBackend);
   private intervalId: any;
   private socket: WebSocket | null = null;
 
@@ -137,15 +139,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
     cancelado: '#dc3545',
   };
 
-  constructor(
-    private authService: AuthService,
-    private ordersBackend: OrdersBackend,
-    private http: HttpClient,
-    private notificationService: NotificationService
-  ) {
-    const user = this.authService.user();
-    this.hasSupervisorKey.set(this.tienePermisosAdmin(user));
-  }
+
 
   private tienePermisosAdmin(user: any): boolean {
     // Si el usuario tiene rol 'root', tiene acceso total al panel admin
@@ -176,6 +170,8 @@ export class AdminPedidos implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    const user = this.authService.user();
+    this.hasSupervisorKey.set(this.tienePermisosAdmin(user));
     this.loadOrders();
     this.conectarSocket();
     // Actualizar cada minuto para contador

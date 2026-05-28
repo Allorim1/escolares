@@ -247,7 +247,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   loadOrders() {
     this.loading.set(true);
-    this.http.get<Order[]>('/api/orders/admin/all').subscribe({
+    this.ordersBackend.getOrders().subscribe({
       next: (orders) => {
         this.orders.set(orders);
         this.loading.set(false);

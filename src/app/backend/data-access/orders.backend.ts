@@ -73,6 +73,10 @@ export class OrdersBackend {
   constructor(private http: HttpClient) {}
 
   getOrders(): Observable<Order[]> {
+    const user = inject(AuthService).user();
+    if (user?.rol === 'repartidor') {
+      return this.http.get<Order[]>(`${this.API_URL}?deliveryPersonId=${user.id}`);
+    }
     return this.http.get<Order[]>(this.API_URL);
   }
 

@@ -329,11 +329,12 @@ export class AdminPedidos implements OnInit, OnDestroy {
 	    });
 	  }
 
-	  getOrderCountByStatus(status: string): number {
-	    const orders = this.orders() ?? [];
-	    if (status === 'todos') return orders.length;
-	    return orders.filter(o => o.status === status).length;
-	  }
+		  getOrderCountByStatus(status: string): number {
+		    const orders = this.orders();
+		    if (!Array.isArray(orders)) return 0;
+		    if (status === 'todos') return orders.length;
+		    return orders.filter(o => o.status === status).length;
+		  }
 
 	  isStatusDisabled(statusValue: string): boolean {
 	    const currentStatus = this.selectedOrder()?.status;

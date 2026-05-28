@@ -95,7 +95,7 @@ header.app-header {
 }
 
 .brand-logo {
-  height: 50px;
+  height: 40px;
   width: auto;
 }
 
@@ -890,8 +890,12 @@ header.app-header {
   .app-header.admin-route .header-top {
     background: #1d63c1;
     padding: 8px 16px;
-    height: 45px;
+    min-height: 60px;
   }
+}
+
+.app-header.admin-route .brand-logo {
+  height: 40px;
 }
 
 .mobile-menu-btn.hidden,

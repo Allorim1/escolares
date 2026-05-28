@@ -222,40 +222,41 @@ export class AdminPedidos implements OnInit, OnDestroy {
     this.loadOrders();
   }
 
-  loadOrders() {
-    this.loading.set(true);
-    this.ordersBackend.getOrders().subscribe(
-      (orders: Order[]) => {
-        this.orders.set(orders);
-        this.loading.set(false);
-      },
-      (err: any) => {
-        console.error('Error loading orders:', err);
-        this.loading.set(false);
-      }
-    );
-  }
+	  loadOrders() {
+	    this.loading.set(true);
+	    this.ordersBackend.getOrders().subscribe(
+	      (orders: Order[]) => {
+	        this.orders.set(orders);
+	        this.loading.set(false);
+	      },
+	      (err: any) => {
+	        console.error('Error loading orders:', err);
+	        this.loading.set(false);
+	      }
+	    );
+	  }
 
-  get filteredOrders(): Order[] {
-    let result = this.orders();
-    if (this.filterStatus() !== 'todos') {
-      result = result.filter(o => o.status === this.filterStatus());
-    }
-    if (this.searchTerm()) {
-      const term = this.searchTerm().toLowerCase();
-      result = result.filter(o =>
-        o.nombre?.toLowerCase().includes(term) ||
-        o.cedula?.toLowerCase().includes(term) ||
-        o.telefono?.toLowerCase().includes(term) ||
-        o.id.toLowerCase().includes(term)
-      );
-    }
-    return result;
-  }
+	  get filteredOrders(): Order[] {
+	    const orders = this.orders() ?? [];
+	    let result = [...orders];
+	    if (this.filterStatus() !== 'todos') {
+	      result = result.filter(o => o.status === this.filterStatus());
+	    }
+	    if (this.searchTerm()) {
+	      const term = this.searchTerm().toLowerCase();
+	      result = result.filter(o =>
+	        o.nombre?.toLowerCase().includes(term) ||
+	        o.cedula?.toLowerCase().includes(term) ||
+	        o.telefono?.toLowerCase().includes(term) ||
+	        o.id.toLowerCase().includes(term)
+	      );
+	    }
+	    return result;
+	  }
 
-  selectOrder(order: Order) {
-    this.selectedOrder.set(order);
-  }
+	  selectOrder(order: Order) {
+	    this.selectedOrder.set(order);
+	  }
 
   closeDetail() {
     this.selectedOrder.set(null);
@@ -317,25 +318,26 @@ export class AdminPedidos implements OnInit, OnDestroy {
     return labels[method] || method;
   }
 
-  formatDate(date: Date | string): string {
-    const d = new Date(date);
-    return d.toLocaleDateString('es-VE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
+	  formatDate(date: Date | string): string {
+	    const d = new Date(date);
+	    return d.toLocaleDateString('es-VE', {
+	      day: '2-digit',
+	      month: '2-digit',
+	      year: 'numeric',
+	      hour: '2-digit',
+	      minute: '2-digit'
+	    });
+	  }
 
-  getOrderCountByStatus(status: string): number {
-    if (status === 'todos') return this.orders().length;
-    return this.orders().filter(o => o.status === status).length;
-  }
+	  getOrderCountByStatus(status: string): number {
+	    const orders = this.orders() ?? [];
+	    if (status === 'todos') return orders.length;
+	    return orders.filter(o => o.status === status).length;
+	  }
 
-  isStatusDisabled(statusValue: string): boolean {
-    const currentStatus = this.selectedOrder()?.status;
-    if (!currentStatus) return true;
+	  isStatusDisabled(statusValue: string): boolean {
+	    const currentStatus = this.selectedOrder()?.status;
+	    if (!currentStatus) return true;
     if (currentStatus === 'entregado' || currentStatus === 'cancelado') {
       return true;
     }

@@ -137,7 +137,12 @@ export class AdminPedidos implements OnInit, OnDestroy {
     cancelado: '#dc3545',
   };
 
-  constructor() {
+  constructor(
+    private authService: AuthService,
+    private ordersBackend: OrdersBackend,
+    private http: HttpClient,
+    private notificationService: NotificationService
+  ) {
     const user = this.authService.user();
     this.hasSupervisorKey.set(this.tienePermisosAdmin(user));
   }
@@ -248,11 +253,11 @@ export class AdminPedidos implements OnInit, OnDestroy {
   loadOrders() {
     this.loading.set(true);
     this.ordersBackend.getOrders().subscribe({
-      next: (orders) => {
+      next: (orders: Order[]) => {
         this.orders.set(orders);
         this.loading.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error loading orders:', err);
         this.loading.set(false);
       },

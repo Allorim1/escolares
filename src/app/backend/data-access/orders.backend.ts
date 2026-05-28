@@ -1,5 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../shared/data-access/auth.service';
 import { Observable } from 'rxjs';
 
 export interface OrderItem {

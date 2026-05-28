@@ -4,7 +4,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { OrdersBackend } from '../../backend/data-access/orders.backend';
+import { OrdersBackend, Order } from '../../backend/data-access/orders.backend';
 
 interface DeliveryPerson {
    _id?: string;
@@ -31,31 +31,7 @@ interface OrderHistorial {
   observaciones?: string;
 }
 
-interface Order {
-  id: string;
-  userId: string;
-  items: OrderItem[];
-  total: number;
-  nombre: string;
-  cedula: string;
-  telefono: string;
-  direccion: string;
-  metodoPago: string;
-  referencia: string;
-  fotoComprobante: string | null | undefined;
-  facturaImage?: string;
-  bancoEmisor?: string;
-  cedulaTitular?: string;
-  correo?: string;
-  status: string;
-  historial: OrderHistorial[];
-  autorizadoPor?: string;
-  autorizadoNombre?: string;
-  deliveryPersonId?: string;
-  deliveryPersonName?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+
 
 interface CompraNotificacion {
   tipo: 'compra';
@@ -248,16 +224,16 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   loadOrders() {
     this.loading.set(true);
-    this.ordersBackend.getOrders().subscribe({
-      next: (orders: Order[]) => {
+    this.ordersBackend.getOrders().subscribe(
+      (orders: Order[]) => {
         this.orders.set(orders);
         this.loading.set(false);
       },
-      error: (err: any) => {
+      (err: any) => {
         console.error('Error loading orders:', err);
         this.loading.set(false);
-      },
-    });
+      }
+    );
   }
 
   get filteredOrders(): Order[] {

@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  googleMapsApiKey: '',
+  googleMapsApiKey: process.env['MAPS_API_KEY'],
   apiUrl: '/api'
 };

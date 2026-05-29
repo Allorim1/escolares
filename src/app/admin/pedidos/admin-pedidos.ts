@@ -240,23 +240,30 @@ export class AdminPedidos implements OnInit, OnDestroy {
 		    });
 		  }
 
-	  get filteredOrders(): Order[] {
-	    const orders = this.orders() ?? [];
-	    let result = [...orders];
-	    if (this.filterStatus() !== 'todos') {
-	      result = result.filter(o => o.status === this.filterStatus());
-	    }
-	    if (this.searchTerm()) {
-	      const term = this.searchTerm().toLowerCase();
-	      result = result.filter(o =>
-	        o.nombre?.toLowerCase().includes(term) ||
-	        o.cedula?.toLowerCase().includes(term) ||
-	        o.telefono?.toLowerCase().includes(term) ||
-	        o.id.toLowerCase().includes(term)
-	      );
-	    }
-	    return result;
-	  }
+		  get filteredOrders(): Order[] {
+		    try {
+		      const orders = this.orders();
+		      if (!Array.isArray(orders)) return [];
+		      
+		      let result = [...orders];
+		      if (this.filterStatus() !== 'todos') {
+		        result = result.filter(o => o.status === this.filterStatus());
+		      }
+		      if (this.searchTerm()) {
+		        const term = this.searchTerm().toLowerCase();
+		        result = result.filter(o =>
+		          o.nombre?.toLowerCase().includes(term) ||
+		          o.cedula?.toLowerCase().includes(term) ||
+		          o.telefono?.toLowerCase().includes(term) ||
+		          (o.id && o.id.toLowerCase().includes(term))
+		        );
+		      }
+		      return result;
+		    } catch (error) {
+		      console.error('Error filtering orders:', error);
+		      return [];
+		    }
+		  }
 
 	  selectOrder(order: Order) {
 	    this.selectedOrder.set(order);

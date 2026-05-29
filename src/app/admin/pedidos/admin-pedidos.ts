@@ -85,12 +85,13 @@ export class AdminPedidos implements OnInit, OnDestroy {
   facturaPreview = signal<string | null>(null);
 
 // Modal de asignar repartidor
-   showAssignDeliveryModal = signal(false);
-   deliveryPersons = signal<DeliveryPerson[]>([]);
-   selectedDeliveryPersonId = signal('');
-   assignDeliveryError = signal('');
-   isAssigningDelivery = signal(false);
-   loadingDeliveryPersons = signal(false);
+    showAssignDeliveryModal = signal(false);
+    deliveryPersons = signal<DeliveryPerson[]>([]);
+    repartidorUsers = signal<DeliveryPerson[]>([]);
+    selectedDeliveryPersonId = signal('');
+    assignDeliveryError = signal('');
+    isAssigningDelivery = signal(false);
+    loadingDeliveryPersons = signal(false);
 
    // Modal de ficha técnica del repartidor
    showDeliveryPersonModal = signal(false);
@@ -552,13 +553,42 @@ export class AdminPedidos implements OnInit, OnDestroy {
     this.http.get<DeliveryPerson[]>('/api/delivery').subscribe({
       next: (persons) => {
         this.deliveryPersons.set(persons);
-        this.loadingDeliveryPersons.set(false);
+        this.loadRepartidorUsers();
       },
       error: (err) => {
         console.error('Error loading delivery persons:', err);
         this.loadingDeliveryPersons.set(false);
       },
     });
+  }
+
+  loadRepartidorUsers() {
+    this.http.get<any[]>('/api/users?role=repartidor').subscribe({
+      next: (users) => {
+        const repartidores = users.map(user => ({
+          id: user._id || user.id,
+          nombre: user.nombreCompleto || user.username,
+          telefono: user.telefono,
+          activo: user.activo,
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(user.updatedAt)
+        }));
+        this.repartidorUsers.set(repartidores);
+        this.loadingDeliveryPersons.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading repartidor users:', err);
+        this.loadingDeliveryPersons.set(false);
+      },
+    });
+  }
+
+  getAvailableDeliveryPersons(): DeliveryPerson[] {
+    const combined = [
+      ...this.deliveryPersons(),
+      ...this.repartidorUsers()
+    ];
+    return combined.filter(p => p.activo);
   }
 
   openAssignDeliveryModal() {
@@ -583,7 +613,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
     }
     if (!order) return;
 
-    const selectedPerson = this.deliveryPersons().find(p => p.id === selectedId);
+    const selectedPerson = this.getAvailableDeliveryPersons().find(p => p.id === selectedId);
     if (!selectedPerson) {
       this.assignDeliveryError.set('Repartidor no encontrado');
       return;
@@ -613,7 +643,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
   }
 
   openDeliveryPersonModal(personId: string) {
-    let person = this.deliveryPersons().find(p => p.id === personId);
+    let person = this.getAvailableDeliveryPersons().find(p => p.id === personId);
     if (person) {
       this.selectedDeliveryPerson.set(person);
       this.showDeliveryPersonModal.set(true);

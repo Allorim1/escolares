@@ -137,15 +137,16 @@ export class AdminRepartidoresComponent implements OnInit {
         alert('Email y password son requeridos para crear el repartidor');
         return;
       }
-      this.http.post<DeliveryPerson>('/api/delivery', data).subscribe({
-        next: (newPerson) => {
-          if (this.selectedDNIFile && newPerson.id) {
-            this.uploadDNI(newPerson.id);
-          } else {
-            this.loadDeliveryPersons();
-            this.cancelEdit();
-          }
-        },
+this.http.post<DeliveryPerson>('/api/delivery', data).subscribe({
+         next: (newPerson) => {
+           if (this.selectedDNIFile && newPerson.id) {
+             this.uploadDNI(newPerson.id);
+           } else {
+             this.loadDeliveryPersons();
+             this.loadRepartidorUsers();
+             this.cancelEdit();
+           }
+         },
         error: (err) => {
           console.error('Error creando repartidor:', err);
           alert('Error al crear repartidor');
@@ -162,15 +163,16 @@ export class AdminRepartidoresComponent implements OnInit {
       if (data.email) updateData.email = data.email;
       if (data.password) updateData.password = data.password;
       const personId = person.id;
-      this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe({
-        next: () => {
-          if (this.selectedDNIFile) {
-            this.uploadDNI(personId);
-          } else {
-            this.loadDeliveryPersons();
-            this.cancelEdit();
-          }
-        },
+this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe({
+         next: () => {
+           if (this.selectedDNIFile) {
+             this.uploadDNI(personId);
+           } else {
+             this.loadDeliveryPersons();
+             this.loadRepartidorUsers();
+             this.cancelEdit();
+           }
+         },
         error: (err) => {
           console.error('Error actualizando repartidor:', err);
           alert('Error al actualizar repartidor');

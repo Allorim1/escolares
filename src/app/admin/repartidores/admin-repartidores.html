@@ -18,7 +18,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (person of combinedList(); track person._id) {
+        @for (person of combinedList(); track person.id) {
           <tr [class.user-repartidor]="person.isUser">
             <td>
               {{ person.nombre }}

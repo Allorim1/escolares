@@ -318,15 +318,15 @@
            @if (loadingDeliveryPersons()) {
              <div class="loading-text">Cargando repartidores...</div>
            } @else {
-             <select
-               [value]="selectedDeliveryPersonId()"
-               (change)="selectedDeliveryPersonId.set($any($event.target).value || '')"
-               class="delivery-select"
-             >
-               <option value="">Selecciona un repartidor</option>
-               @for (person of deliveryPersons(); track person.id) {
-                 <option [value]="person.id">{{ person.nombre }} {{ person.telefono ? '(' + person.telefono + ')' : '' }}</option>
-               }
+<select
+                [value]="selectedDeliveryPersonId()"
+                (change)="selectedDeliveryPersonId.set($any($event.target).value || '')"
+                class="delivery-select"
+              >
+                <option value="">Selecciona un repartidor</option>
+                @for (person of getAvailableDeliveryPersons(); track person.id) {
+                  <option [value]="person.id">{{ person.nombre }} {{ person.telefono ? '(' + person.telefono + ')' : '' }}</option>
+                }
              </select>
              <small class="help-text">Selecciona un repartidor de la lista</small>
            }

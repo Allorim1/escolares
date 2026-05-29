@@ -266,7 +266,7 @@ template: `
   `]
 })
 export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
-  @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
+  @ViewChild('mapContainer') mapContainer!: ElementRef;
   @Input() orderId!: string;
   @Input() showAcceptButton = false;
   @Input() showStartButton = false;
@@ -290,6 +290,8 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   async ngAfterViewInit() {
     try {
       await this.mapsService.loadApi();
+      // Ensure ViewChild is resolved before accessing
+      await Promise.resolve();
       await this.initMap();
       this.startLocationTracking();
     } catch (error: any) {
@@ -320,18 +322,24 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   }
 
   async initMap() {
+    if (!this.mapContainer?.nativeElement) {
+      console.warn('Map container not available');
+      return;
+    }
     const order = this.order();
     
     // Wait for the container to have dimensions
     await new Promise(resolve => setTimeout(resolve, 100));
     
+    const mapContainer = this.mapContainer.nativeElement;
+    
     if (!order || !order.latitud || !order.longitud) {
       // Still try to init map with default center if no coordinates
-      this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
+      this.map = this.mapsService.createMap(mapContainer, {
         zoom: 10
       });
     } else {
-      this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
+      this.map = this.mapsService.createMap(mapContainer, {
         center: { lat: order.latitud, lng: order.longitud },
         zoom: 14
       });

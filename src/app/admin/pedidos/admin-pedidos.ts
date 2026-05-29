@@ -222,19 +222,23 @@ export class AdminPedidos implements OnInit, OnDestroy {
     this.loadOrders();
   }
 
-	  loadOrders() {
-	    this.loading.set(true);
-	    this.ordersBackend.getOrders().subscribe(
-	      (orders: Order[]) => {
-	        this.orders.set(orders);
-	        this.loading.set(false);
-	      },
-	      (err: any) => {
-	        console.error('Error loading orders:', err);
-	        this.loading.set(false);
-	      }
-	    );
-	  }
+		  loadOrders() {
+		    this.loading.set(true);
+		    this.ordersBackend.getOrders().subscribe({
+		      next: (orders: Order[]) => {
+		        this.orders.set(orders);
+		        this.loading.set(false);
+		      },
+		      error: (err: any) => {
+		        console.error('Error loading orders:', err);
+		        this.loading.set(false);
+		        this.notificationService.error(
+		          'Error al cargar pedidos',
+		          err.message || 'No se pudieron cargar los pedidos. Por favor intente nuevamente.'
+		        );
+		      }
+		    });
+		  }
 
 	  get filteredOrders(): Order[] {
 	    const orders = this.orders() ?? [];

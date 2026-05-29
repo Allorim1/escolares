@@ -34,7 +34,7 @@
     <div class="loading">Cargando pedidos...</div>
   } @else {
     <div class="orders-grid">
-      @for (order of orders(); track order._id) {
+      @for (order of orders(); track order.id) {
         <div class="order-card">
           <div class="order-header">
             <h3>Pedido #{{ order.id }}</h3>

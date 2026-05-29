@@ -30,6 +30,10 @@ header.app-header {
   box-sizing: border-box;
 }
 
+.header-bottom.hidden {
+  display: none !important;
+}
+
 .header-bottom .controls {
   display: flex;
   gap: 8px;

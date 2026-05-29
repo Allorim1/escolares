@@ -1,4 +1,5 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../shared/data-access/auth.service';
@@ -6,26 +7,47 @@ import { AuthService } from '../shared/data-access/auth.service';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
 export class Register {
   private authService = inject(AuthService);
-  private router = inject(Router);
+  router = inject(Router);
 
   username = signal('');
   email = signal('');
   password = signal('');
   confirmPassword = signal('');
-  rif = signal('');
-  rifTipo = signal('V');
-  telefono = signal('');
-  telefonoPrefijo = signal('0412');
-  direccion = signal('');
-  tipoPersona = signal<'natural' | 'juridica'>('natural');
+   showPassword = signal(false);
+   showConfirmPassword = signal(false);
+   telefono = signal('');
+   telefonoPrefijo = signal('0412');
+   direccion = signal('');
+   tipoPersona = signal<'natural' | 'juridica'>('natural');
+   nombreCompleto = signal('');
+   genero = signal<'hombre' | 'mujer' | 'no_especificado'>('no_especificado');
+   tipoDocumento = signal<'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e'>('cedula');
+   numeroDocumento = signal('');
+   aceptaTerminos = signal(false);
+   mayorEdad = signal(false);
+   mostrarModalConfirmacion = signal(false);
+   registroOk = signal(false);
 
-  rifTipos = ['V', 'E', 'J', 'G', 'P'];
+  // Computed para verificar si el formulario está completo
+  formComplete = computed(() => {
+    return this.username().trim() !== '' &&
+           this.email().trim() !== '' &&
+           this.password().trim() !== '' &&
+           this.confirmPassword().trim() !== '' &&
+           this.numeroDocumento().trim() !== '' &&
+           this.telefono().trim() !== '' &&
+           this.direccion().trim() !== '' &&
+           this.nombreCompleto().trim() !== '' &&
+           this.mayorEdad() &&
+           this.aceptaTerminos();
+  });
+
   telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
   loading = signal(false);
   error = this.authService.registerError;
@@ -48,10 +70,8 @@ export class Register {
     effect(() => {
       if (this.authService.registerSuccess()) {
         this.loading.set(false);
-        setTimeout(() => {
-          this.authService.registerSuccess.set(false);
-          this.router.navigate(['/login']);
-        }, 1500);
+        this.authService.registerSuccess.set(false);
+        this.router.navigate(['/login']);
       }
     });
 
@@ -128,18 +148,53 @@ export class Register {
 
   enviarWhatsApp() {
     if (!this.frenteFoto() && !this.atrasFoto()) {
-      alert('Toma al menos una foto de tu cédula o RIF');
+      alert('Toma al menos una foto de tu identificación');
       return;
     }
+
+    // Construir el número de documento con el prefijo correspondiente
+    const documentoCompleto = this.construirDocumentoCompleto();
 
     const mensaje = `Hola, me acabo de registrar en Escolares y te envío las fotos de mi identificación.\n\n` +
       `Usuario: ${this.username()}\n` +
       `Email: ${this.email()}\n` +
-      `Tipo: ${this.tipoPersona()}\n` +
-      `Cédula/RIF: ${this.rifTipo()}-${this.rif()}`;
+      `Tipo Persona: ${this.tipoPersona()}\n` +
+      `Documento: ${documentoCompleto}`;
 
     const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');
+  }
+
+  private construirDocumentoCompleto(): string {
+    const tipo = this.tipoDocumento();
+    const numero = this.numeroDocumento();
+    const persona = this.tipoPersona();
+
+    switch (tipo) {
+      case 'cedula':
+        return 'V-' + numero;
+      case 'rif':
+        // RIF normal: J- para jurídica, V- para natural
+        const letraRif = persona === 'juridica' ? 'J' : 'V';
+        return letraRif + '-' + numero;
+      case 'rif_personal_natural':
+        // RIF Personal Natural siempre usa V
+        return 'V-' + numero;
+      case 'rif_v':
+        // RIF-V siempre usa V
+        return 'V-' + numero;
+      case 'rif_e':
+        // RIF-E siempre usa E
+        return 'E-' + numero;
+      case 'pasaporte':
+        return numero; // Sin prefijo
+      case 'extranjero':
+        return 'E-' + numero;
+      case 'gobierno':
+        return 'G-' + numero;
+      default:
+        return numero;
+    }
   }
 
   onSubmit() {
@@ -150,18 +205,33 @@ export class Register {
     const mail = this.email();
     const pass = this.password();
     const confirm = this.confirmPassword();
-    const rifValue = this.rif();
-    const rifTipoValue = this.rifTipo();
     const telefonoValue = this.telefono();
     const telefonoPrefijoValue = this.telefonoPrefijo();
     const direccionValue = this.direccion();
     const tipoPersonaValue = this.tipoPersona();
+    const nombreCompletoValue = this.nombreCompleto();
+    const aceptaTerminosValue = this.aceptaTerminos();
+    const mayorEdadValue = this.mayorEdad();
+    const tipoDocumentoValue = this.tipoDocumento();
+    const numeroDocumentoValue = this.numeroDocumento();
 
-    const rifCompleto = rifTipoValue + '-' + rifValue;
+    // Construir el documento completo según el tipo
+    const documentoCompleto = this.construirDocumentoCompleto();
+
     const telefonoCompleto = telefonoPrefijoValue + '-' + telefonoValue;
 
-    if (!user || !mail || !pass || !confirm || !rifValue || !telefonoValue || !direccionValue) {
+    if (!user || !mail || !pass || !confirm || !numeroDocumentoValue || !telefonoValue || !direccionValue || !nombreCompletoValue) {
       this.authService.registerError.set('Todos los campos son obligatorios');
+      return;
+    }
+
+    if (!aceptaTerminosValue) {
+      this.authService.registerError.set('Debes aceptar los términos y condiciones');
+      return;
+    }
+
+    if (!mayorEdadValue) {
+      this.authService.registerError.set('Debes confirmar que eres mayor de edad');
       return;
     }
 
@@ -177,10 +247,20 @@ export class Register {
 
     this.loading.set(true);
     this.authService.register(user, mail, pass, {
-      rif: rifCompleto,
+      rif: documentoCompleto,
       telefono: telefonoCompleto,
       direccion: direccionValue,
       tipoPersona: tipoPersonaValue,
+      nombreCompleto: nombreCompletoValue,
+      genero: this.genero(),
+      tipoDocumento: tipoDocumentoValue,
+      numeroDocumento: numeroDocumentoValue,
     });
+  }
+
+
+  onRegisterSuccess() {
+    this.registroOk.set(true);
+    this.mostrarModalConfirmacion.set(true);
   }
 }

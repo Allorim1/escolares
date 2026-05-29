@@ -7,12 +7,12 @@
     <button class="banner-btn next" (click)="nextBanner()">›</button>
   </div>
 
-  @if (marcas().length > 0) {
+  @if (duplicatedMarcas.length > 0) {
     <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">
       <button class="carousel-btn prev" (click)="prev()">‹</button>
       <div class="carousel-viewport">
         <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
-          @for (marca of marcas(); track marca.id) {
+          @for (marca of duplicatedMarcas; track marca.id + '-' + $index) {
             <div class="marca-slide">
               @if (marca.image) {
                 <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
@@ -53,6 +53,26 @@
       }
     </div>
   </div>
+
+@if (noticias().length > 0) {
+     <section class="noticias-section reveal-init" #revealElement>
+       <h2>Últimas Noticias</h2>
+       <div class="noticias-grid">
+         @for (noticia of noticias(); track noticia.id) {
+           <article class="noticia-card" [attr.id]="noticia.id" [class.importante]="noticia.importante">
+             <h3>{{ noticia.titulo }}</h3>
+             <p class="noticia-fecha">{{ formattedFecha(noticia.fecha) }}</p>
+             <div class="noticia-contenido" [innerHTML]="noticia.contenido | markdown"></div>
+           </article>
+         }
+       </div>
+       <a class="btn-ver-mas" routerLink="/noticias">Ver más noticias</a>
+     </section>
+   } @else if (noticiasLoaded()) {
+     <section class="noticias-section">
+       <p class="no-noticias">No hay noticias disponibles en este momento.</p>
+     </section>
+   }
 
   <div class="features-section reveal-init" #revealElement>
     <div class="feature-card" style="transition-delay: 0ms">

@@ -39,13 +39,13 @@ export class Offers implements OnInit, AfterViewInit {
   productsEnOferta = signal<Product[]>([]);
   loading = signal(true);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
-  ngOnInit() {
+    ngOnInit() {
     this.productsService.getProducts().subscribe({
-      next: (products) => {
+      next: (response: {products: Product[], total: number}) => {
         const ofertaIds = this.ofertasService.ofertas().map((o) => o.productId);
-        this.productsEnOferta.set(products.filter((p) => ofertaIds.includes(p.id as any)));
+        this.productsEnOferta.set(response.products.filter((p: Product) => ofertaIds.includes(p.id as any)));
         this.loading.set(false);
       },
       error: (err) => {

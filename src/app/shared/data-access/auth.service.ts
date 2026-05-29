@@ -1,29 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthBackend } from '../../backend/data-access/auth.backend';
 import { Observable } from 'rxjs';
+import { User, Direccion } from '../../backend/models';
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  isAdmin: boolean;
-  isOwner?: boolean;
-  rol?: 'root' | 'owner' | 'usuario';
-  rolId?: string;
-  nombreCompleto?: string;
-  direccion?: string;
-  telefono?: string;
-  cedula?: string;
-  tipoPersona?: 'natural' | 'juridica';
-  direcciones?: Direccion[];
-  comentarios?: string;
-}
+export type { User, Direccion };
 
-export interface Direccion {
-  id: string;
-  nombre: string;
-  direccion: string;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -36,7 +17,16 @@ export class AuthService {
   isAdmin = this.backend.isAdmin;
   loginLoading = this.backend.loginLoading;
 
-  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string }) {
+  register(username: string, email: string, password: string, extraData?: { 
+    rif?: string; 
+    telefono?: string; 
+    direccion?: string; 
+    tipoPersona?: string; 
+    nombreCompleto?: string; 
+    genero?: string;
+    tipoDocumento?: string;
+    numeroDocumento?: string;
+  }) {
     this.backend.register(username, email, password, extraData);
   }
 
@@ -60,7 +50,7 @@ export class AuthService {
     return this.backend.getAllUsers();
   }
 
-  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario', rolId?: string) {
+  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario' | 'repartidor', rolId?: string) {
     return this.backend.updateUserRol(targetUserId, rol, rolId);
   }
 

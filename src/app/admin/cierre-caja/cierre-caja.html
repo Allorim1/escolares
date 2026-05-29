@@ -1,0 +1,208 @@
+<div class="cierre-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+  <h2>Cierre de Caja</h2>
+
+  <div class="cierre-layout">
+    <div class="arriba">
+      <div class="cierre-form">
+        <h3>Nuevo Cierre</h3>
+        
+        <div class="form-group">
+          <label>Saldo Inicial Total (Bs)</label>
+          <input type="number" [(ngModel)]="nuevoCierre.saldoInicial" (input)="calcularSaldo()" min="0" step="0.01" />
+        </div>
+
+        <div class="cajas-grid">
+          @for (caja of cajaDataList; track caja.id; let i = $index) {
+            <div class="caja-card" [class.caja-derecha]="i % 2 === 1">
+              <div class="caja-header">
+                <span class="caja-titulo">{{ caja.nombre }}</span>
+              </div>
+              <div class="metodos-pago">
+                @for (metodo of caja.metodos; track metodo.id) {
+                  @if (metodo.id === 'divisa') {
+                    <div class="metodo-row divisa-row">
+                      <label>{{ metodo.nombre }} (USD)</label>
+                      <input 
+                        type="number" 
+                        [ngModel]="cajasValues[caja.id]?.[metodo.id]"
+                        (ngModelChange)="cajasValues[caja.id][metodo.id] = $event; calcularSaldo()"
+                        min="0" 
+                        step="0.01"
+                        placeholder="0.00"
+                      />
+                      @if (cajasValues[caja.id]?.[metodo.id] ?? 0) {
+                        <span class="divisa-convertido">
+                          = {{ getDivisaConvertido(caja.id) | number:'1.2-2' }} Bs
+                          @if (getTasa() > 0) {
+                            <small>({{ getTasa() | number:'1.2-2' }} Bs/USD)</small>
+                          }
+                        </span>
+                      }
+                    </div>
+                  } @else if (metodo.id === 'financiamiento') {
+                    <div class="metodo-row financiera-row">
+                      <label>{{ metodo.nombre }} (USD)</label>
+                      <input 
+                        type="number" 
+                        [ngModel]="cajasValues[caja.id]?.[metodo.id]"
+                        (ngModelChange)="cajasValues[caja.id][metodo.id] = $event; calcularSaldo()"
+                        min="0" 
+                        step="0.01"
+                        placeholder="0.00"
+                      />
+                      
+                      @if ((cajasValues[caja.id]?.[metodo.id] ?? 0) > 0) {
+                        <span class="divisa-convertido negativo">
+                          = {{ '-' + getFinanciamientoConvertido(caja.id) | number:'1.2-2' }} Bs
+                          @if (getTasa() > 0) {
+                            <small>({{ getTasa() | number:'1.2-2' }} Bs/USD)</small>
+                          }
+                        </span>
+                      }
+                    </div>
+                  } @else if (metodo.id === 'rc') {
+                    <div class="metodo-row rc-row">
+                      <label>{{ metodo.nombre }}</label>
+                      <span class="rc-total">{{ getRCEntries(caja.id).length }} RC(s): {{ getRCEntries(caja.id).reduce((sum, e) => sum + e.monto, 0) | number:'1.2-2' }} Bs</span>
+                      <button class="btn-agregar-rc" (click)="agregarRC(caja.id, rcNuevoMonto, rcDescripcion); rcNuevoMonto = 0; rcDescripcion = ''">+ Agregar RC</button>
+                    </div>
+                    <div class="rc-inputs">
+                      <input type="number" [(ngModel)]="rcNuevoMonto" placeholder="Monto" min="0.01" step="0.01" />
+                      <input type="text" [(ngModel)]="rcDescripcion" placeholder="Descripción (opcional)" />
+                    </div>
+                    @if (getRCEntries(caja.id).length > 0) {
+                      <div class="rc-list">
+                        @for (rc of getRCEntries(caja.id); track $index) {
+                          <div class="rc-item">
+                            <span class="rc-monto">{{ rc.monto | number:'1.2-2' }} Bs</span>
+                            <span class="rc-hora">{{ formatearHora(rc.hora) }}</span>
+                            @if (rc.descripcion) {
+                              <span class="rc-desc">{{ rc.descripcion }}</span>
+                            }
+                            <button class="btn-eliminar-rc" (click)="eliminarRC(caja.id, $index)">×</button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <div class="metodo-row">
+                      <label>{{ metodo.nombre }}</label>
+                      <input 
+                        type="number" 
+                        [ngModel]="cajasValues[caja.id]?.[metodo.id]"
+                        (ngModelChange)="cajasValues[caja.id][metodo.id] = $event; calcularSaldo()"
+                        min="0" 
+                        step="0.01"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  }
+                }
+              </div>
+              <div class="caja-total">
+                <span>Total {{ caja.nombre }}:</span>
+                <strong [class.negativo]="getCajaTotal(caja.id, true) < 0">{{ getCajaTotal(caja.id, true) | number:'1.2-2' }} Bs</strong>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Total Gastos (Bs)</label>
+          <input type="number" [(ngModel)]="nuevoCierre.totalGastos" (input)="calcularSaldo()" min="0" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label>Observaciones</label>
+          <textarea [(ngModel)]="nuevoCierre.observaciones" rows="3"></textarea>
+        </div>
+
+        <div class="resumen">
+          <div class="resumen-row">
+            <span>Total Ingresos:</span>
+            <strong>{{ totalIngresosCalculado | number:'1.2-2' }} Bs</strong>
+          </div>
+          <div class="resumen-row">
+            <span>Saldo Calculado:</span>
+            <strong>{{ saldoCalculado | number:'1.2-2' }} Bs</strong>
+          </div>
+          <div class="resumen-row" [class.diferencia-positiva]="diferencia > 0" [class.diferencia-negativa]="diferencia < 0">
+            <span>Diferencia:</span>
+            <strong>{{ diferencia | number:'1.2-2' }} Bs</strong>
+          </div>
+        </div>
+
+        <button class="btn-primary" (click)="guardarCierre()">Guardar Cierre de Caja</button>
+      </div>
+    </div>
+
+    <div class="abajo">
+      <div class="cierre-historial">
+        <div class="historial-header">
+          <h3>Historial</h3>
+          <div class="buscador">
+            <input type="date" [(ngModel)]="fechaBuscar" (change)="buscarPorFecha()" />
+            @if (fechaBuscar) {
+              <button class="btn-limpiar" (click)="fechaBuscar = ''; cargarCierres()">Limpiar</button>
+            }
+          </div>
+        </div>
+
+        <div class="cierres-list">
+          @for (cierre of cierresFiltrados; track cierre._id) {
+            <div class="cierre-card">
+              <div class="cierre-header">
+                <span class="cierre-fecha">{{ formatearFecha(cierre.fecha) }}</span>
+                <span class="cierre-usuario">{{ cierre.usuario }}</span>
+              </div>
+              <div class="cierre-detalles">
+                <div class="detalle-row">
+                  <span>Saldo Inicial:</span>
+                  <span>{{ formatearMonto(cierre.saldoInicial) }} Bs</span>
+                </div>
+                @if (cierre.cajas) {
+                  @for (caja of getCajasFromcierre(cierre.cajas); track caja.id) {
+                    <div class="caja-detalle">
+                      <strong>{{ caja.nombre }}:</strong>
+                      @for (metodo of caja.metodos; track metodo.id) {
+                        <span class="metodoEtiqueta" [class.tiene-valor]="metodo.valor > 0">
+                          {{ metodo.nombre }}: {{ getValorAbsoluto(metodo.valor) | number:'1.2-2' }}
+                        </span>
+                      }
+                      <span class="caja-subtotal">{{ formatearMonto(caja.total) }} Bs</span>
+                    </div>
+                  }
+                }
+                <div class="detalle-row">
+                  <span>Gastos:</span>
+                  <span class="negativo">-{{ formatearMonto(cierre.totalGastos) }} Bs</span>
+                </div>
+                <hr>
+                <div class="detalle-row total">
+                  <span>Saldo Final:</span>
+                  <strong>{{ formatearMonto(cierre.saldoFinal) }} Bs</strong>
+                </div>
+                @if (cierre.diferencia && cierre.diferencia !== 0) {
+                  <div class="detalle-row" [class.diferencia-positiva]="cierre.diferencia > 0" [class.diferencia-negativa]="cierre.diferencia < 0">
+                    <span>Diferencia:</span>
+                    <strong>{{ formatearMonto(cierre.diferencia!) }} Bs</strong>
+                  </div>
+                }
+                @if (cierre.observaciones) {
+                  <div class="observaciones">
+                    <strong>Obs:</strong> {{ cierre.observaciones }}
+                  </div>
+                }
+              </div>
+              <button class="btn-eliminar" (click)="eliminarCierre(cierre._id || '')">Eliminar</button>
+            </div>
+          }
+          @if (cierresFiltrados.length === 0) {
+            <div class="no-data">No hay cierres registrados</div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

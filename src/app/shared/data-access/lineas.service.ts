@@ -17,7 +17,7 @@ export class LineasService {
   lineas = this.backend.lineas;
   isInitialized = this.backend.isInitialized;
 
-  agregarLinea(name: string, image: string = '') {
+  agregarLinea(name: string, image = '') {
     this.backend.agregarLinea(name, image);
   }
 
@@ -31,6 +31,10 @@ export class LineasService {
 
   eliminarProductoDeLinea(lineaId: string, productId: number | string) {
     this.backend.eliminarProductoDeLinea(lineaId, productId);
+  }
+
+  actualizarLinea(id: string, name: string, image = '') {
+    this.backend.actualizarLinea(id, name, image);
   }
 
   getLineaById(id: string): Linea | undefined {

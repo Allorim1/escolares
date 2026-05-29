@@ -20,8 +20,8 @@ export class AdminRegistro implements OnInit {
   mostrarModal = false;
   registroSeleccionado: Registro | null = null;
 
-  fechaDesde: string = '';
-  fechaHasta: string = '';
+  fechaDesde = '';
+  fechaHasta = '';
 
   paginaActual = 1;
   registrosPorPagina = 20;

@@ -1,16 +1,36 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpEvent } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError, switchMap, from } from 'rxjs';
+import { Observable, catchError, throwError, switchMap, from } from 'rxjs';
 
 let isRefreshing = false;
 
-function isValidJWTToken(token: string): boolean {
+const publicEndpointsWithoutAuth = [
+  '/api/tasas',
+  '/api/settings/tasas-status',
+  '/api/costos',
+  '/api/facturas',
+  '/api/proveedores',
+];
+
+function isPublicEndpoint(url: string): boolean {
+  // Check for exact public endpoints
+  if (publicEndpointsWithoutAuth.some(endpoint => url.includes(endpoint))) {
+    return true;
+  }
+  // Only /api/noticias (without path) is public, not /api/noticias/admin or /api/noticias/user-notifications
+  const noticiasMatch = url.match(/\/api\/noticias(\?|$)/);
+  if (noticiasMatch && !url.includes('/admin') && !url.includes('/user-')) {
+    return true;
+  }
+  return false;
+}
+
+function isValidJWTToken(token: string | null): boolean {
+  if (!token) return false;
   const parts = token.split('.');
   if (parts.length !== 3) return false;
-  // Verify the parts are non-empty base64 strings
   if (!parts[0] || !parts[1] || !parts[2]) return false;
-  // Try to decode the payload to verify it's valid base64 JSON
   try {
     atob(parts[1]);
     return true;
@@ -19,7 +39,8 @@ function isValidJWTToken(token: string): boolean {
   }
 }
 
-function decodeToken(token: string): any {
+function decodeToken(token: string | null): any {
+  if (!token) return null;
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
@@ -30,22 +51,19 @@ function decodeToken(token: string): any {
   }
 }
 
-function isTokenExpiringSoon(token: string): boolean {
-  // First validate the token format
-  if (!isValidJWTToken(token)) return false; // Invalid tokens are not "expiring soon"
+function isTokenExpired(token: string | null): boolean {
+  if (!token || !isValidJWTToken(token)) return true;
   const payload = decodeToken(token);
   if (!payload || !payload.exp) return true;
   const expDate = new Date(payload.exp * 1000);
   const now = new Date();
-  const diffMinutes = (expDate.getTime() - now.getTime()) / (1000 * 60);
-  return diffMinutes < 5;
+  return expDate <= now;
 }
 
 async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: string; error?: string }> {
   const refreshTokenValue = localStorage.getItem('refreshToken');
   if (!refreshTokenValue) return { error: 'No refresh token' };
 
-  // Validate refresh token format before trying to refresh
   if (!isValidJWTToken(refreshTokenValue)) {
     return { error: 'Invalid refresh token format' };
   }
@@ -54,6 +72,7 @@ async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: st
     const res = await fetch('/api/auth/refresh', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ refreshToken: refreshTokenValue })
     });
     const data = await res.json();
@@ -67,71 +86,128 @@ async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: st
 }
 
 export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
-  const router = inject(Router);
+   const router = inject(Router);
 
-  if (typeof window !== 'undefined' && window.localStorage) {
+   // Skip all auth logic for public endpoints
+   if (isPublicEndpoint(req.url)) {
+     return next(req);
+   }
+
+if (typeof window !== 'undefined' && window.localStorage) {
     const token = localStorage.getItem('accessToken');
-    if (token) {
-      // Check if token has valid JWT format
-      if (!isValidJWTToken(token)) {
-        // Invalid token format - clear and continue without it
+    const refreshTokenValue = localStorage.getItem('refreshToken');
+
+    // Check if we have any token at all
+    if (!token && !refreshTokenValue) {
+      return next(req);
+    }
+
+    // If only refresh token exists (no access token), validate it
+    if (!token && (!refreshTokenValue || !isValidJWTToken(refreshTokenValue) || isTokenExpired(refreshTokenValue))) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      router.navigate(['/login']);
+      return next(req);
+    }
+
+    // Validate token format
+    if (!isValidJWTToken(token)) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      router.navigate(['/login']);
+      return next(req);
+    }
+
+    // If access token is expired or expiring soon, try to refresh
+    if (isTokenExpired(token)) {
+      if (!refreshTokenValue || !isValidJWTToken(refreshTokenValue) || isTokenExpired(refreshTokenValue)) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        // Don't redirect here, just continue without the invalid token
-        // The backend will return 401 if auth is required, and we'll handle it there
-      } else if (isTokenExpiringSoon(token)) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-          return from(refreshToken()).pipe(
-            switchMap((data: any) => {
-              if (data.accessToken) {
-                localStorage.setItem('accessToken', data.accessToken);
-                if (data.refreshToken) {
-                  localStorage.setItem('refreshToken', data.refreshToken);
-                }
-                isRefreshing = false;
-                req = req.clone({
-                  setHeaders: {
-                    Authorization: `Bearer ${data.accessToken}`,
-                  },
-                });
-                return next(req);
-              } else {
-                isRefreshing = false;
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                router.navigate(['/login']);
-                return throwError(() => new Error('Token expirado'));
+        router.navigate(['/login']);
+        return next(req);
+      }
+      // Refresh token is valid, proceed to refresh
+      if (!isRefreshing) {
+        isRefreshing = true;
+        return from(refreshToken()).pipe(
+          switchMap((data: any) => {
+            isRefreshing = false;
+            if (data.accessToken) {
+              localStorage.setItem('accessToken', data.accessToken);
+              if (data.refreshToken) {
+                localStorage.setItem('refreshToken', data.refreshToken);
               }
-            }),
-            catchError((error: any) => {
-              isRefreshing = false;
+              const clonedReq = req.clone({
+                setHeaders: {
+                  Authorization: `Bearer ${data.accessToken}`,
+                },
+              });
+              return next(clonedReq);
+            } else {
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
               router.navigate(['/login']);
-              return throwError(() => new Error('Sesión expirada'));
-            })
-          );
-        }
-      } else {
-        req = req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+              return throwError(() => new Error(data.error || 'Token expirado'));
+            }
+          }),
+          catchError((error: any) => {
+            isRefreshing = false;
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            router.navigate(['/login']);
+            return throwError(() => new Error('Sesión expirada'));
+          })
+        );
       }
+      // If already refreshing, wait for it
+      return new Observable<HttpEvent<unknown>>(subscriber => {
+        const checkRefresh = () => {
+          if (!isRefreshing) {
+            const newToken = localStorage.getItem('accessToken');
+            if (newToken && isValidJWTToken(newToken)) {
+              req = req.clone({
+                setHeaders: {
+                  Authorization: `Bearer ${newToken}`,
+                },
+              });
+            }
+            next(req).subscribe({
+              next: event => subscriber.next(event),
+              error: err => subscriber.error(err),
+              complete: () => subscriber.complete()
+            });
+          } else {
+            setTimeout(checkRefresh, 100);
+          }
+        };
+        checkRefresh();
+      });
     }
+
+    // Add Authorization header with valid token
+    req = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  return next(req).pipe(
+return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      const publicEndpointsWithoutAuth = ['/api/tasas', '/api/settings/tasas-status'];
-      const isPublicEndpoint = publicEndpointsWithoutAuth.some(url => req.url.includes(url));
-      
-      if (error.status === 401 && !isPublicEndpoint) {
+      if (error.status === 401) {
+        const storedRefreshToken = localStorage.getItem('refreshToken');
+        if (!storedRefreshToken || !isValidJWTToken(storedRefreshToken) || isTokenExpired(storedRefreshToken)) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.navigate(['/login']);
+          return throwError(() => new Error('Sesión expirada'));
+        }
         return from(refreshToken()).pipe(
           switchMap((data: any) => {
             if (data.accessToken) {
@@ -139,16 +215,17 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
               if (data.refreshToken) {
                 localStorage.setItem('refreshToken', data.refreshToken);
               }
-              req = req.clone({
+              const clonedReq = req.clone({
                 setHeaders: {
                   Authorization: `Bearer ${data.accessToken}`,
                 },
               });
-              return next(req);
+              return next(clonedReq);
             } else {
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
+              router.navigate(['/login']);
               return throwError(() => new Error(data.error || 'Token expirado'));
             }
           }),
@@ -156,6 +233,7 @@ export const withCredentialsInterceptor: HttpInterceptorFn = (req, next) => {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');
+            router.navigate(['/login']);
             return throwError(() => new Error('Sesión expirada'));
           })
         );

@@ -1,0 +1,123 @@
+<div class="categorias-container">
+  <h2>Gestión de Categorías del Menú</h2>
+  
+  <div class="actions">
+    <button class="btn-primary" (click)="openCreateModal()">Nueva Categoría</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else if (categorias().length === 0) {
+    <div class="empty">
+      <p>No hay categorías creadas.</p>
+      <p>Crea la primera categoría para el menú del Panel Admin.</p>
+    </div>
+  } @else {
+    <div class="categorias-list">
+      @for (categoria of categorias(); track categoria.id) {
+        <div class="categoria-card">
+          <div class="categoria-header">
+            <div class="categoria-info">
+              <h3>{{ categoria.nombre }}</h3>
+              <span class="orden">Orden: {{ categoria.orden }}</span>
+              <span class="items-count">{{ categoria.items.length }} items</span>
+            </div>
+            <div class="categoria-actions">
+              <button class="btn-small" (click)="addItem(categoria.id)">+ Item</button>
+              <button class="btn-small" (click)="openEditModal(categoria)">Editar</button>
+              <button class="btn-small btn-danger" (click)="deleteCategoria(categoria)">Eliminar</button>
+            </div>
+          </div>
+          
+          @if (categoria.items.length > 0) {
+            <div class="items-list">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Label</th>
+                    <th>Route</th>
+                    <th>Permiso</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of categoria.items; track $index; let i = $index) {
+                    <tr>
+                      <td>{{ item.label }}</td>
+                      <td>{{ item.route }}</td>
+                      <td>{{ item.permiso || '-' }}</td>
+                      <td>
+                        <button class="btn-small" (click)="editItem(categoria, i)">Editar</button>
+                        <button class="btn-small btn-danger" (click)="removeItem(categoria.id, i)">Eliminar</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingCategoria() ? 'Editar' : 'Nueva' }} Categoría</h3>
+        <button class="modal-close" (click)="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" [(ngModel)]="newCategoria().nombre" placeholder="Nombre de la categoría" />
+        </div>
+        <div class="form-group">
+          <label>Orden</label>
+          <input type="number" [(ngModel)]="newCategoria().orden" placeholder="0" />
+        </div>
+        <div class="form-group checkbox">
+          <label>
+            <input type="checkbox" [(ngModel)]="newCategoria().expanded" />
+            Expandida por defecto
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button class="btn-primary" (click)="saveCategoria()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showItemModal()) {
+  <div class="modal-overlay" (click)="closeItemModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingItemIndex() >= 0 ? 'Editar' : 'Nuevo' }} Item</h3>
+        <button class="modal-close" (click)="closeItemModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Label</label>
+          <input type="text" [(ngModel)]="newItem().label" placeholder="Ej: Productos" />
+        </div>
+        <div class="form-group">
+          <label>Route</label>
+          <input type="text" [(ngModel)]="newItem().route" placeholder="Ej: productos" />
+        </div>
+        <div class="form-group">
+          <label>Permiso (opcional)</label>
+          <input type="text" [(ngModel)]="newItem().permiso" placeholder="Ej: productos_gestionar" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeItemModal()">Cancelar</button>
+        <button class="btn-primary" (click)="saveItem()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}

@@ -8,18 +8,6 @@
       <div class="header-actions-tasa">
         @if (isRoot()) {
           <button class="btn-dolarvzla" (click)="abrirDolarVzla()">💵 Api Key</button>
-          @if (showApiKeyInput) {
-            <div class="api-key-container">
-              <input 
-                type="text" 
-                [(ngModel)]="dolarApiKey" 
-                placeholder="API Key"
-                class="input-api-key"
-                (keydown.enter)="guardarApiKey()"
-              />
-              <button class="btn-small" (click)="guardarApiKey()">Guardar</button>
-            </div>
-          }
         }
         <button class="refresh-btn" (click)="loadTasas()" [disabled]="loadingTasa()">
           @if (loadingTasa()) {
@@ -30,6 +18,30 @@
         </button>
       </div>
     </div>
+
+    @if (showApiKeyModal) {
+      <div class="popup-overlay" (click)="showApiKeyModal = false">
+        <div class="popup-content popup-small" (click)="$event.stopPropagation()">
+          <h3>API Key de DolarVzla</h3>
+          <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
+            Ingresa tu API key de <a href="https://www.dolarvzla.com/settings/api/" target="_blank">dolarvzla.com</a>
+          </p>
+          <div class="form-group">
+            <input 
+              type="text" 
+              [(ngModel)]="dolarApiKey" 
+              placeholder="API Key"
+              class="input-api-key-modal"
+              (keydown.enter)="guardarApiKey()"
+            />
+          </div>
+          <div class="popup-buttons">
+            <button class="cancel-btn" (click)="showApiKeyModal = false">Cancelar</button>
+            <button class="save-btn" (click)="guardarApiKey()">Guardar</button>
+          </div>
+        </div>
+      </div>
+    }
     @if (tasaError()) {
       <div class="tasa-error">{{ tasaError() }}</div>
     }
@@ -47,31 +59,41 @@
           <span class="tasa-value">Bs {{ dolar().toFixed(2) }}</span>
         </label>
       </div>
-      <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'euro'">
-        <label class="tasa-radio">
-          <input
-            type="radio"
-            name="tasaPvp"
-            [value]="'euro'"
-            [ngModel]="tasaPvp()"
-            (ngModelChange)="onTasaPvpChange($event)"
-          />
-          <span class="tasa-label">EUR:</span>
-          <span class="tasa-value">Bs {{ euro().toFixed(2) }}</span>
-        </label>
+      <div class="tasa-wrapper euro-wrapper">
+        <span class="tasa-diferencial" [class.positivo]="diferencialEuro >= 0" [class.negativo]="diferencialEuro < 0">
+          ({{ diferencialEuro >= 0 ? '+' : '' }}{{ diferencialEuro.toFixed(2) }}%)
+        </span>
+        <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'euro'">
+          <label class="tasa-radio">
+            <input
+              type="radio"
+              name="tasaPvp"
+              [value]="'euro'"
+              [ngModel]="tasaPvp()"
+              (ngModelChange)="onTasaPvpChange($event)"
+            />
+            <span class="tasa-label">EUR:</span>
+            <span class="tasa-value">Bs {{ euro().toFixed(2) }}</span>
+          </label>
+        </div>
       </div>
-      <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'binance'">
-        <label class="tasa-radio">
-          <input
-            type="radio"
-            name="tasaPvp"
-            [value]="'binance'"
-            [ngModel]="tasaPvp()"
-            (ngModelChange)="onTasaPvpChange($event)"
-          />
-          <span class="tasa-label">Binance:</span>
-          <span class="tasa-value">$ {{ binance().toFixed(2) }}</span>
-        </label>
+      <div class="tasa-wrapper binance-wrapper">
+        <span class="tasa-diferencial" [class.positivo]="diferencialBinance >= 0" [class.negativo]="diferencialBinance < 0">
+          ({{ diferencialBinance >= 0 ? '+' : '' }}{{ diferencialBinance.toFixed(2) }}%)
+        </span>
+        <div class="tasa-item" [class.seleccionado]="tasaPvp() === 'binance'">
+          <label class="tasa-radio">
+            <input
+              type="radio"
+              name="tasaPvp"
+              [value]="'binance'"
+              [ngModel]="tasaPvp()"
+              (ngModelChange)="onTasaPvpChange($event)"
+            />
+            <span class="tasa-label">Binance:</span>
+            <span class="tasa-value">$ {{ binance().toFixed(2) }}</span>
+          </label>
+        </div>
       </div>
       <button class="consulta-btn-small" (click)="consultaUnica()">🔍 Consulta Única</button>
     </div>

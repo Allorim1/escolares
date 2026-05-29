@@ -165,8 +165,17 @@ export class CurrencyService {
       const priceInBs = this.convertToBs(priceInUsd);
       return this.formatBs(priceInBs);
     } else {
-      return `$${priceInUsd.toFixed(2)}`;
+      return this.formatUsdWithDecimals(priceInUsd);
     }
+  }
+
+  private formatUsdWithDecimals(priceInUsd: number): string {
+    const formatted = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(priceInUsd);
+    const parts = formatted.split('.');
+    if (parts.length === 2) {
+      return `<span class="price-integer">${parts[0]}</span><span class="price-decimal">.${parts[1]}</span>`;
+    }
+    return formatted;
   }
 
   // Check if we're in BOTH mode (for applying special CSS)
@@ -178,7 +187,12 @@ export class CurrencyService {
    * Format price in Bs
    */
   formatBs(priceInBs: number): string {
-    return `Bs. ${new Intl.NumberFormat('es-VE').format(Math.round(priceInBs))}`;
+    const formatted = new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(priceInBs);
+    const parts = formatted.split(',');
+    if (parts.length >= 2) {
+      return `<span class="price-integer">Bs. ${parts[0]}</span><span class="price-decimal">,${parts.slice(1).join(',')}</span>`;
+    }
+    return `Bs. ${formatted}`;
   }
   
   /**

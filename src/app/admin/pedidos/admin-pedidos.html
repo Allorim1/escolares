@@ -36,12 +36,19 @@
         <div class="pedido-card" (click)="selectOrder(order)">
           <div class="pedido-header">
             <span class="pedido-id">#{{ order.id.slice(-8) }}</span>
-            <span 
-              class="pedido-status" 
-              [style.background-color]="statusColors[order.status] || '#6c757d'"
-            >
-              {{ getStatusLabel(order.status) }}
-            </span>
+            <div class="pedido-header-right">
+              @if (order.deliveryPersonName) {
+                <span class="delivery-badge" title="Repartidor asignado: {{ order.deliveryPersonName }}">
+                  🚚 {{ order.deliveryPersonName }}
+                </span>
+              }
+              <span 
+                class="pedido-status" 
+                [style.background-color]="statusColors[order.status] || '#6c757d'"
+              >
+                {{ getStatusLabel(order.status) }}
+              </span>
+            </div>
           </div>
           
           <div class="pedido-info">
@@ -73,6 +80,15 @@
             <span class="pedido-date">{{ formatDate(order.createdAt) }}</span>
             <span class="pedido-items">{{ order.items.length }} producto(s)</span>
           </div>
+          @if (order.status === 'entregado' || order.status === 'cancelado') {
+            <div class="pedido-timer completed">
+              ⏱️ {{ getTimeInProgress(order) }}
+            </div>
+          } @else {
+            <div class="pedido-timer">
+              ⏱️ {{ getTimeInProgress(order) }}
+            </div>
+          }
         </div>
       }
       
@@ -101,7 +117,8 @@
                   class="status-btn"
                   [class.active]="selectedOrder()!.status === status.value"
                   [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
-                  (click)="updateStatus(selectedOrder()!.id, status.value)"
+                  (click)="onStatusClick(status.value)"
+                  [disabled]="isStatusDisabled(status.value)"
                 >
                   {{ status.label }}
                 </button>
@@ -109,6 +126,34 @@
             }
           </div>
         </div>
+       
+        @if (selectedOrder()!.status !== 'entregado' && selectedOrder()!.status !== 'cancelado') {
+          <div class="detail-section danger-zone">
+            <h4>Acciones</h4>
+            <button class="btn-cancel-order" (click)="openCancelModal()">
+              🗑️ Cancelar Pedido
+            </button>
+            @if (!selectedOrder()!.facturaImage) {
+              <button class="btn-subir-factura" (click)="openFacturaModal()">
+                📤 Subir Factura
+              </button>
+              <p class="factura-hint">Requerido para marcar como entregado</p>
+            }
+            <button class="btn-asignar-repartidor" (click)="openAssignDeliveryModal()">
+              🚚 Asignar Repartidor
+            </button>
+          </div>
+        }
+        
+        @if (selectedOrder()!.autorizadoNombre) {
+          <div class="detail-section autorizacion-section">
+            <h4>Autorización</h4>
+            <div class="autorizacion-info">
+              <span class="label">Cancelado por:</span>
+              <span class="value">{{ selectedOrder()!.autorizadoNombre }}</span>
+            </div>
+          </div>
+        }
         
         <div class="detail-section">
           <h4>Datos del Cliente</h4>
@@ -129,6 +174,17 @@
               <span class="label">Dirección:</span>
               <span class="value">{{ selectedOrder()!.direccion }}</span>
             </div>
+@if (selectedOrder()!.deliveryPersonName) {
+               <div class="detail-item full">
+                 <span class="label">Repartidor asignado:</span>
+                 <span class="value delivery-person">
+                   {{ selectedOrder()!.deliveryPersonName }}
+                   <button class="btn-view-delivery-profile" (click)="openDeliveryPersonModal(selectedOrder()!.deliveryPersonId!)">
+                     📋 Ver ficha
+                   </button>
+                 </span>
+               </div>
+             }
           </div>
         </div>
         
@@ -151,6 +207,30 @@
               <span class="label">Fecha:</span>
               <span class="value">{{ formatDate(selectedOrder()!.createdAt) }}</span>
             </div>
+            @if (selectedOrder()!.bancoEmisor) {
+              <div class="detail-item">
+                <span class="label">Banco emisor:</span>
+                <span class="value">{{ selectedOrder()!.bancoEmisor }}</span>
+              </div>
+            }
+            @if (selectedOrder()!.cedulaTitular) {
+              <div class="detail-item">
+                <span class="label">Cédula titular:</span>
+                <span class="value">{{ selectedOrder()!.cedulaTitular }}</span>
+              </div>
+            }
+            @if (selectedOrder()!.telefono) {
+              <div class="detail-item">
+                <span class="label">Teléfono:</span>
+                <span class="value">{{ selectedOrder()!.telefono }}</span>
+              </div>
+            }
+            @if (selectedOrder()!.correo) {
+              <div class="detail-item">
+                <span class="label">Correo:</span>
+                <span class="value">{{ selectedOrder()!.correo }}</span>
+              </div>
+            }
           </div>
           
           @if (selectedOrder()!.referencia || selectedOrder()!.fotoComprobante) {
@@ -208,16 +288,226 @@
             </div>
           </div>
         }
+        
+        @if (selectedOrder()!.facturaImage) {
+          <div class="factura-section">
+            <h5>Factura</h5>
+            <div class="factura-image">
+              <button class="btn-ver-factura" (click)="openImageModal(selectedOrder()!.facturaImage!)">
+                📄 Ver Factura
+              </button>
+            </div>
+          </div>
+        }
       </div>
     </div>
   </div>
 }
 
-@if (imageModalOpen()) {
+@if (showAssignDeliveryModal()) {
+   <div class="modal-overlay" (click)="closeAssignDeliveryModal()">
+     <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>Asignar Repartidor - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+         <button class="close-btn" (click)="closeAssignDeliveryModal()">&times;</button>
+       </div>
+       
+       <div class="modal-body">
+         <div class="form-group">
+           <label>Repartidor *</label>
+           @if (loadingDeliveryPersons()) {
+             <div class="loading-text">Cargando repartidores...</div>
+           } @else {
+<select
+                [value]="selectedDeliveryPersonId()"
+                (change)="selectedDeliveryPersonId.set($any($event.target).value || '')"
+                class="delivery-select"
+              >
+                <option value="">Selecciona un repartidor</option>
+                @for (person of getAvailableDeliveryPersons(); track person.id) {
+                  <option [value]="person.id">{{ person.nombre }} {{ person.telefono ? '(' + person.telefono + ')' : '' }}</option>
+                }
+             </select>
+             <small class="help-text">Selecciona un repartidor de la lista</small>
+           }
+         </div>
+
+         @if (assignDeliveryError()) {
+           <div class="error-message">{{ assignDeliveryError() }}</div>
+         }
+       </div>
+       
+       <div class="modal-footer">
+         <button class="btn-secondary" (click)="closeAssignDeliveryModal()">Cancelar</button>
+         <button class="btn-primary" (click)="assignDeliveryPerson()" [disabled]="isAssigningDelivery() || !selectedDeliveryPersonId()">
+           {{ isAssigningDelivery() ? 'Asignando...' : 'Asignar Repartidor' }}
+         </button>
+       </div>
+     </div>
+   </div>
+ }
+
+ @if (showDeliveryPersonModal()) {
+   <div class="modal-overlay" (click)="closeDeliveryPersonModal()">
+     <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>📋 Ficha Técnica del Repartidor</h3>
+         <button class="close-btn" (click)="closeDeliveryPersonModal()">&times;</button>
+       </div>
+       
+       <div class="modal-body">
+         @if (selectedDeliveryPerson()) {
+           <div class="delivery-person-profile">
+             <div class="profile-section">
+               <h4>Datos Personales</h4>
+               <div class="profile-grid">
+                 <div class="profile-item">
+                   <span class="label">Nombre:</span>
+                   <span class="value">{{ selectedDeliveryPerson()!.nombre }}</span>
+                 </div>
+                 @if (selectedDeliveryPerson()!.telefono) {
+                   <div class="profile-item">
+                     <span class="label">Teléfono:</span>
+                     <span class="value">{{ selectedDeliveryPerson()!.telefono }}</span>
+                   </div>
+                 }
+                 <div class="profile-item">
+                   <span class="label">Estado:</span>
+                   <span class="value">
+                     <span class="status-badge" [class.active]="selectedDeliveryPerson()!.activo" [class.inactive]="!selectedDeliveryPerson()!.activo">
+                       {{ selectedDeliveryPerson()!.activo ? 'Activo' : 'Inactivo' }}
+                     </span>
+                   </span>
+                 </div>
+               </div>
+             </div>
+
+             @if (selectedDeliveryPerson()!.fotoDNI) {
+               <div class="profile-section">
+                 <h4>Foto de DNI</h4>
+                 <div class="dni-image-container">
+                   <img [src]="selectedDeliveryPerson()!.fotoDNI" alt="DNI del repartidor" class="dni-image" />
+                   <a [href]="selectedDeliveryPerson()!.fotoDNI" target="_blank" class="btn-view-dni">🔍 Ver en tamaño original</a>
+                 </div>
+               </div>
+             }
+           </div>
+         }
+       </div>
+     </div>
+   </div>
+ }
+
+ @if (imageModalOpen()) {
   <div class="image-modal-overlay" (click)="closeImageModal()">
     <div class="image-modal-content" (click)="$event.stopPropagation()">
       <button class="image-modal-close" (click)="closeImageModal()">✕</button>
       <img [src]="modalImageUrl()" alt="Comprobante de pago" class="modal-image" />
+    </div>
+  </div>
+}
+
+@if (showCancelModal()) {
+  <div class="modal-overlay" (click)="closeCancelModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Cancelar Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+        <button class="close-btn" (click)="closeCancelModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Motivo de Cancelación *</label>
+          <textarea
+            [value]="cancelReason()"
+            (input)="cancelReason.set($any($event.target).value || '')"
+            rows="3"
+            placeholder="Ingresa el motivo de la cancelación..."
+            class="cancel-textarea"
+          ></textarea>
+        </div>
+        
+        @if (hasSupervisorKey()) {
+          <div class="form-group">
+            <label>Clave de Supervisor *</label>
+            <input
+              type="password"
+              [value]="supervisorKey()"
+              (input)="supervisorKey.set($any($event.target).value || '')"
+              placeholder="Ingresa tu clave de supervisor"
+              class="supervisor-input"
+            />
+            <small class="help-text">Solo usuarios con clave de supervisor pueden cancelar pedidos</small>
+          </div>
+        }
+
+        @if (cancelError()) {
+          <div class="error-message">{{ cancelError() }}</div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeCancelModal()">Cancelar</button>
+        <button class="btn-danger" (click)="cancelOrderWithSupervisor()" [disabled]="isCancelling()">
+          {{ isCancelling() ? 'Procesando...' : 'Confirmar Cancelación' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showFacturaModal()) {
+  <div class="modal-overlay" (click)="closeFacturaModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Subir Factura - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+        <button class="close-btn" (click)="closeFacturaModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        @if (!facturaPreview()) {
+          <div 
+            class="dropzone"
+            [class.drag-active]="dragActive()"
+            (dragenter)="onDragEnter($event)"
+            (dragleave)="onDragLeave($event)"
+            (dragover)="onDragOver($event)"
+            (drop)="onDrop($event)"
+          >
+            <div class="dropzone-content">
+              <span class="dropzone-icon">📁</span>
+              <p>Arrastra y suelta la imagen de la factura aquí</p>
+              <p class="dropzone-hint">o</p>
+              <button class="btn-select-file" (click)="fileInput.click()">
+                Seleccionar archivo
+              </button>
+              <input 
+                #fileInput
+                type="file" 
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                style="display: none;"
+              />
+            </div>
+          </div>
+        } @else {
+          <div class="preview-container">
+            <img [src]="facturaPreview()" alt="Vista previa factura" class="factura-preview-img" />
+            <button class="btn-remove-factura" (click)="facturaFile.set(null); facturaPreview.set(null)">✕</button>
+          </div>
+        }
+
+        @if (facturaError()) {
+          <div class="error-message">{{ facturaError() }}</div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeFacturaModal()">Cancelar</button>
+        <button class="btn-primary" (click)="uploadFactura()" [disabled]="isUploadingFactura() || !facturaFile()">
+          {{ isUploadingFactura() ? 'Subiendo...' : 'Subir Factura' }}
+        </button>
+      </div>
     </div>
   </div>
 }

@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../shared/data-access/api-key-status.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface Tasa {
   costo: number;
@@ -58,9 +59,10 @@ interface Reporte {
 export class CostoTasa implements OnInit {
   @ViewChild('tablaCostos') tablaCostos!: ElementRef;
 
-  private http = inject(HttpClient);
-  private authService = inject(AuthService);
-  private apiKeyStatusService = inject(ApiKeyStatusService);
+private http = inject(HttpClient);
+   private authService = inject(AuthService);
+   private apiKeyStatusService = inject(ApiKeyStatusService);
+   private notificationService = inject(NotificationModalService);
 
   private readonly API_DOLAR = '/api/tasas';
   private readonly API_COSTOS = '/api/costos';
@@ -70,6 +72,7 @@ export class CostoTasa implements OnInit {
   dolarApiKey = '';
   apiKeyLoaded = false;
   hasApiKey = false;
+  showApiKeyModal = false;
 
   isRoot(): boolean {
     return this.authService.user()?.rol === 'root';
@@ -82,7 +85,7 @@ export class CostoTasa implements OnInit {
     dolar: 0,
     euro: 0,
     binance: 0,
-    pvpBsf: 0,
+pvpBsf: 0,
     pvpDolar: 0,
   });
 
@@ -94,6 +97,20 @@ export class CostoTasa implements OnInit {
   binance = signal(0);
 
   tasaPvp = signal<'dolar' | 'euro' | 'binance'>('dolar');
+
+  get diferencialEuro(): number {
+    const dolar = this.dolar();
+    const euro = this.euro();
+    if (dolar === 0) return 0;
+    return ((euro - dolar) / dolar) * 100;
+  }
+
+  get diferencialBinance(): number {
+    const dolar = this.dolar();
+    const binance = this.binance();
+    if (dolar === 0) return 0;
+    return ((binance - dolar) / dolar) * 100;
+  }
 
   loadingTasa = signal(false);
   tasaError = signal<string | null>(null);
@@ -127,11 +144,11 @@ export class CostoTasa implements OnInit {
   consultaUtilidadAmount = 0;
   consultaPvpDolar = 0;
   saving = signal(false);
-  utilidadesTemp: { [key: string]: number } = {};
-  pvpDolarTemp: { [key: string]: number } = {};
-  editingPvpDolar: { [key: string]: boolean } = {};
-  nombresProductos: { [key: string]: string } = {};
-  cantidadesProductos: { [key: string]: number } = {};
+  utilidadesTemp: Record<string, number> = {};
+  pvpDolarTemp: Record<string, number> = {};
+  editingPvpDolar: Record<string, boolean> = {};
+  nombresProductos: Record<string, string> = {};
+  cantidadesProductos: Record<string, number> = {};
   paginaActual = 1;
   reportesPorPagina = 5;
 
@@ -158,14 +175,14 @@ export class CostoTasa implements OnInit {
   }
 
   abrirDolarVzla() {
-    if (this.showApiKeyInput) {
-      this.showApiKeyInput = false;
+    if (this.showApiKeyModal) {
+      this.showApiKeyModal = false;
       this.dolarApiKey = '';
       return;
     }
 
     if (!this.hasApiKey) {
-      this.showApiKeyInput = true;
+      this.showApiKeyModal = true;
       this.dolarApiKey = '';
       window.open('https://www.dolarvzla.com/settings/api/', '_blank');
       return;
@@ -178,7 +195,7 @@ export class CostoTasa implements OnInit {
       error: (err: any) => {
         console.error('Error checking tasas:', err);
         if (err.status === 401 || err.error?.apiKeyExpired || err.name === 'TimeoutError') {
-          this.showApiKeyInput = true;
+          this.showApiKeyModal = true;
           this.dolarApiKey = '';
         } else {
           window.open('https://www.dolarvzla.com/settings/api/', '_blank');
@@ -399,6 +416,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('Producto guardado correctamente', 'Éxito');
       });
   }
 
@@ -424,6 +442,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('Cantidad guardada correctamente', 'Éxito');
       });
   }
 
@@ -466,6 +485,7 @@ export class CostoTasa implements OnInit {
         this.loadReportes();
         if (result?.id) {
           this.reporteSeleccionadoId = result.id;
+          this.notificationService.success('Reporte creado correctamente', 'Éxito');
         }
       });
   }
@@ -522,6 +542,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('Costo guardado correctamente', 'Éxito');
       });
   }
 
@@ -536,6 +557,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('Costo eliminado correctamente', 'Éxito');
       });
   }
 
@@ -561,8 +583,8 @@ export class CostoTasa implements OnInit {
         ivaActivo: checked,
         iva: nuevoIva,
         pvpBsf: Math.round(pvpBsf * 100) / 100,
-        pvpDolar: Math.round(pvpDolar * 100) / 100,
-      })
+pvpDolar: Math.round(pvpDolar * 100) / 100,
+       })
       .pipe(
         catchError((err) => {
           console.error('Error actualizando IVA:', err);
@@ -571,6 +593,7 @@ export class CostoTasa implements OnInit {
       )
       .subscribe(() => {
         this.loadReportes();
+        this.notificationService.success('IVA actualizado correctamente', 'Éxito');
       });
   }
 
@@ -626,6 +649,7 @@ export class CostoTasa implements OnInit {
       .subscribe(() => {
         delete this.utilidadesTemp[index];
         this.loadReportes();
+        this.notificationService.success('Utilidad actualizada correctamente', 'Éxito');
       });
   }
 
@@ -688,6 +712,7 @@ export class CostoTasa implements OnInit {
         delete this.pvpDolarTemp[index];
         this.editingPvpDolar[index] = false;
         this.loadReportes();
+        this.notificationService.success('PVP dólar actualizado correctamente', 'Éxito');
       });
   }
 

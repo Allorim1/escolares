@@ -2,15 +2,19 @@ import { Injectable, inject, computed, signal } from '@angular/core';
 import { Product } from '../../shared/interfaces/product.interface';
 import { ProductsService } from './products.service';
 import { signalSlice } from 'ngxtension/signal-slice';
-import { catchError, map, of, Subject } from 'rxjs';
+import { catchError, map, of, Subject, startWith, switchMap } from 'rxjs';
 
 interface State {
-    products: Product[];
-    status: 'loading' | 'success' | 'error',
-    page: number;
-}
+     products: Product[];
+     status: 'loading' | 'success' | 'error',
+     page: number,
+     total: number,
+     totalPages: number
+ }
 
-@Injectable()
+@Injectable({
+    providedIn: 'root',
+})
 export class ProductsStateService {
 
     private productsService = inject(ProductsService);
@@ -19,36 +23,34 @@ export class ProductsStateService {
         products: [],
         status: 'loading' as const,
         page: 1,
+        total: 0,
+        totalPages: 0
     }
 
     private pageSize = 8;
     allProducts = signal<Product[]>([]);
 
-    // computed signals to drive button disabled state
-    hasNext = computed(() => {
-        const total = this.allProducts().length;
-        return this.state.page() * this.pageSize < total;
-    });
-
-    hasPrev = computed(() => this.state.page() > 1);
-
     changePage$ = new Subject<number>();
 
-    private sliceForPage(page: number) {
-        const start = (page - 1) * this.pageSize;
-        return this.allProducts().slice(start, start + this.pageSize);
-    }
-
-    private loadAll$ = this.productsService.getProducts().pipe(
-        map((products) => {
-            this.allProducts.set(products);
-            return {
-                products: this.sliceForPage(1),
-                status: 'success' as const
-            };
-        }),
-        catchError(() => of({ products: [], status: 'error' as const }))
-    );
+private loadAll$ = this.changePage$.pipe(
+       startWith(1),
+       switchMap(() => this.productsService.getProducts()),
+       map((response: any) => {
+         // Handle both {products: [...], total: number} and {products: [...], pagination: {...}} formats
+         const products: Product[] = Array.isArray(response) 
+           ? response 
+           : (Array.isArray(response?.products) ? response.products : []);
+         const total = products.length;
+         this.allProducts.set(products);
+         return {
+           products,
+           status: 'success' as const,
+           total,
+           totalPages: Math.ceil(total / this.pageSize)
+         };
+       }),
+       catchError(() => of({ products: [], status: 'error' as const, total: 0, totalPages: 0 }))
+     );
 
     state = signalSlice({
         initialState: this.initialState,
@@ -56,14 +58,15 @@ export class ProductsStateService {
             this.changePage$.pipe(
                 map((page) => ({ page, status: 'loading' as const }))
             ),
-            this.loadAll$,
-            this.changePage$.pipe(
-                map((page) => ({
-                    products: this.sliceForPage(page),
-                    status: 'success' as const
-                }))
-            )
+            this.loadAll$
         ]
     })
+
+    // computed signals to drive button disabled state
+    hasNext = computed(() => {
+      return this.state().page < this.state().totalPages;
+    });
+
+    hasPrev = computed(() => this.state().page > 1);
 
 }

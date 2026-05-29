@@ -1,0 +1,30 @@
+<div class="rating-container" [class.interactive]="isInteractive">
+  @for (star of stars; track star.value; let i = $index) {
+    <span 
+      class="star"
+      [class.filled]="star.filled"
+      [class.hovered]="star.hovered"
+      [class.user-rated]="i < userRate"
+      [class]="sizeClass"
+      (mouseenter)="onMouseEnter(i)"
+      (mouseleave)="onMouseLeave()"
+      (click)="onClick(i)"
+    >★</span>
+  }
+  <span class="rating-info">
+    @if (count > 0) {
+      <span class="rating-text">{{ currentRate.toFixed(1) }} ({{ count }} {{ count === 1 ? 'reseña' : 'reseñas' }})</span>
+    } @else {
+      <span class="rating-text">Sin reseñas</span>
+    }
+    @if (userRate > 0 && !isInteractive) {
+      <span class="your-rating">Tu puntuación: {{ userRate }}</span>
+    }
+  </span>
+  @if (!allowRate && userRate === 0) {
+    <span class="login-prompt"><a routerLink="/login">Inicia sesión</a> para calificar</span>
+  }
+  @if (isSubmitting()) {
+    <span class="submitting">Guardando...</span>
+  }
+</div>

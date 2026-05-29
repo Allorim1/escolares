@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ExcelService, DatosComprobante, EstructuraExcel } from '../../shared/data-access/excel.service';
+import { RegistroService } from '../../shared/data-access/registro.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -64,8 +66,10 @@ interface Retencion {
   styleUrl: './retenciones.css',
 })
 export class Retenciones implements OnInit {
-  private http = inject(HttpClient);
-  private excelService = inject(ExcelService);
+private http = inject(HttpClient);
+   private excelService = inject(ExcelService);
+   registroService = inject(RegistroService);
+   private notificationService = inject(NotificationModalService);
 
   private API = '/api/proveedores';
 
@@ -121,9 +125,22 @@ export class Retenciones implements OnInit {
 
   eliminarRetencion(id: string) {
     if (!confirm('¿Está seguro de eliminar esta retención?')) return;
+    const retencion = this.retenciones().find(r => r._id === id);
     this.http.delete(`/api/retenciones/${id}`).subscribe({
-      next: () => this.cargarRetenciones(),
-      error: (err) => console.error('Error eliminando retención:', err)
+      next: () => {
+        this.cargarRetenciones();
+        this.registroService.registrar(
+          'eliminar',
+          'Retenciones',
+          `Eliminó retención ${retencion?.numero || ''} - Factura ${retencion?.facturaNumero || ''}`,
+          { retencion: retencion }
+        );
+        this.notificationService.success('Retención eliminada correctamente', 'Éxito');
+      },
+      error: (err) => {
+        console.error('Error eliminando retención:', err);
+        this.notificationService.error('Error al eliminar retención');
+      }
     });
   }
 
@@ -279,12 +296,19 @@ export class Retenciones implements OnInit {
         iva: factura.iva,
         retenido: factura.iva75 || 0
       }).subscribe({
-        next: () => {
-          this.ultimoNumero = parseInt(this.comprobanteNumero.slice(-8));
-          this.http.put('/api/retenciones/ultimo', { ultimoNumero: this.ultimoNumero }).subscribe();
-          this.cargarRetenciones();
-          this.generarNumeroComprobante();
-        },
+next: () => {
+           this.ultimoNumero = parseInt(this.comprobanteNumero.slice(-8));
+           this.http.put('/api/retenciones/ultimo', { ultimoNumero: this.ultimoNumero }).subscribe();
+           this.cargarRetenciones();
+           this.generarNumeroComprobante();
+           this.notificationService.success('Retención generada correctamente', 'Éxito');
+           this.registroService.registrar(
+             'crear',
+             'Retenciones',
+             `Generó comprobante de retención ${this.comprobanteNumero} - Proveedor: ${proveedor.nombre}`,
+             { numero: this.comprobanteNumero, proveedor: proveedor.rif, factura: factura.numero }
+           );
+         },
         error: (err) => {
           if (err.error?.error === 'Ya existe una retención para esta factura') {
             alert('Ya existe una retención para esta factura');
@@ -309,6 +333,20 @@ export class Retenciones implements OnInit {
     
     if (opcion === 3 || opcion === 4) {
       await this.excelService.generarComprobanteIVA(datos);
+    }
+
+    const acciones: string[] = [];
+    if (opcion === 1 || opcion === 4) acciones.push('Imprimir');
+    if (opcion === 2 || opcion === 4) acciones.push('PDF');
+    if (opcion === 3 || opcion === 4) acciones.push('Excel');
+    
+    if (acciones.length > 0) {
+      this.registroService.registrar(
+        'crear',
+        'Retenciones',
+        `Generó comprobante ${this.comprobanteNumero} - Acciones: ${acciones.join(', ')}`,
+        { numero: this.comprobanteNumero, proveedor: proveedor.rif, acciones }
+      );
     }
   }
 
@@ -390,7 +428,7 @@ export class Retenciones implements OnInit {
       return;
     }
 
-    let lineas: string[] = [];
+    const lineas: string[] = [];
     let nComprobante = 1;
 
     for (const retencion of retencionesFiltradas) {
@@ -436,6 +474,13 @@ export class Retenciones implements OnInit {
     window.URL.revokeObjectURL(url);
     
     this.mensajeTXT.set(`TXT generado con ${lineas.length} registro(s)`);
+    this.notificationService.success(`TXT generado con ${lineas.length} registro(s)`, 'Éxito');
+    this.registroService.registrar(
+      'crear',
+      'Retenciones',
+      `Generó TXT de retenciones período ${periodo} con ${lineas.length} registro(s)`,
+      { periodo, cantidad: lineas.length, fechaDesde: this.fechaDesde, fechaHasta: this.fechaHasta }
+    );
   }
 }
  /* 

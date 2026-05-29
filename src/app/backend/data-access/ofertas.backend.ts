@@ -14,7 +14,7 @@ export class OfertasBackend {
     this.loadFromApi();
   }
 
-  private loadFromApi() {
+  loadFromApi() {
     this.http.get<Oferta[]>(this.API_URL).subscribe({
       next: (ofertas) => {
         this.ofertas.set(ofertas);
@@ -25,15 +25,20 @@ export class OfertasBackend {
     });
   }
 
+  reload() {
+    this.loadFromApi();
+  }
+
   agregarOferta(productId: number | string, precioOferta: number) {
     this.http.post<Oferta>(this.API_URL, { productId, precioOferta }).subscribe({
       next: (newOferta) => {
         this.ofertas.update((ofertas) => {
-          const existing = ofertas.find((o) => o.productId === productId);
+          const pidStr = String(productId);
+          const existing = ofertas.find((o) => String(o.productId) === pidStr);
           if (existing) {
-            return ofertas.map((o) => (o.productId === productId ? newOferta : o));
+            return ofertas.map((o) => String(o.productId) === pidStr ? { ...o, precioOferta: newOferta.precioOferta } : o);
           }
-          return [...ofertas, newOferta];
+          return [...ofertas, { productId, precioOferta }];
         });
       },
       error: (error) => {
@@ -45,7 +50,8 @@ export class OfertasBackend {
   eliminarOferta(productId: number | string) {
     this.http.delete(`${this.API_URL}/product/${productId}`).subscribe({
       next: () => {
-        this.ofertas.update((ofertas) => ofertas.filter((o) => o.productId !== productId));
+        const pidStr = String(productId);
+        this.ofertas.update((ofertas) => ofertas.filter((o) => String(o.productId) !== pidStr));
       },
       error: (error) => {
         console.error('Error deleting oferta:', error);
@@ -54,11 +60,13 @@ export class OfertasBackend {
   }
 
   getOferta(productId: number | string): Oferta | undefined {
-    return this.ofertas().find((o) => o.productId === productId);
+    const pidStr = String(productId);
+    return this.ofertas().find((o) => String(o.productId) === pidStr);
   }
 
   isEnOferta(productId: number | string): boolean {
-    return this.ofertas().some((o) => o.productId === productId);
+    const pidStr = String(productId);
+    return this.ofertas().some((o) => String(o.productId) === pidStr);
   }
 
   getOfertaPrice(productId: number | string): number | null {

@@ -1,19 +1,13 @@
 <section class="manuales-container">
-  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 50px; display: block; margin-bottom: 10px;">
-  <h3>Gestión de Manuales</h3>
+  <div class="header-row">
+    <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 40px;">
+    <h3 style="margin: 0 0 0 10px;">Gestión de Manuales</h3>
+  </div>
 
   <ng-container *ngIf="!esRoot()">
     <div class="no-access">
       <p>No tienes acceso a esta sección. Solo el usuario root puede gestionar manuales.</p>
     </div>
-  </ng-container>
-
-  <ng-container *ngIf="error()">
-    <div class="error-message" (click)="clearMessages()">{{ error() }}</div>
-  </ng-container>
-
-  <ng-container *ngIf="success()">
-    <div class="success-message" (click)="clearMessages()">{{ success() }}</div>
   </ng-container>
 
   <ng-container *ngIf="cargando()">
@@ -112,16 +106,37 @@
                   <label>Descripción / Comentario *</label>
                   <textarea [(ngModel)]="paso.descripcion" rows="3" placeholder="Describe este paso en detalle..."></textarea>
                 </div>
-                <div class="form-group">
-                  <label>Captura de Pantalla</label>
-                  <input type="file" accept="image/*" (change)="onImageSelected($event, i)" />
-                  <ng-container *ngIf="paso.imagen">
-                    <div class="imagen-preview">
-                      <img [src]="paso.imagen" alt="Preview" />
-                      <button class="btn-quitar-img" (click)="paso.imagen = ''">Quitar imagen</button>
-                    </div>
-                  </ng-container>
+<div class="form-group">
+                   <label>Captura de Pantalla (máx. 5MB)</label>
+                   <input type="file" accept="image/*" (change)="onImageSelected($event, i)" />
+<ng-container *ngIf="paso.imagen">
+                       <div class="imagen-preview">
+                         <img [src]="paso.imagen" alt="Preview" />
+                         <button class="btn-quitar-img" (click)="removeImage(i)">Quitar imagen</button>
+                       </div>
+                   </ng-container>
                 </div>
+                
+<div class="form-group">
+                   <label>Video por archivo (máx. 1 minuto, 30MB)</label>
+                   <input type="file" accept="video/*" (change)="onVideoSelected($event, i)" />
+                   <ng-container *ngIf="paso.video && !paso.videoUrl">
+                     <div class="video-preview">
+                       <video [src]="paso.video" controls></video>
+                       <span class="video-duration">Duración: {{ formatDuration(paso.videoDuration || 0) }}</span>
+                       <button class="btn-quitar-video" (click)="removeVideo(i)">Quitar video</button>
+                     </div>
+                   </ng-container>
+                 </div>
+                 
+                 <div class="form-group">
+                   <label>Video por enlace (YouTube, Vimeo, etc.)</label>
+                   <input type="url" [(ngModel)]="paso.videoUrl" placeholder="https://www.youtube.com/watch?v=..." (blur)="updateVideoFromUrl(i)" />
+                   <ng-container *ngIf="paso.videoUrl">
+                     <div class="video-preview" [innerHTML]="getEmbedUrl(paso.videoUrl)"></div>
+                     <button class="btn-quitar-video" (click)="removeVideoUrl(i)">Quitar enlace</button>
+                   </ng-container>
+                 </div>
               </div>
             </div>
           </div>
@@ -164,6 +179,15 @@
                 <img [src]="paso.imagen" alt="Captura del paso {{ paso.numero }}" />
               </div>
             </ng-container>
+<ng-container *ngIf="paso.video && !paso.videoUrl">
+               <div class="view-video">
+                 <video [src]="paso.video" controls></video>
+                 <span class="video-duration-badge">Duración: {{ paso.videoDuration }}s</span>
+               </div>
+             </ng-container>
+             <ng-container *ngIf="paso.videoUrl">
+               <div class="view-video" [innerHTML]="getEmbedUrl(paso.videoUrl)"></div>
+             </ng-container>
           </div>
         </div>
       </div>

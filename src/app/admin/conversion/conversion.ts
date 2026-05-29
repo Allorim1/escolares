@@ -6,16 +6,22 @@ import * as XLSX from 'xlsx';
 
 interface FilaResultado {
   fecha: string;
+  dia: string;
+  diaSemana: number;
   totalOriginal: number;
   tasa: number;
   totalConvertido: number;
-  columnasExtra: { [key: string]: any };
+  columnasExtra: Record<string, any>;
 }
 
 interface ComparacionResultado {
   fecha: string;
+  dia: string;
+  diaSemana: number;
   totalActual: number;
   totalAnterior: number;
+  tasaActual: number;
+  tasaAnterior: number;
   convertidoActual: number;
   convertidoAnterior: number;
   variacionPct: number;
@@ -74,8 +80,16 @@ export class Conversion {
   tasasAnterioresColumnas = signal<string[]>([]);
   tasasAnterioresPreview = signal<any[][]>([]);
 
+  // Tasas manuales para año anterior
+  tasasAnterioresManuales = signal<Map<string, number>>(new Map());
+  fechasSinTasaAnterior = signal<string[]>([]);
+
   comparaciones = signal<ComparacionResultado[]>([]);
+  comparacionesActual = signal<ComparacionResultado[]>([]);
+  comparacionesAnterior = signal<ComparacionResultado[]>([]);
   variacionTotalPct = signal(0);
+  mostrarModalComparacion = signal(false);
+  metaVariacion = signal(30);
 
   onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -941,17 +955,23 @@ export class Conversion {
       let totalOrig = 0;
       let totalConv = 0;
 
+      const idxDiaV = ventasHeaders.findIndex(h => h.toUpperCase() === 'DIA');
+
       for (let i = 1; i < ventasRows.length; i++) {
         const row = ventasRows[i];
         const fecha = this.normalizarFecha(row[idxFechaV]);
+        const dia = idxDiaV >= 0 ? String(row[idxDiaV] || '') : '';
         const total = this.parseNumber(row[idxTotalV]);
 
         if (!fecha) continue;
 
+        const fechaDate = new Date(fecha + 'T00:00:00');
+        const diaSemana = fechaDate.getDay();
+
         const tasa = todasLasTasas.get(fecha) || 0;
         const totalConvertido = tasa > 0 ? total / tasa : 0;
 
-        const columnasExtra: { [key: string]: any } = {};
+        const columnasExtra: Record<string, any> = {};
         ventasHeaders.forEach((h: string, idx: number) => {
           if (idx !== idxFechaV && idx !== idxTotalV) {
             columnasExtra[h] = row[idx];
@@ -960,6 +980,8 @@ export class Conversion {
 
         resultados.push({
           fecha,
+          dia,
+          diaSemana,
           totalOriginal: total,
           tasa,
           totalConvertido,
@@ -982,22 +1004,82 @@ export class Conversion {
   }
 
   procesarComparacion() {
-    if (this.tasasMap().size === 0) {
-      this.error.set('Debe cargar y procesar el archivo de tasas primero');
-      return;
-    }
-
     const tasaMap = this.tasasMap();
     const tasasManuales = this.tasasManuales();
     const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
 
-    // Procesar archivo anterior si existe
+    const tasasAnterioresBase = this.tasasAnterioresMap();
+    const tasasAnterioresManual = this.tasasAnterioresManuales();
+    let todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+
+    // Si no hay tasas anteriores, usar las actuales como fallback
+    if (todasLasTasasAnteriores.size === 0) {
+      todasLasTasasAnteriores = new Map(todasLasTasas);
+    }
+
+    const fechasFaltantesAnterior: string[] = [];
+
+    // Procesar archivo actual con tasas actuales
+    if (this.resultados().length === 0 && this.ventasRaw().length >= 2) {
+      const resActual = this.calcularResultados(
+        this.ventasRaw(),
+        this.columnaFechaVentas(),
+        this.columnaTotalVentas(),
+        todasLasTasas
+      );
+      this.resultados.set(resActual.resultados);
+      this.totalOriginal.set(resActual.totalOrig);
+      this.totalConvertido.set(resActual.totalConv);
+    }
+
+    // Procesar archivo anterior con tasas anteriores (o tasas actuales como fallback)
     if (this.ventasAnteriorRaw().length >= 2) {
+      // Primera pasada: recopilar todas las fechas únicas de ventas anteriores
+      const ventasAnteriorRows = this.ventasAnteriorRaw();
+      const ventasAnteriorHeaders = ventasAnteriorRows[0];
+      const idxFechaAnterior = ventasAnteriorHeaders.indexOf(this.columnaFechaAnterior());
+      
+      const fechasVentasAnterior = new Set<string>();
+      for (let i = 1; i < ventasAnteriorRows.length; i++) {
+        const fecha = this.normalizarFecha(ventasAnteriorRows[i][idxFechaAnterior]);
+        if (fecha) fechasVentasAnterior.add(fecha);
+      }
+
+      // Para fechas de fin de semana sin tasa, buscar la del próximo lunes
+      for (const fecha of fechasVentasAnterior) {
+        if (todasLasTasasAnteriores.has(fecha)) continue;
+        const fechaDate = new Date(fecha + 'T00:00:00');
+        const diaSemana = fechaDate.getDay();
+
+        if (diaSemana === 0 || diaSemana === 6) {
+          const diasHastaLunes = diaSemana === 6 ? 2 : 1;
+          const lunesDate = new Date(fechaDate);
+          lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
+          const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
+          const tasaLunes = todasLasTasasAnteriores.get(lunesStr);
+          if (tasaLunes) {
+            todasLasTasasAnteriores.set(fecha, tasaLunes);
+          }
+        }
+      }
+
+      // Detectar fechas laborales sin tasa
+      for (const fecha of fechasVentasAnterior) {
+        if (todasLasTasasAnteriores.has(fecha)) continue;
+        const fechaDate = new Date(fecha + 'T00:00:00');
+        const diaSemana = fechaDate.getDay();
+        if (diaSemana !== 0 && diaSemana !== 6) {
+          fechasFaltantesAnterior.push(fecha);
+        }
+      }
+
+      this.fechasSinTasaAnterior.set(fechasFaltantesAnterior);
+
       const resAnterior = this.calcularResultados(
         this.ventasAnteriorRaw(),
         this.columnaFechaAnterior(),
         this.columnaTotalAnterior(),
-        todasLasTasas
+        todasLasTasasAnteriores
       );
       this.resultadosAnterior.set(resAnterior.resultados);
       this.totalOriginalAnterior.set(resAnterior.totalOrig);
@@ -1017,6 +1099,7 @@ export class Conversion {
     const ventasHeaders = ventasRows[0];
     const idxFechaV = ventasHeaders.indexOf(colFecha);
     const idxTotalV = ventasHeaders.indexOf(colTotal);
+    const idxDiaV = ventasHeaders.findIndex(h => h.toUpperCase() === 'DIA');
 
     if (idxFechaV < 0 || idxTotalV < 0) {
       return { resultados: [], totalOrig: 0, totalConv: 0 };
@@ -1029,14 +1112,18 @@ export class Conversion {
     for (let i = 1; i < ventasRows.length; i++) {
       const row = ventasRows[i];
       const fecha = this.normalizarFecha(row[idxFechaV]);
+      const dia = idxDiaV >= 0 ? String(row[idxDiaV] || '') : '';
       const total = this.parseNumber(row[idxTotalV]);
 
       if (!fecha) continue;
 
+      const fechaDate = new Date(fecha + 'T00:00:00');
+      const diaSemana = fechaDate.getDay();
+
       const tasa = todasLasTasas.get(fecha) || 0;
       const totalConvertido = tasa > 0 ? total / tasa : 0;
 
-      const columnasExtra: { [key: string]: any } = {};
+      const columnasExtra: Record<string, any> = {};
       ventasHeaders.forEach((h: string, idx: number) => {
         if (idx !== idxFechaV && idx !== idxTotalV) {
           columnasExtra[h] = row[idx];
@@ -1045,6 +1132,8 @@ export class Conversion {
 
       resultados.push({
         fecha,
+        dia,
+        diaSemana,
         totalOriginal: total,
         tasa,
         totalConvertido,
@@ -1084,6 +1173,45 @@ export class Conversion {
     ]);
 
     const comparaciones: ComparacionResultado[] = [];
+    const comparacionesActualList: ComparacionResultado[] = [];
+    const comparacionesAnteriorList: ComparacionResultado[] = [];
+
+    // Listas separadas para cada año
+    for (const fecha of Array.from(mapaActual.keys()).sort()) {
+      const actual = mapaActual.get(fecha);
+      if (actual) {
+        comparacionesActualList.push({
+          fecha,
+          dia: actual.dia || '',
+          diaSemana: actual.diaSemana ?? 0,
+          totalActual: actual.totalOriginal,
+          totalAnterior: 0,
+          tasaActual: actual.tasa,
+          tasaAnterior: 0,
+          convertidoActual: actual.totalConvertido,
+          convertidoAnterior: 0,
+          variacionPct: 0
+        });
+      }
+    }
+
+    for (const fecha of Array.from(mapaAnterior.keys()).sort()) {
+      const anterior = mapaAnterior.get(fecha);
+      if (anterior) {
+        comparacionesAnteriorList.push({
+          fecha,
+          dia: anterior.dia || '',
+          diaSemana: anterior.diaSemana ?? 0,
+          totalActual: 0,
+          totalAnterior: anterior.totalOriginal,
+          tasaActual: 0,
+          tasaAnterior: anterior.tasa,
+          convertidoActual: 0,
+          convertidoAnterior: anterior.totalConvertido,
+          variacionPct: 0
+        });
+      }
+    }
 
     for (const fecha of todasLasFechas) {
       const actual = mapaActual.get(fecha);
@@ -1091,6 +1219,8 @@ export class Conversion {
 
       const totalActual = actual?.totalOriginal ?? 0;
       const totalAnterior = anterior?.totalOriginal ?? 0;
+      const tasaActual = actual?.tasa ?? 0;
+      const tasaAnterior = anterior?.tasa ?? 0;
       const convertidoActual = actual?.totalConvertido ?? 0;
       const convertidoAnterior = anterior?.totalConvertido ?? 0;
 
@@ -1100,8 +1230,12 @@ export class Conversion {
 
       comparaciones.push({
         fecha,
+        dia: actual?.dia || anterior?.dia || '',
+        diaSemana: actual?.diaSemana ?? anterior?.diaSemana ?? 0,
         totalActual,
         totalAnterior,
+        tasaActual,
+        tasaAnterior,
         convertidoActual,
         convertidoAnterior,
         variacionPct
@@ -1110,6 +1244,8 @@ export class Conversion {
 
     comparaciones.sort((a, b) => a.fecha.localeCompare(b.fecha));
     this.comparaciones.set(comparaciones);
+    this.comparacionesActual.set(comparacionesActualList);
+    this.comparacionesAnterior.set(comparacionesAnteriorList);
 
     // Calcular variación total porcentual
     const totalAct = this.totalOriginal();
@@ -1404,8 +1540,13 @@ export class Conversion {
     this.tasasAnterioresFilas.set([]);
     this.tasasAnterioresColumnas.set([]);
     this.tasasAnterioresPreview.set([]);
+    this.tasasAnterioresManuales.set(new Map());
+    this.fechasSinTasaAnterior.set([]);
     this.comparaciones.set([]);
+    this.comparacionesActual.set([]);
+    this.comparacionesAnterior.set([]);
     this.variacionTotalPct.set(0);
+    this.mostrarModalComparacion.set(false);
   }
 
   asignarTasaManual(fecha: string, valor: any) {
@@ -1433,5 +1574,194 @@ export class Conversion {
     const d = new Date(fecha + 'T00:00:00');
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     return dias[d.getDay()];
+  }
+
+  asignarTasaAnteriorManual(fecha: string, valor: any) {
+    const tasa = parseFloat(valor);
+    if (isNaN(tasa) || tasa <= 0) return;
+    const manuales = new Map(this.tasasAnterioresManuales());
+    manuales.set(fecha, tasa);
+    this.tasasAnterioresManuales.set(manuales);
+    this.procesarComparacion();
+  }
+
+  eliminarTasaAnteriorManual(fecha: string) {
+    const manuales = new Map(this.tasasAnterioresManuales());
+    manuales.delete(fecha);
+    this.tasasAnterioresManuales.set(manuales);
+    this.procesarComparacion();
+  }
+
+  abrirModalComparacion() {
+    this.procesarComparacion();
+    this.mostrarModalComparacion.set(true);
+  }
+
+  cerrarModalComparacion() {
+    this.mostrarModalComparacion.set(false);
+  }
+
+  diferenciaUSD(): number {
+    return Math.round((this.totalConvertido() - this.totalConvertidoAnterior()) * 100) / 100;
+  }
+
+  variacionUSDPorcentaje(): number {
+    const anterior = this.totalConvertidoAnterior();
+    if (anterior === 0) return 0;
+    return Math.round(((this.totalConvertido() - anterior) / anterior) * 10000) / 100;
+  }
+
+  tasaPromedioActual(): number {
+    const resultados = this.resultados();
+    if (resultados.length === 0) return 0;
+    const sumaTasa = resultados.reduce((sum, r) => sum + (r.tasa > 0 ? r.tasa : 0), 0);
+    const count = resultados.filter(r => r.tasa > 0).length;
+    return count > 0 ? Math.round((sumaTasa / count) * 10000) / 10000 : 0;
+  }
+
+  tasaPromedioAnterior(): number {
+    const resultados = this.resultadosAnterior();
+    if (resultados.length === 0) return 0;
+    const sumaTasa = resultados.reduce((sum, r) => sum + (r.tasa > 0 ? r.tasa : 0), 0);
+    const count = resultados.filter(r => r.tasa > 0).length;
+    return count > 0 ? Math.round((sumaTasa / count) * 10000) / 10000 : 0;
+  }
+
+  getDiaSemanaNum(diaSemana: number): string {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return dias[diaSemana] || '';
+  }
+
+esMismoDiaSemana(dia1: number, dia2: number): boolean {
+    return dia1 === dia2;
+  }
+
+  cumpleMeta(variacion: number): boolean {
+    return variacion >= this.metaVariacion();
+  }
+
+  getMetaVariacion(): number {
+    return this.metaVariacion();
+  }
+
+  getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const actuales = this.resultados();
+    const anteriores = this.resultadosAnterior();
+
+    const totalesPorDia = new Map<number, { actual: number; anterior: number }>();
+
+    for (let i = 0; i < 7; i++) {
+      totalesPorDia.set(i, { actual: 0, anterior: 0 });
+    }
+
+    actuales.forEach(r => {
+      const current = totalesPorDia.get(r.diaSemana);
+      if (current) {
+        current.actual += r.totalConvertido;
+      }
+    });
+
+    anteriores.forEach(r => {
+      const current = totalesPorDia.get(r.diaSemana);
+      if (current) {
+        current.anterior += r.totalConvertido;
+      }
+    });
+
+    return Array.from(totalesPorDia.entries()).map(([diaSemana, valores]) => ({
+      dia: dias[diaSemana],
+      actual: Math.round(valores.actual * 100) / 100,
+      anterior: Math.round(valores.anterior * 100) / 100,
+      variacion: valores.anterior > 0 
+        ? Math.round(((valores.actual - valores.anterior) / valores.anterior) * 10000) / 100 
+        : 0
+    }));
+  }
+
+  getComparacionDiaPorDia(): { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const actuales = this.resultados();
+    const anteriores = this.resultadosAnterior();
+
+    const mapaActual = new Map<number, FilaResultado[]>();
+    const mapaAnterior = new Map<number, FilaResultado[]>();
+
+    actuales.forEach(r => {
+      const lista = mapaActual.get(r.diaSemana) || [];
+      lista.push(r);
+      mapaActual.set(r.diaSemana, lista);
+    });
+
+    anteriores.forEach(r => {
+      const lista = mapaAnterior.get(r.diaSemana) || [];
+      lista.push(r);
+      mapaAnterior.set(r.diaSemana, lista);
+    });
+
+    const resultado: { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
+
+    for (let diaSemana = 0; diaSemana < 7; diaSemana++) {
+      const diasActual = mapaActual.get(diaSemana) || [];
+      const diasAnterior = mapaAnterior.get(diaSemana) || [];
+
+      const maxLen = Math.max(diasActual.length, diasAnterior.length);
+      const minLen = Math.min(diasActual.length, diasAnterior.length);
+
+      for (let i = 0; i < minLen; i++) {
+        const actual = diasActual[i];
+        const anterior = diasAnterior[i];
+
+        const actualUSD = actual?.totalConvertido || 0;
+        const anteriorUSD = anterior?.totalConvertido || 0;
+
+        resultado.push({
+          fechaActual: actual?.fecha || '',
+          fechaAnterior: anterior?.fecha || '',
+          dia: dias[diaSemana],
+          actual: Math.round(actualUSD * 100) / 100,
+          anterior: Math.round(anteriorUSD * 100) / 100,
+          variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+        });
+      }
+
+      if (diasActual.length > diasAnterior.length) {
+        const primerDiaAnterior = diasAnterior[0];
+        const anteriorUSD = primerDiaAnterior?.totalConvertido || 0;
+        
+        for (let i = minLen; i < diasActual.length; i++) {
+          const actual = diasActual[i];
+          const actualUSD = actual?.totalConvertido || 0;
+
+          resultado.push({
+            fechaActual: actual?.fecha || '',
+            fechaAnterior: primerDiaAnterior?.fecha || '',
+            dia: dias[diaSemana],
+            actual: Math.round(actualUSD * 100) / 100,
+            anterior: Math.round(anteriorUSD * 100) / 100,
+            variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+          });
+        }
+      } else if (diasAnterior.length > diasActual.length) {
+        const ultimoDiaActual = diasActual[diasActual.length - 1];
+        const actualUSD = ultimoDiaActual?.totalConvertido || 0;
+
+        for (let i = minLen; i < diasAnterior.length; i++) {
+          const anterior = diasAnterior[i];
+          const anteriorUSD = anterior?.totalConvertido || 0;
+
+          resultado.push({
+            fechaActual: ultimoDiaActual?.fecha || '',
+            fechaAnterior: anterior?.fecha || '',
+            dia: dias[diaSemana],
+            actual: Math.round(actualUSD * 100) / 100,
+            anterior: Math.round(anteriorUSD * 100) / 100,
+            variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+          });
+        }
+      }
+    }
+
+    return resultado.filter(r => r.fechaActual || r.fechaAnterior);
   }
 }

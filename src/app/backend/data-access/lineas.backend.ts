@@ -28,7 +28,7 @@ export class LineasBackend {
     });
   }
 
-  agregarLinea(name: string, image: string = '') {
+  agregarLinea(name: string, image = '') {
     if (!name || !name.trim()) {
       console.error('El nombre de la línea es requerido');
       return;
@@ -51,6 +51,17 @@ export class LineasBackend {
       },
       error: (error) => {
         console.error('Error deleting linea:', error);
+      },
+    });
+  }
+
+  actualizarLinea(id: string, name: string, image = '') {
+    this.http.put<Linea>(`${this.API_URL}/${id}`, { name, image }).subscribe({
+      next: (updatedLinea) => {
+        this.lineas.update((lineas) => lineas.map((l) => (l.id === id ? updatedLinea : l)));
+      },
+      error: (error) => {
+        console.error('Error updating linea:', error);
       },
     });
   }

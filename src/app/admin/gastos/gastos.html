@@ -1,0 +1,110 @@
+<div class="gastos-container">
+  <div class="gastos-header">
+    <h1>Gastos</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Nuevo Gasto</button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtro-group">
+      <label>Categoría:</label>
+      <select [ngModel]="filtros().categoria" (ngModelChange)="filtros.update(f => ({...f, categoria: $event})); filtrarGastos()">
+        <option value="">Todas</option>
+        @for (cat of categorias; track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Desde:</label>
+      <input type="date" [ngModel]="filtros().fechaDesde" (ngModelChange)="filtros.update(f => ({...f, fechaDesde: $event})); filtrarGastos()">
+    </div>
+    <div class="filtro-group">
+      <label>Hasta:</label>
+      <input type="date" [ngModel]="filtros().fechaHasta" (ngModelChange)="filtros.update(f => ({...f, fechaHasta: $event})); filtrarGastos()">
+    </div>
+  </div>
+
+  <div class="totales">
+    <div class="total-card">
+      <span class="label">Total Gastos:</span>
+      <span class="value">{{ formatMonto(totales().total) }}</span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="gastos-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Descripción</th>
+          <th>Categoría</th>
+          <th>Monto</th>
+          <th>Notas</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (gasto of getGastosFiltrados(); track gasto._id) {
+          <tr>
+            <td>{{ formatFecha(gasto.fecha) }}</td>
+            <td>{{ gasto.descripcion }}</td>
+            <td><span class="categoria-badge">{{ gasto.categoria }}</span></td>
+            <td class="monto">{{ formatMonto(gasto.monto) }}</td>
+            <td>{{ gasto.notas || '-' }}</td>
+            <td class="actions">
+              <button class="btn-edit" (click)="abrirModal(gasto)">Editar</button>
+              <button class="btn-delete" (click)="eliminarGasto(gasto._id)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty">No hay gastos registrados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editingGasto?._id ? 'Editar' : 'Nuevo' }} Gasto</h2>
+      <form (ngSubmit)="guardarGasto()">
+        <div class="form-group">
+          <label>Descripción *</label>
+          <input type="text" [(ngModel)]="editingGasto!.descripcion" name="descripcion" required>
+        </div>
+        <div class="form-group">
+          <label>Monto *</label>
+          <input type="number" [(ngModel)]="editingGasto!.monto" name="monto" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Categoría *</label>
+          <select [(ngModel)]="editingGasto!.categoria" name="categoria" required>
+            <option value="">Seleccionar</option>
+            @for (cat of categorias; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" [(ngModel)]="editingGasto!.fecha" name="fecha" required>
+        </div>
+        <div class="form-group">
+          <label>Notas</label>
+          <textarea [(ngModel)]="editingGasto!.notas" name="notas" rows="3"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

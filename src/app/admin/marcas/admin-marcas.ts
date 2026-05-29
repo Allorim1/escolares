@@ -26,7 +26,8 @@ export class AdminMarcas {
   messageType = signal<'success' | 'error'>('success');
 
   isOwner(): boolean {
-    return this.authService.user()?.rol === 'owner';
+    const rol = this.authService.user()?.rol;
+    return rol === 'root';
   }
 
   showMessage(text: string, type: 'success' | 'error' = 'success') {

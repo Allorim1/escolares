@@ -19,7 +19,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 export class Feedback implements AfterViewInit {
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {

@@ -1,5 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../shared/data-access/auth.service';
 import { Observable } from 'rxjs';
 
 export interface OrderItem {
@@ -21,8 +22,17 @@ export interface Order {
   direccion: string;
   metodoPago: string;
   referencia: string;
+  fotoComprobante?: string;
+  facturaImage?: string;
+  bancoEmisor?: string;
+  cedulaTitular?: string;
+  correo?: string;
   status: OrderStatus;
   historial: OrderHistorial[];
+  autorizadoPor?: string;
+  autorizadoNombre?: string;
+  deliveryPersonId?: string;
+  deliveryPersonName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,7 +55,14 @@ export interface CreateOrderData {
   metodoPago: string;
   referencia: string;
   fotoComprobante?: string;
+  bancoEmisor?: string;
+  cedulaTitular?: string;
+  correo?: string;
   status?: OrderStatus;
+  deliveryType?: 'express' | 'programado';
+  scheduledFor?: string;
+  shippingRef?: number;
+  shippingLabel?: string;
 }
 
 @Injectable({
@@ -54,9 +71,16 @@ export interface CreateOrderData {
 export class OrdersBackend {
   private readonly API_URL = '/api/orders';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   getOrders(): Observable<Order[]> {
+    const user = this.authService.user();
+    if (user?.rol === 'repartidor') {
+      return this.http.get<Order[]>(`${this.API_URL}?deliveryPersonId=${user.id}`);
+    }
     return this.http.get<Order[]>(this.API_URL);
   }
 

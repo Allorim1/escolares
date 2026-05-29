@@ -144,8 +144,28 @@ h2 {
   background: rgba(29, 99, 193, 0.1);
 }
 
-.tasa-label {
+.tasa-wrapper {
+  position: relative;
+}
+
+.tasa-diferencial {
+  position: absolute;
+  top: -22px;
+  right: 8px;
+  font-size: 0.75rem;
   font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
+.tasa-diferencial.positivo {
+  color: #4ade80;
+}
+
+.tasa-diferencial.negativo {
+  color: #f87171;
 }
 
 .tasa-value {
@@ -451,14 +471,17 @@ h2 {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .popup-content {
   background: white;
   padding: 2rem;
   border-radius: 12px;
-  min-width: 400px;
-  max-width: 90%;
+  width: 100%;
+  max-width: 500px;
+  box-sizing: border-box;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
@@ -1558,4 +1581,24 @@ h2 {
 .input-api-key:focus {
   outline: none;
   border-color: #c82333;
+}
+
+.popup-small {
+  min-width: 350px;
+  max-width: 90%;
+}
+
+.input-api-key-modal {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: white;
+  color: #333;
+}
+
+.input-api-key-modal:focus {
+  outline: none;
+  border-color: #1d63c1;
 }

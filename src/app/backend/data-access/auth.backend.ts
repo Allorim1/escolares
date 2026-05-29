@@ -43,7 +43,7 @@ export class AuthBackend {
         const user = JSON.parse(stored);
         this.currentUser.set(user);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(user.isAdmin || user.rol === 'admin' || user.rol === 'owner' || user.rol === 'root');
+        this.isAdmin.set(user.isAdmin || user.rol === 'admin' || user.rol === 'owner' || user.rol === 'root' || user.rol === 'repartidor');
         // Start token renewal service if user is already logged in
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
@@ -54,7 +54,16 @@ export class AuthBackend {
     }
   }
 
-  register(username: string, email: string, password: string, extraData?: { rif?: string; telefono?: string; direccion?: string; tipoPersona?: string }) {
+  register(username: string, email: string, password: string, extraData?: { 
+    rif?: string; 
+    telefono?: string; 
+    direccion?: string; 
+    tipoPersona?: string; 
+    nombreCompleto?: string; 
+    genero?: string;
+    tipoDocumento?: string;
+    numeroDocumento?: string;
+  }) {
     this.registerError.set(null);
     this.registerSuccess.set(false);
 
@@ -81,7 +90,7 @@ export class AuthBackend {
       next: (response) => {
         this.currentUser.set(response);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root');
+        this.isAdmin.set(response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root' || response.rol === 'repartidor');
         this.saveToStorage(response);
         if (response.accessToken) {
           this.saveToken(response.accessToken);
@@ -92,7 +101,9 @@ export class AuthBackend {
         // Start token renewal service after successful login
         this.tokenRenewalService.start();
         this.loginLoading.set(false);
-        if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root') {
+        if (response.rol === 'repartidor') {
+          this.router.navigate(['/repartidor']);
+        } else if (response.isAdmin || response.rol === 'admin' || response.rol === 'owner' || response.rol === 'root') {
           this.router.navigate(['/admin/inicio']);
         } else {
           this.router.navigate(['/panel/perfil']);
@@ -157,7 +168,7 @@ export class AuthBackend {
     }
   }
 
-  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario', rolId?: string) {
+  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario' | 'repartidor', rolId?: string) {
     return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
   }
 
@@ -167,3 +178,4 @@ export class AuthBackend {
     }
   }
 }
+

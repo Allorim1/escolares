@@ -119,12 +119,31 @@
   color: #333;
 }
 
+.pedido-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .pedido-status {
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   color: white;
   font-size: 0.8rem;
   font-weight: 500;
+}
+
+.delivery-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid #c8e6c9;
 }
 
 .pedido-info {
@@ -163,13 +182,25 @@
   padding-top: 0.75rem;
 }
 
+.pedido-timer {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.pedido-timer.completed {
+  color: #28a745;
+  font-weight: 500;
+}
+
 .no-orders {
   text-align: center;
   padding: 2rem;
   color: #666;
 }
 
-/* Modal */
+/* Modal genérico */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -184,13 +215,15 @@
   padding: 1rem;
 }
 
-.order-detail-modal {
+.modal-content {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
@@ -199,11 +232,13 @@
   align-items: center;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #eee;
+  flex-shrink: 0;
 }
 
 .modal-header h3 {
   margin: 0;
   color: #333;
+  font-size: 1.1rem;
 }
 
 .close-btn {
@@ -212,10 +247,23 @@
   font-size: 1.5rem;
   color: #666;
   cursor: pointer;
+  line-height: 1;
 }
 
 .modal-body {
   padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Modal de detalle de pedido */
+.order-detail-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .detail-section {
@@ -516,4 +564,487 @@
   max-height: 85vh;
   border-radius: 8px;
   object-fit: contain;
+}
+
+/* Modal pequeño (cancelación) */
+.modal-small {
+  max-width: 420px;
+  width: 100%;
+}
+
+/* Campos del modal de cancelación */
+.cancel-textarea,
+.supervisor-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.cancel-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.cancel-textarea:focus,
+.supervisor-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.cancel-textarea::placeholder,
+.supervisor-input::placeholder {
+  color: #999;
+}
+
+.help-text {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.error-message {
+  padding: 0.75rem;
+  background: #f8d7da;
+  color: #721c24;
+  border-radius: 6px;
+  border: 1px solid #f5c6cb;
+  font-size: 0.9rem;
+}
+
+/* Sección de acciones peligrosas */
+.danger-zone {
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff9e6;
+  margin-bottom: 1.5rem;
+}
+
+.danger-zone h4 {
+  margin: 0 0 0.75rem;
+  color: #856404;
+  font-size: 1rem;
+}
+
+.danger-zone button {
+  margin-right: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Sección de autorización (cancelación) */
+.autorizacion-section {
+  background: #fff5f5;
+  border: 1px solid #dc3545;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.autorizacion-info {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  align-items: center;
+}
+
+.autorizacion-info .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.autorizacion-info .value {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Botones genéricos */
+.btn-primary {
+  padding: 0.625rem 1.25rem;
+  background: #1d63c1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #155a9e;
+}
+
+.btn-secondary {
+  padding: 0.625rem 1.25rem;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-danger,
+.btn-cancel-order {
+  padding: 0.625rem 1.25rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-danger:hover,
+.btn-cancel-order:hover {
+  background: #c82333;
+}
+
+.btn-danger:disabled,
+.btn-cancel-order:disabled {
+  background: #e0a0a0;
+  cursor: not-allowed;
+}
+
+.btn-subir-factura {
+  padding: 0.625rem 1.25rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-subir-factura:hover {
+  background: #0056b3;
+}
+
+.btn-subir-factura:disabled {
+  background: #a0c8f0;
+  cursor: not-allowed;
+}
+
+.btn-asignar-repartidor {
+  padding: 0.625rem 1.25rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-asignar-repartidor:hover {
+  background: #218838;
+}
+
+.btn-asignar-repartidor:disabled {
+  background: #a0d5b0;
+  cursor: not-allowed;
+}
+
+.delivery-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.delivery-input:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.delivery-person {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.btn-danger:disabled {
+  background: #e0a0a0;
+  cursor: not-allowed;
+}
+
+/* Modal footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+/* Formulario modal */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Sección de factura */
+.factura-section {
+  border: 1px dashed #007bff;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  background: #f8f9ff;
+}
+
+.factura-section h5 {
+  margin: 0 0 0.75rem;
+  color: #007bff;
+  font-size: 0.95rem;
+}
+
+.btn-subir-factura {
+  padding: 0.625rem 1.25rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-subir-factura:hover {
+  background: #0056b3;
+}
+
+.btn-subir-factura:disabled {
+  background: #a0c8f0;
+  cursor: not-allowed;
+}
+
+.factura-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.btn-ver-factura {
+  padding: 0.5rem 1rem;
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-ver-factura:hover {
+  background: #138496;
+}
+
+/* Dropzone */
+.dropzone {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 2rem 1rem;
+  text-align: center;
+  transition: border-color 0.2s, background-color 0.2s;
+  cursor: pointer;
+}
+
+.dropzone.drag-active {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dropzone-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.dropzone-content p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.dropzone-hint {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.btn-select-file {
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-select-file:hover {
+  background: #0056b3;
+}
+
+/* Preview de factura */
+.preview-container {
+  position: relative;
+  text-align: center;
+}
+
+.factura-preview-img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.btn-remove-factura {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: rgba(220, 53, 69, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove-factura:hover {
+  background: #dc3545;
+}
+
+/* Ficha técnica del repartidor */
+.btn-view-delivery-profile {
+  padding: 0.25rem 0.5rem;
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.btn-view-delivery-profile:hover {
+  background: #138496;
+}
+
+.delivery-person-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.delivery-person-profile .profile-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.delivery-person-profile .profile-section h4 {
+  margin: 0 0 0.75rem;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.delivery-person-profile .profile-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.delivery-person-profile .profile-item {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.delivery-person-profile .profile-item .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.delivery-person-profile .profile-item .value {
+  color: #333;
+}
+
+.delivery-person-profile .status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.delivery-person-profile .status-badge.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.delivery-person-profile .status-badge.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.dni-image-container {
+  text-align: center;
+}
+
+.dni-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-bottom: 0.5rem;
+}
+
+.btn-view-dni {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.btn-view-dni:hover {
+  background: #0056b3;
 }

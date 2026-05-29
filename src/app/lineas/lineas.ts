@@ -35,7 +35,7 @@ export class Lineas implements AfterViewInit {
     { image: '/lineas/MANCHA-LINEA-DE-ESCRITURA-V1.png', name: 'Línea de Escritura' },
   ];
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {
     if (isPlatformBrowser(this.platformId)) {
       setTimeout(() => this.revealAll(), 100);
     }

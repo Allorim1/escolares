@@ -3,6 +3,7 @@
   color: #ffffff;
   padding: 3rem 2rem;
   margin-top: auto;
+  overflow-x: hidden;
 }
 
 .footer-container {
@@ -71,6 +72,9 @@
   text-decoration: none;
   font-size: 0.95rem;
   transition: color 0.3s ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
 .footer-link:hover {
@@ -122,28 +126,125 @@
 @media (max-width: 1024px) {
   .footer-container {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .footer {
+    padding: 2rem 1.5rem;
+  }
+
+  .location-image {
+    width: 150px;
+    height: 150px;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .footer {
+    padding: 1.5rem 1rem;
+  }
+
   .footer-container {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
     text-align: center;
   }
 
   .footer-section {
     align-items: center;
+    padding-left: 0;
+    gap: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .footer-link {
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .tienda-row {
+    flex-direction: column;
     align-items: center;
+    gap: 1rem;
+  }
+
+  .tienda-info {
+    margin-left: 0;
+    text-align: center;
   }
 
   .tienda-links {
     align-items: center;
+    width: 100%;
+  }
+
+  .location-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 6px;
   }
 
   .social-icons {
     justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .social-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+
+  .contact-text,
+  .visitor-text {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .footer-container {
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .footer-link {
+    font-size: 0.875rem;
+    min-height: 44px;
+  }
+
+  .location-image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .tienda-info {
+    gap: 0.375rem;
+  }
+
+  .social-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .contact-text,
+  .visitor-text {
+    font-size: 0.8rem;
+    line-height: 1.4;
   }
 }

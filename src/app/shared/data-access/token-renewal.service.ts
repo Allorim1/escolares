@@ -12,8 +12,8 @@ interface TokenData {
 })
 export class TokenRenewalService {
   private refreshInterval: any = null;
-  private readonly CHECK_INTERVAL_MS = 3 * 60 * 1000; // Check every 3 minutes
-  private readonly RENEW_BEFORE_MS = 10 * 60 * 1000; // Renew 10 minutes before expiration
+  private readonly CHECK_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes
+  private readonly RENEW_BEFORE_MS = 15 * 60 * 1000; // Renew 15 minutes before expiration
   private readonly STORAGE_KEY = 'token_renewal_data';
   
   private ngZone = inject(NgZone);
@@ -53,7 +53,7 @@ export class TokenRenewalService {
   /**
    * Check if tokens need renewal and renew them
    */
-  private checkAndRenew(): void {
+  private async checkAndRenew(): Promise<void> {
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
     
@@ -73,15 +73,12 @@ export class TokenRenewalService {
     const timeUntilExpiration = expiresAt - now;
 
     // If token is expired or will expire soon, try to renew
+    // Renew immediately if token is expired or will expire soon
     if (timeUntilExpiration <= this.RENEW_BEFORE_MS) {
-      this.renewTokens().then((success) => {
-        if (!success) {
-          // If renewal failed and token is actually expired, handle session
-          if (timeUntilExpiration <= 0) {
-            this.handleExpiredSession();
-          }
-        }
-      });
+      const renewed = await this.renewTokens();
+      if (!renewed && timeUntilExpiration <= 0) {
+        this.handleExpiredSession();
+      }
     }
   }
 
@@ -142,7 +139,7 @@ export class TokenRenewalService {
       const res = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Include cookies if needed
+        credentials: 'include',
         body: JSON.stringify({ refreshToken: refreshTokenValue })
       });
 

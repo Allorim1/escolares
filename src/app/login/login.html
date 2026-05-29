@@ -17,17 +17,29 @@
         />
       </div>
 
-      <div class="form-group">
+      <div class="form-group password-group">
         <label for="password">Contraseña</label>
-        <input
-          id="password"
-          type="password"
-          [ngModel]="password()"
-          name="password"
-          (ngModelChange)="password.set($event)"
-          placeholder="Ingresa tu contraseña"
-          required
-        />
+        <div class="password-input-wrapper">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            [ngModel]="password()"
+            name="password"
+            (ngModelChange)="password.set($event)"
+            placeholder="Ingresa tu contraseña"
+            required
+          />
+          <button type="button" class="toggle-password" (click)="showPassword.set(!showPassword())" tabindex="-1" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <svg *ngIf="!showPassword()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg *ngIf="showPassword()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
       </div>
 
       @if (error()) {
@@ -43,7 +55,118 @@
       </button>
     </form>
 
+    <div class="recovery-links">
+      <button type="button" class="recovery-btn" (click)="openRecovery('username')">¿Olvidaste tu usuario?</button>
+      <button type="button" class="recovery-btn" (click)="openRecovery('password')">¿Olvidaste tu contraseña?</button>
+    </div>
+
     <a class="back-link" routerLink="/">Volver al inicio</a>
     <a class="register-link" routerLink="/register">Crear cuenta</a>
   </div>
+
+  @if (recoveryMode()) {
+    <div class="recovery-overlay">
+      <div class="recovery-modal">
+        <h3>
+          @if (recoveryMode() === 'username') {
+            Recuperar Usuario
+          } @else {
+            Recuperar Contraseña
+          }
+        </h3>
+
+        @if (recoveryStep() === 'email') {
+          <div class="form-group">
+            <label for="recoveryEmail">
+              @if (recoveryMode() === 'username') {
+                Email o Usuario
+              } @else {
+                Email o Usuario registrado
+              }
+            </label>
+            <input
+              id="recoveryEmail"
+              type="text"
+              [ngModel]="recoveryEmail()"
+              name="recoveryEmail"
+              (ngModelChange)="recoveryEmail.set($event)"
+              placeholder="Ingresa tu email o usuario"
+              required
+            />
+          </div>
+        }
+
+        @if (recoveryStep() === 'otp') {
+          <div class="form-group">
+            <label for="otp">Código OTP</label>
+            <input
+              id="otp"
+              type="text"
+              [ngModel]="otp()"
+              name="otp"
+              (ngModelChange)="otp.set($event)"
+              placeholder="Ingresa el código de 6 dígitos"
+              maxlength="6"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="newPassword">Nueva Contraseña</label>
+            <input
+              id="newPassword"
+              type="password"
+              [ngModel]="newPassword()"
+              name="newPassword"
+              (ngModelChange)="newPassword.set($event)"
+              placeholder="Ingresa nueva contraseña"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirmar Contraseña</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              [ngModel]="confirmPassword()"
+              name="confirmPassword"
+              (ngModelChange)="confirmPassword.set($event)"
+              placeholder="Confirma nueva contraseña"
+            />
+          </div>
+        }
+
+        @if (recoveryError()) {
+          <div class="error-message">{{ recoveryError() }}</div>
+        }
+
+        @if (recoverySuccess()) {
+          <div class="success-message">{{ recoverySuccess() }}</div>
+        }
+
+        <div class="modal-buttons">
+          <button type="button" class="cancel-btn" (click)="closeRecovery()">Cancelar</button>
+          
+          @if (recoveryStep() === 'email') {
+            <button type="button" class="save-btn" (click)="sendRecovery()" [disabled]="recoveryLoading()">
+              @if (recoveryLoading()) {
+                Enviando...
+              } @else {
+                Enviar
+              }
+            </button>
+          }
+
+          @if (recoveryStep() === 'otp') {
+            <button type="button" class="save-btn" (click)="verifyOtp()" [disabled]="recoveryLoading()">
+              @if (recoveryLoading()) {
+                Verificando...
+              } @else {
+                Cambiar Contraseña
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>

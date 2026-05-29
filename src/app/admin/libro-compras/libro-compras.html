@@ -1,0 +1,92 @@
+<div class="libro-compras-container">
+  <div class="libro-compras-header">
+    <h2>Libro de Compras</h2>
+  </div>
+
+  <div class="filtros">
+    <div class="filtro-group">
+      <label>Desde:</label>
+      <input
+        type="date"
+        [value]="fechaInicio()"
+        (change)="fechaInicio.set($any($event.target).value); generarLibroCompras()"
+      />
+    </div>
+
+    <div class="filtro-group">
+      <label>Hasta:</label>
+      <input
+        type="date"
+        [value]="fechaFin()"
+        (change)="fechaFin.set($any($event.target).value); generarLibroCompras()"
+      />
+    </div>
+
+    <div class="filtro-group">
+      <label>Alícuota:</label>
+      <select [value]="alicuotaSeleccionada()" (change)="filtrarPorAlicuota(+$any($event.target).value)">
+        <option [value]="0">Todas</option>
+        <option [value]="8">8%</option>
+        <option [value]="16">16%</option>
+        <option [value]="25">25%</option>
+      </select>
+    </div>
+
+    <div class="filtro-actions">
+      <button class="btn-export" (click)="exportarPDF()">Exportar PDF</button>
+      <button class="btn-export" (click)="exportarExcel()">Exportar Excel</button>
+    </div>
+  </div>
+
+  <div class="tabla-container">
+    <table class="libro-compras-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>RIF</th>
+          <th>Razón Social</th>
+          <th>N° Factura</th>
+          <th>N° Control</th>
+          <th>Tipo</th>
+          <th>Monto Total</th>
+          <th>Compras No Gravadas</th>
+          <th>Base Imponible</th>
+          <th>Alícuota</th>
+          <th>IVA</th>
+          <th>IVA Retenido</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of libroCompras(); track $index) {
+          <tr>
+            <td>{{ formatFecha(item.fecha) }}</td>
+            <td>{{ item.rif }}</td>
+            <td>{{ item.razonSocial }}</td>
+            <td>{{ item.numeroFactura }}</td>
+            <td>{{ item.numeroControl }}</td>
+            <td>
+              <span class="tipo-badge" [class]="'tipo-' + item.tipo.toLowerCase()">{{ item.tipo }}</span>
+            </td>
+            <td class="monto">{{ formatMoneda(item.montoTotal) }}</td>
+            <td class="monto">{{ formatMoneda(item.comprasNoGravadas) }}</td>
+            <td class="monto">{{ formatMoneda(item.baseImponible) }}</td>
+            <td>{{ item.alicuota }}%</td>
+            <td class="monto">{{ formatMoneda(item.iva) }}</td>
+            <td class="monto">{{ formatMoneda(item.ivaRetenido) }}</td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr class="totales">
+          <td colspan="6">Totales</td>
+          <td class="monto">{{ formatMoneda(getTotalMonto()) }}</td>
+          <td class="monto">{{ formatMoneda(getTotalComprasNoGravadas()) }}</td>
+          <td class="monto">{{ formatMoneda(getTotalBaseImponible()) }}</td>
+          <td></td>
+          <td class="monto">{{ formatMoneda(getTotalIva()) }}</td>
+          <td class="monto">0.00</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>

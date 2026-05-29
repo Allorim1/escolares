@@ -1,0 +1,523 @@
+<div class="redes-sociales-container">
+  <h1>Gestión de Redes Sociales</h1>
+  <p>Configura tus cuentas, responde mensajes y gestiona notificaciones.</p>
+
+  <!-- Notificación de nuevo mensaje -->
+  @if (mostrarNotificacionMensaje()) {
+    <div class="mensaje-notificacion" (click)="cerrarNotificacionMensaje()">
+      <div class="notificacion-icon">💬</div>
+      <div class="notificacion-content">
+        <div class="notificacion-title">Nuevo mensaje</div>
+        @if (ultimoMensajeNotificado(); as mensaje) {
+          <div class="notificacion-text">
+            <strong>{{ getUserDisplayName(mensaje.usuario) }}</strong> desde <strong>{{ mensaje.plataforma }}</strong>
+          </div>
+          <div class="notificacion-preview">{{ mensaje.texto }}</div>
+        }
+      </div>
+      <button class="notificacion-close" (click)="cerrarNotificacionMensaje(); $event.stopPropagation()">&times;</button>
+    </div>
+  }
+
+  <section class="section">
+    <h2>📱 Redes Sociales</h2>
+    <p>Conecta tus cuentas de TikTok, Instagram, Telegram, Facebook y WhatsApp.</p>
+
+    <div class="form-agregar">
+      <h3>Agregar nueva red social</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="plataforma">Plataforma</label>
+          <select id="plataforma" [ngModel]="nuevaRedPlataforma()" (ngModelChange)="nuevaRedPlataforma.set($event)">
+            <option value="">Selecciona una plataforma</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Telegram">Telegram</option>
+            <option value="Facebook">Facebook</option>
+            <option value="WhatsApp">WhatsApp</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="usuario">Usuario / Página</label>
+          <input id="usuario" type="text" [ngModel]="nuevaRedUsuario()" (ngModelChange)="nuevaRedUsuario.set($event)" [placeholder]="nuevaRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'">
+          @if (nuevaRedPlataforma() === 'Instagram') {
+            <div class="help-text">
+              <small>
+                Para Instagram, ingresa el <strong>ID de página de Facebook</strong> (numérico) asociado a tu cuenta de Instagram Business.
+                <br>No uses @ en este campo.
+              </small>
+            </div>
+          }
+        </div>
+        <div class="form-group">
+          <label for="token">Token / Clave API</label>
+          <input id="token" type="password" [ngModel]="nuevaRedToken()" (ngModelChange)="nuevaRedToken.set($event)" placeholder="Token de acceso">
+          @if (nuevaRedPlataforma() === 'WhatsApp') {
+            <div class="help-text">
+              <small>
+                Para WhatsApp, el token debe ser un <strong>Access Token permanente</strong> con permisos <code>whatsapp_business_messaging</code> y <code>whatsapp_business_management</code>.
+                El campo "Usuario / Página" debe ser el <strong>Phone Number ID</strong> (numérico) de tu WhatsApp Business.
+              </small>
+            </div>
+          }
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [ngModel]="nuevaRedHabilitada()" (ngModelChange)="nuevaRedHabilitada.set($event)"> Habilitada
+          </label>
+        </div>
+        <div class="form-group">
+          <button (click)="agregarRedSocial()" class="btn btn-primary">Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Plataforma</th>
+            <th>Usuario / Página</th>
+            <th>Token</th>
+            <th>Habilitada</th>
+            <th>Acciones</th>
+          </tr>
+</thead>
+        <tbody>
+          @if (loading()) {
+            <tr>
+              <td colspan="5" class="text-center">Cargando redes sociales...</td>
+            </tr>
+          } @else if (error()) {
+            <tr>
+              <td colspan="5" class="text-center text-danger">{{ error() }}</td>
+            </tr>
+          } @else {
+            @for (red of redesSociales(); track red.id) {
+              <tr>
+                <td>{{ red.plataforma }}</td>
+                <td>{{ red.usuario || '—' }}</td>
+                <td>{{ red.token ? '••••••••' : '—' }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="red.habilitada" [class.badge-danger]="!red.habilitada">
+                    {{ red.habilitada ? 'Sí' : 'No' }}
+                  </span>
+                </td>
+                <td>
+                  <button (click)="actualizarRedSocial(red)" class="btn btn-primary btn-sm me-2">Editar</button>
+                  <button (click)="eliminarRedSocial(red)" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center">No hay redes sociales configuradas</td>
+              </tr>
+            }
+          }
+        </tbody>
+        </table>
+      </div>
+      <!-- Modal para editar red social -->
+    @if (modalEditarRedAbierto()) {
+      <div class="modal-overlay" (click)="cerrarModalEditarRed()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Editar Red Social</h3>
+            <button class="btn btn-sm btn-outline" (click)="cerrarModalEditarRed()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-plataforma">Plataforma</label>
+                <select id="edit-plataforma" [ngModel]="editRedPlataforma()" (ngModelChange)="editRedPlataforma.set($event)">
+                  <option value="TikTok">TikTok</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Telegram">Telegram</option>
+                  <option value="Facebook">Facebook</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-usuario">Usuario / Página</label>
+                <input id="edit-usuario" type="text" [ngModel]="editRedUsuario()" (ngModelChange)="editRedUsuario.set($event)" [placeholder]="editRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-token">Token / Clave API</label>
+                <input id="edit-token" type="password" [ngModel]="editRedToken()" (ngModelChange)="editRedToken.set($event)" placeholder="Token de acceso">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="editRedHabilitada()" (ngModelChange)="editRedHabilitada.set($event)"> Habilitada
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button (click)="cerrarModalEditarRed()" class="btn btn-outline">Cancelar</button>
+            <button (click)="guardarEdicionRedSocial()" class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+
+    <section class="section">
+      <h2>💬 Mensajes</h2>
+      <p>Gestiona los mensajes entrantes de tus redes sociales.</p>
+
+      <div class="mensajes-container">
+        <div class="chats-sidebar">
+          <div class="chats-header">
+            <h3>Chats</h3>
+            <div class="chats-actions">
+            <button class="btn btn-sm btn-outline" (click)="cargarDatos()" title="Actualizar">
+              🔄
+            </button>
+            <button class="btn btn-sm btn-outline" (click)="verificarEstadoWebhooks()" title="Verificar Webhooks">
+              ⚙️
+            </button>
+            <button class="btn btn-sm btn-outline" (click)="enviarMensajePrueba()" title="Mensaje de Prueba">
+              📤
+            </button>
+          </div>
+        </div>
+        <div class="chats-list">
+          @if (loading()) {
+            <div class="chat-loading">Cargando chats...</div>
+          } @else if (error()) {
+            <div class="chat-error">{{ error() }}</div>
+          } @else {
+            <div *ngFor="let chat of chats(); trackBy: trackByChat"
+              class="chat-item"
+              [class.selected]="chatSeleccionado()?.usuario === chat.usuario && chatSeleccionado()?.plataforma === chat.plataforma"
+              [class.has-unread]="chat.tieneNoLeidos"
+              (click)="seleccionarChat(chat)"
+            >
+              <div class="chat-avatar">
+                <span class="platform-icon">{{ getPlatformIcon(chat.plataforma) }}</span>
+              </div>
+              <div class="chat-info">
+                <div class="chat-header">
+                  <span class="chat-user">{{ getUserDisplayName(chat.usuario) }}</span>
+                  <span class="chat-time">{{ chat.ultimoMensaje.fecha | date:'HH:mm' }}</span>
+                </div>
+                <div class="chat-preview">
+                  <span class="chat-platform">{{ chat.plataforma }}</span>
+                   <span class="chat-message">{{ chat.ultimoMensaje.texto | slice:0:50 }}</span>
+                </div>
+                @if (chat.tieneNoLeidos) {
+                  <div class="unread-badge">{{ chat.noLeidosCount }}</div>
+                }
+              </div>
+            </div>
+            @if (chats().length === 0) {
+              <div class="no-chats">No hay chats disponibles</div>
+            }
+          }
+        </div>
+      </div>
+
+<div class="filtro-plataformas">
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === ''" (click)="filtroPlataforma.set('')" title="Todas">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'TikTok'" (click)="filtroPlataforma.set('TikTok')" title="TikTok">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 448 512" fill="currentColor">
+            <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88-.00017a71.09,71.09,0,0,0-13.57,2.67,210,210,0,0,1-73.58,14.53A211.27,211.27,0,0,1,448,209.91Z"/>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Instagram'" (click)="filtroPlataforma.set('Instagram')" title="Instagram">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 448 512" fill="url(#ig-grad)">
+            <defs>
+              <linearGradient id="ig-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f09433"/>
+                <stop offset="25%" stop-color="#dc2743"/>
+                <stop offset="50%" stop-color="#cc2366"/>
+                <stop offset="100%" stop-color="#bc1888"/>
+              </linearGradient>
+            </defs>
+            <path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/>
+            <path d="M337.9,107.8c-1.5-3.5-4.6-6.1-8.2-6.1c-3.3,0-6.2,1.9-7.6,4.7c-3.2,6.3-6.5,12.5-9.9,18.7c-0.3,0.5-0.6,1-0.9,1.5c-3.7,0-7.4,0-11.1,0c-3.5,0-6.6-2.4-7.4-5.9c-0.6-2.5-2.5-4.3-5.1-4.6c-2.7-0.3-5.3,1.6-6.2,4.2c-0.7,2.1-1.4,4.2-2.2,6.3c-0.2,0.5-0.4,1-0.7,1.5c-1.3,2.2-2.6,4.3-4,6.4c-4.3,6.3-8.8,12.5-13.2,18.8c-0.3,0.4-0.6,0.8-0.9,1.2c-1.7,2.3-3.5,4.5-5.4,6.6c-3.1,3.5-6.3,6.9-9.6,10.2c-3.3,3.3-6.7,6.5-10.2,9.6c-2.1,1.9-4.3,3.7-6.6,5.4c-2.3,1.7-4.7,3.3-7.1,4.9c-6.3,4.3-12.7,8.3-19,12.6c-0.4,0.3-0.8,0.6-1.2,0.9c-0.2,0.1-0.3,0.2-0.5,0.3C83.1,219.3,48,267.6,48,324.1c0,26.5,8.9,51.4,25.6,71.4C105,418.2,147,432,192,432c28.5,0,56.1-11.6,76.3-32.1c0.3-0.3,0.6-0.6,0.9-0.9c4.5-4.5,8.8-9.2,13-14c0.3-0.3,0.5-0.6,0.8-0.9c2.3-2.5,4.5-5.1,6.7-7.7c3.6-4.1,7-8.4,10.3-12.8c2.6-3.4,5.1-6.9,7.5-10.5c1.9-2.8,3.7-5.6,5.4-8.5c2.4-4.1,4.6-8.3,6.8-12.5c1.4-2.6,2.7-5.2,3.9-7.9c1.3-2.8,2.4-5.7,3.5-8.6c0.6-1.5,1.1-3,1.6-4.5c1-2.7,1.8-5.5,2.5-8.3C347.7,142.7,343.7,125.4,337.9,107.8z M224.1,330.7c38.2,0,69.1-30.9,69.1-69.1s-30.9-69.1-69.1-69.1s-69.1,30.9-69.1,69.1S185.9,330.7,224.1,330.7z M355.1,145.2c-5.3,15.7-11.9,30.6-19.6,44.5c-0.5,1-1,1.9-1.5,2.9c-2.8,5.5-5.7,10.9-8.6,16.3c-0.4,0.7-0.8,1.4-1.1,2.1c12.4,5.9,24.3,12.7,35.8,20.1c3.1,2,6.2,4.1,9.3,6.2c32.6,22.3,61.4,49.2,86.3,80.9c1.9,2.4,3.8,4.7,5.8,7.1c1.4,1.6,2.8,3.1,4.3,4.7c-4.3,1.4-8.7,2.5-13.1,3.2c-17.7,2.9-36.2,2.9-63,2.9c-26.7,0-45.3-1-63-2.9c-4.4-0.7-8.8-1.8-13.1-3.2c1.5-1.6,2.9-3.1,4.3-4.7c2-2.4,3.9-4.7,5.8-7.1c24.9-31.7,53.7-58.6,86.3-80.9c3.1-2.1,6.2-4.2,9.3-6.2c11.5-7.4,23.4-14.2,35.8-20.1c-0.3-0.7-0.7-1.4-1.1-2.1c-2.9-5.4-5.8-10.8-8.6-16.3c-0.5-1-1-1.9-1.5-2.9C367,175.8,360.4,160.9,355.1,145.2z"/>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Telegram'" (click)="filtroPlataforma.set('Telegram')" title="Telegram">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#0088cc">
+            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.492-1.302.48-.428-.012-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Facebook'" (click)="filtroPlataforma.set('Facebook')" title="Facebook">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#1877F2">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+        </button>
+        <button class="filtro-btn" [class.active]="filtroPlataforma() === 'WhatsApp'" (click)="filtroPlataforma.set('WhatsApp')" title="WhatsApp">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 448 512" fill="#25D366">
+            <path d="M380.9 97.1C339 55.1 283.3 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Vista sin chat seleccionado -->
+      <div class="chat-area">
+        @if (chatSeleccionado()) {
+          <!-- Modal Overlay -->
+          <div class="chat-modal-overlay" (click)="cerrarModalChat()">
+            <div class="chat-modal" (click)="$event.stopPropagation()">
+              <!-- Modal Header -->
+              <div class="chat-modal-header">
+                <div class="chat-user-info">
+                  <span class="platform-icon">{{ getPlatformIcon(chatSeleccionado()!.plataforma) }}</span>
+                  <span class="chat-user-name">{{ getUserDisplayName(chatSeleccionado()!.usuario) }}</span>
+                  <span class="chat-platform-badge">{{ chatSeleccionado()!.plataforma }}</span>
+                </div>
+                <div class="chat-actions">
+                  <button (click)="marcarChatComoLeido(chatSeleccionado()!); $event.stopPropagation()" class="btn btn-sm btn-outline">
+                    ✅ Marcar como leído
+                  </button>
+                  <button (click)="cerrarModalChat()" class="btn btn-sm btn-outline" title="Cerrar chat">
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Modal Messages Area -->
+              <div class="chat-modal-messages" #messagesContainer>
+                @for (mensaje of chatSeleccionado()!.mensajes; track mensaje.id) {
+                  <div class="message" [class.own]="mensaje.esRespuesta" [class.other]="!mensaje.esRespuesta">
+                    <div class="message-content">
+                      @if (mensaje.mediaUrl) {
+                        @if (mensaje.mediaType?.startsWith('image/')) {
+                          <img [src]="mensaje.mediaUrl" [alt]="mensaje.mediaCaption || 'Imagen'" class="message-image" />
+                        } @else if (mensaje.mediaType?.startsWith('video/')) {
+                          <video controls class="message-video">
+                            <source [src]="mensaje.mediaUrl" [type]="mensaje.mediaType">
+                          </video>
+                        } @else {
+                          <div class="message-file">
+                            <span class="file-icon">📎</span>
+                            <a [href]="mensaje.mediaUrl" target="_blank" class="file-link">{{ mensaje.mediaFilename || 'Archivo' }}</a>
+                          </div>
+                        }
+                      }
+                      @if (mensaje.texto) {
+                        <div class="message-text">{{ mensaje.texto }}</div>
+                      }
+                      @if (mensaje.mediaCaption) {
+                        <div class="message-caption">{{ mensaje.mediaCaption }}</div>
+                      }
+                      <div class="message-time">{{ mensaje.fecha | date:'HH:mm' }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Modal Input Area -->
+              <div class="chat-modal-input-area">
+                <div class="message-input-container">
+                  <textarea
+                    [ngModel]="nuevoMensajeTexto()"
+                    (ngModelChange)="nuevoMensajeTexto.set($event)"
+                    (keydown)="onKeyDown($event)"
+                    placeholder="Escribe un mensaje..."
+                    rows="1"
+                    class="message-input"
+                    #messageInput
+                  ></textarea>
+
+                  <div class="message-actions">
+                    <input
+                      type="file"
+                      #fileInput
+                      (change)="onArchivoSeleccionado($event)"
+                      accept="image/*,video/*,audio/*,application/*"
+                      style="display: none"
+                    />
+                    <button (click)="fileInput.click()" class="btn btn-outline btn-sm" title="Adjuntar archivo">
+                      📎
+                    </button>
+                    <button (click)="enviarMensajeChat(); $event.stopPropagation()" class="btn btn-primary btn-sm" [disabled]="!nuevoMensajeTexto().trim() && !archivoSeleccionado()">
+                      Enviar
+                    </button>
+                  </div>
+                </div>
+
+                @if (archivoSeleccionado()) {
+                  <div class="file-preview">
+                    <div class="file-info">
+                      <span class="file-icon">📄</span>
+                      <span class="file-name">{{ archivoSeleccionado()?.name }}</span>
+                      <button (click)="removerArchivo()" class="btn btn-sm btn-danger">×</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="no-chat-selected">
+            <div class="no-chat-icon">💬</div>
+            <h4>Selecciona un chat</h4>
+            <p>Elige un chat de la lista para ver los mensajes y responder</p>
+          </div>
+        }
+</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>🤖 Respuestas Automáticas (Opcional)</h2>
+    <p>Configura respuestas automáticas para mensajes recibidos en redes sociales.</p>
+
+    <div class="form-agregar">
+      <h3>Agregar nueva respuesta</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="palabraClave">Palabra clave</label>
+          <input id="palabraClave" type="text" [ngModel]="nuevaRespuestaPalabraClave()" (ngModelChange)="nuevaRespuestaPalabraClave.set($event)" placeholder="Ej: hola">
+        </div>
+        <div class="form-group">
+          <label for="respuesta">Respuesta</label>
+          <input id="respuesta" type="text" [ngModel]="nuevaRespuestaRespuesta()" (ngModelChange)="nuevaRespuestaRespuesta.set($event)" placeholder="Ej: ¡Hola! ¿En qué puedo ayudarte?">
+        </div>
+        <div class="form-group">
+          <button (click)="agregarRespuesta()" class="btn btn-primary">Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Palabra clave</th>
+            <th>Respuesta</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            <tr>
+              <td colspan="3" class="text-center">Cargando respuestas automáticas...</td>
+            </tr>
+          } @else if (error()) {
+            <tr>
+              <td colspan="3" class="text-center text-danger">{{ error() }}</td>
+            </tr>
+          } @else {
+            @for (respuesta of respuestasAutomaticas(); track respuesta.id) {
+              <tr>
+                <td>{{ respuesta.palabraClave }}</td>
+                <td>{{ respuesta.respuesta }}</td>
+                <td>
+                  <button (click)="actualizarRespuesta(respuesta)" class="btn btn-primary btn-sm me-2">Editar</button>
+                  <button (click)="eliminarRespuesta(respuesta)" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="text-center">No hay respuestas automáticas configuradas</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>🔔 Notificaciones</h2>
+    <p>Configura notificaciones para eventos en redes sociales.</p>
+
+    <div class="form-agregar">
+      <h3>Agregar nueva notificación</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tipo">Tipo de evento</label>
+          <select id="tipo" [ngModel]="nuevaNotificacionTipo()" (ngModelChange)="nuevaNotificacionTipo.set($event)">
+            <option value="">Selecciona un tipo</option>
+            <option value="nuevo_seguidor">Nuevo seguidor</option>
+            <option value="nuevo_mensaje">Nuevo mensaje</option>
+            <option value="nuevo_comentario">Nuevo comentario</option>
+            <option value="nueva_publicacion">Nueva publicación</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="canal">Canal</label>
+          <select id="canal" [ngModel]="nuevaNotificacionCanal()" (ngModelChange)="nuevaNotificacionCanal.set($event)">
+            <option value="">Selecciona un canal</option>
+            <option value="email">Email</option>
+            <option value="telegram">Telegram</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="sms">SMS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [ngModel]="nuevaNotificacionActiva()" (ngModelChange)="nuevaNotificacionActiva.set($event)"> Activa
+          </label>
+        </div>
+        <div class="form-group">
+          <button (click)="agregarNotificacion()" class="btn btn-primary">Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Tipo de evento</th>
+            <th>Canal</th>
+            <th>Activa</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            <tr>
+              <td colspan="4" class="text-center">Cargando notificaciones...</td>
+            </tr>
+          } @else if (error()) {
+            <tr>
+              <td colspan="4" class="text-center text-danger">{{ error() }}</td>
+            </tr>
+          } @else {
+            @for (notificacion of notificaciones(); track notificacion.id) {
+              <tr>
+                <td>{{ notificacion.tipo }}</td>
+                <td>{{ notificacion.canal }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="notificacion.activa" [class.badge-danger]="!notificacion.activa">
+                    {{ notificacion.activa ? 'Sí' : 'No' }}
+                  </span>
+                </td>
+                <td>
+                  <button (click)="actualizarNotificacion(notificacion)" class="btn btn-primary btn-sm me-2">Editar</button>
+                  <button (click)="eliminarNotificacion(notificacion)" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center">No hay notificaciones configuradas</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button (click)="guardarConfiguracion()" class="btn btn-success btn-lg">Guardar Configuración</button>
+  </div>
+</div>

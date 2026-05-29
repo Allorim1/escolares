@@ -201,12 +201,13 @@ export class CuentasPorPagar implements OnInit {
     montoBsf: 0,
     comentario: '',
     numeroControl: '',
+    base: 0,
   };
 
   showCameraModal = false;
   cameraStream: MediaStream | null = null;
   videoElement: HTMLVideoElement | null = null;
-  fotoIndexEliminar: number = -1;
+  fotoIndexEliminar = -1;
   cameraCallback: ((base64: string) => void) | null = null;
 
   showQRModal = false;
@@ -492,6 +493,7 @@ export class CuentasPorPagar implements OnInit {
         montoBsf: factura.montoBsf || 0,
         comentario: factura.comentario || '',
         numeroControl: factura.numeroControl || '',
+        base: (factura.montoBsf || 0) - (factura.exentoBsf || 0),
       };
     } else {
       this.editingFactura = null;
@@ -511,6 +513,7 @@ export class CuentasPorPagar implements OnInit {
         montoBsf: 0,
         comentario: '',
         numeroControl: '',
+        base: 0,
       };
     }
     this.showModalFactura = true;
@@ -534,6 +537,21 @@ export class CuentasPorPagar implements OnInit {
   seleccionarFacturaVinculada(index: number) {
     this.newFactura.facturaVinculadaIndex = index;
     this.showModalFacturaVinculada = false;
+  }
+
+  calcularExento() {
+    if (this.newFactura.montoBsf && this.newFactura.base !== undefined) {
+      const base = this.newFactura.base || 0;
+      const montoBsf = this.newFactura.montoBsf || 0;
+      const porcentajeIva = this.newFactura.porcentajeIva || 0;
+      if (base >= montoBsf) {
+        this.newFactura.exentoBsf = 0;
+        this.newFactura.base = montoBsf;
+      } else {
+        this.newFactura.exentoBsf = montoBsf - base;
+      }
+      this.newFactura.montoIva = base * (porcentajeIva / 100);
+    }
   }
 
   getFacturasDisponiblesParaVincular(): { index: number; factura: FacturaProveedor }[] {

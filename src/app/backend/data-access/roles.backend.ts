@@ -42,6 +42,10 @@ export class RolesBackend {
     return this.http.get<Rol>(`${this.API_URL}/${id}`);
   }
 
+  getRolById(id: string): Observable<Rol> {
+    return this.http.get<Rol>(`${this.API_URL}/by-id/${id}`);
+  }
+
   createRol(rol: Partial<Rol>): Observable<Rol> {
     return this.http.post<Rol>(this.API_URL, rol);
   }

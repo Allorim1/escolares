@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface Paso {
   id: string;
@@ -11,6 +13,9 @@ interface Paso {
   titulo: string;
   descripcion: string;
   imagen?: string;
+  video?: string;
+  videoUrl?: string;
+  videoDuration?: number;
 }
 
 interface Manual {
@@ -34,11 +39,11 @@ export class AdminManuales implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private sanitizer = inject(DomSanitizer);
+  private notificationModal = inject(NotificationModalService);
 
   manuales = signal<Manual[]>([]);
   cargando = signal(true);
-  error = signal<string | null>(null);
-  success = signal<string | null>(null);
 
   showModal = signal(false);
   isEditing = signal(false);
@@ -83,7 +88,7 @@ export class AdminManuales implements OnInit {
         this.cargando.set(false);
       },
       error: (err) => {
-        this.error.set('Error al cargar manuales');
+        this.notificationModal.error('Error al cargar manuales');
         this.cargando.set(false);
       },
     });
@@ -113,7 +118,6 @@ export class AdminManuales implements OnInit {
     this.showModal.set(false);
     this.isEditing.set(false);
     this.editingManual.set(null);
-    this.clearMessages();
   }
 
   verManual(manual: Manual) {
@@ -131,72 +135,190 @@ export class AdminManuales implements OnInit {
       id: this.generarId(),
       numero: this.formPasos.length + 1,
       titulo: '',
-      descripcion: '',
-      imagen: ''
+      descripcion: ''
     };
-    this.formPasos.push(nuevoPaso);
+    this.formPasos = [...this.formPasos, nuevoPaso];
   }
 
   eliminarPaso(index: number) {
-    this.formPasos.splice(index, 1);
+    this.formPasos = this.formPasos.filter((_, i) => i !== index);
     // Renumber steps
     this.formPasos.forEach((paso, i) => {
       paso.numero = i + 1;
     });
+    this.formPasos = [...this.formPasos];
   }
 
   moverPasoArriba(index: number) {
     if (index > 0) {
-      const temp = this.formPasos[index];
-      this.formPasos[index] = this.formPasos[index - 1];
-      this.formPasos[index - 1] = temp;
-      this.formPasos.forEach((paso, i) => {
+      const newPasos = [...this.formPasos];
+      const temp = newPasos[index];
+      newPasos[index] = newPasos[index - 1];
+      newPasos[index - 1] = temp;
+      newPasos.forEach((paso, i) => {
         paso.numero = i + 1;
       });
+      this.formPasos = newPasos;
     }
   }
 
   moverPasoAbajo(index: number) {
     if (index < this.formPasos.length - 1) {
-      const temp = this.formPasos[index];
-      this.formPasos[index] = this.formPasos[index + 1];
-      this.formPasos[index + 1] = temp;
-      this.formPasos.forEach((paso, i) => {
+      const newPasos = [...this.formPasos];
+      const temp = newPasos[index];
+      newPasos[index] = newPasos[index + 1];
+      newPasos[index + 1] = temp;
+      newPasos.forEach((paso, i) => {
         paso.numero = i + 1;
       });
+      this.formPasos = newPasos;
     }
   }
 
-  onImageSelected(event: any, pasoIndex: number) {
+  async onImageSelected(event: any, pasoIndex: number) {
     const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.formPasos[pasoIndex].imagen = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const maxSize = 5 * 1024 * 1024; // 5MB limit for images
+    if (file.size > maxSize) {
+      this.notificationModal.error('La imagen no puede pesar más de 5MB');
+      return;
     }
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response: any = await this.http.post('/api/manuales/upload-image', formData).toPromise();
+      this.formPasos[pasoIndex].imagen = response.url;
+    } catch (err: any) {
+      this.notificationModal.error(err.error?.error || 'Error al subir la imagen');
+    }
+  }
+
+  async onVideoSelected(event: any, pasoIndex: number) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      this.notificationModal.error('El archivo debe ser un video');
+      return;
+    }
+
+    const maxSize = 30 * 1024 * 1024; // 30MB limit for videos
+    if (file.size > maxSize) {
+      this.notificationModal.error('El video no puede pesar más de 30MB');
+      return;
+    }
+
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+
+    video.onloadedmetadata = async () => {
+      const duration = video.duration;
+      if (duration > 60) {
+        this.notificationModal.error('El video no puede durar más de 1 minuto');
+        URL.revokeObjectURL(video.src);
+        return;
+      }
+
+      URL.revokeObjectURL(video.src);
+
+      try {
+        const formData = new FormData();
+        formData.append('video', file);
+
+        const response: any = await this.http.post('/api/manuales/upload-video', formData).toPromise();
+        this.formPasos[pasoIndex].video = response.url;
+        this.formPasos[pasoIndex].videoDuration = Math.round(duration);
+      } catch (err: any) {
+        this.notificationModal.error(err.error?.error || 'Error al subir el video');
+      }
+    };
+
+    video.onerror = () => {
+      this.notificationModal.error('Error al leer el video');
+      URL.revokeObjectURL(video.src);
+    };
+  }
+
+  removeVideo(pasoIndex: number) {
+    this.formPasos[pasoIndex].video = undefined;
+    this.formPasos[pasoIndex].videoDuration = undefined;
+    this.formPasos = [...this.formPasos];
+  }
+
+  removeVideoUrl(pasoIndex: number) {
+    this.formPasos[pasoIndex].videoUrl = undefined;
+    this.formPasos = [...this.formPasos];
+  }
+
+  removeImage(pasoIndex: number) {
+    this.formPasos[pasoIndex].imagen = undefined;
+    this.formPasos = [...this.formPasos];
+  }
+
+  updateVideoFromUrl(pasoIndex: number) {
+    const url = this.formPasos[pasoIndex].videoUrl;
+    if (url && !this.isValidVideoUrl(url)) {
+      this.notificationModal.error('URL de video no válida. Soportamos YouTube y Vimeo.');
+      return;
+    }
+  }
+
+  isValidVideoUrl(url: string): boolean {
+    const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+    const vimeoPattern = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/;
+    return youtubePattern.test(url) || vimeoPattern.test(url);
+  }
+
+  getEmbedUrl(url: string): SafeHtml {
+    if (!url) return '';
+    
+    let embedHtml = '';
+    
+    const youtubeMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    if (youtubeMatch) {
+      embedHtml = `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${youtubeMatch[1]}" frameborder="0" allowfullscreen></iframe>`;
+      return this.sanitizer.bypassSecurityTrustHtml(embedHtml);
+    }
+    
+    const vimeoMatch = url.match(/(?:www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|)(\d+)/);
+    if (vimeoMatch) {
+      embedHtml = `<iframe width="100%" height="200" src="https://player.vimeo.com/video/${vimeoMatch[1]}" frameborder="0" allowfullscreen></iframe>`;
+      return this.sanitizer.bypassSecurityTrustHtml(embedHtml);
+    }
+    
+    return this.sanitizer.bypassSecurityTrustHtml('<p>URL no compatible</p>');
+  }
+
+  formatDuration(seconds: number): string {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
   guardarManual() {
     if (!this.formTitulo.trim()) {
-      this.error.set('El título es requerido');
+      this.notificationModal.error('El título es requerido');
       return;
     }
 
     if (this.formPasos.length === 0) {
-      this.error.set('Debe agregar al menos un paso');
+      this.notificationModal.error('Debe agregar al menos un paso');
       return;
     }
 
     // Validate steps
     for (let i = 0; i < this.formPasos.length; i++) {
       if (!this.formPasos[i].titulo.trim()) {
-        this.error.set(`El paso ${i + 1} debe tener un título`);
+        this.notificationModal.error(`El paso ${i + 1} debe tener un título`);
         return;
       }
       if (!this.formPasos[i].descripcion.trim()) {
-        this.error.set(`El paso ${i + 1} debe tener una descripción`);
+        this.notificationModal.error(`El paso ${i + 1} debe tener una descripción`);
         return;
       }
     }
@@ -218,12 +340,12 @@ export class AdminManuales implements OnInit {
 
     this.http.post('/api/manuales', manualData).subscribe({
       next: () => {
-        this.success.set('Manual creado correctamente');
+        this.notificationModal.success('Manual creado correctamente');
         this.cargarManuales();
         this.closeModal();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al crear manual');
+        this.notificationModal.error(err.error?.error || 'Error al crear manual');
       },
     });
   }
@@ -241,12 +363,12 @@ export class AdminManuales implements OnInit {
 
     this.http.put(`/api/manuales/${manual.id}`, manualData).subscribe({
       next: () => {
-        this.success.set('Manual actualizado correctamente');
+        this.notificationModal.success('Manual actualizado correctamente');
         this.cargarManuales();
         this.closeModal();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al actualizar manual');
+        this.notificationModal.error(err.error?.error || 'Error al actualizar manual');
       },
     });
   }
@@ -258,11 +380,11 @@ export class AdminManuales implements OnInit {
 
     this.http.delete(`/api/manuales/${manual.id}`).subscribe({
       next: () => {
-        this.success.set('Manual eliminado correctamente');
+        this.notificationModal.success('Manual eliminado correctamente');
         this.cargarManuales();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al eliminar manual');
+        this.notificationModal.error(err.error?.error || 'Error al eliminar manual');
       },
     });
   }
@@ -279,11 +401,6 @@ export class AdminManuales implements OnInit {
       month: 'long',
       day: 'numeric',
     });
-  }
-
-  clearMessages() {
-    this.error.set(null);
-    this.success.set(null);
   }
 
   private generarId(): string {

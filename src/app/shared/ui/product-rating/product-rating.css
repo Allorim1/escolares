@@ -1,0 +1,86 @@
+.rating-container {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.rating-container.interactive .star {
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.rating-container.interactive .star:hover {
+  transform: scale(1.2);
+}
+
+.star {
+  color: #e0e0e0;
+  transition: color 0.2s;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+.star.hovered {
+  color: #ffdb70;
+}
+
+.star.user-rated {
+  color: #1d63c1;
+}
+
+.star-small {
+  font-size: 1rem;
+}
+
+.star-medium {
+  font-size: 1.5rem;
+}
+
+.star-large {
+  font-size: 2rem;
+}
+
+.rating-info {
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.5rem;
+}
+
+.rating-text {
+  color: #666;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.your-rating {
+  color: #1d63c1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.login-prompt {
+  color: #999;
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+.login-prompt a {
+  color: #1d63c1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-prompt a:hover {
+  text-decoration: underline;
+}
+
+.submitting {
+  color: #666;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-left: 0.5rem;
+}

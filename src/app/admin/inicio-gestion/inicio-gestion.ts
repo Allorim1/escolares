@@ -86,7 +86,9 @@ export class AdminInicioGestion implements OnInit {
 
   loadProducts() {
     this.productsService.getProducts().subscribe({
-      next: (products) => this.allProducts.set(products),
+      next: (response: any) => {
+        this.allProducts.set(response.products);
+      },
       error: (err) => console.error('Error loading products:', err),
     });
   }

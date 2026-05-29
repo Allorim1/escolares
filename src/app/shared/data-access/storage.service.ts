@@ -23,8 +23,18 @@ export class StorageService {
       return of([]);
     }
 
-    const rawProducts = localStorage.getItem('products');
-    return of(rawProducts ? JSON.parse(rawProducts) : []);
+    try {
+      const rawProducts = localStorage.getItem('products');
+      if (!rawProducts) {
+        return of([]);
+      }
+      const parsed = JSON.parse(rawProducts);
+      // Ensure we always return an array
+      return of(Array.isArray(parsed) ? parsed : []);
+    } catch (e) {
+      console.error('Error parsing cart products from localStorage:', e);
+      return of([]);
+    }
   }
 
   saveProducts(products: ProductItemCart[]): void {

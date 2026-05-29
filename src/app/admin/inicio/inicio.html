@@ -5,6 +5,53 @@
   </div>
 
   @if (isRoot) {
+    <div class="api-key-section">
+      <div class="api-key-card">
+        <div class="api-key-content">
+          <div class="api-key-icon">🔑</div>
+          <div class="api-key-info">
+            <h3>API Key Costos-Tasas</h3>
+            <p class="api-key-status">
+              @if (apiKeyStatusService.hasApiKey()) {
+                @if (countdown()) {
+                  <span class="countdown-badge">⏱️ Renovar en: {{ countdown() }}</span>
+                } @else {
+                  <span class="status-badge status-inactive">Sin API key configurada</span>
+                }
+              }
+            </p>
+          </div>
+        </div>
+        <button class="api-key-btn" (click)="openApiKeyModal()">
+          🔧 Renovar API Key
+        </button>
+      </div>
+    </div>
+
+    @if (showApiKeyModal) {
+      <div class="popup-overlay">
+        <div class="popup-content popup-small">
+          <h3>API Key de DolarVzla</h3>
+          <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
+            Ingresa tu API key de <a href="https://www.dolarvzla.com/settings/api/" target="_blank">dolarvzla.com</a>
+          </p>
+          <div class="form-group">
+            <input 
+              type="text" 
+              [(ngModel)]="dolarApiKey" 
+              placeholder="API Key"
+              class="input-api-key-modal"
+              (keydown.enter)="guardarApiKey()"
+            />
+          </div>
+          <div class="popup-buttons">
+            <button class="cancel-btn" (click)="closeApiKeyModal()">Cancelar</button>
+            <button class="save-btn" (click)="guardarApiKey()">Guardar</button>
+          </div>
+        </div>
+      </div>
+    }
+
     <div class="store-control-card">
       <div class="store-control-content">
         <div class="store-control-icon">🛒</div>
@@ -31,6 +78,49 @@
           <span>🔒 Deshabilitar Compras</span>
         }
       </button>
+    </div>
+
+    <div class="store-control-card">
+      <div class="store-control-content">
+        <div class="store-control-icon">🔧</div>
+        <div class="store-control-info">
+          <h3>Modo Mantenimiento</h3>
+          <p class="store-status">
+            @if (storeSettings.mantenimiento()) {
+              <span class="status-badge status-warning">⚠️ Página en Mantenimiento</span>
+              @if (storeSettings.mantenimientoTipo() === 'absoluto') {
+                <span class="tipo-badge">🔒 Absoluto</span>
+              } @else {
+                <span class="tipo-badge">🔓 Parcial</span>
+              }
+            } @else {
+              <span class="status-badge status-active">✅ Sitio Activo</span>
+            }
+          </p>
+        </div>
+      </div>
+      <div class="mantenimiento-controls">
+        <select 
+          class="tipo-select"
+          [value]="storeSettings.mantenimientoTipo()"
+          (change)="setMantenimientoTipo($any($event.target).value)"
+        >
+          <option value="parcial">Parcial (solo modal)</option>
+          <option value="absoluto">Absoluto (bloquea sitio)</option>
+        </select>
+        <button 
+          class="toggle-compras-btn"
+          [class.btn-warning]="!storeSettings.mantenimiento()"
+          [class.btn-success]="storeSettings.mantenimiento()"
+          (click)="toggleMantenimiento()"
+        >
+          @if (storeSettings.mantenimiento()) {
+            <span>🔓 Deshabilitar Mantenimiento</span>
+          } @else {
+            <span>🔒 Habilitar Mantenimiento</span>
+          }
+        </button>
+      </div>
     </div>
   }
 

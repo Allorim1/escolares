@@ -41,7 +41,7 @@ export class HowBuy implements AfterViewInit {
     },
   ];
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {

@@ -1,13 +1,37 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+﻿import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { AuthService, User } from '../../shared/data-access/auth.service';
-import { RolesBackend, Rol } from '../../backend/data-access/roles.backend';
+import { AuthService } from '../../shared/data-access/auth.service';
+import { User } from '../../backend/models';
+import { RolesBackend, Rol, Permiso } from '../../backend/data-access/roles.backend';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface UserWithRol extends User {
   rolName?: string;
+}
+
+interface NewUser {
+   username: string;
+   email: string;
+   nombreCompleto: string;
+   apellido: string;
+   telefono: string;
+   direccion: string;
+   comentarios: string;
+   password: string;
+   tipoDocumento: 'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e';
+   numeroDocumento: string;
+   genero: 'hombre' | 'mujer' | 'no_especificado';
+   rol: 'owner' | 'usuario' | 'repartidor';
+   rolId?: string;
+ }
+
+interface EditRolPermisosState {
+  show: boolean;
+  rol?: Rol;
+  permisosSeleccionados: string[];
 }
 
 @Component({
@@ -22,18 +46,71 @@ export class AdminUsuarios implements OnInit {
   private rolesBackend = inject(RolesBackend);
   private http = inject(HttpClient);
   private router = inject(Router);
+  private notificationModal = inject(NotificationModalService);
+
+  filtrarUsuarios() {
+    let resultado = this.usuarios();
+    const texto = this.filtroTexto.toLowerCase().trim();
+    const tipo = this.filtroTipo;
+
+    if (texto) {
+      resultado = resultado.filter(u =>
+        (u.username?.toLowerCase().includes(texto)) ||
+        (u.nombreCompleto?.toLowerCase().includes(texto)) ||
+        (u.cedula?.toLowerCase().includes(texto)) ||
+        (u.email?.toLowerCase().includes(texto))
+      );
+    }
+
+    if (tipo === 'admin') {
+      resultado = resultado.filter(u => {
+        if (u.rol === 'root' || u.rol === 'owner') return true;
+        if (u.rolId) {
+          const rol = this.roles().find(r => r.id === u.rolId);
+          if (rol && rol.permisos && rol.permisos.length > 0) return true;
+        }
+        return false;
+      });
+    } else if (tipo === 'comun') {
+      resultado = resultado.filter(u => {
+        if (u.rol === 'root' || u.rol === 'owner') return false;
+        if (!u.rolId) return true;
+        const rol = this.roles().find(r => r.id === u.rolId);
+        if (!rol || !rol.permisos || rol.permisos.length === 0) return true;
+        return false;
+      });
+    }
+
+    return resultado;
+  }
+
+  onFiltroTextoChange(valor: string) {
+    this.filtroTexto = valor;
+  }
+
+  onFiltroTipoChange(valor: 'todos' | 'admin' | 'comun') {
+    this.filtroTipo = valor;
+  }
+
+  get usuariosFiltrados(): UserWithRol[] {
+    return this.filtrarUsuarios();
+  }
 
   usuarios = signal<UserWithRol[]>([]);
   roles = signal<Rol[]>([]);
+  permisos = signal<Permiso[]>([]);
   cargando = signal(true);
   error = signal<string | null>(null);
+
+  filtroTexto = '';
+  filtroTipo: 'todos' | 'admin' | 'comun' = 'todos';
 
   selectedUser = signal<UserWithRol | null>(null);
   editingUser = signal<UserWithRol | null>(null);
   newComentario = '';
   
   showCreateModal = signal(false);
-  newUser = {
+  newUser: NewUser = {
     username: '',
     email: '',
     nombreCompleto: '',
@@ -41,12 +118,22 @@ export class AdminUsuarios implements OnInit {
     telefono: '',
     direccion: '',
     comentarios: '',
-    password: ''
+    password: '',
+    tipoDocumento: 'cedula',
+    numeroDocumento: '',
+    genero: 'no_especificado',
+    rol: 'usuario',
+    rolId: undefined
   };
 
   userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
   selectedUserRolData = '';
   newPassword = '';
+  
+  editRolPermisosState = signal<EditRolPermisosState>({
+    show: false,
+    permisosSeleccionados: []
+  });
 
   ngOnInit() {
     if (!this.esRoot()) {
@@ -59,13 +146,29 @@ export class AdminUsuarios implements OnInit {
   cargarDatos() {
     this.cargando.set(true);
     
-    this.rolesBackend.getRoles().subscribe({
-      next: (roles) => {
-        this.roles.set(roles);
-        this.cargarUsuarios();
+    this.rolesBackend.getPermisos().subscribe({
+      next: (permisos) => {
+        this.permisos.set(permisos);
+        this.rolesBackend.getRoles().subscribe({
+          next: (roles) => {
+            this.roles.set(roles);
+            this.cargarUsuarios();
+          },
+          error: () => {
+            this.cargarUsuarios();
+          }
+        });
       },
       error: () => {
-        this.cargarUsuarios();
+        this.rolesBackend.getRoles().subscribe({
+          next: (roles) => {
+            this.roles.set(roles);
+            this.cargarUsuarios();
+          },
+          error: () => {
+            this.cargarUsuarios();
+          }
+        });
       }
     });
   }
@@ -80,7 +183,7 @@ export class AdminUsuarios implements OnInit {
         this.usuarios.set(usersWithRoles);
         this.cargando.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.error.set('Error al cargar usuarios');
         this.cargando.set(false);
       },
@@ -113,6 +216,8 @@ export class AdminUsuarios implements OnInit {
         return 'Root';
       case 'owner':
         return 'Owner';
+      case 'repartidor':
+        return 'Repartidor';
       case 'usuario':
         return 'Usuario';
       default:
@@ -142,20 +247,96 @@ export class AdminUsuarios implements OnInit {
     return undefined;
   }
 
+  getPermisosDelRol(): Permiso[] {
+    const rol = this.getSelectedRolFromId();
+    if (!rol) return [];
+    return this.permisos().filter(p => rol.permisos.includes(p.id));
+  }
+
+  getPermisosCount(): number {
+    return this.getSelectedRolFromId()?.permisos?.length || 0;
+  }
+
+  openEditPermisos(rol?: Rol) {
+    const rolToEdit = rol || this.getSelectedRolFromId();
+    if (!rolToEdit) return;
+    
+    this.editRolPermisosState.set({
+      show: true,
+      rol: rolToEdit,
+      permisosSeleccionados: [...(rolToEdit.permisos || [])]
+    });
+  }
+
+  closeEditPermisos() {
+    this.editRolPermisosState.set({
+      show: false,
+      permisosSeleccionados: []
+    });
+  }
+
+  togglePermiso(permisoId: string) {
+    const currentState = this.editRolPermisosState();
+    const index = currentState.permisosSeleccionados.indexOf(permisoId);
+    
+    if (index >= 0) {
+      this.editRolPermisosState.set({
+        ...currentState,
+        permisosSeleccionados: currentState.permisosSeleccionados.filter(p => p !== permisoId)
+      });
+    } else {
+      this.editRolPermisosState.set({
+        ...currentState,
+        permisosSeleccionados: [...currentState.permisosSeleccionados, permisoId]
+      });
+    }
+  }
+
+  isPermisoSelected(permisoId: string): boolean {
+    return this.editRolPermisosState().permisosSeleccionados.includes(permisoId);
+  }
+
+  saveRolPermisos() {
+    const state = this.editRolPermisosState();
+    if (!state.rol) return;
+
+    this.rolesBackend.updateRol(state.rol.id, { permisos: state.permisosSeleccionados }).subscribe({
+      next: () => {
+        this.rolesBackend.getRoles().subscribe({
+          next: (roles) => this.roles.set(roles)
+        });
+        this.closeEditPermisos();
+        this.notificationModal.success('Permisos del rol actualizados correctamente');
+      },
+      error: () => {
+        this.error.set('Error al actualizar permisos del rol');
+      }
+    });
+  }
+
+  getModulos(): string[] {
+    return Array.from(new Set(this.permisos().map(p => p.modulo)));
+  }
+
+  getPermisosPorModulo(modulo: string): Permiso[] {
+    return this.permisos().filter(p => p.modulo === modulo);
+  }
+
   saveUserRoleFromDetails() {
     const user = this.selectedUser();
     if (!user) return;
 
     const rolParts = this.selectedUserRolData.split(':');
-    const rol = rolParts[0] as 'owner' | 'usuario';
+    const rol = rolParts[0] as 'owner' | 'usuario' | 'repartidor';
     const rolId = rolParts[1] || undefined;
 
     this.authService.updateUserRol(user.id, rol, rolId).subscribe({
       next: () => {
         this.cargarUsuarios();
+        this.notificationModal.success('Rol actualizado correctamente');
       },
-      error: (err) => {
-        this.error.set(err.error?.error || 'Error al cambiar rol');
+      error: () => {
+        this.error.set('Error al cambiar rol');
       },
     });
   }
@@ -173,6 +354,7 @@ export class AdminUsuarios implements OnInit {
       next: () => {
         this.newPassword = '';
         this.userDetailsTab.set('info');
+        this.notificationModal.success('Contraseña actualizada correctamente');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al cambiar contraseña');
@@ -189,6 +371,7 @@ export class AdminUsuarios implements OnInit {
         next: () => {
           this.closeUserDetails();
           this.cargarUsuarios();
+          this.notificationModal.success('Usuario eliminado correctamente');
         },
         error: (err) => {
           this.error.set(err.error?.error || 'Error al eliminar usuario');
@@ -214,6 +397,7 @@ export class AdminUsuarios implements OnInit {
       next: () => {
         this.cargarUsuarios();
         this.closeUserDetails();
+        this.notificationModal.success('Usuario guardado correctamente');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al guardar usuario');
@@ -241,6 +425,7 @@ export class AdminUsuarios implements OnInit {
           this.editingUser.set({ ...updatedUser, comentarios: nuevoComentario });
         }
         this.newComentario = '';
+        this.notificationModal.success('Comentario agregado correctamente');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al agregar comentario');
@@ -258,7 +443,12 @@ export class AdminUsuarios implements OnInit {
       telefono: '',
       direccion: '',
       comentarios: '',
-      password: ''
+      password: '',
+      tipoDocumento: 'cedula',
+      numeroDocumento: '',
+      genero: 'no_especificado',
+      rol: 'usuario',
+      rolId: undefined
     };
   }
 
@@ -273,6 +463,41 @@ export class AdminUsuarios implements OnInit {
       return;
     }
 
+    // Construir el documento completo según el tipo
+    let documentoCompleto = '';
+    const tipo = userData.tipoDocumento;
+    const numero = userData.numeroDocumento;
+
+    switch (tipo) {
+      case 'cedula':
+        documentoCompleto = 'V-' + numero;
+        break;
+      case 'rif':
+        // Para RIF en creación de usuarios, asumimos V- (natural) por defecto
+        documentoCompleto = 'V-' + numero;
+        break;
+      case 'rif_personal_natural':
+        documentoCompleto = 'V-' + numero;
+        break;
+      case 'rif_v':
+        documentoCompleto = 'V-' + numero;
+        break;
+      case 'rif_e':
+        documentoCompleto = 'E-' + numero;
+        break;
+      case 'pasaporte':
+        documentoCompleto = numero;
+        break;
+      case 'extranjero':
+        documentoCompleto = 'E-' + numero;
+        break;
+      case 'gobierno':
+        documentoCompleto = 'G-' + numero;
+        break;
+      default:
+        documentoCompleto = numero;
+    }
+
     this.http.post('/api/auth/register-simple', {
       username: userData.username,
       email: userData.email,
@@ -282,10 +507,17 @@ export class AdminUsuarios implements OnInit {
       telefono: userData.telefono,
       direccion: userData.direccion,
       comentarios: userData.comentarios,
+      rif: documentoCompleto,
+      tipoDocumento: tipo,
+      numeroDocumento: numero,
+      genero: userData.genero,
+      rol: userData.rol,
+      rolId: userData.rolId,
     }).subscribe({
       next: () => {
         this.cargarUsuarios();
         this.closeCreateUser();
+        this.notificationModal.success('Usuario creado correctamente');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Error al crear usuario');

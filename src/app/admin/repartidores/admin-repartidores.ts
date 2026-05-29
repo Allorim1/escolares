@@ -59,15 +59,18 @@ export class AdminRepartidoresComponent implements OnInit {
   loadRepartidorUsers() {
     this.http.get<any[]>('/api/users?role=repartidor').subscribe({
       next: (users) => {
-        const repartidores = users.map(user => ({
-          id: user._id,
-          nombre: user.nombreCompleto || user.username,
-          telefono: user.telefono,
-          activo: user.activo,
-          createdAt: new Date(user.createdAt),
-          updatedAt: new Date(user.updatedAt),
-          isUser: true
-        }));
+        const repartidores = users.map(user => {
+          const deliveryPersonId = user._id || user.deliveryPersonId;
+          return {
+            id: deliveryPersonId,
+            nombre: user.nombreCompleto || user.username,
+            telefono: user.telefono,
+            activo: user.activo,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+            isUser: true
+          };
+        });
         this.repartidorUsers.set(repartidores);
         this.updateCombinedList();
       },

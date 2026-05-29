@@ -565,14 +565,17 @@ export class AdminPedidos implements OnInit, OnDestroy {
   loadRepartidorUsers() {
     this.http.get<any[]>('/api/users?role=repartidor').subscribe({
       next: (users) => {
-        const repartidores = users.map(user => ({
-          id: user._id || user.id,
-          nombre: user.nombreCompleto || user.username,
-          telefono: user.telefono,
-          activo: user.activo,
-          createdAt: new Date(user.createdAt),
-          updatedAt: new Date(user.updatedAt)
-        }));
+        const repartidores = users.map(user => {
+          const deliveryPersonId = user._id || user.deliveryPersonId;
+          return {
+            id: deliveryPersonId,
+            nombre: user.nombreCompleto || user.username,
+            telefono: user.telefono,
+            activo: user.activo,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt)
+          };
+        });
         this.repartidorUsers.set(repartidores);
         this.loadingDeliveryPersons.set(false);
       },

@@ -70,19 +70,22 @@ export class RepartidorComponent implements OnInit {
    constructor(private http: HttpClient) {}
 
 ngOnInit() {
-        const user = this.authService.user();
-        const currentUserId = user?.id;
+         const user = this.authService.user();
+         const currentUserId = user?.id;
 
-        // Use deliveryPersonId from user if available (set during login/registration)
-        if (user?.deliveryPersonId) {
-          this.deliveryPersonId = user.deliveryPersonId;
-        }
+         // Use deliveryPersonId from user if available (set during login/registration)
+         if (user?.deliveryPersonId) {
+           this.deliveryPersonId = user.deliveryPersonId;
+           this.loadOrders();
+           this.watchLocation();
+           return;
+         }
 
-        // Fetch delivery person by userId since the relationship is stored as deliveryPerson.userId
-        const token = localStorage.getItem('accessToken');
-        const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+         // Fallback: Fetch delivery person by userId
+         const token = localStorage.getItem('accessToken');
+         const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
-        this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`).subscribe({
+         this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`).subscribe({
           next: (person) => {
             this.deliveryPersonId = person.id;
             this.loadOrders();

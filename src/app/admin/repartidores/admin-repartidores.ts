@@ -193,6 +193,7 @@ this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe
     this.http.post<DeliveryPerson>(`/api/delivery/${personId}/dni`, formData).subscribe({
       next: () => {
         this.loadDeliveryPersons();
+        this.loadRepartidorUsers();
         this.cancelEdit();
       },
       error: (err) => {
@@ -205,7 +206,10 @@ this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe
   deletePerson(person: DeliveryPerson) {
     if (!confirm(`¿Eliminar repartidor "${person.nombre}"?`)) return;
     this.http.delete(`/api/delivery/${person.id}`).subscribe({
-      next: () => this.loadDeliveryPersons(),
+      next: () => {
+        this.loadDeliveryPersons();
+        this.loadRepartidorUsers();
+      },
       error: (err) => {
         console.error('Error eliminando repartidor:', err);
         alert('Error al eliminar repartidor');
@@ -220,7 +224,10 @@ this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe
       activo: !person.activo 
     };
     this.http.put<DeliveryPerson>(`/api/delivery/${person.id}`, updated).subscribe({
-      next: () => this.loadDeliveryPersons(),
+      next: () => {
+        this.loadDeliveryPersons();
+        this.loadRepartidorUsers();
+      },
       error: (err) => {
         console.error('Error cambiando estado:', err);
         alert('Error al cambiar estado');

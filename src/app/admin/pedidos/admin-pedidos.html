@@ -519,11 +519,11 @@
    </div>
  }
 
- @if (showOrderMapModal()) {
+ @if (openOrderMapModal()) {
    <div class="modal-overlay" (click)="closeOrderMapModal()">
      <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
        <div class="modal-header">
-         <h3>📍 Ubicación del Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+         <h3>📍 Ruta del Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
          <button class="close-btn" (click)="closeOrderMapModal()">&times;</button>
        </div>
        <div class="modal-body">

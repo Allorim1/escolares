@@ -46,8 +46,8 @@ export class Direcciones {
   buscandoAutocomplete = signal(false);
   
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
-  private map: google.maps.Map | null = null;
-  private marker: google.maps.Marker | null = null;
+  private map: any = null;
+  private marker: any = null;
 
   readonly estadosVenezuela = [
     'Amazonas', 'Anzoátegui', 'Apure', 'Aragua', 'Barinas', 'Bolívar', 'Carabobo',
@@ -349,7 +349,7 @@ export class Direcciones {
         });
       } else {
         const position = { lat, lng };
-        this.map.setCenter(position);
+        (this.map as any).setCenter(position);
         if (this.marker) {
           this.marker.setPosition(position);
         } else {

@@ -88,10 +88,9 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   // Mapa
   @ViewChild('orderMapContainer', { static: false }) orderMapContainer!: ElementRef;
-  private map: google.maps.Map | null = null;
-  private repartidorMarker: google.maps.Marker | null = null;
-  private clienteMarker: google.maps.Marker | null = null;
-  private directionsRenderer: google.maps.DirectionsRenderer | null = null;
+  private map: any = null;
+  private repartidorMarker: any = null;
+  private directionsRenderer: any = null;
 
 // Modal de asignar repartidor
     showAssignDeliveryModal = signal(false);
@@ -107,7 +106,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
     selectedDeliveryPerson = signal<DeliveryPerson | null>(null);
 
   // Modal de mapa del pedido
-  showOrderMapModal = signal<{ lat: number; lng: number; repartidorLat?: number; repartidorLng?: number } | null>(null);
+  openOrderMapModal = signal<{ lat: number; lng: number; repartidorLat?: number; repartidorLng?: number } | null>(null);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -685,17 +684,17 @@ export class AdminPedidos implements OnInit, OnDestroy {
   }
 
   closeOrderMapModal() {
-    this.showOrderMapModal.set(null);
+    this.openOrderMapModal.set(null);
     // Limpiar mapa
-    if (this.map) {
+    if (this.map && this.map.setMap) {
       this.map.setMap(null);
       this.map = null;
     }
-    if (this.repartidorMarker) {
+    if (this.repartidorMarker && this.repartidorMarker.setMap) {
       this.repartidorMarker.setMap(null);
       this.repartidorMarker = null;
     }
-    if (this.directionsRenderer) {
+    if (this.directionsRenderer && this.directionsRenderer.setMap) {
       this.directionsRenderer.setMap(null);
       this.directionsRenderer = null;
     }
@@ -709,14 +708,14 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
     // Si hay ubicación del repartidor, mostrar ruta; si no, solo la ubicación del cliente
     if (repartidorLat && repartidorLng) {
-      this.showOrderMapModal.set({ lat: clienteLat, lng: clienteLng, repartidorLat, repartidorLng });
+      this.openOrderMapModal.set({ lat: clienteLat, lng: clienteLng, repartidorLat, repartidorLng });
     } else {
-      this.showOrderMapModal.set({ lat: clienteLat, lng: clienteLng });
+      this.openOrderMapModal.set({ lat: clienteLat, lng: clienteLng });
     }
     
     // Inicializar mapa después de que el modal se muestre
     setTimeout(() => {
-      const coords = this.showOrderMapModal();
+      const coords = this.openOrderMapModal();
       if (coords) {
         this.initOrderMap(coords);
       }
@@ -736,7 +735,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
           center: clientePosition,
           zoom: 12,
         });
-        this.directionsRenderer = new google.maps.DirectionsRenderer({
+        this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
           map: this.map,
           suppressMarkers: false,
         });
@@ -747,26 +746,20 @@ export class AdminPedidos implements OnInit, OnDestroy {
         const repartidorPosition = { lat: coords.repartidorLat, lng: coords.repartidorLng };
         
         // Limpiar marcadores anteriores
-        if (this.repartidorMarker) this.repartidorMarker.setMap(null);
+        if (this.repartidorMarker && this.repartidorMarker.setMap) {
+          this.repartidorMarker.setMap(null);
+        }
         
-        // Crear marcador del repartidor con icono de bicicleta/moto
+        // Crear marcador del repartidor con icono de flecha azul
         this.repartidorMarker = this.mapsService.createMarker({
           position: repartidorPosition,
           map: this.map,
           title: 'Repartidor',
-          icon: {
-            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            scale: 8,
-            fillColor: '#4285F4',
-            fillOpacity: 1,
-            strokeColor: '#FFFFFF',
-            strokeWeight: 2,
-          },
         });
         
         // Calcular y mostrar ruta
         this.directionsRenderer?.setMap(null);
-        this.directionsRenderer = new google.maps.DirectionsRenderer({
+        this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
           map: this.map,
           suppressMarkers: false,
           polylineOptions: {
@@ -780,25 +773,25 @@ export class AdminPedidos implements OnInit, OnDestroy {
           {
             origin: repartidorPosition,
             destination: clientePosition,
-            travelMode: google.maps.TravelMode.DRIVING,
+            travelMode: (window as any).google.maps.TravelMode.DRIVING,
           },
-          (result, status) => {
+          (result: any, status: any) => {
             if (status === 'OK' && result) {
               this.directionsRenderer?.setDirections(result);
               
               // Ajustar vista del mapa para mostrar toda la ruta
-              const bounds = new google.maps.LatLngBounds();
+              const bounds = new (window as any).google.maps.LatLngBounds();
               bounds.extend(repartidorPosition);
               bounds.extend(clientePosition);
-              this.map?.fitBounds(bounds);
+              (this.map as any)?.fitBounds(bounds);
             }
           }
         );
       } else {
         // Solo mostrar ubicación del cliente
         this.directionsRenderer?.setMap(null);
-        this.map?.setCenter(clientePosition);
-        this.map?.setZoom(16);
+        (this.map as any)?.setCenter(clientePosition);
+        (this.map as any)?.setZoom(16);
       }
     } catch (error) {
       console.error('Error loading map:', error);

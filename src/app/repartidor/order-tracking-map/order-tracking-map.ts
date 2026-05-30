@@ -307,8 +307,8 @@ export class OrderTrackingMapComponent implements AfterViewInit, OnDestroy {
    order = signal<OrderTracking | null>(null);
    estimatedTime = signal<string>('');
    map: google.maps.Map | null = null;
-   orderMarker: google.maps.Marker | google.maps.marker.AdvancedMarkerElement | null = null;
-   driverMarker: google.maps.Marker | google.maps.marker.AdvancedMarkerElement | null = null;
+   orderMarker: google.maps.Marker | null = null;
+   driverMarker: google.maps.Marker | null = null;
    directionsRenderer: google.maps.DirectionsRenderer | null = null;
    watchId: number | null = null;
    mapError = signal<string>('');
@@ -426,12 +426,7 @@ export class OrderTrackingMapComponent implements AfterViewInit, OnDestroy {
          title: 'Repartidor'
        });
      } else {
-       const marker = this.driverMarker as any;
-       if (marker.setPosition) {
-         marker.setPosition(location);
-       } else {
-         marker.position = location;
-       }
+       this.driverMarker.setPosition(location);
      }
 
      if (this.directionsRenderer && this.order()) {

@@ -53,10 +53,9 @@ autocomplete(input: string): Promise<any[]> {
      return new google.maps.Map(element, options);
    }
 
-   createMarker(options: google.maps.MarkerOptions): google.maps.Marker | google.maps.marker.AdvancedMarkerElement {
-     if ((window as any).google?.maps?.marker?.AdvancedMarkerElement) {
-       return new (window as any).google.maps.marker.AdvancedMarkerElement(options);
-     }
+   createMarker(options: google.maps.MarkerOptions): google.maps.Marker {
+     // Using legacy Marker for compatibility - AdvancedMarkerElement is available but requires mapId for best results
+     // It works without mapId but may show warnings. Using Marker avoids all issues.
      return new google.maps.Marker(options);
    }
 

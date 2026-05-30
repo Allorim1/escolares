@@ -187,18 +187,20 @@ export class AdminPedidos implements OnInit, OnDestroy {
         console.log('WebSocket conectado');
       };
       
-      this.socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.tipo === 'compra') {
-            this.mostrarNotificacionCompra(data);
-          } else if (data.tipo === 'actualizacion_pedido') {
-            this.loadOrders();
-          }
-        } catch (error) {
-          console.error('Error procesando mensaje del socket:', error);
-        }
-      };
+this.socket.onmessage = (event) => {
+         try {
+           const data = JSON.parse(event.data);
+           if (data.tipo === 'compra') {
+             this.mostrarNotificacionCompra(data);
+           } else if (data.tipo === 'actualizacion_pedido') {
+             this.loadOrders();
+           } else if (data.tipo === 'ubicacion_repartidor') {
+             this.handleDeliveryLocationUpdate(data);
+           }
+         } catch (error) {
+           console.error('Error procesando mensaje del socket:', error);
+         }
+       };
       
       this.socket.onclose = () => {
         console.log('WebSocket desconectado');
@@ -221,18 +223,98 @@ export class AdminPedidos implements OnInit, OnDestroy {
     }
   }
 
-  private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
-    this.notificationService.show({
-      title: notificacion.titulo,
-      message: notificacion.mensaje,
-      type: 'info',
-      duration: 5000,
-      icon: '🛒'
-    });
-    
-    // Actualizar la lista de pedidos
-    this.loadOrders();
-  }
+private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
+     this.notificationService.show({
+       title: notificacion.titulo,
+       message: notificacion.mensaje,
+       type: 'info',
+       duration: 5000,
+       icon: '🛒'
+     });
+     
+     // Actualizar la lista de pedidos
+     this.loadOrders();
+   }
+
+   private handleDeliveryLocationUpdate(data: { deliveryPersonId: string; lat: number; lng: number }) {
+     // Update the selected order's repartidorUbicacion if it matches
+     const currentOrder = this.selectedOrder();
+     if (currentOrder && currentOrder.deliveryPersonId === data.deliveryPersonId) {
+       const updatedOrder = {
+         ...currentOrder,
+         repartidorUbicacion: {
+           lat: data.lat,
+           lng: data.lng,
+           timestamp: new Date()
+         }
+       };
+       this.selectedOrder.set(updatedOrder);
+       
+       // Update map if it's open for this order
+       if (this.openOrderMapModal() && this.map) {
+         this.updateMapWithNewLocation(data.lat, data.lng);
+       }
+     }
+   }
+
+   private async updateMapWithNewLocation(lat: number, lng: number) {
+     if (!this.map || !this.orderMapContainer?.nativeElement) return;
+     
+     const coords = this.openOrderMapModal();
+     if (!coords) return;
+     
+     try {
+       await this.mapsService.loadApi();
+       
+       const repartidorPosition = { lat, lng };
+       const clientePosition = { lat: coords.lat, lng: coords.lng };
+       
+       // Clear previous marker
+       if (this.repartidorMarker && this.repartidorMarker.setMap) {
+         this.repartidorMarker.setMap(null);
+       }
+       
+       // Update marker position
+       this.repartidorMarker = this.mapsService.createMarker({
+         position: repartidorPosition,
+         map: this.map,
+         title: 'Repartidor',
+       });
+       
+       // Recalculate route
+       const directionsService = this.mapsService.createDirectionsService();
+       this.directionsRenderer?.setMap(null);
+       this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+         map: this.map,
+         suppressMarkers: false,
+         polylineOptions: {
+           strokeColor: '#4285F4',
+           strokeWeight: 5,
+         },
+       });
+       
+       directionsService.route(
+         {
+           origin: repartidorPosition,
+           destination: clientePosition,
+           travelMode: (window as any).google.maps.TravelMode.DRIVING,
+         },
+         (result: any, status: any) => {
+           if (status === 'OK' && result) {
+             this.directionsRenderer?.setDirections(result);
+             
+             // Adjust map bounds
+             const bounds = new (window as any).google.maps.LatLngBounds();
+             bounds.extend(repartidorPosition);
+             bounds.extend(clientePosition);
+             (this.map as any)?.fitBounds(bounds);
+           }
+         }
+       );
+     } catch (error) {
+       console.error('Error updating map with new location:', error);
+     }
+   }
 
 		  loadOrders() {
 		    this.loading.set(true);

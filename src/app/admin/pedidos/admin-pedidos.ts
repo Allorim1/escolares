@@ -720,7 +720,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
           map: this.map,
         });
       } else {
-        const position = new google.maps.LatLng(lat, lng);
+        const position = { lat, lng };
         this.map.setCenter(position);
         this.map.setZoom(16);
         if (this.marker) {

@@ -57,12 +57,17 @@
       setCenter(latLng: LatLngLiteral): void;
       setZoom(zoom: number): void;
       setOptions(options: MapOptions): void;
+      fitBounds(bounds: LatLngBounds, padding?: number): void;
     }
 
     class Marker {
       constructor(options?: MarkerOptions);
       setPosition(latLng: LatLngLiteral): void;
       setMap(map: Map | null): void;
+    }
+
+    class LatLngBounds {
+      extend(latLng: LatLngLiteral): void;
     }
 
     class DirectionsRenderer {
@@ -83,6 +88,21 @@
 
     namespace event {
       function trigger(instance: unknown, eventName: string): void;
+    }
+
+    namespace marker {
+      class AdvancedMarkerElement {
+        constructor(options?: AdvancedMarkerElementOptions);
+        position: LatLngLiteral;
+        map: Map | null;
+        title?: string;
+      }
+      
+      interface AdvancedMarkerElementOptions {
+        position?: LatLngLiteral;
+        map?: Map | null;
+        title?: string;
+      }
     }
   }
 }

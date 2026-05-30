@@ -329,38 +329,43 @@ export class Direcciones {
     }
   }
   
-  private async actualizarMapa() {
-    const lat = this.formLatitud();
-    const lng = this.formLongitud();
-    
-    if (!lat || !lng || !this.mapContainer?.nativeElement) return;
-    
-    try {
-      await this.mapsService.loadApi();
-      
-      if (!this.map) {
-        this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
-          center: { lat, lng },
-          zoom: 16,
-        });
-        this.marker = this.mapsService.createMarker({
-          position: { lat, lng },
-          map: this.map,
-        });
-      } else {
-        const position = { lat, lng };
-        (this.map as any).setCenter(position);
-        if (this.marker) {
-          this.marker.setPosition(position);
-        } else {
-          this.marker = this.mapsService.createMarker({
-            position,
-            map: this.map,
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error loading map:', error);
-    }
-  }
-}
+private async actualizarMapa() {
+     const lat = this.formLatitud();
+     const lng = this.formLongitud();
+     
+     if (!lat || !lng || !this.mapContainer?.nativeElement) return;
+     
+     try {
+       await this.mapsService.loadApi();
+       
+       if (!this.map) {
+         this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
+           center: { lat, lng },
+           zoom: 16,
+         });
+         this.marker = this.mapsService.createMarker({
+           position: { lat, lng },
+           map: this.map,
+         });
+       } else {
+         const position = { lat, lng };
+         (this.map as any).setCenter(position);
+         if (this.marker) {
+           const m = this.marker as any;
+           if (m.setPosition) {
+             m.setPosition(position);
+           } else {
+             m.position = position;
+           }
+         } else {
+           this.marker = this.mapsService.createMarker({
+             position,
+             map: this.map,
+           });
+         }
+       }
+     } catch (error) {
+       console.error('Error loading map:', error);
+     }
+   }
+ }

@@ -294,165 +294,170 @@ type ApiResponse = {
   `]
 })
 export class OrderTrackingMapComponent implements AfterViewInit, OnDestroy {
-  private mapsService = inject(GoogleMapsService);
-  private http = inject(HttpClient);
+   private mapsService = inject(GoogleMapsService);
+   private http = inject(HttpClient);
 
-  @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLElement>;
-  
-  @Input() orderId!: string;
-  @Input() showAcceptButton = false;
-  @Input() showStartButton = false;
-  @Output() orderStarted = new EventEmitter<string>();
-  
-  order = signal<OrderTracking | null>(null);
-  estimatedTime = signal<string>('');
-  map: google.maps.Map | null = null;
-  orderMarker: google.maps.Marker | null = null;
-  driverMarker: google.maps.Marker | null = null;
-  directionsRenderer: google.maps.DirectionsRenderer | null = null;
-  watchId: number | null = null;
-  mapError = signal<string>('');
+   @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLElement>;
+   
+   @Input() orderId!: string;
+   @Input() showAcceptButton = false;
+   @Input() showStartButton = false;
+   @Output() orderStarted = new EventEmitter<string>();
+   
+   order = signal<OrderTracking | null>(null);
+   estimatedTime = signal<string>('');
+   map: google.maps.Map | null = null;
+   orderMarker: google.maps.Marker | google.maps.marker.AdvancedMarkerElement | null = null;
+   driverMarker: google.maps.Marker | google.maps.marker.AdvancedMarkerElement | null = null;
+   directionsRenderer: google.maps.DirectionsRenderer | null = null;
+   watchId: number | null = null;
+   mapError = signal<string>('');
 
-  async ngAfterViewInit() {
-    await this.initializeMap();
-  }
+   async ngAfterViewInit() {
+     await this.initializeMap();
+   }
 
-  ngOnDestroy() {
-    if (this.watchId) {
-      navigator.geolocation.clearWatch(this.watchId);
-    }
-  }
+   ngOnDestroy() {
+     if (this.watchId) {
+       navigator.geolocation.clearWatch(this.watchId);
+     }
+   }
 
-  async initializeMap() {
-    try {
-      await this.mapsService.loadApi();
-      await this.loadTrackingData();
-      await this.initMap();
-      this.startLocationTracking();
-    } catch (error: unknown) {
-      this.mapError.set(error instanceof Error ? error.message : 'Error loading map');
-      console.error('Map initialization error:', error);
-    }
-  }
+   async initializeMap() {
+     try {
+       await this.mapsService.loadApi();
+       await this.loadTrackingData();
+       await this.initMap();
+       this.startLocationTracking();
+     } catch (error: unknown) {
+       this.mapError.set(error instanceof Error ? error.message : 'Error loading map');
+       console.error('Map initialization error:', error);
+     }
+   }
 
-  async loadTrackingData() {
-    if (!this.orderId) return;
-    
-    try {
-      const response = await this.http.get<ApiResponse>(`/api/delivery/order/${this.orderId}/tracking`).toPromise();
-      this.order.set(response?.order ?? null);
-      
-      if (response?.directions) {
-        this.estimatedTime.set(response.directions.routes[0]?.legs[0]?.duration?.text ?? '');
-      }
-    } catch (error) {
-      console.error('Error loading tracking data:', error);
-    }
-  }
+   async loadTrackingData() {
+     if (!this.orderId) return;
+     
+     try {
+       const response = await this.http.get<ApiResponse>(`/api/delivery/order/${this.orderId}/tracking`).toPromise();
+       this.order.set(response?.order ?? null);
+       
+       if (response?.directions) {
+         this.estimatedTime.set(response.directions.routes[0]?.legs[0]?.duration?.text ?? '');
+       }
+     } catch (error) {
+       console.error('Error loading tracking data:', error);
+     }
+   }
 
-  async initMap() {
-    const container = this.mapContainer?.nativeElement;
-    if (!container) {
-      console.warn('Map container not available');
-      return;
-    }
+   async initMap() {
+     const container = this.mapContainer?.nativeElement;
+     if (!container) {
+       console.warn('Map container not available');
+       return;
+     }
 
-    const order = this.order();
-    
-    await new Promise(resolve => setTimeout(resolve, 300));
+     const order = this.order();
+     
+     await new Promise(resolve => setTimeout(resolve, 300));
 
-    if (container.offsetWidth === 0 || container.offsetHeight === 0) {
-      console.warn('Map container still has no dimensions');
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
+     if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+       console.warn('Map container still has no dimensions');
+       await new Promise(resolve => setTimeout(resolve, 500));
+     }
 
-    if (!order?.latitud || !order?.longitud) {
-      this.map = this.mapsService.createMap(container, {
-        zoom: 10,
-        center: { lat: 10.5, lng: -66.9 }
-      });
-    } else {
-      this.map = this.mapsService.createMap(container, {
-        center: { lat: order.latitud, lng: order.longitud },
-        zoom: 14
-      });
+     if (!order?.latitud || !order?.longitud) {
+       this.map = this.mapsService.createMap(container, {
+         zoom: 10,
+         center: { lat: 10.5, lng: -66.9 }
+       });
+     } else {
+       this.map = this.mapsService.createMap(container, {
+         center: { lat: order.latitud, lng: order.longitud },
+         zoom: 14
+       });
 
-      this.directionsRenderer = new google.maps.DirectionsRenderer({
-        map: this.map,
-        suppressMarkers: true,
-        polylineOptions: {
-          strokeColor: '#007bff',
-          strokeWeight: 5
-        }
-      });
+       this.directionsRenderer = new google.maps.DirectionsRenderer({
+         map: this.map,
+         suppressMarkers: true,
+         polylineOptions: {
+           strokeColor: '#007bff',
+           strokeWeight: 5
+         }
+       });
 
-      this.orderMarker = this.mapsService.createMarker({
-        position: { lat: order.latitud, lng: order.longitud },
-        map: this.map,
-        title: 'Destino - Cliente'
-      });
-    }
-    
-    setTimeout(() => {
-      if (this.map) {
-        google.maps.event.trigger(this.map, 'resize');
-        if (order?.latitud && order?.longitud) {
-          this.map.setCenter({ lat: order.latitud, lng: order.longitud });
-        }
-      }
-    }, 500);
-  }
+       this.orderMarker = this.mapsService.createMarker({
+         position: { lat: order.latitud, lng: order.longitud },
+         map: this.map,
+         title: 'Destino - Cliente'
+       });
+     }
+     
+     setTimeout(() => {
+       if (this.map) {
+         (window as any).google.maps.event.trigger(this.map, 'resize');
+         if (order?.latitud && order?.longitud) {
+           this.map.setCenter({ lat: order.latitud, lng: order.longitud });
+         }
+       }
+     }, 500);
+   }
 
-  startLocationTracking() {
-    if (!navigator.geolocation) return;
-    
-    this.watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        this.updateMapWithLocation({ lat: latitude, lng: longitude });
-      },
-      (error) => console.error('Geolocation error:', error),
-      { enableHighAccuracy: true, maximumAge: 60000 }
-    );
-  }
+   startLocationTracking() {
+     if (!navigator.geolocation) return;
+     
+     this.watchId = navigator.geolocation.watchPosition(
+       (position) => {
+         const { latitude, longitude } = position.coords;
+         this.updateMapWithLocation({ lat: latitude, lng: longitude });
+       },
+       (error) => console.error('Geolocation error:', error),
+       { enableHighAccuracy: true, maximumAge: 60000 }
+     );
+   }
 
-  async updateMapWithLocation(location: { lat: number; lng: number }) {
-    if (!this.map) return;
+   async updateMapWithLocation(location: { lat: number; lng: number }) {
+     if (!this.map) return;
 
-    if (!this.driverMarker) {
-      this.driverMarker = this.mapsService.createMarker({
-        position: location,
-        map: this.map,
-        title: 'Repartidor'
-      });
-    } else {
-      this.driverMarker.setPosition(location);
-    }
+     if (!this.driverMarker) {
+       this.driverMarker = this.mapsService.createMarker({
+         position: location,
+         map: this.map,
+         title: 'Repartidor'
+       });
+     } else {
+       const marker = this.driverMarker as any;
+       if (marker.setPosition) {
+         marker.setPosition(location);
+       } else {
+         marker.position = location;
+       }
+     }
 
-    if (this.directionsRenderer && this.order()) {
-      await this.calculateAndDisplayRoute(location);
-    }
-  }
+     if (this.directionsRenderer && this.order()) {
+       await this.calculateAndDisplayRoute(location);
+     }
+   }
 
-  async calculateAndDisplayRoute(driverLocation: { lat: number; lng: number }) {
-    const order = this.order();
-    if (!order?.latitud || !order?.longitud) return;
-    
-    try {
-      const result = await this.mapsService.getDirections(
-        driverLocation,
-        { lat: order.latitud, lng: order.longitud }
-      );
-      this.directionsRenderer?.setDirections(result);
-      this.estimatedTime.set(result.routes[0]?.legs[0]?.duration?.text ?? '');
-    } catch {
-      console.log('Could not calculate route');
-    }
-  }
+   async calculateAndDisplayRoute(driverLocation: { lat: number; lng: number }) {
+     const order = this.order();
+     if (!order?.latitud || !order?.longitud) return;
+     
+     try {
+       const result = await this.mapsService.getDirections(
+         driverLocation,
+         { lat: order.latitud, lng: order.longitud }
+       );
+       this.directionsRenderer?.setDirections(result);
+       this.estimatedTime.set(result.routes[0]?.legs[0]?.duration?.text ?? '');
+     } catch {
+       console.log('Could not calculate route');
+     }
+   }
 
-  startOrder() {
-    if (this.orderId) {
-      this.orderStarted.emit(this.orderId);
-    }
-  }
-}
+   startOrder() {
+     if (this.orderId) {
+       this.orderStarted.emit(this.orderId);
+     }
+   }
+ }

@@ -257,64 +257,67 @@ private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
      }
    }
 
-   private async updateMapWithNewLocation(lat: number, lng: number) {
-     if (!this.map || !this.orderMapContainer?.nativeElement) return;
-     
-     const coords = this.openOrderMapModal();
-     if (!coords) return;
-     
-     try {
-       await this.mapsService.loadApi();
-       
-       const repartidorPosition = { lat, lng };
-       const clientePosition = { lat: coords.lat, lng: coords.lng };
-       
-       // Clear previous marker
-       if (this.repartidorMarker && this.repartidorMarker.setMap) {
-         this.repartidorMarker.setMap(null);
-       }
-       
-       // Update marker position
-       this.repartidorMarker = this.mapsService.createMarker({
-         position: repartidorPosition,
-         map: this.map,
-         title: 'Repartidor',
-       });
-       
-       // Recalculate route
-       const directionsService = this.mapsService.createDirectionsService();
-       this.directionsRenderer?.setMap(null);
-       this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
-         map: this.map,
-         suppressMarkers: false,
-         polylineOptions: {
-           strokeColor: '#4285F4',
-           strokeWeight: 5,
-         },
-       });
-       
-       directionsService.route(
-         {
-           origin: repartidorPosition,
-           destination: clientePosition,
-           travelMode: (window as any).google.maps.TravelMode.DRIVING,
-         },
-         (result: any, status: any) => {
-           if (status === 'OK' && result) {
-             this.directionsRenderer?.setDirections(result);
-             
-             // Adjust map bounds
-             const bounds = new (window as any).google.maps.LatLngBounds();
-             bounds.extend(repartidorPosition);
-             bounds.extend(clientePosition);
-             (this.map as any)?.fitBounds(bounds);
-           }
-         }
-       );
-     } catch (error) {
-       console.error('Error updating map with new location:', error);
-     }
-   }
+private async updateMapWithNewLocation(lat: number, lng: number) {
+      if (!this.map || !this.orderMapContainer?.nativeElement) return;
+      
+      const coords = this.openOrderMapModal();
+      if (!coords) return;
+      
+      try {
+        await this.mapsService.loadApi();
+        
+        const repartidorPosition = { lat, lng };
+        const clientePosition = { lat: coords.lat, lng: coords.lng };
+        
+        // Clear previous marker
+        if (this.repartidorMarker) {
+          const m = this.repartidorMarker as any;
+          if (m.setMap) {
+            m.setMap(null);
+          }
+        }
+        
+        // Update marker position
+        this.repartidorMarker = this.mapsService.createMarker({
+          position: repartidorPosition,
+          map: this.map,
+          title: 'Repartidor',
+        });
+        
+        // Recalculate route
+        const directionsService = this.mapsService.createDirectionsService();
+        this.directionsRenderer?.setMap(null);
+        this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+          map: this.map,
+          suppressMarkers: false,
+          polylineOptions: {
+            strokeColor: '#4285F4',
+            strokeWeight: 5,
+          },
+        });
+        
+        directionsService.route(
+          {
+            origin: repartidorPosition,
+            destination: clientePosition,
+            travelMode: (window as any).google.maps.TravelMode.DRIVING,
+          },
+          (result: any, status: any) => {
+            if (status === 'OK' && result) {
+              this.directionsRenderer?.setDirections(result);
+              
+              // Adjust map bounds
+              const bounds = this.mapsService.createLatLngBounds();
+              bounds.extend(repartidorPosition);
+              bounds.extend(clientePosition);
+              (this.map as any)?.fitBounds(bounds);
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Error updating map with new location:', error);
+      }
+    }
 
 		  loadOrders() {
 		    this.loading.set(true);
@@ -760,27 +763,33 @@ private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
     }
   }
 
-  closeDeliveryPersonModal() {
-    this.showDeliveryPersonModal.set(false);
-    this.selectedDeliveryPerson.set(null);
-  }
+closeDeliveryPersonModal() {
+     this.showDeliveryPersonModal.set(false);
+     this.selectedDeliveryPerson.set(null);
+   }
 
-  closeOrderMapModal() {
-    this.openOrderMapModal.set(null);
-    // Limpiar mapa
-    if (this.map && this.map.setMap) {
-      this.map.setMap(null);
-      this.map = null;
-    }
-    if (this.repartidorMarker && this.repartidorMarker.setMap) {
-      this.repartidorMarker.setMap(null);
-      this.repartidorMarker = null;
-    }
-    if (this.directionsRenderer && this.directionsRenderer.setMap) {
-      this.directionsRenderer.setMap(null);
-      this.directionsRenderer = null;
-    }
-  }
+   closeOrderMapModal() {
+     this.openOrderMapModal.set(null);
+     // Limpiar mapa
+     this.map = null;
+     
+     // Clear markers using setMap for both Marker and AdvancedMarkerElement
+     if (this.repartidorMarker) {
+       const m = this.repartidorMarker as any;
+       if (m.setMap) {
+         m.setMap(null);
+       }
+       this.repartidorMarker = null;
+     }
+     
+     if (this.directionsRenderer) {
+       const d = this.directionsRenderer as any;
+       if (d.setMap) {
+         d.setMap(null);
+       }
+       this.directionsRenderer = null;
+     }
+   }
 
   openOrderMap(clienteLat: number, clienteLng: number, repartidorLat?: number, repartidorLng?: number) {
     if (!clienteLat || !clienteLng) {
@@ -804,80 +813,83 @@ private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
     }, 150);
   }
 
-  private async initOrderMap(coords: { lat: number; lng: number; repartidorLat?: number; repartidorLng?: number }) {
-    if (!this.orderMapContainer?.nativeElement) return;
-    
-    try {
-      await this.mapsService.loadApi();
-      
-      const clientePosition = { lat: coords.lat, lng: coords.lng };
-      
-      if (!this.map) {
-        this.map = this.mapsService.createMap(this.orderMapContainer.nativeElement, {
-          center: clientePosition,
-          zoom: 12,
-        });
-        this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
-          map: this.map,
-          suppressMarkers: false,
-        });
-      }
-      
-      // Si hay ubicación del repartidor, calcular ruta
-      if (coords.repartidorLat && coords.repartidorLng) {
-        const repartidorPosition = { lat: coords.repartidorLat, lng: coords.repartidorLng };
-        
-        // Limpiar marcadores anteriores
-        if (this.repartidorMarker && this.repartidorMarker.setMap) {
-          this.repartidorMarker.setMap(null);
-        }
-        
-        // Crear marcador del repartidor con icono de flecha azul
-        this.repartidorMarker = this.mapsService.createMarker({
-          position: repartidorPosition,
-          map: this.map,
-          title: 'Repartidor',
-        });
-        
-        // Calcular y mostrar ruta
-        this.directionsRenderer?.setMap(null);
-        this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
-          map: this.map,
-          suppressMarkers: false,
-          polylineOptions: {
-            strokeColor: '#4285F4',
-            strokeWeight: 5,
-          },
-        });
-        
-        const directionsService = this.mapsService.createDirectionsService();
-        directionsService.route(
-          {
-            origin: repartidorPosition,
-            destination: clientePosition,
-            travelMode: (window as any).google.maps.TravelMode.DRIVING,
-          },
-          (result: any, status: any) => {
-            if (status === 'OK' && result) {
-              this.directionsRenderer?.setDirections(result);
-              
-              // Ajustar vista del mapa para mostrar toda la ruta
-              const bounds = new (window as any).google.maps.LatLngBounds();
-              bounds.extend(repartidorPosition);
-              bounds.extend(clientePosition);
-              (this.map as any)?.fitBounds(bounds);
-            }
-          }
-        );
-      } else {
-        // Solo mostrar ubicación del cliente
-        this.directionsRenderer?.setMap(null);
-        (this.map as any)?.setCenter(clientePosition);
-        (this.map as any)?.setZoom(16);
-      }
-    } catch (error) {
-      console.error('Error loading map:', error);
-      this.notificationService.error('Error', 'No se pudo cargar el mapa');
-    }
-  }
-}
+private async initOrderMap(coords: { lat: number; lng: number; repartidorLat?: number; repartidorLng?: number }) {
+     if (!this.orderMapContainer?.nativeElement) return;
+     
+     try {
+       await this.mapsService.loadApi();
+       
+       const clientePosition = { lat: coords.lat, lng: coords.lng };
+       
+       if (!this.map) {
+         this.map = this.mapsService.createMap(this.orderMapContainer.nativeElement, {
+           center: clientePosition,
+           zoom: 12,
+         });
+         this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+           map: this.map,
+           suppressMarkers: false,
+         });
+       }
+       
+       // Si hay ubicación del repartidor, calcular ruta
+       if (coords.repartidorLat && coords.repartidorLng) {
+         const repartidorPosition = { lat: coords.repartidorLat, lng: coords.repartidorLng };
+         
+         // Limpiar marcadores anteriores
+         if (this.repartidorMarker) {
+           const m = this.repartidorMarker as any;
+           if (m.setMap) {
+             m.setMap(null);
+           }
+         }
+         
+         // Crear marcador del repartidor con icono de flecha azul
+         this.repartidorMarker = this.mapsService.createMarker({
+           position: repartidorPosition,
+           map: this.map,
+           title: 'Repartidor',
+         });
+         
+         // Calcular y mostrar ruta
+         this.directionsRenderer?.setMap(null);
+         this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+           map: this.map,
+           suppressMarkers: false,
+           polylineOptions: {
+             strokeColor: '#4285F4',
+             strokeWeight: 5,
+           },
+         });
+         
+         const directionsService = this.mapsService.createDirectionsService();
+         directionsService.route(
+           {
+             origin: repartidorPosition,
+             destination: clientePosition,
+             travelMode: (window as any).google.maps.TravelMode.DRIVING,
+           },
+           (result: any, status: any) => {
+             if (status === 'OK' && result) {
+               this.directionsRenderer?.setDirections(result);
+               
+               // Ajustar vista del mapa para mostrar toda la ruta
+               const bounds = this.mapsService.createLatLngBounds();
+               bounds.extend(repartidorPosition);
+               bounds.extend(clientePosition);
+               (this.map as any)?.fitBounds(bounds);
+             }
+           }
+         );
+       } else {
+         // Solo mostrar ubicación del cliente
+         this.directionsRenderer?.setMap(null);
+         (this.map as any)?.setCenter(clientePosition);
+         (this.map as any)?.setZoom(16);
+       }
+     } catch (error) {
+       console.error('Error loading map:', error);
+       this.notificationService.error('Error', 'No se pudo cargar el mapa');
+     }
+   }
+ }

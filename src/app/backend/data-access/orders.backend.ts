@@ -20,6 +20,8 @@ export interface Order {
   cedula: string;
   telefono: string;
   direccion: string;
+  latitud?: number;
+  longitud?: number;
   metodoPago: string;
   referencia: string;
   fotoComprobante?: string;
@@ -33,6 +35,11 @@ export interface Order {
   autorizadoNombre?: string;
   deliveryPersonId?: string;
   deliveryPersonName?: string;
+  repartidorUbicacion?: {
+    lat: number;
+    lng: number;
+    timestamp: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

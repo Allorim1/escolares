@@ -870,7 +870,6 @@ header.app-header {
 
 @media (max-width: 768px) {
   .app-header.admin-route .header-search,
-  .app-header.admin-route .header-bottom,
   .app-header.admin-route .mobile-menu-btn,
   .app-header.admin-route .cart-hover-container {
     display: none !important;
@@ -885,7 +884,6 @@ header.app-header {
 
 @media (min-width: 769px) {
   .app-header.admin-route .header-search,
-  .app-header.admin-route .header-bottom,
   .app-header.admin-route .mobile-menu-btn,
   .app-header.admin-route .cart-hover-container {
     display: none !important;
@@ -903,7 +901,6 @@ header.app-header {
 }
 
 .mobile-menu-btn.hidden,
-.header-bottom.hidden,
 .cart-hover-container.hidden {
   display: none !important;
 }

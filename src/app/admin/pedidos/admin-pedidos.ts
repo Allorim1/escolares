@@ -1,10 +1,11 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { OrdersBackend, Order } from '../../backend/data-access/orders.backend';
+import { GoogleMapsService } from '../../shared/services/google-maps.service';
 
 interface DeliveryPerson {
    _id?: string;
@@ -55,6 +56,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
+  private mapsService = inject(GoogleMapsService);
   private intervalId: any;
   private socket: WebSocket | null = null;
 
@@ -84,6 +86,12 @@ export class AdminPedidos implements OnInit, OnDestroy {
   facturaFile = signal<File | null>(null);
   facturaPreview = signal<string | null>(null);
 
+  // Mapa
+  @ViewChild('orderMapContainer', { static: false }) orderMapContainer!: ElementRef;
+  private map: any = null;
+  private repartidorMarker: any = null;
+  private directionsRenderer: any = null;
+
 // Modal de asignar repartidor
     showAssignDeliveryModal = signal(false);
     deliveryPersons = signal<DeliveryPerson[]>([]);
@@ -93,9 +101,12 @@ export class AdminPedidos implements OnInit, OnDestroy {
     isAssigningDelivery = signal(false);
     loadingDeliveryPersons = signal(false);
 
-   // Modal de ficha técnica del repartidor
-   showDeliveryPersonModal = signal(false);
-   selectedDeliveryPerson = signal<DeliveryPerson | null>(null);
+// Modal de ficha técnica del repartidor
+    showDeliveryPersonModal = signal(false);
+    selectedDeliveryPerson = signal<DeliveryPerson | null>(null);
+
+  // Modal de mapa del pedido
+  openOrderMapModal = signal<{ lat: number; lng: number; repartidorLat?: number; repartidorLng?: number } | null>(null);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -176,18 +187,20 @@ export class AdminPedidos implements OnInit, OnDestroy {
         console.log('WebSocket conectado');
       };
       
-      this.socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.tipo === 'compra') {
-            this.mostrarNotificacionCompra(data);
-          } else if (data.tipo === 'actualizacion_pedido') {
-            this.loadOrders();
-          }
-        } catch (error) {
-          console.error('Error procesando mensaje del socket:', error);
-        }
-      };
+this.socket.onmessage = (event) => {
+         try {
+           const data = JSON.parse(event.data);
+           if (data.tipo === 'compra') {
+             this.mostrarNotificacionCompra(data);
+           } else if (data.tipo === 'actualizacion_pedido') {
+             this.loadOrders();
+           } else if (data.tipo === 'ubicacion_repartidor') {
+             this.handleDeliveryLocationUpdate(data);
+           }
+         } catch (error) {
+           console.error('Error procesando mensaje del socket:', error);
+         }
+       };
       
       this.socket.onclose = () => {
         console.log('WebSocket desconectado');
@@ -210,18 +223,101 @@ export class AdminPedidos implements OnInit, OnDestroy {
     }
   }
 
-  private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
-    this.notificationService.show({
-      title: notificacion.titulo,
-      message: notificacion.mensaje,
-      type: 'info',
-      duration: 5000,
-      icon: '🛒'
-    });
-    
-    // Actualizar la lista de pedidos
-    this.loadOrders();
-  }
+private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
+     this.notificationService.show({
+       title: notificacion.titulo,
+       message: notificacion.mensaje,
+       type: 'info',
+       duration: 5000,
+       icon: '🛒'
+     });
+     
+     // Actualizar la lista de pedidos
+     this.loadOrders();
+   }
+
+   private handleDeliveryLocationUpdate(data: { deliveryPersonId: string; lat: number; lng: number }) {
+     // Update the selected order's repartidorUbicacion if it matches
+     const currentOrder = this.selectedOrder();
+     if (currentOrder && currentOrder.deliveryPersonId === data.deliveryPersonId) {
+       const updatedOrder = {
+         ...currentOrder,
+         repartidorUbicacion: {
+           lat: data.lat,
+           lng: data.lng,
+           timestamp: new Date()
+         }
+       };
+       this.selectedOrder.set(updatedOrder);
+       
+       // Update map if it's open for this order
+       if (this.openOrderMapModal() && this.map) {
+         this.updateMapWithNewLocation(data.lat, data.lng);
+       }
+     }
+   }
+
+private async updateMapWithNewLocation(lat: number, lng: number) {
+     if (!this.map || !this.orderMapContainer?.nativeElement) return;
+     
+     const coords = this.openOrderMapModal();
+     if (!coords) return;
+     
+     try {
+       await this.mapsService.loadApi();
+       
+       const repartidorPosition = { lat, lng };
+       const clientePosition = { lat: coords.lat, lng: coords.lng };
+       
+       // Clear previous marker
+       if (this.repartidorMarker) {
+         const m = this.repartidorMarker as any;
+         if (m.setMap) {
+           m.setMap(null);
+         }
+       }
+       
+       // Update marker position
+       this.repartidorMarker = this.mapsService.createMarker({
+         position: repartidorPosition,
+         map: this.map,
+         title: 'Repartidor',
+       });
+       
+       // Recalculate route
+       const directionsService = this.mapsService.createDirectionsService();
+       this.directionsRenderer?.setMap(null);
+       this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+         map: this.map,
+         suppressMarkers: false,
+         polylineOptions: {
+           strokeColor: '#4285F4',
+           strokeWeight: 5,
+         },
+       });
+       
+       directionsService.route(
+         {
+           origin: repartidorPosition,
+           destination: clientePosition,
+           travelMode: (window as any).google.maps.TravelMode.DRIVING,
+         },
+         (result: any, status: any) => {
+           if (status === 'OK' && result) {
+             this.directionsRenderer?.setDirections(result);
+             
+             // Ajustar vista del mapa para mostrar ambas ubicaciones con padding
+             const bounds = this.mapsService.createLatLngBounds();
+             bounds.extend(repartidorPosition);
+             bounds.extend(clientePosition);
+             (this.map as any)?.fitBounds(bounds, 80);
+           }
+         }
+       );
+     } catch (error) {
+       console.error('Error updating map with new location:', error);
+     }
+   }
 
 		  loadOrders() {
 		    this.loading.set(true);
@@ -667,8 +763,138 @@ export class AdminPedidos implements OnInit, OnDestroy {
     }
   }
 
-  closeDeliveryPersonModal() {
-    this.showDeliveryPersonModal.set(false);
-    this.selectedDeliveryPerson.set(null);
+closeDeliveryPersonModal() {
+     this.showDeliveryPersonModal.set(false);
+     this.selectedDeliveryPerson.set(null);
+   }
+
+   closeOrderMapModal() {
+     this.openOrderMapModal.set(null);
+     // Limpiar mapa
+     this.map = null;
+     
+     // Clear markers using setMap for both Marker and AdvancedMarkerElement
+     if (this.repartidorMarker) {
+       const m = this.repartidorMarker as any;
+       if (m.setMap) {
+         m.setMap(null);
+       }
+       this.repartidorMarker = null;
+     }
+     
+     if (this.directionsRenderer) {
+       const d = this.directionsRenderer as any;
+       if (d.setMap) {
+         d.setMap(null);
+       }
+       this.directionsRenderer = null;
+     }
+   }
+
+  openOrderMap(clienteLat: number, clienteLng: number, repartidorLat?: number, repartidorLng?: number) {
+    if (!clienteLat || !clienteLng) {
+      this.notificationService.error('Error', 'No hay coordenadas disponibles para este pedido');
+      return;
+    }
+
+    // Si hay ubicación del repartidor, mostrar ruta; si no, solo la ubicación del cliente
+    if (repartidorLat && repartidorLng) {
+      this.openOrderMapModal.set({ lat: clienteLat, lng: clienteLng, repartidorLat, repartidorLng });
+    } else {
+      this.openOrderMapModal.set({ lat: clienteLat, lng: clienteLng });
+    }
+    
+    // Inicializar mapa después de que el modal se muestre
+    setTimeout(() => {
+      const coords = this.openOrderMapModal();
+      if (coords) {
+        this.initOrderMap(coords);
+      }
+    }, 150);
   }
-}
+
+private async initOrderMap(coords: { lat: number; lng: number; repartidorLat?: number; repartidorLng?: number }) {
+     if (!this.orderMapContainer?.nativeElement) return;
+     
+     try {
+       await this.mapsService.loadApi();
+       
+       const clientePosition = { lat: coords.lat, lng: coords.lng };
+       
+       if (!this.map) {
+         // Initialize map centered on repartidor if available, otherwise client
+         const initialCenter = coords.repartidorLat && coords.repartidorLng 
+           ? { lat: coords.repartidorLat, lng: coords.repartidorLng }
+           : clientePosition;
+           
+         this.map = this.mapsService.createMap(this.orderMapContainer.nativeElement, {
+           center: initialCenter,
+           zoom: 12,
+         });
+         this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+           map: this.map,
+           suppressMarkers: false,
+         });
+       }
+       
+       // Si hay ubicación del repartidor, calcular ruta
+       if (coords.repartidorLat && coords.repartidorLng) {
+         const repartidorPosition = { lat: coords.repartidorLat, lng: coords.repartidorLng };
+         
+         // Limpiar marcadores anteriores
+         if (this.repartidorMarker) {
+           const m = this.repartidorMarker as any;
+           if (m.setMap) {
+             m.setMap(null);
+           }
+         }
+         
+         // Crear marcador del repartidor
+         this.repartidorMarker = this.mapsService.createMarker({
+           position: repartidorPosition,
+           map: this.map,
+           title: 'Repartidor',
+         });
+         
+         // Calcular y mostrar ruta
+         this.directionsRenderer?.setMap(null);
+         this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+           map: this.map,
+           suppressMarkers: false,
+           polylineOptions: {
+             strokeColor: '#4285F4',
+             strokeWeight: 5,
+           },
+         });
+         
+         const directionsService = this.mapsService.createDirectionsService();
+         directionsService.route(
+           {
+             origin: repartidorPosition,
+             destination: clientePosition,
+             travelMode: (window as any).google.maps.TravelMode.DRIVING,
+           },
+           (result: any, status: any) => {
+             if (status === 'OK' && result) {
+               this.directionsRenderer?.setDirections(result);
+               
+               // Ajustar vista del mapa para mostrar ambas ubicaciones con padding
+               const bounds = this.mapsService.createLatLngBounds();
+               bounds.extend(repartidorPosition);
+               bounds.extend(clientePosition);
+               (this.map as any)?.fitBounds(bounds, 50);
+             }
+           }
+         );
+       } else {
+         // Solo mostrar ubicación del cliente
+         this.directionsRenderer?.setMap(null);
+         (this.map as any)?.setCenter(clientePosition);
+         (this.map as any)?.setZoom(16);
+       }
+     } catch (error) {
+       console.error('Error loading map:', error);
+       this.notificationService.error('Error', 'No se pudo cargar el mapa');
+     }
+   }
+ }

@@ -172,7 +172,14 @@
             </div>
             <div class="detail-item full">
               <span class="label">Dirección:</span>
-              <span class="value">{{ selectedOrder()!.direccion }}</span>
+              <span class="value">
+                {{ selectedOrder()!.direccion }}
+                @if (selectedOrder()!.latitud && selectedOrder()!.longitud) {
+                  <button class="btn-view-map" (click)="openOrderMap(selectedOrder()!.latitud!, selectedOrder()!.longitud!)">
+                    🗺️ Ver en mapa
+                  </button>
+                }
+              </span>
             </div>
 @if (selectedOrder()!.deliveryPersonName) {
                <div class="detail-item full">
@@ -457,57 +464,71 @@
 }
 
 @if (showFacturaModal()) {
-  <div class="modal-overlay" (click)="closeFacturaModal()">
-    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Subir Factura - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
-        <button class="close-btn" (click)="closeFacturaModal()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        @if (!facturaPreview()) {
-          <div 
-            class="dropzone"
-            [class.drag-active]="dragActive()"
-            (dragenter)="onDragEnter($event)"
-            (dragleave)="onDragLeave($event)"
-            (dragover)="onDragOver($event)"
-            (drop)="onDrop($event)"
-          >
-            <div class="dropzone-content">
-              <span class="dropzone-icon">📁</span>
-              <p>Arrastra y suelta la imagen de la factura aquí</p>
-              <p class="dropzone-hint">o</p>
-              <button class="btn-select-file" (click)="fileInput.click()">
-                Seleccionar archivo
-              </button>
-              <input 
-                #fileInput
-                type="file" 
-                accept="image/*"
-                (change)="onFileSelected($event)"
-                style="display: none;"
-              />
-            </div>
-          </div>
-        } @else {
-          <div class="preview-container">
-            <img [src]="facturaPreview()" alt="Vista previa factura" class="factura-preview-img" />
-            <button class="btn-remove-factura" (click)="facturaFile.set(null); facturaPreview.set(null)">✕</button>
-          </div>
-        }
+   <div class="modal-overlay" (click)="closeFacturaModal()">
+     <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>Subir Factura - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+         <button class="close-btn" (click)="closeFacturaModal()">&times;</button>
+       </div>
+       
+       <div class="modal-body">
+         @if (!facturaPreview()) {
+           <div 
+             class="dropzone"
+             [class.drag-active]="dragActive()"
+             (dragenter)="onDragEnter($event)"
+             (dragleave)="onDragLeave($event)"
+             (dragover)="onDragOver($event)"
+             (drop)="onDrop($event)"
+           >
+             <div class="dropzone-content">
+               <span class="dropzone-icon">📁</span>
+               <p>Arrastra y suelta la imagen de la factura aquí</p>
+               <p class="dropzone-hint">o</p>
+               <button class="btn-select-file" (click)="fileInput.click()">
+                 Seleccionar archivo
+               </button>
+               <input 
+                 #fileInput
+                 type="file" 
+                 accept="image/*"
+                 (change)="onFileSelected($event)"
+                 style="display: none;"
+               />
+             </div>
+           </div>
+         } @else {
+           <div class="preview-container">
+             <img [src]="facturaPreview()" alt="Vista previa factura" class="factura-preview-img" />
+             <button class="btn-remove-factura" (click)="facturaFile.set(null); facturaPreview.set(null)">✕</button>
+           </div>
+         }
 
-        @if (facturaError()) {
-          <div class="error-message">{{ facturaError() }}</div>
-        }
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeFacturaModal()">Cancelar</button>
-        <button class="btn-primary" (click)="uploadFactura()" [disabled]="isUploadingFactura() || !facturaFile()">
-          {{ isUploadingFactura() ? 'Subiendo...' : 'Subir Factura' }}
-        </button>
-      </div>
-    </div>
-  </div>
-}
+         @if (facturaError()) {
+           <div class="error-message">{{ facturaError() }}</div>
+         }
+       </div>
+       
+       <div class="modal-footer">
+         <button class="btn-secondary" (click)="closeFacturaModal()">Cancelar</button>
+         <button class="btn-primary" (click)="uploadFactura()" [disabled]="isUploadingFactura() || !facturaFile()">
+           {{ isUploadingFactura() ? 'Subiendo...' : 'Subir Factura' }}
+         </button>
+       </div>
+     </div>
+   </div>
+ }
+
+ @if (showOrderMapModal()) {
+   <div class="modal-overlay" (click)="closeOrderMapModal()">
+     <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>📍 Ubicación del Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+         <button class="close-btn" (click)="closeOrderMapModal()">&times;</button>
+       </div>
+       <div class="modal-body">
+         <div #orderMapContainer class="order-map-container"></div>
+       </div>
+     </div>
+   </div>
+ }

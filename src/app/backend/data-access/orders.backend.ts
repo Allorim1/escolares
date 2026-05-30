@@ -20,6 +20,8 @@ export interface Order {
   cedula: string;
   telefono: string;
   direccion: string;
+  latitud?: number;
+  longitud?: number;
   metodoPago: string;
   referencia: string;
   fotoComprobante?: string;

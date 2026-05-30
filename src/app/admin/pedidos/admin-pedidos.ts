@@ -1,10 +1,11 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef, SimpleChanges } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { OrdersBackend, Order } from '../../backend/data-access/orders.backend';
+import { GoogleMapsService } from '../../shared/services/google-maps.service';
 
 interface DeliveryPerson {
    _id?: string;
@@ -55,6 +56,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
+  private mapsService = inject(GoogleMapsService);
   private intervalId: any;
   private socket: WebSocket | null = null;
 
@@ -84,6 +86,11 @@ export class AdminPedidos implements OnInit, OnDestroy {
   facturaFile = signal<File | null>(null);
   facturaPreview = signal<string | null>(null);
 
+  // Mapa
+  @ViewChild('orderMapContainer', { static: false }) orderMapContainer!: ElementRef;
+  private map: google.maps.Map | null = null;
+  private marker: google.maps.Marker | null = null;
+
 // Modal de asignar repartidor
     showAssignDeliveryModal = signal(false);
     deliveryPersons = signal<DeliveryPerson[]>([]);
@@ -93,9 +100,12 @@ export class AdminPedidos implements OnInit, OnDestroy {
     isAssigningDelivery = signal(false);
     loadingDeliveryPersons = signal(false);
 
-   // Modal de ficha técnica del repartidor
-   showDeliveryPersonModal = signal(false);
-   selectedDeliveryPerson = signal<DeliveryPerson | null>(null);
+// Modal de ficha técnica del repartidor
+    showDeliveryPersonModal = signal(false);
+    selectedDeliveryPerson = signal<DeliveryPerson | null>(null);
+
+  // Modal de mapa del pedido
+  showOrderMapModal = signal<{ lat: number; lng: number } | null>(null);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -670,5 +680,61 @@ export class AdminPedidos implements OnInit, OnDestroy {
   closeDeliveryPersonModal() {
     this.showDeliveryPersonModal.set(false);
     this.selectedDeliveryPerson.set(null);
+  }
+
+  closeOrderMapModal() {
+    this.showOrderMapModal.set(null);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['showOrderMapModal'] && this.showOrderMapModal()) {
+      const coords = this.showOrderMapModal();
+      if (coords) {
+        setTimeout(() => this.initOrderMap(coords.lat, coords.lng), 100);
+      }
+    }
+  }
+
+  openOrderMap(lat: number, lng: number) {
+    if (!lat || !lng) {
+      this.notificationService.error('Error', 'No hay coordenadas disponibles para este pedido');
+      return;
+    }
+
+    this.showOrderMapModal.set({ lat, lng });
+  }
+
+  private async initOrderMap(lat: number, lng: number) {
+    if (!this.orderMapContainer?.nativeElement) return;
+    
+    try {
+      await this.mapsService.loadApi();
+      
+      if (!this.map) {
+        this.map = this.mapsService.createMap(this.orderMapContainer.nativeElement, {
+          center: { lat, lng },
+          zoom: 16,
+        });
+        this.marker = this.mapsService.createMarker({
+          position: { lat, lng },
+          map: this.map,
+        });
+      } else {
+        const position = new google.maps.LatLng(lat, lng);
+        this.map.setCenter(position);
+        this.map.setZoom(16);
+        if (this.marker) {
+          this.marker.setPosition(position);
+        } else {
+          this.marker = this.mapsService.createMarker({
+            position,
+            map: this.map,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading map:', error);
+      this.notificationService.error('Error', 'No se pudo cargar el mapa');
+    }
   }
 }

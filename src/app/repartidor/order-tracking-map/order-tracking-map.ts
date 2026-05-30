@@ -1,13 +1,41 @@
-import { Component, Input, OnInit, signal, ViewChild, ElementRef, AfterViewInit, Output, EventEmitter } from '@angular/core';
+﻿import { Component, Input, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
 import { HttpClient } from '@angular/common/http';
+
+interface OrderItem {
+  productId: string;
+  title: string;
+  quantity: number;
+  price: number;
+  image?: string;
+}
+
+interface OrderTracking {
+  id: string;
+  nombre?: string;
+  telefono?: string;
+  direccion?: string;
+  direccionCompleta?: string;
+  latitud?: number;
+  longitud?: number;
+  items?: OrderItem[];
+  total?: number;
+  referencia?: string;
+  status?: string;
+  createdAt?: Date;
+}
+
+type ApiResponse = {
+  order?: OrderTracking;
+  directions?: google.maps.DirectionsResult;
+};
 
 @Component({
   selector: 'app-order-tracking-map',
   standalone: true,
   imports: [CommonModule],
-template: `
+  template: `
     <div class="tracking-container">
       <div class="map-section">
         @if (mapError()) {
@@ -94,7 +122,8 @@ template: `
   styles: [`
     .tracking-container {
       display: flex;
-      height: 100%;
+      height: 600px;
+      min-height: 500px;
       gap: 1px;
     }
     .map-section {
@@ -105,7 +134,6 @@ template: `
       width: 100%;
       height: 100%;
       min-height: 500px;
-      border-radius: 8px 0 0 8px;
     }
     .map-info-panel {
       position: absolute;
@@ -265,14 +293,18 @@ template: `
     }
   `]
 })
-export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
-  @ViewChild('mapContainer') mapContainer!: ElementRef;
+export class OrderTrackingMapComponent implements AfterViewInit, OnDestroy {
+  private mapsService = inject(GoogleMapsService);
+  private http = inject(HttpClient);
+
+  @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLElement>;
+  
   @Input() orderId!: string;
   @Input() showAcceptButton = false;
   @Input() showStartButton = false;
   @Output() orderStarted = new EventEmitter<string>();
   
-  order = signal<any>(null);
+  order = signal<OrderTracking | null>(null);
   estimatedTime = signal<string>('');
   map: google.maps.Map | null = null;
   orderMarker: google.maps.Marker | null = null;
@@ -281,23 +313,8 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   watchId: number | null = null;
   mapError = signal<string>('');
 
-  constructor(private mapsService: GoogleMapsService, private http: HttpClient) {}
-
-  async ngOnInit() {
-    await this.loadTrackingData();
-  }
-
   async ngAfterViewInit() {
-    try {
-      await this.mapsService.loadApi();
-      // Ensure ViewChild is resolved before accessing
-      await Promise.resolve();
-      await this.initMap();
-      this.startLocationTracking();
-    } catch (error: any) {
-      this.mapError.set(error.message || 'Error loading map');
-      console.error('Map initialization error:', error);
-    }
+    await this.initializeMap();
   }
 
   ngOnDestroy() {
@@ -306,15 +323,27 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
     }
   }
 
+  async initializeMap() {
+    try {
+      await this.mapsService.loadApi();
+      await this.loadTrackingData();
+      await this.initMap();
+      this.startLocationTracking();
+    } catch (error: unknown) {
+      this.mapError.set(error instanceof Error ? error.message : 'Error loading map');
+      console.error('Map initialization error:', error);
+    }
+  }
+
   async loadTrackingData() {
     if (!this.orderId) return;
     
     try {
-      const response: any = await this.http.get(`/api/delivery/order/${this.orderId}/tracking`).toPromise();
-      this.order.set(response.order);
+      const response = await this.http.get<ApiResponse>(`/api/delivery/order/${this.orderId}/tracking`).toPromise();
+      this.order.set(response?.order ?? null);
       
-      if (response.directions) {
-        this.estimatedTime.set(response.directions.duration?.text || '');
+      if (response?.directions) {
+        this.estimatedTime.set(response.directions.routes[0]?.legs[0]?.duration?.text ?? '');
       }
     } catch (error) {
       console.error('Error loading tracking data:', error);
@@ -322,24 +351,28 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   }
 
   async initMap() {
-    if (!this.mapContainer?.nativeElement) {
+    const container = this.mapContainer?.nativeElement;
+    if (!container) {
       console.warn('Map container not available');
       return;
     }
+
     const order = this.order();
     
-    // Wait for the container to have dimensions
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const mapContainer = this.mapContainer.nativeElement;
-    
-    if (!order || !order.latitud || !order.longitud) {
-      // Still try to init map with default center if no coordinates
-      this.map = this.mapsService.createMap(mapContainer, {
-        zoom: 10
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+      console.warn('Map container still has no dimensions');
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    if (!order?.latitud || !order?.longitud) {
+      this.map = this.mapsService.createMap(container, {
+        zoom: 10,
+        center: { lat: 10.5, lng: -66.9 }
       });
     } else {
-      this.map = this.mapsService.createMap(mapContainer, {
+      this.map = this.mapsService.createMap(container, {
         center: { lat: order.latitud, lng: order.longitud },
         zoom: 14
       });
@@ -360,15 +393,14 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
       });
     }
     
-// Trigger resize to ensure map renders correctly
-     setTimeout(() => {
-       if (this.map) {
-         const gm = google.maps as any;
-         if (gm.event) {
-           gm.event.trigger(this.map, 'resize');
-         }
-       }
-     }, 200);
+    setTimeout(() => {
+      if (this.map) {
+        google.maps.event.trigger(this.map, 'resize');
+        if (order?.latitud && order?.longitud) {
+          this.map.setCenter({ lat: order.latitud, lng: order.longitud });
+        }
+      }
+    }, 500);
   }
 
   startLocationTracking() {
@@ -403,16 +435,17 @@ export class OrderTrackingMapComponent implements OnInit, AfterViewInit {
   }
 
   async calculateAndDisplayRoute(driverLocation: { lat: number; lng: number }) {
-    if (!this.order()?.latitud || !this.order()?.longitud) return;
+    const order = this.order();
+    if (!order?.latitud || !order?.longitud) return;
     
     try {
       const result = await this.mapsService.getDirections(
         driverLocation,
-        { lat: this.order().latitud, lng: this.order().longitud }
+        { lat: order.latitud, lng: order.longitud }
       );
       this.directionsRenderer?.setDirections(result);
-      this.estimatedTime.set(result.routes[0].legs[0].duration?.text || '');
-    } catch (e) {
+      this.estimatedTime.set(result.routes[0]?.legs[0]?.duration?.text ?? '');
+    } catch {
       console.log('Could not calculate route');
     }
   }

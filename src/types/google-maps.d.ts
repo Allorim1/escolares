@@ -1,4 +1,4 @@
-declare namespace google {
+﻿declare namespace google {
   namespace maps {
     interface MapOptions {
       center?: LatLngLiteral;
@@ -79,6 +79,10 @@ declare namespace google {
       origin: LatLngLiteral | string;
       destination: LatLngLiteral | string;
       travelMode?: TravelMode;
+    }
+
+    namespace event {
+      function trigger(instance: unknown, eventName: string): void;
     }
   }
 }

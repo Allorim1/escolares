@@ -11,13 +11,13 @@
 
 @media (min-width: 769px) {
   .admin-container {
-    padding-top: 50px;
+    padding-top: 142px;
   }
 }
 
 .api-key-warning {
   position: fixed;
-  top: 0;
+  top: 142px;
   left: 0;
   right: 0;
   background: #ffc107 !important;
@@ -29,6 +29,12 @@
   z-index: 10000 !important;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
   display: block !important;
+}
+
+@media (max-width: 768px) {
+  .api-key-warning {
+    top: 100px;
+  }
 }
 
 .admin-sidebar {
@@ -155,10 +161,6 @@
 
 .logout-btn:hover {
   background: #c82333;
-}
-
-.admin-container {
-  margin-top: 1rem;
 }
 
 .admin-content {
@@ -336,6 +338,5 @@
   .api-key-warning {
     padding: 10px !important;
     font-size: 12px !important;
-    top: 65px;
   }
 }

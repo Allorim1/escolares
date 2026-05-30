@@ -86,6 +86,13 @@
             <div class="autocomplete-loading">Buscando...</div>
           }
         </div>
+        
+        @if (formLatitud() && formLongitud()) {
+          <div class="map-preview-container">
+            <label>Vista previa del mapa:</label>
+            <div class="map-preview" #mapContainer></div>
+          </div>
+        }
         <div class="form-group">
           <label>Ciudad:</label>
           <input

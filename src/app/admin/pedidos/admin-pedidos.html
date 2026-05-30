@@ -175,8 +175,8 @@
               <span class="value">
                 {{ selectedOrder()!.direccion }}
                 @if (selectedOrder()!.latitud && selectedOrder()!.longitud) {
-                  <button class="btn-view-map" (click)="openOrderMap(selectedOrder()!.latitud!, selectedOrder()!.longitud!)">
-                    🗺️ Ver en mapa
+                  <button class="btn-view-map" (click)="openOrderMap(selectedOrder()!.latitud!, selectedOrder()!.longitud!, selectedOrder()!.repartidorUbicacion?.lat, selectedOrder()!.repartidorUbicacion?.lng)">
+                    🗺️ Ver ruta
                   </button>
                 }
               </span>

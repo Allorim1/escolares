@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef, SimpleChanges } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
@@ -89,7 +89,9 @@ export class AdminPedidos implements OnInit, OnDestroy {
   // Mapa
   @ViewChild('orderMapContainer', { static: false }) orderMapContainer!: ElementRef;
   private map: google.maps.Map | null = null;
-  private marker: google.maps.Marker | null = null;
+  private repartidorMarker: google.maps.Marker | null = null;
+  private clienteMarker: google.maps.Marker | null = null;
+  private directionsRenderer: google.maps.DirectionsRenderer | null = null;
 
 // Modal de asignar repartidor
     showAssignDeliveryModal = signal(false);
@@ -105,7 +107,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
     selectedDeliveryPerson = signal<DeliveryPerson | null>(null);
 
   // Modal de mapa del pedido
-  showOrderMapModal = signal<{ lat: number; lng: number } | null>(null);
+  showOrderMapModal = signal<{ lat: number; lng: number; repartidorLat?: number; repartidorLng?: number } | null>(null);
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -684,53 +686,119 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   closeOrderMapModal() {
     this.showOrderMapModal.set(null);
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['showOrderMapModal'] && this.showOrderMapModal()) {
-      const coords = this.showOrderMapModal();
-      if (coords) {
-        setTimeout(() => this.initOrderMap(coords.lat, coords.lng), 100);
-      }
+    // Limpiar mapa
+    if (this.map) {
+      this.map.setMap(null);
+      this.map = null;
+    }
+    if (this.repartidorMarker) {
+      this.repartidorMarker.setMap(null);
+      this.repartidorMarker = null;
+    }
+    if (this.directionsRenderer) {
+      this.directionsRenderer.setMap(null);
+      this.directionsRenderer = null;
     }
   }
 
-  openOrderMap(lat: number, lng: number) {
-    if (!lat || !lng) {
+  openOrderMap(clienteLat: number, clienteLng: number, repartidorLat?: number, repartidorLng?: number) {
+    if (!clienteLat || !clienteLng) {
       this.notificationService.error('Error', 'No hay coordenadas disponibles para este pedido');
       return;
     }
 
-    this.showOrderMapModal.set({ lat, lng });
+    // Si hay ubicación del repartidor, mostrar ruta; si no, solo la ubicación del cliente
+    if (repartidorLat && repartidorLng) {
+      this.showOrderMapModal.set({ lat: clienteLat, lng: clienteLng, repartidorLat, repartidorLng });
+    } else {
+      this.showOrderMapModal.set({ lat: clienteLat, lng: clienteLng });
+    }
+    
+    // Inicializar mapa después de que el modal se muestre
+    setTimeout(() => {
+      const coords = this.showOrderMapModal();
+      if (coords) {
+        this.initOrderMap(coords);
+      }
+    }, 150);
   }
 
-  private async initOrderMap(lat: number, lng: number) {
+  private async initOrderMap(coords: { lat: number; lng: number; repartidorLat?: number; repartidorLng?: number }) {
     if (!this.orderMapContainer?.nativeElement) return;
     
     try {
       await this.mapsService.loadApi();
       
+      const clientePosition = { lat: coords.lat, lng: coords.lng };
+      
       if (!this.map) {
         this.map = this.mapsService.createMap(this.orderMapContainer.nativeElement, {
-          center: { lat, lng },
-          zoom: 16,
+          center: clientePosition,
+          zoom: 12,
         });
-        this.marker = this.mapsService.createMarker({
-          position: { lat, lng },
+        this.directionsRenderer = new google.maps.DirectionsRenderer({
           map: this.map,
+          suppressMarkers: false,
         });
+      }
+      
+      // Si hay ubicación del repartidor, calcular ruta
+      if (coords.repartidorLat && coords.repartidorLng) {
+        const repartidorPosition = { lat: coords.repartidorLat, lng: coords.repartidorLng };
+        
+        // Limpiar marcadores anteriores
+        if (this.repartidorMarker) this.repartidorMarker.setMap(null);
+        
+        // Crear marcador del repartidor con icono de bicicleta/moto
+        this.repartidorMarker = this.mapsService.createMarker({
+          position: repartidorPosition,
+          map: this.map,
+          title: 'Repartidor',
+          icon: {
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            scale: 8,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 2,
+          },
+        });
+        
+        // Calcular y mostrar ruta
+        this.directionsRenderer?.setMap(null);
+        this.directionsRenderer = new google.maps.DirectionsRenderer({
+          map: this.map,
+          suppressMarkers: false,
+          polylineOptions: {
+            strokeColor: '#4285F4',
+            strokeWeight: 5,
+          },
+        });
+        
+        const directionsService = this.mapsService.createDirectionsService();
+        directionsService.route(
+          {
+            origin: repartidorPosition,
+            destination: clientePosition,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (result, status) => {
+            if (status === 'OK' && result) {
+              this.directionsRenderer?.setDirections(result);
+              
+              // Ajustar vista del mapa para mostrar toda la ruta
+              const bounds = new google.maps.LatLngBounds();
+              bounds.extend(repartidorPosition);
+              bounds.extend(clientePosition);
+              this.map?.fitBounds(bounds);
+            }
+          }
+        );
       } else {
-        const position = { lat, lng };
-        this.map.setCenter(position);
-        this.map.setZoom(16);
-        if (this.marker) {
-          this.marker.setPosition(position);
-        } else {
-          this.marker = this.mapsService.createMarker({
-            position,
-            map: this.map,
-          });
-        }
+        // Solo mostrar ubicación del cliente
+        this.directionsRenderer?.setMap(null);
+        this.map?.setCenter(clientePosition);
+        this.map?.setZoom(16);
       }
     } catch (error) {
       console.error('Error loading map:', error);

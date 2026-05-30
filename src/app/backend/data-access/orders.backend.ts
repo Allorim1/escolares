@@ -35,6 +35,11 @@ export interface Order {
   autorizadoNombre?: string;
   deliveryPersonId?: string;
   deliveryPersonName?: string;
+  repartidorUbicacion?: {
+    lat: number;
+    lng: number;
+    timestamp: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

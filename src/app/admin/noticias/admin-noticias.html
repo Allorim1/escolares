@@ -4,22 +4,22 @@
     <p class="page-subtitle">Administra las noticias que se mostrarán en el sitio web</p>
   </div>
 
-  @if (loading) {
-    <div class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>Cargando noticias...</p>
-    </div>
-  } @else if (error) {
-    <div class="error-container">
-      <p class="error-message">{{ error }}</p>
-      <button class="btn-retry" (click)="loadNoticias()">Reintentar</button>
-    </div>
-  } @else {
-    <!-- Formulario para crear/editar noticia -->
-    <div class="noticia-form">
-      <h2>{{ editingId ? 'Editar Noticia' : 'Crear Nueva Noticia' }}</h2>
-      
-      <form (ngSubmit)="editingId ? guardarEdicion() : crearNoticia()">
+@if (loading()) {
+     <div class="loading-container">
+       <div class="loading-spinner"></div>
+       <p>Cargando noticias...</p>
+     </div>
+   } @else if (error()) {
+     <div class="error-container">
+       <p class="error-message">{{ error() }}</p>
+       <button class="btn-retry" (click)="loadNoticias()">Reintentar</button>
+     </div>
+   } @else {
+<!-- Formulario para crear/editar noticia -->
+     <div class="noticia-form">
+       <h2>{{ editingId() ? 'Editar Noticia' : 'Crear Nueva Noticia' }}</h2>
+       
+       <form (ngSubmit)="editingId() ? guardarEdicion() : crearNoticia()">
         <div class="form-group">
           <label for="titulo">Título *</label>
           <input type="text" id="titulo" [(ngModel)]="nuevaNoticia.titulo" name="titulo" required 
@@ -82,74 +82,74 @@
           </div>
         </div>
         
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">{{ editingId ? 'Guardar Cambios' : 'Crear Noticia' }}</button>
-          @if (editingId) {
-            <button type="button" class="btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
-          }
-        </div>
-      </form>
-      
-      @if (error) {
-        <div class="error-message">{{ error }}</div>
-      }
-    </div>
+<div class="form-actions">
+           <button type="submit" class="btn-primary">{{ editingId() ? 'Guardar Cambios' : 'Crear Noticia' }}</button>
+           @if (editingId()) {
+             <button type="button" class="btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
+           }
+         </div>
+       </form>
+       
+       @if (error()) {
+         <div class="error-message">{{ error() }}</div>
+       }
+     </div>
     
-    <!-- Lista de noticias existentes -->
-    <div class="noticias-list">
-      <h2>Noticias Existentes</h2>
-      
-      @if (noticias.length === 0) {
-        <div class="empty-state">
-          <div class="empty-icon">📭</div>
-          <p>No hay noticias creadas aún.</p>
-          <p class="empty-subtitle">Crea la primera noticia usando el formulario de arriba.</p>
-        </div>
-      } @else {
-        <div class="noticias-table">
-          @for (noticia of noticias; track noticia.id) {
-            <div class="noticia-row" [class.editing]="editingId === noticia.id" [class.importante]="noticia.importante">
-              <div class="noticia-cell noticia-titulo">
-                @if (editingId === noticia.id) {
-                  <input type="text" [(ngModel)]="nuevaNoticia.titulo" />
-                } @else {
-                  <span>{{ noticia.titulo }}</span>
-                }
-              </div>
-              
-              <div class="noticia-cell noticia-fecha">
-                {{ formattedFecha(noticia.fecha) }}
-              </div>
-              
-              <div class="noticia-cell noticia-estado">
-                <span class="estado-badge" [class.activa]="noticia.activa" [class.inactiva]="!noticia.activa">
-                  {{ noticia.activa ? 'Activa' : 'Inactiva' }}
-                </span>
-              </div>
-              
-              <div class="noticia-cell noticia-importante">
-                @if (noticia.importante) {
-                  <span class="badge importante">Importante</span>
-                }
-              </div>
-              
-              <div class="noticia-cell noticia-acciones">
-                @if (editingId === noticia.id) {
-                  <div class="acciones-group">
-                    <button class="btn-success" (click)="guardarEdicion()">Guardar</button>
-                    <button class="btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
-                  </div>
-                } @else {
-                  <div class="acciones-group">
-                    <button class="btn-info" (click)="iniciarEdicion(noticia)">Editar</button>
-                    <button class="btn-danger" (click)="eliminarNoticia(noticia.id)">Eliminar</button>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      }
-    </div>
-  }
-</div>
+<!-- Lista de noticias existentes -->
+     <div class="noticias-list">
+       <h2>Noticias Existentes</h2>
+       
+       @if (noticias().length === 0) {
+         <div class="empty-state">
+           <div class="empty-icon">📭</div>
+           <p>No hay noticias creadas aún.</p>
+           <p class="empty-subtitle">Crea la primera noticia usando el formulario de arriba.</p>
+         </div>
+       } @else {
+         <div class="noticias-table">
+           @for (noticia of noticias(); track noticia.id) {
+             <div class="noticia-row" [class.editing]="editingId() === noticia.id" [class.importante]="noticia.importante">
+               <div class="noticia-cell noticia-titulo">
+                 @if (editingId() === noticia.id) {
+                   <input type="text" [(ngModel)]="nuevaNoticia.titulo" />
+                 } @else {
+                   <span>{{ noticia.titulo }}</span>
+                 }
+               </div>
+               
+               <div class="noticia-cell noticia-fecha">
+                 {{ formattedFecha(noticia.fecha) }}
+               </div>
+               
+               <div class="noticia-cell noticia-estado">
+                 <span class="estado-badge" [class.activa]="noticia.activa" [class.inactiva]="!noticia.activa">
+                   {{ noticia.activa ? 'Activa' : 'Inactiva' }}
+                 </span>
+               </div>
+               
+               <div class="noticia-cell noticia-importante">
+                 @if (noticia.importante) {
+                   <span class="badge importante">Importante</span>
+                 }
+               </div>
+               
+               <div class="noticia-cell noticia-acciones">
+                 @if (editingId() === noticia.id) {
+                   <div class="acciones-group">
+                     <button class="btn-success" (click)="guardarEdicion()">Guardar</button>
+                     <button class="btn-secondary" (click)="cancelarEdicion()">Cancelar</button>
+                   </div>
+                 } @else {
+                   <div class="acciones-group">
+                     <button class="btn-info" (click)="iniciarEdicion(noticia)">Editar</button>
+                     <button class="btn-danger" (click)="eliminarNoticia(noticia.id)">Eliminar</button>
+                   </div>
+                 }
+               </div>
+             </div>
+           }
+         </div>
+       }
+     </div>
+   }
+ </div>

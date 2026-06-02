@@ -84,12 +84,33 @@ export class Conversion {
   tasasAnterioresManuales = signal<Map<string, number>>(new Map());
   fechasSinTasaAnterior = signal<string[]>([]);
 
-  comparaciones = signal<ComparacionResultado[]>([]);
-  comparacionesActual = signal<ComparacionResultado[]>([]);
-  comparacionesAnterior = signal<ComparacionResultado[]>([]);
-  variacionTotalPct = signal(0);
-  mostrarModalComparacion = signal(false);
-  metaVariacion = signal(30);
+comparaciones = signal<ComparacionResultado[]>([]);
+   comparacionesActual = signal<ComparacionResultado[]>([]);
+   comparacionesAnterior = signal<ComparacionResultado[]>([]);
+   variacionTotalPct = signal(0);
+   mostrarModalComparacion = signal(false);
+   mostrarModalExpectativas = signal(false);
+   metaVariacion = signal(30);
+
+   calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
+     const totalAnteriorUSD = this.totalConvertidoAnterior();
+     const meta = this.metaVariacion();
+     const tasaPromedio = this.tasaPromedioActual();
+     
+     const targetUSD = totalAnteriorUSD > 0 
+       ? Math.round(totalAnteriorUSD * (1 + meta / 100) * 100) / 100 
+       : 0;
+     
+     const targetBs = tasaPromedio > 0 
+       ? Math.round(targetUSD * tasaPromedio * 100) / 100 
+       : 0;
+     
+     return { targetUSD, targetBs, tasaPromedio };
+   }
+
+   abrirModalExpectativas() {
+     this.mostrarModalExpectativas.set(true);
+   }
 
   onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -1545,9 +1566,10 @@ export class Conversion {
     this.comparaciones.set([]);
     this.comparacionesActual.set([]);
     this.comparacionesAnterior.set([]);
-    this.variacionTotalPct.set(0);
-    this.mostrarModalComparacion.set(false);
-  }
+this.variacionTotalPct.set(0);
+     this.mostrarModalComparacion.set(false);
+     this.mostrarModalExpectativas.set(false);
+   }
 
   asignarTasaManual(fecha: string, valor: any) {
     const tasa = parseFloat(valor);
@@ -1597,9 +1619,13 @@ export class Conversion {
     this.mostrarModalComparacion.set(true);
   }
 
-  cerrarModalComparacion() {
-    this.mostrarModalComparacion.set(false);
-  }
+cerrarModalExpectativas() {
+     this.mostrarModalExpectativas.set(false);
+   }
+
+   cerrarModalComparacion() {
+     this.mostrarModalComparacion.set(false);
+   }
 
   diferenciaUSD(): number {
     return Math.round((this.totalConvertido() - this.totalConvertidoAnterior()) * 100) / 100;
@@ -1636,13 +1662,20 @@ esMismoDiaSemana(dia1: number, dia2: number): boolean {
     return dia1 === dia2;
   }
 
-  cumpleMeta(variacion: number): boolean {
-    return variacion >= this.metaVariacion();
-  }
+cumpleMeta(variacion: number): boolean {
+     return variacion >= this.metaVariacion();
+   }
 
-  getMetaVariacion(): number {
-    return this.metaVariacion();
-  }
+   getMetaVariacion(): number {
+     return this.metaVariacion();
+   }
+
+   getPorcCumplimiento(): number {
+     const expectativas = this.calcularExpectativas();
+     return expectativas.targetUSD > 0 
+       ? Math.round((this.totalConvertido() / expectativas.targetUSD) * 10000) / 100 
+       : 0;
+   }
 
   getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];

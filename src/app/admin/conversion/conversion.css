@@ -958,5 +958,163 @@
 }
 
 .modal-footer .btn-export:hover {
-  background: #1b5e20;
-}
+   background: #1b5e20;
+ }
+
+ /* Botón de expectativas */
+ .btn-expectativas {
+   background: #ff9800;
+   color: white;
+   border: none;
+   padding: 0.7rem 1.5rem;
+   border-radius: 8px;
+   cursor: pointer;
+   font-size: 0.95rem;
+   font-weight: 600;
+   transition: background 0.2s;
+ }
+
+ .btn-expectativas:hover:not(:disabled) {
+   background: #f57c00;
+ }
+
+ /* Modal de expectativas */
+ .modal-expectativas {
+   max-width: 700px;
+ }
+
+ .modal-expectativas .modal-header {
+   background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+ }
+
+ .expectativas-content {
+   padding: 1.5rem;
+ }
+
+ .expectativa-section {
+   margin-bottom: 1.5rem;
+ }
+
+ .expectativa-section:last-child {
+   margin-bottom: 0;
+ }
+
+ .expectativa-section h4 {
+   margin: 0 0 1rem 0;
+   color: #333;
+   font-size: 1rem;
+ }
+
+ .meta-config-container {
+   background: #fff8e1;
+   padding: 1rem;
+   border-radius: 8px;
+   border: 1px solid #ffc107;
+ }
+
+ .meta-input-group {
+   display: flex;
+   align-items: center;
+   gap: 0.8rem;
+   margin-bottom: 1rem;
+ }
+
+ .meta-input-group label {
+   font-weight: 600;
+   color: #333;
+   font-size: 0.95rem;
+ }
+
+ .meta-input-large {
+   width: 100px;
+   padding: 0.5rem 0.8rem;
+   border: 2px solid #ff9800;
+   border-radius: 6px;
+   font-size: 1.2rem;
+   font-weight: 700;
+   text-align: center;
+ }
+
+ .meta-input-large:focus {
+   outline: none;
+   border-color: #f57c00;
+   box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+ }
+
+ .meta-info {
+   display: flex;
+   justify-content: space-between;
+   padding: 0.5rem 0;
+   border-bottom: 1px solid #ffe082;
+ }
+
+ .meta-info:last-child {
+   border-bottom: none;
+ }
+
+ .meta-info-label {
+   color: #666;
+   font-size: 0.9rem;
+ }
+
+ .meta-info-value {
+   font-weight: 600;
+   color: #333;
+ }
+
+ .expectativa-grid {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 1rem;
+ }
+
+ .expectativa-card {
+   background: white;
+   padding: 1.2rem;
+   border-radius: 10px;
+   text-align: center;
+   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+   border: 2px solid #e0e0e0;
+ }
+
+ .expectativa-label {
+   font-size: 0.85rem;
+   color: #666;
+   margin-bottom: 0.5rem;
+   font-weight: 500;
+ }
+
+ .expectativa-value {
+   font-size: 1.4rem;
+   font-weight: 700;
+ }
+
+ .expectativa-usd {
+   color: #1d63c1;
+ }
+
+ .expectativa-bs {
+   color: #2e7d32;
+ }
+
+ .expectativa-meta {
+   color: #ff9800;
+ }
+
+ .expectativa-pct {
+   color: #333;
+ }
+
+ .expectativa-pct.positivo {
+   color: #2e7d32;
+ }
+
+ .expectativa-pct.negativo {
+   color: #c62828;
+ }
+
+ @media (max-width: 768px) {
+   .expectativa-grid {
+     grid-template-columns: 1fr;
+   }
+ }

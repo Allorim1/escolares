@@ -132,6 +132,9 @@
           <button class="btn-comparar" (click)="abrirModalComparacion()">
             📊 Comparar Períodos
           </button>
+          <button class="btn-expectativas" (click)="abrirModalExpectativas()">
+            🎯 Calcular Expectativas
+          </button>
         }
         <button class="btn-secondary" (click)="limpiar()">🗑️ Limpiar</button>
       </div>
@@ -476,7 +479,7 @@
           </div>
         </div>
 
-<div class="comparacion-dia-por-dia-seccion">
+        <div class="comparacion-dia-por-dia-seccion">
           <div class="resumen-header">
             <span>Comparación Día a Día </span>
             <div class="meta-input-container">
@@ -545,6 +548,84 @@
 
         <div class="modal-footer">
           <button class="btn-export" (click)="exportarResultados()">📥 Exportar Excel</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (mostrarModalExpectativas()) {
+    <div class="modal-overlay" (click)="cerrarModalExpectativas()">
+      <div class="modal-content modal-expectativas" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🎯 Expectativas de Ventas</h3>
+          <button class="modal-close" (click)="cerrarModalExpectativas()">✕</button>
+        </div>
+
+        <div class="expectativas-content">
+          <div class="expectativa-section">
+            <h4>Configuración de Meta</h4>
+            <div class="meta-config-container">
+              <div class="meta-input-group">
+                <label>Porcentaje de Meta (%):</label>
+                <input type="number" class="meta-input-large" [(ngModel)]="metaVariacion" min="0" max="200" step="1">
+              </div>
+              <div class="meta-info">
+                <span class="meta-info-label">Base:</span>
+                <span class="meta-info-value">$ {{ formatearMoneda(totalConvertidoAnterior()) }} USD (Año Anterior)</span>
+              </div>
+              <div class="meta-info">
+                <span class="meta-info-label">Tasa Promedio Actual:</span>
+                <span class="meta-info-value">{{ tasaPromedioActual() > 0 ? formatearMoneda(tasaPromedioActual()) : '-' }} Bs/USD</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="expectativa-section">
+            <h4>Proyección de Ingresos</h4>
+            @let expectativas = calcularExpectativas();
+            <div class="expectativa-grid">
+              <div class="expectativa-card">
+                <div class="expectativa-label">Target en Dólares (USD)</div>
+                <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(expectativas.targetUSD) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Target en Bolívares (Bs)</div>
+                <div class="expectativa-value expectativa-bs">Bs {{ formatearMoneda(expectativas.targetBs) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Meta Establecida</div>
+                <div class="expectativa-value expectativa-meta">{{ metaVariacion() }}%</div>
+              </div>
+            </div>
+          </div>
+
+          @if (resultados().length > 0) {
+            <div class="expectativa-section">
+              <h4>Progreso Actual</h4>
+              <div class="expectativa-grid">
+                <div class="expectativa-card">
+                  <div class="expectativa-label">Ventas Actuales (USD)</div>
+                  <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(totalConvertido()) }}</div>
+                </div>
+                <div class="expectativa-card">
+                  <div class="expectativa-label">Diferencia al Target</div>
+                  <div class="expectativa-value" [class.positivo]="totalConvertido() >= expectativas.targetUSD" [class.negativo]="totalConvertido() < expectativas.targetUSD">
+                    {{ totalConvertido() >= expectativas.targetUSD ? '+' : '' }}$ {{ formatearMoneda(totalConvertido() - expectativas.targetUSD) }}
+                  </div>
+                </div>
+                <div class="expectativa-card">
+                  <div class="expectativa-label">% de Cumplimiento</div>
+                  <div class="expectativa-value expectativa-pct" [class.positivo]="totalConvertido() >= expectativas.targetUSD" [class.negativo]="totalConvertido() < expectativas.targetUSD">
+                    {{ expectativas.targetUSD > 0 ? getPorcCumplimiento() : 0 }}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="cerrarModalExpectativas()">Cerrar</button>
         </div>
       </div>
     </div>

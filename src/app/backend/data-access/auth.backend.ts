@@ -90,7 +90,7 @@ export class AuthBackend {
       next: (response) => {
         this.currentUser.set(response);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(response.isAdmin || response.rol === 'owner' || response.rol === 'root' || response.rol === 'repartidor');
+        this.isAdmin.set(response.isAdmin || response.rol === 'owner' || response.rol === 'root' || response.rol === 'admin' || response.rol === 'repartidor');
         this.saveToStorage(response);
         if (response.accessToken) {
           this.saveToken(response.accessToken);

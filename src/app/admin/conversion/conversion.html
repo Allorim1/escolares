@@ -128,11 +128,9 @@
             🔄 Convertir a USD
           }
         </button>
-        @if (ventasAnteriorRaw().length > 1 && tasasAnterioresMap().size > 0) {
-          <button class="btn-expectativas" (click)="abrirModalExpectativas()">
-            🎯 Calcular Expectativas
-          </button>
-        }
+        <button class="btn-expectativas" (click)="abrirModalExpectativas()">
+          🎯 Calcular Expectativas
+        </button>
         @if (ventasAnteriorRaw().length > 1 && tasasMap().size > 0 && resultados().length > 0) {
           <button class="btn-comparar" (click)="abrirModalComparacion()">
             📊 Comparar Períodos
@@ -576,8 +574,8 @@
                 <span class="meta-info-value">$ {{ formatearMoneda(totalConvertidoAnterior()) }} USD (Año Anterior)</span>
               </div>
               <div class="meta-info">
-                <span class="meta-info-label">Tasa Promedio Actual:</span>
-                <span class="meta-info-value">{{ tasaPromedioActual() > 0 ? formatearMoneda(tasaPromedioActual()) : '-' }} Bs/USD</span>
+                <span class="meta-info-label">Tasa Promedio:</span>
+                <span class="meta-info-value">{{ tasaPromedioAnterior() > 0 ? formatearMoneda(tasaPromedioAnterior()) : (tasaPromedioActual() > 0 ? formatearMoneda(tasaPromedioActual()) : '-') }} Bs/USD</span>
               </div>
             </div>
           </div>

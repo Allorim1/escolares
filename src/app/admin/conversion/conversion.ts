@@ -1856,6 +1856,9 @@ cumpleMeta(variacion: number): boolean {
   }
 
   abrirModalExpectativas() {
+    if (this.ventasRaw().length >= 2 && this.tasasMap().size > 0 && this.resultados().length === 0) {
+      this.procesar();
+    }
     this.procesarSoloAnterior();
     this.mostrarModalExpectativas.set(true);
   }

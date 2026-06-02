@@ -140,12 +140,13 @@ if (typeof window !== 'undefined' && window.localStorage) {
               if (data.refreshToken) {
                 localStorage.setItem('refreshToken', data.refreshToken);
               }
-              const clonedReq = req.clone({
-                setHeaders: {
-                  Authorization: `Bearer ${data.accessToken}`,
-                },
-              });
-              return next(clonedReq);
+const clonedReq = req.clone({
+                 setHeaders: {
+                   Authorization: `Bearer ${data.accessToken}`,
+                 },
+                 withCredentials: true,
+               });
+               return next(clonedReq);
             } else {
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
@@ -189,56 +190,58 @@ if (typeof window !== 'undefined' && window.localStorage) {
       });
     }
 
-    // Add Authorization header with valid token
-    req = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  }
+// Add Authorization header with valid token
+     req = req.clone({
+       setHeaders: {
+         Authorization: `Bearer ${token}`,
+       },
+       withCredentials: true,
+     });
+   }
 
 return next(req).pipe(
-    catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
-        const storedRefreshToken = localStorage.getItem('refreshToken');
-        if (!storedRefreshToken || !isValidJWTToken(storedRefreshToken) || isTokenExpired(storedRefreshToken)) {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          router.navigate(['/login']);
-          return throwError(() => new Error('Sesión expirada'));
-        }
-        return from(refreshToken()).pipe(
-          switchMap((data: any) => {
-            if (data.accessToken) {
-              localStorage.setItem('accessToken', data.accessToken);
-              if (data.refreshToken) {
-                localStorage.setItem('refreshToken', data.refreshToken);
-              }
-              const clonedReq = req.clone({
-                setHeaders: {
-                  Authorization: `Bearer ${data.accessToken}`,
-                },
-              });
-              return next(clonedReq);
-            } else {
-              localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
-              localStorage.removeItem('user');
-              router.navigate(['/login']);
-              return throwError(() => new Error(data.error || 'Token expirado'));
-            }
-          }),
-          catchError(() => {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            router.navigate(['/login']);
-            return throwError(() => new Error('Sesión expirada'));
-          })
-        );
-      }
-      return throwError(() => error);
-    }),
-  );
-};
+     catchError((error: HttpErrorResponse) => {
+       if (error.status === 401) {
+         const storedRefreshToken = localStorage.getItem('refreshToken');
+         if (!storedRefreshToken || !isValidJWTToken(storedRefreshToken) || isTokenExpired(storedRefreshToken)) {
+           localStorage.removeItem('accessToken');
+           localStorage.removeItem('refreshToken');
+           localStorage.removeItem('user');
+           router.navigate(['/login']);
+           return throwError(() => new Error('Sesión expirada'));
+         }
+         return from(refreshToken()).pipe(
+           switchMap((data: any) => {
+             if (data.accessToken) {
+               localStorage.setItem('accessToken', data.accessToken);
+               if (data.refreshToken) {
+                 localStorage.setItem('refreshToken', data.refreshToken);
+               }
+               const clonedReq = req.clone({
+                 setHeaders: {
+                   Authorization: `Bearer ${data.accessToken}`,
+                 },
+                 withCredentials: true,
+               });
+               return next(clonedReq);
+             } else {
+               localStorage.removeItem('accessToken');
+               localStorage.removeItem('refreshToken');
+               localStorage.removeItem('user');
+               router.navigate(['/login']);
+               return throwError(() => new Error(data.error || 'Token expirado'));
+             }
+           }),
+           catchError(() => {
+             localStorage.removeItem('accessToken');
+             localStorage.removeItem('refreshToken');
+             localStorage.removeItem('user');
+             router.navigate(['/login']);
+             return throwError(() => new Error('Sesión expirada'));
+           })
+         );
+       }
+       return throwError(() => error);
+     }),
+   );
+ };

@@ -38,7 +38,7 @@ async function renewAccessToken(http: HttpClient): Promise<boolean> {
 
   try {
     const res = await firstValueFrom(
-      http.post<any>('/api/auth/refresh', { refreshToken })
+      http.post<any>('/api/auth/refresh', { refreshToken }, { withCredentials: true })
     );
     if (res.accessToken) {
       localStorage.setItem('accessToken', res.accessToken);
@@ -73,43 +73,53 @@ export const adminOrRepartidorGuard: CanActivateFn = async () => {
       return false;
     }
     
-    // If only refresh token exists, validate it
-    if (!accessToken && (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken))) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      router.navigate(['/login']);
-      return false;
-    }
-    
-    // Validate access token format
-    if (!accessToken || !isValidJWTToken(accessToken)) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      router.navigate(['/login']);
-      return false;
-    }
-    
-// If access token is expired, try to refresh with valid refresh token
-     if (isTokenExpired(accessToken)) {
-       if (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken)) {
-         localStorage.removeItem('accessToken');
-         localStorage.removeItem('refreshToken');
-         localStorage.removeItem('user');
-         router.navigate(['/login']);
-         return false;
-       }
-       // Refresh token is valid, try to renew the access token
-       const renewed = await renewAccessToken(http);
-       if (!renewed) {
-         localStorage.removeItem('accessToken');
-         localStorage.removeItem('refreshToken');
-         localStorage.removeItem('user');
-         router.navigate(['/login']);
-         return false;
-       }
+// If only refresh token exists, validate it
+     if (!accessToken && refreshToken && (!isValidJWTToken(refreshToken) || isTokenExpired(refreshToken))) {
+       localStorage.removeItem('accessToken');
+       localStorage.removeItem('refreshToken');
+       localStorage.removeItem('user');
+       router.navigate(['/login']);
+       return false;
      }
+
+// Validate access token format
+      if (!accessToken || !isValidJWTToken(accessToken)) {
+        // Try to refresh with valid refresh token
+        if (refreshToken && isValidJWTToken(refreshToken) && !isTokenExpired(refreshToken)) {
+          const renewed = await renewAccessToken(http);
+          if (!renewed) {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            router.navigate(['/login']);
+            return false;
+          }
+        } else {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.navigate(['/login']);
+          return false;
+        }
+      } else if (isTokenExpired(accessToken)) {
+        // Access token is expired, try to refresh with valid refresh token
+        if (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken)) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.navigate(['/login']);
+          return false;
+        }
+        // Refresh token is valid, try to renew the access token
+        const renewed = await renewAccessToken(http);
+        if (!renewed) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          router.navigate(['/login']);
+          return false;
+        }
+      }
 
      return true;
    }

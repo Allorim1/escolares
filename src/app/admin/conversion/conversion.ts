@@ -92,10 +92,10 @@ comparaciones = signal<ComparacionResultado[]>([]);
    mostrarModalExpectativas = signal(false);
    metaVariacion = signal(30);
 
-   calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
+calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
      const totalAnteriorUSD = this.totalConvertidoAnterior();
      const meta = this.metaVariacion();
-     const tasaPromedio = this.tasaPromedioActual();
+     const tasaPromedio = this.tasaPromedioActual() || this.tasaPromedioAnterior();
      
      const targetUSD = totalAnteriorUSD > 0 
        ? Math.round(totalAnteriorUSD * (1 + meta / 100) * 100) / 100 
@@ -108,11 +108,7 @@ comparaciones = signal<ComparacionResultado[]>([]);
      return { targetUSD, targetBs, tasaPromedio };
    }
 
-   abrirModalExpectativas() {
-     this.mostrarModalExpectativas.set(true);
-   }
-
-  onFileVentas(event: Event) {
+   onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
@@ -1796,5 +1792,71 @@ cumpleMeta(variacion: number): boolean {
     }
 
     return resultado.filter(r => r.fechaActual || r.fechaAnterior);
+  }
+
+  procesarSoloAnterior() {
+    const tasasAnterioresBase = this.tasasAnterioresMap();
+    const tasasAnterioresManual = this.tasasAnterioresManuales();
+    const todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+
+    if (this.ventasAnteriorRaw().length < 2 || todasLasTasasAnteriores.size === 0) return;
+
+    const ventasAnteriorRows = this.ventasAnteriorRaw();
+    const ventasAnteriorHeaders = ventasAnteriorRows[0];
+    const idxFechaAnterior = ventasAnteriorHeaders.indexOf(this.columnaFechaAnterior());
+    const idxTotalAnterior = ventasAnteriorHeaders.indexOf(this.columnaTotalAnterior());
+
+    if (idxFechaAnterior < 0 || idxTotalAnterior < 0) return;
+
+    const fechasFaltantesAnterior: string[] = [];
+    const fechasVentasAnterior = new Set<string>();
+
+    for (let i = 1; i < ventasAnteriorRows.length; i++) {
+      const fecha = this.normalizarFecha(ventasAnteriorRows[i][idxFechaAnterior]);
+      if (fecha) fechasVentasAnterior.add(fecha);
+    }
+
+    for (const fecha of fechasVentasAnterior) {
+      if (todasLasTasasAnteriores.has(fecha)) continue;
+      const fechaDate = new Date(fecha + 'T00:00:00');
+      const diaSemana = fechaDate.getDay();
+
+      if (diaSemana === 0 || diaSemana === 6) {
+        const diasHastaLunes = diaSemana === 6 ? 2 : 1;
+        const lunesDate = new Date(fechaDate);
+        lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
+        const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
+        const tasaLunes = todasLasTasasAnteriores.get(lunesStr);
+        if (tasaLunes) {
+          todasLasTasasAnteriores.set(fecha, tasaLunes);
+        }
+      }
+    }
+
+    for (const fecha of fechasVentasAnterior) {
+      if (todasLasTasasAnteriores.has(fecha)) continue;
+      const fechaDate = new Date(fecha + 'T00:00:00');
+      const diaSemana = fechaDate.getDay();
+      if (diaSemana !== 0 && diaSemana !== 6) {
+        fechasFaltantesAnterior.push(fecha);
+      }
+    }
+
+    this.fechasSinTasaAnterior.set(fechasFaltantesAnterior);
+
+    const resAnterior = this.calcularResultados(
+      this.ventasAnteriorRaw(),
+      this.columnaFechaAnterior(),
+      this.columnaTotalAnterior(),
+      todasLasTasasAnteriores
+    );
+    this.resultadosAnterior.set(resAnterior.resultados);
+    this.totalOriginalAnterior.set(resAnterior.totalOrig);
+    this.totalConvertidoAnterior.set(resAnterior.totalConv);
+  }
+
+  abrirModalExpectativas() {
+    this.procesarSoloAnterior();
+    this.mostrarModalExpectativas.set(true);
   }
 }

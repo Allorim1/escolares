@@ -128,12 +128,14 @@
             🔄 Convertir a USD
           }
         </button>
-        @if (ventasAnteriorRaw().length > 1 && tasasMap().size > 0) {
-          <button class="btn-comparar" (click)="abrirModalComparacion()">
-            📊 Comparar Períodos
-          </button>
+        @if (ventasAnteriorRaw().length > 1 && tasasAnterioresMap().size > 0) {
           <button class="btn-expectativas" (click)="abrirModalExpectativas()">
             🎯 Calcular Expectativas
+          </button>
+        }
+        @if (ventasAnteriorRaw().length > 1 && tasasMap().size > 0 && resultados().length > 0) {
+          <button class="btn-comparar" (click)="abrirModalComparacion()">
+            📊 Comparar Períodos
           </button>
         }
         <button class="btn-secondary" (click)="limpiar()">🗑️ Limpiar</button>

@@ -618,37 +618,43 @@
             </div>
 
 <div class="expectativa-section">
-               <h4>Expectativas por Día</h4>
-               <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
-               <div class="expectativas-table-wrapper">
-                 <table class="result-table">
-                   <thead>
-                     <tr>
-                       <th>Fecha</th>
-                       <th>Día</th>
-                       <th>Ventas Ant. (Bs)</th>
-                       <th>Ventas Ant. ($)</th>
-                       <th>Tasa</th>
-                       <th>Meta {{ metaVariacion() }}% ($)</th>
-                       <th>Meta (Bs)</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     @for (e of getExpectativasPorDia(); track e.fecha) {
-                       <tr>
-                         <td>{{ e.fecha }}</td>
-                         <td>{{ e.dia }}</td>
-                         <td class="num">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
-                         <td class="num">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
-                         <td class="num">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
-                         <td class="num positivo">$ {{ formatearMoneda(e.targetUSD) }}</td>
-                         <td class="num">Bs {{ formatearMoneda(e.targetBs) }}</td>
-                       </tr>
-                     }
-                   </tbody>
-                 </table>
-               </div>
-             </div>
+              <h4>Expectativas por Día</h4>
+              <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
+              <div class="expectativas-table-wrapper">
+                <table class="result-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Día</th>
+                      <th>Ventas Ant. (Bs)</th>
+                      <th>Ventas Ant. ($)</th>
+                      <th>Tasa</th>
+                      <th>Meta {{ metaVariacion() }}% ($)</th>
+                      <th>Meta (Bs)</th>
+                      <th>Meta Extra ($)</th>
+                      <th>Meta Extra (Bs)</th>
+                      <th class="print-only">Cumplido</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (e of getExpectativasPorDia(); track e.fecha) {
+                      <tr>
+                        <td>{{ e.fecha }}</td>
+                        <td>{{ e.dia }}</td>
+                        <td class="num">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
+                        <td class="num">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
+                        <td class="num">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
+                        <td class="num positivo">$ {{ formatearMoneda(e.targetUSD) }}</td>
+                        <td class="num">Bs {{ formatearMoneda(e.targetBs) }}</td>
+                        <td class="num meta-extra-usd">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
+                        <td class="num meta-extra-bs">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
+                        <td class="print-only"><input type="checkbox" disabled></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
            @if (resultados().length > 0) {
             <div class="expectativa-section">
@@ -715,6 +721,12 @@
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="columnaTargetBsVisible"> Meta (Bs)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaMetaExtraUSDVisible"> Meta Extra ($)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaMetaExtraBsVisible"> Meta Extra (Bs)
               </label>
             </div>
           </div>

@@ -100,6 +100,8 @@ comparaciones = signal<ComparacionResultado[]>([]);
     columnaTasaVisible = signal(true);
     columnaTargetUSDVisible = signal(true);
     columnaTargetBsVisible = signal(true);
+    columnaMetaExtraUSDVisible = signal(true);
+    columnaMetaExtraBsVisible = signal(true);
     diasSeleccionados = signal<Set<string>>(new Set());
 
 calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
@@ -1879,20 +1881,22 @@ cumpleMeta(variacion: number): boolean {
     this.mostrarModalExpectativas.set(true);
   }
 
-  getExpectativasPorDia(): { fecha: string; dia: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number }[] {
+  getExpectativasPorDia(): { fecha: string; dia: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number; metaExtraUSD: number; metaExtraBs: number }[] {
     const resultadosAnterior = this.resultadosAnterior();
     const meta = this.metaVariacion();
     
     if (resultadosAnterior.length === 0) return [];
     
-    const tasaPromedio = this.tasaPromedioAnterior() || this.tasaPromedioActual() || 0;
-    
     return resultadosAnterior.map(r => {
       const expectativaUSD = r.totalConvertido > 0 
         ? Math.round(r.totalConvertido * (1 + meta / 100) * 100) / 100 
         : 0;
+      const metaExtraUSD = expectativaUSD - r.totalConvertido;
       const expectativaBs = r.tasa > 0 
         ? Math.round(expectativaUSD * r.tasa * 100) / 100 
+        : 0;
+      const metaExtraBs = r.tasa > 0 
+        ? Math.round(metaExtraUSD * r.tasa * 100) / 100 
         : 0;
       
       return {
@@ -1902,7 +1906,9 @@ cumpleMeta(variacion: number): boolean {
         anteriorUSD: r.totalConvertido,
         tasa: r.tasa,
         targetUSD: expectativaUSD,
-        targetBs: expectativaBs
+        targetBs: expectativaBs,
+        metaExtraUSD: metaExtraUSD,
+        metaExtraBs: metaExtraBs
       };
     });
   }
@@ -1970,6 +1976,9 @@ cumpleMeta(variacion: number): boolean {
       if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
       if (this.columnaTargetUSDVisible()) html += '<th>Meta ($)</th>';
       if (this.columnaTargetBsVisible()) html += '<th>Meta (Bs)</th>';
+      if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta Extra ($)</th>';
+      if (this.columnaMetaExtraBsVisible()) html += '<th>Meta Extra (Bs)</th>';
+      html += '<th>Cumplido</th>';
       
       html += `
               </tr>
@@ -1986,6 +1995,9 @@ cumpleMeta(variacion: number): boolean {
         if (this.columnaTasaVisible()) html += `<td class="num">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
         if (this.columnaTargetUSDVisible()) html += `<td class="num">$${this.formatearMoneda(e.targetUSD)}</td>`;
         if (this.columnaTargetBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+        if (this.columnaMetaExtraUSDVisible()) html += `<td class="num meta-extra">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+        if (this.columnaMetaExtraBsVisible()) html += `<td class="num meta-extra">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+        html += `<td class="num"><input type="checkbox" style="width: 16px; height: 16px;"></td>`;
         html += '</tr>';
       }
       

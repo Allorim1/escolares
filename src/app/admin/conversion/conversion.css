@@ -1109,9 +1109,16 @@
    color: #2e7d32;
  }
 
- .expectativa-pct.negativo {
-   color: #c62828;
- }
+.expectativa-pct.negativo {
+  color: #c62828;
+}
+
+.expectativa-help {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 0.8rem 0;
+  font-style: italic;
+}
 
 @media (max-width: 768px) {
     .expectativa-grid {

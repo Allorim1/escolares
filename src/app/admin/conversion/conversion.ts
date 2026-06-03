@@ -1868,4 +1868,31 @@ cumpleMeta(variacion: number): boolean {
     this.procesarSoloAnterior();
     this.mostrarModalExpectativas.set(true);
   }
+
+  getExpectativasPorDia(): { fecha: string; dia: string; anteriorUSD: number; targetUSD: number; targetBs: number }[] {
+    const resultadosAnterior = this.resultadosAnterior();
+    const meta = this.metaVariacion();
+    
+    if (resultadosAnterior.length === 0) return [];
+    
+    const tasaPromedio = this.tasaPromedioAnterior() || this.tasaPromedioActual() || 0;
+    
+    return resultadosAnterior.map(r => {
+      // Cada día debe tener su meta individual: ganancia anterior + porcentaje de meta
+      const expectativaUSD = r.totalConvertido > 0 
+        ? Math.round(r.totalConvertido * (1 + meta / 100) * 100) / 100 
+        : 0;
+      const expectativaBs = tasaPromedio > 0 
+        ? Math.round(expectativaUSD * tasaPromedio * 100) / 100 
+        : 0;
+      
+      return {
+        fecha: r.fecha,
+        dia: r.dia || '',
+        anteriorUSD: r.totalConvertido,
+        targetUSD: expectativaUSD,
+        targetBs: expectativaBs
+      };
+    });
+  }
 }

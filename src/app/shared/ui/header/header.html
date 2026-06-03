@@ -132,7 +132,7 @@
             <a routerLink="/panel/favoritos" (click)="closeUserDropdown()">Mis favoritos</a>
             <a routerLink="/panel/historico-compra" (click)="closeUserDropdown()">Histórico de compra</a>
             @if (authService.isAdmin()) {
-              <a routerLink="/admin" (click)="closeUserDropdown()">Panel Admin</a>
+              <a routerLink="/admin/inicio" (click)="closeUserDropdown()">Panel Admin</a>
             }
             @if (authService.user()?.rol === 'repartidor') {
               <a routerLink="/repartidor" (click)="closeUserDropdown()">Panel Repartidor</a>

@@ -85,12 +85,22 @@ export class Conversion {
   fechasSinTasaAnterior = signal<string[]>([]);
 
 comparaciones = signal<ComparacionResultado[]>([]);
-   comparacionesActual = signal<ComparacionResultado[]>([]);
-   comparacionesAnterior = signal<ComparacionResultado[]>([]);
-   variacionTotalPct = signal(0);
-   mostrarModalComparacion = signal(false);
-   mostrarModalExpectativas = signal(false);
-   metaVariacion = signal(30);
+    comparacionesActual = signal<ComparacionResultado[]>([]);
+    comparacionesAnterior = signal<ComparacionResultado[]>([]);
+    variacionTotalPct = signal(0);
+    mostrarModalComparacion = signal(false);
+    mostrarModalExpectativas = signal(false);
+    mostrarModalImpresion = signal(false);
+    metaVariacion = signal(30);
+    comentarioImpresion = signal('');
+    columnaFechaVisible = signal(true);
+    columnaDiaVisible = signal(true);
+    columnaAnteriorBsVisible = signal(true);
+    columnaAnteriorUSDVisible = signal(true);
+    columnaTasaVisible = signal(true);
+    columnaTargetUSDVisible = signal(true);
+    columnaTargetBsVisible = signal(true);
+    diasSeleccionados = signal<Set<string>>(new Set());
 
 calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
      const totalAnteriorUSD = this.totalConvertidoAnterior();
@@ -1896,4 +1906,113 @@ cumpleMeta(variacion: number): boolean {
       };
     });
   }
+
+    abrirModalImpresion() {
+      this.mostrarModalImpresion.set(true);
+      this.diasSeleccionados.set(new Set(this.resultadosAnterior().map(r => r.fecha)));
+    }
+
+    cerrarModalImpresion() {
+      this.mostrarModalImpresion.set(false);
+    }
+
+    toggleDiaSeleccionado(fecha: string) {
+      const seleccionados = new Set(this.diasSeleccionados());
+      if (seleccionados.has(fecha)) {
+        seleccionados.delete(fecha);
+      } else {
+        seleccionados.add(fecha);
+      }
+      this.diasSeleccionados.set(seleccionados);
+    }
+
+    seleccionarTodosLosDias() {
+      this.diasSeleccionados.set(new Set(this.resultadosAnterior().map(r => r.fecha)));
+    }
+
+    deseleccionarTodosLosDias() {
+      this.diasSeleccionados.set(new Set());
+    }
+
+    imprimirExpectativas() {
+      const expectativas = this.getExpectativasPorDia().filter(e => this.diasSeleccionados().has(e.fecha));
+      const comentario = this.comentarioImpresion();
+      
+      let html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Expectativas de Ventas</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
+            h1 { color: #1d63c1; text-align: center; }
+            h2 { color: #333; margin-top: 30px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background: #ff9800; color: white; }
+            .num { text-align: right; }
+            .comment { margin-top: 30px; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+            .footer { margin-top: 40px; font-size: 0.9rem; color: #666; }
+          </style>
+        </head>
+        <body>
+          <h1>🎯 Expectativas de Ventas</h1>
+          <h2>Meta: ${this.metaVariacion()}%</h2>
+          <table>
+            <thead>
+              <tr>
+      `;
+      
+      if (this.columnaFechaVisible()) html += '<th>Fecha</th>';
+      if (this.columnaDiaVisible()) html += '<th>Día</th>';
+      if (this.columnaAnteriorBsVisible()) html += '<th>Ventas Ant. (Bs)</th>';
+      if (this.columnaAnteriorUSDVisible()) html += '<th>Ventas Ant. ($)</th>';
+      if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
+      if (this.columnaTargetUSDVisible()) html += '<th>Meta ($)</th>';
+      if (this.columnaTargetBsVisible()) html += '<th>Meta (Bs)</th>';
+      
+      html += `
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      for (const e of expectativas) {
+        html += '<tr>';
+        if (this.columnaFechaVisible()) html += `<td>${e.fecha}</td>`;
+        if (this.columnaDiaVisible()) html += `<td>${e.dia}</td>`;
+        if (this.columnaAnteriorBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+        if (this.columnaAnteriorUSDVisible()) html += `<td class="num">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+        if (this.columnaTasaVisible()) html += `<td class="num">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
+        if (this.columnaTargetUSDVisible()) html += `<td class="num">$${this.formatearMoneda(e.targetUSD)}</td>`;
+        if (this.columnaTargetBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+        html += '</tr>';
+      }
+      
+      html += `
+            </tbody>
+          </table>
+      `;
+      
+      if (comentario) {
+        html += `<div class="comment"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
+      }
+      
+      html += `
+          <div class="footer">
+            <p>Total Ventas Anterior: Bs ${this.formatearMoneda(this.totalOriginalAnterior())} / $${this.formatearMoneda(this.totalConvertidoAnterior())}</p>
+            <p>Fecha de generación: ${new Date().toLocaleDateString('es-VE')}</p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.print();
+        this.cerrarModalImpresion();
+      }
+    }
 }

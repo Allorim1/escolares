@@ -677,6 +677,73 @@
 
         <div class="modal-footer">
           <button class="btn-secondary" (click)="cerrarModalExpectativas()">Cerrar</button>
+          <button class="btn-export" (click)="abrirModalImpresion()">🖨️ Imprimir</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (mostrarModalImpresion()) {
+    <div class="modal-overlay" (click)="cerrarModalImpresion()">
+      <div class="modal-content modal-impresion" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🖨️ Opciones de Impresión</h3>
+          <button class="modal-close" (click)="cerrarModalImpresion()">✕</button>
+        </div>
+
+        <div class="impresion-content">
+          <div class="impresion-section">
+            <h4>Columnas a Mostrar</h4>
+            <div class="columnas-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaFechaVisible"> Fecha
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaDiaVisible"> Día
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaAnteriorBsVisible"> Ventas Ant. (Bs)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaAnteriorUSDVisible"> Ventas Ant. ($)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaTasaVisible"> Tasa
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaTargetUSDVisible"> Meta ($)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaTargetBsVisible"> Meta (Bs)
+              </label>
+            </div>
+          </div>
+
+          <div class="impresion-section">
+            <h4>Días a Incluir</h4>
+            <div class="dias-actions">
+              <button class="btn-secondary btn-sm" (click)="seleccionarTodosLosDias()">Seleccionar Todos</button>
+              <button class="btn-secondary btn-sm" (click)="deseleccionarTodosLosDias()">Deseleccionar Todos</button>
+            </div>
+            <div class="dias-grid">
+              @for (e of getExpectativasPorDia(); track e.fecha) {
+                <label class="checkbox-label">
+                  <input type="checkbox" [checked]="diasSeleccionados().has(e.fecha)" (change)="toggleDiaSeleccionado(e.fecha)">
+                  {{ e.fecha }} ({{ e.dia }})
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="impresion-section">
+            <h4>Comentario</h4>
+            <textarea class="comentario-input" [(ngModel)]="comentarioImpresion" placeholder="Agregue un comentario que aparecerá al final de la hoja" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="cerrarModalImpresion()">Cancelar</button>
+          <button class="btn-primary" (click)="imprimirExpectativas()">Imprimir</button>
         </div>
       </div>
     </div>

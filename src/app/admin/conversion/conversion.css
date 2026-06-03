@@ -980,8 +980,8 @@
 
 /* Modal de expectativas */
   .modal-expectativas {
-    max-width: 900px;
-    max-height: 80vh;
+    max-width: 1200px;
+    max-height: 85vh;
     display: flex;
     flex-direction: column;
   }
@@ -1127,28 +1127,32 @@
 }
 
 .expectativas-table-wrapper {
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
 }
 
+.modal-expectativas .result-table th,
+.modal-expectativas .result-table td {
+  white-space: nowrap;
+  padding: 0.6rem 0.8rem;
+}
+
+.expectativas-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
 @media (max-width: 768px) {
-    .expectativa-grid {
-      grid-template-columns: 1fr;
-    }
+  .expectativa-grid {
+    grid-template-columns: 1fr;
   }
-
-  .expectativas-section {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 1.5rem;
-    display: flex;
-    justify-content: center;
-  }
-
-  @media (max-width: 768px) {
-    .upload-section {
+  
+  .upload-section {
       flex-direction: column;
     }
    

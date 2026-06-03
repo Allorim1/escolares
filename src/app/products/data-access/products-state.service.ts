@@ -1,8 +1,8 @@
-import { Injectable, inject, computed, signal } from '@angular/core';
+import { Injectable, inject, Signal, signal } from '@angular/core';
 import { Product } from '../../shared/interfaces/product.interface';
 import { ProductsService } from './products.service';
 import { signalSlice } from 'ngxtension/signal-slice';
-import { catchError, map, of, Subject, startWith, switchMap, tap } from 'rxjs';
+import { catchError, map, of, Subject, startWith, switchMap, tap, Observable } from 'rxjs';
 
 interface State {
      products: Product[],
@@ -14,7 +14,7 @@ interface State {
 
 @Injectable({
      providedIn: 'root',
- })
+})
  export class ProductsStateService {
 
      private productsService = inject(ProductsService);
@@ -50,27 +50,26 @@ interface State {
          initialState: this.initialState,
          sources: [
              this.loadAll$
-         ]
+         ],
+         actionSources: {
+             changePage: (state, action$: Observable<number>) =>
+                 action$.pipe(map((delta) => this.changePageReducer(state, delta))),
+             reset: (state, action$: Observable<void>) =>
+                 action$.pipe(map(() => this.resetReducer(state))),
+         },
      })
 
-     // computed signals to drive button disabled state
-     hasNext = computed(() => {
-       return this.state().page < this.state().totalPages;
-     });
+     private changePageReducer(state: Signal<State>, delta: number) {
+         const current = state().page;
+         const next = Math.max(1, current + delta);
+         return { ...state(), page: next };
+     }
 
-     hasPrev = computed(() => this.state().page > 1);
+     private resetReducer(state: Signal<State>) {
+         return { ...state(), page: 1 };
+     }
 
      loadProducts() {
          this.loadTrigger$.next();
-     }
-
-     changePage(delta: number) {
-         const current = this.state().page;
-         const next = Math.max(1, current + delta);
-         this.state.setKey('page', next);
-     }
-
-     reset() {
-         this.state.setKey('page', 1);
      }
  }

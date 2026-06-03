@@ -1993,7 +1993,6 @@ cumpleMeta(variacion: number): boolean {
         </head>
         <body>
           <h1>🎯 Expectativas de Ventas</h1>
-          <h2>Meta: ${this.metaVariacion()}%</h2>
           <table>
             <thead>
               <tr>
@@ -2003,11 +2002,11 @@ cumpleMeta(variacion: number): boolean {
       if (this.columnaDiaVisible()) html += '<th>Día</th>';
       if (this.columnaAnteriorBsVisible()) html += '<th>Ventas Ant. (Bs)</th>';
       if (this.columnaAnteriorUSDVisible()) html += '<th>Ventas Ant. ($)</th>';
+      if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
+      if (this.columnaMetaExtraBsVisible()) html += '<th>Meta (Bs)</th>';
       if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
-      if (this.columnaTargetUSDVisible()) html += '<th>Meta ($)</th>';
-      if (this.columnaTargetBsVisible()) html += '<th>Meta (Bs)</th>';
-      if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta Extra ($)</th>';
-      if (this.columnaMetaExtraBsVisible()) html += '<th>Meta Extra (Bs)</th>';
+      if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
+      if (this.columnaTargetBsVisible()) html += '<th>Total (Bs)</th>';
       html += '<th>Cumplido</th>';
       
       html += `

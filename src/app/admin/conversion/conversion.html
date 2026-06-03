@@ -631,8 +631,8 @@
                       <th>Tasa</th>
                       <th>Meta ($)</th>
                       <th>Meta (Bs)</th>
-                      <th>Total {{ metaVariacion() }}% ($)</th>
-                      <th>Total (Bs)</th>
+                      <th>Meta Extra ($)</th>
+                      <th>Meta Extra (Bs)</th>
                       <th class="print-only">Cumplido</th>
                     </tr>
                   </thead>
@@ -643,7 +643,7 @@
                         <td>{{ e.dia }}</td>
                         <td class="num">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
                         <td class="num">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
-                        <td class="num">Bs {{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
+                        <td class="num">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
                         <td class="num positivo">$ {{ formatearMoneda(e.targetUSD) }}</td>
                         <td class="num">Bs {{ formatearMoneda(e.targetBs) }}</td>
                         <td class="num meta-extra-usd">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
@@ -654,6 +654,7 @@
                   </tbody>
                 </table>
               </div>
+            </div>
             </div>
 
            @if (resultados().length > 0) {

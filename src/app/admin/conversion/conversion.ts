@@ -1940,7 +1940,7 @@ cumpleMeta(variacion: number): boolean {
       this.diasSeleccionados.set(new Set());
     }
 
-    imprimirExpectativas() {
+imprimirExpectativas() {
       const expectativas = this.getExpectativasPorDia().filter(e => this.diasSeleccionados().has(e.fecha));
       const comentario = this.comentarioImpresion();
       
@@ -1952,61 +1952,67 @@ cumpleMeta(variacion: number): boolean {
           <style>
             @page {
               size: letter portrait;
-              margin: 0.5in;
+              margin: 0.2in;
             }
-            body { 
-              font-family: 'Segoe UI', Tahoma, sans-serif; 
-              padding: 20px; 
-              font-size: 10pt;
+            html, body {
+              margin: 0;
+              padding: 0;
+              font-family: Arial, sans-serif;
+              font-size: 7pt;
+              box-sizing: border-box;
             }
-            h1 { color: #1d63c1; text-align: center; font-size: 16pt; margin: 0; }
-            h2 { color: #333; margin-top: 15px; font-size: 12pt; }
+            .container {
+              padding: 10px;
+              box-sizing: border-box;
+            }
+            h1 { color: #1d63c1; text-align: center; font-size: 12pt; margin: 0 0 5px 0; }
+            .meta-info { text-align: center; margin-bottom: 5px; font-size: 8pt; }
             table { 
               width: 100%; 
-              border-collapse: collapse; 
-              margin-top: 10px;
-              page-break-inside: avoid;
+              border-collapse: collapse;
             }
             th, td { 
-              border: 1px solid #ddd; 
-              padding: 4px 6px; 
+              border: 1px solid #666; 
+              padding: 1px 3px; 
               text-align: left;
-              font-size: 9pt;
+              font-size: 6pt;
+              line-height: 1.1;
             }
-            th { background: #ff9800; color: white; font-size: 9pt; }
+            th { background: #ff9800; color: white; font-weight: 600; }
             .num { text-align: right; }
             .comment { 
-              margin-top: 20px; 
-              padding: 10px; 
+              margin-top: 5px; 
+              padding: 5px; 
               background: #f5f5f5; 
-              border-radius: 4px;
-              font-size: 10pt;
-              page-break-inside: avoid;
+              border-radius: 3px;
+              font-size: 7pt;
             }
             .footer { 
-              margin-top: 20px; 
-              font-size: 9pt; 
+              margin-top: 5px; 
+              font-size: 6pt; 
               color: #666;
-              page-break-inside: avoid;
             }
+            input[type="checkbox"] { width: 12px; height: 12px; }
           </style>
         </head>
         <body>
-          <h1>🎯 Expectativas de Ventas</h1>
-          <table>
-            <thead>
-              <tr>
+          <div class="container">
+            <h1>🎯 Expectativas de Ventas</h1>
+            <div class="meta-info">Meta: ${this.metaVariacion()}% | Total: Bs ${this.formatearMoneda(this.totalOriginalAnterior())} / $${this.formatearMoneda(this.totalConvertidoAnterior())}</div>
+            <table>
+              <thead>
+                <tr>
       `;
       
       if (this.columnaFechaVisible()) html += '<th>Fecha</th>';
       if (this.columnaDiaVisible()) html += '<th>Día</th>';
       if (this.columnaAnteriorBsVisible()) html += '<th>Ventas Ant. (Bs)</th>';
       if (this.columnaAnteriorUSDVisible()) html += '<th>Ventas Ant. ($)</th>';
-      if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
-      if (this.columnaMetaExtraBsVisible()) html += '<th>Meta (Bs)</th>';
       if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
-      if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
-      if (this.columnaTargetBsVisible()) html += '<th>Total (Bs)</th>';
+      if (this.columnaTargetUSDVisible()) html += '<th>Meta ($)</th>';
+      if (this.columnaTargetBsVisible()) html += '<th>Meta (Bs)</th>';
+      if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta Extra ($)</th>';
+      if (this.columnaMetaExtraBsVisible()) html += '<th>Meta Extra (Bs)</th>';
       html += '<th>Cumplido</th>';
       
       html += `
@@ -2026,7 +2032,7 @@ cumpleMeta(variacion: number): boolean {
         if (this.columnaTargetBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
         if (this.columnaMetaExtraUSDVisible()) html += `<td class="num meta-extra">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
         if (this.columnaMetaExtraBsVisible()) html += `<td class="num meta-extra">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
-        html += `<td class="num"><input type="checkbox" style="width: 16px; height: 16px;"></td>`;
+        html += `<td class="num"><input type="checkbox" style="width: 12px; height: 12px;"></td>`;
         html += '</tr>';
       }
       
@@ -2039,10 +2045,7 @@ cumpleMeta(variacion: number): boolean {
         html += `<div class="comment"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
       }
       
-      html += `
-          <div class="footer">
-            <p>Total Ventas Anterior: Bs ${this.formatearMoneda(this.totalOriginalAnterior())} / $${this.formatearMoneda(this.totalConvertidoAnterior())}</p>
-            <p>Fecha de generación: ${new Date().toLocaleDateString('es-VE')}</p>
+      html += `<div class="footer"><p>Fecha: ${new Date().toLocaleDateString('es-VE')}</p></div>
           </div>
         </body>
         </html>

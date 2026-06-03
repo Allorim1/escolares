@@ -1795,9 +1795,15 @@ cumpleMeta(variacion: number): boolean {
   }
 
   procesarSoloAnterior() {
-    const tasasAnterioresBase = this.tasasAnterioresMap();
-    const tasasAnterioresManual = this.tasasAnterioresManuales();
-    const todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+    let todasLasTasasAnteriores = new Map<string, number>([
+      ...this.tasasAnterioresMap(),
+      ...this.tasasAnterioresManuales()
+    ]);
+
+    // Si no hay tasas anteriores, usar las actuales como fallback
+    if (todasLasTasasAnteriores.size === 0 && this.tasasMap().size > 0) {
+      todasLasTasasAnteriores = new Map(this.tasasMap());
+    }
 
     if (this.ventasAnteriorRaw().length < 2 || todasLasTasasAnteriores.size === 0) return;
 

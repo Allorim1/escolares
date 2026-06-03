@@ -1113,8 +1113,51 @@
    color: #c62828;
  }
 
- @media (max-width: 768px) {
-   .expectativa-grid {
-     grid-template-columns: 1fr;
-   }
+@media (max-width: 768px) {
+    .expectativa-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .expectativas-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    .upload-section {
+      flex-direction: column;
+    }
+   
+    .upload-card {
+      min-width: 100%;
+    }
+   
+    .config-row {
+      flex-direction: column;
+    }
+   
+    .config-card {
+      min-width: 100%;
+    }
+   
+    .totals-bar {
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+   
+    .actions-bar {
+      flex-direction: column;
+    }
+   
+    .result-header {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
  }

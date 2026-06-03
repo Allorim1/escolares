@@ -1,4 +1,4 @@
-import { Injectable, inject, Signal, signal } from '@angular/core';
+import { Injectable, inject, Signal, signal, computed } from '@angular/core';
 import { Product } from '../../shared/interfaces/product.interface';
 import { ProductsService } from './products.service';
 import { signalSlice } from 'ngxtension/signal-slice';
@@ -15,7 +15,7 @@ interface State {
 @Injectable({
      providedIn: 'root',
 })
- export class ProductsStateService {
+export class ProductsStateService {
 
      private productsService = inject(ProductsService);
 
@@ -69,7 +69,19 @@ interface State {
          return { ...state(), page: 1 };
      }
 
+     hasPrev = computed(() => this.state().page > 1);
+
+     hasNext = computed(() => this.state().page < this.state().totalPages);
+
+     reset() {
+         this.state.reset();
+     }
+
+     changePage(delta: number) {
+         this.state.changePage(delta);
+     }
+
      loadProducts() {
          this.loadTrigger$.next();
      }
- }
+}

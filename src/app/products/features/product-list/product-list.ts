@@ -618,16 +618,15 @@ getDescuento(product: Product): number {
     });
   }
 
-  // compute unique categories from products
-  categories = computed(() => {
-    const products = this.productsState.state.products();
-    const allProducts = this.productsState.allProducts();
-    const cats = new Set<string>();
-    allProducts.forEach((p) => {
-      if (p.category) cats.add(p.category);
-    });
-    return Array.from(cats).sort();
-  });
+// compute unique categories from products
+   categories = computed(() => {
+     const allProducts = this.productsState.allProducts();
+     const cats = new Set<string>();
+     allProducts.forEach((p) => {
+       if (p.category) cats.add(p.category);
+     });
+     return Array.from(cats).sort();
+   });
 
   // compute price range
   priceRange = computed(() => {
@@ -676,13 +675,13 @@ getDescuento(product: Product): number {
     });
   });
 
-  // paginated filtered products
-  paginatedProducts = computed(() => {
-    const page = this.productsState.state.page();
-    const pageSize = 28;
-    const start = (page - 1) * pageSize;
-    return this.filteredProducts().slice(start, start + pageSize);
-  });
+// paginated filtered products - pagination happens client-side on filtered results
+    paginatedProducts = computed(() => {
+      const page = this.productsState.state.page();
+      const pageSize = 28;
+      const start = (page - 1) * pageSize;
+      return this.filteredProducts().slice(start, start + pageSize);
+    });
 
   clearFilters() {
     this.filterText.set('');
@@ -690,13 +689,11 @@ getDescuento(product: Product): number {
     this.filterBrand.set('');
     this.filterPriceMin.set(null);
     this.filterPriceMax.set(null);
-    this.productsState.changePage$.next(1);
+    this.productsState.reset();
   }
 
   changePage(delta: number) {
-    const current = this.productsState.state.page();
-    const next = Math.max(1, current + delta);
-    this.productsState.changePage$.next(next);
+    this.productsState.changePage(delta);
 
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });

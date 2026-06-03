@@ -1950,15 +1950,45 @@ cumpleMeta(variacion: number): boolean {
         <head>
           <title>Expectativas de Ventas</title>
           <style>
-            body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
-            h1 { color: #1d63c1; text-align: center; }
-            h2 { color: #333; margin-top: 30px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background: #ff9800; color: white; }
+            @page {
+              size: letter portrait;
+              margin: 0.5in;
+            }
+            body { 
+              font-family: 'Segoe UI', Tahoma, sans-serif; 
+              padding: 20px; 
+              font-size: 10pt;
+            }
+            h1 { color: #1d63c1; text-align: center; font-size: 16pt; margin: 0; }
+            h2 { color: #333; margin-top: 15px; font-size: 12pt; }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-top: 10px;
+              page-break-inside: avoid;
+            }
+            th, td { 
+              border: 1px solid #ddd; 
+              padding: 4px 6px; 
+              text-align: left;
+              font-size: 9pt;
+            }
+            th { background: #ff9800; color: white; font-size: 9pt; }
             .num { text-align: right; }
-            .comment { margin-top: 30px; padding: 15px; background: #f5f5f5; border-radius: 8px; }
-            .footer { margin-top: 40px; font-size: 0.9rem; color: #666; }
+            .comment { 
+              margin-top: 20px; 
+              padding: 10px; 
+              background: #f5f5f5; 
+              border-radius: 4px;
+              font-size: 10pt;
+              page-break-inside: avoid;
+            }
+            .footer { 
+              margin-top: 20px; 
+              font-size: 9pt; 
+              color: #666;
+              page-break-inside: avoid;
+            }
           </style>
         </head>
         <body>

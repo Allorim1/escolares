@@ -1,26 +1,37 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { BaseHttpService } from "../../shared/data-access/base-http.service";
 import { Observable } from "rxjs";
 import { Product } from "../../shared/interfaces/product.interface";
+import { shareReplay } from "rxjs/operators";
 
 @Injectable({
-    providedIn: 'root'
-})
-export class ProductsService extends BaseHttpService {
-  // Fetch all products at once - frontend handles pagination locally
-  // to avoid the double-pagination bug where backend pagination
-  // conflicts with frontend slicing
-  getProducts(): Observable<{ products: Product[], total: number }> {
-    return this.http.get<{ products: Product[], total: number }>(`${this.apiUrl}/products`);
-  }
+     providedIn: 'root'
+ })
+ export class ProductsService extends BaseHttpService {
+   private productsCache$: Observable<Product[]> | null = null;
 
-  searchProducts(search: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/products`, {
-      params: { search }
-    });
-  }
+   getProducts(page: string = '1', limit: string = '50'): Observable<any> {
+     return this.http.get<any>(`${this.apiUrl}/products`, {
+       params: { page, limit }
+     });
+   }
 
-  getProduct(id: string): Observable<Product> {
-    return this.http.get<Product>(`${this.apiUrl}/products/${id}`);
-  }
-} 
+   getAllProducts(): Observable<Product[]> {
+     if (!this.productsCache$) {
+       this.productsCache$ = this.http.get<Product[]>(`${this.apiUrl}/products?all=true`).pipe(
+         shareReplay({ bufferSize: 1, refCount: true })
+       );
+     }
+     return this.productsCache$;
+   }
+
+   searchProducts(search: string): Observable<any> {
+     return this.http.get<any>(`${this.apiUrl}/products`, {
+       params: { search }
+     });
+   }
+
+   getProduct(id: string): Observable<Product> {
+     return this.http.get<Product>(`${this.apiUrl}/products/${id}`);
+   }
+ } 

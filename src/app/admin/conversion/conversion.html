@@ -563,7 +563,7 @@
     </div>
   }
 
-  @if (mostrarModalExpectativas()) {
+@if (mostrarModalExpectativas()) {
     <div class="modal-overlay" (click)="cerrarModalExpectativas()">
       <div class="modal-content modal-expectativas" (click)="$event.stopPropagation()">
         <div class="modal-header">
@@ -590,74 +590,73 @@
             </div>
           </div>
 
-<div class="expectativa-section">
-              <h4>Proyección de Ingresos</h4>
-              @let expectativas = calcularExpectativas();
-              <div class="expectativa-grid">
-                <div class="expectativa-card">
-                  <div class="expectativa-label">Target en Dólares (USD)</div>
-                  <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(expectativas.targetUSD) }}</div>
-                </div>
-                <div class="expectativa-card">
-                  <div class="expectativa-label">Target en Bolívares (Bs)</div>
-                  <div class="expectativa-value expectativa-bs">Bs {{ formatearMoneda(expectativas.targetBs) }}</div>
-                </div>
-                <div class="expectativa-card">
-                  <div class="expectativa-label">Ventas Anterior (USD)</div>
-                  <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(totalConvertidoAnterior()) }}</div>
-                </div>
-                <div class="expectativa-card">
-                  <div class="expectativa-label">Ventas Anterior (Bs)</div>
-                  <div class="expectativa-value expectativa-bs">Bs {{ formatearMoneda(totalOriginalAnterior()) }}</div>
-                </div>
-                <div class="expectativa-card">
-                  <div class="expectativa-label">Meta Establecida</div>
-                  <div class="expectativa-value expectativa-meta">{{ metaVariacion() }}%</div>
-                </div>
+          <div class="expectativa-section">
+            <h4>Proyección de Ingresos</h4>
+            @let expectativas = calcularExpectativas();
+            <div class="expectativa-grid">
+              <div class="expectativa-card">
+                <div class="expectativa-label">Target en Dólares (USD)</div>
+                <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(expectativas.targetUSD) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Target en Bolívares (Bs)</div>
+                <div class="expectativa-value expectativa-bs">Bs {{ formatearMoneda(expectativas.targetBs) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Ventas Anterior (USD)</div>
+                <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(totalConvertidoAnterior()) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Ventas Anterior (Bs)</div>
+                <div class="expectativa-value expectativa-bs">Bs {{ formatearMoneda(totalOriginalAnterior()) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Meta Establecida</div>
+                <div class="expectativa-value expectativa-meta">{{ metaVariacion() }}%</div>
               </div>
             </div>
+          </div>
 
-<div class="expectativa-section">
-              <h4>Expectativas por Día</h4>
-              <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
-              <div class="expectativas-table-wrapper">
-                <table class="result-table">
-                  <thead>
+          <div class="expectativa-section">
+            <h4>Expectativas por Día</h4>
+            <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
+            <div class="expectativas-table-wrapper">
+              <table class="result-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Día</th>
+                    <th>Ventas Ant. (Bs)</th>
+                    <th>Ventas Ant. ($)</th>
+                    <th>Tasa</th>
+                    <th>Meta ($)</th>
+                    <th>Meta (Bs)</th>
+                    <th>Meta Extra ($)</th>
+                    <th>Meta Extra (Bs)</th>
+                    <th class="print-only">Cumplido</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (e of getExpectativasPorDia(); track e.fecha) {
                     <tr>
-                      <th>Fecha</th>
-                      <th>Día</th>
-                      <th>Ventas Ant. (Bs)</th>
-                      <th>Ventas Ant. ($)</th>
-                      <th>Tasa</th>
-                      <th>Meta ($)</th>
-                      <th>Meta (Bs)</th>
-                      <th>Meta Extra ($)</th>
-                      <th>Meta Extra (Bs)</th>
-                      <th class="print-only">Cumplido</th>
+                      <td>{{ e.fecha }}</td>
+                      <td>{{ e.dia }}</td>
+                      <td class="num">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
+                      <td class="num">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
+                      <td class="num">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
+                      <td class="num positivo">$ {{ formatearMoneda(e.targetUSD) }}</td>
+                      <td class="num">Bs {{ formatearMoneda(e.targetBs) }}</td>
+                      <td class="num meta-extra-usd">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
+                      <td class="num meta-extra-bs">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
+                      <td class="print-only"><input type="checkbox" disabled></td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    @for (e of getExpectativasPorDia(); track e.fecha) {
-                      <tr>
-                        <td>{{ e.fecha }}</td>
-                        <td>{{ e.dia }}</td>
-                        <td class="num">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
-                        <td class="num">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
-                        <td class="num">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
-                        <td class="num positivo">$ {{ formatearMoneda(e.targetUSD) }}</td>
-                        <td class="num">Bs {{ formatearMoneda(e.targetBs) }}</td>
-                        <td class="num meta-extra-usd">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
-                        <td class="num meta-extra-bs">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
-                        <td class="print-only"><input type="checkbox" disabled></td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
+                  }
+                </tbody>
+              </table>
             </div>
-            </div>
+          </div>
 
-           @if (resultados().length > 0) {
+          @if (resultados().length > 0) {
             <div class="expectativa-section">
               <h4>Progreso Actual</h4>
               <div class="expectativa-grid">
@@ -689,8 +688,6 @@
       </div>
     </div>
   }
-
-  @if (mostrarModalImpresion()) {
     <div class="modal-overlay" (click)="cerrarModalImpresion()">
       <div class="modal-content modal-impresion" (click)="$event.stopPropagation()">
         <div class="modal-header">

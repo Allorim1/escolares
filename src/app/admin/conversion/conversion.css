@@ -978,18 +978,24 @@
    background: #f57c00;
  }
 
- /* Modal de expectativas */
- .modal-expectativas {
-   max-width: 700px;
- }
+/* Modal de expectativas */
+  .modal-expectativas {
+    max-width: 900px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
 
- .modal-expectativas .modal-header {
-   background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
- }
+  .modal-expectativas .modal-header {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    flex-shrink: 0;
+  }
 
- .expectativas-content {
-   padding: 1.5rem;
- }
+  .expectativas-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+  }
 
  .expectativa-section {
    margin-bottom: 1.5rem;
@@ -1118,6 +1124,11 @@
   color: #666;
   margin: 0 0 0.8rem 0;
   font-style: italic;
+}
+
+.expectativas-table-wrapper {
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 @media (max-width: 768px) {

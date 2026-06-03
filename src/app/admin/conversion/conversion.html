@@ -609,34 +609,34 @@
              </div>
            </div>
 
-           <div class="expectativa-section">
-             <h4>Expectativas por Día</h4>
-             <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
-             <div class="result-table-wrapper">
-               <table class="result-table">
-                 <thead>
-                   <tr>
-                     <th>Fecha</th>
-                     <th>Día</th>
-                     <th>Ganancia Anterior ($)</th>
-                     <th>Meta {{ metaVariacion() }}% ($)</th>
-                     <th>Meta (Bs)</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                   @for (e of getExpectativasPorDia(); track e.fecha) {
-                     <tr>
-                       <td>{{ e.fecha }}</td>
-                       <td>{{ e.dia }}</td>
-                       <td class="num">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
-                       <td class="num positivo">$ {{ formatearMoneda(e.targetUSD) }}</td>
-                       <td class="num">Bs {{ formatearMoneda(e.targetBs) }}</td>
-                     </tr>
-                   }
-                 </tbody>
-               </table>
-             </div>
-           </div>
+<div class="expectativa-section">
+              <h4>Expectativas por Día</h4>
+              <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
+              <div class="expectativas-table-wrapper">
+                <table class="result-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Día</th>
+                      <th>Ganancia Anterior ($)</th>
+                      <th>Meta {{ metaVariacion() }}% ($)</th>
+                      <th>Meta (Bs)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (e of getExpectativasPorDia(); track e.fecha) {
+                      <tr>
+                        <td>{{ e.fecha }}</td>
+                        <td>{{ e.dia }}</td>
+                        <td class="num">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
+                        <td class="num positivo">$ {{ formatearMoneda(e.targetUSD) }}</td>
+                        <td class="num">Bs {{ formatearMoneda(e.targetBs) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
            @if (resultados().length > 0) {
             <div class="expectativa-section">

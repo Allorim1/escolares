@@ -2048,55 +2048,61 @@ imprimirExpectativas() {
           <style>
             @page {
               size: letter portrait;
-              margin: 0.25in;
+              margin: 0.2in;
             }
             html, body {
               margin: 0;
               padding: 0;
               font-family: Arial, sans-serif;
-              font-size: 7pt;
+              font-size: 8pt;
               box-sizing: border-box;
+              height: 100%;
             }
             .container {
               padding: 5px;
               box-sizing: border-box;
+              min-height: 100%;
+              display: flex;
+              flex-direction: column;
             }
-            h1 { color: #1d63c1; text-align: center; font-size: 12pt; margin: 0 0 3px 0; }
-            .meta-info { text-align: center; margin-bottom: 3px; font-size: 8pt; }
+            h1 { color: #1d63c1; text-align: center; font-size: 14pt; margin: 0 0 5px 0; }
+            .meta-info { text-align: center; margin-bottom: 5px; font-size: 9pt; }
             table { 
               width: 100%; 
               border-collapse: collapse;
+              flex: 1;
             }
             th, td { 
               border: 1px solid #666; 
-              padding: 2px 4px; 
+              padding: 3px 5px; 
               text-align: left;
-              font-size: 6pt;
-              line-height: 1.1;
+              font-size: 7pt;
+              line-height: 1.2;
             }
             th { background: #ff9800; color: white; font-weight: 600; }
             .comment { 
-              margin-top: 3px; 
-              padding: 3px; 
+              margin-top: auto;
+              margin-bottom: 5px;
+              padding: 5px; 
               background: #f5f5f5; 
-              border-radius: 2px;
-              font-size: 7pt;
+              border-radius: 3px;
+              font-size: 8pt;
             }
             .footer { 
-              margin-top: 3px; 
-              font-size: 6pt; 
+              margin-top: 5px; 
+              font-size: 7pt; 
               color: #666;
             }
             input[type="checkbox"] { 
-              width: 14px; 
-              height: 14px; 
+              width: 16px; 
+              height: 16px; 
               margin: 0;
               padding: 0;
             }
             .cumplido-checkbox {
               padding: 0 !important;
               text-align: center;
-              width: 20px;
+              width: 22px;
             }
           </style>
         </head>
@@ -2141,14 +2147,16 @@ if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa">${e.tasa > 
         html += '</tr>';
       }
       
-      html += `
-            </tbody>
-          </table>
-      `;
-      
-      if (comentario) {
-        html += `<div class="comment"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
-      }
+html += `
+             </tbody>
+           </table>
+           
+           <div style="flex: 1; min-height: 20px;"></div>
+       `;
+       
+       if (comentario) {
+         html += `<div class="comment" style="margin-top: auto;"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
+       }
       
       html += `<div class="footer"><p>Fecha: ${new Date().toLocaleDateString('es-VE')}</p></div>
           </div>

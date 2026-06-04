@@ -1137,6 +1137,16 @@
   padding: 0.6rem 0.8rem;
 }
 
+.modal-expectativas .expectativa-tasa,
+.modal-expectativas .meta-extra-usd,
+.modal-expectativas .meta-extra-bs,
+.modal-expectativas .expectativa-target-usd,
+.modal-expectativas .expectativa-target-bs,
+.modal-expectativas .expectativa-anterior-bs,
+.modal-expectativas .expectativa-anterior-usd {
+  text-align: left !important;
+}
+
 .modal-impresion {
   max-width: 800px;
 }
@@ -1229,29 +1239,35 @@
 }
 
 .meta-extra {
-  color: #ff9800;
-  font-weight: 600;
-}
-
-.meta-extra-bs {
-  color: #e65100;
-}
-
-.print-only {
-   display: none;
+   color: #ff9800;
+   font-weight: 600;
  }
  
- .cumplido-checkbox {
-   width: 30px;
-   text-align: center;
-   padding: 1px !important;
+ .meta-extra-bs {
+   color: #e65100;
  }
  
- .cumplido-checkbox input[type="checkbox"] {
-   width: 16px;
-   height: 16px;
-   margin: 0;
- }
+ .print-only {
+    display: none;
+  }
+  
+  .cumplido-checkbox {
+    width: 30px;
+    text-align: center;
+    padding: 1px !important;
+  }
+  
+  .cumplido-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+  }
+  
+  .meta-extra-usd,
+  .meta-extra-bs,
+  .expectativa-tasa {
+    text-align: left !important;
+  }
 
 @media print {
   .print-only {

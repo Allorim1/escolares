@@ -1941,10 +1941,11 @@ cumpleMeta(variacion: number): boolean {
     }
 
 imprimirExpectativas() {
-      const expectativas = this.getExpectativasPorDia().filter(e => this.diasSeleccionados().has(e.fecha));
-      const comentario = this.comentarioImpresion();
-      
-      let html = `
+       const expectativas = this.getExpectativasPorDia().filter(e => this.diasSeleccionados().has(e.fecha));
+       const comentario = this.comentarioImpresion();
+       const resultadosAnterior = this.resultadosAnterior();
+       
+       let html = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -1952,67 +1953,66 @@ imprimirExpectativas() {
           <style>
             @page {
               size: letter portrait;
-              margin: 0.2in;
+              margin: 0.3in;
             }
             html, body {
               margin: 0;
               padding: 0;
               font-family: Arial, sans-serif;
-              font-size: 7pt;
+              font-size: 6pt;
               box-sizing: border-box;
             }
             .container {
-              padding: 10px;
+              padding: 5px;
               box-sizing: border-box;
             }
-            h1 { color: #1d63c1; text-align: center; font-size: 12pt; margin: 0 0 5px 0; }
-            .meta-info { text-align: center; margin-bottom: 5px; font-size: 8pt; }
+            h1 { color: #1d63c1; text-align: center; font-size: 10pt; margin: 0 0 3px 0; }
+            .meta-info { text-align: center; margin-bottom: 3px; font-size: 7pt; }
             table { 
               width: 100%; 
               border-collapse: collapse;
             }
             th, td { 
               border: 1px solid #666; 
-              padding: 1px 3px; 
+              padding: 1px 2px; 
               text-align: left;
-              font-size: 6pt;
-              line-height: 1.1;
+              font-size: 5pt;
+              line-height: 1.0;
             }
             th { background: #ff9800; color: white; font-weight: 600; }
-            .num { text-align: right; }
             .comment { 
-              margin-top: 5px; 
-              padding: 5px; 
+              margin-top: 3px; 
+              padding: 3px; 
               background: #f5f5f5; 
-              border-radius: 3px;
-              font-size: 7pt;
+              border-radius: 2px;
+              font-size: 6pt;
             }
             .footer { 
-              margin-top: 5px; 
-              font-size: 6pt; 
+              margin-top: 3px; 
+              font-size: 5pt; 
               color: #666;
             }
-            input[type="checkbox"] { width: 12px; height: 12px; }
+            input[type="checkbox"] { width: 14px; height: 14px; }
           </style>
         </head>
         <body>
           <div class="container">
             <h1>🎯 Metas Ventas</h1>
-            <div class="meta-info">Meta: ${this.metaVariacion()}% | Total: Bs ${this.formatearMoneda(this.totalOriginalAnterior())} / $${this.formatearMoneda(this.totalConvertidoAnterior())}</div>
+            <div class="meta-info">Período de ventas: ${resultadosAnterior.length > 0 ? resultadosAnterior[0].fecha + ' - ' + resultadosAnterior[resultadosAnterior.length - 1].fecha : '-'}</div>
             <table>
               <thead>
                 <tr>
-      `;
+          `;
       
       if (this.columnaFechaVisible()) html += '<th>Fecha</th>';
       if (this.columnaDiaVisible()) html += '<th>Día</th>';
       if (this.columnaAnteriorBsVisible()) html += '<th>Ventas Ant. (Bs)</th>';
       if (this.columnaAnteriorUSDVisible()) html += '<th>Ventas Ant. ($)</th>';
       if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
-if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
-       if (this.columnaTargetBsVisible()) html += '<th>Total (Bs)</th>';
-       if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
+if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
        if (this.columnaMetaExtraBsVisible()) html += '<th>Meta (Bs)</th>';
+       if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
+       if (this.columnaTargetBsVisible()) html += '<th>Total (Bs)</th>';
       html += '<th>Cumplido</th>';
       
       html += `
@@ -2025,14 +2025,14 @@ if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
         html += '<tr>';
         if (this.columnaFechaVisible()) html += `<td>${e.fecha}</td>`;
         if (this.columnaDiaVisible()) html += `<td>${e.dia}</td>`;
-        if (this.columnaAnteriorBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
-        if (this.columnaAnteriorUSDVisible()) html += `<td class="num">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
-        if (this.columnaTasaVisible()) html += `<td class="num">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
-if (this.columnaTargetUSDVisible()) html += `<td class="num">$${this.formatearMoneda(e.targetUSD)}</td>`;
-         if (this.columnaTargetBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
-         if (this.columnaMetaExtraUSDVisible()) html += `<td class="num meta-extra">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
-         if (this.columnaMetaExtraBsVisible()) html += `<td class="num meta-extra">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
-         html += '<td class="num cumplido-checkbox"><input type="checkbox"></td>';
+if (this.columnaAnteriorBsVisible()) html += `<td class="expectativa-anterior-bs">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+         if (this.columnaAnteriorUSDVisible()) html += `<td class="expectativa-anterior-usd">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
+         if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+         if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+         if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd">$${this.formatearMoneda(e.targetUSD)}</td>`;
+         if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+         html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
         html += '</tr>';
       }
       

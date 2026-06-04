@@ -624,12 +624,12 @@
                     <th>Día</th>
                     <th>Ventas Ant. (Bs)</th>
                     <th>Ventas Ant. ($)</th>
-                    <th>Tasa</th>
-<th>Total ($)</th>
-                     <th>Total (Bs)</th>
-                     <th>Meta ($)</th>
-                     <th>Meta (Bs)</th>
-                    <th class="print-only">Cumplido</th>
+<th>Tasa</th>
+                   <th>Meta ($)</th>
+                   <th>Meta (Bs)</th>
+                   <th>Total ($)</th>
+                   <th>Total (Bs)</th>
+                   <th class="print-only">Cumplido</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -637,14 +637,14 @@
                     <tr>
                       <td>{{ e.fecha }}</td>
                       <td>{{ e.dia }}</td>
-                      <td class="num">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
-                      <td class="num">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
-                      <td class="num">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
-                      <td class="num positivo">$ {{ formatearMoneda(e.targetUSD) }}</td>
-                      <td class="num">Bs {{ formatearMoneda(e.targetBs) }}</td>
-                      <td class="num meta-extra-usd">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
-                      <td class="num meta-extra-bs">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
-                      <td class="print-only"><input type="checkbox" disabled></td>
+<td class="expectativa-anterior-bs">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
+                      <td class="expectativa-anterior-usd">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
+<td class="expectativa-tasa">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
+                      <td class="meta-extra-usd">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
+                      <td class="meta-extra-bs">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
+                      <td class="expectativa-target-usd">$ {{ formatearMoneda(e.targetUSD) }}</td>
+                      <td class="expectativa-target-bs">Bs {{ formatearMoneda(e.targetBs) }}</td>
+                       <td class="print-only"><input type="checkbox" disabled></td>
                     </tr>
                   }
                 </tbody>
@@ -713,16 +713,16 @@
                 <input type="checkbox" [(ngModel)]="columnaTasaVisible"> Tasa
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaTargetUSDVisible"> Total ($)
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaTargetBsVisible"> Total (Bs)
-              </label>
-              <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="columnaMetaExtraUSDVisible"> Meta ($)
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="columnaMetaExtraBsVisible"> Meta (Bs)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaTargetUSDVisible"> Total ($)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaTargetBsVisible"> Total (Bs)
               </label>
             </div>
           </div>

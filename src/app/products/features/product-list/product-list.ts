@@ -598,6 +598,7 @@ getDescuento(product: Product): number {
   currentBrand = signal('');
 
   ngOnInit() {
+    this.productsState.loadProducts();
     this.ofertasBackend.reload();
     this.route.paramMap.subscribe((params) => {
       const brand = params.get('brand');

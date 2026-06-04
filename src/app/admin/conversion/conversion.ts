@@ -1953,31 +1953,31 @@ imprimirExpectativas() {
           <style>
             @page {
               size: letter portrait;
-              margin: 0.3in;
+              margin: 0.25in;
             }
             html, body {
               margin: 0;
               padding: 0;
               font-family: Arial, sans-serif;
-              font-size: 6pt;
+              font-size: 7pt;
               box-sizing: border-box;
             }
             .container {
               padding: 5px;
               box-sizing: border-box;
             }
-            h1 { color: #1d63c1; text-align: center; font-size: 10pt; margin: 0 0 3px 0; }
-            .meta-info { text-align: center; margin-bottom: 3px; font-size: 7pt; }
+            h1 { color: #1d63c1; text-align: center; font-size: 12pt; margin: 0 0 3px 0; }
+            .meta-info { text-align: center; margin-bottom: 3px; font-size: 8pt; }
             table { 
               width: 100%; 
               border-collapse: collapse;
             }
             th, td { 
               border: 1px solid #666; 
-              padding: 1px 2px; 
+              padding: 2px 4px; 
               text-align: left;
-              font-size: 5pt;
-              line-height: 1.0;
+              font-size: 6pt;
+              line-height: 1.1;
             }
             th { background: #ff9800; color: white; font-weight: 600; }
             .comment { 
@@ -1985,14 +1985,24 @@ imprimirExpectativas() {
               padding: 3px; 
               background: #f5f5f5; 
               border-radius: 2px;
-              font-size: 6pt;
+              font-size: 7pt;
             }
             .footer { 
               margin-top: 3px; 
-              font-size: 5pt; 
+              font-size: 6pt; 
               color: #666;
             }
-            input[type="checkbox"] { width: 14px; height: 14px; }
+            input[type="checkbox"] { 
+              width: 14px; 
+              height: 14px; 
+              margin: 0;
+              padding: 0;
+            }
+            .cumplido-checkbox {
+              padding: 0 !important;
+              text-align: center;
+              width: 20px;
+            }
           </style>
         </head>
         <body>

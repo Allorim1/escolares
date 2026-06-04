@@ -1247,26 +1247,21 @@
    color: #e65100;
  }
  
- .print-only {
+.print-only {
     display: none;
   }
   
   .cumplido-checkbox {
-    width: 30px;
+    padding: 0 !important;
     text-align: center;
-    padding: 1px !important;
+    width: 20px;
   }
   
   .cumplido-checkbox input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     margin: 0;
-  }
-  
-  .meta-extra-usd,
-  .meta-extra-bs,
-  .expectativa-tasa {
-    text-align: left !important;
+    padding: 0;
   }
 
 @media print {

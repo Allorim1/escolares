@@ -233,9 +233,8 @@ export class AdminProductos implements OnInit {
 
   loadProducts() {
     this.loading.set(true);
-    this.productsService.getProducts().subscribe({
-      next: (response: any) => {
-        const products: Product[] = response.products || response;
+    this.productsService.getAllProducts().subscribe({
+      next: (products: Product[]) => {
         this.products.set(products);
         this.totalProducts.set(products.length);
         this.totalPages.set(Math.ceil(products.length / this.itemsPerPage));

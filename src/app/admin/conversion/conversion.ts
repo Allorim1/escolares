@@ -1997,7 +1997,7 @@ imprimirExpectativas() {
         </head>
         <body>
           <div class="container">
-            <h1>🎯 Expectativas de Ventas</h1>
+            <h1>🎯 Metas Ventas</h1>
             <div class="meta-info">Meta: ${this.metaVariacion()}% | Total: Bs ${this.formatearMoneda(this.totalOriginalAnterior())} / $${this.formatearMoneda(this.totalConvertidoAnterior())}</div>
             <table>
               <thead>
@@ -2009,10 +2009,10 @@ imprimirExpectativas() {
       if (this.columnaAnteriorBsVisible()) html += '<th>Ventas Ant. (Bs)</th>';
       if (this.columnaAnteriorUSDVisible()) html += '<th>Ventas Ant. ($)</th>';
       if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
-      if (this.columnaTargetUSDVisible()) html += '<th>Meta ($)</th>';
-      if (this.columnaTargetBsVisible()) html += '<th>Meta (Bs)</th>';
-      if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta Extra ($)</th>';
-      if (this.columnaMetaExtraBsVisible()) html += '<th>Meta Extra (Bs)</th>';
+if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
+       if (this.columnaTargetBsVisible()) html += '<th>Total (Bs)</th>';
+       if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
+       if (this.columnaMetaExtraBsVisible()) html += '<th>Meta (Bs)</th>';
       html += '<th>Cumplido</th>';
       
       html += `
@@ -2028,11 +2028,11 @@ imprimirExpectativas() {
         if (this.columnaAnteriorBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
         if (this.columnaAnteriorUSDVisible()) html += `<td class="num">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
         if (this.columnaTasaVisible()) html += `<td class="num">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
-        if (this.columnaTargetUSDVisible()) html += `<td class="num">$${this.formatearMoneda(e.targetUSD)}</td>`;
-        if (this.columnaTargetBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
-        if (this.columnaMetaExtraUSDVisible()) html += `<td class="num meta-extra">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
-        if (this.columnaMetaExtraBsVisible()) html += `<td class="num meta-extra">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
-        html += `<td class="num"><input type="checkbox" style="width: 12px; height: 12px;"></td>`;
+if (this.columnaTargetUSDVisible()) html += `<td class="num">$${this.formatearMoneda(e.targetUSD)}</td>`;
+         if (this.columnaTargetBsVisible()) html += `<td class="num">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+         if (this.columnaMetaExtraUSDVisible()) html += `<td class="num meta-extra">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+         if (this.columnaMetaExtraBsVisible()) html += `<td class="num meta-extra">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+         html += '<td class="num cumplido-checkbox"><input type="checkbox"></td>';
         html += '</tr>';
       }
       

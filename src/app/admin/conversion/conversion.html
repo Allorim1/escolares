@@ -580,12 +580,8 @@
                 <input type="number" class="meta-input-large" [(ngModel)]="metaVariacion" min="0" max="200" step="1">
               </div>
               <div class="meta-info">
-                <span class="meta-info-label">Base:</span>
-                <span class="meta-info-value">$ {{ formatearMoneda(totalConvertidoAnterior()) }} USD (Año Anterior)</span>
-              </div>
-              <div class="meta-info">
-                <span class="meta-info-label">Tasa Promedio:</span>
-                <span class="meta-info-value">{{ tasaPromedioAnterior() > 0 ? formatearMoneda(tasaPromedioAnterior()) : (tasaPromedioActual() > 0 ? formatearMoneda(tasaPromedioActual()) : '-') }} Bs/USD</span>
+                <span class="meta-info-label">Período de ventas:</span>
+                <span class="meta-info-value">{{ resultadosAnterior().length > 0 ? resultadosAnterior()[0].fecha + ' - ' + resultadosAnterior()[resultadosAnterior().length - 1].fecha : '-' }}</span>
               </div>
             </div>
           </div>
@@ -629,10 +625,10 @@
                     <th>Ventas Ant. (Bs)</th>
                     <th>Ventas Ant. ($)</th>
                     <th>Tasa</th>
-                    <th>Meta ($)</th>
-                    <th>Meta (Bs)</th>
-                    <th>Meta Extra ($)</th>
-                    <th>Meta Extra (Bs)</th>
+<th>Total ($)</th>
+                     <th>Total (Bs)</th>
+                     <th>Meta ($)</th>
+                     <th>Meta (Bs)</th>
                     <th class="print-only">Cumplido</th>
                   </tr>
                 </thead>
@@ -717,16 +713,16 @@
                 <input type="checkbox" [(ngModel)]="columnaTasaVisible"> Tasa
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaTargetUSDVisible"> Meta ($)
+                <input type="checkbox" [(ngModel)]="columnaTargetUSDVisible"> Total ($)
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaTargetBsVisible"> Meta (Bs)
+                <input type="checkbox" [(ngModel)]="columnaTargetBsVisible"> Total (Bs)
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaMetaExtraUSDVisible"> Meta Extra ($)
+                <input type="checkbox" [(ngModel)]="columnaMetaExtraUSDVisible"> Meta ($)
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaMetaExtraBsVisible"> Meta Extra (Bs)
+                <input type="checkbox" [(ngModel)]="columnaMetaExtraBsVisible"> Meta (Bs)
               </label>
             </div>
           </div>

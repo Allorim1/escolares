@@ -1238,8 +1238,20 @@
 }
 
 .print-only {
-  display: none;
-}
+   display: none;
+ }
+ 
+ .cumplido-checkbox {
+   width: 30px;
+   text-align: center;
+   padding: 1px !important;
+ }
+ 
+ .cumplido-checkbox input[type="checkbox"] {
+   width: 16px;
+   height: 16px;
+   margin: 0;
+ }
 
 @media print {
   .print-only {

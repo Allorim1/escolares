@@ -150,12 +150,12 @@ export class AdminProductos implements OnInit {
   private _lastFilterState = '';
 
   get filteredProducts(): Product[] {
-    let filtered = this.products();
+    let filtered = this.products() || [];
     
     const currentFilterState = `${this.filtroNombre}-${this.filtroCategoria}-${this.filtroMarca}`;
     if (currentFilterState !== this._lastFilterState) {
       this._lastFilterState = currentFilterState;
-      this.currentPage.set(1); // Reset to first page when filters change
+      this.currentPage.set(1);
     }
 
     if (this.filtroNombre) {
@@ -179,10 +179,10 @@ export class AdminProductos implements OnInit {
   }
 
   get paginatedProducts(): Product[] {
-    const filtered = this.filteredProducts;
+    const filtered = this.filteredProducts || [];
     const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
-    return filtered.slice(startIndex, endIndex);
+    return Array.isArray(filtered) ? filtered.slice(startIndex, endIndex) : [];
   }
 
   
@@ -427,7 +427,33 @@ export class AdminProductos implements OnInit {
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
-    this.processFile(input.files[0]);
+    this.uploadMainImage(input.files[0]);
+  }
+
+  private uploadMainImage(file: File) {
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen no puede exceder 5MB');
+      return;
+    }
+
+    this.uploadingImage.set(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    this.http.post<any>('/api/products/upload-image', formData).subscribe({
+      next: (response) => {
+        this.formData.update(data => ({ ...data, image: response.url }));
+        this.uploadingImage.set(false);
+      },
+      error: (err) => {
+        this.uploadingImage.set(false);
+        alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+      }
+    });
   }
 
   onDragOver(event: DragEvent) {
@@ -448,45 +474,20 @@ export class AdminProductos implements OnInit {
     this.dragOver.set(false);
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
-    this.processFile(files[0]);
-  }
-
-  processFile(file: File) {
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen no puede exceder 5MB');
-      return;
-    }
-
-    this.uploadingImage.set(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      this.formData.update(data => ({ ...data, image: base64 }));
-      this.uploadingImage.set(false);
-    };
-    reader.onerror = () => {
-      this.uploadingImage.set(false);
-      alert('Error al leer el archivo');
-    };
-    reader.readAsDataURL(file);
+    this.uploadMainImage(files[0]);
   }
 
   onAdditionalImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
-    this.processAdditionalFile(input.files[0]);
+    this.uploadAdditionalImage(input.files[0]);
   }
 
-  getMaxAdditionalImages(): number {
+getMaxAdditionalImages(): number {
     return 4;
   }
 
-  processAdditionalFile(file: File) {
+  private uploadAdditionalImage(file: File) {
     const currentImages = this.formData().images.length;
     const maxImages = this.getMaxAdditionalImages();
     if (currentImages >= maxImages) {
@@ -501,18 +502,23 @@ export class AdminProductos implements OnInit {
       alert('La imagen no puede exceder 5MB');
       return;
     }
+
     this.uploadingImage.set(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      this.formData.update(data => ({ ...data, images: [...data.images, base64] }));
-      this.uploadingImage.set(false);
-    };
-    reader.onerror = () => {
-      this.uploadingImage.set(false);
-      alert('Error al leer el archivo');
-    };
-    reader.readAsDataURL(file);
+    const formData = new FormData();
+    formData.append('images', file);
+
+    this.http.post<any>('/api/products/upload-images', formData).subscribe({
+      next: (response) => {
+        if (response.urls && response.urls.length > 0) {
+          this.formData.update(data => ({ ...data, images: [...data.images, response.urls[0]] }));
+        }
+        this.uploadingImage.set(false);
+      },
+      error: (err) => {
+        this.uploadingImage.set(false);
+        alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+      }
+    });
   }
 
   removeAdditionalImage(index: number) {
@@ -533,7 +539,7 @@ export class AdminProductos implements OnInit {
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
     for (let i = 0; i < files.length; i++) {
-      this.processAdditionalFile(files[i]);
+      this.uploadAdditionalImage(files[i]);
     }
   }
 

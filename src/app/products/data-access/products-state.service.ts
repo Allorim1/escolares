@@ -32,19 +32,28 @@ export class ProductsStateService {
 
      private loadTrigger$ = new Subject<void>();
 
-     private loadAll$ = this.loadTrigger$.pipe(
-         startWith(void 0),
-         switchMap(() => this.productsService.getAllProducts().pipe(
-             tap((products) => this.allProducts.set(products)),
-             map((products) => ({
-                 products: products,
-                 status: 'success' as const,
-                 total: products.length,
-                 totalPages: Math.ceil(products.length / this.pageSize)
-             })),
-             catchError(() => of({ products: [], status: 'error' as const, total: 0, totalPages: 0 }))
-         ))
-     );
+private loadAll$ = this.loadTrigger$.pipe(
+          startWith(void 0),
+          switchMap(() => this.productsService.getAllProducts().pipe(
+              tap((products) => {
+                  if (Array.isArray(products)) {
+                      this.allProducts.set(products);
+                  } else {
+                      this.allProducts.set([]);
+                  }
+              }),
+              map((products) => {
+                  const arr = Array.isArray(products) ? products : [];
+                  return {
+                      products: arr,
+                      status: 'success' as const,
+                      total: arr.length,
+                      totalPages: Math.ceil(arr.length / this.pageSize)
+                  };
+              }),
+              catchError(() => of({ products: [], status: 'error' as const, total: 0, totalPages: 0 }))
+          ))
+      );
 
      state = signalSlice({
          initialState: this.initialState,

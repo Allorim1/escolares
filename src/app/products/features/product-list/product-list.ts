@@ -620,28 +620,28 @@ getDescuento(product: Product): number {
   }
 
 // compute unique categories from products
-   categories = computed(() => {
-     const allProducts = this.productsState.allProducts();
-     const cats = new Set<string>();
-     allProducts.forEach((p) => {
-       if (p.category) cats.add(p.category);
-     });
-     return Array.from(cats).sort();
-   });
+    categories = computed(() => {
+      const allProducts = this.productsState.allProducts() || [];
+      const cats = new Set<string>();
+      allProducts.forEach((p) => {
+        if (p.category) cats.add(p.category);
+      });
+      return Array.from(cats).sort();
+    });
 
-  // compute price range
-  priceRange = computed(() => {
-    const allProducts = this.productsState.allProducts();
-    if (allProducts.length === 0) return { min: 0, max: 1000 };
-    const prices = allProducts.map((p) => p.price);
-    return {
-      min: Math.floor(Math.min(...prices)),
-      max: Math.ceil(Math.max(...prices)),
+    // compute price range
+    priceRange = computed(() => {
+      const allProducts = this.productsState.allProducts() || [];
+      if (!allProducts.length) return { min: 0, max: 1000 };
+      const prices = allProducts.map((p) => p.price);
+      return {
+        min: Math.floor(Math.min(...prices)),
+        max: Math.ceil(Math.max(...prices)),
     };
   });
 
   filteredProducts = computed(() => {
-    const list = this.productsState.allProducts();
+    const list = this.productsState.allProducts() || [];
     const text = this.filterText().toLowerCase();
     const category = this.filterCategory();
     const brand = this.filterBrand();
@@ -681,7 +681,8 @@ getDescuento(product: Product): number {
       const page = this.productsState.state.page();
       const pageSize = 28;
       const start = (page - 1) * pageSize;
-      return this.filteredProducts().slice(start, start + pageSize);
+      const filtered = this.filteredProducts() || [];
+      return filtered.slice(start, start + pageSize);
     });
 
   clearFilters() {

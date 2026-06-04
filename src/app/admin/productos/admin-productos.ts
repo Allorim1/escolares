@@ -535,7 +535,7 @@ private uploadAdditionalImage(file: File) {
         alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
       }
     });
-  }
+  
     if (!file.type.startsWith('image/')) {
       alert('Por favor selecciona un archivo de imagen');
       return;
@@ -546,7 +546,6 @@ private uploadAdditionalImage(file: File) {
     }
 
     this.uploadingImage.set(true);
-    const formData = new FormData();
     formData.append('images', file);
 
     this.http.post<any>('/api/products/upload-images', formData).subscribe({

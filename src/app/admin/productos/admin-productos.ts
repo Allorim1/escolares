@@ -439,16 +439,23 @@ export class AdminProductos implements OnInit {
       return;
     }
 
+    // Show preview immediately using object URL
+    const previewUrl = URL.createObjectURL(file);
+    this.formData.update(data => ({ ...data, image: previewUrl }));
+    
     this.uploadingImage.set(true);
     const formData = new FormData();
     formData.append('image', file);
 
     this.http.post<any>('/api/products/upload-image', formData).subscribe({
       next: (response) => {
+        // Replace preview URL with server URL
+        URL.revokeObjectURL(previewUrl);
         this.formData.update(data => ({ ...data, image: response.url }));
         this.uploadingImage.set(false);
       },
       error: (err) => {
+        URL.revokeObjectURL(previewUrl);
         this.uploadingImage.set(false);
         alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
       }
@@ -486,13 +493,49 @@ getMaxAdditionalImages(): number {
     return 4;
   }
 
-  private uploadAdditionalImage(file: File) {
+private uploadAdditionalImage(file: File) {
     const currentImages = this.formData().images.length;
     const maxImages = this.getMaxAdditionalImages();
     if (currentImages >= maxImages) {
       alert(`Máximo ${maxImages} imágenes adicionales permitidas`);
       return;
     }
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen no puede exceder 5MB');
+      return;
+    }
+
+    // Show preview immediately using object URL
+    const previewUrl = URL.createObjectURL(file);
+    this.formData.update(data => ({ ...data, images: [...data.images, previewUrl] }));
+    
+    this.uploadingImage.set(true);
+    const formData = new FormData();
+    formData.append('images', file);
+
+    this.http.post<any>('/api/products/upload-images', formData).subscribe({
+      next: (response) => {
+        // Replace preview URL with server URL
+        if (response.urls && response.urls.length > 0) {
+          this.formData.update(data => ({
+            ...data,
+            images: data.images.map(img => img === previewUrl ? response.urls[0] : img)
+          }));
+        }
+        this.uploadingImage.set(false);
+      },
+      error: (err) => {
+        URL.revokeObjectURL(previewUrl);
+        this.formData.update(data => ({ ...data, images: data.images.filter(img => img !== previewUrl) }));
+        this.uploadingImage.set(false);
+        alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+      }
+    });
+  }
     if (!file.type.startsWith('image/')) {
       alert('Por favor selecciona un archivo de imagen');
       return;

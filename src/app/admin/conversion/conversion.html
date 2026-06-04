@@ -33,6 +33,16 @@
             <span class="file-name">{{ tasasNombre() }}</span>
             <span class="file-info">Tasas encontradas: {{ tasasMap().size }}</span>
           }
+          @if (tasasGuardadas().length > 0) {
+            <div class="select-tasas-guardadas">
+              <select (change)="onSeleccionarTasaGuardada($event)" class="config-select">
+                <option value="">-- Seleccionar tasas guardadas --</option>
+                @for (tasa of tasasGuardadas(); track tasa._id) {
+                  <option [value]="tasa._id">{{ tasa.nombre }}</option>
+                }
+              </select>
+            </div>
+          }
         </div>
       </div>
     </div>
@@ -62,6 +72,16 @@
           @if (tasasAnterioresNombre()) {
             <span class="file-name">{{ tasasAnterioresNombre() }}</span>
             <span class="file-info">Tasas encontradas: {{ tasasAnterioresMap().size }}</span>
+          }
+          @if (tasasAnterioresGuardadas().length > 0) {
+            <div class="select-tasas-guardadas">
+              <select (change)="onSeleccionarTasaAnteriorGuardada($event)" class="config-select">
+                <option value="">-- Seleccionar tasas guardadas --</option>
+                @for (tasa of tasasAnterioresGuardadas(); track tasa._id) {
+                  <option [value]="tasa._id">{{ tasa.nombre }}</option>
+                }
+              </select>
+            </div>
           }
         </div>
       </div>

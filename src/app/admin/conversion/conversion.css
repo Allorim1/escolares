@@ -386,6 +386,19 @@
   font-style: italic;
 }
 
+.select-tasas-guardadas {
+  margin-top: 0.8rem;
+}
+
+.select-tasas-guardadas .config-select {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: #fff8e1;
+}
+
 .total-row {
   background: #e3f2fd !important;
   font-weight: bold;

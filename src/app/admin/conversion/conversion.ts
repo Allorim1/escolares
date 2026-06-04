@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import * as ExcelJS from 'exceljs';
 import * as XLSX from 'xlsx';
+import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
 
 interface FilaResultado {
   fecha: string;
@@ -34,7 +35,7 @@ interface ComparacionResultado {
   templateUrl: './conversion.html',
   styleUrl: './conversion.css',
 })
-export class Conversion {
+export class Conversion implements OnInit {
   ventasNombre = signal('');
   tasasNombre = signal('');
 
@@ -78,11 +79,79 @@ export class Conversion {
   tasasAnterioresMap = signal<Map<string, number>>(new Map());
   tasasAnterioresFilas = signal<any[][]>([]);
   tasasAnterioresColumnas = signal<string[]>([]);
-  tasasAnterioresPreview = signal<any[][]>([]);
+tasasAnterioresPreview = signal<any[][]>([]);
+ 
+   // Tasas manuales para año anterior
+   tasasAnterioresManuales = signal<Map<string, number>>(new Map());
+   fechasSinTasaAnterior = signal<string[]>([]);
+ 
+   tasasGuardadas = signal<TasaGuardada[]>([]);
+   tasasAnterioresGuardadas = signal<TasaGuardada[]>([]);
+ 
+   constructor(private tasasGuardadasService: TasasGuardadasService) {}
 
-  // Tasas manuales para año anterior
-  tasasAnterioresManuales = signal<Map<string, number>>(new Map());
-  fechasSinTasaAnterior = signal<string[]>([]);
+   ngOnInit() {
+     this.cargarTasasGuardadas();
+     this.cargarTasasAnterioresGuardadas();
+   }
+
+   cargarTasasGuardadas() {
+     this.tasasGuardadasService.getAll('actual').subscribe({
+       next: (tasas) => this.tasasGuardadas.set(tasas),
+       error: (err) => console.error('Error cargando tasas guardadas:', err)
+     });
+   }
+
+   cargarTasasAnterioresGuardadas() {
+     this.tasasGuardadasService.getAll('anterior').subscribe({
+       next: (tasas) => this.tasasAnterioresGuardadas.set(tasas),
+       error: (err) => console.error('Error cargando tasas anteriores guardadas:', err)
+     });
+   }
+
+   cargarTasaDesdeBD(id: string) {
+     this.tasasGuardadasService.getById(id).subscribe({
+       next: (tasa) => {
+         const mapaTasas = new Map<string, number>();
+         tasa.tasas.forEach(t => mapaTasas.set(t.fecha, t.valor));
+         this.tasasMap.set(mapaTasas);
+         this.tasasNombre.set(tasa.nombre);
+         this.error.set('');
+       },
+       error: (err) => this.error.set('Error al cargar tasas desde BD')
+     });
+   }
+
+   cargarTasaAnteriorDesdeBD(id: string) {
+     this.tasasGuardadasService.getById(id).subscribe({
+       next: (tasa) => {
+         const mapaTasas = new Map<string, number>();
+         tasa.tasas.forEach(t => mapaTasas.set(t.fecha, t.valor));
+         this.tasasAnterioresMap.set(mapaTasas);
+         this.tasasAnterioresNombre.set(tasa.nombre);
+         const preview: any[][] = [['Fecha', 'Tasa'], ...tasa.tasas.map(t => [t.fecha, t.valor])];
+         this.tasasAnterioresPreview.set(preview.slice(0, 11));
+         this.error.set('');
+       },
+       error: (err) => this.error.set('Error al cargar tasas anteriores desde BD')
+     });
+   }
+
+   onSeleccionarTasaGuardada(event: Event) {
+     const select = event.target as HTMLSelectElement;
+     const id = select.value;
+     if (id) {
+       this.cargarTasaDesdeBD(id);
+     }
+   }
+
+   onSeleccionarTasaAnteriorGuardada(event: Event) {
+     const select = event.target as HTMLSelectElement;
+     const id = select.value;
+     if (id) {
+       this.cargarTasaAnteriorDesdeBD(id);
+     }
+   }
 
 comparaciones = signal<ComparacionResultado[]>([]);
     comparacionesActual = signal<ComparacionResultado[]>([]);
@@ -874,8 +943,21 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
       }
     }
 
-    this.tasasMap.set(mapaTasas);
-  }
+this.tasasMap.set(mapaTasas);
+     this.guardarTasasEnBD();
+   }
+
+   guardarTasasEnBD() {
+     if (this.tasasMap().size === 0) return;
+     
+     const nombre = `Tasas ${new Date().toLocaleDateString('es-VE')}`;
+     this.tasasGuardadasService.save(nombre, this.tasasMap(), 'actual').subscribe({
+       next: () => {
+         this.cargarTasasGuardadas();
+       },
+       error: (err) => console.error('Error guardando tasas:', err)
+     });
+   }
 
   procesarTasasAnterioresDesdeTabla() {
     const filas = this.tasasAnterioresFilas();
@@ -900,8 +982,21 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
       }
     }
 
-    this.tasasAnterioresMap.set(mapaTasas);
-  }
+this.tasasAnterioresMap.set(mapaTasas);
+     this.guardarTasasAnterioresEnBD();
+   }
+
+   guardarTasasAnterioresEnBD() {
+     if (this.tasasAnterioresMap().size === 0) return;
+     
+     const nombre = `Tasas Anterior ${new Date().toLocaleDateString('es-VE')}`;
+     this.tasasGuardadasService.save(nombre, this.tasasAnterioresMap(), 'anterior').subscribe({
+       next: () => {
+         this.cargarTasasAnterioresGuardadas();
+       },
+       error: (err) => console.error('Error guardando tasas anteriores:', err)
+     });
+   }
 
   procesar() {
     if (!this.columnaFechaVentas() || !this.columnaTotalVentas()) {

@@ -16,7 +16,7 @@ import { shareReplay } from "rxjs/operators";
      });
    }
 
-getAllProducts(): Observable<Product[]> {
+   getAllProducts(): Observable<Product[]> {
       if (!this.productsCache$) {
         this.productsCache$ = this.http.get<{ products: Product[] }>(`${this.apiUrl}/products?all=true`).pipe(
           map((response) => response.products),
@@ -25,6 +25,10 @@ getAllProducts(): Observable<Product[]> {
       }
       return this.productsCache$;
     }
+
+   clearProductsCache(): void {
+     this.productsCache$ = null;
+   }
 
    searchProducts(search: string): Observable<any> {
      return this.http.get<any>(`${this.apiUrl}/products`, {

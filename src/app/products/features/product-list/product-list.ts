@@ -654,27 +654,29 @@ getDescuento(product: Product): number {
     const maxPrice = this.filterPriceMax();
 
     return list.filter((p) => {
+      const title = (p.title || '').toString().toLowerCase();
+      const description = (p.description || '').toString().toLowerCase();
+      const categoryValue = (p.category || '').toString().toLowerCase();
+      const brandValue = (p.marca || '').toString().toLowerCase();
+      const priceValue = typeof p.price === 'number' ? p.price : Number(p.price || 0);
+
       // text filter
-      if (
-        text &&
-        !p.title.toLowerCase().includes(text) &&
-        !p.description.toLowerCase().includes(text)
-      ) {
+      if (text && !title.includes(text) && !description.includes(text)) {
         return false;
       }
       // category filter
-      if (category && p.category !== category) {
+      if (category && categoryValue !== category.toLowerCase()) {
         return false;
       }
       // brand filter
-      if (brand && p.marca !== brand) {
+      if (brand && brandValue !== brand.toLowerCase()) {
         return false;
       }
       // price range filter
-      if (minPrice !== null && p.price < minPrice) {
+      if (minPrice !== null && priceValue < minPrice) {
         return false;
       }
-      if (maxPrice !== null && p.price > maxPrice) {
+      if (maxPrice !== null && priceValue > maxPrice) {
         return false;
       }
       return true;

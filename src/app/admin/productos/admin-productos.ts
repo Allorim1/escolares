@@ -237,9 +237,18 @@ export class AdminProductos implements OnInit {
     this.loading.set(true);
     this.productsService.getAllProducts().subscribe({
       next: (products: Product[]) => {
-        this.products.set(products);
-        this.totalProducts.set(products.length);
-        this.totalPages.set(Math.ceil(products.length / this.itemsPerPage));
+        const sortedProducts = [...products].sort((a, b) => {
+          const left = Number(a.id);
+          const right = Number(b.id);
+          return Number.isNaN(left) || Number.isNaN(right) ? String(a.id).localeCompare(String(b.id)) : left - right;
+        });
+        this.products.set(sortedProducts);
+        this.totalProducts.set(sortedProducts.length);
+        const pages = Math.max(1, Math.ceil(sortedProducts.length / this.itemsPerPage));
+        this.totalPages.set(pages);
+        if (this.currentPage() > pages) {
+          this.currentPage.set(pages);
+        }
         this.loading.set(false);
       },
       error: () => {
@@ -307,7 +316,7 @@ export class AdminProductos implements OnInit {
   showEditForm(product: Product) {
     this.uploadError.set(null);
     this.isAdding.set(false);
-    this.editingProduct.set(product);
+    this.editingProduct.set({ ...product });
     this.ofertaFieldModifiedByUser.set(null);
     this.formData.set({
       title: product.title,
@@ -384,7 +393,7 @@ export class AdminProductos implements OnInit {
     if (isEditing) {
       if (this.saving()) return;
       this.saving.set(true);
-      const productId = this.editingProduct()!.id;
+      const productId = String(this.editingProduct()!.id);
       this.http.put<any>(`/api/products/${productId}`, payload).subscribe({
         next: (updated) => {
           this.productsService.clearProductsCache();
@@ -607,7 +616,8 @@ export class AdminProductos implements OnInit {
     if (confirm('¿Estás seguro de eliminar este producto?')) {
       if (this.saving()) return;
       this.saving.set(true);
-      this.http.delete<any>(`/api/products/${id}`).subscribe({
+      const productId = String(id);
+      this.http.delete<any>(`/api/products/${productId}`).subscribe({
         next: () => {
           this.productsService.clearProductsCache();
           this.notificationModal.success('Producto eliminado correctamente');

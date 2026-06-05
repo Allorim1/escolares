@@ -388,7 +388,7 @@ export class AdminProductos implements OnInit {
       rating: { rate: data.ratingRate, count: data.ratingCount },
     };
 
-    const isEditing = !!this.editingProduct();
+    const isEditing = !!(this.editingProduct() && this.editingProduct()!.id !== undefined && this.editingProduct()!.id !== null);
 
     if (isEditing) {
       if (this.saving()) return;

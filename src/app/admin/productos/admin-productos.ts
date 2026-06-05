@@ -59,6 +59,7 @@ export class AdminProductos implements OnInit {
   isAdding = signal(false);
   showModal = signal(false);
   uploadingImage = signal(false);
+  uploadError = signal<string | null>(null);
   dragOver = signal(false);
   preciosOcultosParaNoRegistrados = signal(false);
 
@@ -277,6 +278,7 @@ export class AdminProductos implements OnInit {
   }
 
   showAddForm() {
+    this.uploadError.set(null);
     this.isAdding.set(true);
     this.editingProduct.set(null);
     this.ofertaFieldModifiedByUser.set(null);
@@ -302,6 +304,7 @@ export class AdminProductos implements OnInit {
   }
 
   showEditForm(product: Product) {
+    this.uploadError.set(null);
     this.isAdding.set(false);
     this.editingProduct.set(product);
     this.ofertaFieldModifiedByUser.set(null);
@@ -328,6 +331,7 @@ export class AdminProductos implements OnInit {
 
   cancelEdit() {
     if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
+      this.uploadError.set(null);
       this.showModal.set(false);
       this.editingProduct.set(null);
     }
@@ -418,21 +422,29 @@ export class AdminProductos implements OnInit {
   }
 
   onFileSelected(event: Event) {
+    if (this.uploadingImage()) {
+      return;
+    }
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
     this.uploadMainImage(input.files[0]);
   }
 
   private uploadMainImage(file: File) {
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen no puede exceder 5MB');
+    if (this.uploadingImage()) {
       return;
     }
 
+    if (!file.type.startsWith('image/')) {
+      this.uploadError.set('Por favor selecciona un archivo de imagen válido.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.uploadError.set('La imagen no puede exceder 5MB.');
+      return;
+    }
+
+    this.uploadError.set(null);
     const previousImage = this.formData().image;
     const previewUrl = URL.createObjectURL(file);
     this.formData.update(data => ({ ...data, image: previewUrl }));
@@ -444,14 +456,19 @@ export class AdminProductos implements OnInit {
     this.http.post<any>('/api/products/upload-image', formData).subscribe({
       next: (response) => {
         URL.revokeObjectURL(previewUrl);
-        this.formData.update(data => ({ ...data, image: response.url }));
+        if (!response?.url) {
+          this.formData.update(data => ({ ...data, image: previousImage || '' }));
+          this.uploadError.set('No se recibió una URL válida de la imagen.');
+        } else {
+          this.formData.update(data => ({ ...data, image: response.url }));
+        }
         this.uploadingImage.set(false);
       },
       error: (err) => {
         URL.revokeObjectURL(previewUrl);
         this.formData.update(data => ({ ...data, image: previousImage || '' }));
         this.uploadingImage.set(false);
-        alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+        this.uploadError.set('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
       }
     });
   }
@@ -472,12 +489,18 @@ export class AdminProductos implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver.set(false);
+    if (this.uploadingImage()) {
+      return;
+    }
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
     this.uploadMainImage(files[0]);
   }
 
   onAdditionalImageSelected(event: Event) {
+    if (this.uploadingImage()) {
+      return;
+    }
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
     this.uploadAdditionalImage(input.files[0]);
@@ -488,21 +511,26 @@ export class AdminProductos implements OnInit {
   }
 
   private uploadAdditionalImage(file: File) {
-    const currentImages = this.formData().images.length;
-    const maxImages = this.getMaxAdditionalImages();
-    if (currentImages >= maxImages) {
-      alert(`Máximo ${maxImages} imágenes adicionales permitidas`);
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen no puede exceder 5MB');
+    if (this.uploadingImage()) {
       return;
     }
 
+    const currentImages = this.formData().images.length;
+    const maxImages = this.getMaxAdditionalImages();
+    if (currentImages >= maxImages) {
+      this.uploadError.set(`Máximo ${maxImages} imágenes adicionales permitidas`);
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      this.uploadError.set('Por favor selecciona un archivo de imagen válido.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.uploadError.set('La imagen no puede exceder 5MB.');
+      return;
+    }
+
+    this.uploadError.set(null);
     const previousImages = this.formData().images;
     const previewUrl = URL.createObjectURL(file);
     this.formData.update(data => ({ ...data, images: [...data.images, previewUrl] }));
@@ -513,20 +541,23 @@ export class AdminProductos implements OnInit {
 
     this.http.post<any>('/api/products/upload-images', formData).subscribe({
       next: (response) => {
+        URL.revokeObjectURL(previewUrl);
         if (response.urls && response.urls.length > 0) {
           this.formData.update(data => ({
             ...data,
             images: data.images.map(img => img === previewUrl ? response.urls[0] : img)
           }));
+        } else {
+          this.formData.update(data => ({ ...data, images: previousImages }));
+          this.uploadError.set('No se recibió una URL válida para la imagen adicional.');
         }
-        URL.revokeObjectURL(previewUrl);
         this.uploadingImage.set(false);
       },
       error: (err) => {
         URL.revokeObjectURL(previewUrl);
         this.formData.update(data => ({ ...data, images: previousImages }));
         this.uploadingImage.set(false);
-        alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+        this.uploadError.set('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
       }
     });
   }

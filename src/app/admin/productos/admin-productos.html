@@ -127,7 +127,7 @@
                       class="file-input"
                       #fileInput
                     />
-                    <button type="button" class="upload-btn" (click)="fileInput.click()">
+                    <button type="button" class="upload-btn" (click)="fileInput.click()" [disabled]="uploadingImage()">
                       📁 Seleccionar imagen
                     </button>
                     <div class="url-input-group">
@@ -154,7 +154,7 @@
                         (change)="onAdditionalImageSelected($event)"
                         style="display: none"
                       />
-                      <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= getMaxAdditionalImages()">
+                      <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="uploadingImage() || formData().images.length >= getMaxAdditionalImages()">
                         + Añadir imagen
                       </button>
                       @if (formData().images.length > 0) {
@@ -166,6 +166,12 @@
                             </div>
                           }
                         </div>
+                      }
+                      @if (uploadingImage()) {
+                        <div class="upload-status">Subiendo imagen... espera un momento.</div>
+                      }
+                      @if (uploadError()) {
+                        <div class="upload-error">{{ uploadError() }}</div>
                       }
                     </div>
                   </div>

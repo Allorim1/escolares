@@ -140,6 +140,12 @@
                         placeholder="https://..."
                       />
                     </div>
+                    @if (uploadingImage()) {
+                      <div class="upload-status">Subiendo imagen... espera un momento.</div>
+                    }
+                    @if (uploadError()) {
+                      <div class="upload-error">{{ uploadError() }}</div>
+                    }
 
                     <!-- Imágenes Adicionales -->
                     <div class="additional-images-section">

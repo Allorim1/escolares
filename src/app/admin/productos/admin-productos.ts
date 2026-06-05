@@ -460,7 +460,8 @@ export class AdminProductos implements OnInit {
           this.formData.update(data => ({ ...data, image: previousImage || '' }));
           this.uploadError.set('No se recibió una URL válida de la imagen.');
         } else {
-          this.formData.update(data => ({ ...data, image: response.url }));
+          const resolvedImageUrl = new URL(response.url, window.location.origin).toString();
+          this.formData.update(data => ({ ...data, image: resolvedImageUrl }));
         }
         this.uploadingImage.set(false);
       },
@@ -543,9 +544,10 @@ export class AdminProductos implements OnInit {
       next: (response) => {
         URL.revokeObjectURL(previewUrl);
         if (response.urls && response.urls.length > 0) {
+          const resolvedImageUrl = new URL(response.urls[0], window.location.origin).toString();
           this.formData.update(data => ({
             ...data,
-            images: data.images.map(img => img === previewUrl ? response.urls[0] : img)
+            images: data.images.map(img => img === previewUrl ? resolvedImageUrl : img)
           }));
         } else {
           this.formData.update(data => ({ ...data, images: previousImages }));

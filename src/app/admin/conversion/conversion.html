@@ -33,6 +33,16 @@
             <span class="file-name">{{ tasasNombre() }}</span>
             <span class="file-info">Tasas encontradas: {{ tasasMap().size }}</span>
           }
+          @if (tasasGuardadas().length > 0) {
+            <div class="select-tasas-guardadas">
+              <select (change)="onSeleccionarTasaGuardada($event)" class="config-select">
+                <option value="">-- Seleccionar tasas guardadas --</option>
+                @for (tasa of tasasGuardadas(); track tasa._id) {
+                  <option [value]="tasa._id">{{ tasa.nombre }}</option>
+                }
+              </select>
+            </div>
+          }
         </div>
       </div>
     </div>
@@ -62,6 +72,16 @@
           @if (tasasAnterioresNombre()) {
             <span class="file-name">{{ tasasAnterioresNombre() }}</span>
             <span class="file-info">Tasas encontradas: {{ tasasAnterioresMap().size }}</span>
+          }
+          @if (tasasAnterioresGuardadas().length > 0) {
+            <div class="select-tasas-guardadas">
+              <select (change)="onSeleccionarTasaAnteriorGuardada($event)" class="config-select">
+                <option value="">-- Seleccionar tasas guardadas --</option>
+                @for (tasa of tasasAnterioresGuardadas(); track tasa._id) {
+                  <option [value]="tasa._id">{{ tasa.nombre }}</option>
+                }
+              </select>
+            </div>
           }
         </div>
       </div>
@@ -128,13 +148,26 @@
             🔄 Convertir a USD
           }
         </button>
-        @if (ventasAnteriorRaw().length > 1 && tasasMap().size > 0) {
+@if (ventasAnteriorRaw().length > 1 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0)) {
+           <button class="btn-expectativas" (click)="abrirModalExpectativas()">
+             🎯 Calcular Expectativas
+           </button>
+         }
+        @if (ventasAnteriorRaw().length > 1 && tasasMap().size > 0 && resultados().length > 0) {
           <button class="btn-comparar" (click)="abrirModalComparacion()">
             📊 Comparar Períodos
           </button>
         }
         <button class="btn-secondary" (click)="limpiar()">🗑️ Limpiar</button>
       </div>
+    </div>
+  }
+
+  @if (ventasAnteriorRaw().length > 1 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0) && ventasColumnas().length === 0) {
+    <div class="expectativas-section">
+      <button class="btn-expectativas" (click)="abrirModalExpectativas()">
+        🎯 Calcular Expectativas
+      </button>
     </div>
   }
 
@@ -476,7 +509,7 @@
           </div>
         </div>
 
-<div class="comparacion-dia-por-dia-seccion">
+        <div class="comparacion-dia-por-dia-seccion">
           <div class="resumen-header">
             <span>Comparación Día a Día </span>
             <div class="meta-input-container">
@@ -545,6 +578,200 @@
 
         <div class="modal-footer">
           <button class="btn-export" (click)="exportarResultados()">📥 Exportar Excel</button>
+        </div>
+      </div>
+    </div>
+  }
+
+@if (mostrarModalExpectativas()) {
+    <div class="modal-overlay" (click)="cerrarModalExpectativas()">
+      <div class="modal-content modal-expectativas" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🎯 Expectativas de Ventas</h3>
+          <button class="modal-close" (click)="cerrarModalExpectativas()">✕</button>
+        </div>
+
+        <div class="expectativas-content">
+          <div class="expectativa-section">
+            <h4>Configuración de Meta</h4>
+            <div class="meta-config-container">
+              <div class="meta-input-group">
+                <label>Porcentaje de Meta (%):</label>
+                <input type="number" class="meta-input-large" [(ngModel)]="metaVariacion" min="0" max="200" step="1">
+              </div>
+              <div class="meta-info">
+                <span class="meta-info-label">Período de ventas:</span>
+                <span class="meta-info-value">{{ resultadosAnterior().length > 0 ? resultadosAnterior()[0].fecha + ' - ' + resultadosAnterior()[resultadosAnterior().length - 1].fecha : '-' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="expectativa-section">
+            <h4>Proyección de Ingresos</h4>
+            @let expectativas = calcularExpectativas();
+            <div class="expectativa-grid">
+              <div class="expectativa-card">
+                <div class="expectativa-label">Target en Dólares (USD)</div>
+                <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(expectativas.targetUSD) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Target en Bolívares (Bs)</div>
+                <div class="expectativa-value expectativa-bs">Bs {{ formatearMoneda(expectativas.targetBs) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Ventas Anterior (USD)</div>
+                <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(totalConvertidoAnterior()) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Ventas Anterior (Bs)</div>
+                <div class="expectativa-value expectativa-bs">Bs {{ formatearMoneda(totalOriginalAnterior()) }}</div>
+              </div>
+              <div class="expectativa-card">
+                <div class="expectativa-label">Meta Establecida</div>
+                <div class="expectativa-value expectativa-meta">{{ metaVariacion() }}%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="expectativa-section">
+            <h4>Expectativas por Día</h4>
+            <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
+            <div class="expectativas-table-wrapper">
+              <table class="result-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Día</th>
+                    <th>Ventas Ant. (Bs)</th>
+                    <th>Ventas Ant. ($)</th>
+<th>Tasa</th>
+                   <th>Meta ($)</th>
+                   <th>Meta (Bs)</th>
+                   <th>Total ($)</th>
+                   <th>Total (Bs)</th>
+                   <th class="print-only">Cumplido</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (e of getExpectativasPorDia(); track e.fecha) {
+                    <tr>
+                      <td>{{ e.fecha }}</td>
+                      <td>{{ e.dia }}</td>
+<td class="expectativa-anterior-bs">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
+                      <td class="expectativa-anterior-usd">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
+<td class="expectativa-tasa">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
+                      <td class="meta-extra-usd">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
+                      <td class="meta-extra-bs">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
+                      <td class="expectativa-target-usd">$ {{ formatearMoneda(e.targetUSD) }}</td>
+                      <td class="expectativa-target-bs">Bs {{ formatearMoneda(e.targetBs) }}</td>
+                       <td class="print-only"><input type="checkbox" disabled></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          @if (resultados().length > 0) {
+            <div class="expectativa-section">
+              <h4>Progreso Actual</h4>
+              <div class="expectativa-grid">
+                <div class="expectativa-card">
+                  <div class="expectativa-label">Ventas Actuales (USD)</div>
+                  <div class="expectativa-value expectativa-usd">$ {{ formatearMoneda(totalConvertido()) }}</div>
+                </div>
+                <div class="expectativa-card">
+                  <div class="expectativa-label">Diferencia al Target</div>
+                  <div class="expectativa-value" [class.positivo]="totalConvertido() >= expectativas.targetUSD" [class.negativo]="totalConvertido() < expectativas.targetUSD">
+                    {{ totalConvertido() >= expectativas.targetUSD ? '+' : '' }}$ {{ formatearMoneda(totalConvertido() - expectativas.targetUSD) }}
+                  </div>
+                </div>
+                <div class="expectativa-card">
+                  <div class="expectativa-label">% de Cumplimiento</div>
+                  <div class="expectativa-value expectativa-pct" [class.positivo]="totalConvertido() >= expectativas.targetUSD" [class.negativo]="totalConvertido() < expectativas.targetUSD">
+                    {{ expectativas.targetUSD > 0 ? getPorcCumplimiento() : 0 }}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="cerrarModalExpectativas()">Cerrar</button>
+          <button class="btn-export" (click)="abrirModalImpresion()">🖨️ Imprimir</button>
+        </div>
+      </div>
+    </div>
+  }
+  
+  @if (mostrarModalImpresion()) {
+    <div class="modal-overlay" (click)="cerrarModalImpresion()">
+      <div class="modal-content modal-impresion" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🖨️ Opciones de Impresión</h3>
+          <button class="modal-close" (click)="cerrarModalImpresion()">✕</button>
+        </div>
+
+        <div class="impresion-content">
+          <div class="impresion-section">
+            <h4>Columnas a Mostrar</h4>
+            <div class="columnas-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaFechaVisible"> Fecha
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaDiaVisible"> Día
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaAnteriorBsVisible"> Ventas Ant. (Bs)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaAnteriorUSDVisible"> Ventas Ant. ($)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaTasaVisible"> Tasa
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaMetaExtraUSDVisible"> Meta ($)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaMetaExtraBsVisible"> Meta (Bs)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaTargetUSDVisible"> Total ($)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaTargetBsVisible"> Total (Bs)
+              </label>
+            </div>
+          </div>
+
+          <div class="impresion-section">
+            <h4>Días a Incluir</h4>
+            <div class="dias-actions">
+              <button class="btn-secondary btn-sm" (click)="seleccionarTodosLosDias()">Seleccionar Todos</button>
+              <button class="btn-secondary btn-sm" (click)="deseleccionarTodosLosDias()">Deseleccionar Todos</button>
+            </div>
+            <div class="dias-grid">
+              @for (e of getExpectativasPorDia(); track e.fecha) {
+                <label class="checkbox-label">
+                  <input type="checkbox" [checked]="diasSeleccionados().has(e.fecha)" (change)="toggleDiaSeleccionado(e.fecha)">
+                  {{ e.fecha }} ({{ e.dia }})
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="impresion-section">
+            <h4>Comentario</h4>
+            <textarea class="comentario-input" [(ngModel)]="comentarioImpresion" placeholder="Agregue un comentario que aparecerá al final de la hoja" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="cerrarModalImpresion()">Cancelar</button>
+          <button class="btn-primary" (click)="imprimirExpectativas()">Imprimir</button>
         </div>
       </div>
     </div>

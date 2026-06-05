@@ -59,6 +59,7 @@ export class AdminProductos implements OnInit {
   isAdding = signal(false);
   showModal = signal(false);
   uploadingImage = signal(false);
+  uploadError = signal<string | null>(null);
   dragOver = signal(false);
   preciosOcultosParaNoRegistrados = signal(false);
 
@@ -150,12 +151,12 @@ export class AdminProductos implements OnInit {
   private _lastFilterState = '';
 
   get filteredProducts(): Product[] {
-    let filtered = this.products();
+    let filtered = this.products() || [];
     
     const currentFilterState = `${this.filtroNombre}-${this.filtroCategoria}-${this.filtroMarca}`;
     if (currentFilterState !== this._lastFilterState) {
       this._lastFilterState = currentFilterState;
-      this.currentPage.set(1); // Reset to first page when filters change
+      this.currentPage.set(1);
     }
 
     if (this.filtroNombre) {
@@ -179,10 +180,10 @@ export class AdminProductos implements OnInit {
   }
 
   get paginatedProducts(): Product[] {
-    const filtered = this.filteredProducts;
+    const filtered = this.filteredProducts || [];
     const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
-    return filtered.slice(startIndex, endIndex);
+    return Array.isArray(filtered) ? filtered.slice(startIndex, endIndex) : [];
   }
 
   
@@ -233,9 +234,8 @@ export class AdminProductos implements OnInit {
 
   loadProducts() {
     this.loading.set(true);
-    this.productsService.getProducts().subscribe({
-      next: (response: any) => {
-        const products: Product[] = response.products || response;
+    this.productsService.getAllProducts().subscribe({
+      next: (products: Product[]) => {
         this.products.set(products);
         this.totalProducts.set(products.length);
         this.totalPages.set(Math.ceil(products.length / this.itemsPerPage));
@@ -278,6 +278,7 @@ export class AdminProductos implements OnInit {
   }
 
   showAddForm() {
+    this.uploadError.set(null);
     this.isAdding.set(true);
     this.editingProduct.set(null);
     this.ofertaFieldModifiedByUser.set(null);
@@ -303,6 +304,7 @@ export class AdminProductos implements OnInit {
   }
 
   showEditForm(product: Product) {
+    this.uploadError.set(null);
     this.isAdding.set(false);
     this.editingProduct.set(product);
     this.ofertaFieldModifiedByUser.set(null);
@@ -329,6 +331,7 @@ export class AdminProductos implements OnInit {
 
   cancelEdit() {
     if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
+      this.uploadError.set(null);
       this.showModal.set(false);
       this.editingProduct.set(null);
     }
@@ -342,29 +345,42 @@ export class AdminProductos implements OnInit {
   }
 
   saveProduct() {
+    if (this.uploadingImage()) {
+      this.notificationModal.error('Espera a que termine la subida de la imagen antes de guardar.');
+      return;
+    }
+
     const data = this.formData();
+    const title = data.title.trim();
+    const category = data.category.trim();
+
+    if (!title) {
+      this.notificationModal.error('El título del producto es obligatorio');
+      return;
+    }
+
+    const payload = {
+      title,
+      price: data.price,
+      description: data.description,
+      category: category || ' ',
+      image: data.image,
+      images: data.images,
+      marca: data.marca || null,
+      lineaId: data.lineaId || null,
+      iva: data.iva,
+      ivaPercentage: data.ivaPercentage,
+      estado: data.estado,
+      enOferta: data.enOferta,
+      ofertaPorcentaje: data.ofertaPorcentaje,
+      ofertaPrecio: data.ofertaPrecio,
+      rating: { rate: data.ratingRate, count: data.ratingCount },
+    };
 
     if (this.isAdding()) {
-      this.http.post<any>('/api/products', {
-        title: data.title,
-        price: data.price,
-        description: data.description,
-        category: data.category,
-        image: data.image,
-        images: data.images,
-        marca: data.marca || null,
-        lineaId: data.lineaId || null,
-        iva: data.iva,
-        ivaPercentage: data.ivaPercentage,
-        estado: data.estado,
-        enOferta: data.enOferta,
-        ofertaPorcentaje: data.ofertaPorcentaje,
-        ofertaPrecio: data.ofertaPrecio,
-        rating: { rate: data.ratingRate, count: data.ratingCount },
-      }).subscribe({
+      this.http.post<any>('/api/products', payload).subscribe({
         next: (newProduct) => {
-          this.products.update((p) => [...p, newProduct]);
-          // Reload current page to show the new product
+          this.productsService.clearProductsCache();
           this.loadProducts();
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
@@ -378,34 +394,15 @@ export class AdminProductos implements OnInit {
         },
         error: (err) => {
           console.error('Error creating product:', err);
-          this.notificationModal.error('Error al crear producto');
+          this.handleProductError(err, 'Error al crear producto');
         }
       });
     } else if (this.editingProduct()) {
       const productId = this.editingProduct()!.id;
-      this.http.put<any>(`/api/products/${productId}`, {
-        title: data.title,
-        price: data.price,
-        description: data.description,
-        category: data.category,
-        image: data.image,
-        images: data.images,
-        marca: data.marca || null,
-        lineaId: data.lineaId || null,
-        iva: data.iva,
-        ivaPercentage: data.ivaPercentage,
-        estado: data.estado,
-        enOferta: data.enOferta,
-        ofertaPorcentaje: data.ofertaPorcentaje,
-        ofertaPrecio: data.ofertaPrecio,
-        rating: { rate: data.ratingRate, count: data.ratingCount },
-      }).subscribe({
+      this.http.put<any>(`/api/products/${productId}`, payload).subscribe({
         next: (updated) => {
-            this.products.update((products) => 
-                products.map((p) => (p.id === productId ? updated : p))
-            );
-            // Reload current page to show the updated product
-            this.loadProducts();
+          this.productsService.clearProductsCache();
+          this.loadProducts();
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, updated.id);
           }
@@ -418,16 +415,63 @@ export class AdminProductos implements OnInit {
         },
         error: (err) => {
           console.error('Error updating product:', err);
-          this.notificationModal.error('Error al actualizar producto');
+          this.handleProductError(err, 'Error al actualizar producto');
         }
       });
     }
   }
 
   onFileSelected(event: Event) {
+    if (this.uploadingImage()) {
+      return;
+    }
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
-    this.processFile(input.files[0]);
+    this.uploadMainImage(input.files[0]);
+  }
+
+  private uploadMainImage(file: File) {
+    if (this.uploadingImage()) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.uploadError.set('Por favor selecciona un archivo de imagen válido.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.uploadError.set('La imagen no puede exceder 5MB.');
+      return;
+    }
+
+    this.uploadError.set(null);
+    const previousImage = this.formData().image;
+    const previewUrl = URL.createObjectURL(file);
+    this.formData.update(data => ({ ...data, image: previewUrl }));
+    
+    this.uploadingImage.set(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    this.http.post<any>('/api/products/upload-image', formData).subscribe({
+      next: (response) => {
+        URL.revokeObjectURL(previewUrl);
+        if (!response?.url) {
+          this.formData.update(data => ({ ...data, image: previousImage || '' }));
+          this.uploadError.set('No se recibió una URL válida de la imagen.');
+        } else {
+          const resolvedImageUrl = new URL(response.url, window.location.origin).toString();
+          this.formData.update(data => ({ ...data, image: resolvedImageUrl }));
+        }
+        this.uploadingImage.set(false);
+      },
+      error: (err) => {
+        URL.revokeObjectURL(previewUrl);
+        this.formData.update(data => ({ ...data, image: previousImage || '' }));
+        this.uploadingImage.set(false);
+        this.uploadError.set('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+      }
+    });
   }
 
   onDragOver(event: DragEvent) {
@@ -446,73 +490,78 @@ export class AdminProductos implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver.set(false);
+    if (this.uploadingImage()) {
+      return;
+    }
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
-    this.processFile(files[0]);
-  }
-
-  processFile(file: File) {
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen no puede exceder 5MB');
-      return;
-    }
-
-    this.uploadingImage.set(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      this.formData.update(data => ({ ...data, image: base64 }));
-      this.uploadingImage.set(false);
-    };
-    reader.onerror = () => {
-      this.uploadingImage.set(false);
-      alert('Error al leer el archivo');
-    };
-    reader.readAsDataURL(file);
+    this.uploadMainImage(files[0]);
   }
 
   onAdditionalImageSelected(event: Event) {
+    if (this.uploadingImage()) {
+      return;
+    }
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
-    this.processAdditionalFile(input.files[0]);
+    this.uploadAdditionalImage(input.files[0]);
   }
 
   getMaxAdditionalImages(): number {
     return 4;
   }
 
-  processAdditionalFile(file: File) {
+  private uploadAdditionalImage(file: File) {
+    if (this.uploadingImage()) {
+      return;
+    }
+
     const currentImages = this.formData().images.length;
     const maxImages = this.getMaxAdditionalImages();
     if (currentImages >= maxImages) {
-      alert(`Máximo ${maxImages} imágenes adicionales permitidas`);
+      this.uploadError.set(`Máximo ${maxImages} imágenes adicionales permitidas`);
       return;
     }
     if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona un archivo de imagen');
+      this.uploadError.set('Por favor selecciona un archivo de imagen válido.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen no puede exceder 5MB');
+      this.uploadError.set('La imagen no puede exceder 5MB.');
       return;
     }
+
+    this.uploadError.set(null);
+    const previousImages = this.formData().images;
+    const previewUrl = URL.createObjectURL(file);
+    this.formData.update(data => ({ ...data, images: [...data.images, previewUrl] }));
     this.uploadingImage.set(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      this.formData.update(data => ({ ...data, images: [...data.images, base64] }));
-      this.uploadingImage.set(false);
-    };
-    reader.onerror = () => {
-      this.uploadingImage.set(false);
-      alert('Error al leer el archivo');
-    };
-    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append('images', file);
+
+    this.http.post<any>('/api/products/upload-images', formData).subscribe({
+      next: (response) => {
+        URL.revokeObjectURL(previewUrl);
+        if (response.urls && response.urls.length > 0) {
+          const resolvedImageUrl = new URL(response.urls[0], window.location.origin).toString();
+          this.formData.update(data => ({
+            ...data,
+            images: data.images.map(img => img === previewUrl ? resolvedImageUrl : img)
+          }));
+        } else {
+          this.formData.update(data => ({ ...data, images: previousImages }));
+          this.uploadError.set('No se recibió una URL válida para la imagen adicional.');
+        }
+        this.uploadingImage.set(false);
+      },
+      error: (err) => {
+        URL.revokeObjectURL(previewUrl);
+        this.formData.update(data => ({ ...data, images: previousImages }));
+        this.uploadingImage.set(false);
+        this.uploadError.set('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+      }
+    });
   }
 
   removeAdditionalImage(index: number) {
@@ -520,6 +569,11 @@ export class AdminProductos implements OnInit {
       ...data,
       images: data.images.filter((_, i) => i !== index)
     }));
+  }
+
+  private handleProductError(err: any, defaultMessage: string) {
+    const message = err?.error?.error || err?.error || err?.message || defaultMessage;
+    this.notificationModal.error(message);
   }
 
   onAdditionalDragOver(event: DragEvent) {
@@ -533,7 +587,7 @@ export class AdminProductos implements OnInit {
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
     for (let i = 0; i < files.length; i++) {
-      this.processAdditionalFile(files[i]);
+      this.uploadAdditionalImage(files[i]);
     }
   }
 
@@ -541,7 +595,8 @@ export class AdminProductos implements OnInit {
     if (confirm('¿Estás seguro de eliminar este producto?')) {
       this.http.delete<any>(`/api/products/${id}`).subscribe({
         next: () => {
-          this.products.update((products) => products.filter((p) => p.id !== id));
+          this.productsService.clearProductsCache();
+          this.loadProducts();
           this.notificationModal.success('Producto eliminado correctamente');
         },
         error: (err) => {

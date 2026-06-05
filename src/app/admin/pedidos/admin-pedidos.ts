@@ -129,16 +129,10 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
 
 
-  private tienePermisosAdmin(user: any): boolean {
-    // Si el usuario tiene rol 'root', tiene acceso total al panel admin
-    if (user.rol === 'root') {
-      return true;
-    }
-    
-    // Si el usuario tiene rol 'admin', también tiene acceso
-    if (user.rol === 'admin') {
-      return true;
-    }
+private tienePermisosAdmin(user: any): boolean {
+     if (user.rol === 'root' || user.rol === 'owner' || user.isAdmin) {
+       return true;
+     }
     
     // Verificar permisos específicos que otorgan acceso al panel admin
     const permisosAdmin = [

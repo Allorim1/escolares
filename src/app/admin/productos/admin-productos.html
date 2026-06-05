@@ -127,7 +127,7 @@
                       class="file-input"
                       #fileInput
                     />
-                    <button type="button" class="upload-btn" (click)="fileInput.click()">
+                    <button type="button" class="upload-btn" (click)="fileInput.click()" [disabled]="uploadingImage()">
                       📁 Seleccionar imagen
                     </button>
                     <div class="url-input-group">
@@ -140,6 +140,12 @@
                         placeholder="https://..."
                       />
                     </div>
+                    @if (uploadingImage()) {
+                      <div class="upload-status">Subiendo imagen... espera un momento.</div>
+                    }
+                    @if (uploadError()) {
+                      <div class="upload-error">{{ uploadError() }}</div>
+                    }
 
                     <!-- Imágenes Adicionales -->
                     <div class="additional-images-section">
@@ -154,7 +160,7 @@
                         (change)="onAdditionalImageSelected($event)"
                         style="display: none"
                       />
-                      <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="formData().images.length >= getMaxAdditionalImages()">
+                      <button type="button" class="upload-btn" (click)="additionalFileInput.click()" [disabled]="uploadingImage() || formData().images.length >= getMaxAdditionalImages()">
                         + Añadir imagen
                       </button>
                       @if (formData().images.length > 0) {
@@ -166,6 +172,12 @@
                             </div>
                           }
                         </div>
+                      }
+                      @if (uploadingImage()) {
+                        <div class="upload-status">Subiendo imagen... espera un momento.</div>
+                      }
+                      @if (uploadError()) {
+                        <div class="upload-error">{{ uploadError() }}</div>
                       }
                     </div>
                   </div>
@@ -394,7 +406,7 @@
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                  <button type="submit" class="save-btn">Guardar</button>
+                  <button type="submit" class="save-btn" [disabled]="uploadingImage()">Guardar</button>
                   <button type="button" class="cancel-btn" (click)="confirmCancel()">Cancelar</button>
                 </div>
               </form>

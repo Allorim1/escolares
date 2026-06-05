@@ -101,7 +101,7 @@ export class Admin implements OnInit {
       return;
     }
 
-    if (user.rol === 'root') {
+    if (user.rol === 'root' || user.rol === 'admin') {
       this.rolesBackend.getPermisos().subscribe({
         next: (permisos) => {
           const permisosIds = permisos.map(p => p.id);
@@ -134,11 +134,11 @@ export class Admin implements OnInit {
     }
   }
 
-  setCategoriesWithExpanded() {
-    const permissions = this.userPermissions();
-    const user = this.authService.user();
-    const isRoot = user?.rol === 'root';
-    const isRepartidor = user?.rol === 'repartidor';
+setCategoriesWithExpanded() {
+     const permissions = this.userPermissions();
+     const user = this.authService.user();
+     const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+     const isRepartidor = user?.rol === 'repartidor';
 
     const categories = DEFAULT_CATEGORIAS
       .filter(cat => !isRepartidor || cat.name === 'Repartidor')

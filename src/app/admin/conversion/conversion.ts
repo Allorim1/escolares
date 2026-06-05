@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import * as ExcelJS from 'exceljs';
 import * as XLSX from 'xlsx';
+import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
 
 interface FilaResultado {
   fecha: string;
@@ -34,7 +35,7 @@ interface ComparacionResultado {
   templateUrl: './conversion.html',
   styleUrl: './conversion.css',
 })
-export class Conversion {
+export class Conversion implements OnInit {
   ventasNombre = signal('');
   tasasNombre = signal('');
 
@@ -78,20 +79,117 @@ export class Conversion {
   tasasAnterioresMap = signal<Map<string, number>>(new Map());
   tasasAnterioresFilas = signal<any[][]>([]);
   tasasAnterioresColumnas = signal<string[]>([]);
-  tasasAnterioresPreview = signal<any[][]>([]);
+tasasAnterioresPreview = signal<any[][]>([]);
+ 
+   // Tasas manuales para año anterior
+   tasasAnterioresManuales = signal<Map<string, number>>(new Map());
+   fechasSinTasaAnterior = signal<string[]>([]);
+ 
+   tasasGuardadas = signal<TasaGuardada[]>([]);
+   tasasAnterioresGuardadas = signal<TasaGuardada[]>([]);
+ 
+   constructor(private tasasGuardadasService: TasasGuardadasService) {}
 
-  // Tasas manuales para año anterior
-  tasasAnterioresManuales = signal<Map<string, number>>(new Map());
-  fechasSinTasaAnterior = signal<string[]>([]);
+   ngOnInit() {
+     this.cargarTasasGuardadas();
+     this.cargarTasasAnterioresGuardadas();
+   }
 
-  comparaciones = signal<ComparacionResultado[]>([]);
-  comparacionesActual = signal<ComparacionResultado[]>([]);
-  comparacionesAnterior = signal<ComparacionResultado[]>([]);
-  variacionTotalPct = signal(0);
-  mostrarModalComparacion = signal(false);
-  metaVariacion = signal(30);
+   cargarTasasGuardadas() {
+     this.tasasGuardadasService.getAll('actual').subscribe({
+       next: (tasas) => this.tasasGuardadas.set(tasas),
+       error: (err) => console.error('Error cargando tasas guardadas:', err)
+     });
+   }
 
-  onFileVentas(event: Event) {
+   cargarTasasAnterioresGuardadas() {
+     this.tasasGuardadasService.getAll('anterior').subscribe({
+       next: (tasas) => this.tasasAnterioresGuardadas.set(tasas),
+       error: (err) => console.error('Error cargando tasas anteriores guardadas:', err)
+     });
+   }
+
+   cargarTasaDesdeBD(id: string) {
+     this.tasasGuardadasService.getById(id).subscribe({
+       next: (tasa) => {
+         const mapaTasas = new Map<string, number>();
+         tasa.tasas.forEach(t => mapaTasas.set(t.fecha, t.valor));
+         this.tasasMap.set(mapaTasas);
+         this.tasasNombre.set(tasa.nombre);
+         this.error.set('');
+       },
+       error: (err) => this.error.set('Error al cargar tasas desde BD')
+     });
+   }
+
+   cargarTasaAnteriorDesdeBD(id: string) {
+     this.tasasGuardadasService.getById(id).subscribe({
+       next: (tasa) => {
+         const mapaTasas = new Map<string, number>();
+         tasa.tasas.forEach(t => mapaTasas.set(t.fecha, t.valor));
+         this.tasasAnterioresMap.set(mapaTasas);
+         this.tasasAnterioresNombre.set(tasa.nombre);
+         const preview: any[][] = [['Fecha', 'Tasa'], ...tasa.tasas.map(t => [t.fecha, t.valor])];
+         this.tasasAnterioresPreview.set(preview.slice(0, 11));
+         this.error.set('');
+       },
+       error: (err) => this.error.set('Error al cargar tasas anteriores desde BD')
+     });
+   }
+
+   onSeleccionarTasaGuardada(event: Event) {
+     const select = event.target as HTMLSelectElement;
+     const id = select.value;
+     if (id) {
+       this.cargarTasaDesdeBD(id);
+     }
+   }
+
+   onSeleccionarTasaAnteriorGuardada(event: Event) {
+     const select = event.target as HTMLSelectElement;
+     const id = select.value;
+     if (id) {
+       this.cargarTasaAnteriorDesdeBD(id);
+     }
+   }
+
+comparaciones = signal<ComparacionResultado[]>([]);
+    comparacionesActual = signal<ComparacionResultado[]>([]);
+    comparacionesAnterior = signal<ComparacionResultado[]>([]);
+    variacionTotalPct = signal(0);
+    mostrarModalComparacion = signal(false);
+    mostrarModalExpectativas = signal(false);
+    mostrarModalImpresion = signal(false);
+    metaVariacion = signal(30);
+    comentarioImpresion = signal('');
+    columnaFechaVisible = signal(true);
+    columnaDiaVisible = signal(true);
+    columnaAnteriorBsVisible = signal(true);
+    columnaAnteriorUSDVisible = signal(true);
+    columnaTasaVisible = signal(true);
+    columnaTargetUSDVisible = signal(true);
+    columnaTargetBsVisible = signal(true);
+    columnaMetaExtraUSDVisible = signal(true);
+    columnaMetaExtraBsVisible = signal(true);
+    diasSeleccionados = signal<Set<string>>(new Set());
+
+calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
+     const totalAnteriorUSD = this.totalConvertidoAnterior();
+     const meta = this.metaVariacion();
+     const tasaPromedio = this.tasaPromedioActual() || this.tasaPromedioAnterior();
+     
+     const targetUSD = totalAnteriorUSD > 0 
+       ? Math.round(totalAnteriorUSD * (1 + meta / 100) * 100) / 100 
+       : 0;
+     
+     const targetBs = tasaPromedio > 0 
+       ? Math.round(targetUSD * tasaPromedio * 100) / 100 
+       : 0;
+     
+     return { targetUSD, targetBs, tasaPromedio };
+   }
+
+   onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
@@ -845,8 +943,21 @@ export class Conversion {
       }
     }
 
-    this.tasasMap.set(mapaTasas);
-  }
+this.tasasMap.set(mapaTasas);
+     this.guardarTasasEnBD();
+   }
+
+   guardarTasasEnBD() {
+     if (this.tasasMap().size === 0) return;
+     
+     const nombre = `Tasas ${new Date().toLocaleDateString('es-VE')}`;
+     this.tasasGuardadasService.save(nombre, this.tasasMap(), 'actual').subscribe({
+       next: () => {
+         this.cargarTasasGuardadas();
+       },
+       error: (err) => console.error('Error guardando tasas:', err)
+     });
+   }
 
   procesarTasasAnterioresDesdeTabla() {
     const filas = this.tasasAnterioresFilas();
@@ -871,8 +982,21 @@ export class Conversion {
       }
     }
 
-    this.tasasAnterioresMap.set(mapaTasas);
-  }
+this.tasasAnterioresMap.set(mapaTasas);
+     this.guardarTasasAnterioresEnBD();
+   }
+
+   guardarTasasAnterioresEnBD() {
+     if (this.tasasAnterioresMap().size === 0) return;
+     
+     const nombre = `Tasas Anterior ${new Date().toLocaleDateString('es-VE')}`;
+     this.tasasGuardadasService.save(nombre, this.tasasAnterioresMap(), 'anterior').subscribe({
+       next: () => {
+         this.cargarTasasAnterioresGuardadas();
+       },
+       error: (err) => console.error('Error guardando tasas anteriores:', err)
+     });
+   }
 
   procesar() {
     if (!this.columnaFechaVentas() || !this.columnaTotalVentas()) {
@@ -1545,9 +1669,10 @@ export class Conversion {
     this.comparaciones.set([]);
     this.comparacionesActual.set([]);
     this.comparacionesAnterior.set([]);
-    this.variacionTotalPct.set(0);
-    this.mostrarModalComparacion.set(false);
-  }
+this.variacionTotalPct.set(0);
+     this.mostrarModalComparacion.set(false);
+     this.mostrarModalExpectativas.set(false);
+   }
 
   asignarTasaManual(fecha: string, valor: any) {
     const tasa = parseFloat(valor);
@@ -1597,9 +1722,13 @@ export class Conversion {
     this.mostrarModalComparacion.set(true);
   }
 
-  cerrarModalComparacion() {
-    this.mostrarModalComparacion.set(false);
-  }
+cerrarModalExpectativas() {
+     this.mostrarModalExpectativas.set(false);
+   }
+
+   cerrarModalComparacion() {
+     this.mostrarModalComparacion.set(false);
+   }
 
   diferenciaUSD(): number {
     return Math.round((this.totalConvertido() - this.totalConvertidoAnterior()) * 100) / 100;
@@ -1636,13 +1765,20 @@ esMismoDiaSemana(dia1: number, dia2: number): boolean {
     return dia1 === dia2;
   }
 
-  cumpleMeta(variacion: number): boolean {
-    return variacion >= this.metaVariacion();
-  }
+cumpleMeta(variacion: number): boolean {
+     return variacion >= this.metaVariacion();
+   }
 
-  getMetaVariacion(): number {
-    return this.metaVariacion();
-  }
+   getMetaVariacion(): number {
+     return this.metaVariacion();
+   }
+
+   getPorcCumplimiento(): number {
+     const expectativas = this.calcularExpectativas();
+     return expectativas.targetUSD > 0 
+       ? Math.round((this.totalConvertido() / expectativas.targetUSD) * 10000) / 100 
+       : 0;
+   }
 
   getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -1764,4 +1900,276 @@ esMismoDiaSemana(dia1: number, dia2: number): boolean {
 
     return resultado.filter(r => r.fechaActual || r.fechaAnterior);
   }
+
+  procesarSoloAnterior() {
+    let todasLasTasasAnteriores = new Map<string, number>([
+      ...this.tasasAnterioresMap(),
+      ...this.tasasAnterioresManuales()
+    ]);
+
+    // Si no hay tasas anteriores, usar las actuales como fallback
+    if (todasLasTasasAnteriores.size === 0 && this.tasasMap().size > 0) {
+      todasLasTasasAnteriores = new Map(this.tasasMap());
+    }
+
+    if (this.ventasAnteriorRaw().length < 2 || todasLasTasasAnteriores.size === 0) return;
+
+    const ventasAnteriorRows = this.ventasAnteriorRaw();
+    const ventasAnteriorHeaders = ventasAnteriorRows[0];
+    const idxFechaAnterior = ventasAnteriorHeaders.indexOf(this.columnaFechaAnterior());
+    const idxTotalAnterior = ventasAnteriorHeaders.indexOf(this.columnaTotalAnterior());
+
+    if (idxFechaAnterior < 0 || idxTotalAnterior < 0) return;
+
+    const fechasFaltantesAnterior: string[] = [];
+    const fechasVentasAnterior = new Set<string>();
+
+    for (let i = 1; i < ventasAnteriorRows.length; i++) {
+      const fecha = this.normalizarFecha(ventasAnteriorRows[i][idxFechaAnterior]);
+      if (fecha) fechasVentasAnterior.add(fecha);
+    }
+
+    for (const fecha of fechasVentasAnterior) {
+      if (todasLasTasasAnteriores.has(fecha)) continue;
+      const fechaDate = new Date(fecha + 'T00:00:00');
+      const diaSemana = fechaDate.getDay();
+
+      if (diaSemana === 0 || diaSemana === 6) {
+        const diasHastaLunes = diaSemana === 6 ? 2 : 1;
+        const lunesDate = new Date(fechaDate);
+        lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
+        const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
+        const tasaLunes = todasLasTasasAnteriores.get(lunesStr);
+        if (tasaLunes) {
+          todasLasTasasAnteriores.set(fecha, tasaLunes);
+        }
+      }
+    }
+
+    for (const fecha of fechasVentasAnterior) {
+      if (todasLasTasasAnteriores.has(fecha)) continue;
+      const fechaDate = new Date(fecha + 'T00:00:00');
+      const diaSemana = fechaDate.getDay();
+      if (diaSemana !== 0 && diaSemana !== 6) {
+        fechasFaltantesAnterior.push(fecha);
+      }
+    }
+
+    this.fechasSinTasaAnterior.set(fechasFaltantesAnterior);
+
+    const resAnterior = this.calcularResultados(
+      this.ventasAnteriorRaw(),
+      this.columnaFechaAnterior(),
+      this.columnaTotalAnterior(),
+      todasLasTasasAnteriores
+    );
+    this.resultadosAnterior.set(resAnterior.resultados);
+    this.totalOriginalAnterior.set(resAnterior.totalOrig);
+    this.totalConvertidoAnterior.set(resAnterior.totalConv);
+  }
+
+  abrirModalExpectativas() {
+    if (this.ventasRaw().length >= 2 && this.tasasMap().size > 0 && this.resultados().length === 0) {
+      this.procesar();
+    }
+    this.procesarSoloAnterior();
+    this.mostrarModalExpectativas.set(true);
+  }
+
+  getExpectativasPorDia(): { fecha: string; dia: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number; metaExtraUSD: number; metaExtraBs: number }[] {
+    const resultadosAnterior = this.resultadosAnterior();
+    const meta = this.metaVariacion();
+    
+    if (resultadosAnterior.length === 0) return [];
+    
+    return resultadosAnterior.map(r => {
+      const expectativaUSD = r.totalConvertido > 0 
+        ? Math.round(r.totalConvertido * (1 + meta / 100) * 100) / 100 
+        : 0;
+      const metaExtraUSD = expectativaUSD - r.totalConvertido;
+      const expectativaBs = r.tasa > 0 
+        ? Math.round(expectativaUSD * r.tasa * 100) / 100 
+        : 0;
+      const metaExtraBs = r.tasa > 0 
+        ? Math.round(metaExtraUSD * r.tasa * 100) / 100 
+        : 0;
+      
+      return {
+        fecha: r.fecha,
+        dia: r.dia || '',
+        anteriorBs: r.totalOriginal,
+        anteriorUSD: r.totalConvertido,
+        tasa: r.tasa,
+        targetUSD: expectativaUSD,
+        targetBs: expectativaBs,
+        metaExtraUSD: metaExtraUSD,
+        metaExtraBs: metaExtraBs
+      };
+    });
+  }
+
+    abrirModalImpresion() {
+      this.mostrarModalImpresion.set(true);
+      this.diasSeleccionados.set(new Set(this.resultadosAnterior().map(r => r.fecha)));
+    }
+
+    cerrarModalImpresion() {
+      this.mostrarModalImpresion.set(false);
+    }
+
+    toggleDiaSeleccionado(fecha: string) {
+      const seleccionados = new Set(this.diasSeleccionados());
+      if (seleccionados.has(fecha)) {
+        seleccionados.delete(fecha);
+      } else {
+        seleccionados.add(fecha);
+      }
+      this.diasSeleccionados.set(seleccionados);
+    }
+
+    seleccionarTodosLosDias() {
+      this.diasSeleccionados.set(new Set(this.resultadosAnterior().map(r => r.fecha)));
+    }
+
+    deseleccionarTodosLosDias() {
+      this.diasSeleccionados.set(new Set());
+    }
+
+imprimirExpectativas() {
+       const expectativas = this.getExpectativasPorDia().filter(e => this.diasSeleccionados().has(e.fecha));
+       const comentario = this.comentarioImpresion();
+       const resultadosAnterior = this.resultadosAnterior();
+       
+       let html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Expectativas de Ventas</title>
+          <style>
+            @page {
+              size: letter portrait;
+              margin: 0.2in;
+            }
+            html, body {
+              margin: 0;
+              padding: 0;
+              font-family: Arial, sans-serif;
+              font-size: 8pt;
+              box-sizing: border-box;
+              height: 100%;
+            }
+            .container {
+              padding: 5px;
+              box-sizing: border-box;
+              min-height: 100%;
+              display: flex;
+              flex-direction: column;
+            }
+            h1 { color: #1d63c1; text-align: center; font-size: 14pt; margin: 0 0 5px 0; }
+            .meta-info { text-align: center; margin-bottom: 5px; font-size: 9pt; }
+            table { 
+              width: 100%; 
+              border-collapse: collapse;
+              flex: 1;
+            }
+            th, td { 
+              border: 1px solid #666; 
+              padding: 3px 5px; 
+              text-align: left;
+              font-size: 7pt;
+              line-height: 1.2;
+            }
+            th { background: #ff9800; color: white; font-weight: 600; }
+            .comment { 
+              margin-top: auto;
+              margin-bottom: 5px;
+              padding: 5px; 
+              background: #f5f5f5; 
+              border-radius: 3px;
+              font-size: 8pt;
+            }
+            .footer { 
+              margin-top: 5px; 
+              font-size: 7pt; 
+              color: #666;
+            }
+            input[type="checkbox"] { 
+              width: 16px; 
+              height: 16px; 
+              margin: 0;
+              padding: 0;
+            }
+            .cumplido-checkbox {
+              padding: 0 !important;
+              text-align: center;
+              width: 22px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>🎯 Metas Ventas</h1>
+            <div class="meta-info">Período de ventas: ${resultadosAnterior.length > 0 ? resultadosAnterior[0].fecha + ' - ' + resultadosAnterior[resultadosAnterior.length - 1].fecha : '-'}</div>
+            <table>
+              <thead>
+                <tr>
+          `;
+      
+      if (this.columnaFechaVisible()) html += '<th>Fecha</th>';
+      if (this.columnaDiaVisible()) html += '<th>Día</th>';
+      if (this.columnaAnteriorBsVisible()) html += '<th>Ventas Ant. (Bs)</th>';
+      if (this.columnaAnteriorUSDVisible()) html += '<th>Ventas Ant. ($)</th>';
+      if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
+if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
+       if (this.columnaMetaExtraBsVisible()) html += '<th>Meta (Bs)</th>';
+       if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
+       if (this.columnaTargetBsVisible()) html += '<th>Total (Bs)</th>';
+      html += '<th>Cumplido</th>';
+      
+      html += `
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      for (const e of expectativas) {
+        html += '<tr>';
+        if (this.columnaFechaVisible()) html += `<td>${e.fecha}</td>`;
+        if (this.columnaDiaVisible()) html += `<td>${e.dia}</td>`;
+if (this.columnaAnteriorBsVisible()) html += `<td class="expectativa-anterior-bs">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+         if (this.columnaAnteriorUSDVisible()) html += `<td class="expectativa-anterior-usd">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
+         if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+         if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+         if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd">$${this.formatearMoneda(e.targetUSD)}</td>`;
+         if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+         html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
+        html += '</tr>';
+      }
+      
+html += `
+             </tbody>
+           </table>
+           
+           <div style="flex: 1; min-height: 20px;"></div>
+       `;
+       
+       if (comentario) {
+         html += `<div class="comment" style="margin-top: auto;"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
+       }
+      
+      html += `<div class="footer"><p>Fecha: ${new Date().toLocaleDateString('es-VE')}</p></div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.print();
+        this.cerrarModalImpresion();
+      }
+    }
 }

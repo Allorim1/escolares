@@ -123,10 +123,10 @@ export default class CartComponent implements OnDestroy {
      this.saveSavedForLater(updated);
    }
 
-  constructor() {
-    // Trigger product loading for recommendations
-    this.productsState.changePage$.next(1);
-  }
+constructor() {
+     // Trigger product loading for recommendations
+     this.productsState.loadProducts();
+   }
 
 // Recommended products for last-minute addition (excludes products already in cart)
    recommendedProducts = computed(() => {

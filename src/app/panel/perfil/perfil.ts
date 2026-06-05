@@ -47,13 +47,7 @@ export class Perfil implements OnInit {
   }
 
   tienePermisosAdmin(user: any): boolean {
-    // Si el usuario tiene rol 'root', tiene acceso total al panel admin
-    if (user.rol === 'root') {
-      return true;
-    }
-    
-    // Si el usuario tiene rol 'admin', también tiene acceso
-    if (user.rol === 'admin') {
+    if (user.rol === 'root' || user.rol === 'owner' || user.isAdmin) {
       return true;
     }
     

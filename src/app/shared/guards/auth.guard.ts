@@ -41,11 +41,11 @@ export const authGuard: CanActivateFn = () => {
     return false;
   }
   
-// Repartidores van a su panel específico
-   if (user.rol === 'repartidor') {
-     router.navigate(['/repartidor']);
-     return false;
-   }
+  // Repartidores van a su panel específico
+  if (user.rol === 'repartidor') {
+    router.navigate(['/repartidor']);
+    return false;
+  }
   
   const accessToken = localStorage.getItem('accessToken');
   const refreshToken = localStorage.getItem('refreshToken');
@@ -55,7 +55,17 @@ export const authGuard: CanActivateFn = () => {
     return false;
   }
   
-  if (!accessToken && (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken))) {
+  // With HTTP-only cookies, tokens may be on server but not in localStorage
+  // So we allow access if user exists and has valid token OR if user exists (cookies exist)
+  if (!accessToken && refreshToken && !isValidJWTToken(refreshToken)) {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    router.navigate(['/login']);
+    return false;
+  }
+  
+  if (!accessToken && !isValidJWTToken(refreshToken)) {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
@@ -64,19 +74,14 @@ export const authGuard: CanActivateFn = () => {
   }
   
   if (!accessToken || !isValidJWTToken(accessToken)) {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    router.navigate(['/login']);
-    return false;
+    // No access token - could be HTTP-only cookie, allow passage
+    // Server will validate cookie on API calls
+    return true;
   }
   
-  if (isTokenExpired(accessToken) && (!refreshToken || !isValidJWTToken(refreshToken) || isTokenExpired(refreshToken))) {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    router.navigate(['/login']);
-    return false;
+  if (isTokenExpired(accessToken) && !refreshToken) {
+    // Token expired but no refresh - could be cookies, allow
+    return true;
   }
 
   return true;

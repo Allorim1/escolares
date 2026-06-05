@@ -1,7 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Product } from '../../shared/interfaces/product.interface';
 import { ProductsService } from './products.service';
-import { switchMap } from 'rxjs';
 
 interface State {
   product: Product | null;

@@ -329,19 +329,20 @@ export class AdminProductos implements OnInit {
     this.showModal.set(true);
   }
 
+  closeModal() {
+    this.uploadError.set(null);
+    this.showModal.set(false);
+    this.editingProduct.set(null);
+  }
+
   cancelEdit() {
     if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
-      this.uploadError.set(null);
-      this.showModal.set(false);
-      this.editingProduct.set(null);
+      this.closeModal();
     }
   }
 
   confirmCancel() {
-    if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
-      this.showModal.set(false);
-      this.editingProduct.set(null);
-    }
+    this.cancelEdit();
   }
 
   saveProduct() {
@@ -377,32 +378,14 @@ export class AdminProductos implements OnInit {
       rating: { rate: data.ratingRate, count: data.ratingCount },
     };
 
-    if (this.isAdding()) {
-      this.http.post<any>('/api/products', payload).subscribe({
-        next: (newProduct) => {
-          this.productsService.clearProductsCache();
-          this.loadProducts();
-          if (data.lineaId) {
-            this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
-          }
-          if (data.enOferta && data.ofertaPrecio > 0) {
-            console.log('Agregando oferta:', newProduct.id, data.ofertaPrecio);
-            this.ofertasBackend.agregarOferta(newProduct.id, data.ofertaPrecio);
-          }
-          this.cancelEdit();
-          this.notificationModal.success('Producto creado correctamente');
-        },
-        error: (err) => {
-          console.error('Error creating product:', err);
-          this.handleProductError(err, 'Error al crear producto');
-        }
-      });
-    } else if (this.editingProduct()) {
+    const isEditing = !!this.editingProduct();
+
+    if (isEditing) {
       const productId = this.editingProduct()!.id;
       this.http.put<any>(`/api/products/${productId}`, payload).subscribe({
         next: (updated) => {
           this.productsService.clearProductsCache();
-          this.loadProducts();
+          this.products.update(products => products.map(p => p.id === updated.id ? updated : p));
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, updated.id);
           }
@@ -410,12 +393,36 @@ export class AdminProductos implements OnInit {
             console.log('Actualizando oferta:', updated.id, data.ofertaPrecio);
             this.ofertasBackend.agregarOferta(updated.id, data.ofertaPrecio);
           }
-          this.cancelEdit();
+          this.closeModal();
           this.notificationModal.success('Producto actualizado correctamente');
+          this.loadProducts();
         },
         error: (err) => {
           console.error('Error updating product:', err);
           this.handleProductError(err, 'Error al actualizar producto');
+        }
+      });
+    } else {
+      this.http.post<any>('/api/products', payload).subscribe({
+        next: (newProduct) => {
+          this.productsService.clearProductsCache();
+          this.products.update(products => [...products, newProduct]);
+          this.totalProducts.update(count => count + 1);
+          this.totalPages.set(Math.ceil(this.totalProducts() / this.itemsPerPage));
+          if (data.lineaId) {
+            this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
+          }
+          if (data.enOferta && data.ofertaPrecio > 0) {
+            console.log('Agregando oferta:', newProduct.id, data.ofertaPrecio);
+            this.ofertasBackend.agregarOferta(newProduct.id, data.ofertaPrecio);
+          }
+          this.closeModal();
+          this.notificationModal.success('Producto creado correctamente');
+          this.loadProducts();
+        },
+        error: (err) => {
+          console.error('Error creating product:', err);
+          this.handleProductError(err, 'Error al crear producto');
         }
       });
     }
@@ -596,7 +603,9 @@ export class AdminProductos implements OnInit {
       this.http.delete<any>(`/api/products/${id}`).subscribe({
         next: () => {
           this.productsService.clearProductsCache();
-          this.loadProducts();
+          this.products.update(products => products.filter(p => p.id !== id));
+          this.totalProducts.update(count => Math.max(0, count - 1));
+          this.totalPages.set(Math.ceil(this.totalProducts() / this.itemsPerPage));
           this.notificationModal.success('Producto eliminado correctamente');
         },
         error: (err) => {

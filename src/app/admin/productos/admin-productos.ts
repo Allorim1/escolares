@@ -59,6 +59,7 @@ export class AdminProductos implements OnInit {
   isAdding = signal(false);
   showModal = signal(false);
   uploadingImage = signal(false);
+  saving = signal(false);
   uploadError = signal<string | null>(null);
   dragOver = signal(false);
   preciosOcultosParaNoRegistrados = signal(false);
@@ -381,11 +382,12 @@ export class AdminProductos implements OnInit {
     const isEditing = !!this.editingProduct();
 
     if (isEditing) {
+      if (this.saving()) return;
+      this.saving.set(true);
       const productId = this.editingProduct()!.id;
       this.http.put<any>(`/api/products/${productId}`, payload).subscribe({
         next: (updated) => {
           this.productsService.clearProductsCache();
-          this.products.update(products => products.map(p => p.id === updated.id ? updated : p));
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, updated.id);
           }
@@ -395,20 +397,21 @@ export class AdminProductos implements OnInit {
           }
           this.closeModal();
           this.notificationModal.success('Producto actualizado correctamente');
+          this.saving.set(false);
           this.loadProducts();
         },
         error: (err) => {
           console.error('Error updating product:', err);
           this.handleProductError(err, 'Error al actualizar producto');
+          this.saving.set(false);
         }
       });
     } else {
+      if (this.saving()) return;
+      this.saving.set(true);
       this.http.post<any>('/api/products', payload).subscribe({
         next: (newProduct) => {
           this.productsService.clearProductsCache();
-          this.products.update(products => [...products, newProduct]);
-          this.totalProducts.update(count => count + 1);
-          this.totalPages.set(Math.ceil(this.totalProducts() / this.itemsPerPage));
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
           }
@@ -418,11 +421,13 @@ export class AdminProductos implements OnInit {
           }
           this.closeModal();
           this.notificationModal.success('Producto creado correctamente');
+          this.saving.set(false);
           this.loadProducts();
         },
         error: (err) => {
           console.error('Error creating product:', err);
           this.handleProductError(err, 'Error al crear producto');
+          this.saving.set(false);
         }
       });
     }
@@ -600,17 +605,19 @@ export class AdminProductos implements OnInit {
 
   deleteProduct(id: number | string) {
     if (confirm('¿Estás seguro de eliminar este producto?')) {
+      if (this.saving()) return;
+      this.saving.set(true);
       this.http.delete<any>(`/api/products/${id}`).subscribe({
         next: () => {
           this.productsService.clearProductsCache();
-          this.products.update(products => products.filter(p => p.id !== id));
-          this.totalProducts.update(count => Math.max(0, count - 1));
-          this.totalPages.set(Math.ceil(this.totalProducts() / this.itemsPerPage));
           this.notificationModal.success('Producto eliminado correctamente');
+          this.saving.set(false);
+          this.loadProducts();
         },
         error: (err) => {
           console.error('Error deleting product:', err);
           this.notificationModal.error('Error al eliminar producto');
+          this.saving.set(false);
         }
       });
     }

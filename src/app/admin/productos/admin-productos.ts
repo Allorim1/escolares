@@ -341,29 +341,42 @@ export class AdminProductos implements OnInit {
   }
 
   saveProduct() {
+    if (this.uploadingImage()) {
+      this.notificationModal.error('Espera a que termine la subida de la imagen antes de guardar.');
+      return;
+    }
+
     const data = this.formData();
+    const title = data.title.trim();
+    const category = data.category.trim();
+
+    if (!title) {
+      this.notificationModal.error('El título del producto es obligatorio');
+      return;
+    }
+
+    const payload = {
+      title,
+      price: data.price,
+      description: data.description,
+      category: category || ' ',
+      image: data.image,
+      images: data.images,
+      marca: data.marca || null,
+      lineaId: data.lineaId || null,
+      iva: data.iva,
+      ivaPercentage: data.ivaPercentage,
+      estado: data.estado,
+      enOferta: data.enOferta,
+      ofertaPorcentaje: data.ofertaPorcentaje,
+      ofertaPrecio: data.ofertaPrecio,
+      rating: { rate: data.ratingRate, count: data.ratingCount },
+    };
 
     if (this.isAdding()) {
-      this.http.post<any>('/api/products', {
-        title: data.title,
-        price: data.price,
-        description: data.description,
-        category: data.category,
-        image: data.image,
-        images: data.images,
-        marca: data.marca || null,
-        lineaId: data.lineaId || null,
-        iva: data.iva,
-        ivaPercentage: data.ivaPercentage,
-        estado: data.estado,
-        enOferta: data.enOferta,
-        ofertaPorcentaje: data.ofertaPorcentaje,
-        ofertaPrecio: data.ofertaPrecio,
-        rating: { rate: data.ratingRate, count: data.ratingCount },
-      }).subscribe({
+      this.http.post<any>('/api/products', payload).subscribe({
         next: (newProduct) => {
-          this.products.update((p) => [...p, newProduct]);
-          // Reload current page to show the new product
+          this.productsService.clearProductsCache();
           this.loadProducts();
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
@@ -377,34 +390,15 @@ export class AdminProductos implements OnInit {
         },
         error: (err) => {
           console.error('Error creating product:', err);
-          this.notificationModal.error('Error al crear producto');
+          this.handleProductError(err, 'Error al crear producto');
         }
       });
     } else if (this.editingProduct()) {
       const productId = this.editingProduct()!.id;
-      this.http.put<any>(`/api/products/${productId}`, {
-        title: data.title,
-        price: data.price,
-        description: data.description,
-        category: data.category,
-        image: data.image,
-        images: data.images,
-        marca: data.marca || null,
-        lineaId: data.lineaId || null,
-        iva: data.iva,
-        ivaPercentage: data.ivaPercentage,
-        estado: data.estado,
-        enOferta: data.enOferta,
-        ofertaPorcentaje: data.ofertaPorcentaje,
-        ofertaPrecio: data.ofertaPrecio,
-        rating: { rate: data.ratingRate, count: data.ratingCount },
-      }).subscribe({
+      this.http.put<any>(`/api/products/${productId}`, payload).subscribe({
         next: (updated) => {
-            this.products.update((products) => 
-                products.map((p) => (p.id === productId ? updated : p))
-            );
-            // Reload current page to show the updated product
-            this.loadProducts();
+          this.productsService.clearProductsCache();
+          this.loadProducts();
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, updated.id);
           }
@@ -417,7 +411,7 @@ export class AdminProductos implements OnInit {
         },
         error: (err) => {
           console.error('Error updating product:', err);
-          this.notificationModal.error('Error al actualizar producto');
+          this.handleProductError(err, 'Error al actualizar producto');
         }
       });
     }
@@ -427,6 +421,39 @@ export class AdminProductos implements OnInit {
     const input = event.target as HTMLInputElement;
     if (!input.files || !input.files[0]) return;
     this.uploadMainImage(input.files[0]);
+  }
+
+  private uploadMainImage(file: File) {
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen no puede exceder 5MB');
+      return;
+    }
+
+    const previousImage = this.formData().image;
+    const previewUrl = URL.createObjectURL(file);
+    this.formData.update(data => ({ ...data, image: previewUrl }));
+    
+    this.uploadingImage.set(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    this.http.post<any>('/api/products/upload-image', formData).subscribe({
+      next: (response) => {
+        URL.revokeObjectURL(previewUrl);
+        this.formData.update(data => ({ ...data, image: response.url }));
+        this.uploadingImage.set(false);
+      },
+      error: (err) => {
+        URL.revokeObjectURL(previewUrl);
+        this.formData.update(data => ({ ...data, image: previousImage || '' }));
+        this.uploadingImage.set(false);
+        alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+      }
+    });
   }
 
   onDragOver(event: DragEvent) {
@@ -450,71 +477,58 @@ export class AdminProductos implements OnInit {
     this.uploadMainImage(files[0]);
   }
 
-  uploadMainImage(file: File) {
-    if (!file || !file.type.startsWith('image/')) {
-      this.notificationModal.error('Por favor selecciona un archivo de imagen válido');
-      return;
-    }
-
-    this.uploadingImage.set(true);
-    const formData = new FormData();
-    formData.append('image', file);
-
-    this.http.post<{ url: string; filename: string; size: number }>('/api/products/upload-image', formData).subscribe({
-      next: (response) => {
-        this.formData.update(data => ({ ...data, image: response.url }));
-        this.uploadingImage.set(false);
-      },
-      error: (err) => {
-        console.error('Error uploading main image:', err);
-        this.notificationModal.error('Error al subir la imagen principal');
-        this.uploadingImage.set(false);
-      }
-    });
-  }
-
   onAdditionalImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (!input.files) return;
-    for (let i = 0; i < input.files.length; i++) {
-      this.uploadAdditionalImage(input.files[i]);
-    }
-    input.value = '';
-  }
-
-  uploadAdditionalImage(file: File) {
-    if (!file || !file.type.startsWith('image/')) {
-      this.notificationModal.error('Por favor selecciona un archivo de imagen válido');
-      return;
-    }
-
-    if (this.formData().images.length >= this.getMaxAdditionalImages()) {
-      this.notificationModal.error(`Máximo ${this.getMaxAdditionalImages()} imágenes adicionales permitidas`);
-      return;
-    }
-
-    this.uploadingImage.set(true);
-    const formData = new FormData();
-    formData.append('images', file);
-
-    this.http.post<{ urls: string[] }>('/api/products/upload-images', formData).subscribe({
-      next: (response) => {
-        this.formData.update(data => ({
-          ...data,
-          images: [...data.images, ...response.urls]
-        }));
-        this.uploadingImage.set(false);
-      },
-      error: (err) => {
-        console.error('Error uploading additional image:', err);
-        this.notificationModal.error('Error al subir la imagen adicional');
-        this.uploadingImage.set(false);
-      }
-    });
+    if (!input.files || !input.files[0]) return;
+    this.uploadAdditionalImage(input.files[0]);
   }
 
   getMaxAdditionalImages(): number {
     return 4;
+  }
+
+  private uploadAdditionalImage(file: File) {
+    const currentImages = this.formData().images.length;
+    const maxImages = this.getMaxAdditionalImages();
+    if (currentImages >= maxImages) {
+      alert(`Máximo ${maxImages} imágenes adicionales permitidas`);
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen no puede exceder 5MB');
+      return;
+    }
+
+    const previousImages = this.formData().images;
+    const previewUrl = URL.createObjectURL(file);
+    this.formData.update(data => ({ ...data, images: [...data.images, previewUrl] }));
+    this.uploadingImage.set(true);
+
+    const formData = new FormData();
+    formData.append('images', file);
+
+    this.http.post<any>('/api/products/upload-images', formData).subscribe({
+      next: (response) => {
+        if (response.urls && response.urls.length > 0) {
+          this.formData.update(data => ({
+            ...data,
+            images: data.images.map(img => img === previewUrl ? response.urls[0] : img)
+          }));
+        }
+        URL.revokeObjectURL(previewUrl);
+        this.uploadingImage.set(false);
+      },
+      error: (err) => {
+        URL.revokeObjectURL(previewUrl);
+        this.formData.update(data => ({ ...data, images: previousImages }));
+        this.uploadingImage.set(false);
+        alert('Error al subir la imagen: ' + (err.error?.error || err.message || 'Error desconocido'));
+      }
+    });
   }
 
   removeAdditionalImage(index: number) {
@@ -522,6 +536,11 @@ export class AdminProductos implements OnInit {
       ...data,
       images: data.images.filter((_, i) => i !== index)
     }));
+  }
+
+  private handleProductError(err: any, defaultMessage: string) {
+    const message = err?.error?.error || err?.error || err?.message || defaultMessage;
+    this.notificationModal.error(message);
   }
 
   onAdditionalDragOver(event: DragEvent) {
@@ -543,7 +562,8 @@ export class AdminProductos implements OnInit {
     if (confirm('¿Estás seguro de eliminar este producto?')) {
       this.http.delete<any>(`/api/products/${id}`).subscribe({
         next: () => {
-          this.products.update((products) => products.filter((p) => p.id !== id));
+          this.productsService.clearProductsCache();
+          this.loadProducts();
           this.notificationModal.success('Producto eliminado correctamente');
         },
         error: (err) => {
@@ -574,43 +594,6 @@ export class AdminProductos implements OnInit {
       image: img,
       images: currentMain ? [currentMain, ...currentImages] : currentImages
     }));
-  }
-
-  removeAdditionalImage(index: number) {
-    this.formData.update(data => ({
-      ...data,
-      images: data.images.filter((_, i) => i !== index)
-    }));
-  }
-
-  onAdditionalDragOver(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  onAdditionalDrop(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    const files = event.dataTransfer?.files;
-    if (!files || files.length === 0) return;
-    for (let i = 0; i < files.length; i++) {
-      this.uploadAdditionalImage(files[i]);
-    }
-  }
-
-  deleteProduct(id: number | string) {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
-      this.http.delete<any>(`/api/products/${id}`).subscribe({
-        next: () => {
-          this.products.update((products) => products.filter((p) => p.id !== id));
-          this.notificationModal.success('Producto eliminado correctamente');
-        },
-        error: (err) => {
-          console.error('Error deleting product:', err);
-          this.notificationModal.error('Error al eliminar producto');
-        }
-      });
-    }
   }
 
   calculateIvaIncluded(): { base: number; iva: number; total: number } {

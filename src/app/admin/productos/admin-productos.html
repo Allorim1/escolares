@@ -394,7 +394,7 @@
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                  <button type="submit" class="save-btn">Guardar</button>
+                  <button type="submit" class="save-btn" [disabled]="uploadingImage()">Guardar</button>
                   <button type="button" class="cancel-btn" (click)="confirmCancel()">Cancelar</button>
                 </div>
               </form>

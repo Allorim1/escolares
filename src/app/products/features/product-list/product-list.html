@@ -234,7 +234,7 @@
       </button>
     }
   }
-  <button
+<button
     class="btn btn-primary"
     style="
       background: #6c757d;
@@ -249,11 +249,12 @@
       flex: 1;
       height: 38px;
     "
-    (click)="$event.stopPropagation()"
-    [routerLink]="[product.id]"
+    (click)="navigateToProduct(product); $event.stopPropagation()"
   >
     Ver más
   </button>
+</div>
+</div>
 </div>
             </div>
           </div>

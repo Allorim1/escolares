@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ProductsStateService } from '../../data-access/products-state.service';
@@ -441,6 +441,7 @@ import { Product } from '../../../shared/interfaces/product.interface';
 export default class ProductList implements OnInit {
   productsState = inject(ProductsStateService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   currencyService = inject(CurrencyService);
   private authService = inject(AuthService);
   apiKeyStatusService = inject(ApiKeyStatusService);
@@ -514,6 +515,10 @@ if (cartItem.quantity <= 1) {
 
   closeModal() {
     this.selectedProduct.set(null);
+  }
+
+  navigateToProduct(product: Product) {
+    this.router.navigate(['/products', product.id]);
   }
 
   increaseModalQuantity() {

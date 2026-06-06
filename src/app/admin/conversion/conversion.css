@@ -553,7 +553,8 @@
 }
 
 .upload-card-anterior {
-  border: 2px dashed #2e7d32;
+  border: 1px solid rgba(46, 125, 50, 0.2);
+  background: #ffffff;
 }
 
 .upload-btn-anterior {
@@ -574,7 +575,8 @@
 
 /* Tasas Anteriores - Purple/Orange Theme */
 .upload-card-tasas-anteriores {
-  border: 2px dashed #6f42c1;
+  border: 1px solid rgba(111, 66, 193, 0.18);
+  background: #ffffff;
 }
 
 .upload-btn-tasas-anteriores {

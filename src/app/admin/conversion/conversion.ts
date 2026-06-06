@@ -2204,86 +2204,90 @@ imprimirExpectativas() {
         <html>
         <head>
           <title>Expectativas de Ventas</title>
-          <style>
-            @page {
-              size: letter portrait;
-              margin: 0.2in;
-            }
-            html, body {
-              margin: 0;
-              padding: 0;
-              font-family: Arial, sans-serif;
-              font-size: 8pt;
-              box-sizing: border-box;
-              height: 100%;
-            }
-            .container {
-              padding: 5px;
-              box-sizing: border-box;
-              min-height: 100%;
-              display: flex;
-              flex-direction: column;
-            }
-            .print-header {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              margin-bottom: 12px;
-            }
-            .print-logo {
-              width: 140px;
-              max-height: 120px;
-              object-fit: contain;
-            }
-            .print-title-section {
-              flex: 1;
-              text-align: center;
-            }
-            h1 { color: #1d63c1; text-align: center; font-size: 16pt; margin: 0 0 6px 0; }
-            .meta-info { text-align: center; margin-bottom: 6px; font-size: 10.5pt; }
-            table { 
-              width: 100%; 
-              border-collapse: collapse;
-              flex: 1;
-              font-size: 9pt;
-            }
-            th, td { 
-              border: 1px solid #666; 
-              padding: 4px 6px; 
-              text-align: left;
-              font-size: 9pt;
-              line-height: 1.25;
-            }
-            th { background: #ff9800 !important; color: #111 !important; font-weight: 800 !important; font-size: 10pt !important; }
-            th.numeric, td.numeric { text-align: right; }
-            .expectativa-meta { text-align: right; }
-            .comment { 
-              margin-top: auto;
-              margin-bottom: 5px;
-              padding: 5px; 
-              background: #f5f5f5; 
-              border-radius: 3px;
-              font-size: 8pt;
-            }
-            .footer { 
-              margin-top: 10px; 
-              font-size: 10pt; 
-              color: #333;
-              font-weight: 600;
-              text-align: right;
-            }
-            input[type="checkbox"] { 
-              width: 16px; 
-              height: 16px; 
-              margin: 0;
-              padding: 0;
-            }
-            .cumplido-checkbox {
-              padding: 0 !important;
-              text-align: center;
-              width: 22px;
-            }
-          </style>
+<style>
+             @page {
+               size: letter portrait;
+               margin: 0.2in;
+             }
+             html, body {
+               margin: 0;
+               padding: 0;
+               font-family: Arial, sans-serif;
+               font-size: 6pt;
+               box-sizing: border-box;
+               height: 100%;
+             }
+             .container {
+               padding: 5px;
+               box-sizing: border-box;
+               min-height: 100%;
+               display: flex;
+               flex-direction: column;
+             }
+             .print-header {
+               display: flex;
+               align-items: flex-start;
+               margin-bottom: 12px;
+               position: relative;
+             }
+             .print-logo {
+               width: 120px;
+               max-height: 100px;
+               object-fit: contain;
+               position: absolute;
+               top: 0;
+               left: 0;
+             }
+             .print-title-section {
+               flex: 1;
+               text-align: center;
+             }
+             h1 { color: #1d63c1; text-align: center; font-size: 14pt; margin: 0 0 6px 0; }
+             .meta-info { text-align: center; margin-bottom: 6px; font-size: 9pt; }
+             table { 
+               width: 100%; 
+               border-collapse: collapse;
+               flex: 1;
+               font-size: 7pt;
+             }
+             th, td { 
+               border: 1px solid #666; 
+               padding: 3px 5px; 
+               text-align: left;
+               font-size: 7pt;
+               line-height: 1.2;
+             }
+             th { background: #ff9800 !important; color: #111 !important; font-weight: 800 !important; font-size: 8pt !important; }
+             th.numeric, td.numeric { text-align: right; }
+             th.wrap-center, td.wrap-center { text-align: center; }
+             .expectativa-meta { text-align: right; }
+             .comment { 
+               margin-top: auto;
+               margin-bottom: 5px;
+               padding: 5px; 
+               background: #f5f5f5; 
+               border-radius: 3px;
+               font-size: 7pt;
+             }
+             .footer { 
+               margin-top: 10px; 
+               font-size: 9pt; 
+               color: #333;
+               font-weight: 600;
+               text-align: right;
+             }
+             input[type="checkbox"] { 
+               width: 14px; 
+               height: 14px; 
+               margin: 0;
+               padding: 0;
+             }
+             .cumplido-checkbox {
+               padding: 0 !important;
+               text-align: center;
+               width: 20px;
+             }
+           </style>
         </head>
         <body>
           <div class="container">
@@ -2299,16 +2303,16 @@ imprimirExpectativas() {
                 <tr>
           `;
       
-      if (this.columnaFechaVisible()) html += '<th>Fecha</th>';
-      if (this.columnaDiaVisible()) html += '<th>Día</th>';
-      if (this.columnaAnteriorBsVisible()) html += '<th class="numeric">Ventas Ant. (Bs)</th>';
-      if (this.columnaAnteriorUSDVisible()) html += '<th class="numeric">Ventas Ant. ($)</th>';
-      if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
+if (this.columnaFechaVisible()) html += '<th class="wrap-center">Fecha</th>';
+       if (this.columnaDiaVisible()) html += '<th class="wrap-center">Día</th>';
+       if (this.columnaAnteriorBsVisible()) html += '<th class="numeric">Ventas Ant. (Bs)</th>';
+       if (this.columnaAnteriorUSDVisible()) html += '<th class="numeric">Ventas Ant. ($)</th>';
+       if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
 if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
-       if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
-       if (this.columnaTargetUSDVisible()) html += '<th class="numeric">Total ($)</th>';
-       if (this.columnaTargetBsVisible()) html += '<th class="numeric">Total (Bs)</th>';
-      html += '<th>Cumplido</th>';
+        if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
+        if (this.columnaTargetUSDVisible()) html += '<th class="numeric">Total ($)</th>';
+        if (this.columnaTargetBsVisible()) html += '<th class="numeric">Total (Bs)</th>';
+       html += '<th class="wrap-center">Cumplido</th>';
       
       html += `
               </tr>
@@ -2316,10 +2320,10 @@ if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th
             <tbody>
       `;
       
-      for (const e of expectativas) {
-        html += '<tr>';
-        if (this.columnaFechaVisible()) html += `<td>${this.formatFechaDisplay(e.fecha)}</td>`;
-        if (this.columnaDiaVisible()) html += `<td>${e.dia}</td>`;
+for (const e of expectativas) {
+         html += '<tr>';
+         if (this.columnaFechaVisible()) html += `<td class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
+         if (this.columnaDiaVisible()) html += `<td class="wrap-center">${e.dia}</td>`;
 if (this.columnaAnteriorBsVisible()) html += `<td class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
          if (this.columnaAnteriorUSDVisible()) html += `<td class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
 if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
@@ -2328,8 +2332,8 @@ if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e
          if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
          if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
          html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
-        html += '</tr>';
-      }
+         html += '</tr>';
+       }
       
 html += `
              </tbody>

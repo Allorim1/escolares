@@ -2175,4 +2175,118 @@ html += `
         this.cerrarModalImpresion();
       }
     }
+
+  imprimirComparacionDiaPorDia() {
+    const comparacion = this.getComparacionDiaPorDia();
+    const totalActual = this.totalConvertido();
+    const totalAnterior = this.totalConvertidoAnterior();
+    const variacion = this.variacionUSDPorcentaje();
+
+    let html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Comparación Día a Día</title>
+        <style>
+          @page {
+            size: letter portrait;
+            margin: 0.2in;
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            font-size: 8pt;
+            box-sizing: border-box;
+            height: 100%;
+          }
+          .container {
+            padding: 6px;
+            box-sizing: border-box;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+          h1 { color: #e65100; text-align: center; font-size: 16pt; margin: 0 0 6px 0; }
+          .meta-info { text-align: center; margin-bottom: 6px; font-size: 10pt; }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            flex: 1;
+            font-size: 8.5pt;
+          }
+          th, td {
+            border: 1px solid #666;
+            padding: 4px 6px;
+            text-align: left;
+            font-size: 8.5pt;
+            line-height: 1.25;
+          }
+          th { background: #e65100; color: white; font-weight: 600; }
+          th.numeric, td.numeric { text-align: right; }
+          .footer {
+            margin-top: 6px;
+            font-size: 7pt;
+            color: #666;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>📊 Comparación Día a Día</h1>
+          <div class="meta-info">Meta: ${this.metaVariacion()}% | Total Actual: $ ${this.formatearMoneda(totalActual)} | Total Anterior: ${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Día</th>
+                <th>Fecha Año Actual</th>
+                <th>Fecha Año Anterior</th>
+                <th class="numeric">Actual ($)</th>
+                <th class="numeric">Anterior ($)</th>
+                <th class="numeric">Var. (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+
+    for (const r of comparacion) {
+      html += `
+              <tr>
+                <td>${r.dia}</td>
+                <td>${r.fechaActual}</td>
+                <td>${r.fechaAnterior}</td>
+                <td class="numeric">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
+                <td class="numeric">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
+                <td class="numeric">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
+              </tr>
+      `;
+    }
+
+    html += `
+            </tbody>
+            <tfoot>
+              <tr>
+                <td><strong>TOTAL</strong></td>
+                <td></td>
+                <td></td>
+                <td class="numeric"><strong>$ ${this.formatearMoneda(totalActual)}</strong></td>
+                <td class="numeric"><strong>${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</strong></td>
+                <td class="numeric"><strong>${variacion > 0 ? '+' : ''}${variacion}%</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+          <div class="footer">Fecha: ${new Date().toLocaleDateString('es-VE')}</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  }
 }
+

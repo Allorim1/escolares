@@ -2231,8 +2231,8 @@ imprimirExpectativas() {
               margin-bottom: 12px;
             }
             .print-logo {
-              width: 90px;
-              max-height: 90px;
+              width: 140px;
+              max-height: 120px;
               object-fit: contain;
             }
             .print-title-section {
@@ -2254,7 +2254,7 @@ imprimirExpectativas() {
               font-size: 9pt;
               line-height: 1.25;
             }
-            th { background: #ff9800; color: white; font-weight: 700; font-size: 9.5pt; }
+            th { background: #ff9800 !important; color: #111 !important; font-weight: 800 !important; font-size: 10pt !important; }
             th.numeric, td.numeric { text-align: right; }
             .expectativa-meta { text-align: right; }
             .comment { 
@@ -2288,7 +2288,7 @@ imprimirExpectativas() {
         <body>
           <div class="container">
             <div class="print-header">
-              <img src="/ESCOLARES AZUL RIF GRANDE.png" class="print-logo" alt="Escolares logo">
+              <img src="/public/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
               <div class="print-title-section">
                 <h1>Metas Ventas</h1>
                 <div class="meta-info">Período de ventas: ${resultadosAnterior.length > 0 ? this.formatFechaDisplay(resultadosAnterior[0].fecha) + ' - ' + this.formatFechaDisplay(resultadosAnterior[resultadosAnterior.length - 1].fecha) : '-'}</div>
@@ -2344,7 +2344,18 @@ html += `
       
       html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p></div>
           </div>
-        </body>
+<script>
+(function(){
+  function doPrint(){ try{ window.focus(); window.print(); }catch(e){} }
+  function whenImagesLoaded(cb){
+    var imgs = document.images, total = imgs.length; if(total === 0){ cb(); return; }
+    var count = 0; function check(){ if(++count >= total) cb(); }
+    for(var i=0;i<total;i++){ if(imgs[i].complete) check(); else { imgs[i].addEventListener('load', check); imgs[i].addEventListener('error', check); } }
+  }
+  whenImagesLoaded(function(){ setTimeout(doPrint, 120); });
+})();
+</script>
+          </body>
         </html>
       `;
       
@@ -2352,7 +2363,6 @@ html += `
       if (printWindow) {
         printWindow.document.write(html);
         printWindow.document.close();
-        printWindow.print();
         this.cerrarModalImpresion();
       }
     }
@@ -2395,8 +2405,8 @@ html += `
             margin-bottom: 12px;
           }
           .print-logo {
-            width: 90px;
-            max-height: 90px;
+            width: 140px;
+            max-height: 120px;
             object-fit: contain;
           }
           .print-title-section {
@@ -2418,7 +2428,7 @@ html += `
             font-size: 9pt;
             line-height: 1.25;
           }
-          th { background: #e65100; color: white; font-weight: 700; font-size: 9.5pt; }
+          th { background: #e65100 !important; color: #111 !important; font-weight: 800 !important; font-size: 10pt !important; }
           th.numeric, td.numeric { text-align: right; }
           .footer {
             margin-top: 6px;
@@ -2432,7 +2442,7 @@ html += `
       <body>
         <div class="container">
           <div class="print-header">
-            <img src="/ESCOLARES AZUL RIF GRANDE.png" class="print-logo" alt="Escolares logo">
+            <img src="/public/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
             <div class="print-title-section">
               <h1>📊 Comparación Día a Día</h1>
               <div class="meta-info">Meta: ${this.metaVariacion()}% | Total Actual: $ ${this.formatearMoneda(totalActual)} | Total Anterior: ${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</div>
@@ -2480,6 +2490,17 @@ html += `
           </table>
           <div class="footer">Fecha: ${this.formatFechaDisplay(new Date())}</div>
         </div>
+<script>
+(function(){
+  function doPrint(){ try{ window.focus(); window.print(); }catch(e){} }
+  function whenImagesLoaded(cb){
+    var imgs = document.images, total = imgs.length; if(total === 0){ cb(); return; }
+    var count = 0; function check(){ if(++count >= total) cb(); }
+    for(var i=0;i<total;i++){ if(imgs[i].complete) check(); else { imgs[i].addEventListener('load', check); imgs[i].addEventListener('error', check); } }
+  }
+  whenImagesLoaded(function(){ setTimeout(doPrint, 120); });
+})();
+</script>
       </body>
       </html>
     `;
@@ -2488,7 +2509,6 @@ html += `
     if (printWindow) {
       printWindow.document.write(html);
       printWindow.document.close();
-      printWindow.print();
     }
   }
 }

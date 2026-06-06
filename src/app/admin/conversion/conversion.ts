@@ -79,7 +79,9 @@ export class Conversion implements OnInit {
   tasasAnterioresMap = signal<Map<string, number>>(new Map());
   tasasAnterioresFilas = signal<any[][]>([]);
   tasasAnterioresColumnas = signal<string[]>([]);
-tasasAnterioresPreview = signal<any[][]>([]);
+  tasasAnterioresPreview = signal<any[][]>([]);
+  promedioTasaActual = signal<number>(0);
+  promedioTasaAnterior = signal<number>(0);
  
    // Tasas manuales para año anterior
    tasasAnterioresManuales = signal<Map<string, number>>(new Map());
@@ -176,7 +178,7 @@ comparaciones = signal<ComparacionResultado[]>([]);
 calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
      const totalAnteriorUSD = this.totalConvertidoAnterior();
      const meta = this.metaVariacion();
-     const tasaPromedio = this.tasaPromedioActual() || this.tasaPromedioAnterior();
+     const tasaPromedio = this.tasaPromedioActual() || this.tasaPromedioAnterior() || this.promedioTasaActual() || this.promedioTasaAnterior();
      
      const targetUSD = totalAnteriorUSD > 0 
        ? Math.round(totalAnteriorUSD * (1 + meta / 100) * 100) / 100 
@@ -1024,16 +1026,17 @@ this.tasasAnterioresMap.set(mapaTasas);
         return;
       }
 
-      if (this.tasasMap().size === 0) {
-        this.error.set('Debe cargar y procesar el archivo de tasas primero');
-        this.procesando.set(false);
-        return;
-      }
-
       const tasaMap = this.tasasMap();
       const tasasManuales = this.tasasManuales();
       const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
+      const promedioActual = this.promedioTasaActual();
       const fechasFaltantes: string[] = [];
+
+      if (todasLasTasas.size === 0 && promedioActual <= 0) {
+        this.error.set('Debe cargar tasas o ingresar la tasa promedio actual primero');
+        this.procesando.set(false);
+        return;
+      }
 
       // Primera pasada: recopilar todas las fechas únicas de ventas
       const fechasVentas = new Set<string>();
@@ -1045,6 +1048,11 @@ this.tasasAnterioresMap.set(mapaTasas);
       // Para fechas de fin de semana sin tasa, buscar la del próximo lunes
       for (const fecha of fechasVentas) {
         if (todasLasTasas.has(fecha)) continue;
+        if (promedioActual > 0) {
+          todasLasTasas.set(fecha, promedioActual);
+          continue;
+        }
+
         const fechaDate = new Date(fecha + 'T00:00:00');
         const diaSemana = fechaDate.getDay(); // 0=Dom, 6=Sáb
 
@@ -1131,10 +1139,12 @@ this.tasasAnterioresMap.set(mapaTasas);
     const tasaMap = this.tasasMap();
     const tasasManuales = this.tasasManuales();
     const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
+    const promedioActual = this.promedioTasaActual();
 
     const tasasAnterioresBase = this.tasasAnterioresMap();
     const tasasAnterioresManual = this.tasasAnterioresManuales();
     let todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+    const promedioAnterior = this.promedioTasaAnterior();
 
     // Si no hay tasas anteriores, usar las actuales como fallback
     if (todasLasTasasAnteriores.size === 0) {
@@ -1145,6 +1155,17 @@ this.tasasAnterioresMap.set(mapaTasas);
 
     // Procesar archivo actual con tasas actuales
     if (this.resultados().length === 0 && this.ventasRaw().length >= 2) {
+      if (todasLasTasas.size === 0 && promedioActual > 0) {
+        const ventasHeaders = this.ventasRaw()[0];
+        const idxFechaV = ventasHeaders.indexOf(this.columnaFechaVentas());
+        const fechasVentas = new Set<string>();
+        for (let i = 1; i < this.ventasRaw().length; i++) {
+          const fecha = this.normalizarFecha(this.ventasRaw()[i][idxFechaV]);
+          if (fecha) fechasVentas.add(fecha);
+        }
+        fechasVentas.forEach(fecha => todasLasTasas.set(fecha, promedioActual));
+      }
+
       const resActual = this.calcularResultados(
         this.ventasRaw(),
         this.columnaFechaVentas(),
@@ -1172,6 +1193,15 @@ this.tasasAnterioresMap.set(mapaTasas);
       // Para fechas de fin de semana sin tasa, buscar la del próximo lunes
       for (const fecha of fechasVentasAnterior) {
         if (todasLasTasasAnteriores.has(fecha)) continue;
+        if (promedioAnterior > 0) {
+          todasLasTasasAnteriores.set(fecha, promedioAnterior);
+          continue;
+        }
+        if (promedioActual > 0) {
+          todasLasTasasAnteriores.set(fecha, promedioActual);
+          continue;
+        }
+
         const fechaDate = new Date(fecha + 'T00:00:00');
         const diaSemana = fechaDate.getDay();
 

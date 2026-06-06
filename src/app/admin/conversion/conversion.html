@@ -524,8 +524,8 @@
                 <tr>
                   <th>Día</th>
                   <th>Fecha Año Actual</th>
-                  <th>Fecha Año Anterior</th>
                   <th>Actual ($)</th>
+                  <th>Fecha Año Anterior</th>
                   <th>Anterior ($)</th>
                   <th>Var. (%)</th>
                 </tr>
@@ -535,8 +535,8 @@
                   <tr>
                     <td>{{ r.dia }}</td>
                     <td>{{ r.fechaActual }}</td>
-                    <td>{{ r.fechaAnterior }}</td>
                     <td class="num">{{ r.actual > 0 ? '$ ' + formatearMoneda(r.actual) : '-' }}</td>
+                    <td>{{ r.fechaAnterior }}</td>
                     <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
                     <td class="num" 
                       [class.positivo]="r.variacion > 0" 

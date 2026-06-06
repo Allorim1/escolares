@@ -2240,8 +2240,8 @@ html += `
               <tr>
                 <th>Día</th>
                 <th>Fecha Año Actual</th>
-                <th>Fecha Año Anterior</th>
                 <th class="numeric">Actual ($)</th>
+                <th>Fecha Año Anterior</th>
                 <th class="numeric">Anterior ($)</th>
                 <th class="numeric">Var. (%)</th>
               </tr>
@@ -2254,8 +2254,8 @@ html += `
               <tr>
                 <td>${r.dia}</td>
                 <td>${r.fechaActual}</td>
-                <td>${r.fechaAnterior}</td>
                 <td class="numeric">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
+                <td>${r.fechaAnterior}</td>
                 <td class="numeric">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
                 <td class="numeric">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
               </tr>

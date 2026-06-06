@@ -1083,8 +1083,9 @@
 
  .expectativa-grid {
    display: grid;
-   grid-template-columns: repeat(3, 1fr);
+   grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) minmax(220px, 280px);
    gap: 1rem;
+   align-items: stretch;
  }
 
  .expectativa-card {
@@ -1094,6 +1095,13 @@
    text-align: center;
    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
    border: 2px solid #e0e0e0;
+ }
+
+ .expectativa-meta-card {
+   grid-row: span 2;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
  }
 
  .expectativa-label {

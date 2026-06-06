@@ -82,6 +82,11 @@ export class Conversion implements OnInit {
   tasasAnterioresPreview = signal<any[][]>([]);
   promedioTasaActual = signal<number>(0);
   promedioTasaAnterior = signal<number>(0);
+  // Internal cents-based state for compact input behavior
+  promedioTasaActualCents = signal<number>(0);
+  promedioTasaAnteriorCents = signal<number>(0);
+  showBlankActual = signal<boolean>(false);
+  showBlankAnterior = signal<boolean>(false);
  
    // Tasas manuales para año anterior
    tasasAnterioresManuales = signal<Map<string, number>>(new Map());
@@ -1784,6 +1789,99 @@ cerrarModalExpectativas() {
     const sumaTasa = resultados.reduce((sum, r) => sum + (r.tasa > 0 ? r.tasa : 0), 0);
     const count = resultados.filter(r => r.tasa > 0).length;
     return count > 0 ? Math.round((sumaTasa / count) * 10000) / 10000 : 0;
+  }
+
+  // Helpers for compact rate input (cent-based shifting)
+  formatRateFromCents(cents: number): string {
+    return (cents / 100).toFixed(2);
+  }
+
+  onRateFocus(kind: 'actual' | 'anterior') {
+    if (kind === 'actual') {
+      if (this.promedioTasaActualCents() === 0) this.showBlankActual.set(true);
+    } else {
+      if (this.promedioTasaAnteriorCents() === 0) this.showBlankAnterior.set(true);
+    }
+  }
+
+  onRateBlur(kind: 'actual' | 'anterior') {
+    if (kind === 'actual') {
+      this.showBlankActual.set(false);
+    } else {
+      this.showBlankAnterior.set(false);
+    }
+  }
+
+  onRateKey(event: KeyboardEvent, kind: 'actual' | 'anterior') {
+    const key = event.key;
+    const isDigit = /^[0-9]$/.test(key);
+    if (isDigit) {
+      event.preventDefault();
+      const d = parseInt(key, 10);
+      if (kind === 'actual') {
+        let cents = this.promedioTasaActualCents();
+        cents = Math.min(Math.floor(cents * 10 + d), 999999999);
+        this.promedioTasaActualCents.set(cents);
+        this.promedioTasaActual.set(Math.round((cents / 100) * 10000) / 10000);
+        this.showBlankActual.set(false);
+      } else {
+        let cents = this.promedioTasaAnteriorCents();
+        cents = Math.min(Math.floor(cents * 10 + d), 999999999);
+        this.promedioTasaAnteriorCents.set(cents);
+        this.promedioTasaAnterior.set(Math.round((cents / 100) * 10000) / 10000);
+        this.showBlankAnterior.set(false);
+      }
+      return;
+    }
+
+    if (key === 'Backspace') {
+      event.preventDefault();
+      if (kind === 'actual') {
+        let cents = Math.floor(this.promedioTasaActualCents() / 10);
+        this.promedioTasaActualCents.set(cents);
+        this.promedioTasaActual.set(Math.round((cents / 100) * 10000) / 10000);
+      } else {
+        let cents = Math.floor(this.promedioTasaAnteriorCents() / 10);
+        this.promedioTasaAnteriorCents.set(cents);
+        this.promedioTasaAnterior.set(Math.round((cents / 100) * 10000) / 10000);
+      }
+      return;
+    }
+
+    if (key === 'Delete') {
+      event.preventDefault();
+      if (kind === 'actual') {
+        this.promedioTasaActualCents.set(0);
+        this.promedioTasaActual.set(0);
+      } else {
+        this.promedioTasaAnteriorCents.set(0);
+        this.promedioTasaAnterior.set(0);
+      }
+      return;
+    }
+
+    // Treat dot as noop (input is cents-shifting); prevent default to avoid caret
+    if (key === '.' || key === ',') {
+      event.preventDefault();
+      return;
+    }
+  }
+
+  onRatePaste(event: ClipboardEvent, kind: 'actual' | 'anterior') {
+    event.preventDefault();
+    const text = event.clipboardData?.getData('text') || '';
+    const parsed = parseFloat(text.replace(',', '.'));
+    if (isNaN(parsed)) return;
+    const cents = Math.round(parsed * 100);
+    if (kind === 'actual') {
+      this.promedioTasaActualCents.set(cents);
+      this.promedioTasaActual.set(Math.round((cents / 100) * 10000) / 10000);
+      this.showBlankActual.set(false);
+    } else {
+      this.promedioTasaAnteriorCents.set(cents);
+      this.promedioTasaAnterior.set(Math.round((cents / 100) * 10000) / 10000);
+      this.showBlankAnterior.set(false);
+    }
   }
 
   getDiaSemanaNum(diaSemana: number): string {

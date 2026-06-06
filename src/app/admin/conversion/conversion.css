@@ -1150,10 +1150,12 @@
  }
 
  .expectativa-meta-card {
-   grid-row: span 2;
-   display: flex;
-   flex-direction: column;
-   justify-content: center;
+  grid-row: span 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
  }
 
  .expectativa-label {
@@ -1178,8 +1180,14 @@
 
  .expectativa-meta {
    color: #ff9800;
-   text-align: center;
+  text-align: center;
  }
+
+/* Ensure meta card label/value stay centered even when modal forces numeric right-align */
+.expectativa-meta-card .expectativa-label,
+.expectativa-meta-card .expectativa-value.expectativa-meta {
+  text-align: center !important;
+}
 
  .expectativa-pct {
    color: #333;

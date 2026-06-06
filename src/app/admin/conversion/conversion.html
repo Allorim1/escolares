@@ -283,7 +283,7 @@
       <div class="tasas-faltantes-list">
         @for (fecha of fechasSinTasa(); track fecha) {
           <div class="tasa-faltante-item">
-            <span class="tasa-fecha">{{ fecha }} ({{ diaSemanaLabel(fecha) }})</span>
+            <span class="tasa-fecha">{{ formatFechaDisplay(fecha) }} ({{ diaSemanaLabel(fecha) }})</span>
             @if (tasasManuales().has(fecha)) {
               <span class="tasa-manual-valor">{{ tasasManuales().get(fecha) }}</span>
               <button class="btn-remove-tasa" (click)="eliminarTasaManual(fecha)">✕</button>
@@ -312,7 +312,7 @@
       <div class="tasas-faltantes-list">
         @for (fecha of fechasSinTasaAnterior(); track fecha) {
           <div class="tasa-faltante-item">
-            <span class="tasa-fecha">{{ fecha }} ({{ diaSemanaLabel(fecha) }})</span>
+            <span class="tasa-fecha">{{ formatFechaDisplay(fecha) }} ({{ diaSemanaLabel(fecha) }})</span>
             @if (tasasAnterioresManuales().has(fecha)) {
               <span class="tasa-manual-valor">{{ tasasAnterioresManuales().get(fecha) }}</span>
               <button class="btn-remove-tasa" (click)="eliminarTasaAnteriorManual(fecha)">✕</button>
@@ -376,7 +376,7 @@
           <tbody>
             @for (r of resultados(); track $index) {
               <tr [class.sin-tasa]="r.tasa === 0">
-                <td>{{ r.fecha }}</td>
+                <td>{{ formatFechaDisplay(r.fecha) }}</td>
                 @for (col of getColumnasExtra(); track col) {
                   <td>{{ r.columnasExtra[col] ?? '' }}</td>
                 }
@@ -436,7 +436,7 @@
                 <tbody>
                   @for (c of comparacionesActual(); track c.fecha) {
                     <tr>
-                      <td>{{ c.fecha }}</td>
+                      <td>{{ formatFechaDisplay(c.fecha) }}</td>
                       <td>{{ c.dia }}</td>
                       <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
                       <td class="num">{{ c.tasaActual > 0 ? formatearMoneda(c.tasaActual) : '-' }}</td>
@@ -473,7 +473,7 @@
                 <tbody>
                   @for (c of comparacionesAnterior(); track c.fecha) {
                     <tr>
-                      <td>{{ c.fecha }}</td>
+                      <td>{{ formatFechaDisplay(c.fecha) }}</td>
                       <td>{{ c.dia }}</td>
                       <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
                       <td class="num">{{ c.tasaAnterior > 0 ? formatearMoneda(c.tasaAnterior) : '-' }}</td>
@@ -540,7 +540,7 @@
             <span>Comparación Día a Día </span>
             <div class="meta-input-container">
               <label>Meta (%):</label>
-              <input type="number" class="meta-input" [(ngModel)]="metaVariacion" min="0" max="100">
+              <input type="number" class="meta-input" [(ngModel)]="metaVariacionValue" min="0" max="100">
               <button class="btn-export" (click)="imprimirComparacionDiaPorDia()">🖨️ Imprimir</button>
             </div>
           </div>
@@ -560,9 +560,9 @@
                 @for (r of getComparacionDiaPorDia(); track r.fechaActual + r.fechaAnterior + $index) {
                   <tr>
                     <td>{{ r.dia }}</td>
-                    <td>{{ r.fechaActual }}</td>
+                    <td>{{ formatFechaDisplay(r.fechaActual) }}</td>
                     <td class="num">{{ r.actual > 0 ? '$ ' + formatearMoneda(r.actual) : '-' }}</td>
-                    <td>{{ r.fechaAnterior }}</td>
+                    <td>{{ formatFechaDisplay(r.fechaAnterior) }}</td>
                     <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
                     <td class="num" 
                       [class.positivo]="r.variacion > 0" 
@@ -624,11 +624,11 @@
             <div class="meta-config-container">
               <div class="meta-input-group">
                 <label>Porcentaje de Meta (%):</label>
-                <input type="number" class="meta-input-large" [(ngModel)]="metaVariacion" min="0" max="200" step="1">
+                <input type="number" class="meta-input-large" [(ngModel)]="metaVariacionValue" min="0" max="200" step="1">
               </div>
               <div class="meta-info">
                 <span class="meta-info-label">Período de ventas:</span>
-                <span class="meta-info-value">{{ resultadosAnterior().length > 0 ? resultadosAnterior()[0].fecha + ' - ' + resultadosAnterior()[resultadosAnterior().length - 1].fecha : '-' }}</span>
+                <span class="meta-info-value">{{ resultadosAnterior().length > 0 ? formatFechaDisplay(resultadosAnterior()[0].fecha) + ' - ' + formatFechaDisplay(resultadosAnterior()[resultadosAnterior().length - 1].fecha) : '-' }}</span>
               </div>
             </div>
           </div>
@@ -682,7 +682,7 @@
                 <tbody>
                   @for (e of getExpectativasPorDia(); track e.fecha) {
                     <tr>
-                      <td>{{ e.fecha }}</td>
+                      <td>{{ formatFechaDisplay(e.fecha) }}</td>
                       <td>{{ e.dia }}</td>
                       <td class="expectativa-anterior-bs numeric">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
                       <td class="expectativa-anterior-usd numeric">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
@@ -784,7 +784,7 @@
               @for (e of getExpectativasPorDia(); track e.fecha) {
                 <label class="checkbox-label">
                   <input type="checkbox" [checked]="diasSeleccionados().has(e.fecha)" (change)="toggleDiaSeleccionado(e.fecha)">
-                  {{ e.fecha }} ({{ e.dia }})
+                  {{ formatFechaDisplay(e.fecha) }} ({{ e.dia }})
                 </label>
               }
             </div>

@@ -168,6 +168,12 @@ comparaciones = signal<ComparacionResultado[]>([]);
     mostrarModalExpectativas = signal(false);
     mostrarModalImpresion = signal(false);
     metaVariacion = signal(30);
+    get metaVariacionValue(): number {
+      return this.metaVariacion();
+    }
+    set metaVariacionValue(v: number) {
+      this.metaVariacion.set(Number(v));
+    }
     comentarioImpresion = signal('');
     columnaFechaVisible = signal(true);
     columnaDiaVisible = signal(true);
@@ -1908,6 +1914,31 @@ cumpleMeta(variacion: number): boolean {
        : 0;
    }
 
+  formatFechaDisplay(fecha: string | Date | null | undefined): string {
+    if (!fecha) return '';
+    if (fecha instanceof Date && !isNaN(fecha.getTime())) {
+      const dia = String(fecha.getDate()).padStart(2, '0');
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      const anio = fecha.getFullYear();
+      return `${dia}/${mes}/${anio}`;
+    }
+    if (typeof fecha === 'string') {
+      const isoMatch = fecha.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (isoMatch) {
+        const [, year, month, day] = isoMatch;
+        return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+      }
+      const parsedDate = new Date(fecha);
+      if (!isNaN(parsedDate.getTime())) {
+        const dia = String(parsedDate.getDate()).padStart(2, '0');
+        const mes = String(parsedDate.getMonth() + 1).padStart(2, '0');
+        const anio = parsedDate.getFullYear();
+        return `${dia}/${mes}/${anio}`;
+      }
+    }
+    return '';
+  }
+
   getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const actuales = this.resultados();
@@ -2193,22 +2224,37 @@ imprimirExpectativas() {
               display: flex;
               flex-direction: column;
             }
+            .print-header {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              margin-bottom: 12px;
+            }
+            .print-logo {
+              width: 90px;
+              max-height: 90px;
+              object-fit: contain;
+            }
+            .print-title-section {
+              flex: 1;
+              text-align: center;
+            }
             h1 { color: #1d63c1; text-align: center; font-size: 16pt; margin: 0 0 6px 0; }
-            .meta-info { text-align: center; margin-bottom: 6px; font-size: 10pt; }
+            .meta-info { text-align: center; margin-bottom: 6px; font-size: 10.5pt; }
             table { 
               width: 100%; 
               border-collapse: collapse;
               flex: 1;
-              font-size: 8.5pt;
+              font-size: 9pt;
             }
             th, td { 
               border: 1px solid #666; 
               padding: 4px 6px; 
               text-align: left;
-              font-size: 8.5pt;
+              font-size: 9pt;
               line-height: 1.25;
             }
-            th { background: #ff9800; color: white; font-weight: 600; }
+            th { background: #ff9800; color: white; font-weight: 700; font-size: 9.5pt; }
             th.numeric, td.numeric { text-align: right; }
             .expectativa-meta { text-align: right; }
             .comment { 
@@ -2220,9 +2266,11 @@ imprimirExpectativas() {
               font-size: 8pt;
             }
             .footer { 
-              margin-top: 5px; 
-              font-size: 7pt; 
-              color: #666;
+              margin-top: 10px; 
+              font-size: 10pt; 
+              color: #333;
+              font-weight: 600;
+              text-align: right;
             }
             input[type="checkbox"] { 
               width: 16px; 
@@ -2239,8 +2287,13 @@ imprimirExpectativas() {
         </head>
         <body>
           <div class="container">
-            <h1>🎯 Metas Ventas</h1>
-            <div class="meta-info">Período de ventas: ${resultadosAnterior.length > 0 ? resultadosAnterior[0].fecha + ' - ' + resultadosAnterior[resultadosAnterior.length - 1].fecha : '-'}</div>
+            <div class="print-header">
+              <img src="/ESCOLARES AZUL RIF GRANDE.png" class="print-logo" alt="Escolares logo">
+              <div class="print-title-section">
+                <h1>Metas Ventas</h1>
+                <div class="meta-info">Período de ventas: ${resultadosAnterior.length > 0 ? this.formatFechaDisplay(resultadosAnterior[0].fecha) + ' - ' + this.formatFechaDisplay(resultadosAnterior[resultadosAnterior.length - 1].fecha) : '-'}</div>
+              </div>
+            </div>
             <table>
               <thead>
                 <tr>
@@ -2265,7 +2318,7 @@ if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th
       
       for (const e of expectativas) {
         html += '<tr>';
-        if (this.columnaFechaVisible()) html += `<td>${e.fecha}</td>`;
+        if (this.columnaFechaVisible()) html += `<td>${this.formatFechaDisplay(e.fecha)}</td>`;
         if (this.columnaDiaVisible()) html += `<td>${e.dia}</td>`;
 if (this.columnaAnteriorBsVisible()) html += `<td class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
          if (this.columnaAnteriorUSDVisible()) html += `<td class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
@@ -2289,7 +2342,7 @@ html += `
          html += `<div class="comment" style="margin-top: auto;"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
        }
       
-      html += `<div class="footer"><p>Fecha: ${new Date().toLocaleDateString('es-VE')}</p></div>
+      html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p></div>
           </div>
         </body>
         </html>
@@ -2335,8 +2388,23 @@ html += `
             display: flex;
             flex-direction: column;
           }
+          .print-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+          }
+          .print-logo {
+            width: 90px;
+            max-height: 90px;
+            object-fit: contain;
+          }
+          .print-title-section {
+            flex: 1;
+            text-align: center;
+          }
           h1 { color: #e65100; text-align: center; font-size: 16pt; margin: 0 0 6px 0; }
-          .meta-info { text-align: center; margin-bottom: 6px; font-size: 10pt; }
+          .meta-info { text-align: center; margin-bottom: 6px; font-size: 10.5pt; }
           table {
             width: 100%;
             border-collapse: collapse;
@@ -2347,22 +2415,29 @@ html += `
             border: 1px solid #666;
             padding: 4px 6px;
             text-align: left;
-            font-size: 8.5pt;
+            font-size: 9pt;
             line-height: 1.25;
           }
-          th { background: #e65100; color: white; font-weight: 600; }
+          th { background: #e65100; color: white; font-weight: 700; font-size: 9.5pt; }
           th.numeric, td.numeric { text-align: right; }
           .footer {
             margin-top: 6px;
-            font-size: 7pt;
-            color: #666;
+            font-size: 10pt;
+            color: #333;
+            font-weight: 600;
+            text-align: right;
           }
         </style>
       </head>
       <body>
         <div class="container">
-          <h1>📊 Comparación Día a Día</h1>
-          <div class="meta-info">Meta: ${this.metaVariacion()}% | Total Actual: $ ${this.formatearMoneda(totalActual)} | Total Anterior: ${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</div>
+          <div class="print-header">
+            <img src="/ESCOLARES AZUL RIF GRANDE.png" class="print-logo" alt="Escolares logo">
+            <div class="print-title-section">
+              <h1>📊 Comparación Día a Día</h1>
+              <div class="meta-info">Meta: ${this.metaVariacion()}% | Total Actual: $ ${this.formatearMoneda(totalActual)} | Total Anterior: ${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</div>
+            </div>
+          </div>
           <table>
             <thead>
               <tr>
@@ -2381,9 +2456,9 @@ html += `
       html += `
               <tr>
                 <td>${r.dia}</td>
-                <td>${r.fechaActual}</td>
+                <td>${this.formatFechaDisplay(r.fechaActual)}</td>
                 <td class="numeric">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
-                <td>${r.fechaAnterior}</td>
+                <td>${this.formatFechaDisplay(r.fechaAnterior)}</td>
                 <td class="numeric">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
                 <td class="numeric">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
               </tr>
@@ -2403,7 +2478,7 @@ html += `
               </tr>
             </tfoot>
           </table>
-          <div class="footer">Fecha: ${new Date().toLocaleDateString('es-VE')}</div>
+          <div class="footer">Fecha: ${this.formatFechaDisplay(new Date())}</div>
         </div>
       </body>
       </html>

@@ -1148,6 +1148,12 @@
 .modal-expectativas .result-table td {
   white-space: nowrap;
   padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+}
+
+.modal-expectativas .result-table th.numeric,
+.modal-expectativas .result-table td.numeric {
+  text-align: right;
 }
 
 .modal-expectativas .expectativa-tasa,
@@ -1156,8 +1162,9 @@
 .modal-expectativas .expectativa-target-usd,
 .modal-expectativas .expectativa-target-bs,
 .modal-expectativas .expectativa-anterior-bs,
-.modal-expectativas .expectativa-anterior-usd {
-  text-align: left !important;
+.modal-expectativas .expectativa-anterior-usd,
+.modal-expectativas .expectativa-meta {
+  text-align: right !important;
 }
 
 .modal-impresion {

@@ -2065,21 +2065,24 @@ imprimirExpectativas() {
               display: flex;
               flex-direction: column;
             }
-            h1 { color: #1d63c1; text-align: center; font-size: 14pt; margin: 0 0 5px 0; }
-            .meta-info { text-align: center; margin-bottom: 5px; font-size: 9pt; }
+            h1 { color: #1d63c1; text-align: center; font-size: 16pt; margin: 0 0 6px 0; }
+            .meta-info { text-align: center; margin-bottom: 6px; font-size: 10pt; }
             table { 
               width: 100%; 
               border-collapse: collapse;
               flex: 1;
+              font-size: 8.5pt;
             }
             th, td { 
               border: 1px solid #666; 
-              padding: 3px 5px; 
+              padding: 4px 6px; 
               text-align: left;
-              font-size: 7pt;
-              line-height: 1.2;
+              font-size: 8.5pt;
+              line-height: 1.25;
             }
             th { background: #ff9800; color: white; font-weight: 600; }
+            th.numeric, td.numeric { text-align: right; }
+            .expectativa-meta { text-align: right; }
             .comment { 
               margin-top: auto;
               margin-bottom: 5px;
@@ -2117,13 +2120,13 @@ imprimirExpectativas() {
       
       if (this.columnaFechaVisible()) html += '<th>Fecha</th>';
       if (this.columnaDiaVisible()) html += '<th>Día</th>';
-      if (this.columnaAnteriorBsVisible()) html += '<th>Ventas Ant. (Bs)</th>';
-      if (this.columnaAnteriorUSDVisible()) html += '<th>Ventas Ant. ($)</th>';
-      if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
-if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
-       if (this.columnaMetaExtraBsVisible()) html += '<th>Meta (Bs)</th>';
-       if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
-       if (this.columnaTargetBsVisible()) html += '<th>Total (Bs)</th>';
+      if (this.columnaAnteriorBsVisible()) html += '<th class="numeric">Ventas Ant. (Bs)</th>';
+      if (this.columnaAnteriorUSDVisible()) html += '<th class="numeric">Ventas Ant. ($)</th>';
+      if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
+if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
+       if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
+       if (this.columnaTargetUSDVisible()) html += '<th class="numeric">Total ($)</th>';
+       if (this.columnaTargetBsVisible()) html += '<th class="numeric">Total (Bs)</th>';
       html += '<th>Cumplido</th>';
       
       html += `
@@ -2136,13 +2139,13 @@ if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
         html += '<tr>';
         if (this.columnaFechaVisible()) html += `<td>${e.fecha}</td>`;
         if (this.columnaDiaVisible()) html += `<td>${e.dia}</td>`;
-if (this.columnaAnteriorBsVisible()) html += `<td class="expectativa-anterior-bs">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
-         if (this.columnaAnteriorUSDVisible()) html += `<td class="expectativa-anterior-usd">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
-if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
-         if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
-         if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
-         if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd">$${this.formatearMoneda(e.targetUSD)}</td>`;
-         if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+if (this.columnaAnteriorBsVisible()) html += `<td class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+         if (this.columnaAnteriorUSDVisible()) html += `<td class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
+         if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+         if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+         if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
+         if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
          html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
         html += '</tr>';
       }

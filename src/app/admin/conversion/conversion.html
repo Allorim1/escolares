@@ -289,6 +289,44 @@
         </div>
 
         <div class="comparacion-tables-container">
+
+            <div class="tabla-anterior">
+            <div class="tabla-header">Año Anterior</div>
+            <div class="result-table-wrapper">
+              <table class="result-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Día</th>
+                    <th>Ventas (Bs)</th>
+                    <th>Tasa USD</th>
+                    <th>Convertido ($)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of comparacionesAnterior(); track c.fecha) {
+                    <tr>
+                      <td>{{ formatFechaDisplay(c.fecha) }}</td>
+                      <td>{{ c.dia }}</td>
+                      <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
+                      <td class="num">{{ c.tasaAnterior > 0 ? formatearMoneda(c.tasaAnterior) : '-' }}</td>
+                      <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr class="total-row">
+                    <td><strong>TOTAL</strong></td>
+                    <td></td>
+                    <td class="num"><strong>{{ totalOriginalAnterior() > 0 ? 'Bs ' + formatearMoneda(totalOriginalAnterior()) : '-' }}</strong></td>
+                    <td></td>
+                    <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
           <div class="tabla-actual">
             <div class="tabla-header">Año Actual</div>
             <div class="result-table-wrapper">
@@ -326,42 +364,7 @@
             </div>
           </div>
 
-          <div class="tabla-anterior">
-            <div class="tabla-header">Año Anterior</div>
-            <div class="result-table-wrapper">
-              <table class="result-table">
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Día</th>
-                    <th>Ventas (Bs)</th>
-                    <th>Tasa USD</th>
-                    <th>Convertido ($)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (c of comparacionesAnterior(); track c.fecha) {
-                    <tr>
-                      <td>{{ formatFechaDisplay(c.fecha) }}</td>
-                      <td>{{ c.dia }}</td>
-                      <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
-                      <td class="num">{{ c.tasaAnterior > 0 ? formatearMoneda(c.tasaAnterior) : '-' }}</td>
-                      <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
-                    </tr>
-                  }
-                </tbody>
-                <tfoot>
-                  <tr class="total-row">
-                    <td><strong>TOTAL</strong></td>
-                    <td></td>
-                    <td class="num"><strong>{{ totalOriginalAnterior() > 0 ? 'Bs ' + formatearMoneda(totalOriginalAnterior()) : '-' }}</strong></td>
-                    <td></td>
-                    <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
+
         </div>
 
         <div class="comparacion-divider"></div>
@@ -450,21 +453,21 @@
           <div class="resumen-header">Resumen de Comparación (USD)</div>
           <div class="resumen-grid resumen-grid-compacto">
             <div class="resumen-item">
-              <div class="resumen-label">Ganancia Año Actual</div>
-              <div class="resumen-value">$ {{ formatearMoneda(totalConvertido()) }}</div>
-            </div>
-            <div class="resumen-item">
-              <div class="resumen-label">Ganancia Año Anterior</div>
+              <div class="resumen-label">Ventas Año Anterior</div>
               <div class="resumen-value">$ {{ formatearMoneda(totalConvertidoAnterior()) }}</div>
             </div>
             <div class="resumen-item">
-              <div class="resumen-label">Margen de Ganancia</div>
+              <div class="resumen-label">Ventas Año Actual</div>
+              <div class="resumen-value">$ {{ formatearMoneda(totalConvertido()) }}</div>
+            </div>
+            <div class="resumen-item">
+              <div class="resumen-label">Diferencias en Ventas</div>
               <div class="resumen-value" [class.positivo]="diferenciaUSD() > 0" [class.negativo]="diferenciaUSD() < 0">
                 {{ diferenciaUSD() > 0 ? '+' : '' }}$ {{ formatearMoneda(diferenciaUSD()) }}
               </div>
             </div>
             <div class="resumen-item">
-              <div class="resumen-label">Variación USD</div>
+              <div class="resumen-label">Diferencia en Porcentaje</div>
               <div class="resumen-value" [class.positivo]="variacionUSDPorcentaje() > 0" [class.negativo]="variacionUSDPorcentaje() < 0">
                 {{ variacionUSDPorcentaje() > 0 ? '+' : '' }}{{ variacionUSDPorcentaje() }}%
               </div>

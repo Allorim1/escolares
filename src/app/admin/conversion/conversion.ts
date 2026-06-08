@@ -982,42 +982,11 @@ procesar() {
           return;
         }
 
-        if (todasLasTasas.size === 0 && promedioActual <= 0) {
-          // Si no hay tasas pero hay Ventas Anterior con tasasAnteriores, continuar
-          // El error se mostrará más abajo si no hay ninguna tasa disponible
-        }
-
-        // Procesar ventas actual...
         this.procesarVentasActual(ventasRows, this.columnaFechaVentas(), this.columnaTotalVentas(), todasLasTasas, promedioActual);
       }
 
-      // Si solo hay Ventas Anterior sin Ventas Actual
-      if (!tieneVentasActual && tieneVentasAnterior) {
-        // Usar tasas anteriores para Ventas Anterior
-        const tasasAnterioresBase = this.tasasAnterioresMap();
-        const tasasAnterioresManual = this.tasasAnterioresManuales();
-        let todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
-        const promedioAnterior = this.promedioTasaAnterior();
-
-        // Si no hay tasas anteriores, usar tasas actuales como fallback
-        if (todasLasTasasAnteriores.size === 0 && todasLasTasas.size > 0) {
-          todasLasTasasAnteriores = new Map(todasLasTasas);
-        } else if (todasLasTasasAnteriores.size === 0 && promedioAnterior > 0) {
-          // El procesarSoloAnterior usará el promedio si no hay tasas
-        } else if (todasLasTasasAnteriores.size === 0 && todasLasTasas.size === 0 && promedioAnterior <= 0) {
-          this.error.set('Debe cargar tasas o ingresar la tasa promedio anterior primero');
-          this.procesando.set(false);
-          return;
-        }
-
-        // Procesar Ventas Anterior
-        this.procesarSoloAnterior();
-        // Copiar resultadosAnterior a resultados para mostrar
-        this.resultados.set(this.resultadosAnterior());
-        this.totalOriginal.set(this.totalOriginalAnterior());
-        this.totalConvertido.set(this.totalConvertidoAnterior());
-      } else if (tieneVentasAnterior && this.tasasAnterioresMap().size > 0) {
-        // Procesar Ventas Año Anterior si existe
+      // Procesar Ventas Año Anterior si existe
+      if (tieneVentasAnterior) {
         this.procesarSoloAnterior();
       }
 
@@ -2014,25 +1983,31 @@ cumpleMeta(variacion: number): boolean {
     return resultado.filter(r => r.fechaActual || r.fechaAnterior);
   }
 
-  procesarSoloAnterior() {
-    let todasLasTasasAnteriores = new Map<string, number>([
-      ...this.tasasAnterioresMap(),
-      ...this.tasasAnterioresManuales()
-    ]);
+procesarSoloAnterior() {
+     let todasLasTasasAnteriores = new Map<string, number>([
+       ...this.tasasAnterioresMap(),
+       ...this.tasasAnterioresManuales()
+     ]);
 
-    // Si no hay tasas anteriores, usar las actuales como fallback
-    if (todasLasTasasAnteriores.size === 0 && this.tasasMap().size > 0) {
-      todasLasTasasAnteriores = new Map(this.tasasMap());
-    }
+     // Si no hay tasas anteriores, usar las actuales como fallback
+     if (todasLasTasasAnteriores.size === 0 && this.tasasMap().size > 0) {
+       todasLasTasasAnteriores = new Map(this.tasasMap());
+     }
 
-    if (this.ventasAnteriorRaw().length < 2 || todasLasTasasAnteriores.size === 0) return;
+     // Si aún no hay tasas, usar promedio anterior
+     if (todasLasTasasAnteriores.size === 0 && this.promedioTasaAnterior() > 0) {
+       todasLasTasasAnteriores = new Map();
+       // El promedio se aplicará en el procesamiento
+     }
 
-    const ventasAnteriorRows = this.ventasAnteriorRaw();
-    const ventasAnteriorHeaders = ventasAnteriorRows[0];
-    const idxFechaAnterior = ventasAnteriorHeaders.indexOf(this.columnaFechaAnterior());
-    const idxTotalAnterior = ventasAnteriorHeaders.indexOf(this.columnaTotalAnterior());
+     if (this.ventasAnteriorRaw().length < 2) return;
 
-    if (idxFechaAnterior < 0 || idxTotalAnterior < 0) return;
+     const ventasAnteriorRows = this.ventasAnteriorRaw();
+     const ventasAnteriorHeaders = ventasAnteriorRows[0];
+     const idxFechaAnterior = ventasAnteriorHeaders.indexOf(this.columnaFechaAnterior());
+     const idxTotalAnterior = ventasAnteriorHeaders.indexOf(this.columnaTotalAnterior());
+
+     if (idxFechaAnterior < 0 || idxTotalAnterior < 0) return;
 
     const fechasFaltantesAnterior: string[] = [];
     const fechasVentasAnterior = new Set<string>();
@@ -2068,6 +2043,12 @@ cumpleMeta(variacion: number): boolean {
       }
     }
 
+    // Usar promedio anterior como fallback si no hay tasas
+    const promedioAnterior = this.promedioTasaAnterior();
+    if (todasLasTasasAnteriores.size === 0 && promedioAnterior > 0) {
+      fechasVentasAnterior.forEach(fecha => todasLasTasasAnteriores.set(fecha, promedioAnterior));
+    }
+
     this.fechasSinTasaAnterior.set(fechasFaltantesAnterior);
 
     const resAnterior = this.calcularResultados(
@@ -2081,13 +2062,13 @@ cumpleMeta(variacion: number): boolean {
     this.totalConvertidoAnterior.set(resAnterior.totalConv);
   }
 
-  abrirModalExpectativas() {
-    if (this.ventasRaw().length >= 2 && this.tasasMap().size > 0 && this.resultados().length === 0) {
-      this.procesar();
+abrirModalExpectativas() {
+      // Procesar Ventas Año Anterior si no está procesada
+      if (this.ventasAnteriorRaw().length >= 2 && this.resultadosAnterior().length === 0) {
+        this.procesarSoloAnterior();
+      }
+      this.mostrarModalExpectativas.set(true);
     }
-    this.procesarSoloAnterior();
-    this.mostrarModalExpectativas.set(true);
-  }
 
   getExpectativasPorDia(): { fecha: string; dia: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number; metaExtraUSD: number; metaExtraBs: number }[] {
     const resultadosAnterior = this.resultadosAnterior();

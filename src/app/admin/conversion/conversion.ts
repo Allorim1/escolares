@@ -169,21 +169,22 @@ comparaciones = signal<ComparacionResultado[]>([]);
     columnaMetaExtraBsVisible = signal(true);
     diasSeleccionados = signal<Set<string>>(new Set());
 
-calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
-     const totalAnteriorUSD = this.totalConvertidoAnterior();
-     const meta = this.metaVariacion();
-     const tasaPromedio = this.tasaPromedioActual() || this.tasaPromedioAnterior() || this.promedioTasaActual() || this.promedioTasaAnterior();
-     
-     const targetUSD = totalAnteriorUSD > 0 
-       ? Math.round(totalAnteriorUSD * (1 + meta / 100) * 100) / 100 
-       : 0;
-     
-     const targetBs = tasaPromedio > 0 
-       ? Math.round(targetUSD * tasaPromedio * 100) / 100 
-       : 0;
-     
-     return { targetUSD, targetBs, tasaPromedio };
-   }
+  calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
+      const totalAnteriorUSD = this.totalConvertidoAnterior();
+      const meta = this.metaVariacion();
+      const tasaPromedio = this.tasaPromedioActual() || this.tasaPromedioAnterior() || this.promedioTasaActual() || this.promedioTasaAnterior();
+      const tasaPromedioActual = this.tasaPromedioActual() || this.promedioTasaActual();
+      
+      const targetUSD = totalAnteriorUSD > 0 
+        ? Math.round(totalAnteriorUSD * (1 + meta / 100) * 100) / 100 
+        : 0;
+      
+      const targetBs = tasaPromedioActual > 0 
+        ? Math.round(targetUSD * tasaPromedioActual * 100) / 100 
+        : 0;
+      
+      return { targetUSD, targetBs, tasaPromedio };
+    }
 
    onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;

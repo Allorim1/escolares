@@ -210,37 +210,6 @@ import { RouterLink } from '@angular/router';
         transition: transform 0.5s ease-in-out;
       }
 
-      .carousel-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(0, 0, 0, 0.5);
-        color: white;
-        border: none;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 1.5rem;
-        z-index: 2;
-        transition: background 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .carousel-btn:hover {
-        background: rgba(0, 0, 0, 0.7);
-      }
-
-      .carousel-btn.prev {
-        left: 0;
-      }
-
-      .carousel-btn.next {
-        right: 0;
-      }
-
       .marca-slide {
         flex: 0 0 200px;
         display: flex;
@@ -248,6 +217,12 @@ import { RouterLink } from '@angular/router';
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .marca-slide:hover .marca-image {
+        transform: scale(1.05);
       }
 
       .marca-image {
@@ -259,10 +234,6 @@ import { RouterLink } from '@angular/router';
         padding: 1rem;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         transition: transform 0.2s;
-      }
-
-      .marca-image:hover {
-        transform: scale(1.05);
       }
 
       .marca-placeholder {
@@ -284,34 +255,6 @@ import { RouterLink } from '@angular/router';
         color: #333;
         font-weight: 500;
         text-align: center;
-      }
-
-      .carousel-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(0, 0, 0, 0.5);
-        color: white;
-        border: none;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 1.2rem;
-        z-index: 2;
-        transition: background 0.2s;
-      }
-
-      .carousel-btn:hover {
-        background: rgba(0, 0, 0, 0.7);
-      }
-
-      .carousel-btn.prev {
-        left: 0;
-      }
-
-      .carousel-btn.next {
-        right: 0;
       }
 
       .newsletter-section {

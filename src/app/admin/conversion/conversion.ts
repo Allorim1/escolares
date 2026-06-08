@@ -117,11 +117,9 @@ export class Conversion implements OnInit {
        next: (tasa) => {
          const mapaTasas = new Map<string, number>();
          tasa.tasas.forEach(t => mapaTasas.set(t.fecha, t.valor));
-         this.tasasAnterioresMap.set(mapaTasas);
-         this.tasasAnterioresNombre.set(tasa.nombre);
-         const preview: any[][] = [['Fecha', 'Tasa'], ...tasa.tasas.map(t => [t.fecha, t.valor])];
-         this.tasasAnterioresPreview.set(preview.slice(0, 11));
-         this.error.set('');
+this.tasasAnterioresMap.set(mapaTasas);
+          this.tasasAnterioresNombre.set(tasa.nombre);
+          this.error.set('');
        },
        error: (err) => this.error.set('Error al cargar tasas anteriores desde BD')
      });
@@ -404,10 +402,23 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
       for (let i = 1; i < lines.length; i++) {
         rows.push(this.parseCSVLine(lines[i]));
       }
-      this.tasasAnterioresFilas.set(rows);
-      this.tasasAnterioresColumnas.set(headers);
       this.tasasAnterioresNombre.set(file.name);
-      this.tasasAnterioresPreview.set(rows.slice(0, 6));
+
+      // Procesar filas de tasas anteriores para extraer mapa de fechas
+      const mapaTasas = new Map<string, number>();
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        for (let j = 0; j < row.length; j++) {
+          const fecha = this.normalizarFecha(row[j]);
+          if (fecha) {
+            const tasa = this.parseNumber(row[j + 1] ?? row[1]);
+            if (tasa > 0) {
+              mapaTasas.set(fecha, tasa);
+            }
+          }
+        }
+      }
+      this.tasasAnterioresMap.set(mapaTasas);
     };
     reader.readAsText(file);
   }
@@ -473,9 +484,7 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
       }
 
       this.ventasAnteriorRaw.set(dataRows);
-      this.ventasAnteriorColumnas.set(headers);
       this.ventasAnteriorNombre.set(file.name);
-      this.ventasAnteriorPreview.set(dataRows.slice(0, 6));
       this.columnaFechaAnterior.set('FECHA');
       this.columnaTotalAnterior.set('VENTAS');
     };
@@ -541,9 +550,7 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
         );
 
         this.ventasAnteriorRaw.set(rows);
-        this.ventasAnteriorColumnas.set(headers);
         this.ventasAnteriorNombre.set(file.name);
-        this.ventasAnteriorPreview.set(rows.slice(0, 6));
         if (colFecha) this.columnaFechaAnterior.set(colFecha);
         if (colTotal) this.columnaTotalAnterior.set(colTotal);
       } catch (err) {
@@ -668,13 +675,6 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
 
         this.tasasAnterioresMap.set(mapaTasas);
         this.tasasAnterioresNombre.set(file.name);
-        this.tasasAnterioresColumnas.set(['Fecha', 'Tasa']);
-
-        const preview: any[][] = [['Fecha', 'Tasa']];
-        mapaTasas.forEach((tasa, fecha) => {
-          preview.push([fecha, tasa]);
-        });
-        this.tasasAnterioresPreview.set(preview.slice(0, 11));
       } catch (err) {
         console.error('Error parsing Excel tasas anteriores:', err);
         this.error.set('Error al leer el archivo Excel de tasas anteriores: ' + (err as Error).message);

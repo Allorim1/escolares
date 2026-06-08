@@ -1869,7 +1869,39 @@ cumpleMeta(variacion: number): boolean {
        : 0;
    }
 
-  formatFechaDisplay(fecha: string | Date | null | undefined): string {
+   getPeriodoVentasAnterior(): string {
+     const resultadosAnterior = this.resultadosAnterior();
+     if (resultadosAnterior.length === 0) return '';
+     
+     const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+     
+     const fechas = resultadosAnterior.map(r => r.fecha);
+     const primerFecha = fechas[0];
+     const ultimaFecha = fechas[fechas.length - 1];
+     
+     if (!primerFecha || !ultimaFecha) return '';
+     
+     const fechaObj = new Date(primerFecha + 'T00:00:00');
+     const anio = fechaObj.getFullYear();
+     const mes = fechaObj.getMonth();
+     
+     // Verificar si todas son del mismo mes
+     const mismoMes = fechas.every(f => {
+       const d = new Date(f + 'T00:00:00');
+       return d.getMonth() === mes && d.getFullYear() === anio;
+     });
+     
+if (mismoMes) {
+        return `${meses[mes]} ${anio + 1}`;
+      }
+      
+      const fechaUltimaObj = new Date(ultimaFecha + 'T00:00:00');
+      const anioUltima = fechaUltimaObj.getFullYear();
+      return `${this.formatFechaDisplay(primerFecha)} - ${this.formatFechaDisplay(ultimaFecha)} ${anioUltima + 1}`;
+   }
+
+   formatFechaDisplay(fecha: string | Date | null | undefined): string {
     if (!fecha) return '';
     if (fecha instanceof Date && !isNaN(fecha.getTime())) {
       const dia = String(fecha.getDate()).padStart(2, '0');
@@ -2227,10 +2259,10 @@ imprimirExpectativas() {
         <body>
           <div class="container">
             <div class="print-header">
-              <img src="/public/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
+              <img src="/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
               <div class="print-title-section">
-                <h1>Metas Ventas</h1>
-                <div class="meta-info">Período de ventas: ${resultadosAnterior.length > 0 ? this.formatFechaDisplay(resultadosAnterior[0].fecha) + ' - ' + this.formatFechaDisplay(resultadosAnterior[resultadosAnterior.length - 1].fecha) : '-'}</div>
+<h1 style="font-size: 42px; margin: 0;>Metas Ventas ${this.getPeriodoVentasAnterior() ? '- ' + this.getPeriodoVentasAnterior() : ''}</h1>
+                 <div class="meta-info">Período: ${this.getPeriodoVentasAnterior()}</div>
               </div>
             </div>
             <table>

@@ -447,7 +447,7 @@
     <div class="modal-overlay" (click)="cerrarModalExpectativas()">
       <div class="modal-content modal-expectativas" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>🎯 Expectativas de Ventas</h3>
+          <h3> Metas Ventas {{ getPeriodoVentasAnterior() ? '- ' + getPeriodoVentasAnterior() : '' }}</h3>
           <button class="modal-close" (click)="cerrarModalExpectativas()">✕</button>
         </div>
 

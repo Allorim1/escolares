@@ -13,15 +13,15 @@
       <div class="carousel-viewport">
         <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
           @for (marca of duplicatedMarcas; track marca.id + '-' + $index) {
-            <div class="marca-slide">
-              @if (marca.image) {
-                <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
-              } @else {
-                <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
-              }
-              <span class="marca-name">{{ marca.name }}</span>
-            </div>
-          }
+             <a [routerLink]="['/products/collection', marca.name]" class="marca-slide">
+               @if (marca.image) {
+                 <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
+               } @else {
+                 <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
+               }
+               <span class="marca-name">{{ marca.name }}</span>
+             </a>
+           }
         </div>
       </div>
       <button class="carousel-btn next" (click)="next()">›</button>

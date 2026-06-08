@@ -39,18 +39,10 @@ export class Conversion implements OnInit {
   ventasNombre = signal('');
   tasasNombre = signal('');
 
-  ventasColumnas = signal<string[]>([]);
-  tasasColumnas = signal<string[]>([]);
-  tasasFilas = signal<any[][]>([]);
-
-  columnaFechaVentas = signal('');
-  columnaTotalVentas = signal('');
-
   ventasRaw = signal<any[][]>([]);
   tasasMap = signal<Map<string, number>>(new Map());
-
-  ventasPreview = signal<any[][]>([]);
-  tasasPreview = signal<any[][]>([]);
+  columnaFechaVentas = signal('');
+  columnaTotalVentas = signal('');
 
   resultados = signal<FilaResultado[]>([]);
   procesando = signal(false);
@@ -62,40 +54,31 @@ export class Conversion implements OnInit {
   tasasManuales = signal<Map<string, number>>(new Map());
   fechasSinTasa = signal<string[]>([]);
 
-  // Archivo de ventas del período anterior
   ventasAnteriorNombre = signal('');
   ventasAnteriorRaw = signal<any[][]>([]);
-  ventasAnteriorColumnas = signal<string[]>([]);
   columnaFechaAnterior = signal('');
   columnaTotalAnterior = signal('');
-  ventasAnteriorPreview = signal<any[][]>([]);
 
   resultadosAnterior = signal<FilaResultado[]>([]);
   totalOriginalAnterior = signal(0);
   totalConvertidoAnterior = signal(0);
 
-  // Archivo de tasas del período anterior
   tasasAnterioresNombre = signal('');
   tasasAnterioresMap = signal<Map<string, number>>(new Map());
-  tasasAnterioresFilas = signal<any[][]>([]);
-  tasasAnterioresColumnas = signal<string[]>([]);
-  tasasAnterioresPreview = signal<any[][]>([]);
   promedioTasaActual = signal<number>(0);
   promedioTasaAnterior = signal<number>(0);
-  // Internal cents-based state for compact input behavior
   promedioTasaActualCents = signal<number>(0);
   promedioTasaAnteriorCents = signal<number>(0);
   showBlankActual = signal<boolean>(false);
   showBlankAnterior = signal<boolean>(false);
- 
-   // Tasas manuales para año anterior
-   tasasAnterioresManuales = signal<Map<string, number>>(new Map());
-   fechasSinTasaAnterior = signal<string[]>([]);
- 
-   tasasGuardadas = signal<TasaGuardada[]>([]);
-   tasasAnterioresGuardadas = signal<TasaGuardada[]>([]);
- 
-   constructor(private tasasGuardadasService: TasasGuardadasService) {}
+
+  tasasAnterioresManuales = signal<Map<string, number>>(new Map());
+  fechasSinTasaAnterior = signal<string[]>([]);
+
+  tasasGuardadas = signal<TasaGuardada[]>([]);
+  tasasAnterioresGuardadas = signal<TasaGuardada[]>([]);
+
+  constructor(private tasasGuardadasService: TasasGuardadasService) {}
 
    ngOnInit() {
      this.cargarTasasGuardadas();
@@ -344,14 +327,11 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
         return;
       }
 
-      this.ventasRaw.set(dataRows);
-      this.ventasColumnas.set(headers);
-      this.ventasNombre.set(file.name);
-      this.ventasPreview.set(dataRows.slice(0, 6));
-
       // Configurar columnas automáticamente
       this.columnaFechaVentas.set('FECHA');
       this.columnaTotalVentas.set('VENTAS');
+      this.ventasRaw.set(dataRows);
+      this.ventasNombre.set(file.name);
     };
     reader.readAsText(file);
   }
@@ -370,10 +350,23 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
       for (let i = 1; i < lines.length; i++) {
         rows.push(this.parseCSVLine(lines[i]));
       }
-      this.tasasFilas.set(rows);
-      this.tasasColumnas.set(headers);
       this.tasasNombre.set(file.name);
-      this.tasasPreview.set(rows.slice(0, 6));
+
+      // Procesar filas de tasas para extraer mapa de fechas
+      const mapaTasas = new Map<string, number>();
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        for (let j = 0; j < row.length; j++) {
+          const fecha = this.normalizarFecha(row[j]);
+          if (fecha) {
+            const tasa = this.parseNumber(row[j + 1] ?? row[1]);
+            if (tasa > 0) {
+              mapaTasas.set(fecha, tasa);
+            }
+          }
+        }
+      }
+      this.tasasMap.set(mapaTasas);
     };
     reader.readAsText(file);
   }
@@ -747,9 +740,7 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
 
         const headers = rows[0].map(h => String(h).trim());
         this.ventasRaw.set(rows);
-        this.ventasColumnas.set(headers);
         this.ventasNombre.set(file.name);
-        this.ventasPreview.set(rows.slice(0, 6));
 
         const colFecha = headers.find(h =>
           h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date')
@@ -918,13 +909,6 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
 
         this.tasasMap.set(mapaTasas);
         this.tasasNombre.set(file.name);
-        this.tasasColumnas.set(['Fecha', 'Tasa']);
-
-        const preview: any[][] = [['Fecha', 'Tasa']];
-        mapaTasas.forEach((tasa, fecha) => {
-          preview.push([fecha, tasa]);
-        });
-        this.tasasPreview.set(preview.slice(0, 11));
       } catch (err) {
         console.error('Error parsing Excel tasas:', err);
         this.error.set('Error al leer el archivo Excel de tasas: ' + (err as Error).message);
@@ -933,83 +917,37 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
     reader.readAsArrayBuffer(file);
   }
 
-  procesarTasasDesdeTabla() {
-    const filas = this.tasasFilas();
-    if (filas.length < 2) {
-      this.error.set('No hay datos de tasas para procesar');
-      return;
-    }
+procesarTasasDesdeTabla() {
+    this.error.set('Use el archivo de tasas con nombre de hoja como fecha para procesar');
+  }
 
-    const headers = filas[0];
-    const mapaTasas = new Map<string, number>();
-
-    for (let i = 1; i < filas.length; i++) {
-      const row = filas[i];
-      for (let j = 0; j < headers.length; j++) {
-        const fecha = this.normalizarFecha(row[j]);
-        if (fecha) {
-          const tasa = this.parseNumber(row[j + 1] ?? row[1]);
-          if (tasa > 0) {
-            mapaTasas.set(fecha, tasa);
-          }
-        }
-      }
-    }
-
-this.tasasMap.set(mapaTasas);
-     this.guardarTasasEnBD();
-   }
-
-   guardarTasasEnBD() {
-     if (this.tasasMap().size === 0) return;
-     
-     const nombre = `Tasas ${new Date().toLocaleDateString('es-VE')}`;
-     this.tasasGuardadasService.save(nombre, this.tasasMap(), 'actual').subscribe({
-       next: () => {
-         this.cargarTasasGuardadas();
-       },
-       error: (err) => console.error('Error guardando tasas:', err)
-     });
-   }
+  guardarTasasEnBD() {
+    if (this.tasasMap().size === 0) return;
+    
+    const nombre = `Tasas ${new Date().toLocaleDateString('es-VE')}`;
+    this.tasasGuardadasService.save(nombre, this.tasasMap(), 'actual').subscribe({
+      next: () => {
+        this.cargarTasasGuardadas();
+      },
+      error: (err) => console.error('Error guardando tasas:', err)
+    });
+  }
 
   procesarTasasAnterioresDesdeTabla() {
-    const filas = this.tasasAnterioresFilas();
-    if (filas.length < 2) {
-      this.error.set('No hay datos de tasas anteriores para procesar');
-      return;
-    }
+    this.error.set('Use el archivo de tasas anteriores con nombre de hoja como fecha para procesar');
+  }
 
-    const headers = filas[0];
-    const mapaTasas = new Map<string, number>();
-
-    for (let i = 1; i < filas.length; i++) {
-      const row = filas[i];
-      for (let j = 0; j < headers.length; j++) {
-        const fecha = this.normalizarFecha(row[j]);
-        if (fecha) {
-          const tasa = this.parseNumber(row[j + 1] ?? row[1]);
-          if (tasa > 0) {
-            mapaTasas.set(fecha, tasa);
-          }
-        }
-      }
-    }
-
-this.tasasAnterioresMap.set(mapaTasas);
-     this.guardarTasasAnterioresEnBD();
-   }
-
-   guardarTasasAnterioresEnBD() {
-     if (this.tasasAnterioresMap().size === 0) return;
-     
-     const nombre = `Tasas Anterior ${new Date().toLocaleDateString('es-VE')}`;
-     this.tasasGuardadasService.save(nombre, this.tasasAnterioresMap(), 'anterior').subscribe({
-       next: () => {
-         this.cargarTasasAnterioresGuardadas();
-       },
-       error: (err) => console.error('Error guardando tasas anteriores:', err)
-     });
-   }
+  guardarTasasAnterioresEnBD() {
+    if (this.tasasAnterioresMap().size === 0) return;
+    
+    const nombre = `Tasas Anterior ${new Date().toLocaleDateString('es-VE')}`;
+    this.tasasGuardadasService.save(nombre, this.tasasAnterioresMap(), 'anterior').subscribe({
+      next: () => {
+        this.cargarTasasAnterioresGuardadas();
+      },
+      error: (err) => console.error('Error guardando tasas anteriores:', err)
+    });
+  }
 
   procesar() {
     if (!this.columnaFechaVentas() || !this.columnaTotalVentas()) {
@@ -1671,49 +1609,43 @@ this.tasasAnterioresMap.set(mapaTasas);
     });
   }
 
+getCoincidencias(): number {
+    return this.resultados().filter(r => r.tasa > 0).length;
+  }
+
   limpiar() {
     this.ventasNombre.set('');
     this.tasasNombre.set('');
-    this.ventasColumnas.set([]);
-    this.tasasColumnas.set([]);
-    this.tasasFilas.set([]);
-    this.columnaFechaVentas.set('');
-    this.columnaTotalVentas.set('');
     this.ventasRaw.set([]);
     this.tasasMap.set(new Map());
-    this.ventasPreview.set([]);
-    this.tasasPreview.set([]);
+    this.columnaFechaVentas.set('');
+    this.columnaTotalVentas.set('');
     this.resultados.set([]);
     this.error.set('');
     this.totalOriginal.set(0);
     this.totalConvertido.set(0);
     this.tasasManuales.set(new Map());
     this.fechasSinTasa.set([]);
-    // Limpiar comparaciones
+
     this.ventasAnteriorNombre.set('');
     this.ventasAnteriorRaw.set([]);
-    this.ventasAnteriorColumnas.set([]);
     this.columnaFechaAnterior.set('');
     this.columnaTotalAnterior.set('');
-    this.ventasAnteriorPreview.set([]);
     this.resultadosAnterior.set([]);
     this.totalOriginalAnterior.set(0);
     this.totalConvertidoAnterior.set(0);
-    // Limpiar tasas anteriores
+
     this.tasasAnterioresNombre.set('');
     this.tasasAnterioresMap.set(new Map());
-    this.tasasAnterioresFilas.set([]);
-    this.tasasAnterioresColumnas.set([]);
-    this.tasasAnterioresPreview.set([]);
     this.tasasAnterioresManuales.set(new Map());
     this.fechasSinTasaAnterior.set([]);
     this.comparaciones.set([]);
     this.comparacionesActual.set([]);
     this.comparacionesAnterior.set([]);
-this.variacionTotalPct.set(0);
-     this.mostrarModalComparacion.set(false);
-     this.mostrarModalExpectativas.set(false);
-   }
+    this.variacionTotalPct.set(0);
+    this.mostrarModalComparacion.set(false);
+    this.mostrarModalExpectativas.set(false);
+  }
 
   asignarTasaManual(fecha: string, valor: any) {
     const tasa = parseFloat(valor);

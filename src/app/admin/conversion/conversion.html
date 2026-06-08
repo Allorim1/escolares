@@ -114,165 +114,34 @@
     </div>
   </div>
 
-  @if (ventasColumnas().length > 0) {
-    <div class="config-section">
-      <h3>Configurar Columnas de Ventas</h3>
-
-      <div class="config-row">
-        <div class="config-card">
-          <h4>Ventas</h4>
-          <div class="config-group">
-            <label>Columna Fecha</label>
-            <select [(ngModel)]="columnaFechaVentas" class="config-select">
-              <option value="">-- Seleccionar --</option>
-              @for (col of ventasColumnas(); track col) {
-                <option [value]="col">{{ col }}</option>
-              }
-            </select>
-          </div>
-          <div class="config-group">
-            <label>Columna Total (Bs)</label>
-            <select [(ngModel)]="columnaTotalVentas" class="config-select">
-              <option value="">-- Seleccionar --</option>
-              @for (col of ventasColumnas(); track col) {
-                <option [value]="col">{{ col }}</option>
-              }
-            </select>
-          </div>
-        </div>
-
-        @if (ventasAnteriorColumnas().length > 0) {
-          <div class="config-card config-card-anterior">
-            <h4>Año Anterior</h4>
-            <div class="config-group">
-              <label>Columna Fecha</label>
-              <select [(ngModel)]="columnaFechaAnterior" class="config-select">
-                <option value="">-- Seleccionar --</option>
-                @for (col of ventasAnteriorColumnas(); track col) {
-                  <option [value]="col">{{ col }}</option>
-                }
-              </select>
-            </div>
-            <div class="config-group">
-              <label>Columna Total (Bs)</label>
-              <select [(ngModel)]="columnaTotalAnterior" class="config-select">
-                <option value="">-- Seleccionar --</option>
-                @for (col of ventasAnteriorColumnas(); track col) {
-                  <option [value]="col">{{ col }}</option>
-                }
-              </select>
-            </div>
-          </div>
+  <div class="actions-bar" style="margin-top: 2rem;">
+    @if (ventasRaw().length > 1 || ventasAnteriorRaw().length > 1) {
+      <button class="btn-primary" (click)="procesar()" [disabled]="procesando()">
+        @if (procesando()) {
+          <span class="spinner"></span> Procesando...
+        } @else {
+          🔄 Convertir a USD
         }
-      </div>
-
-      <div class="actions-bar">
-        <button class="btn-primary" (click)="procesar()" [disabled]="procesando()">
-          @if (procesando()) {
-            <span class="spinner"></span> Procesando...
-          } @else {
-            🔄 Convertir a USD
-          }
-        </button>
-        @if (ventasAnteriorRaw().length > 1 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0)) {
-          <button class="btn-expectativas" (click)="abrirModalExpectativas()">
-            🎯 Calcular Expectativas
-          </button>
-        }
-        @if (ventasAnteriorRaw().length > 1 && resultados().length > 0 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0)) {
-          <button class="btn-comparar" (click)="abrirModalComparacion()">
-            📊 Comparar Períodos
-          </button>
-        }
-        <button class="btn-secondary" (click)="limpiar()">🗑️ Limpiar</button>
-      </div>
-    </div>
-  }
-
-  @if (ventasAnteriorRaw().length > 1 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0) && ventasColumnas().length === 0) {
-    <div class="expectativas-section">
+      </button>
+    }
+    @if (ventasAnteriorRaw().length > 1 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0)) {
       <button class="btn-expectativas" (click)="abrirModalExpectativas()">
         🎯 Calcular Expectativas
       </button>
-    </div>
-  }
+    }
+    @if (ventasAnteriorRaw().length > 1 && resultados().length > 0 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0)) {
+      <button class="btn-comparar" (click)="abrirModalComparacion()">
+        📊 Comparar Períodos
+      </button>
+    }
+    <button class="btn-secondary" (click)="limpiar()">🗑️ Limpiar</button>
+  </div>
 
-  @if (ventasPreview().length > 0 || tasasPreview().length > 0 || tasasAnterioresPreview().length > 0) {
-    <div class="preview-section">
-      <h3>Vista Previa</h3>
-      <div class="preview-row">
-        @if (ventasPreview().length > 0) {
-          <div class="preview-card">
-            <h4>Ventas ({{ ventasNombre() }})</h4>
-            <table class="preview-table">
-              <thead>
-                <tr>
-                  @for (col of ventasPreview()[0]; track $index) {
-                    <th>{{ col }}</th>
-                  }
-                </tr>
-              </thead>
-              <tbody>
-                @for (row of ventasPreview().slice(1); track $index) {
-                  <tr>
-                    @for (cell of row; track $index) {
-                      <td>{{ cell }}</td>
-                    }
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-
-        @if (tasasPreview().length > 0) {
-          <div class="preview-card">
-            <h4>Tasas ({{ tasasNombre() }})</h4>
-            <table class="preview-table">
-              <thead>
-                <tr>
-                  @for (col of tasasPreview()[0]; track $index) {
-                    <th>{{ col }}</th>
-                  }
-                </tr>
-              </thead>
-              <tbody>
-                @for (row of tasasPreview().slice(1); track $index) {
-                  <tr>
-                    @for (cell of row; track $index) {
-                      <td>{{ cell }}</td>
-                    }
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-
-        @if (tasasAnterioresPreview().length > 0) {
-          <div class="preview-card preview-card-tasas-anteriores">
-            <h4>Tasas Anteriores ({{ tasasAnterioresNombre() }})</h4>
-            <table class="preview-table preview-table-tasas-anteriores">
-              <thead>
-                <tr>
-                  @for (col of tasasAnterioresPreview()[0]; track $index) {
-                    <th>{{ col }}</th>
-                  }
-                </tr>
-              </thead>
-              <tbody>
-                @for (row of tasasAnterioresPreview().slice(1); track $index) {
-                  <tr>
-                    @for (cell of row; track $index) {
-                      <td>{{ cell }}</td>
-                    }
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-      </div>
+  @if (ventasAnteriorRaw().length > 1 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0)) {
+    <div class="expectativas-section">
+      <button class="btn-expectivas" (click)="abrirModalExpectativas()">
+        🎯 Calcular Expectativas
+      </button>
     </div>
   }
 
@@ -356,7 +225,7 @@
         </div>
         <div class="total-item">
           <span class="total-label">Coincidencias:</span>
-          <span class="total-value">{{ resultados().filter(r => r.tasa > 0).length }}</span>
+          <span class="total-value">{{ getCoincidencias() }}</span>
         </div>
       </div>
 

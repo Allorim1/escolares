@@ -16,11 +16,12 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MarcasService } from '../shared/data-access/marcas.service';
 import { NoticiasService, Noticia } from '../shared/data-access/noticias.service';
 import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, CommonModule, MarkdownPipe],
+  imports: [FormsModule, CommonModule, MarkdownPipe, RouterLink],
   templateUrl: './home.html',
   styles: [
     `

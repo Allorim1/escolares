@@ -1313,13 +1313,16 @@
 }
 
 .comentario-input {
-  width: 100%;
-  padding: 0.6rem;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  resize: vertical;
+   width: 100%;
+   padding: 0.6rem;
+   border: 1px solid #ced4da;
+   border-radius: 6px;
+   font-family: inherit;
+   font-size: 0.9rem;
+   resize: vertical;
+   box-sizing: border-box;
+   overflow-wrap: break-word;
+   word-break: break-word;
 }
 
 .comentario-input:focus {

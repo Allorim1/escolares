@@ -129,21 +129,13 @@
         🎯 Calcular Expectativas
       </button>
     }
-    @if (ventasAnteriorRaw().length > 1 && resultados().length > 0 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0)) {
+    @if (ventasAnteriorRaw().length > 1 && resultadosAnterior().length > 0 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0)) {
       <button class="btn-comparar" (click)="abrirModalComparacion()">
         📊 Comparar Períodos
       </button>
     }
     <button class="btn-secondary" (click)="limpiar()">🗑️ Limpiar</button>
   </div>
-
-  @if (ventasAnteriorRaw().length > 1 && (tasasMap().size > 0 || tasasAnterioresMap().size > 0 || promedioTasaActual() > 0 || promedioTasaAnterior() > 0)) {
-    <div class="expectativas-section">
-      <button class="btn-expectivas" (click)="abrirModalExpectativas()">
-        🎯 Calcular Expectativas
-      </button>
-    </div>
-  }
 
   @if (fechasSinTasa().length > 0) {
     <div class="tasas-faltantes-section">

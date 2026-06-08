@@ -951,139 +951,182 @@ procesarTasasDesdeTabla() {
     });
   }
 
-  procesar() {
-    if (!this.columnaFechaVentas() || !this.columnaTotalVentas()) {
-      this.error.set('Debe seleccionar las columnas de fecha y total del archivo de ventas');
-      return;
-    }
+procesar() {
+     const tieneVentasActual = this.ventasRaw().length >= 2;
+     const tieneVentasAnterior = this.ventasAnteriorRaw().length >= 2;
 
-    const ventasRows = this.ventasRaw();
-    if (ventasRows.length < 2) {
-      this.error.set('Debe cargar el archivo de ventas');
-      return;
-    }
+     if (!tieneVentasActual && !tieneVentasAnterior) {
+       this.error.set('Debe cargar al menos un archivo de ventas');
+       return;
+     }
 
-    this.procesando.set(true);
-    this.error.set('');
+     this.procesando.set(true);
+     this.error.set('');
 
-    try {
-      const ventasHeaders = ventasRows[0];
-      const idxFechaV = ventasHeaders.indexOf(this.columnaFechaVentas());
-      const idxTotalV = ventasHeaders.indexOf(this.columnaTotalVentas());
-
-      if (idxFechaV < 0 || idxTotalV < 0) {
-        this.error.set('No se encontraron las columnas seleccionadas');
-        this.procesando.set(false);
-        return;
-      }
-
+     try {
       const tasaMap = this.tasasMap();
       const tasasManuales = this.tasasManuales();
       const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
       const promedioActual = this.promedioTasaActual();
-      const fechasFaltantes: string[] = [];
 
-      if (todasLasTasas.size === 0 && promedioActual <= 0) {
-        this.error.set('Debe cargar tasas o ingresar la tasa promedio actual primero');
-        this.procesando.set(false);
-        return;
-      }
+      // Procesar Ventas Año Actual si existe
+      if (tieneVentasActual) {
+        const ventasRows = this.ventasRaw();
+        const ventasHeaders = ventasRows[0];
+        const idxFechaV = ventasHeaders.indexOf(this.columnaFechaVentas());
+        const idxTotalV = ventasHeaders.indexOf(this.columnaTotalVentas());
 
-      // Primera pasada: recopilar todas las fechas únicas de ventas
-      const fechasVentas = new Set<string>();
-      for (let i = 1; i < ventasRows.length; i++) {
-        const fecha = this.normalizarFecha(ventasRows[i][idxFechaV]);
-        if (fecha) fechasVentas.add(fecha);
-      }
-
-      // Para fechas de fin de semana sin tasa, buscar la del próximo lunes
-      for (const fecha of fechasVentas) {
-        if (todasLasTasas.has(fecha)) continue;
-        if (promedioActual > 0) {
-          todasLasTasas.set(fecha, promedioActual);
-          continue;
+        if (idxFechaV < 0 || idxTotalV < 0) {
+          this.error.set('No se encontraron las columnas ' + this.columnaFechaVentas() + ' o ' + this.columnaTotalVentas() + ' en el archivo de ventas');
+          this.procesando.set(false);
+          return;
         }
 
-        const fechaDate = new Date(fecha + 'T00:00:00');
-        const diaSemana = fechaDate.getDay(); // 0=Dom, 6=Sáb
-
-        if (diaSemana === 0 || diaSemana === 6) {
-          // Buscar el próximo lunes
-          const diasHastaLunes = diaSemana === 6 ? 2 : 1;
-          const lunesDate = new Date(fechaDate);
-          lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
-          const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
-          const tasaLunes = todasLasTasas.get(lunesStr);
-          if (tasaLunes) {
-            todasLasTasas.set(fecha, tasaLunes);
-            console.log(`Fin de semana ${fecha} (${diaSemana === 6 ? 'Sábado' : 'Domingo'}) -> tasa del lunes ${lunesStr}: ${tasaLunes}`);
-          }
+        if (todasLasTasas.size === 0 && promedioActual <= 0) {
+          // Si no hay tasas pero hay Ventas Anterior con tasasAnteriores, continuar
+          // El error se mostrará más abajo si no hay ninguna tasa disponible
         }
+
+        // Procesar ventas actual...
+        this.procesarVentasActual(ventasRows, this.columnaFechaVentas(), this.columnaTotalVentas(), todasLasTasas, promedioActual);
       }
 
-      // Detectar fechas laborales sin tasa (no fin de semana)
-      for (const fecha of fechasVentas) {
-        if (todasLasTasas.has(fecha)) continue;
-        const fechaDate = new Date(fecha + 'T00:00:00');
-        const diaSemana = fechaDate.getDay();
-        if (diaSemana !== 0 && diaSemana !== 6) {
-          fechasFaltantes.push(fecha);
+      // Si solo hay Ventas Anterior sin Ventas Actual
+      if (!tieneVentasActual && tieneVentasAnterior) {
+        // Usar tasas anteriores para Ventas Anterior
+        const tasasAnterioresBase = this.tasasAnterioresMap();
+        const tasasAnterioresManual = this.tasasAnterioresManuales();
+        let todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+        const promedioAnterior = this.promedioTasaAnterior();
+
+        // Si no hay tasas anteriores, usar tasas actuales como fallback
+        if (todasLasTasasAnteriores.size === 0 && todasLasTasas.size > 0) {
+          todasLasTasasAnteriores = new Map(todasLasTasas);
+        } else if (todasLasTasasAnteriores.size === 0 && promedioAnterior > 0) {
+          // El procesarSoloAnterior usará el promedio si no hay tasas
+        } else if (todasLasTasasAnteriores.size === 0 && todasLasTasas.size === 0 && promedioAnterior <= 0) {
+          this.error.set('Debe cargar tasas o ingresar la tasa promedio anterior primero');
+          this.procesando.set(false);
+          return;
         }
+
+        // Procesar Ventas Anterior
+        this.procesarSoloAnterior();
+        // Copiar resultadosAnterior a resultados para mostrar
+        this.resultados.set(this.resultadosAnterior());
+        this.totalOriginal.set(this.totalOriginalAnterior());
+        this.totalConvertido.set(this.totalConvertidoAnterior());
+      } else if (tieneVentasAnterior && this.tasasAnterioresMap().size > 0) {
+        // Procesar Ventas Año Anterior si existe
+        this.procesarSoloAnterior();
       }
 
-      this.fechasSinTasa.set(fechasFaltantes);
-
-      // Segunda pasada: calcular resultados
-      const resultados: FilaResultado[] = [];
-      let totalOrig = 0;
-      let totalConv = 0;
-
-      const idxDiaV = ventasHeaders.findIndex(h => h.toUpperCase() === 'DIA');
-
-      for (let i = 1; i < ventasRows.length; i++) {
-        const row = ventasRows[i];
-        const fecha = this.normalizarFecha(row[idxFechaV]);
-        const dia = idxDiaV >= 0 ? String(row[idxDiaV] || '') : '';
-        const total = this.parseNumber(row[idxTotalV]);
-
-        if (!fecha) continue;
-
-        const fechaDate = new Date(fecha + 'T00:00:00');
-        const diaSemana = fechaDate.getDay();
-
-        const tasa = todasLasTasas.get(fecha) || 0;
-        const totalConvertido = tasa > 0 ? total / tasa : 0;
-
-        const columnasExtra: Record<string, any> = {};
-        ventasHeaders.forEach((h: string, idx: number) => {
-          if (idx !== idxFechaV && idx !== idxTotalV) {
-            columnasExtra[h] = row[idx];
-          }
-        });
-
-        resultados.push({
-          fecha,
-          dia,
-          diaSemana,
-          totalOriginal: total,
-          tasa,
-          totalConvertido,
-          columnasExtra
-        });
-
-        totalOrig += total;
-        totalConv += totalConvertido;
-      }
-
-      this.resultados.set(resultados);
-      this.totalOriginal.set(Math.round(totalOrig * 100) / 100);
-      this.totalConvertido.set(Math.round(totalConv * 100) / 100);
     } catch (err) {
       console.error('Error procesando:', err);
       this.error.set('Error al procesar los archivos');
     } finally {
       this.procesando.set(false);
     }
+  }
+
+private procesarVentasActual(
+    ventasRows: any[][],
+    colFecha: string,
+    colTotal: string,
+    todasLasTasas: Map<string, number>,
+    promedioTasa: number
+  ) {
+     const fechasFaltantes: string[] = [];
+
+       // Primera pasada: recopilar todas las fechas únicas de ventas
+       const fechasVentas = new Set<string>();
+       for (let i = 1; i < ventasRows.length; i++) {
+         const fecha = this.normalizarFecha(ventasRows[i][ventasRows[0].indexOf(colFecha)]);
+         if (fecha) fechasVentas.add(fecha);
+       }
+
+       // Para fechas sin tasa, usar el promedio o buscar el lunes
+       for (const fecha of fechasVentas) {
+         if (todasLasTasas.has(fecha)) continue;
+         if (promedioTasa > 0) {
+           todasLasTasas.set(fecha, promedioTasa);
+           continue;
+         }
+
+         const fechaDate = new Date(fecha + 'T00:00:00');
+         const diaSemana = fechaDate.getDay();
+
+         if (diaSemana === 0 || diaSemana === 6) {
+           const diasHastaLunes = diaSemana === 6 ? 2 : 1;
+           const lunesDate = new Date(fechaDate);
+           lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
+           const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
+           const tasaLunes = todasLasTasas.get(lunesStr);
+           if (tasaLunes) {
+             todasLasTasas.set(fecha, tasaLunes);
+           }
+         }
+       }
+
+       // Detectar fechas laborales sin tasa (no fin de semana)
+       for (const fecha of fechasVentas) {
+         if (todasLasTasas.has(fecha)) continue;
+         const fechaDate = new Date(fecha + 'T00:00:00');
+         const diaSemana = fechaDate.getDay();
+         if (diaSemana !== 0 && diaSemana !== 6) {
+           fechasFaltantes.push(fecha);
+         }
+       }
+
+       this.fechasSinTasa.set(fechasFaltantes);
+
+       // Segunda pasada: calcular resultados
+       const resultados: FilaResultado[] = [];
+       let totalOrig = 0;
+       let totalConv = 0;
+
+       const idxFechaV = ventasRows[0].indexOf(colFecha);
+       const idxTotalV = ventasRows[0].indexOf(colTotal);
+       const idxDiaV = ventasRows[0].findIndex((h: string) => h.toUpperCase() === 'DIA');
+
+       for (let i = 1; i < ventasRows.length; i++) {
+         const row = ventasRows[i];
+         const fecha = this.normalizarFecha(row[idxFechaV]);
+         const dia = idxDiaV >= 0 ? String(row[idxDiaV] || '') : '';
+         const total = this.parseNumber(row[idxTotalV]);
+
+         if (!fecha) continue;
+
+         const fechaDate = new Date(fecha + 'T00:00:00');
+         const diaSemana = fechaDate.getDay();
+
+         const tasa = todasLasTasas.get(fecha) || 0;
+         const totalConvertido = tasa > 0 ? total / tasa : 0;
+
+         const columnasExtra: Record<string, any> = {};
+         ventasRows[0].forEach((h: string, idx: number) => {
+           if (idx !== idxFechaV && idx !== idxTotalV) {
+             columnasExtra[h] = row[idx];
+           }
+         });
+
+         resultados.push({
+           fecha,
+           dia,
+           diaSemana,
+           totalOriginal: total,
+           tasa,
+           totalConvertido,
+           columnasExtra
+         });
+
+         totalOrig += total;
+         totalConv += totalConvertido;
+       }
+
+       this.resultados.set(resultados);
+       this.totalOriginal.set(Math.round(totalOrig * 100) / 100);
+       this.totalConvertido.set(Math.round(totalConv * 100) / 100);
   }
 
   procesarComparacion() {

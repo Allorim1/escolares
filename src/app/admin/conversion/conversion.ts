@@ -2261,7 +2261,7 @@ imprimirExpectativas() {
             <div class="print-header">
               <img src="/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
               <div class="print-title-section">
-<h1 style="font-size: 20px; margin: 0;>Metas Ventas ${this.getPeriodoVentasAnterior()}</h1>
+<h1>Metas Ventas ${this.getPeriodoVentasAnterior()}</h1>
               </div>
             </div>
             <table>

@@ -833,14 +833,6 @@
   padding: 0 1.5rem 1rem;
 }
 
-.resumen-diario-seccion {
-  padding: 0 1.5rem 1rem;
-}
-
-.resumen-diario-seccion .result-table th {
-  background: #6f42c1;
-}
-
 .comparacion-dia-por-dia-seccion {
   padding: 0 1.5rem 1rem;
 }
@@ -865,6 +857,15 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: white;
+}
+
+.dia-filtro-select {
+  padding: 0.3rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .meta-input {

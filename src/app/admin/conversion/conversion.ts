@@ -41,8 +41,8 @@ export class Conversion implements OnInit {
 
   ventasRaw = signal<any[][]>([]);
   tasasMap = signal<Map<string, number>>(new Map());
-  columnaFechaVentas = signal('');
-  columnaTotalVentas = signal('');
+  columnaFechaVentas = signal('FECHA');
+  columnaTotalVentas = signal('VENTAS');
 
   resultados = signal<FilaResultado[]>([]);
   procesando = signal(false);
@@ -56,8 +56,8 @@ export class Conversion implements OnInit {
 
   ventasAnteriorNombre = signal('');
   ventasAnteriorRaw = signal<any[][]>([]);
-  columnaFechaAnterior = signal('');
-  columnaTotalAnterior = signal('');
+  columnaFechaAnterior = signal('FECHA');
+  columnaTotalAnterior = signal('VENTAS');
 
   resultadosAnterior = signal<FilaResultado[]>([]);
   totalOriginalAnterior = signal(0);
@@ -74,6 +74,8 @@ export class Conversion implements OnInit {
 
   tasasAnterioresManuales = signal<Map<string, number>>(new Map());
   fechasSinTasaAnterior = signal<string[]>([]);
+
+  filtroDiaSemana = signal<number | null>(null);
 
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasasAnterioresGuardadas = signal<TasaGuardada[]>([]);
@@ -1613,38 +1615,47 @@ getCoincidencias(): number {
     return this.resultados().filter(r => r.tasa > 0).length;
   }
 
-  limpiar() {
-    this.ventasNombre.set('');
-    this.tasasNombre.set('');
-    this.ventasRaw.set([]);
-    this.tasasMap.set(new Map());
-    this.columnaFechaVentas.set('');
-    this.columnaTotalVentas.set('');
-    this.resultados.set([]);
-    this.error.set('');
-    this.totalOriginal.set(0);
-    this.totalConvertido.set(0);
-    this.tasasManuales.set(new Map());
-    this.fechasSinTasa.set([]);
+limpiar() {
+     this.ventasNombre.set('');
+     this.tasasNombre.set('');
+     this.ventasRaw.set([]);
+     this.tasasMap.set(new Map());
+     this.columnaFechaVentas.set('FECHA');
+     this.columnaTotalVentas.set('VENTAS');
+     this.resultados.set([]);
+     this.error.set('');
+     this.totalOriginal.set(0);
+     this.totalConvertido.set(0);
+     this.tasasManuales.set(new Map());
+     this.fechasSinTasa.set([]);
 
-    this.ventasAnteriorNombre.set('');
-    this.ventasAnteriorRaw.set([]);
-    this.columnaFechaAnterior.set('');
-    this.columnaTotalAnterior.set('');
-    this.resultadosAnterior.set([]);
-    this.totalOriginalAnterior.set(0);
-    this.totalConvertidoAnterior.set(0);
+     this.ventasAnteriorNombre.set('');
+     this.ventasAnteriorRaw.set([]);
+     this.columnaFechaAnterior.set('FECHA');
+     this.columnaTotalAnterior.set('VENTAS');
+     this.resultadosAnterior.set([]);
+     this.totalOriginalAnterior.set(0);
+     this.totalConvertidoAnterior.set(0);
 
-    this.tasasAnterioresNombre.set('');
-    this.tasasAnterioresMap.set(new Map());
-    this.tasasAnterioresManuales.set(new Map());
-    this.fechasSinTasaAnterior.set([]);
-    this.comparaciones.set([]);
-    this.comparacionesActual.set([]);
-    this.comparacionesAnterior.set([]);
-    this.variacionTotalPct.set(0);
-    this.mostrarModalComparacion.set(false);
-    this.mostrarModalExpectativas.set(false);
+     this.tasasAnterioresNombre.set('');
+     this.tasasAnterioresMap.set(new Map());
+     this.tasasAnterioresManuales.set(new Map());
+     this.fechasSinTasaAnterior.set([]);
+     this.comparaciones.set([]);
+     this.comparacionesActual.set([]);
+     this.comparacionesAnterior.set([]);
+     this.variacionTotalPct.set(0);
+     this.mostrarModalComparacion.set(false);
+     this.mostrarModalExpectativas.set(false);
+     this.filtroDiaSemana.set(null);
+   }
+
+  set filtroDiaBinding(val: number | null) {
+    this.filtroDiaSemana.set(val);
+  }
+
+  getFiltroDia(): number | null {
+    return this.filtroDiaSemana();
   }
 
   asignarTasaManual(fecha: string, valor: any) {
@@ -1871,45 +1882,11 @@ cumpleMeta(variacion: number): boolean {
     return '';
   }
 
-  getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
+  getComparacionDiaPorDia(filtroDia: number | null = null): { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const actuales = this.resultados();
     const anteriores = this.resultadosAnterior();
-
-    const totalesPorDia = new Map<number, { actual: number; anterior: number }>();
-
-    for (let i = 0; i < 7; i++) {
-      totalesPorDia.set(i, { actual: 0, anterior: 0 });
-    }
-
-    actuales.forEach(r => {
-      const current = totalesPorDia.get(r.diaSemana);
-      if (current) {
-        current.actual += r.totalConvertido;
-      }
-    });
-
-    anteriores.forEach(r => {
-      const current = totalesPorDia.get(r.diaSemana);
-      if (current) {
-        current.anterior += r.totalConvertido;
-      }
-    });
-
-    return Array.from(totalesPorDia.entries()).map(([diaSemana, valores]) => ({
-      dia: dias[diaSemana],
-      actual: Math.round(valores.actual * 100) / 100,
-      anterior: Math.round(valores.anterior * 100) / 100,
-      variacion: valores.anterior > 0 
-        ? Math.round(((valores.actual - valores.anterior) / valores.anterior) * 10000) / 100 
-        : 0
-    }));
-  }
-
-  getComparacionDiaPorDia(): { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const actuales = this.resultados();
-    const anteriores = this.resultadosAnterior();
+    const filtro = filtroDia !== null ? filtroDia : this.filtroDiaSemana();
 
     const mapaActual = new Map<number, FilaResultado[]>();
     const mapaAnterior = new Map<number, FilaResultado[]>();
@@ -1928,7 +1905,9 @@ cumpleMeta(variacion: number): boolean {
 
     const resultado: { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
 
-    for (let diaSemana = 0; diaSemana < 7; diaSemana++) {
+    const díasAMostrar = filtro !== null ? [filtro] : [0, 1, 2, 3, 4, 5, 6];
+
+    for (const diaSemana of díasAMostrar) {
       const diasActual = mapaActual.get(diaSemana) || [];
       const diasAnterior = mapaAnterior.get(diaSemana) || [];
 
@@ -2304,10 +2283,14 @@ html += `
     }
 
   imprimirComparacionDiaPorDia() {
-    const comparacion = this.getComparacionDiaPorDia();
+    const comparacion = this.getComparacionDiaPorDia(this.filtroDiaSemana());
     const totalActual = this.totalConvertido();
     const totalAnterior = this.totalConvertidoAnterior();
     const variacion = this.variacionUSDPorcentaje();
+
+    const diaSeleccionado = this.filtroDiaSemana();
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const filtroLabel = diaSeleccionado !== null ? ` - ${dias[diaSeleccionado]}` : '';
 
     let html = `
       <!DOCTYPE html>
@@ -2380,7 +2363,7 @@ html += `
           <div class="print-header">
             <img src="/public/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
             <div class="print-title-section">
-              <h1>📊 Comparación Día a Día</h1>
+              <h1>📊 Comparación Día a Día${filtroLabel}</h1>
               <div class="meta-info">Meta: ${this.metaVariacion()}% | Total Actual: $ ${this.formatearMoneda(totalActual)} | Total Anterior: ${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</div>
             </div>
           </div>

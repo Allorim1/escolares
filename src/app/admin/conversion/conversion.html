@@ -367,87 +367,56 @@
 
         </div>
 
-        <div class="comparacion-divider"></div>
-
-        <div class="resumen-diario-seccion">
-          <div class="resumen-header">Comparación por Día de la Semana (USD)</div>
-          <div class="result-table-wrapper">
-            <table class="result-table">
-              <thead>
-                <tr>
-                  <th>Día</th>
-                  <th>Año Actual ($)</th>
-                  <th>Año Anterior ($)</th>
-                  <th>Variación (%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (r of getResumenPorDiaSemana(); track r.dia) {
-                  <tr>
-                    <td>{{ r.dia }}</td>
-                    <td class="num">$ {{ formatearMoneda(r.actual) }}</td>
-                    <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
-                    <td class="num" [class.positivo]="r.variacion > 0" [class.negativo]="r.variacion < 0">
-                      {{ r.variacion > 0 ? '+' : '' }}{{ r.variacion }}%
-                    </td>
-                  </tr>
-                }
-              </tbody>
-              <tfoot>
-                <tr class="total-row">
-                  <td><strong>TOTAL</strong></td>
-                  <td class="num"><strong>$ {{ formatearMoneda(totalConvertido()) }}</strong></td>
-                  <td class="num"><strong>{{ totalConvertidoAnterior() > 0 ? '$ ' + formatearMoneda(totalConvertidoAnterior()) : '-' }}</strong></td>
-                  <td class="num" [class.positivo]="variacionUSDPorcentaje() > 0" [class.negativo]="variacionUSDPorcentaje() < 0">
-                    <strong>{{ variacionUSDPorcentaje() > 0 ? '+' : '' }}{{ variacionUSDPorcentaje() }}%</strong>
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-
         <div class="comparacion-dia-por-dia-seccion">
-          <div class="resumen-header">
-            <span>Comparación Día a Día </span>
-            <div class="meta-input-container">
-              <label>Meta (%):</label>
-              <input type="number" class="meta-input" [(ngModel)]="metaVariacionValue" min="0" max="100">
-              <button class="btn-export" (click)="imprimirComparacionDiaPorDia()">🖨️ Imprimir</button>
-            </div>
-          </div>
-          <div class="result-table-wrapper">
-            <table class="result-table">
-              <thead>
-                <tr>
-                  <th>Día</th>
-                  <th>Fecha Año Actual</th>
-                  <th>Actual ($)</th>
-                  <th>Fecha Año Anterior</th>
-                  <th>Anterior ($)</th>
-                  <th>Var. (%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (r of getComparacionDiaPorDia(); track r.fechaActual + r.fechaAnterior + $index) {
-                  <tr>
-                    <td>{{ r.dia }}</td>
-                    <td>{{ formatFechaDisplay(r.fechaActual) }}</td>
-                    <td class="num">{{ r.actual > 0 ? '$ ' + formatearMoneda(r.actual) : '-' }}</td>
-                    <td>{{ formatFechaDisplay(r.fechaAnterior) }}</td>
-                    <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
-                    <td class="num" 
-                      [class.positivo]="r.variacion > 0" 
-                      [class.negativo]="r.variacion < 0"
-                      [class.meta-cumplida]="r.variacion > 0 && cumpleMeta(r.variacion)">
-                      {{ r.variacion > 0 ? '+' : '' }}{{ r.variacion }}%
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
+           <div class="resumen-header">
+             <span>Comparación Día a Día </span>
+             <div class="meta-input-container">
+               <label>Filtrar por día:</label>
+               <select class="dia-filtro-select" [(ngModel)]="filtroDiaBinding">
+                 <option [ngValue]="null">Todos los días</option>
+                 <option [ngValue]="1">Lunes</option>
+                 <option [ngValue]="2">Martes</option>
+                 <option [ngValue]="3">Miércoles</option>
+                 <option [ngValue]="4">Jueves</option>
+                 <option [ngValue]="5">Viernes</option>
+                 <option [ngValue]="6">Sábado</option>
+                 <option [ngValue]="0">Domingo</option>
+               </select>
+               <button class="btn-export" (click)="imprimirComparacionDiaPorDia()">🖨️ Imprimir</button>
+             </div>
+           </div>
+           <div class="result-table-wrapper">
+             <table class="result-table">
+               <thead>
+                 <tr>
+                   <th>Día</th>
+                   <th>Fecha Año Actual</th>
+                   <th>Actual ($)</th>
+                   <th>Fecha Año Anterior</th>
+                   <th>Anterior ($)</th>
+                   <th>Var. (%)</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 @for (r of getComparacionDiaPorDia(); track r.fechaActual + r.fechaAnterior + $index) {
+                   <tr>
+                     <td>{{ r.dia }}</td>
+                     <td>{{ formatFechaDisplay(r.fechaActual) }}</td>
+                     <td class="num">{{ r.actual > 0 ? '$ ' + formatearMoneda(r.actual) : '-' }}</td>
+                     <td>{{ formatFechaDisplay(r.fechaAnterior) }}</td>
+                     <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
+                     <td class="num" 
+                       [class.positivo]="r.variacion > 0" 
+                       [class.negativo]="r.variacion < 0"
+                       [class.meta-cumplida]="r.variacion > 0 && cumpleMeta(r.variacion)">
+                       {{ r.variacion > 0 ? '+' : '' }}{{ r.variacion }}%
+                     </td>
+                   </tr>
+                 }
+               </tbody>
+             </table>
+           </div>
+         </div>
 
         <div class="resumen-comparacion">
           <div class="resumen-header">Resumen de Comparación (USD)</div>

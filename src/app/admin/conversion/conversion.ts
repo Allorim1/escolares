@@ -2421,7 +2421,7 @@ html += `
     }
     th, td {
       border: 1px solid #777; /* Bordes ligeramente más nítidos */
-      padding: 3px 6px;    /* Un padding balanceado: compacto pero respira */
+      padding: 4px 7px;    /* Un padding balanceado: compacto pero respira */
       text-align: left;
       line-height: 1.3;
       white-space: nowrap; /* Mantiene montos y fechas en una sola línea */

@@ -2349,125 +2349,165 @@ html += `
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const filtroLabel = diaSeleccionado !== null ? ` - ${dias[diaSeleccionado]}` : '';
 
-    let html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Comparación Día a Día</title>
-        <style>
-          @page {
-            size: letter portrait;
-            margin: 0.2in;
-          }
-          html, body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            font-size: 8pt;
-            box-sizing: border-box;
-            height: 100%;
-          }
-          .container {
-            padding: 6px;
-            box-sizing: border-box;
-            min-height: 100%;
-            display: flex;
-            flex-direction: column;
-          }
-          .print-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-          }
-          .print-logo {
-            width: 140px;
-            max-height: 120px;
-            object-fit: contain;
-          }
-          .print-title-section {
-            flex: 1;
-            text-align: center;
-          }
-          h1 { color: #1d63c1; text-align: center; font-size: 16pt; margin: 0 0 6px 0; }
-          .meta-info { text-align: center; margin-bottom: 6px; font-size: 10.5pt; }
-          table {
-            width: auto;
-            max-width: 100%;
-            margin: 0 auto;
-            border-collapse: collapse;
-            flex: 1;
-            font-size: 8.5pt;
-          }
-          th, td {
-            border: 1px solid #666;
-            padding: 4px 6px;
-            text-align: left;
-            font-size: 9pt;
-            line-height: 1.25;
-            white-space: nowrap;
-          }
-          th { background: #e65100 !important; color: #111 !important; font-weight: 800 !important; font-size: 10pt !important; }
-          th.numeric, td.numeric { text-align: right; }
-          .footer {
-            margin-top: 6px;
-            font-size: 10pt;
-            color: #333;
-            font-weight: 600;
-            text-align: right;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="print-header">
-            <img src="/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
-            <div class="print-title-section">
-              <h1>Comparación Día a Día${filtroLabel}</h1>
-            </div>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Día</th>
-                <th>Anterior</th>
-                <th class="numeric">Anterior ($)</th>
-                <th>Actual</th>
-                <th class="numeric">Actual ($)</th>
-                <th class="numeric">Var. (%)</th>
-              </tr>
-            </thead>
-            <tbody>
-    `;
-
-    for (const r of comparacion) {
-      html += `
-              <tr>
-                <td>${r.dia}</td>
-                <td>${this.formatFechaDisplay(r.fechaAnterior)}</td>
-                <td class="numeric">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
-                <td>${this.formatFechaDisplay(r.fechaActual)}</td>
-                <td class="numeric">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
-                <td class="numeric">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
-              </tr>
-      `;
+  let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Comparación Día a Día</title>
+  <style>
+    @page {
+      size: letter portrait;
+      margin: 0.3in; /* Aumentado ligeramente para un margen de impresión óptimo */
     }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      font-size: 8.5pt;
+      box-sizing: border-box;
+      height: 100%;
+      background-color: #ffffff;
+    }
+    
+    /* Contenedor principal que controla el ancho del reporte en la hoja */
+    .container {
+      width: 85%;          /* Incrementa este porcentaje (ej. 90%) si quieres que use aún más hoja */
+      max-width: 800px;     /* Límite físico para que luzca balanceado al imprimir */
+      margin: 0 auto;       /* Centra de manera absoluta todo el reporte */
+      padding: 6px;
+      box-sizing: border-box;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Encabezado estructurado para que el título se alinee con la tabla */
+    .print-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .print-logo {
+      width: 130px;
+      max-height: 80px;
+      object-fit: contain;
+    }
+    .print-title-section {
+      flex: 1;
+      text-align: right; /* Al estar el logo a la izquierda, el título a la derecha equilibra el peso visual */
+    }
+    
+    h1 { 
+      color: #1d63c1; 
+      font-size: 18pt;    /* Un poco más grande para darle presencia */
+      margin: 0 0 4px 0; 
+      font-weight: 700;
+    }
+    .meta-info { 
+      font-size: 10pt; 
+      color: #666;
+      margin: 0;
+    }
+    
+    /* Configuración de la tabla expandida */
+    table {
+      width: 100%;         /* Se expande exactamente al ancho controlado por .container */
+      border-collapse: collapse;
+      font-size: 9pt;      /* Subido un punto para facilitar la lectura */
+      margin-bottom: 12px;
+    }
+    th, td {
+      border: 1px solid #777; /* Bordes ligeramente más nítidos */
+      padding: 5px 8px;    /* Un padding balanceado: compacto pero respira */
+      text-align: left;
+      line-height: 1.3;
+      white-space: nowrap; /* Mantiene montos y fechas en una sola línea */
+    }
+    
+    /* Encabezado Naranja con texto blanco para excelente legibilidad */
+    th { 
+      background: #e65100 !important; 
+      color: #ffffff !important; 
+      font-weight: 700 !important; 
+      font-size: 10pt !important; 
+    }
+    
+    /* Alineaciones del reporte */
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    
+    /* Resaltado del pie de tabla */
+    tfoot tr {
+      background-color: #f5f5f5;
+    }
+    tfoot td {
+      border-top: 2px solid #555;
+      font-size: 9.5pt;
+    }
+    
+    .footer {
+      margin-top: auto;   /* Empuja el footer al final de la página */
+      font-size: 9pt;
+      color: #666;
+      text-align: right;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="print-header">
+      <img src="/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
+      <div class="print-title-section">
+        <h1>Comparación Día a Día${filtroLabel}</h1>
+        <p class="meta-info">Reporte Gerencial Operativo</p>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>Anterior</th>
+          <th class="text-right">Anterior ($)</th>
+          <th>Actual</th>
+          <th class="text-right">Actual ($)</th>
+          <th class="text-right">Var. (%)</th>
+        </tr>
+      </thead>
+      <tbody>
+`;
 
-    html += `
-            </tbody>
-            <tfoot>
-              <tr>
-                <td><strong>TOTAL</strong></td>
-                <td></td>
-                <td></td>
-                <td class="numeric"><strong>$ ${this.formatearMoneda(totalActual)}</strong></td>
-                <td class="numeric"><strong>${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</strong></td>
-                <td class="numeric"><strong>${variacion > 0 ? '+' : ''}${variacion}%</strong></td>
-              </tr>
-            </tfoot>
-          </table>
-          <div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p></div>
-        </div>
+for (const r of comparacion) {
+  html += `
+        <tr>
+          <td>${r.dia}</td>
+          <td>${this.formatFechaDisplay(r.fechaAnterior)}</td>
+          <td class="text-right">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
+          <td>${this.formatFechaDisplay(r.fechaActual)}</td>
+          <td class="text-right">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
+          <td class="text-right">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
+        </tr>
+  `;
+}
+
+html += `
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>TOTAL</strong></td>
+          <td></td>
+          <td class="text-right"><strong>${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</strong></td>
+          <td></td>
+          <td class="text-right"><strong>$ ${this.formatearMoneda(totalActual)}</strong></td>
+          <td class="text-right"><strong>${variacion > 0 ? '+' : ''}${variacion}%</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="footer"><p>Fecha de impresión: ${this.formatFechaDisplay(new Date())}</p></div>
+  </div>
 <script>
 (function(){
   function doPrint(){ try{ window.focus(); window.print(); }catch(e){} }
@@ -2479,9 +2519,9 @@ html += `
   whenImagesLoaded(function(){ setTimeout(doPrint, 120); });
 })();
 </script>
-      </body>
-      </html>
-    `;
+</body>
+</html>
+`;
 
     const printWindow = window.open('', '_blank');
     if (printWindow) {

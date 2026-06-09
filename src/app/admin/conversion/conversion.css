@@ -1337,17 +1337,17 @@
     color: #e65100;
   }
 
-  .fecha-editable-input {
-    width: 100%;
-    padding: 0.3rem 0.5rem;
-    border: 1px dashed #ff9800;
+  .monto-editable-input {
+    width: 100px;
+    padding: 0.2rem 0.4rem;
+    border: 1px dashed #2e7d32;
     border-radius: 4px;
     font-size: 0.85rem;
-    background: #fff8e1;
-    cursor: pointer;
+    text-align: right;
+    background: #f1f8e9;
   }
 
-  .fecha-editable-input:focus {
+  .monto-editable-input:focus {
     outline: none;
     border-color: #1d63c1;
     background: white;

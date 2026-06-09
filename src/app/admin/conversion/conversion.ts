@@ -1628,31 +1628,6 @@ private procesarVentasActual(
     return this.resultados().filter(r => r.tasa > 0).length;
   }
 
-  getFechasRepetidas(): Set<string> {
-    const fechas = new Set<string>();
-    const frecuencia = new Map<string, number>();
-    this.resultados().forEach(r => {
-      frecuencia.set(r.fecha, (frecuencia.get(r.fecha) || 0) + 1);
-    });
-    frecuencia.forEach((count, fecha) => {
-      if (count > 1) fechas.add(fecha);
-    });
-    return fechas;
-  }
-
-  actualizarFechaEnResultado(fechaOriginal: string, nuevaFecha: string, index: number) {
-    if (!nuevaFecha || !this.getFechasRepetidas().has(fechaOriginal)) return;
-
-    const nuevaFechaNormalizada = this.normalizarFecha(nuevaFecha);
-    if (!nuevaFechaNormalizada) return;
-
-    const nuevosResultados = [...this.resultados()];
-    nuevosResultados[index] = { ...nuevosResultados[index], fecha: nuevaFechaNormalizada };
-
-    this.resultados.set(nuevosResultados);
-    this.calcularComparaciones();
-  }
-
   limpiar() {
     this.ventasNombre.set('');
     this.tasasNombre.set('');
@@ -1710,55 +1685,106 @@ private procesarVentasActual(
     return this.filtroDiaSemana();
   }
 
-  getFechasRepetidasAnterior(): Set<string> {
-    const fechas = new Set<string>();
-    const frecuencia = new Map<string, number>();
-    this.resultadosAnterior().forEach(r => {
-      frecuencia.set(r.fecha, (frecuencia.get(r.fecha) || 0) + 1);
-    });
-    frecuencia.forEach((count, fecha) => {
-      if (count > 1) fechas.add(fecha);
-    });
-    return fechas;
-  }
+  actualizarMontoComparacion(index: number, tipo: 'actual' | 'anterior', nuevoMonto: any) {
+    const monto = parseFloat(nuevoMonto);
+    if (isNaN(monto) || monto < 0) return;
 
-  actualizarFechaAnteriorEnResultado(fechaOriginal: string, nuevaFecha: string, index: number) {
-    if (!nuevaFecha || !this.getFechasRepetidasAnterior().has(fechaOriginal)) return;
+    const comparacionesConIndices = this.getComparacionConIndices();
+    if (index < 0 || index >= comparacionesConIndices.length) return;
 
-    const nuevaFechaNormalizada = this.normalizarFecha(nuevaFecha);
-    if (!nuevaFechaNormalizada) return;
+    const item = comparacionesConIndices[index];
 
-    const nuevosResultados = [...this.resultadosAnterior()];
-    nuevosResultados[index] = { ...nuevosResultados[index], fecha: nuevaFechaNormalizada };
+    if (tipo === 'actual' && item.fechaActual) {
+      const nuevosResultados = [...this.resultados()];
+      const idx = nuevosResultados.findIndex(r => r.fecha === item.fechaActual);
+      if (idx >= 0) {
+        nuevosResultados[idx] = { ...nuevosResultados[idx], totalConvertido: monto };
+        this.resultados.set(nuevosResultados);
+        this.calcularComparaciones();
+      }
+    }
 
-    this.resultadosAnterior.set(nuevosResultados);
-    this.calcularComparaciones();
-  }
-
-  actualizarFechaComparacionActual(fechaOriginal: string, nuevaFecha: string, index: number) {
-    const nuevaFechaNormalizada = this.normalizarFecha(nuevaFecha);
-    if (!nuevaFechaNormalizada) return;
-
-    const nuevasComparaciones = [...this.comparacionesActual()];
-    const idx = nuevasComparaciones.findIndex(c => c.fecha === fechaOriginal);
-    if (idx >= 0) {
-      nuevasComparaciones[idx] = { ...nuevasComparaciones[idx], fecha: nuevaFechaNormalizada };
-      this.comparacionesActual.set(nuevasComparaciones);
-      this.calcularComparaciones();
+    if (tipo === 'anterior' && item.fechaAnterior) {
+      const nuevosResultados = [...this.resultadosAnterior()];
+      const idx = nuevosResultados.findIndex(r => r.fecha === item.fechaAnterior);
+      if (idx >= 0) {
+        nuevosResultados[idx] = { ...nuevosResultados[idx], totalConvertido: monto };
+        this.resultadosAnterior.set(nuevosResultados);
+        this.calcularComparaciones();
+      }
     }
   }
 
-  actualizarFechaComparacionAnterior(fechaOriginal: string, nuevaFecha: string, index: number) {
-    const nuevaFechaNormalizada = this.normalizarFecha(nuevaFecha);
-    if (!nuevaFechaNormalizada) return;
+  tieneFechasRepetidasEnComparacion(): boolean {
+    const filtro = this.filtroDiaSemana();
 
-    const nuevasComparaciones = [...this.comparacionesAnterior()];
-    const idx = nuevasComparaciones.findIndex(c => c.fecha === fechaOriginal);
-    if (idx >= 0) {
-      nuevasComparaciones[idx] = { ...nuevasComparaciones[idx], fecha: nuevaFechaNormalizada };
-      this.comparacionesAnterior.set(nuevasComparaciones);
-      this.calcularComparaciones();
+    if (filtro !== null) {
+      const actuales = this.resultados().filter(r => r.diaSemana === filtro);
+      const anteriores = this.resultadosAnterior().filter(r => r.diaSemana === filtro);
+      return actuales.length > 1 || anteriores.length > 1;
     }
+
+    const actuales = this.resultados();
+    const anteriores = this.resultadosAnterior();
+    const tieneRepetidasActual = actuales.length !== new Set(actuales.map(r => r.fecha)).size;
+    const tieneRepetidasAnterior = anteriores.length !== new Set(anteriores.map(r => r.fecha)).size;
+
+    return tieneRepetidasActual || tieneRepetidasAnterior;
+  }
+
+  getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const actuales = this.resultados();
+    const anteriores = this.resultadosAnterior();
+    const filtro = this.filtroDiaSemana();
+
+    const mapaActual = new Map<number, FilaResultado[]>();
+    const mapaAnterior = new Map<number, FilaResultado[]>();
+
+    actuales.forEach(r => {
+      const lista = mapaActual.get(r.diaSemana) || [];
+      lista.push(r);
+      mapaActual.set(r.diaSemana, lista);
+    });
+
+    anteriores.forEach(r => {
+      const lista = mapaAnterior.get(r.diaSemana) || [];
+      lista.push(r);
+      mapaAnterior.set(r.diaSemana, lista);
+    });
+
+    const resultado: { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
+
+    const díasAMostrar = filtro !== null ? [filtro] : [0, 1, 2, 3, 4, 5, 6];
+    let indexCounter = 0;
+
+    for (const diaSemana of díasAMostrar) {
+      const diasActual = mapaActual.get(diaSemana) || [];
+      const diasAnterior = mapaAnterior.get(diaSemana) || [];
+
+      const maxLen = Math.max(diasActual.length, diasAnterior.length);
+
+      for (let i = 0; i < maxLen; i++) {
+        const actual = diasActual[i];
+        const anterior = diasAnterior[i];
+
+        const actualUSD = actual?.totalConvertido || 0;
+        const anteriorUSD = anterior?.totalConvertido || 0;
+
+        resultado.push({
+          index: indexCounter,
+          fechaActual: actual?.fecha || '',
+          fechaAnterior: anterior?.fecha || '',
+          dia: dias[diaSemana],
+          actual: Math.round(actualUSD * 100) / 100,
+          anterior: Math.round(anteriorUSD * 100) / 100,
+          variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+        });
+        indexCounter++;
+      }
+    }
+
+    return resultado.filter(r => r.fechaActual || r.fechaAnterior);
   }
 
   asignarTasaManual(fecha: string, valor: any) {

@@ -26,20 +26,20 @@
           <h3>💱 Promedio de Tasas Anteriores</h3>
           <p class="upload-desc">Ingrese el promedio de la tasa del período anterior</p>
           <div class="rate-input-wrapper">
-            <label class="rate-input-label">
-              Promedio de tasa anterior
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9.]*"
-                class="rate-input tiny-rate-input"
-                [value]="showBlankAnterior() ? '' : formatRateFromCents(promedioTasaAnteriorCents())"
-                (focus)="onRateFocus('anterior')"
-                (blur)="onRateBlur('anterior')"
-                (keydown)="onRateKey($event, 'anterior')"
-                (paste)="onRatePaste($event, 'anterior')"
-              />
-            </label>
+<label class="rate-input-label">
+               Promedio de tasa anterior
+               <input
+                 type="text"
+                 inputmode="numeric"
+                 pattern="[0-9.]*"
+                 class="rate-input tiny-rate-input"
+                 [value]="showBlankAnterior() ? '' : formatRateFromCents(promedioTasaAnteriorCents())"
+                 (focus)="onRateFocus('anterior'); $event.target.select()"
+                 (blur)="onRateBlur('anterior')"
+                 (keydown)="onRateKey($event, 'anterior')"
+                 (paste)="onRatePaste($event, 'anterior')"
+               />
+             </label>
             <small class="rate-input-note">Se aplicará el valor ingresado a todas las fechas del período anterior si no se cargan tasas específicas.</small>
           </div>
           @if (tasasAnterioresNombre()) {
@@ -79,20 +79,20 @@
           <h3>💱 Promedio de Tasas</h3>
           <p class="upload-desc">Ingrese el promedio de la tasa USD COMPRA (BID) que se utilizará</p>
           <div class="rate-input-wrapper">
-            <label class="rate-input-label">
-              Promedio de tasa
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9.]*"
-                class="rate-input tiny-rate-input"
-                [value]="showBlankActual() ? '' : formatRateFromCents(promedioTasaActualCents())"
-                (focus)="onRateFocus('actual')"
-                (blur)="onRateBlur('actual')"
-                (keydown)="onRateKey($event, 'actual')"
-                (paste)="onRatePaste($event, 'actual')"
-              />
-            </label>
+<label class="rate-input-label">
+               Promedio de tasa
+               <input
+                 type="text"
+                 inputmode="numeric"
+                 pattern="[0-9.]*"
+                 class="rate-input tiny-rate-input"
+                 [value]="showBlankActual() ? '' : formatRateFromCents(promedioTasaActualCents())"
+                 (focus)="onRateFocus('actual'); $event.target.select()"
+                 (blur)="onRateBlur('actual')"
+                 (keydown)="onRateKey($event, 'actual')"
+                 (paste)="onRatePaste($event, 'actual')"
+               />
+             </label>
             <small class="rate-input-note">Se aplicará el valor ingresado a todas las fechas de ventas si no se cargan tasas específicas.</small>
           </div>
           @if (tasasNombre()) {
@@ -235,22 +235,9 @@
             </tr>
           </thead>
           <tbody>
-            @for (r of resultados(); track $index) {
+@for (r of resultados(); track $index) {
               <tr [class.sin-tasa]="r.tasa === 0">
-<td>
-                   @if (getFechasRepetidas().has(r.fecha)) {
-                     <input
-                       type="text"
-                       class="fecha-editable-input"
-                       [value]="formatFechaDisplay(r.fecha)"
-                       (focus)="$event.target.select()"
-                       (blur)="actualizarFechaEnResultado(r.fecha, $event.target.value, $index)"
-                       placeholder="DD/MM/YYYY"
-                     />
-                   } @else {
-                     {{ formatFechaDisplay(r.fecha) }}
-                   }
-                 </td>
+                <td>{{ formatFechaDisplay(r.fecha) }}</td>
                 @for (col of getColumnasExtra(); track col) {
                   <td>{{ r.columnasExtra[col] ?? '' }}</td>
                 }
@@ -311,20 +298,7 @@
 <tbody>
                    @for (c of comparacionesAnterior(); track c.fecha; let i = $index) {
                      <tr>
-                       <td>
-                         @if (getFechasRepetidasAnterior().has(c.fecha)) {
-                           <input
-                             type="text"
-                             class="fecha-editable-input"
-                             [value]="formatFechaDisplay(c.fecha)"
-                             (focus)="$event.target.select()"
-                             (blur)="actualizarFechaAnteriorEnResultado(c.fecha, $event.target.value, i)"
-                             placeholder="DD/MM/YYYY"
-                           />
-                         } @else {
-                           {{ formatFechaDisplay(c.fecha) }}
-                         }
-                       </td>
+                       <td>{{ formatFechaDisplay(c.fecha) }}</td>
                        <td>{{ c.dia }}</td>
                        <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
                        <td class="num">{{ c.tasaAnterior > 0 ? formatearMoneda(c.tasaAnterior) : '-' }}</td>
@@ -361,20 +335,7 @@
 <tbody>
                    @for (c of comparacionesActual(); track c.fecha; let i = $index) {
                      <tr>
-                       <td>
-                         @if (getFechasRepetidas().has(c.fecha)) {
-                           <input
-                             type="text"
-                             class="fecha-editable-input"
-                             [value]="formatFechaDisplay(c.fecha)"
-                             (focus)="$event.target.select()"
-                             (blur)="actualizarFechaComparacionActual(c.fecha, $event.target.value, i)"
-                             placeholder="DD/MM/YYYY"
-                           />
-                         } @else {
-                           {{ formatFechaDisplay(c.fecha) }}
-                         }
-                       </td>
+                       <td>{{ formatFechaDisplay(c.fecha) }}</td>
                        <td>{{ c.dia }}</td>
                        <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
                        <td class="num">{{ c.tasaActual > 0 ? formatearMoneda(c.tasaActual) : '-' }}</td>
@@ -428,22 +389,50 @@
                    <th>Var. (%)</th>
                  </tr>
                </thead>
-               <tbody>
-                 @for (r of getComparacionDiaPorDia(); track r.fechaActual + r.fechaAnterior + $index) {
-                   <tr>
-                     <td>{{ r.dia }}</td>
-                     <td>{{ formatFechaDisplay(r.fechaActual) }}</td>
-                     <td class="num">{{ r.actual > 0 ? '$ ' + formatearMoneda(r.actual) : '-' }}</td>
-                     <td>{{ formatFechaDisplay(r.fechaAnterior) }}</td>
-                     <td class="num">{{ r.anterior > 0 ? '$ ' + formatearMoneda(r.anterior) : '-' }}</td>
-                     <td class="num" 
-                       [class.positivo]="r.variacion > 0" 
-                       [class.negativo]="r.variacion < 0"
-                       [class.meta-cumplida]="r.variacion > 0 && cumpleMeta(r.variacion)">
-                       {{ r.variacion > 0 ? '+' : '' }}{{ r.variacion }}%
-                     </td>
-                   </tr>
-                 }
+<tbody>
+                  @for (item of getComparacionConIndices(); track item.index) {
+                    <tr>
+                      <td>{{ item.dia }}</td>
+                      <td>{{ formatFechaDisplay(item.fechaActual) }}</td>
+                      <td class="num">
+                        @if (tieneFechasRepetidasEnComparacion() && item.actual > 0) {
+                          <input
+                            type="number"
+                            class="monto-editable-input"
+                            [value]="item.actual"
+                            step="0.01"
+                            min="0"
+                            (focus)="$event.target.select()"
+                            (blur)="actualizarMontoComparacion(item.index, 'actual', $event.target.value)"
+                          />
+                        } @else {
+                          {{ item.actual > 0 ? '$ ' + formatearMoneda(item.actual) : '-' }}
+                        }
+                      </td>
+                      <td>{{ formatFechaDisplay(item.fechaAnterior) }}</td>
+                      <td class="num">
+                        @if (tieneFechasRepetidasEnComparacion() && item.anterior > 0) {
+                          <input
+                            type="number"
+                            class="monto-editable-input"
+                            [value]="item.anterior"
+                            step="0.01"
+                            min="0"
+                            (focus)="$event.target.select()"
+                            (blur)="actualizarMontoComparacion(item.index, 'anterior', $event.target.value)"
+                          />
+                        } @else {
+                          {{ item.anterior > 0 ? '$ ' + formatearMoneda(item.anterior) : '-' }}
+                        }
+                      </td>
+                      <td class="num"
+                        [class.positivo]="item.variacion > 0"
+                        [class.negativo]="item.variacion < 0"
+                        [class.meta-cumplida]="item.variacion > 0 && cumpleMeta(item.variacion)">
+                        {{ item.variacion > 0 ? '+' : '' }}{{ item.variacion }}%
+                      </td>
+                    </tr>
+                  }
                </tbody>
              </table>
            </div>

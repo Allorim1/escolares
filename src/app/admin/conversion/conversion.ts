@@ -2184,6 +2184,7 @@ imprimirExpectativas() {
                font-size: 8pt;
                box-sizing: border-box;
                height: 100%;
+               text-align: left;
              }
              .container {
                padding: 5px;
@@ -2272,14 +2273,14 @@ imprimirExpectativas() {
       
 if (this.columnaFechaVisible()) html += '<th class="wrap-center">Fecha</th>';
        if (this.columnaDiaVisible()) html += '<th class="wrap-center">Día</th>';
-       if (this.columnaAnteriorBsVisible()) html += '<th class="numeric">Ventas Ant. (Bs)</th>';
-       if (this.columnaAnteriorUSDVisible()) html += '<th class="numeric">Ventas Ant. ($)</th>';
+       if (this.columnaAnteriorBsVisible()) html += '<th class="numeric">Ventas (Bs)</th>';
+       if (this.columnaAnteriorUSDVisible()) html += '<th class="numeric">Ventas ($)</th>';
        if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
 if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
         if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
         if (this.columnaTargetUSDVisible()) html += '<th class="numeric">Total ($)</th>';
         if (this.columnaTargetBsVisible()) html += '<th class="numeric">Total (Bs)</th>';
-       html += '<th class="wrap-center">Cumplido</th>';
+       html += '<th class="wrap-center">\&nbsp;</th>';
       
       html += `
               </tr>

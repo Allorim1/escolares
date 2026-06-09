@@ -2181,7 +2181,7 @@ imprimirExpectativas() {
                margin: 0;
                padding: 0;
                font-family: Arial, sans-serif;
-               font-size: 6pt;
+               font-size: 10pt;
                box-sizing: border-box;
                height: 100%;
              }
@@ -2222,10 +2222,10 @@ imprimirExpectativas() {
                border: 1px solid #666; 
                padding: 3px 5px; 
                text-align: left;
-               font-size: 7pt;
+               font-size: 10pt;
                line-height: 1.2;
              }
-             th { background: #ff9800 !important; color: #111 !important; font-weight: 800 !important; font-size: 8pt !important; }
+             th { background: #ff9800 !important; color: #111 !important; font-weight: 800 !important; font-size: 11pt !important; }
              th.numeric, td.numeric { text-align: right; }
              th.wrap-center, td.wrap-center { text-align: center; }
              .expectativa-meta { text-align: right; }
@@ -2235,7 +2235,7 @@ imprimirExpectativas() {
                padding: 5px; 
                background: #f5f5f5; 
                border-radius: 3px;
-               font-size: 7pt;
+               font-size: 13pt;
              }
              .footer { 
                margin-top: 10px; 

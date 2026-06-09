@@ -2421,7 +2421,7 @@ html += `
     }
     th, td {
       border: 1px solid #777; /* Bordes ligeramente más nítidos */
-      padding: 5px 8px;    /* Un padding balanceado: compacto pero respira */
+      padding: 3px 6px;    /* Un padding balanceado: compacto pero respira */
       text-align: left;
       line-height: 1.3;
       white-space: nowrap; /* Mantiene montos y fechas en una sola línea */
@@ -2449,7 +2449,7 @@ html += `
     }
     
     .footer {
-      margin-top: 10px;   /* Empuja el footer al final de la página */
+      margin-top: auto;   /* Empuja el footer al final de la página */
       font-size: 9pt;
       color: #666;
       text-align: right;

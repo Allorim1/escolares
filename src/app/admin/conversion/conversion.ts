@@ -2430,7 +2430,7 @@ html += `
     /* Encabezado Naranja con texto blanco para excelente legibilidad */
     th { 
       background: #e65100 !important; 
-      color: #ffffff !important; 
+      color: #111 !important; 
       font-weight: 700 !important; 
       font-size: 10pt !important; 
     }

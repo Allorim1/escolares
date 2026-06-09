@@ -2389,10 +2389,12 @@ html += `
             flex: 1;
             text-align: center;
           }
-          h1 { color: #e65100; text-align: center; font-size: 16pt; margin: 0 0 6px 0; }
+          h1 { color: #1d63c1; text-align: center; font-size: 16pt; margin: 0 0 6px 0; }
           .meta-info { text-align: center; margin-bottom: 6px; font-size: 10.5pt; }
           table {
-            width: 100%;
+            width: auto;
+            max-width: 100%;
+            margin: 0 auto;
             border-collapse: collapse;
             flex: 1;
             font-size: 8.5pt;
@@ -2403,6 +2405,7 @@ html += `
             text-align: left;
             font-size: 9pt;
             line-height: 1.25;
+            white-space: nowrap;
           }
           th { background: #e65100 !important; color: #111 !important; font-weight: 800 !important; font-size: 10pt !important; }
           th.numeric, td.numeric { text-align: right; }
@@ -2418,20 +2421,19 @@ html += `
       <body>
         <div class="container">
           <div class="print-header">
-            <img src="/public/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
+            <img src="/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
             <div class="print-title-section">
-              <h1>📊 Comparación Día a Día${filtroLabel}</h1>
-              <div class="meta-info">Meta: ${this.metaVariacion()}% | Total Actual: $ ${this.formatearMoneda(totalActual)} | Total Anterior: ${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</div>
+              <h1>Comparación Día a Día${filtroLabel}</h1>
             </div>
           </div>
           <table>
             <thead>
               <tr>
                 <th>Día</th>
-                <th>Fecha Año Actual</th>
-                <th class="numeric">Actual ($)</th>
-                <th>Fecha Año Anterior</th>
+                <th>Anterior</th>
                 <th class="numeric">Anterior ($)</th>
+                <th>Actual</th>
+                <th class="numeric">Actual ($)</th>
                 <th class="numeric">Var. (%)</th>
               </tr>
             </thead>
@@ -2442,10 +2444,10 @@ html += `
       html += `
               <tr>
                 <td>${r.dia}</td>
-                <td>${this.formatFechaDisplay(r.fechaActual)}</td>
-                <td class="numeric">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
                 <td>${this.formatFechaDisplay(r.fechaAnterior)}</td>
                 <td class="numeric">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
+                <td>${this.formatFechaDisplay(r.fechaActual)}</td>
+                <td class="numeric">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
                 <td class="numeric">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
               </tr>
       `;
@@ -2464,7 +2466,7 @@ html += `
               </tr>
             </tfoot>
           </table>
-          <div class="footer">Fecha: ${this.formatFechaDisplay(new Date())}</div>
+          <div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p></div>
         </div>
 <script>
 (function(){

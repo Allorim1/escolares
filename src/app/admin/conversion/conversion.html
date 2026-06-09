@@ -237,7 +237,19 @@
           <tbody>
             @for (r of resultados(); track $index) {
               <tr [class.sin-tasa]="r.tasa === 0">
-                <td>{{ formatFechaDisplay(r.fecha) }}</td>
+                <td>
+                  @if (getFechasRepetidas().has(r.fecha)) {
+                    <input
+                      type="text"
+                      class="fecha-editable-input"
+                      [value]="formatFechaDisplay(r.fecha)"
+                      (blur)="actualizarFechaEnResultado(r.fecha, $event.target.value, $index)"
+                      placeholder="DD/MM/YYYY"
+                    />
+                  } @else {
+                    {{ formatFechaDisplay(r.fecha) }}
+                  }
+                </td>
                 @for (col of getColumnasExtra(); track col) {
                   <td>{{ r.columnasExtra[col] ?? '' }}</td>
                 }
@@ -295,16 +307,28 @@
                     <th>Convertido ($)</th>
                   </tr>
                 </thead>
-                <tbody>
-                  @for (c of comparacionesAnterior(); track c.fecha) {
-                    <tr>
-                      <td>{{ formatFechaDisplay(c.fecha) }}</td>
-                      <td>{{ c.dia }}</td>
-                      <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
-                      <td class="num">{{ c.tasaAnterior > 0 ? formatearMoneda(c.tasaAnterior) : '-' }}</td>
-                      <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
-                    </tr>
-                  }
+<tbody>
+                   @for (c of comparacionesAnterior(); track c.fecha; let i = $index) {
+                     <tr>
+                       <td>
+                         @if (getFechasRepetidasAnterior().has(c.fecha)) {
+                           <input
+                             type="text"
+                             class="fecha-editable-input"
+                             [value]="formatFechaDisplay(c.fecha)"
+                             (blur)="actualizarFechaAnteriorEnResultado(c.fecha, $event.target.value, i)"
+                             placeholder="DD/MM/YYYY"
+                           />
+                         } @else {
+                           {{ formatFechaDisplay(c.fecha) }}
+                         }
+                       </td>
+                       <td>{{ c.dia }}</td>
+                       <td class="num">{{ c.totalAnterior > 0 ? 'Bs ' + formatearMoneda(c.totalAnterior) : '-' }}</td>
+                       <td class="num">{{ c.tasaAnterior > 0 ? formatearMoneda(c.tasaAnterior) : '-' }}</td>
+                       <td class="num">{{ c.convertidoAnterior > 0 ? '$ ' + formatearMoneda(c.convertidoAnterior) : '-' }}</td>
+                     </tr>
+                   }
                 </tbody>
                 <tfoot>
                   <tr class="total-row">
@@ -332,16 +356,28 @@
                     <th>Convertido ($)</th>
                   </tr>
                 </thead>
-                <tbody>
-                  @for (c of comparacionesActual(); track c.fecha) {
-                    <tr>
-                      <td>{{ formatFechaDisplay(c.fecha) }}</td>
-                      <td>{{ c.dia }}</td>
-                      <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
-                      <td class="num">{{ c.tasaActual > 0 ? formatearMoneda(c.tasaActual) : '-' }}</td>
-                      <td class="num">$ {{ formatearMoneda(c.convertidoActual) }}</td>
-                    </tr>
-                  }
+<tbody>
+                   @for (c of comparacionesActual(); track c.fecha; let i = $index) {
+                     <tr>
+                       <td>
+                         @if (getFechasRepetidas().has(c.fecha)) {
+                           <input
+                             type="text"
+                             class="fecha-editable-input"
+                             [value]="formatFechaDisplay(c.fecha)"
+                             (blur)="actualizarFechaComparacionActual(c.fecha, $event.target.value, i)"
+                             placeholder="DD/MM/YYYY"
+                           />
+                         } @else {
+                           {{ formatFechaDisplay(c.fecha) }}
+                         }
+                       </td>
+                       <td>{{ c.dia }}</td>
+                       <td class="num">Bs {{ formatearMoneda(c.totalActual) }}</td>
+                       <td class="num">{{ c.tasaActual > 0 ? formatearMoneda(c.tasaActual) : '-' }}</td>
+                       <td class="num">$ {{ formatearMoneda(c.convertidoActual) }}</td>
+                     </tr>
+                   }
                 </tbody>
                 <tfoot>
                   <tr class="total-row">

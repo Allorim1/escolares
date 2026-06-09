@@ -1333,11 +1333,28 @@
    font-weight: 600;
  }
  
- .meta-extra-bs {
-   color: #e65100;
- }
- 
-.print-only {
+.meta-extra-bs {
+    color: #e65100;
+  }
+
+  .fecha-editable-input {
+    width: 100%;
+    padding: 0.3rem 0.5rem;
+    border: 1px dashed #ff9800;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: #fff8e1;
+    cursor: pointer;
+  }
+
+  .fecha-editable-input:focus {
+    outline: none;
+    border-color: #1d63c1;
+    background: white;
+    box-shadow: 0 0 0 2px rgba(29, 99, 193, 0.2);
+  }
+
+  .print-only {
     display: none;
   }
   

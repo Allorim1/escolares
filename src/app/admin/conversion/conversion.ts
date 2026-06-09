@@ -1622,46 +1622,85 @@ private procesarVentasActual(
       a.click();
       URL.revokeObjectURL(url);
     });
-  }
+}
 
-getCoincidencias(): number {
+  getCoincidencias(): number {
     return this.resultados().filter(r => r.tasa > 0).length;
   }
 
-limpiar() {
-     this.ventasNombre.set('');
-     this.tasasNombre.set('');
-     this.ventasRaw.set([]);
-     this.tasasMap.set(new Map());
-     this.columnaFechaVentas.set('FECHA');
-     this.columnaTotalVentas.set('VENTAS');
-     this.resultados.set([]);
-     this.error.set('');
-     this.totalOriginal.set(0);
-     this.totalConvertido.set(0);
-     this.tasasManuales.set(new Map());
-     this.fechasSinTasa.set([]);
+  getFechasRepetidas(): Set<string> {
+    const fechas = new Set<string>();
+    const frecuencia = new Map<string, number>();
+    this.resultados().forEach(r => {
+      frecuencia.set(r.fecha, (frecuencia.get(r.fecha) || 0) + 1);
+    });
+    frecuencia.forEach((count, fecha) => {
+      if (count > 1) fechas.add(fecha);
+    });
+    return fechas;
+  }
 
-     this.ventasAnteriorNombre.set('');
-     this.ventasAnteriorRaw.set([]);
-     this.columnaFechaAnterior.set('FECHA');
-     this.columnaTotalAnterior.set('VENTAS');
-     this.resultadosAnterior.set([]);
-     this.totalOriginalAnterior.set(0);
-     this.totalConvertidoAnterior.set(0);
+  actualizarFechaEnResultado(fechaOriginal: string, nuevaFecha: string, index: number) {
+    if (!nuevaFecha || !this.getFechasRepetidas().has(fechaOriginal)) return;
 
-     this.tasasAnterioresNombre.set('');
-     this.tasasAnterioresMap.set(new Map());
-     this.tasasAnterioresManuales.set(new Map());
-     this.fechasSinTasaAnterior.set([]);
-     this.comparaciones.set([]);
-     this.comparacionesActual.set([]);
-     this.comparacionesAnterior.set([]);
-     this.variacionTotalPct.set(0);
-     this.mostrarModalComparacion.set(false);
-     this.mostrarModalExpectativas.set(false);
-     this.filtroDiaSemana.set(null);
-   }
+    const nuevaFechaNormalizada = this.normalizarFecha(nuevaFecha);
+    if (!nuevaFechaNormalizada) return;
+
+    const nuevosResultados = [...this.resultados()];
+    nuevosResultados[index] = { ...nuevosResultados[index], fecha: nuevaFechaNormalizada };
+
+    this.resultados.set(nuevosResultados);
+    this.calcularComparaciones();
+  }
+
+  limpiar() {
+    this.ventasNombre.set('');
+    this.tasasNombre.set('');
+    this.ventasRaw.set([]);
+    this.tasasMap.set(new Map());
+    this.columnaFechaVentas.set('FECHA');
+    this.columnaTotalVentas.set('VENTAS');
+    this.resultados.set([]);
+    this.error.set('');
+    this.totalOriginal.set(0);
+    this.totalConvertido.set(0);
+    this.tasasManuales.set(new Map());
+    this.fechasSinTasa.set([]);
+
+    this.ventasAnteriorNombre.set('');
+    this.ventasAnteriorRaw.set([]);
+    this.columnaFechaAnterior.set('FECHA');
+    this.columnaTotalAnterior.set('VENTAS');
+    this.resultadosAnterior.set([]);
+    this.totalOriginalAnterior.set(0);
+    this.totalConvertidoAnterior.set(0);
+
+    this.tasasAnterioresNombre.set('');
+    this.tasasAnterioresMap.set(new Map());
+    this.tasasAnterioresManuales.set(new Map());
+    this.fechasSinTasaAnterior.set([]);
+    this.comparaciones.set([]);
+    this.comparacionesActual.set([]);
+    this.comparacionesAnterior.set([]);
+    this.variacionTotalPct.set(0);
+    this.mostrarModalComparacion.set(false);
+    this.mostrarModalExpectativas.set(false);
+    this.filtroDiaSemana.set(null);
+    this.promedioTasaActual.set(0);
+    this.promedioTasaAnterior.set(0);
+    this.promedioTasaActualCents.set(0);
+    this.promedioTasaAnteriorCents.set(0);
+    this.showBlankActual.set(false);
+    this.showBlankAnterior.set(false);
+
+    setTimeout(() => {
+      const fileInputs = document.querySelectorAll('input[type="file"][accept*="xlsx"], input[type="file"][accept*="csv"]');
+      fileInputs.forEach((el) => {
+        const input = el as HTMLInputElement;
+        input.value = '';
+      });
+    });
+  }
 
   set filtroDiaBinding(val: number | null) {
     this.filtroDiaSemana.set(val);
@@ -1669,6 +1708,57 @@ limpiar() {
 
   getFiltroDia(): number | null {
     return this.filtroDiaSemana();
+  }
+
+  getFechasRepetidasAnterior(): Set<string> {
+    const fechas = new Set<string>();
+    const frecuencia = new Map<string, number>();
+    this.resultadosAnterior().forEach(r => {
+      frecuencia.set(r.fecha, (frecuencia.get(r.fecha) || 0) + 1);
+    });
+    frecuencia.forEach((count, fecha) => {
+      if (count > 1) fechas.add(fecha);
+    });
+    return fechas;
+  }
+
+  actualizarFechaAnteriorEnResultado(fechaOriginal: string, nuevaFecha: string, index: number) {
+    if (!nuevaFecha || !this.getFechasRepetidasAnterior().has(fechaOriginal)) return;
+
+    const nuevaFechaNormalizada = this.normalizarFecha(nuevaFecha);
+    if (!nuevaFechaNormalizada) return;
+
+    const nuevosResultados = [...this.resultadosAnterior()];
+    nuevosResultados[index] = { ...nuevosResultados[index], fecha: nuevaFechaNormalizada };
+
+    this.resultadosAnterior.set(nuevosResultados);
+    this.calcularComparaciones();
+  }
+
+  actualizarFechaComparacionActual(fechaOriginal: string, nuevaFecha: string, index: number) {
+    const nuevaFechaNormalizada = this.normalizarFecha(nuevaFecha);
+    if (!nuevaFechaNormalizada) return;
+
+    const nuevasComparaciones = [...this.comparacionesActual()];
+    const idx = nuevasComparaciones.findIndex(c => c.fecha === fechaOriginal);
+    if (idx >= 0) {
+      nuevasComparaciones[idx] = { ...nuevasComparaciones[idx], fecha: nuevaFechaNormalizada };
+      this.comparacionesActual.set(nuevasComparaciones);
+      this.calcularComparaciones();
+    }
+  }
+
+  actualizarFechaComparacionAnterior(fechaOriginal: string, nuevaFecha: string, index: number) {
+    const nuevaFechaNormalizada = this.normalizarFecha(nuevaFecha);
+    if (!nuevaFechaNormalizada) return;
+
+    const nuevasComparaciones = [...this.comparacionesAnterior()];
+    const idx = nuevasComparaciones.findIndex(c => c.fecha === fechaOriginal);
+    if (idx >= 0) {
+      nuevasComparaciones[idx] = { ...nuevasComparaciones[idx], fecha: nuevaFechaNormalizada };
+      this.comparacionesAnterior.set(nuevasComparaciones);
+      this.calcularComparaciones();
+    }
   }
 
   asignarTasaManual(fecha: string, valor: any) {
@@ -2106,6 +2196,7 @@ abrirModalExpectativas() {
   getExpectativasPorDia(): { fecha: string; dia: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number; metaExtraUSD: number; metaExtraBs: number }[] {
     const resultadosAnterior = this.resultadosAnterior();
     const meta = this.metaVariacion();
+    const tasaPromedioActual = this.tasaPromedioActual() || this.promedioTasaActual();
     
     if (resultadosAnterior.length === 0) return [];
     
@@ -2114,11 +2205,11 @@ abrirModalExpectativas() {
         ? Math.round(r.totalConvertido * (1 + meta / 100) * 100) / 100 
         : 0;
       const metaExtraUSD = expectativaUSD - r.totalConvertido;
-      const expectativaBs = r.tasa > 0 
-        ? Math.round(expectativaUSD * r.tasa * 100) / 100 
+      const expectativaBs = tasaPromedioActual > 0 
+        ? Math.round(expectativaUSD * tasaPromedioActual * 100) / 100 
         : 0;
-      const metaExtraBs = r.tasa > 0 
-        ? Math.round(metaExtraUSD * r.tasa * 100) / 100 
+      const metaExtraBs = tasaPromedioActual > 0 
+        ? Math.round(metaExtraUSD * tasaPromedioActual * 100) / 100 
         : 0;
       
       return {

@@ -2290,10 +2290,10 @@ if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th
       
 for (const e of expectativas) {
          html += '<tr>';
-         if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafa; class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
-         if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafa; class="wrap-center">${e.dia}</td>`;
-if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafa;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
-         if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafa; class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+         if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
+         if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${e.dia}</td>`;
+if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+         if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafad8; class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
 if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
          if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
          if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
@@ -2349,7 +2349,7 @@ html += `
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const filtroLabel = diaSeleccionado !== null ? ` - ${dias[diaSeleccionado]}` : '';
 
-  let html = `
+let html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -2357,7 +2357,7 @@ html += `
   <style>
     @page {
       size: letter portrait;
-      margin: 0.3in; /* Aumentado ligeramente para un margen de impresión óptimo */
+      margin: 0.25in; /* Reducido ligeramente para ganar espacio vertical en la hoja */
     }
     html, body {
       margin: 0;
@@ -2365,95 +2365,87 @@ html += `
       font-family: Arial, sans-serif;
       font-size: 8.5pt;
       box-sizing: border-box;
-      height: 100%;
-      background-color: #ffffff;
+      /* Eliminado height: 100% para evitar que el navegador estire el layout artificialmente */
     }
     
-    /* Contenedor principal que controla el ancho del reporte en la hoja */
     .container {
-      width: 85%;          /* Incrementa este porcentaje (ej. 90%) si quieres que use aún más hoja */
-      max-width: 800px;     /* Límite físico para que luzca balanceado al imprimir */
-      margin: 0 auto;       /* Centra de manera absoluta todo el reporte */
-      padding: 6px;
+      width: 88%;          /* Un pelín más ancho para que los datos no se aprieten a lo alto */
+      max-width: 800px;     
+      margin: 0 auto;       
+      padding: 4px;
       box-sizing: border-box;
-      min-height: 100%;
       display: flex;
       flex-direction: column;
     }
     
-    /* Encabezado estructurado para que el título se alinee con la tabla */
     .print-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 10px; /* Reducido de 16px a 10px */
       border-bottom: 1px solid #eee;
-      padding-bottom: 8px;
+      padding-bottom: 6px;
     }
     .print-logo {
-      width: 130px;
-      max-height: 80px;
+      width: 125px;        /* Reducido sutilmente */
+      max-height: 70px;
       object-fit: contain;
     }
     .print-title-section {
       flex: 1;
-      text-align: right; /* Al estar el logo a la izquierda, el título a la derecha equilibra el peso visual */
+      text-align: right; 
     }
     
     h1 { 
       color: #1d63c1; 
-      font-size: 18pt;    /* Un poco más grande para darle presencia */
-      margin: 0 0 4px 0; 
+      font-size: 16pt;    /* Reducido de 18pt a 16pt para ahorrar espacio */
+      margin: 0 0 2px 0; 
       font-weight: 700;
     }
     .meta-info { 
-      font-size: 10pt; 
+      font-size: 9.5pt; 
       color: #666;
       margin: 0;
     }
     
-    /* Configuración de la tabla expandida */
     table {
-      width: 100%;         /* Se expande exactamente al ancho controlado por .container */
+      width: 100%;         
       border-collapse: collapse;
-      font-size: 9pt;      /* Subido un punto para facilitar la lectura */
-      margin-bottom: 12px;
+      font-size: 8.5pt;    /* Reducido de 9pt a 8.5pt para compactar filas */
+      margin-bottom: 8px;  /* Reducido de 12px a 8px */
     }
     th, td {
-      border: 1px solid #777; /* Bordes ligeramente más nítidos */
-      padding: 5px 8px;    /* Un padding balanceado: compacto pero respira */
+      border: 1px solid #777; 
+      padding: 3px 6px;    /* Ajuste clave: de 5px/8px bajó a 3px/6px. Esto encoge la tabla drásticamente */
       text-align: left;
-      line-height: 1.3;
-      white-space: nowrap; /* Mantiene montos y fechas en una sola línea */
+      line-height: 1.2;    /* Reducido de 1.3 a 1.2 para ganar valiosos milímetros */
+      white-space: nowrap; 
     }
     
-    /* Encabezado Naranja con texto blanco para excelente legibilidad */
     th { 
       background: #e65100 !important; 
       color: #ffffff !important; 
       font-weight: 700 !important; 
-      font-size: 10pt !important; 
+      font-size: 9.5pt !important; 
     }
     
-    /* Alineaciones del reporte */
     .text-right { text-align: right; }
     .text-center { text-align: center; }
     
-    /* Resaltado del pie de tabla */
     tfoot tr {
       background-color: #f5f5f5;
     }
     tfoot td {
       border-top: 2px solid #555;
-      font-size: 9.5pt;
+      font-size: 9pt;
     }
     
     .footer {
-      margin-top: auto;   /* Empuja el footer al final de la página */
-      font-size: 9pt;
+      margin-top: 10px;    /* Cambiado de 'auto' a un margen fijo pequeño para que se pegue a la tabla */
+      font-size: 8.5pt;
       color: #666;
       text-align: right;
-      padding-top: 10px;
+      padding-top: 4px;
     }
   </style>
 </head>

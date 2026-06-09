@@ -2271,10 +2271,10 @@ imprimirExpectativas() {
                 <tr>
           `;
       
-if (this.columnaFechaVisible()) html += '<th class="wrap-center">Fecha</th>';
-       if (this.columnaDiaVisible()) html += '<th class="wrap-center">Día</th>';
-       if (this.columnaAnteriorBsVisible()) html += '<th class="numeric">Ventas (Bs)</th>';
-       if (this.columnaAnteriorUSDVisible()) html += '<th class="numeric">Ventas ($)</th>';
+if (this.columnaFechaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Fecha</th>';
+       if (this.columnaDiaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día</th>';
+       if (this.columnaAnteriorBsVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas (Bs)</th>';
+       if (this.columnaAnteriorUSDVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas ($)</th>';
        if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
 if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
         if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
@@ -2290,10 +2290,10 @@ if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th
       
 for (const e of expectativas) {
          html += '<tr>';
-         if (this.columnaFechaVisible()) html += `<td class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
-         if (this.columnaDiaVisible()) html += `<td class="wrap-center">${e.dia}</td>`;
-if (this.columnaAnteriorBsVisible()) html += `<td class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
-         if (this.columnaAnteriorUSDVisible()) html += `<td class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+         if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafa; class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
+         if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafa; class="wrap-center">${e.dia}</td>`;
+if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafa;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+         if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafa; class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
 if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
          if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
          if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;

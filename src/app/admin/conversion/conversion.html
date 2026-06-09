@@ -237,19 +237,20 @@
           <tbody>
             @for (r of resultados(); track $index) {
               <tr [class.sin-tasa]="r.tasa === 0">
-                <td>
-                  @if (getFechasRepetidas().has(r.fecha)) {
-                    <input
-                      type="text"
-                      class="fecha-editable-input"
-                      [value]="formatFechaDisplay(r.fecha)"
-                      (blur)="actualizarFechaEnResultado(r.fecha, $event.target.value, $index)"
-                      placeholder="DD/MM/YYYY"
-                    />
-                  } @else {
-                    {{ formatFechaDisplay(r.fecha) }}
-                  }
-                </td>
+<td>
+                   @if (getFechasRepetidas().has(r.fecha)) {
+                     <input
+                       type="text"
+                       class="fecha-editable-input"
+                       [value]="formatFechaDisplay(r.fecha)"
+                       (focus)="$event.target.select()"
+                       (blur)="actualizarFechaEnResultado(r.fecha, $event.target.value, $index)"
+                       placeholder="DD/MM/YYYY"
+                     />
+                   } @else {
+                     {{ formatFechaDisplay(r.fecha) }}
+                   }
+                 </td>
                 @for (col of getColumnasExtra(); track col) {
                   <td>{{ r.columnasExtra[col] ?? '' }}</td>
                 }
@@ -316,6 +317,7 @@
                              type="text"
                              class="fecha-editable-input"
                              [value]="formatFechaDisplay(c.fecha)"
+                             (focus)="$event.target.select()"
                              (blur)="actualizarFechaAnteriorEnResultado(c.fecha, $event.target.value, i)"
                              placeholder="DD/MM/YYYY"
                            />
@@ -365,6 +367,7 @@
                              type="text"
                              class="fecha-editable-input"
                              [value]="formatFechaDisplay(c.fecha)"
+                             (focus)="$event.target.select()"
                              (blur)="actualizarFechaComparacionActual(c.fecha, $event.target.value, i)"
                              placeholder="DD/MM/YYYY"
                            />

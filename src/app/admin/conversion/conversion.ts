@@ -1725,72 +1725,64 @@ private procesarVentasActual(
   }
 
   tieneFechasRepetidasEnComparacion(): boolean {
-    const filtro = this.filtroDiaSemana();
-
-    if (filtro !== null) {
-      const actuales = this.resultados().filter(r => r.diaSemana === filtro);
-      const anteriores = this.resultadosAnterior().filter(r => r.diaSemana === filtro);
-      return actuales.length > 1 || anteriores.length > 1;
-    }
-
     const actuales = this.resultados();
     const anteriores = this.resultadosAnterior();
-    const tieneRepetidasActual = actuales.length !== new Set(actuales.map(r => r.fecha)).size;
-    const tieneRepetidasAnterior = anteriores.length !== new Set(anteriores.map(r => r.fecha)).size;
 
-    return tieneRepetidasActual || tieneRepetidasAnterior;
+    const frecuencias = new Map<string, number>();
+    actuales.forEach(r => frecuencias.set(r.fecha, (frecuencias.get(r.fecha) || 0) + 1));
+    anteriores.forEach(r => frecuencias.set(r.fecha, (frecuencias.get(r.fecha) || 0) + 1));
+
+    for (const count of frecuencias.values()) {
+      if (count > 1) return true;
+    }
+    return false;
   }
 
   getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const actuales = this.resultados();
     const anteriores = this.resultadosAnterior();
-    const filtro = this.filtroDiaSemana();
 
-    const mapaActual = new Map<number, FilaResultado[]>();
-    const mapaAnterior = new Map<number, FilaResultado[]>();
-
+    const mapaFechasActual = new Map<string, FilaResultado[]>();
     actuales.forEach(r => {
-      const lista = mapaActual.get(r.diaSemana) || [];
+      const lista = mapaFechasActual.get(r.fecha) || [];
       lista.push(r);
-      mapaActual.set(r.diaSemana, lista);
+      mapaFechasActual.set(r.fecha, lista);
     });
 
+    const mapaFechasAnterior = new Map<string, FilaResultado[]>();
     anteriores.forEach(r => {
-      const lista = mapaAnterior.get(r.diaSemana) || [];
+      const lista = mapaFechasAnterior.get(r.fecha) || [];
       lista.push(r);
-      mapaAnterior.set(r.diaSemana, lista);
+      mapaFechasAnterior.set(r.fecha, lista);
     });
 
     const resultado: { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
 
-    const díasAMostrar = filtro !== null ? [filtro] : [0, 1, 2, 3, 4, 5, 6];
+    const todasLasFechas = Array.from(new Set([...actuales.map(r => r.fecha), ...anteriores.map(r => r.fecha)]));
     let indexCounter = 0;
 
-    for (const diaSemana of díasAMostrar) {
-      const diasActual = mapaActual.get(diaSemana) || [];
-      const diasAnterior = mapaAnterior.get(diaSemana) || [];
+    for (const fecha of todasLasFechas) {
+      const filasActual = mapaFechasActual.get(fecha) || [];
+      const filasAnterior = mapaFechasAnterior.get(fecha) || [];
+      const repeticionesActual = filasActual.length;
+      const repeticionesAnterior = filasAnterior.length;
 
-      const maxLen = Math.max(diasActual.length, diasAnterior.length);
+      const primeraActual = filasActual[0] ?? null;
+      const primeraAnterior = filasAnterior[0] ?? null;
 
-      for (let i = 0; i < maxLen; i++) {
-        const actual = diasActual[i];
-        const anterior = diasAnterior[i];
+      const actualUSD = repeticionesActual > 0 ? (primeraActual!.totalConvertido) : 0;
+      const anteriorUSD = repeticionesAnterior > 0 ? (primeraAnterior!.totalConvertido) : 0;
 
-        const actualUSD = actual?.totalConvertido || 0;
-        const anteriorUSD = anterior?.totalConvertido || 0;
-
-        resultado.push({
-          index: indexCounter,
-          fechaActual: actual?.fecha || '',
-          fechaAnterior: anterior?.fecha || '',
-          dia: dias[diaSemana],
-          actual: Math.round(actualUSD * 100) / 100,
-          anterior: Math.round(anteriorUSD * 100) / 100,
-          variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
-        });
-        indexCounter++;
-      }
+      resultado.push({
+        index: indexCounter,
+        fechaActual: primeraActual?.fecha || '',
+        fechaAnterior: primeraAnterior?.fecha || '',
+        dia: primeraActual ? this.diaSemanaLabel(primeraActual.fecha) : (primeraAnterior ? this.diaSemanaLabel(primeraAnterior.fecha) : ''),
+        actual: Math.round(actualUSD * 100) / 100,
+        anterior: Math.round(anteriorUSD * 100) / 100,
+        variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+      });
+      indexCounter++;
     }
 
     return resultado.filter(r => r.fechaActual || r.fechaAnterior);

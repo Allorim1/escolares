@@ -72,7 +72,7 @@
 
 .contact-form {
   text-align: center;
-  padding: 2rem;
+  padding: 5rem 2rem 2rem;
   background: #f8f9fa;
   border-radius: 12px;
   position: relative;
@@ -80,9 +80,9 @@
 
 .form-logo {
   position: absolute;
-  top: -20px;
-  left: 20px;
-  width: 120px;
+  top: 40px;
+  left: 30px;
+  width: 160px;
   height: auto;
 }
 
@@ -106,10 +106,9 @@
   transform: scale(1.1);
 }
 
-.whatsapp-float svg {
-  width: 32px;
-  height: 32px;
-  color: white;
+.whatsapp-float img {
+  width: 36px;
+  height: 36px;
 }
 
 .contact-form h2 {

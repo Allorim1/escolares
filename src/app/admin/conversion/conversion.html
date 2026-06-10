@@ -34,7 +34,7 @@
                  pattern="[0-9.]*"
                  class="rate-input tiny-rate-input"
                  [value]="showBlankAnterior() ? '' : formatRateFromCents(promedioTasaAnteriorCents())"
-                 (focus)="onRateFocus('anterior'); $event.target.select()"
+                 (mousedown)="rateInputJustFocused.update(s => ({...s, anterior: true}))"(focus)="onRateFocus('anterior', $event)"
                  (blur)="onRateBlur('anterior')"
                  (keydown)="onRateKey($event, 'anterior')"
                  (paste)="onRatePaste($event, 'anterior')"
@@ -87,7 +87,7 @@
                  pattern="[0-9.]*"
                  class="rate-input tiny-rate-input"
                  [value]="showBlankActual() ? '' : formatRateFromCents(promedioTasaActualCents())"
-                 (focus)="onRateFocus('actual'); $event.target.select()"
+                 (mousedown)="rateInputJustFocused.update(s => ({...s, actual: true}))"(focus)="onRateFocus('actual', $event)"
                  (blur)="onRateBlur('actual')"
                  (keydown)="onRateKey($event, 'actual')"
                  (paste)="onRatePaste($event, 'actual')"
@@ -665,3 +665,5 @@
     </div>
   }
 </div>
+
+

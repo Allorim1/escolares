@@ -71,6 +71,8 @@ export class Conversion implements OnInit {
   promedioTasaAnteriorCents = signal<number>(0);
   showBlankActual = signal<boolean>(false);
   showBlankAnterior = signal<boolean>(false);
+  rateInputSelected = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
+  rateInputJustFocused = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
 
   tasasAnterioresManuales = signal<Map<string, number>>(new Map());
   fechasSinTasaAnterior = signal<string[]>([]);
@@ -1667,6 +1669,7 @@ private procesarVentasActual(
     this.promedioTasaAnteriorCents.set(0);
     this.showBlankActual.set(false);
     this.showBlankAnterior.set(false);
+    this.rateInputSelected.set({actual: false, anterior: false});
 
     setTimeout(() => {
       const fileInputs = document.querySelectorAll('input[type="file"][accept*="xlsx"], input[type="file"][accept*="csv"]');
@@ -1874,11 +1877,19 @@ cerrarModalExpectativas() {
     return (cents / 100).toFixed(2);
   }
 
-  onRateFocus(kind: 'actual' | 'anterior') {
+  onRateFocus(kind: 'actual' | 'anterior', event?: FocusEvent) {
+    const target = event?.target as HTMLInputElement;
+    if (target && target.selectionStart !== target.selectionEnd) {
+      this.rateInputSelected.update(s => ({...s, [kind]: true}));
+    }
     if (kind === 'actual') {
       if (this.promedioTasaActualCents() === 0) this.showBlankActual.set(true);
     } else {
       if (this.promedioTasaAnteriorCents() === 0) this.showBlankAnterior.set(true);
+    }
+    // Select text after focus
+    if (target) {
+      setTimeout(() => target.select());
     }
   }
 
@@ -1896,18 +1907,27 @@ cerrarModalExpectativas() {
     if (isDigit) {
       event.preventDefault();
       const d = parseInt(key, 10);
+      const selected = this.rateInputSelected()[kind] || this.rateInputJustFocused()[kind as 'actual' | 'anterior'];
       if (kind === 'actual') {
-        let cents = this.promedioTasaActualCents();
-        cents = Math.min(Math.floor(cents * 10 + d), 999999999);
+        let cents = selected ? d : this.promedioTasaActualCents();
+        if (!selected) {
+          cents = Math.min(Math.floor(cents * 10 + d), 999999999);
+        }
         this.promedioTasaActualCents.set(cents);
         this.promedioTasaActual.set(Math.round((cents / 100) * 10000) / 10000);
         this.showBlankActual.set(false);
+        this.rateInputSelected.update(s => ({...s, actual: false}));
+        this.rateInputJustFocused.update(s => ({...s, actual: false}));
       } else {
-        let cents = this.promedioTasaAnteriorCents();
-        cents = Math.min(Math.floor(cents * 10 + d), 999999999);
+        let cents = selected ? d : this.promedioTasaAnteriorCents();
+        if (!selected) {
+          cents = Math.min(Math.floor(cents * 10 + d), 999999999);
+        }
         this.promedioTasaAnteriorCents.set(cents);
         this.promedioTasaAnterior.set(Math.round((cents / 100) * 10000) / 10000);
         this.showBlankAnterior.set(false);
+        this.rateInputSelected.update(s => ({...s, anterior: false}));
+        this.rateInputJustFocused.update(s => ({...s, anterior: false}));
       }
       return;
     }

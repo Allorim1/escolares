@@ -71,8 +71,14 @@ export class Conversion implements OnInit {
   promedioTasaAnteriorCents = signal<number>(0);
   showBlankActual = signal<boolean>(false);
   showBlankAnterior = signal<boolean>(false);
-  rateInputSelected = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
+rateInputSelected = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
   rateInputJustFocused = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
+
+  onMontoBlur(event: any, index: number, tipo: 'actual' | 'anterior') {
+    const monto = parseFloat(event.target.value);
+    if (isNaN(monto) || monto < 0) return;
+    this.actualizarMontoComparacion(index, tipo, monto);
+  }
 
   tasasAnterioresManuales = signal<Map<string, number>>(new Map());
   fechasSinTasaAnterior = signal<string[]>([]);

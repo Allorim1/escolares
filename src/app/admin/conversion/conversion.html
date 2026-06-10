@@ -394,16 +394,16 @@
                     <tr>
                       <td>{{ item.dia }}</td>
                       <td>{{ formatFechaDisplay(item.fechaActual) }}</td>
-                      <td class="num">
-                        @if (tieneFechasRepetidasEnComparacion() && item.actual > 0) {
+<td class="num">
+@if (tieneFechasRepetidasEnComparacion() && item.actual > 0) {
                           <input
+                            #montoActualInput
                             type="number"
                             class="monto-editable-input"
-                            [value]="item.actual"
                             step="0.01"
                             min="0"
-                            (focus)="$event.target.select()"
-                            (blur)="actualizarMontoComparacion(item.index, 'actual', $event.target.value)"
+                            (focus)="montoActualInput.value = item.actual.toString(); $event.target.select()"
+                            (blur)="onMontoBlur($event, item.index, 'actual')"
                           />
                         } @else {
                           {{ item.actual > 0 ? '$ ' + formatearMoneda(item.actual) : '-' }}
@@ -411,15 +411,15 @@
                       </td>
                       <td>{{ formatFechaDisplay(item.fechaAnterior) }}</td>
                       <td class="num">
-                        @if (tieneFechasRepetidasEnComparacion() && item.anterior > 0) {
+@if (tieneFechasRepetidasEnComparacion() && item.anterior > 0) {
                           <input
+                            #montoAnteriorInput
                             type="number"
                             class="monto-editable-input"
-                            [value]="item.anterior"
                             step="0.01"
                             min="0"
-                            (focus)="$event.target.select()"
-                            (blur)="actualizarMontoComparacion(item.index, 'anterior', $event.target.value)"
+                            (focus)="montoAnteriorInput.value = item.anterior.toString(); $event.target.select()"
+                            (blur)="onMontoBlur($event, item.index, 'anterior')"
                           />
                         } @else {
                           {{ item.anterior > 0 ? '$ ' + formatearMoneda(item.anterior) : '-' }}

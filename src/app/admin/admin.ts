@@ -177,23 +177,23 @@ if (!user) {
    }
 
 setCategoriesWithExpanded() {
-     const permissions = this.userPermissions();
-     const user = this.authService.user();
-     const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-     const isRepartidor = user?.rol === 'repartidor';
+      const permissions = this.userPermissions();
+      const user = this.authService.user();
+      const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+      const isRepartidor = user?.rol === 'repartidor';
 
-    const categories = DEFAULT_CATEGORIAS
-      .filter(cat => !isRepartidor || cat.name === 'Repartidor')
-      .map(cat => {
-        const hasVisibleItems = cat.items.some(item => {
-          if (!item.permiso) return true;
-          if (isRoot) return true;
-          return permissions.includes(item.permiso);
-        });
-        return { ...cat, expanded: hasVisibleItems };
-      });
-    this.categorias.set(categories);
-  }
+     const categories = DEFAULT_CATEGORIAS
+       .filter(cat => !isRepartidor || cat.name === 'Repartidor')
+       .map(cat => {
+         const hasVisibleItems = cat.items.some(item => {
+           if (!item.permiso) return true;
+           if (isRoot) return true;
+           return permissions.includes(item.permiso);
+         });
+         return { ...cat, expanded: false };
+       });
+     this.categorias.set(categories);
+   }
 
   hasPermission(permiso?: string): boolean {
     const user = this.authService.user();

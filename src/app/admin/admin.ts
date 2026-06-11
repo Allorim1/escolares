@@ -11,11 +11,30 @@ interface MenuItem {
   permiso?: string;
 }
 
+interface QuickItem {
+  label: string;
+  route: string;
+  icon: string;
+  permiso?: string;
+}
+
 interface MenuCategory {
   name: string;
   expanded: boolean;
   items: MenuItem[];
 }
+
+const QUICK_ITEMS: QuickItem[] = [
+  { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
+  { label: 'Costos', route: 'costo-tasa', icon: '💰', permiso: 'tasas_gestionar' },
+  { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
+  { label: 'Facturación', route: 'facturacion', icon: '🧾', permiso: 'facturas_gestionar' },
+  { label: 'Gastos', route: 'gastos', icon: '💸', permiso: 'gastos_gestionar' },
+  { label: 'Nómina', route: 'nomina', icon: '👥', permiso: 'nomina_ver' },
+  { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
+  { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
+  { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
+];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
    {
@@ -84,55 +103,74 @@ export class Admin implements OnInit {
   apiKeyStatusService = inject(ApiKeyStatusService);
   private rolesBackend = inject(RolesBackend);
 
-  userPermissions = signal<string[]>([]);
-  apiKeyStatusLoaded = signal(false);
-  categorias = signal<MenuCategory[]>([]);
+userPermissions = signal<string[]>([]);
+   apiKeyStatusLoaded = signal(false);
+   categorias = signal<MenuCategory[]>([]);
+   quickItems = signal<QuickItem[]>([]);
 
-  ngOnInit() {
-    this.checkApiKeyStatus();
-    this.loadUserPermissions();
-  }
+   ngOnInit() {
+     this.checkApiKeyStatus();
+     this.loadUserPermissions();
+   }
 
-  loadUserPermissions() {
+   setQuickItems() {
+     const user = this.authService.user();
+     const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+     const permissions = this.userPermissions();
+
+     const items = QUICK_ITEMS.filter(item => {
+       if (!item.permiso) return true;
+       if (isRoot) return true;
+       return permissions.includes(item.permiso);
+     });
+     this.quickItems.set(items);
+   }
+
+   loadUserPermissions() {
     const user = this.authService.user();
-    if (!user) {
-      console.log('No user found, setting default categories');
-      this.setCategoriesWithExpanded();
-      return;
-    }
+if (!user) {
+       console.log('No user found, setting default categories');
+       this.setCategoriesWithExpanded();
+       this.setQuickItems();
+       return;
+     }
 
-    if (user.rol === 'root' || user.rol === 'admin') {
-      this.rolesBackend.getPermisos().subscribe({
-        next: (permisos) => {
-          const permisosIds = permisos.map(p => p.id);
-          console.log('Permisos cargados (root):', permisosIds);
-          this.userPermissions.set(permisosIds);
-          this.setCategoriesWithExpanded();
-        }
-      });
-    } else if (user.rolId) {
-      console.log('Intentando cargar rol con ID:', user.rolId);
-      this.rolesBackend.getRol(user.rolId).subscribe({
-        next: (rol) => {
-          console.log('Rol cargado:', rol.nombre, 'Permisos:', rol.permisos);
-          this.userPermissions.set(rol.permisos || []);
-          console.log('userPermissions después de cargar rol:', this.userPermissions());
-          this.setCategoriesWithExpanded();
-        },
-        error: (err) => {
-          console.error('Error cargando rol:', err);
-          console.error('Error status:', err.status);
-          console.error('Error message:', err.error);
-          console.error('User rolId:', user.rolId);
-          this.userPermissions.set([]);
-          this.setCategoriesWithExpanded();
-        }
-      });
-    } else {
-      console.log('Usuario sin rolId, no se cargan permisos');
-      this.setCategoriesWithExpanded();
-    }
-  }
+     if (user.rol === 'root' || user.rol === 'admin') {
+       this.rolesBackend.getPermisos().subscribe({
+         next: (permisos) => {
+           const permisosIds = permisos.map(p => p.id);
+           console.log('Permisos cargados (root):', permisosIds);
+           this.userPermissions.set(permisosIds);
+           this.setCategoriesWithExpanded();
+           this.setQuickItems();
+         }
+       });
+     } else if (user.rolId) {
+       console.log('Intentando cargar rol con ID:', user.rolId);
+       this.rolesBackend.getRol(user.rolId).subscribe({
+         next: (rol) => {
+           console.log('Rol cargado:', rol.nombre, 'Permisos:', rol.permisos);
+           this.userPermissions.set(rol.permisos || []);
+           console.log('userPermissions después de cargar rol:', this.userPermissions());
+           this.setCategoriesWithExpanded();
+           this.setQuickItems();
+         },
+         error: (err) => {
+           console.error('Error cargando rol:', err);
+           console.error('Error status:', err.status);
+           console.error('Error message:', err.error);
+           console.error('User rolId:', user.rolId);
+           this.userPermissions.set([]);
+           this.setCategoriesWithExpanded();
+           this.setQuickItems();
+         }
+       });
+     } else {
+       console.log('Usuario sin rolId, no se cargan permisos');
+       this.setCategoriesWithExpanded();
+       this.setQuickItems();
+     }
+   }
 
 setCategoriesWithExpanded() {
      const permissions = this.userPermissions();

@@ -78,12 +78,62 @@
 }
 
 .inicio-link.active {
-  background: #ff6b35;
-}
+   background: #ff6b35;
+ }
 
-.menu-categoria {
-  margin-bottom: 0.5rem;
-}
+ .quick-links-section {
+   margin-bottom: 1rem;
+ }
+
+ .quick-links-title {
+   margin: 0 0 0.75rem 0;
+   font-size: 0.9rem;
+   color: #ff6b35;
+   font-weight: 600;
+ }
+
+ .quick-links-grid {
+   display: grid;
+   grid-template-columns: repeat(2, 1fr);
+   gap: 0.5rem;
+ }
+
+ .quick-link {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   padding: 0.75rem 0.5rem;
+   background: rgba(255, 255, 255, 0.05);
+   color: #fff;
+   text-decoration: none;
+   border-radius: 8px;
+   transition: all 0.3s;
+   font-size: 0.75rem;
+   text-align: center;
+ }
+
+ .quick-link:hover {
+   background: rgba(255, 255, 255, 0.15);
+   transform: translateY(-2px);
+ }
+
+ .quick-link.active {
+   background: #ff6b35;
+ }
+
+ .quick-link-icon {
+   font-size: 1.25rem;
+   margin-bottom: 0.25rem;
+ }
+
+ .quick-link-label {
+   font-weight: 500;
+ }
+
+ .menu-categoria {
+   margin-bottom: 0.5rem;
+ }
 
 .categoria-header {
   width: 100%;
@@ -204,20 +254,46 @@
   }
 
   .admin-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+   flex-direction: row;
+   flex-wrap: wrap;
+   gap: 0.5rem;
+ }
 
-  .inicio-link {
-    margin-bottom: 0;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-  }
+ .inicio-link {
+   margin-bottom: 0;
+   padding: 0.5rem 0.75rem;
+   font-size: 0.85rem;
+ }
 
-  .menu-categoria {
-    margin-bottom: 0;
-  }
+ .quick-links-section {
+   width: 100%;
+   margin-bottom: 0.5rem;
+ }
+
+ .quick-links-title {
+   margin: 0 0 0.5rem 0;
+   font-size: 0.85rem;
+ }
+
+ .quick-links-grid {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 0.375rem;
+ }
+
+ .quick-link {
+   padding: 0.5rem 0.25rem;
+   font-size: 0.7rem;
+ }
+
+ .quick-link-icon {
+   font-size: 1rem;
+   margin-bottom: 0.125rem;
+ }
+
+ .menu-categoria {
+   margin-bottom: 0;
+ }
 
   .categoria-header {
     padding: 0.5rem 0.75rem;
@@ -281,6 +357,35 @@
     min-height: 40px;
     display: flex;
     align-items: center;
+  }
+
+  .quick-links-section {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .quick-links-title {
+    margin: 0 0 0.375rem 0;
+    font-size: 0.85rem;
+    color: #ff6b35;
+    font-weight: 600;
+  }
+
+  .quick-links-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+  }
+
+  .quick-link {
+    padding: 0.375rem 0.25rem;
+    font-size: 0.65rem;
+    min-height: 50px;
+  }
+
+  .quick-link-icon {
+    font-size: 0.9rem;
+    margin-bottom: 0.125rem;
   }
 
   .menu-categoria {

@@ -829,7 +829,8 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private autoScrollInterval: any;
 
   get duplicatedMarcas() {
-    const original = this.marcas() || [];
+    const marcasValue = this.marcas();
+    const original = Array.isArray(marcasValue) ? marcasValue : [];
     return [...original, ...original, ...original, ...original];
   }
 
@@ -919,8 +920,9 @@ ngOnDestroy() {
     }
   }
 
-  prev() {
-     const marcasArray = this.marcas() || [];
+prev() {
+     const marcasArray = this.marcas();
+     if (!Array.isArray(marcasArray)) return;
      const originalLength = marcasArray.length;
      if (this.currentIndex > originalLength) {
        this.currentIndex--;
@@ -929,15 +931,16 @@ ngOnDestroy() {
      }
    }
 
-next() {
-      const marcasArray = this.marcas() || [];
-      const originalLength = marcasArray.length;
-      if (this.currentIndex < this.totalMarcas - this.visibleCount) {
-        this.currentIndex++;
-      } else {
-        this.currentIndex = originalLength;
-      }
-    }
+ next() {
+     const marcasArray = this.marcas();
+     if (!Array.isArray(marcasArray)) return;
+     const originalLength = marcasArray.length;
+     if (this.currentIndex < this.totalMarcas - this.visibleCount) {
+       this.currentIndex++;
+     } else {
+       this.currentIndex = originalLength;
+     }
+   }
 
   pauseAutoScroll() {
     if (this.autoScrollInterval) {
@@ -956,33 +959,36 @@ next() {
 
   get productosDestacados() {
     return computed(() => {
-      const all = this.productsState.allProducts() || [];
-      if (all.length === 0) return [];
-      return [...all].sort((a, b) => (b.rating?.count || 0) - (a.rating?.count || 0)).slice(0, 8);
-    });
-  }
+const all = this.productsState.allProducts();
+       if (!Array.isArray(all) || all.length === 0) return [];
+       return [...all].sort((a, b) => (b.rating?.count || 0) - (a.rating?.count || 0)).slice(0, 8);
+     });
+   }
 
   get productosRecomendados() {
     return computed(() => {
-      const all = this.productsState.allProducts() || [];
-      if (all.length === 0) return [];
+      const all = this.productsState.allProducts();
+      if (!Array.isArray(all) || all.length === 0) return [];
       const shuffled = [...all].sort(() => 0.5 - Math.random());
       return shuffled.slice(0, 8);
     });
   }
 
   get productosDestacadosDuplicados() {
-    const original = this.productosDestacados() || [];
+    const original = this.productosDestacados();
+    if (!Array.isArray(original)) return [];
     return [...original, ...original, ...original];
   }
 
   get productosRecomendadosDuplicados() {
-    const original = this.productosRecomendados() || [];
+    const original = this.productosRecomendados();
+    if (!Array.isArray(original)) return [];
     return [...original, ...original, ...original];
   }
 
   prevProductosDestacados() {
-    const products = this.productosDestacados() || [];
+    const products = this.productosDestacados();
+    if (!Array.isArray(products)) return;
     const originalLength = products.length;
     if (this.productosDestacadosIndex > originalLength) {
       this.productosDestacadosIndex--;
@@ -992,7 +998,8 @@ next() {
   }
 
   nextProductosDestacados() {
-    const products = this.productosDestacados() || [];
+    const products = this.productosDestacados();
+    if (!Array.isArray(products)) return;
     const originalLength = products.length;
     if (this.productosDestacadosIndex < this.productosDestacadosDuplicados.length - 6) {
       this.productosDestacadosIndex++;
@@ -1002,7 +1009,8 @@ next() {
   }
 
   prevProductosRecomendados() {
-    const products = this.productosRecomendados() || [];
+    const products = this.productosRecomendados();
+    if (!Array.isArray(products)) return;
     const originalLength = products.length;
     if (this.productosRecomendadosIndex > originalLength) {
       this.productosRecomendadosIndex--;
@@ -1012,7 +1020,8 @@ next() {
   }
 
   nextProductosRecomendados() {
-    const products = this.productosRecomendados() || [];
+    const products = this.productosRecomendados();
+    if (!Array.isArray(products)) return;
     const originalLength = products.length;
     if (this.productosRecomendadosIndex < this.productosRecomendadosDuplicados.length - 6) {
       this.productosRecomendadosIndex++;

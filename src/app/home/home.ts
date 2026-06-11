@@ -630,52 +630,53 @@ import { Product } from '../shared/interfaces/product.interface';
          }
        }
 
-       .productos-carousel-section {
-         width: 100%;
-         max-width: 1200px;
-         margin: 2rem auto;
-         padding: 0 1rem;
-       }
+.productos-carousel-section {
+          width: 100%;
+          max-width: 1200px;
+          margin: 2rem auto;
+          padding: 0 2rem;
+        }
 
-       .productos-carousel-section .carousel-title {
-         font-size: 1.8rem;
-         color: #1d63c1;
-         margin-bottom: 1rem;
-         text-align: center;
-       }
+        .productos-carousel-section .carousel-title {
+          font-size: 1.8rem;
+          color: #1d63c1;
+          margin-bottom: 1rem;
+          text-align: center;
+        }
 
-       .productos-carousel {
-         display: flex;
-         align-items: center;
-         padding: 1rem 40px;
-         position: relative;
-       }
+        .productos-carousel {
+          display: flex;
+          align-items: center;
+          padding: 1rem 60px;
+          position: relative;
+        }
 
-       .productos-carousel-viewport {
-         overflow: hidden;
-         flex: 1;
-         margin: 0 auto;
-       }
+.productos-carousel-viewport {
+           overflow: hidden;
+           flex: 1;
+           margin: 0 auto;
+           width: calc(200px * 6 + 1rem * 5);
+         }
 
-       .productos-carousel-track {
-         display: flex;
-         gap: 1rem;
-         transition: transform 0.5s ease-in-out;
-       }
+        .productos-carousel-track {
+          display: flex;
+          gap: 1rem;
+          transition: transform 0.5s ease-in-out;
+        }
 
-       .producto-slide {
-         flex: 0 0 220px;
-         background: white;
-         border-radius: 12px;
-         border: 1px solid #e0e0e0;
-         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-         overflow: hidden;
-         cursor: pointer;
-         transition: transform 0.2s, box-shadow 0.2s;
-         text-decoration: none;
-         display: flex;
-         flex-direction: column;
-       }
+        .producto-slide {
+          flex: 0 0 200px;
+          background: white;
+          border-radius: 12px;
+          border: 1px solid #e0e0e0;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          overflow: hidden;
+          cursor: pointer;
+          transition: transform 0.2s, box-shadow 0.2s;
+          text-decoration: none;
+          display: flex;
+          flex-direction: column;
+        }
 
        .producto-slide:hover {
          transform: translateY(-5px);
@@ -728,37 +729,67 @@ import { Product } from '../shared/interfaces/product.interface';
          font-weight: 400;
        }
 
-       .precio-oferta {
-         color: #e53935;
-         font-weight: 700;
-         font-size: 1rem;
-       }
+.precio-oferta {
+          color: #e53935;
+          font-weight: 700;
+          font-size: 1rem;
+        }
 
-       @media (max-width: 768px) {
-         .productos-carousel {
-           padding: 1rem 30px;
-         }
+        .price-bs-highlight {
+          color: #1976d2;
+          font-weight: 600;
+          font-size: 1rem;
+        }
 
-         .producto-slide {
-           flex: 0 0 180px;
-         }
+        .price-integer {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #1976d2;
+        }
 
-         .producto-image {
-           height: 120px;
-         }
+        .price-decimal {
+          font-size: 0.9rem;
+          color: #666;
+        }
 
-         .producto-title {
-           font-size: 0.75rem;
-         }
-       }
+        .price-usd-muted {
+          font-size: 0.75rem;
+          color: #888;
+        }
 
-       @media (max-width: 480px) {
-         .productos-carousel {
-           padding: 0.75rem 25px;
-         }
+@media (max-width: 768px) {
+          .productos-carousel {
+            padding: 1rem 30px;
+          }
 
-         .producto-slide {
-           flex: 0 0 150px;
+          .productos-carousel-viewport {
+            width: calc(180px * 3 + 1rem * 2);
+          }
+
+          .producto-slide {
+            flex: 0 0 180px;
+          }
+
+          .producto-image {
+            height: 120px;
+          }
+
+          .producto-title {
+            font-size: 0.75rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .productos-carousel {
+            padding: 0.75rem 25px;
+          }
+
+          .productos-carousel-viewport {
+            width: calc(150px * 2 + 1rem);
+          }
+
+          .producto-slide {
+            flex: 0 0 150px;
          }
 
          .producto-image {
@@ -956,14 +987,14 @@ next() {
     if (this.productosDestacadosIndex > originalLength) {
       this.productosDestacadosIndex--;
     } else {
-      this.productosDestacadosIndex = this.productosDestacadosDuplicados.length - 4 - 1;
+      this.productosDestacadosIndex = this.productosDestacadosDuplicados.length - 6 - 1;
     }
   }
 
   nextProductosDestacados() {
     const products = this.productosDestacados() || [];
     const originalLength = products.length;
-    if (this.productosDestacadosIndex < this.productosDestacadosDuplicados.length - 4) {
+    if (this.productosDestacadosIndex < this.productosDestacadosDuplicados.length - 6) {
       this.productosDestacadosIndex++;
     } else {
       this.productosDestacadosIndex = originalLength;
@@ -976,14 +1007,14 @@ next() {
     if (this.productosRecomendadosIndex > originalLength) {
       this.productosRecomendadosIndex--;
     } else {
-      this.productosRecomendadosIndex = this.productosRecomendadosDuplicados.length - 4 - 1;
+      this.productosRecomendadosIndex = this.productosRecomendadosDuplicados.length - 6 - 1;
     }
   }
 
   nextProductosRecomendados() {
     const products = this.productosRecomendados() || [];
     const originalLength = products.length;
-    if (this.productosRecomendadosIndex < this.productosRecomendadosDuplicados.length - 4) {
+    if (this.productosRecomendadosIndex < this.productosRecomendadosDuplicados.length - 6) {
       this.productosRecomendadosIndex++;
     } else {
       this.productosRecomendadosIndex = originalLength;

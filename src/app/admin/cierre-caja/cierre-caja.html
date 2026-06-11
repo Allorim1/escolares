@@ -189,14 +189,16 @@
                     <strong>{{ formatearMonto(cierre.diferencia!) }} Bs</strong>
                   </div>
                 }
-                @if (cierre.observaciones) {
-                  <div class="observaciones">
-                    <strong>Obs:</strong> {{ cierre.observaciones }}
-                  </div>
-                }
-              </div>
-<button class="btn-eliminar" (click)="eliminarCierre(cierre._id || '')">Eliminar</button>
-               <button class="btn-email" (click)="enviarCorreo(cierre._id || '')">📧 Enviar</button>
+@if (cierre.observaciones) {
+                   <div class="observaciones">
+                     <strong>Obs:</strong> {{ cierre.observaciones }}
+                   </div>
+                 }
+                 <div class="cierre-acciones">
+                   <button class="btn-eliminar" (click)="eliminarCierre(cierre._id || '')">Eliminar</button>
+                   <button class="btn-email" (click)="enviarCorreo(cierre._id || '')">📧 Enviar</button>
+                 </div>
+               </div>
              </div>
            }
          </div>
@@ -204,7 +206,3 @@
      </div>
    </div>
  </div>
-      </div>
-    </div>
-  </div>
-</div>

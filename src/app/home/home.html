@@ -7,28 +7,88 @@
     <button class="banner-btn next" (click)="nextBanner()">›</button>
   </div>
 
-  @if (duplicatedMarcas.length > 0) {
-    <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">
-      <button class="carousel-btn prev" (click)="prev()">‹</button>
-      <div class="carousel-viewport">
-        <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
-          @for (marca of duplicatedMarcas; track marca.id + '-' + $index) {
-             <a [routerLink]="['/products/collection', marca.name]" class="marca-slide">
-               @if (marca.image) {
-                 <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
-               } @else {
-                 <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
-               }
-               <span class="marca-name">{{ marca.name }}</span>
-             </a>
-           }
-        </div>
-      </div>
-      <button class="carousel-btn next" (click)="next()">›</button>
-    </div>
-  }
+@if (duplicatedMarcas.length > 0) {
+     <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">
+       <button class="carousel-btn prev" (click)="prev()">‹</button>
+       <div class="carousel-viewport">
+         <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
+           @for (marca of duplicatedMarcas; track marca.id + '-' + $index) {
+              <a [routerLink]="['/products/collection', marca.name]" class="marca-slide">
+                @if (marca.image) {
+                  <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
+                } @else {
+                  <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
+                }
+                <span class="marca-name">{{ marca.name }}</span>
+              </a>
+            }
+         </div>
+       </div>
+       <button class="carousel-btn next" (click)="next()">›</button>
+     </div>
+   }
 
-  <div class="newsletter-section reveal-init" #revealElement>
+@if (productosDestacados().length > 0) {
+      <section class="productos-carousel-section reveal-init" #revealElement>
+        <h2 class="carousel-title">Productos Destacados</h2>
+        <div class="productos-carousel" (mouseenter)="pauseProductosDestacadosScroll()" (mouseleave)="resumeProductosDestacadosScroll()">
+          <button class="carousel-btn prev" (click)="prevProductosDestacados()">‹</button>
+          <div class="productos-carousel-viewport">
+            <div class="productos-carousel-track" [style.transform]="'translateX(-' + productosDestacadosIndex * 240 + 'px)'">
+              @for (product of productosDestacadosDuplicados; track product.id + '-destacado-' + $index) {
+                <div class="producto-slide" [routerLink]="['/products', product.id]">
+                  <img [src]="product.image" [alt]="product.title" class="producto-image" loading="lazy" />
+                  <div class="producto-info">
+                    <h3 class="producto-title">{{ product.title }}</h3>
+                    @if (product.enOferta) {
+                      <div class="producto-price oferta">
+                        <span class="precio-original">{{ formatPrice(product.price) }}</span>
+                        <span class="precio-oferta">{{ formatPrice(product.ofertaPrecio!) }}</span>
+                      </div>
+                    } @else {
+                      <p class="producto-price">{{ formatPrice(product.price) }}</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          <button class="carousel-btn next" (click)="nextProductosDestacados()">›</button>
+        </div>
+      </section>
+    }
+
+    @if (productosRecomendados().length > 0) {
+      <section class="productos-carousel-section reveal-init" #revealElement>
+        <h2 class="carousel-title">Productos Recomendados</h2>
+        <div class="productos-carousel" (mouseenter)="pauseProductosRecomendadosScroll()" (mouseleave)="resumeProductosRecomendadosScroll()">
+          <button class="carousel-btn prev" (click)="prevProductosRecomendados()">‹</button>
+          <div class="productos-carousel-viewport">
+            <div class="productos-carousel-track" [style.transform]="'translateX(-' + productosRecomendadosIndex * 240 + 'px)'">
+              @for (product of productosRecomendadosDuplicados; track product.id + '-recomendado-' + $index) {
+                <div class="producto-slide" [routerLink]="['/products', product.id]">
+                  <img [src]="product.image" [alt]="product.title" class="producto-image" loading="lazy" />
+                  <div class="producto-info">
+                    <h3 class="producto-title">{{ product.title }}</h3>
+                    @if (product.enOferta) {
+                      <div class="producto-price oferta">
+                        <span class="precio-original">{{ formatPrice(product.price) }}</span>
+                        <span class="precio-oferta">{{ formatPrice(product.ofertaPrecio!) }}</span>
+                      </div>
+                    } @else {
+                      <p class="producto-price">{{ formatPrice(product.price) }}</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          <button class="carousel-btn next" (click)="nextProductosRecomendados()">›</button>
+        </div>
+      </section>
+    }
+
+   <div class="newsletter-section reveal-init" #revealElement>
     <div class="newsletter-content">
       <h2>Suscribirse a nuestros correos electrónicos</h2>
       <p>Conoce las nuevas colecciones y ofertas exclusivas antes que nadie.</p>

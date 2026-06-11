@@ -10,6 +10,7 @@ import {
   Inject,
   PLATFORM_ID,
   OnInit,
+  computed,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -17,6 +18,10 @@ import { MarcasService } from '../shared/data-access/marcas.service';
 import { NoticiasService, Noticia } from '../shared/data-access/noticias.service';
 import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
 import { RouterLink } from '@angular/router';
+import { ProductsStateService } from '../products/data-access/products-state.service';
+import { CartStateService } from '../shared/data-access/cart-state.service';
+import { CurrencyService } from '../shared/data-access/currency.service';
+import { Product } from '../shared/interfaces/product.interface';
 
 @Component({
   selector: 'app-home',
@@ -615,27 +620,173 @@ import { RouterLink } from '@angular/router';
          font-style: italic;
        }
 
-       @media (max-width: 768px) {
-        .noticias-section {
-          padding: 1rem;
-        }
+@media (max-width: 768px) {
+         .noticias-section {
+           padding: 1rem;
+         }
 
-        .noticias-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    `,
+         .noticias-grid {
+           grid-template-columns: 1fr;
+         }
+       }
+
+       .productos-carousel-section {
+         width: 100%;
+         max-width: 1200px;
+         margin: 2rem auto;
+         padding: 0 1rem;
+       }
+
+       .productos-carousel-section .carousel-title {
+         font-size: 1.8rem;
+         color: #1d63c1;
+         margin-bottom: 1rem;
+         text-align: center;
+       }
+
+       .productos-carousel {
+         display: flex;
+         align-items: center;
+         padding: 1rem 40px;
+         position: relative;
+       }
+
+       .productos-carousel-viewport {
+         overflow: hidden;
+         flex: 1;
+         margin: 0 auto;
+       }
+
+       .productos-carousel-track {
+         display: flex;
+         gap: 1rem;
+         transition: transform 0.5s ease-in-out;
+       }
+
+       .producto-slide {
+         flex: 0 0 220px;
+         background: white;
+         border-radius: 12px;
+         border: 1px solid #e0e0e0;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+         overflow: hidden;
+         cursor: pointer;
+         transition: transform 0.2s, box-shadow 0.2s;
+         text-decoration: none;
+         display: flex;
+         flex-direction: column;
+       }
+
+       .producto-slide:hover {
+         transform: translateY(-5px);
+         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+       }
+
+       .producto-image {
+         width: 100%;
+         height: 150px;
+         object-fit: contain;
+         background: #f8f8f8;
+         padding: 0.5rem;
+       }
+
+       .producto-info {
+         padding: 0.75rem;
+         flex: 1;
+         display: flex;
+         flex-direction: column;
+       }
+
+       .producto-title {
+         font-size: 0.85rem;
+         font-weight: 600;
+         color: #333;
+         margin: 0 0 0.5rem;
+         text-transform: capitalize;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         white-space: nowrap;
+       }
+
+       .producto-price {
+         font-size: 1rem;
+         font-weight: 700;
+         color: #1976d2;
+         margin-top: auto;
+       }
+
+       .producto-price.oferta {
+         display: flex;
+         flex-direction: column;
+         gap: 2px;
+       }
+
+       .precio-original {
+         text-decoration: line-through;
+         color: #999;
+         font-size: 0.8rem;
+         font-weight: 400;
+       }
+
+       .precio-oferta {
+         color: #e53935;
+         font-weight: 700;
+         font-size: 1rem;
+       }
+
+       @media (max-width: 768px) {
+         .productos-carousel {
+           padding: 1rem 30px;
+         }
+
+         .producto-slide {
+           flex: 0 0 180px;
+         }
+
+         .producto-image {
+           height: 120px;
+         }
+
+         .producto-title {
+           font-size: 0.75rem;
+         }
+       }
+
+       @media (max-width: 480px) {
+         .productos-carousel {
+           padding: 0.75rem 25px;
+         }
+
+         .producto-slide {
+           flex: 0 0 150px;
+         }
+
+         .producto-image {
+           height: 100px;
+           padding: 0.25rem;
+         }
+       }
+     `,
   ],
 })
 export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private marcasService = inject(MarcasService);
   private noticiasService = inject(NoticiasService);
+  private productsState = inject(ProductsStateService);
+  private cartState = inject(CartStateService).state;
+  private currencyService = inject(CurrencyService);
+  
   marcas = this.marcasService.marcas;
   noticias = signal<Noticia[]>([]);
   noticiasLoaded = signal(false);
   currentIndex = 0;
   visibleCount = 4;
   bannerIndex = 0;
+  
+  productosDestacadosIndex = 0;
+  productosRecomendadosIndex = 0;
+  productosDestacadosInterval: any;
+  productosRecomendadosInterval: any;
 
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
@@ -667,15 +818,23 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
+ngOnDestroy() {
     if (this.autoScrollInterval) {
       clearInterval(this.autoScrollInterval);
+    }
+    if (this.productosDestacadosInterval) {
+      clearInterval(this.productosDestacadosInterval);
+    }
+    if (this.productosRecomendadosInterval) {
+      clearInterval(this.productosRecomendadosInterval);
     }
   }
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadNoticias();
+      this.productsState.loadProducts();
+      this.startProductosCarousels();
     }
   }
 
@@ -729,7 +888,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-prev() {
+  prev() {
      const marcasArray = this.marcas() || [];
      const originalLength = marcasArray.length;
      if (this.currentIndex > originalLength) {
@@ -739,15 +898,15 @@ prev() {
      }
    }
 
-   next() {
-     const marcasArray = this.marcas() || [];
-     const originalLength = marcasArray.length;
-     if (this.currentIndex < this.totalMarcas - this.visibleCount) {
-       this.currentIndex++;
-     } else {
-       this.currentIndex = originalLength;
-     }
-   }
+next() {
+      const marcasArray = this.marcas() || [];
+      const originalLength = marcasArray.length;
+      if (this.currentIndex < this.totalMarcas - this.visibleCount) {
+        this.currentIndex++;
+      } else {
+        this.currentIndex = originalLength;
+      }
+    }
 
   pauseAutoScroll() {
     if (this.autoScrollInterval) {
@@ -762,5 +921,120 @@ prev() {
         this.next();
       }, 3000);
     }
+  }
+
+  get productosDestacados() {
+    return computed(() => {
+      const all = this.productsState.allProducts() || [];
+      if (all.length === 0) return [];
+      return [...all].sort((a, b) => (b.rating?.count || 0) - (a.rating?.count || 0)).slice(0, 8);
+    });
+  }
+
+  get productosRecomendados() {
+    return computed(() => {
+      const all = this.productsState.allProducts() || [];
+      if (all.length === 0) return [];
+      const shuffled = [...all].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, 8);
+    });
+  }
+
+  get productosDestacadosDuplicados() {
+    const original = this.productosDestacados() || [];
+    return [...original, ...original, ...original];
+  }
+
+  get productosRecomendadosDuplicados() {
+    const original = this.productosRecomendados() || [];
+    return [...original, ...original, ...original];
+  }
+
+  prevProductosDestacados() {
+    const products = this.productosDestacados() || [];
+    const originalLength = products.length;
+    if (this.productosDestacadosIndex > originalLength) {
+      this.productosDestacadosIndex--;
+    } else {
+      this.productosDestacadosIndex = this.productosDestacadosDuplicados.length - 4 - 1;
+    }
+  }
+
+  nextProductosDestacados() {
+    const products = this.productosDestacados() || [];
+    const originalLength = products.length;
+    if (this.productosDestacadosIndex < this.productosDestacadosDuplicados.length - 4) {
+      this.productosDestacadosIndex++;
+    } else {
+      this.productosDestacadosIndex = originalLength;
+    }
+  }
+
+  prevProductosRecomendados() {
+    const products = this.productosRecomendados() || [];
+    const originalLength = products.length;
+    if (this.productosRecomendadosIndex > originalLength) {
+      this.productosRecomendadosIndex--;
+    } else {
+      this.productosRecomendadosIndex = this.productosRecomendadosDuplicados.length - 4 - 1;
+    }
+  }
+
+  nextProductosRecomendados() {
+    const products = this.productosRecomendados() || [];
+    const originalLength = products.length;
+    if (this.productosRecomendadosIndex < this.productosRecomendadosDuplicados.length - 4) {
+      this.productosRecomendadosIndex++;
+    } else {
+      this.productosRecomendadosIndex = originalLength;
+    }
+  }
+
+  private startProductosCarousels() {
+    this.productosDestacadosInterval = setInterval(() => {
+      this.nextProductosDestacados();
+    }, 4000);
+    
+    this.productosRecomendadosInterval = setInterval(() => {
+      this.nextProductosRecomendados();
+    }, 4500);
+  }
+
+  pauseProductosDestacadosScroll() {
+    if (this.productosDestacadosInterval) {
+      clearInterval(this.productosDestacadosInterval);
+      this.productosDestacadosInterval = null;
+    }
+  }
+
+  resumeProductosDestacadosScroll() {
+    if (!this.productosDestacadosInterval && isPlatformBrowser(this.platformId)) {
+      this.productosDestacadosInterval = setInterval(() => {
+        this.nextProductosDestacados();
+      }, 4000);
+    }
+  }
+
+  pauseProductosRecomendadosScroll() {
+    if (this.productosRecomendadosInterval) {
+      clearInterval(this.productosRecomendadosInterval);
+      this.productosRecomendadosInterval = null;
+    }
+  }
+
+  resumeProductosRecomendadosScroll() {
+    if (!this.productosRecomendadosInterval && isPlatformBrowser(this.platformId)) {
+      this.productosRecomendadosInterval = setInterval(() => {
+        this.nextProductosRecomendados();
+      }, 4500);
+    }
+  }
+
+  addToCart(product: Product) {
+    this.cartState.add({ product, quantity: 1 });
+  }
+
+  formatPrice(priceInUsd: number): string {
+    return this.currencyService.formatPrice(priceInUsd);
   }
 }

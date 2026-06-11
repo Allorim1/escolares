@@ -1011,3 +1011,10 @@ header.app-header {
 [data-theme="dark"] .notifications-footer {
   border-color: var(--border-color) !important;
 }
+
+[data-theme="dark"] header.app-header,
+[data-theme="dark"] .header-top,
+[data-theme="dark"] .header-bottom,
+[data-theme="dark"] .announcement-bar {
+  background: var(--header-bg) !important;
+}

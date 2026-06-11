@@ -644,19 +644,19 @@ import { Product } from '../shared/interfaces/product.interface';
           text-align: center;
         }
 
-        .productos-carousel {
+.productos-carousel {
           display: flex;
           align-items: center;
           padding: 1rem 60px;
           position: relative;
         }
 
-.productos-carousel-viewport {
-           overflow: hidden;
-           flex: 1;
-           margin: 0 auto;
-           width: calc(200px * 6 + 1rem * 5);
-         }
+        .productos-carousel-viewport {
+          overflow: hidden;
+          flex: 1;
+          margin: 0 auto;
+          width: calc(200px * 6 + 1rem * 5);
+        }
 
         .productos-carousel-track {
           display: flex;
@@ -678,58 +678,58 @@ import { Product } from '../shared/interfaces/product.interface';
           flex-direction: column;
         }
 
-       .producto-slide:hover {
-         transform: translateY(-5px);
-         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-       }
+        .producto-slide:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
 
-       .producto-image {
-         width: 100%;
-         height: 150px;
-         object-fit: contain;
-         background: #f8f8f8;
-         padding: 0.5rem;
-       }
+        .producto-image {
+          width: 100%;
+          height: 150px;
+          object-fit: contain;
+          background: #f8f8f8;
+          padding: 0.5rem;
+        }
 
-       .producto-info {
-         padding: 0.75rem;
-         flex: 1;
-         display: flex;
-         flex-direction: column;
-       }
+        .producto-info {
+          padding: 0.75rem;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+        }
 
-       .producto-title {
-         font-size: 0.85rem;
-         font-weight: 600;
-         color: #333;
-         margin: 0 0 0.5rem;
-         text-transform: capitalize;
-         overflow: hidden;
-         text-overflow: ellipsis;
-         white-space: nowrap;
-       }
+        .producto-title {
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #333;
+          margin: 0 0 0.5rem;
+          text-transform: capitalize;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
 
-       .producto-price {
-         font-size: 1rem;
-         font-weight: 700;
-         color: #1976d2;
-         margin-top: auto;
-       }
+        .producto-price {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #1976d2;
+          margin-top: auto;
+        }
 
-       .producto-price.oferta {
-         display: flex;
-         flex-direction: column;
-         gap: 2px;
-       }
+        .producto-price.oferta {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
 
-       .precio-original {
-         text-decoration: line-through;
-         color: #999;
-         font-size: 0.8rem;
-         font-weight: 400;
-       }
+        .precio-original {
+          text-decoration: line-through;
+          color: #999;
+          font-size: 0.8rem;
+          font-weight: 400;
+        }
 
-.precio-oferta {
+        .precio-oferta {
           color: #e53935;
           font-weight: 700;
           font-size: 1rem;
@@ -755,6 +755,35 @@ import { Product } from '../shared/interfaces/product.interface';
         .price-usd-muted {
           font-size: 0.75rem;
           color: #888;
+        }
+
+        .carousel-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(29, 99, 193, 0.9);
+          color: white;
+          border: none;
+          cursor: pointer;
+          font-size: 1.2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+          z-index: 10;
+        }
+
+        .carousel-btn:hover {
+          background: #1d63c1;
+          transform: scale(1.1);
+        }
+
+        .carousel-btn.prev {
+          left: 1rem;
+        }
+
+        .carousel-btn.next {
+          right: 1rem;
         }
 
 @media (max-width: 768px) {
@@ -818,6 +847,12 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   productosRecomendadosIndex = 0;
   productosDestacadosInterval: any;
   productosRecomendadosInterval: any;
+  
+  private readonly RECOMENDADOS_STORAGE_KEY = 'productosRecomendados';
+  private readonly RECOMENDADOS_TIMESTAMP_KEY = 'productosRecomendadosTimestamp';
+  private readonly RECOMENDADOS_REFRESH_INTERVAL = 2 * 60 * 60 * 1000; // 2 horas
+  
+  productosRecomendadosFijos = signal<Product[]>([]);
 
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
@@ -949,7 +984,7 @@ prev() {
     }
   }
 
-  resumeAutoScroll() {
+resumeAutoScroll() {
     if (!this.autoScrollInterval && isPlatformBrowser(this.platformId)) {
       this.autoScrollInterval = setInterval(() => {
         this.next();
@@ -959,19 +994,59 @@ prev() {
 
   get productosDestacados() {
     return computed(() => {
-const all = this.productsState.allProducts();
-       if (!Array.isArray(all) || all.length === 0) return [];
-       return [...all].sort((a, b) => (b.rating?.count || 0) - (a.rating?.count || 0)).slice(0, 8);
-     });
-   }
+      const all = this.productsState.allProducts();
+      if (!Array.isArray(all) || all.length === 0) return [];
+      return [...all].sort((a, b) => (b.rating?.count || 0) - (a.rating?.count || 0)).slice(0, 10);
+    });
+  }
 
   get productosRecomendados() {
     return computed(() => {
-      const all = this.productsState.allProducts();
-      if (!Array.isArray(all) || all.length === 0) return [];
-      const shuffled = [...all].sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, 8);
+      const stored = this.getStoredRecomendados();
+      if (stored) {
+        return stored;
+      }
+      return this.generateNewRecomendados();
     });
+  }
+
+  private getStoredRecomendados(): Product[] | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    try {
+      const stored = localStorage.getItem(this.RECOMENDADOS_STORAGE_KEY);
+      const timestamp = localStorage.getItem(this.RECOMENDADOS_TIMESTAMP_KEY);
+      
+      if (stored && timestamp) {
+        const parsedTimestamp = parseInt(timestamp, 10);
+        const now = Date.now();
+        
+        if (now - parsedTimestamp < this.RECOMENDADOS_REFRESH_INTERVAL) {
+          return JSON.parse(stored);
+        }
+      }
+    } catch (e) {
+      console.error('Error reading stored recomendados:', e);
+    }
+    return null;
+  }
+
+  private generateNewRecomendados(): Product[] {
+    const all = this.productsState.allProducts();
+    if (!Array.isArray(all) || all.length === 0) return [];
+    
+    const shuffled = [...all].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 10);
+    
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        localStorage.setItem(this.RECOMENDADOS_STORAGE_KEY, JSON.stringify(selected));
+        localStorage.setItem(this.RECOMENDADOS_TIMESTAMP_KEY, Date.now().toString());
+      } catch (e) {
+        console.error('Error storing recomendados:', e);
+      }
+    }
+    
+    return selected;
   }
 
   get productosDestacadosDuplicados() {
@@ -988,7 +1063,7 @@ const all = this.productsState.allProducts();
 
   prevProductosDestacados() {
     const products = this.productosDestacados();
-    if (!Array.isArray(products)) return;
+    if (!Array.isArray(products) || products.length === 0) return;
     const originalLength = products.length;
     if (this.productosDestacadosIndex > originalLength) {
       this.productosDestacadosIndex--;
@@ -999,7 +1074,7 @@ const all = this.productsState.allProducts();
 
   nextProductosDestacados() {
     const products = this.productosDestacados();
-    if (!Array.isArray(products)) return;
+    if (!Array.isArray(products) || products.length === 0) return;
     const originalLength = products.length;
     if (this.productosDestacadosIndex < this.productosDestacadosDuplicados.length - 6) {
       this.productosDestacadosIndex++;
@@ -1010,7 +1085,7 @@ const all = this.productsState.allProducts();
 
   prevProductosRecomendados() {
     const products = this.productosRecomendados();
-    if (!Array.isArray(products)) return;
+    if (!Array.isArray(products) || products.length === 0) return;
     const originalLength = products.length;
     if (this.productosRecomendadosIndex > originalLength) {
       this.productosRecomendadosIndex--;
@@ -1021,7 +1096,7 @@ const all = this.productsState.allProducts();
 
   nextProductosRecomendados() {
     const products = this.productosRecomendados();
-    if (!Array.isArray(products)) return;
+    if (!Array.isArray(products) || products.length === 0) return;
     const originalLength = products.length;
     if (this.productosRecomendadosIndex < this.productosRecomendadosDuplicados.length - 6) {
       this.productosRecomendadosIndex++;

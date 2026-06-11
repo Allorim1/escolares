@@ -2710,3 +2710,22 @@ input:checked + .toggle-slider:before {
     gap: 0.25rem;
   }
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .filters,
+[data-theme="dark"] .filter-input,
+[data-theme="dark"] .filter-select,
+[data-theme="dark"] .product-table th,
+[data-theme="dark"] .product-table td,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .image-preview,
+[data-theme="dark"] .empty-state {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .header h2,
+[data-theme="dark"] .filter-group label,
+[data-theme="dark"] .product-table th,
+[data-theme="dark"] .empty-state p {
+  color: var(--text-primary) !important;
+}

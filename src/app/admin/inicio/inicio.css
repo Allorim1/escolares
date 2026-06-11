@@ -591,3 +591,22 @@
     justify-content: center;
   }
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .recent-orders-section,
+[data-theme="dark"] .orders-table th,
+[data-theme="dark"] .orders-table td,
+[data-theme="dark"] .store-control-card,
+[data-theme="dark"] .api-key-card,
+[data-theme="dark"] .empty-state {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .inicio-header h1,
+[data-theme="dark"] .stat-value,
+[data-theme="dark"] .recent-orders-section h3,
+[data-theme="dark"] .store-control-card h3,
+[data-theme="dark"] .api-key-info h3 {
+  color: var(--text-primary) !important;
+}

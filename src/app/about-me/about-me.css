@@ -99,6 +99,12 @@
   background: linear-gradient(135deg, white 0%, white 100%);
 }
 
+[data-theme="dark"] .zona-card,
+[data-theme="dark"] .zona-card.nacional {
+  background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%) !important;
+  color: var(--text-primary) !important;
+}
+
 .zona-card.nacional span {
   font-size: 0.9rem;
   font-weight: 400;

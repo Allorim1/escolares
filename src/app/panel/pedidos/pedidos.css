@@ -510,3 +510,40 @@
 .btn-view-dni:hover {
   background: #0056b3;
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .pedidos-container h3,
+[data-theme="dark"] .empty-orders,
+[data-theme="dark"] .order-card,
+[data-theme="dark"] .order-detail-modal,
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .detail-status-tracker,
+[data-theme="dark"] .detail-section,
+[data-theme="dark"] .detail-item,
+[data-theme="dark"] .historial-item,
+[data-theme="dark"] .delivery-person-profile .profile-section {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .pedidos-container h3,
+[data-theme="dark"] .modal-header h3,
+[data-theme="dark"] .detail-section h4,
+[data-theme="dark"] .delivery-person-profile .profile-section h4,
+[data-theme="dark"] .item-title,
+[data-theme="dark"] .detail-step-label,
+[data-theme="dark"] .historial-status,
+[data-theme="dark"] .delivery-person-profile .profile-item .value,
+[data-theme="dark"] .detail-total {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .order-total,
+[data-theme="dark"] .item-price,
+[data-theme="dark"] .detail-step-date,
+[data-theme="dark"] .historial-obs,
+[data-theme="dark"] .historial-date,
+[data-theme="dark"] .delivery-person-profile .profile-item .label,
+[data-theme="dark"] .order-items,
+[data-theme="dark"] .order-id .label {
+  color: var(--text-secondary) !important;
+}

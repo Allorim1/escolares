@@ -72,20 +72,20 @@ a.nav-btn {
 
 /* estado normal del primario */
 a.nav-btn.primary {
-  background: var(--white);
+  background: var(--card-bg);
   color: var(--blue);
-  border-color: rgba(0, 0, 0, 0.08);
+  border-color: var(--border-color);
 }
 
 /* estilos al pasar el ratón */
 a.nav-btn:hover {
-  background: var(--white);
+  background: var(--card-bg);
   color: var(--blue);
 }
 
 a.nav-btn.primary:hover {
   background: var(--blue);
-  color: var(--white);
+  color: var(--card-bg);
 }
 
 /* Maintenance Modal Styles */

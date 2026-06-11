@@ -79,8 +79,8 @@ export class Header implements OnInit, OnDestroy {
 
   private initDarkMode() {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('escolares-dark');
-      if (saved === 'true') {
+      const savedTheme = localStorage.getItem('escolares-theme');
+      if (savedTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
       }
     }
@@ -135,8 +135,9 @@ export class Header implements OnInit, OnDestroy {
   toggleDarkMode() {
     const current = document.documentElement.getAttribute('data-theme');
     const isDark = current === 'dark';
-    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    localStorage.setItem('escolares-dark', String(!isDark));
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('escolares-theme', newTheme);
   }
 
   isDarkMode(): boolean {

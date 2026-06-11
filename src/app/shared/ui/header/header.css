@@ -904,3 +904,110 @@ header.app-header {
 .cart-hover-container.hidden {
   display: none !important;
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .search-input-container,
+[data-theme="dark"] .search-dropdown,
+[data-theme="dark"] .search-dropdown-item,
+[data-theme="dark"] .cart-preview-dropdown,
+[data-theme="dark"] .cart-preview-header,
+[data-theme="dark"] .cart-preview-footer,
+[data-theme="dark"] .cart-preview-more,
+[data-theme="dark"] .dropdown-menu,
+[data-theme="dark"] .notifications-dropdown,
+[data-theme="dark"] .notification-item,
+[data-theme="dark"] .notifications-footer {
+  background: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .search-input,
+[data-theme="dark"] .search-dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .search-dropdown-item:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .category-btn,
+[data-theme="dark"] .category-filter-btn {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .category-btn:hover,
+[data-theme="dark"] .category-filter-btn:hover {
+  background: var(--hover-bg) !important;
+}
+
+[data-theme="dark"] .category-filter-section,
+[data-theme="dark"] .search-history-section,
+[data-theme="dark"] .category-filter-label,
+[data-theme="dark"] .search-history-header {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .category-filter-label,
+[data-theme="dark"] .search-history-header,
+[data-theme="dark"] .clear-history-btn {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .clear-history-btn:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .search-history-item:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .history-text,
+[data-theme="dark"] .history-text:hover,
+[data-theme="dark"] .dropdown-menu a,
+[data-theme="dark"] .dropdown-menu button {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-menu a:hover,
+[data-theme="dark"] .dropdown-menu button:hover,
+[data-theme="dark"] .notifications-footer:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .dropdown-menu button {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .cart-preview-item {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .cart-preview-item:hover {
+  background: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .preview-item-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .preview-item-meta,
+[data-theme="dark"] .cart-preview-total,
+[data-theme="dark"] .preview-item-total,
+[data-theme="dark"] .notification-item-title,
+[data-theme="dark"] .notification-item-message {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .notification-item {
+  background: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .notification-item.clickable:hover {
+  background: var(--hover-bg) !important;
+}
+
+[data-theme="dark"] .notifications-header,
+[data-theme="dark"] .notifications-footer {
+  border-color: var(--border-color) !important;
+}

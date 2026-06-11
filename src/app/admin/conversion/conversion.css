@@ -1376,51 +1376,81 @@
     display: table-cell !important;
   }
   
-  .no-print {
-    display: none !important;
-  }
+.no-print {
+     display: none !important;
+   }
+ }
+ 
+ @media (max-width: 768px) {
+   .columnas-grid {
+     grid-template-columns: 1fr;
+   }
+   
+   .dias-grid {
+     grid-template-columns: 1fr;
+   }
+ 
+   .expectativa-grid {
+     grid-template-columns: 1fr;
+   }
+   
+   .upload-section {
+     flex-direction: column;
+   }
+   
+   .upload-card {
+     min-width: 100%;
+   }
+   
+   .config-row {
+     flex-direction: column;
+   }
+   
+   .config-card {
+     min-width: 100%;
+   }
+   
+   .totals-bar {
+     flex-direction: column;
+     gap: 0.8rem;
+   }
+   
+   .actions-bar {
+     flex-direction: column;
+   }
+   
+   .result-header {
+     flex-direction: column;
+     gap: 0.5rem;
+   }
+ }
+
+[data-theme="dark"] .upload-card,
+[data-theme="dark"] .config-card,
+[data-theme="dark"] .result-card,
+[data-theme="dark"] .result-section,
+[data-theme="dark"] .tasas-faltantes-section,
+[data-theme="dark"] .tasas-anteriores-section,
+[data-theme="dark"] .comparacion-section,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .resumen-grid,
+[data-theme="dark"] .expectativa-section,
+[data-theme="dark"] .meta-config-container,
+[data-theme="dark"] .expectativa-card,
+[data-theme="dark"] .expectativas-section {
+  background: var(--card-bg) !important;
 }
 
-@media (max-width: 768px) {
-  .columnas-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .dias-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .expectativa-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .upload-section {
-    flex-direction: column;
-  }
-  
-  .upload-card {
-    min-width: 100%;
-  }
-  
-  .config-row {
-    flex-direction: column;
-  }
-  
-  .config-card {
-    min-width: 100%;
-  }
-  
-  .totals-bar {
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-  
-  .actions-bar {
-    flex-direction: column;
-  }
-  
-  .result-header {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+[data-theme="dark"] .conversion-container h2,
+[data-theme="dark"] .conversion-container h3,
+[data-theme="dark"] .upload-group-title,
+[data-theme="dark"] .config-card h4,
+[data-theme="dark"] .result-header h3,
+[data-theme="dark"] .expectativa-section h4,
+[data-theme="dark"] .tasas-faltantes-section h3,
+[data-theme="dark"] .tasas-anteriores-section h3,
+[data-theme="dark"] .meta-input-group label,
+[data-theme="dark"] .resumen-label,
+[data-theme="dark"] .expectativa-label {
+  color: var(--text-primary) !important;
 }

@@ -321,3 +321,35 @@
     align-self: flex-start;
   }
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .empty-state,
+[data-theme="dark"] .direcciones-list,
+[data-theme="dark"] .direccion-form,
+[data-theme="dark"] .autocomplete-dropdown,
+[data-theme="dark"] .autocomplete-loading,
+[data-theme="dark"] .map-preview {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .direcciones-header h3,
+[data-theme="dark"] .direccion-info h4,
+[data-theme="dark"] .direccion-form h4,
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] .map-preview-container label {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .direccion-item,
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .autocomplete-item,
+[data-theme="dark"] .direccion-text,
+[data-theme="dark"] .direccion-details,
+[data-theme="dark"] .form-error {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .direccion-item,
+[data-theme="dark"] .autocomplete-item {
+  border-color: var(--border-color) !important;
+}

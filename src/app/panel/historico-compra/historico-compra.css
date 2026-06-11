@@ -282,3 +282,26 @@
 .detail-step-line.completed {
   background: #28a745;
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .empty-orders,
+[data-theme="dark"] .order-card,
+[data-theme="dark"] .order-detail-modal,
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .detail-item,
+[data-theme="dark"] .historial-item {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .historico-compra-container h3,
+[data-theme="dark"] .order-id .label,
+[data-theme="dark"] .detail-section h4,
+[data-theme="dark"] .modal-header h3,
+[data-theme="dark"] .item-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .order-summary,
+[data-theme="dark"] .modal-header {
+  border-color: var(--border-color) !important;
+}

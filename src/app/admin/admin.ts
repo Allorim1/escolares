@@ -34,6 +34,10 @@ const QUICK_ITEMS: QuickItem[] = [
   { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
   { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
   { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
+  { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
+  { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
+  { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
+  { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
 ];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [

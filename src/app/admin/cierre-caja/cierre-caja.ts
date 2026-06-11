@@ -285,6 +285,18 @@ export class CierreCaja implements OnInit {
     });
   }
 
+  enviarCorreo(id: string) {
+    if (!confirm('¿Enviar este cierre de caja por correo?')) return;
+    
+    this.http.post(`/api/cierre-caja/${id}/email`, {}).subscribe({
+      next: () => alert('Cierre de caja enviado al correo'),
+      error: (err) => {
+        console.error('Error enviando correo:', err);
+        alert('Error al enviar el correo');
+      }
+    });
+  }
+
   private limpiarFormulario() {
     this.nuevoCierre = {
       saldoInicial: 0,

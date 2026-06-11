@@ -195,13 +195,15 @@
                   </div>
                 }
               </div>
-              <button class="btn-eliminar" (click)="eliminarCierre(cierre._id || '')">Eliminar</button>
-            </div>
-          }
-          @if (cierresFiltrados.length === 0) {
-            <div class="no-data">No hay cierres registrados</div>
-          }
-        </div>
+<button class="btn-eliminar" (click)="eliminarCierre(cierre._id || '')">Eliminar</button>
+               <button class="btn-email" (click)="enviarCorreo(cierre._id || '')">📧 Enviar</button>
+             </div>
+           }
+         </div>
+       </div>
+     </div>
+   </div>
+ </div>
       </div>
     </div>
   </div>

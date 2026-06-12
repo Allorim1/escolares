@@ -15,57 +15,86 @@ export class ExportarPdfService {
         {
           columns: [
             {
+              width: '35%',
+              stack: [
+                { image: LOGO_BASE64, width: 140, margin: [0, 0, 0, 2] },
+                { text: 'R.I.F. J-30488367-6\n', style: 'datosEmpresa' }
+              ]
+            },
+            {
               text: [
-                { text: 'Libreria y Papeleria\n', style: 'headerSub' },
-                { text: 'ESCOLARES.CO\n', style: 'headerTitle' },
-                { text: 'Mayor y Detal\n', style: 'headerSub' },
-                { text: 'R.I.F. J-30488367-6\n', style: 'datosEmpresa' },
                 { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
                 { text: 'Telf. 0241-8580281 Fax. 0241-8587050\n', style: 'datosEmpresa' },
-                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' }
+                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'www.escolaresonline.com', style: 'webSite', margin: [0, 4, 0, 0] }
               ],
-              width: '60%'
+              width: '40%',
+              alignment: 'center',
+              margin: [0, 5, 0, 0]
+
             },
             {
               stack: [
                 { text: 'COTIZACION', style: 'tituloDoc' },
                 { text: data.numeroCotizacion, style: 'numeroDoc' },
-                { text: `FECHA: ${data.fecha}`, style: 'fechaDoc', margin: [0, 10, 0, 0] }
               ],
               alignment: 'right',
-              width: '40%'
+              width: '25%',
+              margin: [0, 15, 0, 0]
             }
           ]
         },
-        
-        { text: 'www.escolaresonline.com', style: 'webSite', margin: [0, 2, 0, 15] },
-        { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, strokeColor: '#A0A0A0' }] },
 
+        { text: '', margin: [0, 10]},
         {
-          margin: [0, 10, 0, 15],
+          columns: [
+            {
           table: {
-            widths: ['40%'],
+            width: '55%',
+            widths: ['*'],
             body: [
               [
                 {
                   stack: [
-                    { text: `CLIENTE: ${data.cliente.nombre}`, bold: true },
-                    { text: `RIF: ${data.cliente.rif}` },
+                    { text: `CLIENTE:`, bold: true },
+                    { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
                     { text: `Dirección: ${data.cliente.direccion || ''}` },
-                    { text: `Teléfono: ${data.cliente.telefono || ''}` }
+                    { 
+                      margin: [0, 10, 0, 0],
+                      columns: [
+                    { text: `RIF: ${data.cliente.rif}` },,
+                    { text: `Teléfono: ${data.cliente.telefono || ''}`, alignment: 'right' }
+                      ]
+                    },
                   ],
-                  style: 'seccionCliente'
+                  padding: [8, 6, 8, 6]
                 }
               ]
             ]
+          
           },
-          layout: {
-            paddingLeft: () => 8,
-            paddingRight: () => 8,
-            paddingTop: () => 6,
-            paddingBottom: () => 6,
-            strokeColor: () => '#CCCCCC'
-          }
+          layout: 'cuadroNegro'
+        }]
+        },
+
+        { witdh: '2%', text: '' },
+      
+        {
+        width: '43%',
+        table: {
+          widths: ['*', '*', '*'],
+          body: [
+            [{ text: 'FECHA', style: 'thControl', colSpan: 3 }, {}, {}],
+            [{ text: data.fecha, style: 'thControl', colSpan: 3, }, {}, {}],
+            [{ text: 'VALIDEZ', style: 'thControl', colSpan: 3 }, {}, {}],
+            [
+              { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
+              { text: data.referencia.numeroReferencia || '', style: 'tdControl' },
+              { text: data.referencia.vendedor || '', style: 'tdControl' }
+            ]
+          ]
+        },
+        layout: 'cuadroNegro'
         },
 
         {
@@ -91,10 +120,10 @@ export class ExportarPdfService {
             ]
           },
           layout: {
-            hLineWidth: (i: number, node: any) => (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5,
-            vLineWidth: () => 0.5,
-            hLineColor: () => '#AAAAAA',
-            vLineColor: () => '#E0E0E0',
+            hLineWidth: (i: number, node: any) => (i === 0 || i === 1 || i === node.table.body.length) ? 1.5 : 1,
+            vLineWidth: () => 1,
+            hLineColor: () => '#000000',
+            vLineColor: () => '#000000',
             paddingTop: () => 5,
             paddingBottom: () => 5
           }
@@ -116,7 +145,6 @@ export class ExportarPdfService {
                 { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 8 },
                 { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 8, bold: true, margin: [0, 2, 0, 4] },
                 { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7.5, italic: true },
-                { text: `OBSERVACIONES: EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5, bold: true, margin: [0, 8, 0, 0] }
               ]
             },
             {
@@ -136,12 +164,12 @@ export class ExportarPdfService {
                   table: {
                     widths: ['*', 'auto'],
                     body: [
-                      [{ text: 'NETO Bs.', style: 'labelTotal' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotal' }],
-                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotal' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotal' }],
-                      [{ text: 'SUB TOTAL Bs.', style: 'labelTotal' }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotal' }],
-                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotal' }, { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotal' }],
-                      [{ text: 'EXENTO Bs.', style: 'labelTotal' }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotal' }],
-                      [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalBold' }]
+                      [{ text: 'NETO Bs.', style: 'labelTotal' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotal' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: 'SUB TOTAL Bs.', style: 'labelTotal' }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotal' }, { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMinithMini' }],
+                      [{ text: 'EXENTO Bs.', style: 'labelTotal' }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
                   },
                   layout: 'noBorders'
@@ -154,8 +182,9 @@ export class ExportarPdfService {
         {
           margin: [0, 40, 0, 0],
           columns: [
-            { text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma' },
-            { text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma' }
+            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 8}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 8}]},
+            { width: '25%', text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 4] },
+            { width: '25%', text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', bold: true }
           ]
         }
       ],
@@ -163,10 +192,10 @@ export class ExportarPdfService {
       styles: {
         headerTitle: { fontSize: 16, bold: true, color: '#0d3b66' },
         headerSub: { fontSize: 10, bold: true },
-        datosEmpresa: { fontSize: 8, color: '#444444' },
-        webSite: { fontSize: 9, bold: true, color: '#0d3b66' },
-        tituloDoc: { fontSize: 14, bold: true },
-        numeroDoc: { fontSize: 14, bold: true, color: 'red' },
+        datosEmpresa: { fontSize: 8, color: '#000000' },
+        webSite: { fontSize: 9, bold: true, color: 'red' },
+        tituloDoc: { fontSize: 18, bold: true, tracking: 1 },
+        numeroDoc: { fontSize: 14, bold: true, color: '#0d3b66' },
         fechaDoc: { fontSize: 9, bold: true },
         seccionCliente: { fontSize: 9, lineHeight: 1.2 },
         thMini: { fontSize: 7, bold: true, fillColor: '#EEEEEB', alignment: 'center' },

@@ -1,0 +1,200 @@
+<div class="cotizaciones-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+  <div class="header">
+    <h2>Cotizaciones Alcadía</h2>
+    <button class="btn-primary" (click)="openModal()">
+      + Nueva Cotización
+    </button>
+  </div>
+
+  <div class="cotizaciones-list">
+    <h3>Cotizaciones Recientes</h3>
+    <table class="cotizaciones-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Número</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (cotizacion of cotizaciones; track cotizacion._id) {
+          <tr>
+            <td>{{ formatearFecha(cotizacion.fecha) }}</td>
+            <td>{{ cotizacion.numeroCotizacion }}</td>
+            <td>{{ cotizacion.cliente.nombre }}</td>
+            <td>{{ formatCurrency(cotizacion.totales.totalBs) }}</td>
+            <td>
+              <span class="badge">Activa</span>
+            </td>
+            <td>
+              <button class="btn-action btn-pdf" (click)="generatePdfFromRow(cotizacion)">
+                PDF
+              </button>
+              <button class="btn-action btn-editar" (click)="openModal(cotizacion)">
+                Editar
+              </button>
+              <button class="btn-action btn-eliminar" (click)="eliminarCotizacion(cotizacion)">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="sin-datos">No hay cotizaciones</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingCotizacion ? 'Editar' : 'Nueva' }} Cotización</h3>
+        <button class="btn-cerrar" (click)="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-section">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Número de Cotización *</label>
+              <input type="text" [(ngModel)]="newCotizacion.numeroCotizacion" placeholder="COT-001">
+            </div>
+            <div class="form-group">
+              <label>Fecha *</label>
+              <input type="date" [(ngModel)]="newCotizacion.fecha">
+            </div>
+          </div>
+
+          <h4>Datos del Cliente</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre/Razón Social *</label>
+              <input type="text" [(ngModel)]="newCotizacion.cliente.nombre" placeholder="Nombre del cliente">
+            </div>
+            <div class="form-group">
+              <label>RIF *</label>
+              <input type="text" [(ngModel)]="newCotizacion.cliente.rif" placeholder="J-00000000-0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Dirección</label>
+              <input type="text" [(ngModel)]="newCotizacion.cliente.direccion" placeholder="Dirección">
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="text" [(ngModel)]="newCotizacion.cliente.telefono" placeholder="Teléfono">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Artículos</h4>
+          <div class="items-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Código</label>
+                <input type="text" [(ngModel)]="newItem.codigo" placeholder="Código">
+              </div>
+              <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" [(ngModel)]="newItem.cantidad" min="1" step="1">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
+              </div>
+              <div class="form-group">
+                <label>Precio Unitario Bs.</label>
+                <input type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
+              </div>
+            </div>
+            <button class="btn-add-item" (click)="addItem()">+ Agregar Artículo</button>
+          </div>
+
+          @if (newCotizacion.items.length > 0) {
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Cant.</th>
+                  <th>Descripción</th>
+                  <th>P. Unit.</th>
+                  <th>Total</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of newCotizacion.items; track $index) {
+                  <tr>
+                    <td>{{ item.codigo }}</td>
+                    <td>{{ item.cantidad }}</td>
+                    <td>{{ item.descripcion }}</td>
+                    <td>{{ formatCurrency(item.precioUnitarioBs) }}</td>
+                    <td>{{ formatCurrency(item.montoTotalBs) }}</td>
+                    <td>
+                      <button class="btn-remove" (click)="removeItem($index)">×</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+
+        <div class="form-section">
+          <h4>Referencia</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Número de Referencia</label>
+              <input type="text" [(ngModel)]="newCotizacion.referencia.numeroReferencia" placeholder="Referencia">
+            </div>
+            <div class="form-group">
+              <label>Validez (días)</label>
+              <input type="number" [(ngModel)]="newCotizacion.referencia.validezDias" min="1" step="1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Vendedor</label>
+            <input type="text" [(ngModel)]="newCotizacion.referencia.vendedor" placeholder="Nombre del vendedor">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Totales</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>% Descuento</label>
+              <input type="number" [(ngModel)]="newCotizacion.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotals()">
+            </div>
+            <div class="form-group">
+              <label>% IVA</label>
+              <input type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1" (change)="calculateTotals()">
+            </div>
+          </div>
+          <div class="totales-display">
+            <div class="total-row"><span>Neto:</span> <span>{{ formatCurrency(newCotizacion.totales.netoBs) }}</span></div>
+            <div class="total-row"><span>Descuento:</span> <span>{{ formatCurrency(newCotizacion.totales.descuentoBs) }}</span></div>
+            <div class="total-row"><span>Sub Total:</span> <span>{{ formatCurrency(newCotizacion.totales.subTotalBs) }}</span></div>
+            <div class="total-row"><span>I.V.A.:</span> <span>{{ formatCurrency(newCotizacion.totales.ivaBs) }}</span></div>
+            <div class="total-row total-bold"><span>Total Bs.:</span> <span>{{ formatCurrency(newCotizacion.totales.totalBs) }}</span></div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button class="btn-primary" (click)="saveCotizacion()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

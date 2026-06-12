@@ -41,24 +41,25 @@ const QUICK_ITEMS: QuickItem[] = [
 ];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
-   {
-     name: 'Panel Admin',
-     expanded: false,
-     items: [
-       { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
-       { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
-       { label: 'Histórico Costos', route: 'historico-costos', permiso: 'tasas_ver' },
-       { label: 'Registro', route: 'registro', permiso: 'facturas_registrar' },
-       { label: 'Facturación', route: 'facturacion', permiso: 'facturas_gestionar' },
-       { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
-       { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
-       { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
-       { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
-       { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
-       { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
-       { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
-     ]
-   },
+{
+      name: 'Panel Admin',
+      expanded: false,
+      items: [
+        { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
+        { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
+        { label: 'Histórico Costos', route: 'historico-costos', permiso: 'tasas_ver' },
+        { label: 'Registro', route: 'registro', permiso: 'facturas_registrar' },
+        { label: 'Facturación', route: 'facturacion', permiso: 'facturas_gestionar' },
+        { label: 'Cotizaciones Alcadía', route: 'cotizaciones-alcadia', permiso: 'cotizaciones_gestionar' },
+        { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
+        { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
+        { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
+        { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
+        { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
+        { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
+        { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
+      ]
+    },
    {
      name: 'Cuentas por Pagar',
      expanded: false,

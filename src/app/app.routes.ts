@@ -218,14 +218,18 @@ export const routes: Routes = [
             path: 'historico-costos',
             loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
           },
-          {
-            path: 'ofertas',
-            loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
-          },
-          {
-            path: 'retenciones',
-            loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
-          },
+{
+             path: 'ofertas',
+             loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
+           },
+           {
+             path: 'cotizaciones-alcadia',
+             loadComponent: () => import('./admin/cotizaciones-alcadia/cotizaciones-alcadia').then((m) => m.CotizacionesAlcadia),
+           },
+           {
+             path: 'retenciones',
+             loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
+           },
           {
             path: 'repartidor',
             loadComponent: () => import('./admin/repartidor/admin-repartidor').then((m) => m.AdminRepartidorComponent),

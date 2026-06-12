@@ -29,6 +29,7 @@
               <span class="orden">Orden: {{ cat.orden }}</span>
             </div>
             <div class="categoria-actions">
+              <button class="btn-small" (click)="openProductsModal(cat)">📦 Ver productos</button>
               <button class="btn-small" (click)="openEditModal(cat)">✏️ Editar</button>
               <button class="btn-small btn-danger" (click)="deleteCategoria(cat)">🗑️</button>
             </div>
@@ -82,6 +83,52 @@
       <div class="modal-footer">
         <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
         <button class="btn-primary" (click)="saveCategoria()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showProductsModal()) {
+  <div class="modal-overlay" (click)="closeProductsModal()">
+    <div class="modal products-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Productos en "{{ selectedCategoria()?.nombre }}"</h3>
+        <button class="modal-close" (click)="closeProductsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        @if (loadingProducts()) {
+          <div class="loading-products">Cargando productos...</div>
+        } @else if (categoriaProducts().length === 0) {
+          <div class="empty-products">
+            <p>No hay productos en esta categoría.</p>
+          </div>
+        } @else {
+          <div class="products-table-container">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th>Imagen</th>
+                  <th>Nombre</th>
+                  <th>Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (product of categoriaProducts(); track product.id) {
+                  <tr>
+                    <td>
+                      <img [src]="product.image" [alt]="product.title" class="product-thumb" />
+                    </td>
+                    <td>{{ product.title }}</td>
+                    <td>{{ formatPrice(product.price) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeProductsModal()">Cerrar</button>
       </div>
     </div>
   </div>

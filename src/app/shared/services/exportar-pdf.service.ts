@@ -75,28 +75,28 @@ export class ExportarPdfService {
             widths: ['auto', 45, '*', 'auto', 'auto'],
             body: [
               [
-                { text: 'CODIGO', style: 'th' },
-                { text: 'CANTIDAD', style: 'th', alignment: 'center' },
-                { text: 'DESCRIPCION', style: 'th' },
-                { text: 'P. UNITARIO Bs.', style: 'th', alignment: 'right' },
-                { text: 'MONTO TOTAL Bs.', style: 'th', alignment: 'right' }
+                { text: 'CODIGO', style: 'thMini' },
+                { text: 'CANTIDAD', style: 'thMini', alignment: 'center' },
+                { text: 'DESCRIPCION', style: 'thMini' },
+                { text: 'P. UNITARIO Bs.', style: 'thMini', alignment: 'right' },
+                { text: 'MONTO TOTAL Bs.', style: 'thMini', alignment: 'right' }
               ],
               ...data.items.map(item => [
-                { text: item.codigo, style: 'td' },
-                { text: item.cantidad.toString(), style: 'td', alignment: 'center' },
-                { text: item.descripcion, style: 'td' },
-                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'td', alignment: 'right' },
-                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'td', alignment: 'right' }
+                { text: item.codigo, style: 'tdMini' },
+                { text: item.cantidad.toString(), style: 'tdMini', alignment: 'center' },
+                { text: item.descripcion, style: 'tdMini' },
+                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'tdMini', alignment: 'right' },
+                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'tdMini', alignment: 'right' }
               ])
             ]
           },
           layout: {
-            hLineWidth: (i: number, node: any) => (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5,
+            hLineWidth: (i: number) => 0.5,
             vLineWidth: () => 0.5,
-            hLineColor: () => '#AAAAAA',
-            vLineColor: () => '#E0E0E0',
-            paddingTop: () => 5,
-            paddingBottom: () => 5
+            hLineColor: () => '#CCCCCC',
+            vLineColor: () => '#CCCCCC',
+            paddingTop: () => 3,
+            paddingBottom: () => 3
           }
         },
 
@@ -111,12 +111,11 @@ export class ExportarPdfService {
                 { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.', fontSize: 8, bold: true },
                 { text: 'R.I.F.: J-30488367-6', fontSize: 8, bold: true, margin: [0, 0, 0, 4] },
                 { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7.5, decoration: 'underline' },
-                { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 8, fontFeatures: ['tnum'] },
-                { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 8, fontFeatures: ['tnum'] },
-                { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 8, fontFeatures: ['tnum'] },
-                { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 8, fontFeatures: ['tnum'], bold: true, margin: [0, 2, 0, 4] },
-                { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7.5, italic: true },
-                { text: `OBSERVACIONES: EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5, bold: true, margin: [0, 8, 0, 0] }
+                { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 8 },
+                { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 8 },
+                { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 8 },
+                { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 8, bold: true, margin: [0, 2, 0, 4] },
+                { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7.5, italic: true }
               ]
             },
             {
@@ -130,7 +129,13 @@ export class ExportarPdfService {
                       [{ text: `${data.referencia.validezDias} dias`, fontSize: 8, alignment: 'center' }, { text: data.referencia.vendedor, fontSize: 8, alignment: 'center' }]
                     ]
                   },
-                  margin: [0, 0, 0, 10]
+                  margin: [0, 0, 0, 10],
+                  layout: {
+                    hLineWidth: (i: number) => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#CCCCCC',
+                    vLineColor: () => '#CCCCCC'
+                  }
                 },
                 {
                   table: {
@@ -152,10 +157,21 @@ export class ExportarPdfService {
         },
 
         {
-          margin: [0, 40, 0, 0],
+          margin: [0, 20, 0, 0],
           columns: [
-            { text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma' },
-            { text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma' }
+            { 
+              width: '60%',
+              stack: [
+                { text: `OBSERVACIONES: EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5, bold: true }
+              ]
+            },
+            {
+              width: '40%',
+              stack: [
+                { text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma' },
+                { text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', margin: [0, 30, 0, 0] }
+              ]
+            }
           ]
         }
       ],
@@ -169,9 +185,8 @@ export class ExportarPdfService {
         numeroDoc: { fontSize: 14, bold: true, color: 'red' },
         fechaDoc: { fontSize: 9, bold: true },
         seccionCliente: { fontSize: 9, lineHeight: 1.2 },
-        th: { fontSize: 8, bold: true, fillColor: '#F5F5F5', margin: [0, 3, 0, 3] },
-        td: { fontSize: 8 },
         thMini: { fontSize: 7, bold: true, fillColor: '#EEEEEB', alignment: 'center' },
+        tdMini: { fontSize: 8 },
         labelTotal: { fontSize: 8.5, alignment: 'right' },
         valorTotal: { fontSize: 8.5, alignment: 'right' },
         labelTotalBold: { fontSize: 10, bold: true, alignment: 'right' },

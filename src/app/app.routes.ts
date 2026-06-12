@@ -222,10 +222,10 @@ export const routes: Routes = [
              path: 'ofertas',
              loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
            },
-           {
-             path: 'cotizaciones-alcadia',
-             loadComponent: () => import('./admin/cotizaciones-alcadia/cotizaciones-alcadia').then((m) => m.CotizacionesAlcadia),
-           },
+{
+              path: 'cotizaciones',
+              loadComponent: () => import('./admin/cotizaciones/cotizaciones').then((m) => m.Cotizaciones),
+            },
            {
              path: 'retenciones',
              loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),

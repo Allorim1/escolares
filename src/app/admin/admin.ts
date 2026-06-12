@@ -50,7 +50,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
         { label: 'Histórico Costos', route: 'historico-costos', permiso: 'tasas_ver' },
         { label: 'Registro', route: 'registro', permiso: 'facturas_registrar' },
         { label: 'Facturación', route: 'facturacion', permiso: 'facturas_gestionar' },
-        { label: 'Cotizaciones Alcadía', route: 'cotizaciones-alcadia', permiso: 'cotizaciones_gestionar' },
+        { label: 'Cotizaciones', route: 'cotizaciones', permiso: 'cotizaciones_gestionar' },
         { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
         { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
         { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },

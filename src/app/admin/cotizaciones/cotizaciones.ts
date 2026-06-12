@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CotizacionService } from '../../shared/data-access/cotizacion.service';
@@ -6,15 +6,19 @@ import { ExportarPdfService } from '../../shared/services/exportar-pdf.service';
 import { Cotizacion, ItemCotizacion } from '../../shared/interfaces/cotizacion.interface';
 
 @Component({
-  selector: 'app-cotizaciones-alcadia',
+  selector: 'app-cotizaciones',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './cotizaciones-alcadia.html',
-  styleUrl: './cotizaciones-alcadia.css',
+  templateUrl: './cotizaciones.html',
+  styleUrl: './cotizaciones.css',
 })
-export class CotizacionesAlcadia {
+export class Cotizaciones implements OnInit {
   cotizacionService = inject(CotizacionService);
   exportarPdfService = inject(ExportarPdfService);
+
+  ngOnInit() {
+    this.cotizacionService.loadCotizaciones();
+  }
 
   showModal = false;
   editingCotizacion: Cotizacion | null = null;

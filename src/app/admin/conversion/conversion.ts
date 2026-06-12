@@ -1941,11 +1941,11 @@ cerrarModalExpectativas() {
     if (key === 'Backspace') {
       event.preventDefault();
       if (kind === 'actual') {
-        let cents = Math.floor(this.promedioTasaActualCents() / 10);
+        const cents = Math.floor(this.promedioTasaActualCents() / 10);
         this.promedioTasaActualCents.set(cents);
         this.promedioTasaActual.set(Math.round((cents / 100) * 10000) / 10000);
       } else {
-        let cents = Math.floor(this.promedioTasaAnteriorCents() / 10);
+        const cents = Math.floor(this.promedioTasaAnteriorCents() / 10);
         this.promedioTasaAnteriorCents.set(cents);
         this.promedioTasaAnterior.set(Math.round((cents / 100) * 10000) / 10000);
       }

@@ -10,7 +10,7 @@ import { shareReplay } from "rxjs/operators";
  export class ProductsService extends BaseHttpService {
    private productsCache$: Observable<Product[]> | null = null;
 
-   getProducts(page: string = '1', limit: string = '50'): Observable<any> {
+   getProducts(page = '1', limit = '50'): Observable<any> {
      return this.http.get<any>(`${this.apiUrl}/products`, {
        params: { page, limit }
      });

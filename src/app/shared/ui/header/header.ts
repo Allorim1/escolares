@@ -375,7 +375,7 @@ onCartPreviewLeave() {
     }, 100);
   }
 
-  truncateContent(content: string, length: number = 100): string {
+  truncateContent(content: string, length = 100): string {
     if (!content) return '';
     return content.length > length ? content.substring(0, length) + '...' : content;
   }

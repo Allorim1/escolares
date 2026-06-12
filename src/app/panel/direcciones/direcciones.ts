@@ -22,7 +22,7 @@ interface DireccionUsuario extends Direccion {
   styleUrls: ['./direcciones.css'],
   imports: [FormsModule],
 })
-export class Direcciones {
+export class Direcciones implements OnChanges {
   authService = inject(AuthService);
   mapsService = inject(GoogleMapsService);
 

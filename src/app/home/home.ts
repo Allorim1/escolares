@@ -11,6 +11,7 @@ import {
   PLATFORM_ID,
   OnInit,
   computed,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -757,21 +758,22 @@ import { Product } from '../shared/interfaces/product.interface';
           color: #888;
         }
 
-        .carousel-btn {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: rgba(29, 99, 193, 0.9);
-          color: white;
-          border: none;
-          cursor: pointer;
-          font-size: 1.2rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-          z-index: 10;
-        }
+.carousel-btn {
+           width: 40px;
+           height: 40px;
+           border-radius: 50%;
+           background: rgba(29, 99, 193, 0.9);
+           color: white;
+           border: none;
+           cursor: pointer;
+           font-size: 1.2rem;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           transition: all 0.2s;
+           z-index: 10;
+           position: absolute;
+         }
 
         .carousel-btn:hover {
           background: #1d63c1;
@@ -835,6 +837,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private productsState = inject(ProductsStateService);
   private cartState = inject(CartStateService).state;
   private currencyService = inject(CurrencyService);
+  private cdr = inject(ChangeDetectorRef);
   
   marcas = this.marcasService.marcas;
   noticias = signal<Noticia[]>([]);
@@ -863,7 +866,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private autoScrollInterval: any;
 
-  get duplicatedMarcas() {
+get duplicatedMarcas() {
     const marcasValue = this.marcas();
     const original = Array.isArray(marcasValue) ? marcasValue : [];
     return [...original, ...original, ...original, ...original];
@@ -873,19 +876,15 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.duplicatedMarcas.length;
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      setTimeout(() => this.revealAll(), 100);
-      setTimeout(() => this.revealAll(), 300);
-      setTimeout(() => this.revealAll(), 500);
-      
       this.autoScrollInterval = setInterval(() => {
         this.next();
       }, 3000);
     }
   }
 
-ngOnDestroy() {
+  ngOnDestroy(): void {
     if (this.autoScrollInterval) {
       clearInterval(this.autoScrollInterval);
     }
@@ -897,12 +896,38 @@ ngOnDestroy() {
     }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadNoticias();
       this.productsState.loadProducts();
-      this.startProductosCarousels();
+      this.waitForDataAndReveal();
     }
+  }
+
+  private waitForDataAndReveal(): void {
+    const maxAttempts = 50;
+    let attempts = 0;
+    
+    const checkData = () => {
+      const products = this.productsState.allProducts();
+      if ((Array.isArray(products) && products.length > 0) || this.noticiasLoaded()) {
+        this.cdr.detectChanges();
+        this.revealAll();
+        this.startProductosCarousels();
+        return true;
+      }
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(checkData, 100);
+      } else {
+        this.cdr.detectChanges();
+        this.revealAll();
+        this.startProductosCarousels();
+      }
+      return false;
+    };
+    
+    checkData();
   }
 
   loadNoticias() {
@@ -910,10 +935,14 @@ ngOnDestroy() {
       next: () => {
         this.noticias.set(this.noticiasService.activeNoticias());
         this.noticiasLoaded.set(true);
+        this.cdr.detectChanges();
+        this.revealAll();
       },
       error: (err) => {
         console.error('Error loading noticias:', err);
         this.noticiasLoaded.set(true);
+        this.cdr.detectChanges();
+        this.revealAll();
       }
     });
   }
@@ -928,12 +957,14 @@ ngOnDestroy() {
   }
 
   private revealAll() {
-    if (!this.revealElements?.length) return;
-    this.revealElements.forEach((el) => {
-      if (el?.nativeElement) {
-        el.nativeElement.classList.add('reveal-active');
-      }
-    });
+    setTimeout(() => {
+      if (!this.revealElements?.length) return;
+      this.revealElements.forEach((el) => {
+        if (el?.nativeElement) {
+          el.nativeElement.classList.add('reveal-active');
+        }
+      });
+    }, 50);
   }
 
   prevBanner() {

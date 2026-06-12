@@ -736,7 +736,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
   }
 
   openDeliveryPersonModal(personId: string) {
-    let person = this.getAvailableDeliveryPersons().find(p => p.id === personId);
+    const person = this.getAvailableDeliveryPersons().find(p => p.id === personId);
     if (person) {
       this.selectedDeliveryPerson.set(person);
       this.showDeliveryPersonModal.set(true);

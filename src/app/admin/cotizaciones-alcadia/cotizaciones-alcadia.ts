@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CotizacionService } from '../../shared/data-access/cotizacion.service';
@@ -12,7 +12,7 @@ import { Cotizacion, ItemCotizacion } from '../../shared/interfaces/cotizacion.i
   templateUrl: './cotizaciones-alcadia.html',
   styleUrl: './cotizaciones-alcadia.css',
 })
-export class CotizacionesAlcadia implements OnInit {
+export class CotizacionesAlcadia {
   cotizacionService = inject(CotizacionService);
   exportarPdfService = inject(ExportarPdfService);
 
@@ -53,10 +53,6 @@ export class CotizacionesAlcadia implements OnInit {
     precioUnitarioBs: 0,
     montoTotalBs: 0,
   };
-
-  ngOnInit(): void {
-    // Carga automática desde el servicio
-  }
 
   get cotizaciones() {
     return this.cotizacionService.cotizaciones();

@@ -44,7 +44,7 @@ export class ExportarPdfService {
         {
           margin: [0, 10, 0, 15],
           table: {
-            widths: ['*'],
+            widths: ['40%'],
             body: [
               [
                 {
@@ -69,7 +69,7 @@ export class ExportarPdfService {
         },
 
         {
-          style: 'tablaArticulos',
+
           table: {
             headerRows: 1,
             widths: ['auto', 45, '*', 'auto', 'auto'],
@@ -82,21 +82,21 @@ export class ExportarPdfService {
                 { text: 'MONTO TOTAL Bs.', style: 'thMini', alignment: 'right' }
               ],
               ...data.items.map(item => [
-                { text: item.codigo, style: 'tdMini' },
-                { text: item.cantidad.toString(), style: 'tdMini', alignment: 'center' },
-                { text: item.descripcion, style: 'tdMini' },
-                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'tdMini', alignment: 'right' },
-                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'tdMini', alignment: 'right' }
+                { text: item.codigo, style: 'td' },
+                { text: item.cantidad.toString(), style: 'td', alignment: 'center' },
+                { text: item.descripcion, style: 'td' },
+                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'td', alignment: 'right' },
+                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'td', alignment: 'right' }
               ])
             ]
           },
           layout: {
-            hLineWidth: (i: number) => 0.5,
+            hLineWidth: (i: number, node: any) => (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5,
             vLineWidth: () => 0.5,
-            hLineColor: () => '#CCCCCC',
-            vLineColor: () => '#CCCCCC',
-            paddingTop: () => 3,
-            paddingBottom: () => 3
+            hLineColor: () => '#AAAAAA',
+            vLineColor: () => '#E0E0E0',
+            paddingTop: () => 5,
+            paddingBottom: () => 5
           }
         },
 
@@ -115,7 +115,8 @@ export class ExportarPdfService {
                 { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 8 },
                 { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 8 },
                 { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 8, bold: true, margin: [0, 2, 0, 4] },
-                { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7.5, italic: true }
+                { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7.5, italic: true },
+                { text: `OBSERVACIONES: EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5, bold: true, margin: [0, 8, 0, 0] }
               ]
             },
             {
@@ -129,13 +130,7 @@ export class ExportarPdfService {
                       [{ text: `${data.referencia.validezDias} dias`, fontSize: 8, alignment: 'center' }, { text: data.referencia.vendedor, fontSize: 8, alignment: 'center' }]
                     ]
                   },
-                  margin: [0, 0, 0, 10],
-                  layout: {
-                    hLineWidth: (i: number) => 0.5,
-                    vLineWidth: () => 0.5,
-                    hLineColor: () => '#CCCCCC',
-                    vLineColor: () => '#CCCCCC'
-                  }
+                  margin: [0, 0, 0, 10]
                 },
                 {
                   table: {
@@ -157,21 +152,10 @@ export class ExportarPdfService {
         },
 
         {
-          margin: [0, 20, 0, 0],
+          margin: [0, 40, 0, 0],
           columns: [
-            { 
-              width: '60%',
-              stack: [
-                { text: `OBSERVACIONES: EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5, bold: true }
-              ]
-            },
-            {
-              width: '40%',
-              stack: [
-                { text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma' },
-                { text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', margin: [0, 30, 0, 0] }
-              ]
-            }
+            { text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma' },
+            { text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma' }
           ]
         }
       ],

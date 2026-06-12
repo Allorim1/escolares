@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Cotizacion } from '../interfaces/cotizacion.interface';
+import { HttpClient } from '@angular/common/http';
 
 // Declaración para window.pdfMake (cargado desde CDN en index.html)
 declare const pdfMake: any;
@@ -8,8 +9,40 @@ declare const pdfMake: any;
   providedIn: 'root',
 })
 export class ExportarPdfService {
+  private http = inject(HttpClient);
 
-  generarCotizacionPdf(data: Cotizacion) {
+
+   formatFecha(fechaRaw: string | Date): string {
+  const date = new Date(fechaRaw);
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+}
+
+private cargarImagenLocal(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0);
+        
+        const dataURL = canvas.toDataURL('image/png');
+        resolve(dataURL);
+      };
+      img.onerror = (error) => {
+        reject('Error cargando la imagen desde el directorio: ' + error);
+      };
+    });
+  }
+
+  async generarCotizacionPdf(data: Cotizacion) {
+
+    const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+
+    
     const docDefinition: any = {
       content: [
         {
@@ -17,7 +50,7 @@ export class ExportarPdfService {
             {
               width: '35%',
               stack: [
-                { image: LOGO_BASE64, width: 140, margin: [0, 0, 0, 2] },
+                { image: logoBase64, width: 140, margin: [0, 0, 0, 2] },
                 { text: 'R.I.F. J-30488367-6\n', style: 'datosEmpresa' }
               ]
             },
@@ -85,7 +118,7 @@ export class ExportarPdfService {
           widths: ['*', '*', '*'],
           body: [
             [{ text: 'FECHA', style: 'thControl', colSpan: 3 }, {}, {}],
-            [{ text: data.fecha, style: 'thControl', colSpan: 3, }, {}, {}],
+            [{ text: this.formatFecha(data.fecha), style: 'thControl', colSpan: 3, }, {}, {}],
             [{ text: 'VALIDEZ', style: 'thControl', colSpan: 3 }, {}, {}],
             [
               { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
@@ -210,11 +243,20 @@ export class ExportarPdfService {
       pageMargins: [40, 40, 40, 40]
     };
 
+    docDefinition.tableLayouts = {
+  cuadroNegro: {
+    hLineWidth: () => 1,
+    vLineWidth: () => 1,
+    hLineColor: () => '#000000',
+    vLineColor: () => '#000000',
+    paddingLeft: () => 6,
+    paddingRight: () => 6,
+    paddingTop: () => 4,
+    paddingBottom: () => 4
+  }
+}
+
     return docDefinition;
   }
 
-  generarYAbrirPdf(data: Cotizacion) {
-    const docDefinition = this.generarCotizacionPdf(data);
-    pdfMake.createPdf(docDefinition).open();
-  }
 }

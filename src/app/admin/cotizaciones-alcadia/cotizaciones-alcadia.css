@@ -1,7 +1,9 @@
 .cotizaciones-container {
-  padding: 20px;
+  padding: 1rem;
   max-width: 1400px;
   margin: 0 auto;
+  background: white;
+  min-height: calc(100vh - 120px);
 }
 
 .header {

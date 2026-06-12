@@ -1,5 +1,9 @@
+import { Injectable } from '@angular/core';
 import { Cotizacion } from '../interfaces/cotizacion.interface';
 
+@Injectable({
+  providedIn: 'root',
+})
 export class ExportarPdfService {
 
   generarCotizacionPdf(data: Cotizacion) {

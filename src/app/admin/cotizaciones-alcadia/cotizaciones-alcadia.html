@@ -21,12 +21,12 @@
         </tr>
       </thead>
       <tbody>
-        @for (cotizacion of cotizaciones; track cotizacion._id) {
+        @for (cotizacion of cotizaciones || []; track cotizacion._id) {
           <tr>
             <td>{{ formatearFecha(cotizacion.fecha) }}</td>
-            <td>{{ cotizacion.numeroCotizacion }}</td>
-            <td>{{ cotizacion.cliente.nombre }}</td>
-            <td>{{ formatCurrency(cotizacion.totales.totalBs) }}</td>
+            <td>{{ cotizacion.numeroCotizacion || '' }}</td>
+            <td>{{ cotizacion.cliente?.nombre || '' }}</td>
+            <td>{{ formatCurrency(cotizacion.totales?.totalBs || 0) }}</td>
             <td>
               <span class="badge">Activa</span>
             </td>

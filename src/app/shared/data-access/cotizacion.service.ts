@@ -11,14 +11,15 @@ export class CotizacionService {
 
   cotizaciones = signal<Cotizacion[]>([]);
 
-  constructor(private http: HttpClient, private registroService: RegistroService) {
-    this.loadCotizaciones();
-  }
+  constructor(private http: HttpClient, private registroService: RegistroService) {}
 
   loadCotizaciones() {
     this.http.get<Cotizacion[]>(this.API_URL).subscribe({
       next: (data) => this.cotizaciones.set(data),
-      error: (err) => console.error('Error cargando cotizaciones:', err),
+      error: (err) => {
+        console.error('Error cargando cotizaciones:', err);
+        this.cotizaciones.set([]);
+      },
     });
   }
 

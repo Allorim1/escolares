@@ -60,8 +60,33 @@ export class CotizacionesAlcadia {
 
   openModal(cotizacion?: Cotizacion) {
     if (cotizacion) {
-      this.editingCotizacion = cotizacion;
-      this.newCotizacion = { ...cotizacion };
+      this.editingCotizacion = { ...cotizacion };
+      this.newCotizacion = {
+        numeroCotizacion: cotizacion.numeroCotizacion || '',
+        fecha: cotizacion.fecha || new Date().toISOString().split('T')[0],
+        cliente: {
+          nombre: cotizacion.cliente?.nombre || '',
+          rif: cotizacion.cliente?.rif || '',
+          direccion: cotizacion.cliente?.direccion || '',
+          telefono: cotizacion.cliente?.telefono || '',
+        },
+        items: cotizacion.items || [],
+        referencia: {
+          numeroReferencia: cotizacion.referencia?.numeroReferencia || '',
+          validezDias: cotizacion.referencia?.validezDias || 5,
+          vendedor: cotizacion.referencia?.vendedor || '',
+        },
+        totales: {
+          netoBs: cotizacion.totales?.netoBs || 0,
+          porcentajeDescuento: cotizacion.totales?.porcentajeDescuento || 0,
+          descuentoBs: cotizacion.totales?.descuentoBs || 0,
+          subTotalBs: cotizacion.totales?.subTotalBs || 0,
+          ivaPorcentaje: cotizacion.totales?.ivaPorcentaje || 16,
+          ivaBs: cotizacion.totales?.ivaBs || 0,
+          exentoBs: cotizacion.totales?.exentoBs || 0,
+          totalBs: cotizacion.totales?.totalBs || 0,
+        },
+      };
     } else {
       this.editingCotizacion = null;
       this.resetForm();

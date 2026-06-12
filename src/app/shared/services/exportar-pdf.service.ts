@@ -259,4 +259,7 @@ private cargarImagenLocal(url: string): Promise<string> {
     return docDefinition;
   }
 
+  generarYAbrirPdf(data: Cotizacion) {
+    this.generarCotizacionPdf(data);
+  }
 }

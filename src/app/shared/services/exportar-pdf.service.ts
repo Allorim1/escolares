@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Cotizacion } from '../interfaces/cotizacion.interface';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
 
-(pdfMake as any).vfs = (pdfFonts as any).vfs;
+// Declaración para window.pdfMake (cargado desde CDN en index.html)
+declare const pdfMake: any;
 
 @Injectable({
   providedIn: 'root',
@@ -166,22 +165,21 @@ export class ExportarPdfService {
         headerSub: { fontSize: 10, bold: true },
         datosEmpresa: { fontSize: 8, color: '#444444' },
         webSite: { fontSize: 9, bold: true, color: '#0d3b66' },
-        tituloDoc: { fontSize: 14, bold: true, tracking: 2 },
+        tituloDoc: { fontSize: 14, bold: true },
         numeroDoc: { fontSize: 14, bold: true, color: 'red' },
         fechaDoc: { fontSize: 9, bold: true },
         seccionCliente: { fontSize: 9, lineHeight: 1.2 },
         th: { fontSize: 8, bold: true, fillColor: '#F5F5F5', margin: [0, 3, 0, 3] },
-        td: { fontSize: 8, fontFeatures: ['tnum'] },
+        td: { fontSize: 8 },
         thMini: { fontSize: 7, bold: true, fillColor: '#EEEEEB', alignment: 'center' },
         labelTotal: { fontSize: 8.5, alignment: 'right' },
-        valorTotal: { fontSize: 8.5, alignment: 'right', fontFeatures: ['tnum'] },
+        valorTotal: { fontSize: 8.5, alignment: 'right' },
         labelTotalBold: { fontSize: 10, bold: true, alignment: 'right' },
-        valorTotalBold: { fontSize: 10, bold: true, alignment: 'right', fontFeatures: ['tnum'] },
+        valorTotalBold: { fontSize: 10, bold: true, alignment: 'right' },
         firma: { fontSize: 8, bold: true }
       },
-      defaultStyle: {
-        font: 'Helvetica'
-      }
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 40]
     };
 
     return docDefinition;
@@ -189,6 +187,6 @@ export class ExportarPdfService {
 
   generarYAbrirPdf(data: Cotizacion) {
     const docDefinition = this.generarCotizacionPdf(data);
-    (pdfMake as any).createPdf(docDefinition).open();
+    pdfMake.createPdf(docDefinition).open();
   }
 }

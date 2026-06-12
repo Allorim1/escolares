@@ -95,14 +95,7 @@ export class CotizacionesAlcadia {
   }
 
   generatePdfFromRow(cotizacion: Cotizacion) {
-    const docDefinition = this.exportarPdfService.generarCotizacionPdf(cotizacion);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfMake = (window as any).pdfMake;
-    if (pdfMake) {
-      pdfMake.createPdf(docDefinition).open();
-    } else {
-      alert('pdfMake no está disponible');
-    }
+    this.exportarPdfService.generarYAbrirPdf(cotizacion);
   }
 
   closeModal() {

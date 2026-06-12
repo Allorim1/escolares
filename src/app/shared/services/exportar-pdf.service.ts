@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Cotizacion } from '../interfaces/cotizacion.interface';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+
+(pdfMake as any).vfs = (pdfFonts as any).vfs;
 
 @Injectable({
   providedIn: 'root',
@@ -181,5 +185,10 @@ export class ExportarPdfService {
     };
 
     return docDefinition;
+  }
+
+  generarYAbrirPdf(data: Cotizacion) {
+    const docDefinition = this.generarCotizacionPdf(data);
+    (pdfMake as any).createPdf(docDefinition).open();
   }
 }

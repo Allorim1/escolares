@@ -95,7 +95,7 @@ private cargarImagenLocal(url: string): Promise<string> {
                     { 
                       margin: [0, 10, 0, 0],
                       columns: [
-                    { text: `RIF: ${data.cliente.rif}` },,
+                    { text: `RIF: ${data.cliente.rif}` },
                     { text: `Teléfono: ${data.cliente.telefono || ''}`, alignment: 'right' }
                       ]
                     },
@@ -200,7 +200,7 @@ private cargarImagenLocal(url: string): Promise<string> {
                       [{ text: 'NETO Bs.', style: 'labelTotal' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotal' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: 'SUB TOTAL Bs.', style: 'labelTotal' }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotal' }, { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMinithMini' }],
+                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotal' }, { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: 'EXENTO Bs.', style: 'labelTotal' }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
@@ -260,6 +260,7 @@ private cargarImagenLocal(url: string): Promise<string> {
   }
 
   generarYAbrirPdf(data: Cotizacion) {
-    this.generarCotizacionPdf(data);
+    const docDefinition = this.generarCotizacionPdf(data);
+    pdfMake.createPdf(docDefinition).open();
   }
 }

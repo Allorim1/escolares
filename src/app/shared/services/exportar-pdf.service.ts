@@ -154,7 +154,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         {
 
           table: {
-            widths: [75, 45, '*', 65, 75],
+            widths: [70, 50, '*', 65, 80],
             body: [
               [
                 { text: 'CODIGO', style: 'headerCen' },
@@ -184,10 +184,10 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         },
 
         {
-          margin: [0, -2, 0, 0],
+          margin: [5, -2, 0, 0],
           columns: [
             {
-              width: '60%',
+              width: 'auto',
               stack: [
                 { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 7, bold: true },
                 { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 7, bold: true, margin: [0, 2, 0, 5] },
@@ -202,11 +202,15 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               ]
             },
             {
-              width: '40%',
+            width: '*',
+            texto: ''
+            },
+            {
+              width: 145,
               stack: [
                 {
                   table: {
-                    widths: [65, 75],
+                    widths: ['65', '80'],
                     body: [
                       [{ text: 'NETO Bs.', style: 'labelTotalBold' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotalBold' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
@@ -216,7 +220,6 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                       [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
                   },
-                  layout: 'tablaTotalesFusa'
                 }
               ]
             }
@@ -264,23 +267,10 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
     };
 
 docDefinition.tableLayouts = {
-  tablaComercial: {
-    // CONTROL INGENIOSO DE LAS LÍNEAS HORIZONTALES
-    hLineWidth: (i: number, node: any) => {
-      // Si es la última línea de la tabla (el cierre inferior), retornamos 0 para dejarla abierta
-      if (i === node.table.body.length) {
-        return 0; 
-      }
-      // La línea del encabezado (0) es más gruesa, las normales internas miden 0.8
-      return (i === 0) ? 1.2 : 0.8;
-    },
-
-    // CONTROL DE LAS LÍNEAS VERTICALES (Perfectas y continuas)
-    vLineWidth: (i: number, node: any) => {
-      // Los bordes exteriores (izquierdo y derecho) son más gruesos, las divisiones internas miden 0.8
-      return (i === 0 || i === node.table.widths.length) ? 1.2 : 0.8;
-    },
-
+tablaComercial: {
+    // Apaga la línea inferior de la tabla de artículos para permitir la fusión continua
+    hLineWidth: (i: number, node: any) => (i === node.table.body.length) ? 0 : 0.8,
+    vLineWidth: () => 0.8,
     hLineColor: () => '#000000',
     vLineColor: () => '#000000',
     paddingLeft: () => 4,
@@ -288,11 +278,12 @@ docDefinition.tableLayouts = {
     paddingTop: () => 2,
     paddingBottom: () => 2
   },
+  
   tablaTotalesFusa: {
-    // Solo pinta la línea superior de la caja de totales y la de cierre abajo
-    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 1.2 : 0, 
-    // Mantiene los bordes izquierdo, central y derecho activos
-    vLineWidth: () => 0.8, 
+    // Pinta la línea superior de la caja de totales (que pisa el final de los artículos) 
+    // y la línea inferior de cierre del documento. Remueve las internas.
+    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 1.2 : 0,
+    vLineWidth: () => 0.8,
     hLineColor: () => '#000000',
     vLineColor: () => '#000000',
     paddingLeft: () => 4,

@@ -38,6 +38,16 @@ async generarCotizacionPdf(data: Cotizacion) {
     } catch (e) {
       console.warn('No se pudo cargar el logo:', e);
     }
+
+    const MAX_ARTICULOS = 12;
+const articulosActuales = data.items ? data.items.length : 0;
+
+// 2. Calcula cuántas líneas vacías hacen falta para llegar al tope
+const lineasFaltantes = Math.max(0, MAX_ARTICULOS - articulosActuales);
+
+// 3. Genera los saltos de línea (\n). 
+// Multiplicamos por 2 para que el espacio vertical sea equivalente al tamaño de una fila real
+const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
     
     const docDefinition: any = {
       content: [
@@ -113,10 +123,10 @@ async generarCotizacionPdf(data: Cotizacion) {
         stack: [
           {
         table: {
-          widths: ['*', '*', '*'],
+          widths: [65, 45, '*'],
           body: [
-            [{ text: 'FECHA', style: 'thControl'}],
-            [{ text: this.formatFecha(data.fecha), style: 'tdControl' }],
+            [{ text: 'FECHA', style: 'thControl'}, { text: '', colSpan: 2, border: [false, false, false, false]}],
+            [{ text: this.formatFecha(data.fecha), style: 'tdControl'}, { text: '', colSpan: 2, border: [false, false, false, false]} ],
           ]
         },
         layout: 'cuadroNegro',
@@ -144,23 +154,30 @@ async generarCotizacionPdf(data: Cotizacion) {
         {
 
           table: {
-            headerRows: 1,
             widths: ['auto', 45, '*', 'auto', 'auto'],
             body: [
               [
                 { text: 'CODIGO', style: 'thMini' },
                 { text: 'CANTIDAD', style: 'thMini', alignment: 'center' },
-                { text: 'DESCRIPCION', style: 'thMini' },
+                { text: 'D E S C R I P C I O N', style: 'thMini' },
                 { text: 'P. UNITARIO Bs.', style: 'thMini', alignment: 'right' },
                 { text: 'MONTO TOTAL Bs.', style: 'thMini', alignment: 'right' }
               ],
               ...data.items.map(item => [
-                { text: item.codigo, style: 'td' },
-                { text: item.cantidad.toString(), style: 'td', alignment: 'center' },
-                { text: item.descripcion, style: 'td' },
-                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'td', alignment: 'right' },
-                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'td', alignment: 'right' }
-              ])
+                { text: item.codigo, alignment: 'left' },
+                { text: item.cantidad.toString(), alignment: 'center' },
+                { text: item.descripcion },
+                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right' },
+                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right' }
+              ]),
+
+              [
+                { text: ''},
+                { text: ''},
+                { text: stringRelleno },
+                { text: ''},
+                { text: ''}
+              ]
             ]
           },
           layout: {
@@ -168,8 +185,10 @@ async generarCotizacionPdf(data: Cotizacion) {
             vLineWidth: () => 1,
             hLineColor: () => '#000000',
             vLineColor: () => '#000000',
-            paddingTop: () => 5,
-            paddingBottom: () => 5
+            paddingLeft: () => 4,
+      paddingRight: () => 4,
+      paddingTop: () => 2,
+      paddingBottom: () => 2
           }
         },
 

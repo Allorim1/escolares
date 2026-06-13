@@ -19,29 +19,25 @@ export class ExportarPdfService {
 
 private cargarImagenLocal(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = url;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0);
-        
-        const dataURL = canvas.toDataURL('image/png');
-        resolve(dataURL);
-      };
-      img.onerror = (error) => {
-        reject('Error cargando la imagen desde el directorio: ' + error);
-      };
+      fetch(url)
+        .then(response => response.blob())
+        .then(blob => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject('Error leyendo imagen');
+          reader.readAsDataURL(blob);
+        })
+        .catch(() => reject('No se pudo cargar la imagen: ' + url));
     });
   }
 
-  async generarCotizacionPdf(data: Cotizacion) {
-
-    const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-
+async generarCotizacionPdf(data: Cotizacion) {
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
     
     const docDefinition: any = {
       content: [
@@ -50,7 +46,7 @@ private cargarImagenLocal(url: string): Promise<string> {
             {
               width: '35%',
               stack: [
-                { image: logoBase64, width: 140, margin: [0, 0, 0, 2] },
+                ...(logoBase64 ? [{ image: logoBase64, width: 140, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
                 { text: 'R.I.F. J-30488367-6\n', style: 'datosEmpresa' }
               ]
             },
@@ -110,7 +106,7 @@ private cargarImagenLocal(url: string): Promise<string> {
         }]
         },
 
-        { witdh: '2%', text: '' },
+        { width: '2%', text: '' },
       
         {
         width: '43%',
@@ -205,7 +201,6 @@ private cargarImagenLocal(url: string): Promise<string> {
                       [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
                   },
-                  layout: 'noBorders'
                 }
               ]
             }
@@ -233,17 +228,21 @@ private cargarImagenLocal(url: string): Promise<string> {
         seccionCliente: { fontSize: 9, lineHeight: 1.2 },
         thMini: { fontSize: 7, bold: true, fillColor: '#EEEEEB', alignment: 'center' },
         tdMini: { fontSize: 8 },
+        td: { fontSize: 8 },
         labelTotal: { fontSize: 8.5, alignment: 'right' },
         valorTotal: { fontSize: 8.5, alignment: 'right' },
+        valorCliente: { fontSize: 9.5, bold: true },
         labelTotalBold: { fontSize: 10, bold: true, alignment: 'right' },
         valorTotalBold: { fontSize: 10, bold: true, alignment: 'right' },
+        thControl: { fontSize: 8, bold: true, fillColor: '#EAEAEA', alignment: 'center', margin: [0, 2, 0, 2] },
+    tdControl: { fontSize: 8.5, alignment: 'center', margin: [0, 4, 0, 4] },
         firma: { fontSize: 8, bold: true }
       },
       pageSize: 'A4',
       pageMargins: [40, 40, 40, 40]
     };
 
-    docDefinition.tableLayouts = {
+docDefinition.tableLayouts = {
   cuadroNegro: {
     hLineWidth: () => 1,
     vLineWidth: () => 1,
@@ -253,14 +252,26 @@ private cargarImagenLocal(url: string): Promise<string> {
     paddingRight: () => 6,
     paddingTop: () => 4,
     paddingBottom: () => 4
+  },
+  noBorders: {
+    hLineWidth: () => 0,
+    vLineWidth: () => 0,
+    hLineColor: () => '#FFFFFF',
+    vLineColor: () => '#FFFFFF',
+    paddingTop: () => 4,
+    paddingBottom: () => 4
   }
-}
+};
 
     return docDefinition;
   }
 
-  generarYAbrirPdf(data: Cotizacion) {
-    const docDefinition = this.generarCotizacionPdf(data);
-    pdfMake.createPdf(docDefinition).open();
+  async generarYAbrirPdf(data: Cotizacion) {
+    try {
+      const docDefinition = await this.generarCotizacionPdf(data);
+      pdfMake.createPdf(docDefinition).open();
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+    }
   }
 }

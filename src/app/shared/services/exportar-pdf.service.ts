@@ -56,7 +56,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
             {
               width: '35%',
               stack: [
-                ...(logoBase64 ? [{ image: logoBase64, width: 140, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
                 { text: 'R.I.F. J-30488367-6\n', style: 'datosEmpresa' }
               ]
             },
@@ -69,7 +69,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               ],
               width: '40%',
               alignment: 'center',
-              margin: [0, 5, 0, 0]
+              margin: [0, 0, 0, 0]
 
             },
             {
@@ -79,7 +79,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               ],
               alignment: 'right',
               width: '25%',
-              margin: [0, 15, 0, 0]
+              margin: [0, 2, 0, 0]
             }
           ]
         },
@@ -88,8 +88,8 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         {
           columns: [
             {
+              width: '54%',
           table: {
-            width: '54%',
             widths: ['*'],
             body: [
               [

@@ -96,10 +96,10 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 {
                   stack: [
                     { text: `CLIENTE:`, style: 'labelCliente' },
-                    { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
+                    { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 1, 0, 3] },
                     { text: `Dirección: ${data.cliente.direccion || ''}`, style: 'campoCliente' },
                     { 
-                      margin: [0, 12, 0, 0],
+                      margin: [0, 4, 0, 0],
                       columns: [
                     { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente' },
                     { text: `Teléfono: ${data.cliente.telefono || ''}`, style: 'campoCliente', alignment: 'right' }

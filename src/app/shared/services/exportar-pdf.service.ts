@@ -85,6 +85,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         },
 
         { text: '', margin: [0, 10]},
+
         {
           table: {
             widths: ['54%', '2%', '44%'],
@@ -94,20 +95,14 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           table: {
             widths: ['auto', '*'],
             body: [
-              [
-                    [{ text: `CLIENTE:`, style: 'labelCliente', border: [false, false, false, false] }],
-                    [{ text: data.cliente.nombre, style: 'valorCliente', margin: [0, -2, 0, 2], border: [false, false, false, false] }],
+                    [{ text: `CLIENTE:`, style: 'labelCliente', colSpan: 2, border: [false, false, false, false] }],
+                    [{ text: data.cliente.nombre, style: 'valorCliente', colSpan: 2, margin: [0, -2, 0, 2], border: [false, false, false, false] }],
                     [{ text: `Dirección: ${data.cliente.direccion || ''}`, style: 'campoCliente', margin: [0, 0, 0, 6], border: [false, false, false, false] }],
-                    [
-                      { 
-                      columns: [
-                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente' },
-                    { text: `Teléfono: ${data.cliente.telefono || ''}`, style: 'campoCliente', alignment: 'right' }
-                      ],
-                    border: [false, false, false, false]
-                      }
+                    [                
+                      { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', border: [false, false, false, false] },
+                      { text: `Teléfono: ${data.cliente.telefono || ''}`, style: 'campoCliente', alignment: 'right', border: [false, false, false, false] }
+                      
                     ],
-                  ]
                 ],
           },
           layout: 'cuadroNegro'

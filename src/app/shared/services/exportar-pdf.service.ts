@@ -157,9 +157,9 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
             widths: ['auto', 45, '*', 'auto', 'auto'],
             body: [
               [
-                { text: 'CODIGO', style: 'headers' },
-                { text: 'CANTIDAD', style: 'headers', alignment: 'center' },
-                { text: 'D E S C R I P C I O N', style: 'headers' },
+                { text: 'CODIGO', style: 'headersCen' },
+                { text: 'CANTIDAD', style: 'headersCen', alignment: 'center' },
+                { text: 'D E S C R I P C I O N', style: 'headersCen' },
                 { text: 'P. UNITARIO Bs.', style: 'headers', alignment: 'right' },
                 { text: 'MONTO TOTAL Bs.', style: 'headers', alignment: 'right' }
               ],
@@ -172,11 +172,11 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               ]),
 
               [
-                { text: '', border: [true, false, false, false]},
-                { text: '', border: [false, false, false, false]},
-                { text: stringRelleno, border: [false, false, false, false] },
-                { text: '', border: [false, false, false, false]},
-                { text: '', border: [false, false, false, true]}
+                { text: '', border: [true, false, true, false]},
+                { text: '', border: [false, false, true, false]},
+                { text: stringRelleno, border: [false, false, true, false] },
+                { text: '', border: [false, false, true, false]},
+                { text: '', border: [false, false, true, true]}
               ]
             ]
           },
@@ -252,7 +252,8 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         seccionCliente: { fontSize: 9, lineHeight: 1.2 },
         thMini: { fontSize: 7, bold: true, fillColor: '#EEEEEB', alignment: 'center' },
         tdMini: { fontSize: 8 },
-        headers: { fontSize: 10, bold: true, color: '#dddddb' },
+        headers: { fontSize: 8, bold: true, fillColor: '#DBDBDB' },
+        headerCen: { fontSize: 9, bold: true, alignment: 'center', fillColor: '#DBDBDB'},
         td: { fontSize: 8 },
         labelCliente: { fontSize: 7.5, bold: true, color: '#444444' },
     valorCliente: { fontSize: 9.5, bold: true },

@@ -101,8 +101,8 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                     { 
                       margin: [0, 12, 0, 0],
                       columns: [
-                    { text: `RIF: ${data.cliente.rif}` },
-                    { text: `Teléfono: ${data.cliente.telefono || ''}`, alignment: 'right' }
+                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente' },
+                    { text: `Teléfono: ${data.cliente.telefono || ''}`, style: 'campoCliente', alignment: 'right' }
                       ]
                     },
                   ],
@@ -154,7 +154,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         {
 
           table: {
-            widths: ['auto', 45, '*', 'auto', 'auto'],
+            widths: [75, 45, '*', 65, 75],
             body: [
               [
                 { text: 'CODIGO', style: 'headerCen' },
@@ -184,7 +184,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         },
 
         {
-          margin: [0, 15, 0, 0],
+          margin: [0, -2, 0, 0],
           columns: [
             {
               width: '60%',
@@ -206,7 +206,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               stack: [
                 {
                   table: {
-                    widths: ['*', 'auto'],
+                    widths: [65, 75],
                     body: [
                       [{ text: 'NETO Bs.', style: 'labelTotalBold' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotalBold' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
@@ -216,6 +216,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                       [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
                   },
+                  layout: 'tablaTotalesFusa'
                 }
               ]
             }
@@ -286,6 +287,18 @@ docDefinition.tableLayouts = {
     paddingRight: () => 4,
     paddingTop: () => 2,
     paddingBottom: () => 2
+  },
+  tablaTotalesFusa: {
+    // Solo pinta la línea superior de la caja de totales y la de cierre abajo
+    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 1.2 : 0, 
+    // Mantiene los bordes izquierdo, central y derecho activos
+    vLineWidth: () => 0.8, 
+    hLineColor: () => '#000000',
+    vLineColor: () => '#000000',
+    paddingLeft: () => 4,
+    paddingRight: () => 4,
+    paddingTop: () => 3,
+    paddingBottom: () => 3
   },
   cuadroNegro: {
     hLineWidth: () => 1,

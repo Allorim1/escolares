@@ -65,7 +65,7 @@ async generarCotizacionPdf(data: Cotizacion) {
             {
               stack: [
                 { text: 'COTIZACION', style: 'tituloDoc' },
-                { text: data.numeroCotizacion, style: 'numeroDoc' },
+                { text: data.numeroCotizacion, style: 'numeroDoc', alignment: 'center'  },
               ],
               alignment: 'right',
               width: '25%',
@@ -79,7 +79,7 @@ async generarCotizacionPdf(data: Cotizacion) {
           columns: [
             {
           table: {
-            width: '55%',
+            width: '54%',
             widths: ['*'],
             body: [
               [
@@ -89,33 +89,33 @@ async generarCotizacionPdf(data: Cotizacion) {
                     { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
                     { text: `Dirección: ${data.cliente.direccion || ''}` },
                     { 
-                      margin: [0, 10, 0, 0],
+                      margin: [0, 12, 0, 0],
                       columns: [
                     { text: `RIF: ${data.cliente.rif}` },
                     { text: `Teléfono: ${data.cliente.telefono || ''}`, alignment: 'right' }
                       ]
                     },
                   ],
-                  padding: [8, 6, 8, 6]
+                  padding: [6, 4, 6, 4]
                 }
               ]
             ]
           
           },
           layout: 'cuadroNegro'
-        }]
         },
+        
 
         { width: '2%', text: '' },
       
         {
-        width: '43%',
+        width: '44%',
         table: {
           widths: ['*', '*', '*'],
           body: [
             [{ text: 'FECHA', style: 'thControl', colSpan: 3 }, {}, {}],
             [{ text: this.formatFecha(data.fecha), style: 'thControl', colSpan: 3, }, {}, {}],
-            [{ text: 'VALIDEZ', style: 'thControl', colSpan: 3 }, {}, {}],
+            [{ text: 'VALIDEZ', style: 'thControl'}, { text: 'Zona No.', style: 'thControl'}, { text: 'VENDEDOR', style: 'thControl' }],
             [
               { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
               { text: data.referencia.numeroReferencia || '', style: 'tdControl' },
@@ -124,8 +124,10 @@ async generarCotizacionPdf(data: Cotizacion) {
           ]
         },
         layout: 'cuadroNegro'
-        },
-
+        }
+      ],
+      margin: [0, 0, 0, 10]
+    },
         {
 
           table: {

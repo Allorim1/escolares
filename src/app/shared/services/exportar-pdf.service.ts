@@ -157,9 +157,9 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
             widths: ['auto', 45, '*', 'auto', 'auto'],
             body: [
               [
-                { text: 'CODIGO', style: 'headersCen' },
-                { text: 'CANTIDAD', style: 'headersCen', alignment: 'center' },
-                { text: 'D E S C R I P C I O N', style: 'headersCen' },
+                { text: 'CODIGO', style: 'headerCen' },
+                { text: 'CANTIDAD', style: 'headerCen', alignment: 'center' },
+                { text: 'D E S C R I P C I O N', style: 'headerCen' },
                 { text: 'P. UNITARIO Bs.', style: 'headers', alignment: 'right' },
                 { text: 'MONTO TOTAL Bs.', style: 'headers', alignment: 'right' }
               ],
@@ -172,24 +172,15 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               ]),
 
               [
-                { text: '', border: [true, false, true, false]},
-                { text: '', border: [false, false, true, false]},
-                { text: stringRelleno, border: [false, false, true, false] },
-                { text: '', border: [false, false, true, false]},
-                { text: '', border: [false, false, true, true]}
+                { text: '', style: 'tdRelleno'  },
+                { text: '', style: 'tdRelleno'  },
+                { text: stringRelleno, style: 'tdRelleno'  },
+                { text: '', style: 'tdRelleno'  },
+                { text: '', style: 'tdRelleno'  }
               ]
             ]
           },
-          layout: {
-            hLineWidth: (i: number, node: any) => (i === 0 || i === 1 || i === node.table.body.length) ? 1.5 : 1,
-            vLineWidth: () => 1,
-            hLineColor: () => '#000000',
-            vLineColor: () => '#000000',
-            paddingLeft: () => 4,
-      paddingRight: () => 4,
-      paddingTop: () => 2,
-      paddingBottom: () => 2
-          }
+          layout: 'tablaComercial'
         },
 
         {
@@ -258,6 +249,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         labelCliente: { fontSize: 7.5, bold: true, color: '#444444' },
     valorCliente: { fontSize: 9.5, bold: true },
     campoCliente: { fontSize: 8.5 },
+    tdRelleno: { margin: [0, 0, 0, 0] },
         labelTotal: { fontSize: 8.5, alignment: 'right' },
         valorTotal: { fontSize: 8.5, alignment: 'right' },
         labelTotalBold: { fontSize: 9, bold: true, alignment: 'right' },
@@ -271,6 +263,30 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
     };
 
 docDefinition.tableLayouts = {
+  tablaComercial: {
+    // CONTROL INGENIOSO DE LAS LÍNEAS HORIZONTALES
+    hLineWidth: (i: number, node: any) => {
+      // Si es la última línea de la tabla (el cierre inferior), retornamos 0 para dejarla abierta
+      if (i === node.table.body.length) {
+        return 0; 
+      }
+      // La línea del encabezado (0) es más gruesa, las normales internas miden 0.8
+      return (i === 0) ? 1.2 : 0.8;
+    },
+
+    // CONTROL DE LAS LÍNEAS VERTICALES (Perfectas y continuas)
+    vLineWidth: (i: number, node: any) => {
+      // Los bordes exteriores (izquierdo y derecho) son más gruesos, las divisiones internas miden 0.8
+      return (i === 0 || i === node.table.widths.length) ? 1.2 : 0.8;
+    },
+
+    hLineColor: () => '#000000',
+    vLineColor: () => '#000000',
+    paddingLeft: () => 4,
+    paddingRight: () => 4,
+    paddingTop: () => 2,
+    paddingBottom: () => 2
+  },
   cuadroNegro: {
     hLineWidth: () => 1,
     vLineWidth: () => 1,

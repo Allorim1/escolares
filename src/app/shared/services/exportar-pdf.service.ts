@@ -86,11 +86,13 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
 
         { text: '', margin: [0, 10]},
         {
-          columns: [
+          table: {
+            widths: ['54%', '2%', '44%'],
+            body: [
+              [
             {
           table: {
-            width: '54%',
-            widths: ['*'],
+            widths: ['auto', '*'],
             body: [
               [
                     [{ text: `CLIENTE:`, style: 'labelCliente', border: [false, false, false, false] }],
@@ -112,10 +114,9 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         },
         
 
-        { width: '2%', text: '' },
+        { text: '', border: [false, false, false, false] },
       
         {
-        width: '44%',
         stack: [
           {
         table: {
@@ -141,10 +142,13 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           ]
         },
         layout: 'cuadroNegro'
+      }
+    ]
         }
         ]
-      }
-      ],
+      ]
+    },
+      layout: 'noBorders',
       margin: [0, 0, 0, 3]
     },
         {
@@ -204,12 +208,12 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                   table: {
                     widths: ['*', 'auto'],
                     body: [
-                      [{ text: 'NETO Bs.', style: 'labelTotalBold' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotalBold' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: 'SUB TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold' }, { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: 'EXENTO Bs.', style: 'labelTotalBold' }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
+                      [{ text: 'NETO Bs.', style: 'labelTotalBold', border: [false, true, true, true] }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotalBold', border: [false, true, true, true] }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, true, true, true]  }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [false, true, true, true]  } , { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, true, true, true]  }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: 'TOTAL Bs.', style: 'labelTotalBold', border: [false, true, true, true]  }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
                   },
                 }

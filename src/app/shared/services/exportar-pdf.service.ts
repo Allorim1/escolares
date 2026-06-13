@@ -154,7 +154,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         {
 
           table: {
-            widths: [70, 50, '*', 65, 80],
+            widths: ['auto', 45, '*', 'auto', 'auto'],
             body: [
               [
                 { text: 'CODIGO', style: 'headerCen' },
@@ -184,15 +184,10 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         },
 
         {
-          margin: [0, -2, 0, 0],
-          table: {
-
-            widths: [310, '*', 145],
-          body: [
-            [
+          margin: [0, 15, 0, 0],
+          columns: [
             {
-              paddingLeft: 5,
-              border: [true, true, false, true],
+              width: '60%',
               stack: [
                 { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 7, bold: true },
                 { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 7, bold: true, margin: [0, 2, 0, 5] },
@@ -207,18 +202,11 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               ]
             },
             {
-            text: '',
-            border: [false, true, false, true]
-            },
-            {
-              text: '',
-              border: [false, true, false, true]
-            },
-            {
-              margin: [0, -4, 0, -4],
-              border: [false, false, false, false],
+              width: '40%',
+              stack: [
+                {
                   table: {
-                    widths: ['65', '80'],
+                    widths: ['*', 'auto'],
                     body: [
                       [{ text: 'NETO Bs.', style: 'labelTotalBold' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotalBold' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
@@ -228,10 +216,10 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                       [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
                   },
-                  layout: 'tablaTotalesInterna'
-                }]]
-          },
-          layout: 'layoutVacio'
+                }
+              ]
+            }
+          ]
         },
 
         {
@@ -275,29 +263,29 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
     };
 
 docDefinition.tableLayouts = {
-tablaComercial: {
-    // Apaga la línea inferior de la tabla de artículos para permitir la fusión continua
-    hLineWidth: (i: number, node: any) => (i === node.table.body.length) ? 0 : 0.8,
-    vLineWidth: () => 0.8,
+  tablaComercial: {
+    // CONTROL INGENIOSO DE LAS LÍNEAS HORIZONTALES
+    hLineWidth: (i: number, node: any) => {
+      // Si es la última línea de la tabla (el cierre inferior), retornamos 0 para dejarla abierta
+      if (i === node.table.body.length) {
+        return 0; 
+      }
+      // La línea del encabezado (0) es más gruesa, las normales internas miden 0.8
+      return (i === 0) ? 1.2 : 0.8;
+    },
+
+    // CONTROL DE LAS LÍNEAS VERTICALES (Perfectas y continuas)
+    vLineWidth: (i: number, node: any) => {
+      // Los bordes exteriores (izquierdo y derecho) son más gruesos, las divisiones internas miden 0.8
+      return (i === 0 || i === node.table.widths.length) ? 1.2 : 0.8;
+    },
+
     hLineColor: () => '#000000',
     vLineColor: () => '#000000',
     paddingLeft: () => 4,
     paddingRight: () => 4,
     paddingTop: () => 2,
     paddingBottom: () => 2
-  },
-  
-  tablaTotalesFusa: {
-    // Pinta la línea superior de la caja de totales (que pisa el final de los artículos) 
-    // y la línea inferior de cierre del documento. Remueve las internas.
-    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 1.2 : 0,
-    vLineWidth: () => 0.8,
-    hLineColor: () => '#000000',
-    vLineColor: () => '#000000',
-    paddingLeft: () => 4,
-    paddingRight: () => 4,
-    paddingTop: () => 3,
-    paddingBottom: () => 3
   },
   cuadroNegro: {
     hLineWidth: () => 1,
@@ -316,27 +304,6 @@ tablaComercial: {
     vLineColor: () => '#FFFFFF',
     paddingTop: () => 4,
     paddingBottom: () => 4
-  },
-  layoutVacio: {
-    // Este layout solo dibuja la línea superior e inferior del bloque completo
-    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 0.8 : 0,
-    vLineWidth: (i: number, node: any) => (i === 0 || i === node.table.widths.length) ? 0.8 : 0,
-    hLineColor: () => '#000000',
-    vLineColor: () => '#000000',
-    paddingTop: () => 4,
-    paddingBottom: () => 4
-  },
-
-  tablaTotalesInterna: {
-    // Controla las divisiones internas de la cajita gris de totales
-    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 0.8 : 0, 
-    vLineWidth: () => 0.8, 
-    hLineColor: () => '#000000',
-    vLineColor: () => '#000000',
-    paddingLeft: () => 5,
-    paddingRight: () => 5,
-    paddingTop: () => 3,
-    paddingBottom: () => 3
   }
 };
 

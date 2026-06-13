@@ -85,9 +85,9 @@ async generarCotizacionPdf(data: Cotizacion) {
               [
                 {
                   stack: [
-                    { text: `CLIENTE:`, bold: true },
+                    { text: `CLIENTE:`, style: 'labelCliente' },
                     { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
-                    { text: `Dirección: ${data.cliente.direccion || ''}` },
+                    { text: `Dirección: ${data.cliente.direccion || ''}`, style: 'campoCliente' },
                     { 
                       margin: [0, 12, 0, 0],
                       columns: [
@@ -110,11 +110,22 @@ async generarCotizacionPdf(data: Cotizacion) {
       
         {
         width: '44%',
+        stack: [
+          {
         table: {
           widths: ['*', '*', '*'],
           body: [
-            [{ text: 'FECHA', style: 'thControl', colSpan: 3 }, {}, {}],
-            [{ text: this.formatFecha(data.fecha), style: 'thControl', colSpan: 3, }, {}, {}],
+            [{ text: 'FECHA', style: 'thControl'}],
+            [{ text: this.formatFecha(data.fecha), style: 'tdControl' }],
+          ]
+        },
+        layout: 'cuadroNegro',
+        margin: [0, 0, 0, -1]
+      },
+      {
+        table: {
+          widths: [65, 45, '*'],
+          body: [
             [{ text: 'VALIDEZ', style: 'thControl'}, { text: 'Zona No.', style: 'thControl'}, { text: 'VENDEDOR', style: 'thControl' }],
             [
               { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
@@ -125,6 +136,8 @@ async generarCotizacionPdf(data: Cotizacion) {
         },
         layout: 'cuadroNegro'
         }
+        ]
+      }
       ],
       margin: [0, 0, 0, 10]
     },
@@ -183,23 +196,13 @@ async generarCotizacionPdf(data: Cotizacion) {
               stack: [
                 {
                   table: {
-                    widths: ['*', '*'],
-                    body: [
-                      [{ text: 'VALIDEZ', style: 'thMini' }, { text: 'VENDEDOR', style: 'thMini' }],
-                      [{ text: `${data.referencia.validezDias} dias`, fontSize: 8, alignment: 'center' }, { text: data.referencia.vendedor, fontSize: 8, alignment: 'center' }]
-                    ]
-                  },
-                  margin: [0, 0, 0, 10]
-                },
-                {
-                  table: {
                     widths: ['*', 'auto'],
                     body: [
-                      [{ text: 'NETO Bs.', style: 'labelTotal' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotal' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: 'SUB TOTAL Bs.', style: 'labelTotal' }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotal' }, { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: 'EXENTO Bs.', style: 'labelTotal' }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: 'NETO Bs.', style: 'labelTotalBold' }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotalBold' }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: 'SUB TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold' }, { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: 'EXENTO Bs.', style: 'labelTotalBold' }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
                   },
@@ -225,16 +228,18 @@ async generarCotizacionPdf(data: Cotizacion) {
         datosEmpresa: { fontSize: 8, color: '#000000' },
         webSite: { fontSize: 9, bold: true, color: 'red' },
         tituloDoc: { fontSize: 18, bold: true, tracking: 1 },
-        numeroDoc: { fontSize: 14, bold: true, color: '#0d3b66' },
+        numeroDoc: { fontSize: 14, bold: true, color: '#000000' },
         fechaDoc: { fontSize: 9, bold: true },
         seccionCliente: { fontSize: 9, lineHeight: 1.2 },
         thMini: { fontSize: 7, bold: true, fillColor: '#EEEEEB', alignment: 'center' },
         tdMini: { fontSize: 8 },
         td: { fontSize: 8 },
+        labelCliente: { fontSize: 7.5, bold: true, color: '#444444' },
+    valorCliente: { fontSize: 9.5, bold: true },
+    campoCliente: { fontSize: 8.5 },
         labelTotal: { fontSize: 8.5, alignment: 'right' },
         valorTotal: { fontSize: 8.5, alignment: 'right' },
-        valorCliente: { fontSize: 9.5, bold: true },
-        labelTotalBold: { fontSize: 10, bold: true, alignment: 'right' },
+        labelTotalBold: { fontSize: 9, bold: true, alignment: 'right' },
         valorTotalBold: { fontSize: 10, bold: true, alignment: 'right' },
         thControl: { fontSize: 8, bold: true, fillColor: '#EAEAEA', alignment: 'center', margin: [0, 2, 0, 2] },
     tdControl: { fontSize: 8.5, alignment: 'center', margin: [0, 4, 0, 4] },

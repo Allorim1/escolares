@@ -93,24 +93,20 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
             widths: ['*'],
             body: [
               [
-                {
-                  stack: [
-                    { text: `CLIENTE:`, style: 'labelCliente' },
-                    { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 1, 0, 3] },
-                    { text: `Dirección: ${data.cliente.direccion || ''}`, style: 'campoCliente' },
-                    { 
-                      margin: [0, 4, 0, 0],
+                    [{ text: `CLIENTE:`, style: 'labelCliente', border: [false, false, false, false] }],
+                    [{ text: data.cliente.nombre, style: 'valorCliente', margin: [0, -2, 0, 2], border: [false, false, false, false] }],
+                    [{ text: `Dirección: ${data.cliente.direccion || ''}`, style: 'campoCliente', margin: [0, 0, 0, 6], border: [false, false, false, false] }],
+                    [
+                      { 
                       columns: [
                     { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente' },
                     { text: `Teléfono: ${data.cliente.telefono || ''}`, style: 'campoCliente', alignment: 'right' }
-                      ]
-                    },
-                  ],
-                  padding: [6, 4, 6, 4]
-                }
-              ]
-            ]
-          
+                      ],
+                    border: [false, false, false, false]
+                      }
+                    ],
+                  ]
+                ],
           },
           layout: 'cuadroNegro'
         },

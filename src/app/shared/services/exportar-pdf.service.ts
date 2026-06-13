@@ -157,26 +157,26 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
             widths: ['auto', 45, '*', 'auto', 'auto'],
             body: [
               [
-                { text: 'CODIGO', style: 'thMini' },
-                { text: 'CANTIDAD', style: 'thMini', alignment: 'center' },
-                { text: 'D E S C R I P C I O N', style: 'thMini' },
-                { text: 'P. UNITARIO Bs.', style: 'thMini', alignment: 'right' },
-                { text: 'MONTO TOTAL Bs.', style: 'thMini', alignment: 'right' }
+                { text: 'CODIGO', style: 'headers' },
+                { text: 'CANTIDAD', style: 'headers', alignment: 'center' },
+                { text: 'D E S C R I P C I O N', style: 'headers' },
+                { text: 'P. UNITARIO Bs.', style: 'headers', alignment: 'right' },
+                { text: 'MONTO TOTAL Bs.', style: 'headers', alignment: 'right' }
               ],
               ...data.items.map(item => [
-                { text: item.codigo, alignment: 'left' },
-                { text: item.cantidad.toString(), alignment: 'center' },
-                { text: item.descripcion },
-                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right' },
-                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right' }
+                { text: item.codigo, alignment: 'left', style: 'tdMini' },
+                { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini' },
+                { text: item.descripcion, style: 'tdMini' },
+                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini' },
+                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini' }
               ]),
 
               [
-                { text: ''},
-                { text: ''},
-                { text: stringRelleno },
-                { text: ''},
-                { text: ''}
+                { text: '', border: [true, false, false, false]},
+                { text: '', border: [false, false, false, false]},
+                { text: stringRelleno, border: [false, false, false, false] },
+                { text: '', border: [false, false, false, false]},
+                { text: '', border: [false, false, false, true]}
               ]
             ]
           },
@@ -252,6 +252,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         seccionCliente: { fontSize: 9, lineHeight: 1.2 },
         thMini: { fontSize: 7, bold: true, fillColor: '#EEEEEB', alignment: 'center' },
         tdMini: { fontSize: 8 },
+        headers: { fontSize: 10, bold: true, color: '#dddddb' },
         td: { fontSize: 8 },
         labelCliente: { fontSize: 7.5, bold: true, color: '#444444' },
     valorCliente: { fontSize: 9.5, bold: true },

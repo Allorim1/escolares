@@ -149,7 +149,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         ]
       }
       ],
-      margin: [0, 0, 0, 10]
+      margin: [0, 0, 0, 3]
     },
         {
 

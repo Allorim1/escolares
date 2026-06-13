@@ -184,10 +184,15 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         },
 
         {
-          margin: [5, -2, 0, 0],
-          columns: [
+          margin: [0, -2, 0, 0],
+          table: {
+
+            widths: [310, '*', 145],
+          body: [
+            [
             {
-              width: 'auto',
+              paddingLeft: 5,
+              border: [true, true, false, true],
               stack: [
                 { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 7, bold: true },
                 { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 7, bold: true, margin: [0, 2, 0, 5] },
@@ -202,13 +207,16 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               ]
             },
             {
-            width: '*',
-            texto: ''
+            text: '',
+            border: [false, true, false, true]
             },
             {
-              width: 145,
-              stack: [
-                {
+              text: '',
+              border: [false, true, false, true]
+            },
+            {
+              margin: [0, -4, 0, -4],
+              border: [false, false, false, false],
                   table: {
                     widths: ['65', '80'],
                     body: [
@@ -220,10 +228,10 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                       [{ text: 'TOTAL Bs.', style: 'labelTotalBold' }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
                     ]
                   },
-                }
-              ]
-            }
-          ]
+                  layout: 'tablaTotalesInterna'
+                }]]
+          },
+          layout: 'layoutVacio'
         },
 
         {
@@ -308,6 +316,27 @@ tablaComercial: {
     vLineColor: () => '#FFFFFF',
     paddingTop: () => 4,
     paddingBottom: () => 4
+  },
+  layoutVacio: {
+    // Este layout solo dibuja la línea superior e inferior del bloque completo
+    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 0.8 : 0,
+    vLineWidth: (i: number, node: any) => (i === 0 || i === node.table.widths.length) ? 0.8 : 0,
+    hLineColor: () => '#000000',
+    vLineColor: () => '#000000',
+    paddingTop: () => 4,
+    paddingBottom: () => 4
+  },
+
+  tablaTotalesInterna: {
+    // Controla las divisiones internas de la cajita gris de totales
+    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 0.8 : 0, 
+    vLineWidth: () => 0.8, 
+    hLineColor: () => '#000000',
+    vLineColor: () => '#000000',
+    paddingLeft: () => 5,
+    paddingRight: () => 5,
+    paddingTop: () => 3,
+    paddingBottom: () => 3
   }
 };
 

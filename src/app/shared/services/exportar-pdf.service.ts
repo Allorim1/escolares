@@ -86,42 +86,30 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
 
         { text: '', margin: [0, 10]},
 
+        // CONTENEDOR UNIFICADO: Una sola tabla para igualar las alturas de forma nativa y exacta
         {
           table: {
             widths: ['54%', '2%', '44%'],
             body: [
               [
-                // --- COLUMNA IZQUIERDA: CUADRO DE CLIENTE (Caja externa con layout funcional) ---
+                // --- CELDA IZQUIERDA: CUADRO DE CLIENTE ---
+                // Al ser una celda de la misma fila, se estira automáticamente a la altura de la derecha.
                 {
-                  table: {
-                    widths: ['*'], // Una sola columna para que no existan líneas divisorias verticales
-                    body: [
-                      [
-                        // Agrupamos todo en un stack interno dentro de una sola celda.
-                        // Así el layout 'cuadroNegro' solo dibuja el borde de la caja exterior.
-                        {
-                          stack: [
-                            { text: 'CLIENTE:', style: 'labelCliente' },
-                            { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
-                            { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente', margin: [0, 0, 0, 14] }, // Margen para empujar RIF y Teléfono al fondo
-                            {
-                              columns: [
-                                { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto' },
-                                { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : '', style: 'campoCliente', alignment: 'right', width: '*' }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    ]
-                  },
-                  layout: 'cuadroNegro' // Ahora sí dibuja el recuadro exterior perfectamente
+                  stack: [
+                    { text: 'CLIENTE:', style: 'labelCliente' },
+                    { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
+                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente' }
+                  ],
+                  // Usamos un margen interno inferior alto (margin: [left, top, right, bottom])
+                  // para "empujar" los bordes de la celda y dejar el espacio para el RIF abajo
+                  padding: [6, 4, 6, 20], 
+                  borderColor: ['#000000', '#000000', '#000000', '#000000']
                 },
 
-                // --- ESPACIADOR CENTRAL (INVISIBLE) ---
+                // --- ESPACIADOR CENTRAL (SIN BORDES) ---
                 { text: '', border: [false, false, false, false] },
 
-                // --- COLUMNA DERECHA: FECHA Y VALIDEZ (Se mantiene idéntico) ---
+                // --- CELDA DERECHA: BLOQUE DE FECHA Y VALIDEZ (Se mantiene estructurado) ---
                 {
                   stack: [
                     {
@@ -149,13 +137,40 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                       },
                       layout: 'cuadroNegro'
                     }
-                  ]
+                  ],
+                  border: [false, false, false, false] // Quitamos el borde externo porque este bloque ya tiene sus propias tablas
                 }
+              ],
+              
+              // --- FILA INFERIOR EXCLUSIVA PARA EL RIF Y EL TELÉFONO ---
+              // Al ponerlos en una fila separada justo debajo, garantizamos que se alineen horizontalmente al ras inferior de toda la estructura
+              [
+                {
+                  // Esta celda se dibuja justo debajo del cuadro del cliente compartiendo paredes
+                  columns: [
+                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto' },
+                    { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : '', style: 'campoCliente', alignment: 'right', width: '*' }
+                  ],
+                  margin: [0, -12, 0, 0], // Sube el texto ligeramente para que quede adentro del cuadro visual del cliente
+                  border: [false, false, false, false]
+                },
+                { text: '', border: [false, false, false, false] },
+                { text: '', border: [false, false, false, false] }
               ]
             ]
           },
-          layout: 'noBorders',
-          margin: [0, 0, 0, 3] // Ajuste exacto antes de los artículos
+          layout: {
+            // Layout a la medida para pintar solo el recuadro exterior del cliente
+            hLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
+            vLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
+            hLineColor: () => '#000000',
+            vLineColor: () => '#000000',
+            paddingLeft: () => 0,
+            paddingRight: () => 0,
+            paddingTop: () => 0,
+            paddingBottom: () => 0
+          },
+          margin: [0, 0, 0, 3]
         },
         {
 

@@ -57,7 +57,6 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               width: '35%',
               stack: [
                 ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
-                { text: 'R.I.F. J-30488367-6\n', style: 'datosEmpresa' }
               ]
             },
             {
@@ -173,11 +172,12 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           margin: [0, 0, 0, 3]
         },
         // --- TABLA UNIFICADA: ARTÍCULOS + RELLENO + TOTALES ---
+        // --- TABLA UNIFICADA: ARTÍCULOS, RELLENO, CONDICIONES Y TOTALES SIN BORDES ---
         {
           table: {
-            widths: ['auto', 40, '*', 'auto', 'auto'], // Reducido ligeramente el ancho de cantidad
+            widths: ['auto', 40, '*', 'auto', 'auto'],
             body: [
-              // Encabezados
+              // Encabezados de la tabla (Mantienen sus bordes normales)
               [
                 { text: 'CODIGO', style: 'headerCen' },
                 { text: 'CANTIDAD', style: 'headerCen', alignment: 'center' },
@@ -195,7 +195,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, true, true, false] }
               ]),
 
-              // Fila de relleno (Reducida sutilmente)
+              // Fila de relleno 
               [
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
@@ -204,59 +204,55 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
 
-              // --- FILAS DE TOTALES ---
+              // --- FILAS DE TOTALES (TEXTO SUBIDO Y BORDES INTERNOS ELIMINADOS) ---
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
-                { text: 'NETO Bs.', style: 'labelTotalBold' },
-                { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
+                {
+                  rowSpan: 6, // Empuja las condiciones hacia arriba al ras del NETO
+                  stack: [
+                    { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5, bold: true },
+                    { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, bold: true, margin: [0, 1, 0, 3] },
+                    { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.   R.I.F.: J-30488367-6', fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
+                    { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7, decoration: 'underline' },
+                    { text: 'VENEZUELA: 0102-0391-16-0000000589        BANESCO: 0134-0187-08-1871037067', fontSize: 7.5, margin: [0, 1, 0, 1] },
+                    { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 7.5, bold: true, margin: [0, 2, 0, 1] },
+                    { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7, italic: true },
+                  ],
+                  colSpan: 3,
+                  border: [false, false, false, false], // Sin bordes para simular texto libre
+                  margin: [0, 6, 10, 0]
+                },
+                '', '', 
+                { text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
-                { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold' },
-                { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
+                '', '', '', 
+                { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
-                { text: 'SUB TOTAL Bs.', style: 'labelTotalBold' },
-                { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
+                '', '', '', 
+                { text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
-                { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold' },
-                { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
+                '', '', '', 
+                { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
-                { text: 'EXENTO Bs.', style: 'labelTotalBold' },
-                { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
+                '', '', '', 
+                { text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
-                { text: 'TOTAL Bs.', style: 'labelTotalBold', fillColor: '#EAEAEA' },
-                { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA' }
+                '', '', '', 
+                { text: 'TOTAL Bs.', style: 'labelTotalBold', fillColor: '#EAEAEA', border: [false, false, false, false] },
+                { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA', border: [false, false, false, false] }
               ]
             ]
           },
           layout: 'tablaComercial'
-        },
-
-        // --- CONDICIONES DE PAGO (COMPACTADAS) ---
-        {
-          margin: [0, 8, 0, 0], // Reducido de 12 a 8
-          stack: [
-            { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5, bold: true },
-            { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, bold: true, margin: [0, 1, 0, 3] },
-            { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.   R.I.F.: J-30488367-6', fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
-            { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7, decoration: 'underline' },
-            {
-              columns: [
-                { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 7.5, width: 'auto', margin: [0, 0, 12, 0] },
-                { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 7.5, width: 'auto', margin: [0, 0, 12, 0] },
-              ]
-            },
-            { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 7.5, bold: true, margin: [0, 2, 0, 1] },
-            { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7, italic: true },
-          ]
         },
 
         // --- OBSERVACIONES Y FIRMAS (COMPACTADAS) ---

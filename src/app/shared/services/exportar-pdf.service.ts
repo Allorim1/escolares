@@ -169,20 +169,21 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: 'P. UNITARIO Bs.', style: 'headers', alignment: 'right' },
                 { text: 'MONTO TOTAL Bs.', style: 'headers', alignment: 'right' }
               ],
-              ...data.items.map(item => [
-                { text: item.codigo, alignment: 'left', style: 'tdMini', borders: [] },
-                { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini' },
-                { text: item.descripcion, style: 'tdMini' },
-                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini' },
-                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini' }
+...data.items.map(item => [
+                { text: item.codigo, alignment: 'left', style: 'tdMini', border: [true, true, true, false] },
+                { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini', border: [true, true, true, false] },
+                { text: item.descripcion, style: 'tdMini', border: [true, true, true, false] },
+                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, true, true, false] },
+                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, true, true, false] }
               ]),
 
+              // FILA DE RELLENO (Mantiene las líneas verticales pero sin división horizontal superior)
               [
-                { text: '', style: 'tdRelleno'  },
-                { text: '', style: 'tdRelleno'  },
-                { text: stringRelleno, style: 'tdRelleno'  },
-                { text: '', style: 'tdRelleno'  },
-                { text: '', style: 'tdRelleno'  }
+                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
+                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
+                { text: stringRelleno, style: 'tdRelleno', border: [true, false, true, true] },
+                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
+                { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ]
             ]
           },
@@ -270,34 +271,19 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
 
 docDefinition.tableLayouts = {
 tablaComercial: {
-    // CONTROL DE LAS LÍNEAS HORIZONTALES: Ocultamos las líneas internas de los artículos
     hLineWidth: (i: number, node: any) => {
-      // 0 es la línea superior de los encabezados (CODIGO, CANTIDAD, etc.)
-      // 1 es la línea base que separa los encabezados del primer artículo
-      if (i === 0 || i === 1) {
-        return 1.2; // Mantenemos el marco fuerte del encabezado
-      }
-      
-      // Si es la última línea (el cierre inferior de la tabla), retornamos 0 para dejarla abierta
-      if (i === node.table.body.length) {
-        return 0; 
-      }
-      
-      // Para todas las demás líneas intermedias entre artículos, retornamos 0 (desaparecen)
-      return 0;
+      // Deja que las celdas controlen sus propios bordes de forma nativa
+      return 0.8;
     },
-
-    // CONTROL DE LAS LÍNEAS VERTICALES (Se mantiene intacto para conservar las columnas)
     vLineWidth: (i: number, node: any) => {
       return (i === 0 || i === node.table.widths.length) ? 1.2 : 0.8;
     },
-
     hLineColor: () => '#000000',
     vLineColor: () => '#000000',
     paddingLeft: () => 4,
     paddingRight: () => 4,
-    paddingTop: () => 4,    // Te sugiero subirlo a 4 para que los artículos no se peguen
-    paddingBottom: () => 4  // Te sugiero subirlo a 4 para dar mejor lectura visual sin las líneas
+    paddingTop: () => 4,    // Espaciado limpio para los artículos
+    paddingBottom: () => 4
   },
   cuadroNegro: {
     hLineWidth: () => 1,

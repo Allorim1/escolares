@@ -84,83 +84,87 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           ]
         },
 
-        { text: '', margin: [0, 10]},
+       { text: '', margin: [0, 10]},
 
-        // RESTRUCTURACIÓN CON ALTURA FIJA: Alineación perfecta y bordes sanos
+// CONTENEDOR UNIFICADO: Una sola tabla para igualar las alturas de forma nativa y exacta
+{
+  table: {
+    widths: ['54%', '2%', '44%'],
+    body: [
+      [
+        // --- CELDA IZQUIERDA: CUADRO DE CLIENTE ---
         {
-          table: {
-            widths: ['54%', '2%', '44%'],
-            body: [
-              [
-                // --- COLUMNA IZQUIERDA: CUADRO DE CLIENTE ---
-                {
-                  table: {
-                    widths: ['*'],
-                    heights: [74], // Forzamos la altura exacta de la tabla interna para igualar el bloque derecho
-                    body: [
-                      [
-                        {
-                          stack: [
-                            { text: 'CLIENTE:', style: 'labelCliente' },
-                            { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
-                            { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente' },
-                            
-                            // Espaciador transparente dinámico que empuja al RIF y Teléfono al fondo del cuadro
-                            { text: '', margin: [0, 14, 0, 0] }, 
-                            
-                            {
-                              columns: [
-                                { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto' },
-                                { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : 'Teléfono: ', style: 'campoCliente', alignment: 'right', width: '*' }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    ]
-                  },
-                  layout: 'cuadroNegro' // El recuadro vuelve a estar 100% cerrado y perfecto
-                },
-
-                // --- ESPACIADOR CENTRAL (INVISIBLE) ---
-                { text: '', border: [false, false, false, false] },
-
-                // --- COLUMNA DERECHA: FECHA Y VALIDEZ (Estructura fija original) ---
-                {
-                  stack: [
-                    {
-                      table: {
-                        widths: [65, 45, '*'],
-                        body: [
-                          [{ text: 'FECHA', style: 'thControl'}, { text: '', colSpan: 2, border: [false, false, false, false]}],
-                          [{ text: this.formatFecha(data.fecha), style: 'tdControl'}, { text: '', colSpan: 2, border: [false, false, false, false]} ]
-                        ]
-                      },
-                      layout: 'cuadroNegro',
-                      margin: [0, 0, 0, -1]
-                    },
-                    {
-                      table: {
-                        widths: [65, 45, '*'],
-                        body: [
-                          [{ text: 'VALIDEZ', style: 'thControl'}, { text: 'Zona No.', style: 'thControl'}, { text: 'VENDEDOR', style: 'thControl' }],
-                          [
-                            { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
-                            { text: data.referencia.numeroReferencia || '', style: 'tdControl' },
-                            { text: data.referencia.vendedor || '', style: 'tdControl' }
-                          ]
-                        ]
-                      },
-                      layout: 'cuadroNegro'
-                    }
-                  ]
-                }
+          stack: [
+            { text: 'CLIENTE:', style: 'labelCliente' },
+            { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
+            { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : 'Dirección:', style: 'campoCliente' },
+            
+            // Este espaciador empuja de forma controlada el RIF y el Teléfono hacia el fondo
+            { text: '', margin: [0, 12, 0, 0] }, 
+            
+            // Colocamos el RIF y Teléfono en la base de la misma celda
+            {
+              columns: [
+                { text: `RIF: ${data.cliente.rif || ''}`, style: 'campoCliente', width: 'auto' },
+                { text: `Teléfono: ${data.cliente.telefono || ''}`, style: 'campoCliente', alignment: 'right', width: '*' }
               ]
-            ]
-          },
-          layout: 'noBorderss',
-          margin: [0, 0, 0, 3]
+            }
+          ],
+          // Unificamos el padding interno de la celda [izq, arriba, der, abajo]
+          padding: [8, 6, 8, 6], 
+          borderColor: ['#000000', '#000000', '#000000', '#000000']
         },
+
+        // --- ESPACIADOR CENTRAL (SIN BORDES) ---
+        { text: '', border: [false, false, false, false] },
+
+        // --- CELDA DERECHA: BLOQUE DE FECHA Y VALIDEZ ---
+        {
+          stack: [
+            {
+              table: {
+                widths: [65, 45, '*'],
+                body: [
+                  [{ text: 'FECHA', style: 'thControl'}, { text: '', colSpan: 2, border: [false, false, false, false]}],
+                  [{ text: this.formatFecha(data.fecha), style: 'tdControl'}, { text: '', colSpan: 2, border: [false, false, false, false]} ]
+                ]
+              },
+              layout: 'cuadroNegro',
+              margin: [0, 0, 0, -1]
+            },
+            {
+              table: {
+                widths: [65, 45, '*'],
+                body: [
+                  [{ text: 'VALIDEZ', style: 'thControl'}, { text: 'Zona No.', style: 'thControl'}, { text: 'VENDEDOR', style: 'thControl' }],
+                  [
+                    { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
+                    { text: data.referencia.numeroReferencia || '', style: 'tdControl' },
+                    { text: data.referencia.vendedor || '', style: 'tdControl' }
+                  ]
+                ]
+              },
+              layout: 'cuadroNegro'
+            }
+          ],
+          border: [false, false, false, false]
+        }
+      ]
+    ]
+  },
+  layout: {
+    // Solo dibujamos las líneas externas de la primera celda (i === 0)
+    hLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
+    vLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
+    hLineColor: () => '#000000',
+    vLineColor: () => '#000000',
+    paddingLeft: () => 0,
+    paddingRight: () => 0,
+    paddingTop: () => 0,
+    paddingBottom: () => 0
+  },
+  margin: [0, 0, 0, 3]
+},
         {
 
           table: {
@@ -306,26 +310,7 @@ tablaComercial: {
     vLineColor: () => '#FFFFFF',
     paddingTop: () => 4,
     paddingBottom: () => 4
-  },
-  noBorderss: {
-    // Apaga por completo cualquier grosor de línea horizontal
-    hLineWidth: () => 0,
-    // Apaga por completo cualquier grosor de línea vertical
-    vLineWidth: () => 0,
-    
-    // Mantenemos las funciones de color en negro por estructura, 
-    // pero al valer 0 el grosor, nunca se pintará nada.
-    hLineColor: () => '#000000',
-    vLineColor: () => '#000000',
-    
-    // Dejamos los paddings en 0 para que no agregue espacios
-    // fantasma que desplacen los textos del cliente o de la fecha.
-    paddingLeft: () => 0,
-    paddingRight: () => 0,
-    paddingTop: () => 0,
-    paddingBottom: () => 0
   }
-  
 };
 
     return docDefinition;

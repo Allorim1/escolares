@@ -175,9 +175,9 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         // --- TABLA UNIFICADA: ARTÍCULOS + RELLENO + TOTALES ---
         {
           table: {
-            widths: ['auto', 45, '*', 'auto', 'auto'],
+            widths: ['auto', 40, '*', 'auto', 'auto'], // Reducido ligeramente el ancho de cantidad
             body: [
-              // Encabezados de la tabla
+              // Encabezados
               [
                 { text: 'CODIGO', style: 'headerCen' },
                 { text: 'CANTIDAD', style: 'headerCen', alignment: 'center' },
@@ -186,7 +186,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: 'MONTO TOTAL Bs.', style: 'headers', alignment: 'right' }
               ],
               
-              // Mapeo de artículos dinámicos
+              // Artículos dinámicos
               ...data.items.map(item => [
                 { text: item.codigo, alignment: 'left', style: 'tdMini', border: [true, true, true, false] },
                 { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini', border: [true, true, true, false] },
@@ -195,7 +195,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, true, true, false] }
               ]),
 
-              // Fila de relleno para el espacio vertical
+              // Fila de relleno (Reducida sutilmente)
               [
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
@@ -204,56 +204,34 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
 
-              // --- DESDE AQUÍ SE ALINEAN LAS CONDICIONES CON LOS TOTALES ---
+              // --- FILAS DE TOTALES ---
               [
-                // Metemos todas las condiciones en un bloque stack dentro de la primera celda usando colSpan: 3
-                {
-                  rowSpan: 6, // Hace que este bloque abarque las 6 filas de los totales hacia abajo
-                  stack: [
-                    { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5, bold: true },
-                    { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, bold: true, margin: [0, 1, 0, 3] },
-                    { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.   R.I.F.: J-30488367-6', fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
-                    { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7, decoration: 'underline' },
-                    {
-                      columns: [
-                        { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 7.5, width: 'auto', margin: [0, 0, 8, 0] },
-                        { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 7.5, width: 'auto', margin: [0, 0, 8, 0] }
-                      ]
-                    },
-                    { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 7.5 },
-                    { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 7.5, bold: true, margin: [0, 2, 0, 1] },
-                    { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7, italic: true },
-                  ],
-                  colSpan: 3,
-                  border: [false, false, false, false], // Sin bordes para que parezca texto libre a la izquierda
-                  margin: [0, 4, 10, 0] // Margen derecho de 10 para separarlo del cuadro de totales
-                },
-                '', '', // Celdas vacías requeridas por el colSpan de la izquierda
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
                 { text: 'NETO Bs.', style: 'labelTotalBold' },
                 { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                '', '', '', // Celdas afectadas por el rowSpan/colSpan de la izquierda
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
                 { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold' },
                 { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                '', '', '', 
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
                 { text: 'SUB TOTAL Bs.', style: 'labelTotalBold' },
                 { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                '', '', '', 
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
                 { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold' },
                 { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                '', '', '', 
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
                 { text: 'EXENTO Bs.', style: 'labelTotalBold' },
                 { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                '', '', '', 
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
                 { text: 'TOTAL Bs.', style: 'labelTotalBold', fillColor: '#EAEAEA' },
                 { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA' }
               ]
@@ -262,9 +240,28 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           layout: 'tablaComercial'
         },
 
-        // --- OBSERVACIONES Y FIRMAS (Justo abajo de la tabla compartida) ---
+        // --- CONDICIONES DE PAGO (COMPACTADAS) ---
         {
-          margin: [0, 15, 0, 0],
+          margin: [0, 8, 0, 0], // Reducido de 12 a 8
+          stack: [
+            { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5, bold: true },
+            { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, bold: true, margin: [0, 1, 0, 3] },
+            { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.   R.I.F.: J-30488367-6', fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
+            { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7, decoration: 'underline' },
+            {
+              columns: [
+                { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 7.5, width: 'auto', margin: [0, 0, 12, 0] },
+                { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 7.5, width: 'auto', margin: [0, 0, 12, 0] },
+              ]
+            },
+            { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 7.5, bold: true, margin: [0, 2, 0, 1] },
+            { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7, italic: true },
+          ]
+        },
+
+        // --- OBSERVACIONES Y FIRMAS (COMPACTADAS) ---
+        {
+          margin: [0, 20, 0, 0], // Reducido de 40 a 20 para ahorrar mucho espacio vertical
           columns: [
             { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]},
             { width: '25%', text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },

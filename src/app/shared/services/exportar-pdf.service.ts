@@ -175,7 +175,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         // --- TABLA UNIFICADA: ARTÍCULOS + RELLENO + TOTALES ---
         {
           table: {
-            widths: ['auto', 45, '*', 'auto', 'auto'],
+            widths: ['auto', 40, '*', 'auto', 'auto'], // Reducido ligeramente el ancho de cantidad
             body: [
               // Encabezados
               [
@@ -195,7 +195,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, true, true, false] }
               ]),
 
-              // Fila de relleno para el espacio vertical
+              // Fila de relleno (Reducida sutilmente)
               [
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
@@ -204,78 +204,74 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
 
-              // --- FILAS DE TOTALES PERFECTAMENTE ALINEADAS ---
+              // --- FILAS DE TOTALES ---
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] },
-                '', '', // Celdas vacías por el colSpan
-                { text: 'NETO Bs.', style: 'labelTotalBold', border: [true, true, true, true] },
-                { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
+                { text: 'NETO Bs.', style: 'labelTotalBold' },
+                { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] },
-                '', '', 
-                { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [true, true, true, true] },
-                { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
+                { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold' },
+                { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] },
-                '', '', 
-                { text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [true, true, true, true] },
-                { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
+                { text: 'SUB TOTAL Bs.', style: 'labelTotalBold' },
+                { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] },
-                '', '', 
-                { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [true, true, true, true] },
-                { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
+                { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold' },
+                { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] },
-                '', '', 
-                { text: 'EXENTO Bs.', style: 'labelTotalBold', border: [true, true, true, true] },
-                { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
+                { text: 'EXENTO Bs.', style: 'labelTotalBold' },
+                { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha' }
               ],
               [
-                { text: '', colSpan: 3, border: [false, false, false, false] },
-                '', '', 
-                { text: 'TOTAL Bs.', style: 'labelTotalBold', fillColor: '#EAEAEA', border: [true, true, true, true] },
-                { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA', border: [true, true, true, true] }
+                { text: '', colSpan: 3, border: [false, false, false, false] }, '', '', 
+                { text: 'TOTAL Bs.', style: 'labelTotalBold', fillColor: '#EAEAEA' },
+                { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA' }
               ]
             ]
           },
           layout: 'tablaComercial'
         },
 
-        // --- BLOQUE INFERIOR DE TÉRMINOS Y CONDICIONES (Debajo de la tabla) ---
+        // --- CONDICIONES DE PAGO (COMPACTADAS) ---
         {
-          margin: [0, 12, 0, 0],
+          margin: [0, 8, 0, 0], // Reducido de 12 a 8
           stack: [
-            { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 7, bold: true },
-            { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 7, bold: true, margin: [0, 2, 0, 4] },
-            { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.   R.I.F.: J-30488367-6', fontSize: 8, bold: true, margin: [0, 2, 0, 2] },
-            { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7.5, decoration: 'underline' },
+            { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5, bold: true },
+            { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, bold: true, margin: [0, 1, 0, 3] },
+            { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.   R.I.F.: J-30488367-6', fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
+            { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7, decoration: 'underline' },
             {
               columns: [
-                { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 8, width: 'auto', margin: [0, 0, 15, 0] },
-                { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 8, width: 'auto', margin: [0, 0, 15, 0] },
-                { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 8, width: 'auto' }
+                { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 7.5, width: 'auto', margin: [0, 0, 12, 0] },
+                { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 7.5, width: 'auto', margin: [0, 0, 12, 0] },
+                { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 7.5, width: 'auto' }
               ]
             },
-            { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 8, bold: true, margin: [0, 3, 0, 2] },
-            { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7.5, italic: true },
+            { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 7.5, bold: true, margin: [0, 2, 0, 1] },
+            { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7, italic: true },
           ]
         },
 
+        // --- OBSERVACIONES Y FIRMAS (COMPACTADAS) ---
         {
-          margin: [0, 40, 0, 0],
+          margin: [0, 20, 0, 0], // Reducido de 40 a 20 para ahorrar mucho espacio vertical
           columns: [
-            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 8}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 8}]},
-            { width: '25%', text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 4] },
+            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]},
+            { width: '25%', text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },
             { width: '25%', text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', bold: true }
           ]
         }
       ],
 
+      // --- AJUSTE DE ESTILOS GLOBALES ---
       styles: {
         headerTitle: { fontSize: 16, bold: true, color: '#0d3b66' },
         headerSub: { fontSize: 10, bold: true },
@@ -286,24 +282,23 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         fechaDoc: { fontSize: 9, bold: true },
         seccionCliente: { fontSize: 9, lineHeight: 1.2 },
         thMini: { fontSize: 7, bold: true, fillColor: '#EEEEEB', alignment: 'center' },
-        tdMini: { fontSize: 8 },
-        headers: { fontSize: 8, bold: true, fillColor: '#DBDBDB' },
-        headerCen: { fontSize: 9, bold: true, alignment: 'center', fillColor: '#DBDBDB'},
+        tdMini: { fontSize: 7.5 }, // Reducido de 8 a 7.5
+        headers: { fontSize: 7.5, bold: true, fillColor: '#DBDBDB' }, // Reducido de 8 a 7.5
+        headerCen: { fontSize: 8.5, bold: true, alignment: 'center', fillColor: '#DBDBDB'}, // Reducido de 9 a 8.5
         td: { fontSize: 8 },
         labelCliente: { fontSize: 7.5, bold: true, color: '#444444' },
-    valorCliente: { fontSize: 9.5, bold: true },
-    campoCliente: { fontSize: 8.5 },
-    tdRelleno: { margin: [0, 0, 0, 0] },
-        labelTotal: { fontSize: 8.5, alignment: 'right' },
-        valorTotal: { fontSize: 8.5, alignment: 'right' },
-        labelTotalBold: { fontSize: 9, bold: true, alignment: 'right' },
-        valorTotalBold: { fontSize: 10, bold: true, alignment: 'right' },
+        valorCliente: { fontSize: 9.5, bold: true },
+        campoCliente: { fontSize: 8.5 },
+        tdRelleno: { margin: [0, 0, 0, 0] },
+        labelTotalBold: { fontSize: 7.5, bold: true, alignment: 'right', margin: [0, 2, 0, 2] }, // Optimizado padding y texto
+        valorTotalDerecha: { fontSize: 7.5, alignment: 'right', margin: [0, 2, 0, 2] }, // Optimizado padding
+        valorTotalBoldDerecha: { fontSize: 8.5, bold: true, alignment: 'right', margin: [0, 2, 0, 2] }, // Optimizado padding
         thControl: { fontSize: 8, bold: true, fillColor: '#EAEAEA', alignment: 'center', margin: [0, 2, 0, 2] },
-    tdControl: { fontSize: 8.5, alignment: 'center', margin: [0, 4, 0, 4] },
-        firma: { fontSize: 8, bold: true }
+        tdControl: { fontSize: 8.5, alignment: 'center', margin: [0, 4, 0, 4] },
+        firma: { fontSize: 7.5, bold: true } // Reducido de 8 a 7.5
       },
       pageSize: 'A4',
-      pageMargins: [40, 40, 40, 40]
+      pageMargins: [40, 30, 40, 30] // Reducidos los márgenes superior/inferior de 40 a 30 para ganar más área útil
     };
 
 docDefinition.tableLayouts = {

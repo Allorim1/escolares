@@ -84,32 +84,41 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           ]
         },
 
-        { text: '', margin: [0, 10]},
+       { text: '', margin: [0, 10]},
 
-        // CONTENEDOR UNIFICADO: Una sola tabla para igualar las alturas de forma nativa y exacta
+        // CONTENEDOR SIMÉTRICO: Ajustado con minHeight para nivelación perfecta y textos adentro
         {
           table: {
             widths: ['54%', '2%', '44%'],
             body: [
               [
-                // --- CELDA IZQUIERDA: CUADRO DE CLIENTE ---
-                // Al ser una celda de la misma fila, se estira automáticamente a la altura de la derecha.
+                // --- COLUMNA IZQUIERDA: CUADRO DE CLIENTE ---
                 {
                   stack: [
                     { text: 'CLIENTE:', style: 'labelCliente' },
                     { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
-                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente' }
+                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente' },
+                    
+                    // Contenedor flexible intermedio que empuja el RIF y Teléfono hacia la base
+                    { text: '', letteSpacing: 0, margin: [0, 0, 0, 0], fillSpace: true }, 
+
+                    // Fila inferior de RIF y Teléfono perfectamente contenida dentro del cuadro
+                    {
+                      columns: [
+                        { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto' },
+                        { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : 'Teléfono: ', style: 'campoCliente', alignment: 'right', width: '*' }
+                      ],
+                      margin: [0, 12, 0, 0] // Margen superior para separarlo visualmente del texto de la dirección
+                    }
                   ],
-                  // Usamos un margen interno inferior alto (margin: [left, top, right, bottom])
-                  // para "empujar" los bordes de la celda y dejar el espacio para el RIF abajo
-                  padding: [6, 4, 6, 20], 
-                  borderColor: ['#000000', '#000000', '#000000', '#000000']
+                  minHeight: 74, // Forzamos la altura exacta para que coincida milimétricamente con el bloque derecho
+                  layout: 'cuadroNegro' // El layout le dibuja el recuadro negro exterior impecable
                 },
 
-                // --- ESPACIADOR CENTRAL (SIN BORDES) ---
+                // --- ESPACIADOR CENTRAL (INVISIBLE) ---
                 { text: '', border: [false, false, false, false] },
 
-                // --- CELDA DERECHA: BLOQUE DE FECHA Y VALIDEZ (Se mantiene estructurado) ---
+                // --- COLUMNA DERECHA: FECHA Y VALIDEZ (Estructura idéntica y fija) ---
                 {
                   stack: [
                     {
@@ -137,40 +146,13 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                       },
                       layout: 'cuadroNegro'
                     }
-                  ],
-                  border: [false, false, false, false] // Quitamos el borde externo porque este bloque ya tiene sus propias tablas
+                  ]
                 }
-              ],
-              
-              // --- FILA INFERIOR EXCLUSIVA PARA EL RIF Y EL TELÉFONO ---
-              // Al ponerlos en una fila separada justo debajo, garantizamos que se alineen horizontalmente al ras inferior de toda la estructura
-              [
-                {
-                  // Esta celda se dibuja justo debajo del cuadro del cliente compartiendo paredes
-                  columns: [
-                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto' },
-                    { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : '', style: 'campoCliente', alignment: 'right', width: '*' }
-                  ],
-                  margin: [0, -12, 0, 0], // Sube el texto ligeramente para que quede adentro del cuadro visual del cliente
-                  border: [false, false, false, false]
-                },
-                { text: '', border: [false, false, false, false] },
-                { text: '', border: [false, false, false, false] }
               ]
             ]
           },
-          layout: {
-            // Layout a la medida para pintar solo el recuadro exterior del cliente
-            hLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
-            vLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
-            hLineColor: () => '#000000',
-            vLineColor: () => '#000000',
-            paddingLeft: () => 0,
-            paddingRight: () => 0,
-            paddingTop: () => 0,
-            paddingBottom: () => 0
-          },
-          margin: [0, 0, 0, 3]
+          layout: 'noBorderss',
+          margin: [0, 0, 0, 3] // Al ras con la tabla de artículos
         },
         {
 
@@ -317,6 +299,21 @@ tablaComercial: {
     vLineColor: () => '#FFFFFF',
     paddingTop: () => 4,
     paddingBottom: () => 4
+  },
+  noBorderss: {
+    // Apaga por completo cualquier línea horizontal interna o externa
+    hLineWidth: () => 0,
+    // Apaga por completo cualquier línea vertical interna o externa
+    vLineWidth: () => 0,
+    // Colores transparentes o negros (da igual porque el grosor es 0, pero se deja limpio)
+    hLineColor: () => '#000000',
+    vLineColor: () => '#000000',
+    // Dejamos los paddings en 0 para que no agregue espacios fantasmas en los lados
+    paddingLeft: () => 0,
+    paddingRight: () => 0,
+    // Controlamos el espacio superior e inferior del bloque completo
+    paddingTop: () => 0,
+    paddingBottom: () => 0
   }
 };
 

@@ -84,87 +84,94 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           ]
         },
 
-       { text: '', margin: [0, 10]},
+        { text: '', margin: [0, 10]},
 
-// CONTENEDOR UNIFICADO: Una sola tabla para igualar las alturas de forma nativa y exacta
-{
-  table: {
-    widths: ['54%', '2%', '44%'],
-    body: [
-      [
-        // --- CELDA IZQUIERDA: CUADRO DE CLIENTE ---
+        // CONTENEDOR UNIFICADO: Una sola tabla para igualar las alturas de forma nativa y exacta
         {
-          stack: [
-            { text: 'CLIENTE:', style: 'labelCliente' },
-            { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
-            { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : 'Dirección:', style: 'campoCliente' },
-            
-            // Este espaciador empuja de forma controlada el RIF y el Teléfono hacia el fondo
-            { text: '', margin: [0, 12, 0, 0] }, 
-            
-            // Colocamos el RIF y Teléfono en la base de la misma celda
-            {
-              columns: [
-                { text: `RIF: ${data.cliente.rif || ''}`, style: 'campoCliente', width: 'auto' },
-                { text: `Teléfono: ${data.cliente.telefono || ''}`, style: 'campoCliente', alignment: 'right', width: '*' }
+          table: {
+            widths: ['54%', '2%', '44%'],
+            body: [
+              [
+                // --- CELDA IZQUIERDA: CUADRO DE CLIENTE ---
+                // Al ser una celda de la misma fila, se estira automáticamente a la altura de la derecha.
+                {
+                  stack: [
+                    { text: 'CLIENTE:', style: 'labelCliente', bold: true },
+                    { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
+                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente' }
+                  ],
+                  // Usamos un margen interno inferior alto (margin: [left, top, right, bottom])
+                  // para "empujar" los bordes de la celda y dejar el espacio para el RIF abajo
+                  padding: [6, 4, 6, 20], 
+                  borderColor: ['#000000', '#000000', '#000000', '#000000']
+                },
+
+                // --- ESPACIADOR CENTRAL (SIN BORDES) ---
+                { text: '', border: [false, false, false, false] },
+
+                // --- CELDA DERECHA: BLOQUE DE FECHA Y VALIDEZ (Se mantiene estructurado) ---
+                {
+                  stack: [
+                    {
+                      table: {
+                        widths: [65, 45, '*'],
+                        body: [
+                          [{ text: 'FECHA', style: 'thControl'}, { text: '', colSpan: 2, border: [false, false, false, false]}],
+                          [{ text: this.formatFecha(data.fecha), style: 'tdControl'}, { text: '', colSpan: 2, border: [false, false, false, false]} ]
+                        ]
+                      },
+                      layout: 'cuadroNegro',
+                      margin: [0, 0, 0, -1]
+                    },
+                    {
+                      table: {
+                        widths: [65, 45, '*'],
+                        body: [
+                          [{ text: 'VALIDEZ', style: 'thControl'}, { text: 'Zona No.', style: 'thControl'}, { text: 'VENDEDOR', style: 'thControl' }],
+                          [
+                            { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
+                            { text: data.referencia.numeroReferencia || '', style: 'tdControl' },
+                            { text: data.referencia.vendedor || '', style: 'tdControl' }
+                          ]
+                        ]
+                      },
+                      layout: 'cuadroNegro'
+                    }
+                  ],
+                  border: [false, false, false, false] // Quitamos el borde externo porque este bloque ya tiene sus propias tablas
+                }
+              ],
+              
+              // --- FILA INFERIOR EXCLUSIVA PARA EL RIF Y EL TELÉFONO ---
+              // Al ponerlos en una fila separada justo debajo, garantizamos que se alineen horizontalmente al ras inferior de toda la estructura
+              [
+                {
+                  // Esta celda se dibuja justo debajo del cuadro del cliente compartiendo paredes
+                  columns: [
+                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto' },
+                    { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : '', style: 'campoCliente', alignment: 'right', width: '*' }
+                  ],
+                  margin: [0, -12, 0, 0], // Sube el texto ligeramente para que quede adentro del cuadro visual del cliente
+                  border: [false, false, false, false]
+                },
+                { text: '', border: [false, false, false, false] },
+                { text: '', border: [false, false, false, false] }
               ]
-            }
-          ],
-          // Unificamos el padding interno de la celda [izq, arriba, der, abajo]
-          padding: [8, 6, 8, 6], 
-          borderColor: ['#000000', '#000000', '#000000', '#000000']
+            ]
+          },
+          layout: {
+            // Layout a la medida para pintar solo el recuadro exterior del cliente
+            hLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
+            vLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
+            hLineColor: () => '#000000',
+            vLineColor: () => '#000000',
+            paddingLeft: () => 0,
+            paddingRight: () => 0,
+            paddingTop: () => 0,
+            paddingBottom: () => 0
+          },
+          margin: [0, 0, 0, 3]
         },
-
-        // --- ESPACIADOR CENTRAL (SIN BORDES) ---
-        { text: '', border: [false, false, false, false] },
-
-        // --- CELDA DERECHA: BLOQUE DE FECHA Y VALIDEZ ---
-        {
-          stack: [
-            {
-              table: {
-                widths: [65, 45, '*'],
-                body: [
-                  [{ text: 'FECHA', style: 'thControl'}, { text: '', colSpan: 2, border: [false, false, false, false]}],
-                  [{ text: this.formatFecha(data.fecha), style: 'tdControl'}, { text: '', colSpan: 2, border: [false, false, false, false]} ]
-                ]
-              },
-              layout: 'cuadroNegro',
-              margin: [0, 0, 0, -1]
-            },
-            {
-              table: {
-                widths: [65, 45, '*'],
-                body: [
-                  [{ text: 'VALIDEZ', style: 'thControl'}, { text: 'Zona No.', style: 'thControl'}, { text: 'VENDEDOR', style: 'thControl' }],
-                  [
-                    { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
-                    { text: data.referencia.numeroReferencia || '', style: 'tdControl' },
-                    { text: data.referencia.vendedor || '', style: 'tdControl' }
-                  ]
-                ]
-              },
-              layout: 'cuadroNegro'
-            }
-          ],
-          border: [false, false, false, false]
-        }
-      ]
-    ]
-  },
-  layout: {
-    // Solo dibujamos las líneas externas de la primera celda (i === 0)
-    hLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
-    vLineWidth: (i: number) => (i === 0 || i === 1) ? 1 : 0,
-    hLineColor: () => '#000000',
-    vLineColor: () => '#000000',
-    paddingLeft: () => 0,
-    paddingRight: () => 0,
-    paddingTop: () => 0,
-    paddingBottom: () => 0
-  },
-  margin: [0, 0, 0, 3]
-},
         {
 
           table: {
@@ -198,44 +205,62 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           layout: 'tablaComercial'
         },
 
-        {
-          margin: [0, 15, 0, 0],
-          columns: [
-            {
-              width: '60%',
-              stack: [
-                { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 7, bold: true },
-                { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 7, bold: true, margin: [0, 2, 0, 5] },
-                { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.', fontSize: 8, bold: true },
-                { text: 'R.I.F.: J-30488367-6', fontSize: 8, bold: true, margin: [0, 0, 0, 4] },
-                { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7.5, decoration: 'underline' },
-                { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 8 },
-                { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 8 },
-                { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 8 },
-                { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 8, bold: true, margin: [0, 2, 0, 4] },
-                { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7.5, italic: true },
-              ]
-            },
-            {
-              width: '40%',
-              stack: [
-                {
-                  table: {
-                    widths: ['*', 'auto'],
-                    body: [
-                      [{ text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, true, false] }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [false, false, true, false] }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, false, true, false]  }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [false, false, true, false]  } , { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, false, true, false]  }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: 'TOTAL Bs.', style: 'labelTotalBold', border: [false, false, true, false]  }, { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }]
-                    ]
-                  },
-                }
-              ]
-            }
+        // --- REEMPLAZA ESTE BLOQUE COMPLETO EN TU ARCHIVO ---
+{
+  margin: [0, 15, 0, 0],
+  columns: [
+    {
+      width: '55%',
+      stack: [
+        { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 7, bold: true },
+        { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 7, bold: true, margin: [0, 2, 0, 5] },
+        { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.', fontSize: 8, bold: true },
+        { text: 'R.I.F.: J-30488367-6', fontSize: 8, bold: true, margin: [0, 0, 0, 4] },
+        { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7.5, decoration: 'underline' },
+        { text: 'VENEZUELA: 0102-0391-16-0000000589', fontSize: 8 },
+        { text: 'BANESCO: 0134-0187-08-1871037067', fontSize: 8 },
+        { text: 'BANCARIBE: 0114-0220-85-2200183943', fontSize: 8 },
+        { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 8, bold: true, margin: [0, 2, 0, 4] },
+        { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7.5, italic: true },
+      ]
+    },
+    {
+      width: '45%',
+      // Agregamos una tabla interna con el layout exacto para los subtotales y totales
+      table: {
+        widths: ['58%', '42%'],
+        body: [
+          [
+            { text: 'NETO Bs.', style: 'labelTotalBold', margin: [0, 2, 4, 2] }, 
+            { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', margin: [4, 2, 0, 2] }
+          ],
+          [
+            { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', margin: [0, 2, 4, 2] }, 
+            { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', margin: [4, 2, 0, 2] }
+          ],
+          [
+            { text: 'SUB TOTAL Bs.', style: 'labelTotalBold', margin: [0, 2, 4, 2]  }, 
+            { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', margin: [4, 2, 0, 2] }
+          ],
+          [
+            { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', margin: [0, 2, 4, 2]  }, 
+            { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', margin: [4, 2, 0, 2] }
+          ],
+          [
+            { text: 'EXENTO Bs.', style: 'labelTotalBold', margin: [0, 2, 4, 2]  }, 
+            { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', margin: [4, 2, 0, 2] }
+          ],
+          [
+            { text: 'TOTAL Bs.', style: 'labelTotalBold', margin: [0, 4, 4, 4], fontSize: 10, fillColor: '#EAEAEA' }, 
+            { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', margin: [4, 4, 0, 4], fontSize: 10, fillColor: '#EAEAEA' }
           ]
-        },
+        ]
+      },
+      // Usamos el layout 'cuadroNegro' para pintar perfectamente los bordes del recuadro de totales
+      layout: 'cuadroNegro'
+    }
+  ]
+},
 
         {
           margin: [0, 40, 0, 0],

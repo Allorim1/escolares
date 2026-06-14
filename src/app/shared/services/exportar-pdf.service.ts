@@ -177,7 +177,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
           table: {
             widths: ['auto', 40, '*', 'auto', 'auto'],
             body: [
-              // Encabezados de la tabla (Mantienen sus bordes normales)
+              // Encabezados de la tabla (Mantienen su layout comercial normal)
               [
                 { text: 'CODIGO', style: 'headerCen' },
                 { text: 'CANTIDAD', style: 'headerCen', alignment: 'center' },
@@ -195,7 +195,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, true, true, false] }
               ]),
 
-              // Fila de relleno 
+              // Fila de relleno para espaciado
               [
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
@@ -204,10 +204,10 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
 
-              // --- FILAS DE TOTALES (TEXTO SUBIDO Y BORDES INTERNOS ELIMINADOS) ---
+              // --- FILAS DE TOTALES: SOLO EL MONTO TIENE RECUADRO ---
               [
                 {
-                  rowSpan: 6, // Empuja las condiciones hacia arriba al ras del NETO
+                  rowSpan: 6, // Mantiene el bloque informativo alineado arriba al ras del NETO
                   stack: [
                     { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5, bold: true },
                     { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, bold: true, margin: [0, 1, 0, 3] },
@@ -218,37 +218,37 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                     { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7, italic: true },
                   ],
                   colSpan: 3,
-                  border: [false, false, false, false], // Sin bordes para simular texto libre
+                  border: [false, false, false, false],
                   margin: [0, 6, 10, 0]
                 },
                 '', '', 
                 { text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
+                { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
               ],
               [
                 '', '', '', 
                 { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
+                { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
               ],
               [
                 '', '', '', 
                 { text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
+                { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
               ],
               [
                 '', '', '', 
                 { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
+                { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
               ],
               [
                 '', '', '', 
                 { text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [false, false, false, false] }
+                { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', border: [true, true, true, true] }
               ],
               [
                 '', '', '', 
-                { text: 'TOTAL Bs.', style: 'labelTotalBold', fillColor: '#EAEAEA', border: [false, false, false, false] },
-                { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA', border: [false, false, false, false] }
+                { text: 'TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA', border: [true, true, true, true] }
               ]
             ]
           },
@@ -270,8 +270,8 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
       styles: {
         headerTitle: { fontSize: 16, bold: true, color: '#0d3b66' },
         headerSub: { fontSize: 10, bold: true },
-        datosEmpresa: { fontSize: 8, color: '#000000' },
-        webSite: { fontSize: 9, bold: true, color: 'red' },
+        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
         tituloDoc: { fontSize: 18, bold: true, tracking: 1 },
         numeroDoc: { fontSize: 14, bold: true, color: '#000000' },
         fechaDoc: { fontSize: 9, bold: true },

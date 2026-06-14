@@ -170,11 +170,11 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: 'MONTO TOTAL Bs.', style: 'headers', alignment: 'right' }
               ],
               ...data.items.map(item => [
-                { text: item.codigo, alignment: 'left', style: 'tdMini', borders: [true, false, true, false] },
-                { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini', borders: [true, false, true, false] },
-                { text: item.descripcion, style: 'tdMini', borders: [true, false, true, false] },
-                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', borders: [true, false, true, false] },
-                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', borders: [true, false, true, false] }
+                { text: item.codigo, alignment: 'left', style: 'tdMini', borders: [] },
+                { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini' },
+                { text: item.descripcion, style: 'tdMini' },
+                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini' },
+                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini' }
               ]),
 
               [
@@ -215,7 +215,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                     widths: ['*', 'auto'],
                     body: [
                       [{ text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, true, false] }, { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
-                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento}% Bs.`, style: 'labelTotalBold', border: [false, false, true, false] }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
+                      [{ text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [false, false, true, false] }, { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, false, true, false]  }, { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [false, false, true, false]  } , { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
                       [{ text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, false, true, false]  }, { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'thMini' }],
@@ -269,20 +269,26 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
     };
 
 docDefinition.tableLayouts = {
-  tablaComercial: {
-    // CONTROL INGENIOSO DE LAS LÍNEAS HORIZONTALES
+tablaComercial: {
+    // CONTROL DE LAS LÍNEAS HORIZONTALES: Ocultamos las líneas internas de los artículos
     hLineWidth: (i: number, node: any) => {
-      // Si es la última línea de la tabla (el cierre inferior), retornamos 0 para dejarla abierta
+      // 0 es la línea superior de los encabezados (CODIGO, CANTIDAD, etc.)
+      // 1 es la línea base que separa los encabezados del primer artículo
+      if (i === 0 || i === 1) {
+        return 1.2; // Mantenemos el marco fuerte del encabezado
+      }
+      
+      // Si es la última línea (el cierre inferior de la tabla), retornamos 0 para dejarla abierta
       if (i === node.table.body.length) {
         return 0; 
       }
-      // La línea del encabezado (0) es más gruesa, las normales internas miden 0.8
-      return (i === 0) ? 1.2 : 0.8;
+      
+      // Para todas las demás líneas intermedias entre artículos, retornamos 0 (desaparecen)
+      return 0;
     },
 
-    // CONTROL DE LAS LÍNEAS VERTICALES (Perfectas y continuas)
+    // CONTROL DE LAS LÍNEAS VERTICALES (Se mantiene intacto para conservar las columnas)
     vLineWidth: (i: number, node: any) => {
-      // Los bordes exteriores (izquierdo y derecho) son más gruesos, las divisiones internas miden 0.8
       return (i === 0 || i === node.table.widths.length) ? 1.2 : 0.8;
     },
 
@@ -290,8 +296,8 @@ docDefinition.tableLayouts = {
     vLineColor: () => '#000000',
     paddingLeft: () => 4,
     paddingRight: () => 4,
-    paddingTop: () => 2,
-    paddingBottom: () => 2
+    paddingTop: () => 4,    // Te sugiero subirlo a 4 para que los artículos no se peguen
+    paddingBottom: () => 4  // Te sugiero subirlo a 4 para dar mejor lectura visual sin las líneas
   },
   cuadroNegro: {
     hLineWidth: () => 1,

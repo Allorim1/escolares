@@ -54,7 +54,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         {
           columns: [
             {
-              width: '28%',
+              width: '26%',
               stack: [
                 ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
               ]
@@ -66,9 +66,9 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
                 { text: 'www.escolaresonline.com', style: 'webSite' }
               ],
-              width: '48%',
+              width: '54%',
               alignment: 'center',
-              margin: [0, -10, 0, 0]
+              margin: [15, -10, 0, 0]
 
             },
             {
@@ -77,7 +77,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: data.numeroCotizacion, style: 'numeroDoc', alignment: 'center'  },
               ],
               alignment: 'right',
-              width: '24%',
+              width: '20%',
               margin: [0, 10, 0, 0]
             }
           ]

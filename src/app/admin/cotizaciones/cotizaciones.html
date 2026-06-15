@@ -2,7 +2,7 @@
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="header">
     <h2>Cotizaciones Alcadía</h2>
-    <button class="btn-primary" (click)="openModal()">
+    <button class="btn-primary" (click)="openModal()" (keyup.enter)="openModal()">
       + Nueva Cotización
     </button>
   </div>
@@ -21,7 +21,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (cotizacion of cotizaciones || []; track cotizacion._id) {
+        @for (cotizacion of [...(cotizaciones || [])].reverse(); track cotizacion._id) {
           <tr>
             <td>{{ formatearFecha(cotizacion.fecha) }}</td>
             <td>{{ cotizacion.numeroCotizacion || '' }}</td>
@@ -31,13 +31,13 @@
               <span class="badge">Activa</span>
             </td>
             <td>
-              <button class="btn-action btn-pdf" (click)="generatePdfFromRow(cotizacion)">
+              <button class="btn-action btn-pdf" (click)="generatePdfFromRow(cotizacion)" (keyup.enter)="generatePdfFromRow(cotizacion)">
                 PDF
               </button>
-              <button class="btn-action btn-editar" (click)="openModal(cotizacion)">
+              <button class="btn-action btn-editar" (click)="openModal(cotizacion)" (keyup.enter)="openModal(cotizacion)">
                 Editar
               </button>
-              <button class="btn-action btn-eliminar" (click)="eliminarCotizacion(cotizacion)">
+              <button class="btn-action btn-eliminar" (click)="eliminarCotizacion(cotizacion)" (keyup.enter)="eliminarCotizacion(cotizacion)">
                 Eliminar
               </button>
             </td>
@@ -53,44 +53,44 @@
 </div>
 
 @if (showModal) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal modal-large" (click)="$event.stopPropagation()">
+  <div class="modal-overlay">
+    <div #cotizacionModal class="modal modal-large" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="focusNextField()">
       <div class="modal-header">
         <h3>{{ editingCotizacion ? 'Editar' : 'Nueva' }} Cotización</h3>
-        <button class="btn-cerrar" (click)="closeModal()">×</button>
+        <button class="btn-cerrar" (click)="closeModal()" (keyup.enter)="closeModal()">×</button>
       </div>
       <div class="modal-body">
         <div class="form-section">
           <div class="form-row">
             <div class="form-group">
-              <label>Número de Cotización *</label>
-              <input type="text" [(ngModel)]="newCotizacion.numeroCotizacion" placeholder="COT-001">
+              <label for="cotizacion-numero">Número de Cotización *</label>
+              <input id="cotizacion-numero" type="text" [(ngModel)]="newCotizacion.numeroCotizacion" placeholder="COT-001">
             </div>
             <div class="form-group">
-              <label>Fecha *</label>
-              <input type="date" [(ngModel)]="newCotizacion.fecha">
+              <label for="cotizacion-fecha">Fecha *</label>
+              <input id="cotizacion-fecha" type="date" [(ngModel)]="newCotizacion.fecha">
             </div>
           </div>
 
           <h4>Datos del Cliente</h4>
           <div class="form-row">
             <div class="form-group">
-              <label>Nombre/Razón Social *</label>
-              <input type="text" [(ngModel)]="newCotizacion.cliente.nombre" placeholder="Nombre del cliente">
+              <label for="cotizacion-cliente-nombre">Nombre/Razón Social *</label>
+              <input id="cotizacion-cliente-nombre" type="text" [(ngModel)]="newCotizacion.cliente.nombre" placeholder="Nombre del cliente">
             </div>
             <div class="form-group">
-              <label>RIF *</label>
-              <input type="text" [(ngModel)]="newCotizacion.cliente.rif" placeholder="J-00000000-0">
+              <label for="cotizacion-cliente-rif">RIF *</label>
+              <input id="cotizacion-cliente-rif" type="text" [(ngModel)]="newCotizacion.cliente.rif" placeholder="J-00000000-0">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Dirección</label>
-              <input type="text" [(ngModel)]="newCotizacion.cliente.direccion" placeholder="Dirección">
+              <label for="cotizacion-cliente-direccion">Dirección</label>
+              <input id="cotizacion-cliente-direccion" type="text" [(ngModel)]="newCotizacion.cliente.direccion" placeholder="Dirección">
             </div>
             <div class="form-group">
-              <label>Teléfono</label>
-              <input type="text" [(ngModel)]="newCotizacion.cliente.telefono" placeholder="Teléfono">
+              <label for="cotizacion-cliente-telefono">Teléfono</label>
+              <input id="cotizacion-cliente-telefono" type="text" [(ngModel)]="newCotizacion.cliente.telefono" placeholder="Teléfono">
             </div>
           </div>
         </div>
@@ -98,27 +98,55 @@
         <div class="form-section">
           <h4>Artículos</h4>
           <div class="items-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Código</label>
-                <input type="text" [(ngModel)]="newItem.codigo" placeholder="Código">
+            @if (editingItemIndex !== null) {
+              <h5>Editar Artículo</h5>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cotizacion-edit-codigo">Código</label>
+                  <input id="cotizacion-edit-codigo" type="text" [(ngModel)]="editingItem.codigo" placeholder="Código">
+                </div>
+                <div class="form-group">
+                  <label for="cotizacion-edit-cantidad">Cantidad</label>
+                  <input id="cotizacion-edit-cantidad" type="number" [(ngModel)]="editingItem.cantidad" min="1" step="1">
+                </div>
               </div>
-              <div class="form-group">
-                <label>Cantidad</label>
-                <input type="number" [(ngModel)]="newItem.cantidad" min="1" step="1">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cotizacion-edit-descripcion">Descripción</label>
+                  <input id="cotizacion-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo">
+                </div>
+                <div class="form-group">
+                  <label for="cotizacion-edit-precio">Precio Unitario Bs.</label>
+                  <input id="cotizacion-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01">
+                </div>
               </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Descripción</label>
-                <input type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
+              <div class="item-edit-actions">
+                <button class="btn-update-item" (click)="saveEditedItem()" (keyup.enter)="saveEditedItem()">Actualizar Artículo</button>
+                <button class="btn-cancel-edit-item" (click)="cancelEditItem()" (keyup.enter)="cancelEditItem()">Cancelar Edición</button>
               </div>
-              <div class="form-group">
-                <label>Precio Unitario Bs.</label>
-                <input type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
+            } @else {
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cotizacion-nuevo-codigo">Código</label>
+                  <input id="cotizacion-nuevo-codigo" type="text" [(ngModel)]="newItem.codigo" placeholder="Código">
+                </div>
+                <div class="form-group">
+                  <label for="cotizacion-nuevo-cantidad">Cantidad</label>
+                  <input id="cotizacion-nuevo-cantidad" type="number" [(ngModel)]="newItem.cantidad" min="1" step="1">
+                </div>
               </div>
-            </div>
-            <button class="btn-add-item" (click)="addItem()">+ Agregar Artículo</button>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cotizacion-nuevo-descripcion">Descripción</label>
+                  <input id="cotizacion-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
+                </div>
+                <div class="form-group">
+                  <label for="cotizacion-nuevo-precio">Precio Unitario Bs.</label>
+                  <input id="cotizacion-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
+                </div>
+              </div>
+              <button class="btn-add-item" (click)="addItem()" (keyup.enter)="addItem()">+ Agregar Artículo</button>
+            }
           </div>
 
           @if (newCotizacion.items.length > 0) {
@@ -142,7 +170,8 @@
                     <td>{{ formatCurrency(item.precioUnitarioBs) }}</td>
                     <td>{{ formatCurrency(item.montoTotalBs) }}</td>
                     <td>
-                      <button class="btn-remove" (click)="removeItem($index)">×</button>
+                      <button class="btn-edit-item" (click)="startEditItem($index)" (keyup.enter)="startEditItem($index)">Editar</button>
+                      <button class="btn-remove" (click)="removeItem($index)" (keyup.enter)="removeItem($index)">×</button>
                     </td>
                   </tr>
                 }
@@ -155,21 +184,21 @@
           <h4>Referencia</h4>
           <div class="form-row">
             <div class="form-group">
-              <label>Número de Referencia</label>
-              <input type="text" [(ngModel)]="newCotizacion.referencia.numeroReferencia" placeholder="Referencia">
+              <label for="cotizacion-referencia">Número de Referencia</label>
+              <input id="cotizacion-referencia" type="text" [(ngModel)]="newCotizacion.referencia.numeroReferencia" placeholder="Referencia">
             </div>
             <div class="form-group">
-              <label>Validez (días)</label>
-              <input type="number" [(ngModel)]="newCotizacion.referencia.validezDias" min="1" step="1">
+              <label for="cotizacion-validez">Validez (días)</label>
+              <input id="cotizacion-validez" type="number" [(ngModel)]="newCotizacion.referencia.validezDias" min="1" step="1">
             </div>
           </div>
           <div class="form-group">
-            <label>Vendedor</label>
-            <input type="text" [(ngModel)]="newCotizacion.referencia.vendedor" placeholder="Nombre del vendedor">
+            <label for="cotizacion-vendedor">Vendedor</label>
+            <input id="cotizacion-vendedor" type="text" [(ngModel)]="newCotizacion.referencia.vendedor" placeholder="Nombre del vendedor">
           </div>
           <div class="form-group">
-            <label>Zona Numero</label>
-            <input type="text" [(ngModel)]="newCotizacion.referencia.nroZona" placeholder="Número de la zona">
+            <label for="cotizacion-zona">Zona Numero</label>
+            <input id="cotizacion-zona" type="text" [(ngModel)]="newCotizacion.referencia.nroZona" placeholder="Número de la zona">
           </div>
         </div>
 
@@ -177,12 +206,12 @@
           <h4>Totales</h4>
           <div class="form-row">
             <div class="form-group">
-              <label>% Descuento</label>
-              <input type="number" [(ngModel)]="newCotizacion.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotals()">
+              <label for="cotizacion-descuento">% Descuento</label>
+              <input id="cotizacion-descuento" type="number" [(ngModel)]="newCotizacion.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotals()">
             </div>
             <div class="form-group">
-              <label>% IVA</label>
-              <input type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1" (change)="calculateTotals()">
+              <label for="cotizacion-iva">% IVA</label>
+              <input id="cotizacion-iva" type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1" (change)="calculateTotals()">
             </div>
           </div>
           <div class="totales-display">
@@ -195,8 +224,8 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button class="btn-primary" (click)="saveCotizacion()">Guardar</button>
+          <button class="btn-secondary" (click)="closeModal()" (keyup.enter)="closeModal()">Cancelar</button>
+          <button class="btn-primary" (click)="saveCotizacion()" (keyup.enter)="saveCotizacion()">Guardar</button>
         </div>
       </div>
     </div>

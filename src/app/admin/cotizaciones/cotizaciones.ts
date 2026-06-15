@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CotizacionService } from '../../shared/data-access/cotizacion.service';
@@ -15,6 +15,8 @@ import { Cotizacion, ItemCotizacion } from '../../shared/interfaces/cotizacion.i
 export class Cotizaciones implements OnInit {
   cotizacionService = inject(CotizacionService);
   exportarPdfService = inject(ExportarPdfService);
+
+  @ViewChild('cotizacionModal') cotizacionModal!: ElementRef<HTMLElement>;
 
   ngOnInit() {
     this.cotizacionService.loadCotizaciones();
@@ -52,6 +54,15 @@ export class Cotizaciones implements OnInit {
   };
 
   newItem: ItemCotizacion = {
+    codigo: '',
+    cantidad: 1,
+    descripcion: '',
+    precioUnitarioBs: 0,
+    montoTotalBs: 0,
+  };
+
+  editingItemIndex: number | null = null;
+  editingItem: ItemCotizacion = {
     codigo: '',
     cantidad: 1,
     descripcion: '',
@@ -145,6 +156,14 @@ export class Cotizaciones implements OnInit {
       precioUnitarioBs: 0,
       montoTotalBs: 0,
     };
+    this.editingItemIndex = null;
+    this.editingItem = {
+      codigo: '',
+      cantidad: 1,
+      descripcion: '',
+      precioUnitarioBs: 0,
+      montoTotalBs: 0,
+    };
   }
 
   addItem() {
@@ -167,7 +186,53 @@ export class Cotizaciones implements OnInit {
     };
   }
 
+  startEditItem(index: number) {
+    const item = this.newCotizacion.items[index];
+
+    if (!item) {
+      return;
+    }
+
+    this.editingItemIndex = index;
+    this.editingItem = { ...item };
+
+    setTimeout(() => this.focusNextField());
+  }
+
+  saveEditedItem() {
+    if (!this.editingItem.codigo || !this.editingItem.descripcion || this.editingItem.cantidad <= 0 || this.editingItem.precioUnitarioBs <= 0) {
+      alert('Por favor completa todos los campos del artículo');
+      return;
+    }
+
+    if (this.editingItemIndex === null) {
+      return;
+    }
+
+    this.editingItem.montoTotalBs = this.editingItem.cantidad * this.editingItem.precioUnitarioBs;
+    this.newCotizacion.items = this.newCotizacion.items.map((item, index) => index === this.editingItemIndex ? { ...this.editingItem } : item);
+    this.calculateTotals();
+    this.cancelEditItem();
+  }
+
+  cancelEditItem() {
+    this.editingItemIndex = null;
+    this.editingItem = {
+      codigo: '',
+      cantidad: 1,
+      descripcion: '',
+      precioUnitarioBs: 0,
+      montoTotalBs: 0,
+    };
+  }
+
   removeItem(index: number) {
+    if (this.editingItemIndex === index) {
+      this.cancelEditItem();
+    } else if (this.editingItemIndex !== null && index < this.editingItemIndex) {
+      this.editingItemIndex--;
+    }
+
     this.newCotizacion.items = this.newCotizacion.items.filter((_, i) => i !== index);
     this.calculateTotals();
   }
@@ -186,6 +251,28 @@ export class Cotizaciones implements OnInit {
     this.newCotizacion.totales.ivaBs = iva;
     
     this.newCotizacion.totales.totalBs = subTotal + iva;
+  }
+
+  focusNextField() {
+    const modal = this.cotizacionModal?.nativeElement;
+
+    if (!modal) {
+      return;
+    }
+
+    const focusableElements = Array.from(
+      modal.querySelectorAll<HTMLElement>('input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled])')
+    ).filter((element) => element.offsetParent !== null);
+
+    if (focusableElements.length === 0) {
+      return;
+    }
+
+    const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const activeIndex = activeElement ? focusableElements.indexOf(activeElement) : -1;
+    const nextIndex = activeIndex === -1 ? 0 : (activeIndex + 1) % focusableElements.length;
+
+    focusableElements[nextIndex].focus();
   }
 
   saveCotizacion() {

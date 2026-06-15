@@ -251,11 +251,65 @@
   background: #059669;
 }
 
+.item-edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-update-item,
+.btn-cancel-edit-item {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-update-item {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-update-item:hover {
+  background: #2563eb;
+}
+
+.btn-cancel-edit-item {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-cancel-edit-item:hover {
+  background: #4b5563;
+}
+
+.btn-edit-item {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.btn-edit-item:hover {
+  background: #2563eb;
+}
+
 .items-form {
   background: #f9fafb;
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 12px;
+}
+
+.items-form h5 {
+  margin: 0 0 12px 0;
+  color: #4b5563;
+  font-size: 14px;
 }
 
 .items-table {

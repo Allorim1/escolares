@@ -14,9 +14,10 @@ export interface ItemCotizacion {
 }
 
 export interface Referencia {
-  numeroReferencia: string;
+  nroZona: string;
   validezDias: number;
   vendedor: string;
+  numeroReferencia: string;
 }
 
 export interface Totales {

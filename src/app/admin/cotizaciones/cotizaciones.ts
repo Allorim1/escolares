@@ -37,6 +37,7 @@ export class Cotizaciones implements OnInit {
       numeroReferencia: '',
       validezDias: 5,
       vendedor: '',
+      nroZona: ''
     },
     totales: {
       netoBs: 0,
@@ -76,9 +77,10 @@ export class Cotizaciones implements OnInit {
         },
         items: cotizacion.items || [],
         referencia: {
-          numeroReferencia: cotizacion.referencia?.numeroReferencia || '',
+          nroZona: cotizacion.referencia?.nroZona || '',
           validezDias: cotizacion.referencia?.validezDias || 5,
           vendedor: cotizacion.referencia?.vendedor || '',
+          numeroReferencia: cotizacion.referencia?.numeroReferencia || ''
         },
         totales: {
           netoBs: cotizacion.totales?.netoBs || 0,
@@ -123,6 +125,7 @@ export class Cotizaciones implements OnInit {
         numeroReferencia: '',
         validezDias: 5,
         vendedor: '',
+        nroZona: ''
       },
       totales: {
         netoBs: 0,

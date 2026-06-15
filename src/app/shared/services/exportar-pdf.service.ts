@@ -210,9 +210,9 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                   rowSpan: 6, // Mantiene el bloque informativo alineado arriba al ras del NETO
                   stack: [
                     { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5 },
-                    { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, bold: true, margin: [0, 1, 0, 3] },
+                    { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, margin: [0, 1, 0, 3] },
                     { text: 'FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.   R.I.F.: J-30488367-6', fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
-                    { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7, decoration: 'underline', bold: true },
+                    { text: 'A CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:', fontSize: 7, bold: true },
                     { text: 'VENEZUELA: 0102-0391-16-0000000589        BANESCO: 0134-0187-08-1871037067', fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
                     { text: 'PAGO MOVIL BANESCO: RIF: 304883676 TELF. 04144000800, ESCOLARES CA.', fontSize: 7.5, bold: true, margin: [0, 2, 0, 1] },
                     { text: 'AL REALIZAR SU TRANSFERENCIA REPORTAR EL PAGO A: cobranzascorp@escolaresonline.com', fontSize: 7, bold: true, italic: true },

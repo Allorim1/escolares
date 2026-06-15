@@ -38,6 +38,7 @@ const QUICK_ITEMS: QuickItem[] = [
   { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
   { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
   { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
+  { label: 'Cotizaciones', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
 ];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [

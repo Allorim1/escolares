@@ -188,11 +188,11 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               
               // Artículos dinámicos
               ...data.items.map(item => [
-                { text: item.codigo, alignment: 'left', style: 'tdMini', border: [true, true, true, false] },
-                { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini', border: [true, true, true, false] },
-                { text: item.descripcion, style: 'tdMini', border: [true, true, true, false] },
-                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, true, true, false] },
-                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, true, true, false] }
+                { text: item.codigo, alignment: 'left', style: 'tdMini', border: [true, false, true, false] },
+                { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini', border: [true, false, true, false] },
+                { text: item.descripcion, style: 'tdMini', border: [true, false, true, false] },
+                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] },
+                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] }
               ]),
 
               // Fila de relleno para espaciado

@@ -64,11 +64,11 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
                 { text: 'Telf. 0241-8580281 Fax. 0241-8587050\n', style: 'datosEmpresa' },
                 { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
-                { text: 'www.escolaresonline.com', style: 'webSite', margin: [0, 4, 0, 0] }
+                { text: 'www.escolaresonline.com', style: 'webSite' }
               ],
               width: '40%',
               alignment: 'center',
-              margin: [0, 0, 0, 0]
+              margin: [0, -4, 0, 0]
 
             },
             {
@@ -257,7 +257,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
 
         // --- OBSERVACIONES Y FIRMAS (COMPACTADAS) ---
         {
-          margin: [0, 30, 0, 0], // Reducido de 40 a 20 para ahorrar mucho espacio vertical
+          margin: [0, 40, 0, 0], // Reducido de 40 a 20 para ahorrar mucho espacio vertical
           columns: [
             { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]},
             { width: '25%', text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },

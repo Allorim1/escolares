@@ -54,7 +54,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
         {
           columns: [
             {
-              width: '26%',
+              width: '28%',
               stack: [
                 ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
               ]
@@ -66,9 +66,9 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
                 { text: 'www.escolaresonline.com', style: 'webSite' }
               ],
-              width: '54%',
+              width: '48%',
               alignment: 'center',
-              margin: [15, -10, 0, 0]
+              margin: [0, -10, 0, 0]
 
             },
             {
@@ -77,7 +77,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
                 { text: data.numeroCotizacion, style: 'numeroDoc', alignment: 'center'  },
               ],
               alignment: 'right',
-              width: '20%',
+              width: '24%',
               margin: [0, 10, 0, 0]
             }
           ]
@@ -257,7 +257,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
 
         // --- OBSERVACIONES Y FIRMAS (COMPACTADAS) ---
         {
-          margin: [0, 40, 0, 0], // Reducido de 40 a 20 para ahorrar mucho espacio vertical
+          margin: [0, 60, 0, 0], // Reducido de 40 a 20 para ahorrar mucho espacio vertical
           columns: [
             { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]},
             { width: '25%', text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },

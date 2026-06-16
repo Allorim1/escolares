@@ -72,11 +72,11 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" [(ngModel)]="newCategoria().nombre" placeholder="Nombre de la categoría" />
+          <input type="text" [(ngModel)]="newCategoria().nombre" placeholder="Nombre de la categoría" enterFocusNext />
         </div>
         <div class="form-group">
           <label>Orden</label>
-          <input type="number" [(ngModel)]="newCategoria().orden" placeholder="0" />
+          <input type="number" [(ngModel)]="newCategoria().orden" placeholder="0" enterFocusNext />
         </div>
         <div class="form-group checkbox">
           <label>
@@ -103,15 +103,15 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Label</label>
-          <input type="text" [(ngModel)]="newItem().label" placeholder="Ej: Productos" />
+          <input type="text" [(ngModel)]="newItem().label" placeholder="Ej: Productos" enterFocusNext />
         </div>
         <div class="form-group">
           <label>Route</label>
-          <input type="text" [(ngModel)]="newItem().route" placeholder="Ej: productos" />
+          <input type="text" [(ngModel)]="newItem().route" placeholder="Ej: productos" enterFocusNext />
         </div>
         <div class="form-group">
           <label>Permiso (opcional)</label>
-          <input type="text" [(ngModel)]="newItem().permiso" placeholder="Ej: productos_gestionar" />
+          <input type="text" [(ngModel)]="newItem().permiso" placeholder="Ej: productos_gestionar" enterFocusNext />
         </div>
       </div>
       <div class="modal-footer">

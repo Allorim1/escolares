@@ -9,6 +9,7 @@ import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 interface CategoriaProducto {
   id: string;
@@ -37,7 +38,7 @@ interface ProductFormData {
 @Component({
   selector: 'app-admin-productos',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, EnterFocusNextDirective],
   templateUrl: './admin-productos.html',
   styleUrl: './admin-productos.css',
 })

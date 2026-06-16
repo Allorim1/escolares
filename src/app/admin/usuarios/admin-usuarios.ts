@@ -7,6 +7,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 import { User } from '../../backend/models';
 import { RolesBackend, Rol, Permiso } from '../../backend/data-access/roles.backend';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 interface UserWithRol extends User {
   rolName?: string;
@@ -37,7 +38,7 @@ interface EditRolPermisosState {
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
   templateUrl: './admin-usuarios.html',
   styleUrl: './admin-usuarios.css',
 })

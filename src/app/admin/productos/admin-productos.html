@@ -132,13 +132,14 @@
                     </button>
                     <div class="url-input-group">
                       <span class="url-separator">o pega una URL:</span>
-                      <input
-                        type="text"
-                        [ngModel]="formData().image"
-                        name="image"
-                        (ngModelChange)="updateFormField('image', $event)"
-                        placeholder="https://..."
-                      />
+<input
+                       type="text"
+                       [ngModel]="formData().image"
+                       name="image"
+                       (ngModelChange)="updateFormField('image', $event)"
+                       placeholder="https://..."
+                       enterFocusNext
+                     />
                     </div>
                     @if (uploadingImage()) {
                       <div class="upload-status">Subiendo imagen... espera un momento.</div>
@@ -188,12 +189,13 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label>Nombre</label>
-                    <input
+<input
                       type="text"
                       [ngModel]="formData().title"
                       name="title"
                       (ngModelChange)="updateFormField('title', $event)"
                       required
+                      enterFocusNext
                     />
                   </div>
                   <div class="form-group">
@@ -205,6 +207,7 @@
                       (ngModelChange)="updateFormField('price', $event)"
                       step="0.01"
                       required
+                      enterFocusNext
                     />
                     @if (formData().iva && formData().price > 0) {
                       <div class="iva-preview">
@@ -236,7 +239,7 @@
                     @if (formData().iva) {
                       <div class="iva-percentage-input">
                         <span class="iva-suffix">%</span>
-                        <input
+<input
                           type="number"
                           [ngModel]="formData().ivaPercentage"
                           name="ivaPercentage"
@@ -246,6 +249,7 @@
                           step="0.1"
                           class="iva-input"
                           placeholder="16"
+                          enterFocusNext
                         />
                         <span class="iva-info">IVA %</span>
                       </div>
@@ -270,30 +274,32 @@
                       <div class="oferta-inputs">
                         <div class="oferta-field">
                           <label>Descuento %</label>
-                          <input
-                            type="number"
-                            [ngModel]="formData().ofertaPorcentaje"
-                            (ngModelChange)="onOfertaPorcentajeChange($event)"
-                            min="0"
-                            max="100"
-                            step="0.1"
-                            placeholder="0"
-                            [disabled]="ofertaFieldModifiedByUser() === 'precio'"
-                          />
+<input
+                          type="number"
+                          [ngModel]="formData().ofertaPorcentaje"
+                          (ngModelChange)="onOfertaPorcentajeChange($event)"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          placeholder="0"
+                          [disabled]="ofertaFieldModifiedByUser() === 'precio'"
+                          enterFocusNext
+                        />
                           <span class="oferta-suffix">%</span>
                         </div>
                         <div class="oferta-field">
                           <label>Precio Oferta</label>
-                          <input
-                            type="number"
-                            [ngModel]="formData().ofertaPrecio"
-                            (ngModelChange)="onOfertaPrecioChange($event)"
-                            step="0.01"
-                            min="0"
-                            [max]="formData().price"
-                            placeholder="0.00"
-                            [disabled]="ofertaFieldModifiedByUser() === 'porcentaje'"
-                          />
+<input
+                          type="number"
+                          [ngModel]="formData().ofertaPrecio"
+                          (ngModelChange)="onOfertaPrecioChange($event)"
+                          step="0.01"
+                          min="0"
+                          [max]="formData().price"
+                          placeholder="0.00"
+                          [disabled]="ofertaFieldModifiedByUser() === 'porcentaje'"
+                          enterFocusNext
+                        />
                         </div>
                         @if (formData().price > 0 && formData().ofertaPrecio > 0) {
                           <div class="oferta-preview">
@@ -309,11 +315,12 @@
 
                 <div class="form-group">
                   <label>Estado</label>
-                  <select
-                    [ngModel]="formData().estado"
-                    name="estado"
-                    (ngModelChange)="updateFormField('estado', $event)"
-                  >
+<select
+                      [ngModel]="formData().estado"
+                      name="estado"
+                      (ngModelChange)="updateFormField('estado', $event)"
+                      enterFocusNext
+                    >
                     <option value="disponible">Disponible</option>
                     <option value="agotado">Temporalmente agotado</option>
                   </select>
@@ -321,22 +328,24 @@
 
                 <div class="form-group">
                   <label>Descripción</label>
-                  <textarea
-                    [ngModel]="formData().description"
-                    name="description"
-                    (ngModelChange)="updateFormField('description', $event)"
-                    rows="3"
-                    required
-                  ></textarea>
+<textarea
+                      [ngModel]="formData().description"
+                      name="description"
+                      (ngModelChange)="updateFormField('description', $event)"
+                      rows="3"
+                      required
+                      enterFocusNext
+                    ></textarea>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
                     <label>Categoría</label>
-                    <select
+<select
                       [ngModel]="formData().category"
                       name="category"
                       (ngModelChange)="updateFormField('category', $event)"
+                      enterFocusNext
                     >
                       @for (cat of categorias; track cat.id) {
                         <option [value]="cat.nombre">{{ cat.nombre }}</option>
@@ -345,10 +354,11 @@
                   </div>
                   <div class="form-group">
                     <label>Marca (opcional)</label>
-                    <select
+<select
                       [ngModel]="formData().marca"
                       name="marca"
                       (ngModelChange)="updateFormField('marca', $event)"
+                      enterFocusNext
                     >
                       <option value="">Sin marca</option>
                       @for (marca of marcas; track marca.id) {
@@ -358,10 +368,11 @@
                   </div>
                   <div class="form-group">
                     <label>Línea (opcional)</label>
-                    <select
+<select
                       [ngModel]="formData().lineaId"
                       name="lineaId"
                       (ngModelChange)="updateFormField('lineaId', $event)"
+                      enterFocusNext
                     >
                       <option value="">Sin línea</option>
                       @for (linea of lineas; track linea.id) {
@@ -377,7 +388,7 @@
                     <div class="rating-inputs">
                       <div class="rating-field">
                         <label>Puntaje</label>
-                        <input
+<input
                           type="number"
                           [ngModel]="formData().ratingRate"
                           (ngModelChange)="updateFormField('ratingRate', $event)"
@@ -385,18 +396,20 @@
                           max="5"
                           step="0.1"
                           placeholder="0-5"
+                          enterFocusNext
                         />
                         <span class="rating-suffix">/ 5</span>
                       </div>
                       <div class="rating-field">
                         <label>Cantidad</label>
-                        <input
+<input
                           type="number"
                           [ngModel]="formData().ratingCount"
                           (ngModelChange)="updateFormField('ratingCount', $event)"
                           min="0"
                           step="1"
                           placeholder="0"
+                          enterFocusNext
                         />
                         <span class="rating-suffix">reseñas</span>
                       </div>
@@ -472,7 +485,7 @@
         </div>
         <div class="modal-body">
           <div class="add-category-form">
-            <input type="text" [(ngModel)]="newCategoryName" placeholder="Nueva categoría" class="form-input" />
+            <input type="text" [(ngModel)]="newCategoryName" placeholder="Nueva categoría" class="form-input" enterFocusNext />
             <button class="btn-primary" (click)="addCategory()">Agregar</button>
           </div>
           <div class="categories-list">

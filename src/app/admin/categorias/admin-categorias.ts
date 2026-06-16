@@ -1,12 +1,13 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 import { CategoriasBackend, CategoriaMenu, CategoriaItem } from '../../backend/data-access/categorias.backend';
 
 @Component({
   selector: 'app-admin-categorias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
   templateUrl: './admin-categorias.html',
   styleUrl: './admin-categorias.css',
 })

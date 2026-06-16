@@ -530,11 +530,11 @@
                    <tr>
                      <th>Fecha</th>
                      <th>Día</th>
-                     <th>Fecha Actual</th>
-                     <th>Día Actual</th>
                      <th class="numeric">Ventas Ant. (Bs)</th>
                      <th class="numeric">Ventas Ant. ($)</th>
                      <th class="numeric">Tasa</th>
+                     <th>Fecha</th>
+                     <th>Día</th>
                      <th class="numeric">Meta ($)</th>
                      <th class="numeric">Meta (Bs)</th>
                      <th class="numeric">Total ($)</th>
@@ -547,11 +547,11 @@
                      <tr>
                        <td>{{ formatFechaDisplay(e.fecha) }}</td>
                        <td>{{ e.dia }}</td>
-                       <td>{{ formatFechaDisplay(e.fechaActual) }}</td>
-                       <td>{{ e.diaActual || (e.fechaActual ? diaSemanaLabel(e.fechaActual) : '') }}</td>
                        <td class="expectativa-anterior-bs numeric">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
                        <td class="expectativa-anterior-usd numeric">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
                        <td class="expectativa-tasa numeric">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
+                      <td>{{ formatFechaDisplay(e.fechaActual) }}</td>
+                       <td>{{ e.diaActual || (e.fechaActual ? diaSemanaLabel(e.fechaActual) : '') }}</td>
                        <td class="meta-extra-usd numeric">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
                        <td class="meta-extra-bs numeric">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
                        <td class="expectativa-target-usd numeric">$ {{ formatearMoneda(e.targetUSD) }}</td>

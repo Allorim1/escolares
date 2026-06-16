@@ -2303,11 +2303,11 @@ abrirModalExpectativas() {
       return {
         fecha: r.fecha,
         dia: r.dia || '',
-        fechaActual,
-        diaActual,
         anteriorBs: r.totalOriginal,
         anteriorUSD: r.totalConvertido,
         tasa: r.tasa,
+        fechaActual,
+        diaActual,
         targetUSD: expectativaUSD,
         targetBs: expectativaBs,
         metaExtraUSD: metaExtraUSD,
@@ -2353,7 +2353,7 @@ imprimirExpectativas() {
         <html>
         <head>
           <title>Expectativas de Ventas</title>
-<style>
+          <style>
              @page {
                size: letter portrait;
                margin: 0.2in;
@@ -2408,6 +2408,13 @@ imprimirExpectativas() {
                line-height: 1.2;
              }
              th { background: #ff9800 !important; color: #111 !important; font-weight: 800 !important; font-size: 10pt !important; }
+             /* Estilo para la fila superior de los años */
+             th.year-header {
+               background: #1d63c1 !important;
+               color: #fff !important;
+               text-align: center;
+               font-size: 11pt !important;
+             }
              th.numeric, td.numeric { text-align: right; }
              th.wrap-center, td.wrap-center { text-align: center; }
              .expectativa-meta { text-align: right; }
@@ -2444,63 +2451,92 @@ imprimirExpectativas() {
             <div class="print-header">
               <img src="/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
               <div class="print-title-section">
-<h1>Metas Ventas ${this.getPeriodoVentasAnterior()}</h1>
+                <h1>Metas Ventas ${this.getPeriodoVentasAnterior()}</h1>
               </div>
             </div>
             <table>
               <thead>
-                <tr>
-          `;
-      
+`;
+
+// --- CÁLCULO DINÁMICO DE COLSPAN PARA 2025 Y 2026 ---
+let colspan2025 = 0;
+if (this.columnaFechaVisible()) colspan2025++;
+if (this.columnaDiaVisible()) colspan2025++;
+if (this.columnaAnteriorBsVisible()) colspan2025++;
+if (this.columnaAnteriorUSDVisible()) colspan2025++;
+if (this.columnaTasaVisible()) colspan2025++;
+
+let colspan2026 = 0;
+if (this.columnaFechaActualVisible()) colspan2026++;
+if (this.columnaDiaActualVisible()) colspan2026++;
+if (this.columnaMetaExtraUSDVisible()) colspan2026++;
+if (this.columnaMetaExtraBsVisible()) colspan2026++;
+if (this.columnaTargetUSDVisible()) colspan2026++;
+if (this.columnaTargetBsVisible()) colspan2026++;
+
+// Primera fila del head: Bloques de Años
+html += '<tr>';
+if (colspan2025 > 0) {
+  html += `<th colspan="${colspan2025}" class="year-header">2025</th>`;
+}
+if (colspan2026 > 0) {
+  html += `<th colspan="${colspan2026}" class="year-header">2026</th>`;
+}
+// Espacio en blanco sobre la columna del checkbox final
+html += '<th style="background-color: #f5f5f5;">&nbsp;</th>'; 
+html += '</tr>';
+
+// Segunda fila del head: Títulos de las columnas (Tu código original corregido)
+html += '<tr>';
 if (this.columnaFechaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Fecha</th>';
-        if (this.columnaDiaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día</th>';
-        if (this.columnaFechaActualVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Fecha Actual</th>';
-        if (this.columnaDiaActualVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día Actual</th>';
-        if (this.columnaAnteriorBsVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas (Bs)</th>';
-        if (this.columnaAnteriorUSDVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas ($)</th>';
-        if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
-        if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
-        if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
-        if (this.columnaTargetUSDVisible()) html += '<th class="numeric">Total ($)</th>';
-        if (this.columnaTargetBsVisible()) html += '<th class="numeric">Total (Bs)</th>';
-        html += '<th class="wrap-center">&nbsp;</th>';
-      
-      html += `
-              </tr>
-            </thead>
-            <tbody>
-      `;
+if (this.columnaDiaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día</th>';
+if (this.columnaAnteriorBsVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas (Bs)</th>';
+if (this.columnaAnteriorUSDVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas ($)</th>';
+if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
+if (this.columnaFechaActualVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Fecha</th>';
+if (this.columnaDiaActualVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día</th>';
+if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
+if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
+if (this.columnaTargetUSDVisible()) html += '<th class="numeric">Total ($)</th>';
+if (this.columnaTargetBsVisible()) html += '<th class="numeric">Total (Bs)</th>';
+html += '<th class="wrap-center">&nbsp;</th>';
+html += `
+        </tr>
+      </thead>
+      <tbody>
+`;
       
 for (const e of expectativas) {
-          html += '<tr>';
-          if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
-          if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${e.dia}</td>`;
-          if (this.columnaFechaActualVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${e.fechaActual ? this.formatFechaDisplay(e.fechaActual) : ''}</td>`;
-          if (this.columnaDiaActualVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${e.diaActual || (e.fechaActual ? this.diaSemanaLabel(e.fechaActual) : '')}</td>`;
-          if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
-          if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafad8; class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
-          if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
-          if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
-          if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
-          if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
-          if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
-          html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
-          html += '</tr>';
-        }
+  html += '<tr>';
+  // Nota: Corregí las comillas rotas en style="background-color: #fafafad8;" de tu código original
+  if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
+  if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${e.dia}</td>`;
+  if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+  if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+  if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
+  if (this.columnaFechaActualVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${e.fechaActual ? this.formatFechaDisplay(e.fechaActual) : ''}</td>`;
+  if (this.columnaDiaActualVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${e.diaActual || (e.fechaActual ? this.diaSemanaLabel(e.fechaActual) : '')}</td>`;
+  if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+  if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+  if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
+  if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+  html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
+  html += '</tr>';
+}
       
 html += `
-             </tbody>
-           </table>
-           
-           <div style="flex: 1; min-height: 20px;"></div>
-       `;
+        </tbody>
+       </table>
        
-       if (comentario) {
-         html += `<div class="comment" style="margin-top: auto;"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
-       }
+       <div style="flex: 1; min-height: 20px;"></div>
+`;
+       
+if (comentario) {
+  html += `<div class="comment" style="margin-top: auto;"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
+}
       
-      html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p></div>
-          </div>
+html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p></div>
+    </div>
 <script>
 (function(){
   function doPrint(){ try{ window.focus(); window.print(); }catch(e){} }
@@ -2512,9 +2548,9 @@ html += `
   whenImagesLoaded(function(){ setTimeout(doPrint, 120); });
 })();
 </script>
-          </body>
-        </html>
-      `;
+    </body>
+  </html>
+`;
       
       const printWindow = window.open('', '_blank');
       if (printWindow) {

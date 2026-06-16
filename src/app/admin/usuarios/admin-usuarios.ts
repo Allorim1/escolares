@@ -464,7 +464,6 @@ export class AdminUsuarios implements OnInit {
       return;
     }
 
-    // Construir el documento completo según el tipo
     let documentoCompleto = '';
     const tipo = userData.tipoDocumento;
     const numero = userData.numeroDocumento;
@@ -474,7 +473,6 @@ export class AdminUsuarios implements OnInit {
         documentoCompleto = 'V-' + numero;
         break;
       case 'rif':
-        // Para RIF en creación de usuarios, asumimos V- (natural) por defecto
         documentoCompleto = 'V-' + numero;
         break;
       case 'rif_personal_natural':
@@ -499,6 +497,8 @@ export class AdminUsuarios implements OnInit {
         documentoCompleto = numero;
     }
 
+    const rol = userData.rolId ? 'usuario' : 'owner';
+
     this.http.post('/api/auth/register-simple', {
       username: userData.username,
       email: userData.email,
@@ -512,7 +512,7 @@ export class AdminUsuarios implements OnInit {
       tipoDocumento: tipo,
       numeroDocumento: numero,
       genero: userData.genero,
-      rol: userData.rol,
+      rol: rol,
       rolId: userData.rolId,
     }).subscribe({
       next: () => {

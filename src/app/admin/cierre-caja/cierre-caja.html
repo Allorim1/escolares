@@ -9,7 +9,7 @@
         
         <div class="form-group">
           <label>Saldo Inicial Total (Bs)</label>
-          <input type="number" [(ngModel)]="nuevoCierre.saldoInicial" (input)="calcularSaldo()" min="0" step="0.01" />
+          <input type="number" [(ngModel)]="nuevoCierre.saldoInicial" (input)="calcularSaldo()" min="0" step="0.01" enterFocusNext/>
         </div>
 
         <div class="cajas-grid">
@@ -68,8 +68,8 @@
                       <button class="btn-agregar-rc" (click)="agregarRC(caja.id, rcNuevoMonto, rcDescripcion); rcNuevoMonto = 0; rcDescripcion = ''">+ Agregar RC</button>
                     </div>
                     <div class="rc-inputs">
-                      <input type="number" [(ngModel)]="rcNuevoMonto" placeholder="Monto" min="0.01" step="0.01" />
-                      <input type="text" [(ngModel)]="rcDescripcion" placeholder="Descripción (opcional)" />
+                      <input type="number" [(ngModel)]="rcNuevoMonto" placeholder="Monto" min="0.01" step="0.01" enterFocusNext/>
+                      <input type="text" [(ngModel)]="rcDescripcion" placeholder="Descripción (opcional)" enterFocusNext/>
                     </div>
                     @if (getRCEntries(caja.id).length > 0) {
                       <div class="rc-list">
@@ -110,12 +110,12 @@
 
         <div class="form-group">
           <label>Total Gastos (Bs)</label>
-          <input type="number" [(ngModel)]="nuevoCierre.totalGastos" (input)="calcularSaldo()" min="0" step="0.01" />
+          <input type="number" [(ngModel)]="nuevoCierre.totalGastos" (input)="calcularSaldo()" min="0" step="0.01" enterFocusNext/>
         </div>
 
         <div class="form-group">
           <label>Observaciones</label>
-          <textarea [(ngModel)]="nuevoCierre.observaciones" rows="3"></textarea>
+          <textarea [(ngModel)]="nuevoCierre.observaciones" rows="3" enterFocusNext></textarea>
         </div>
 
         <div class="resumen">

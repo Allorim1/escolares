@@ -23,7 +23,7 @@ export class EnterFocusNextDirective {
   }
 
   private getContainer(): HTMLElement | null {
-    const selectors = ['.modal-content', '.add-form', '.modal', '.modal-overlay'];
+    const selectors = ['.modal-content', '.add-form', '.modal', '.modal-overlay', '.cierre-form'];
     for (const selector of selectors) {
       const container = this.el.nativeElement.closest(selector);
       if (container) return container;

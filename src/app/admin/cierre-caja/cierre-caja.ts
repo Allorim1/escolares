@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CurrencyService } from '../../shared/data-access/currency.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 interface CierreCajaData {
   _id?: string;
@@ -31,7 +32,7 @@ interface CajaData {
 @Component({
   selector: 'app-cierre-caja',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
   templateUrl: './cierre-caja.html',
   styleUrl: './cierre-caja.css',
 })

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import * as ExcelJS from 'exceljs';
 import * as XLSX from 'xlsx';
 import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 interface FilaResultado {
   fecha: string;
@@ -31,7 +32,7 @@ interface ComparacionResultado {
 @Component({
   selector: 'app-conversion',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, EnterFocusNextDirective],
   templateUrl: './conversion.html',
   styleUrl: './conversion.css',
 })

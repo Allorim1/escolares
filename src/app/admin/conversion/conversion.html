@@ -485,7 +485,7 @@
             <div class="meta-config-container">
               <div class="meta-input-group">
                 <label>Porcentaje de Meta (%):</label>
-                <input type="number" class="meta-input-large" [(ngModel)]="metaVariacionValue" min="0" max="200" step="1">
+                <input type="number" class="meta-input-large" [(ngModel)]="metaVariacionValue" min="0" max="200" step="1" enterFocusNext>
               </div>
               <div class="meta-info">
                 <span class="meta-info-label">Período de ventas:</span>
@@ -610,37 +610,37 @@
             <h4>Columnas a Mostrar</h4>
             <div class="columnas-grid">
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaFechaVisible"> Fecha
+                <input type="checkbox" [(ngModel)]="columnaFechaVisible" enterFocusNext> Fecha
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaDiaVisible"> Día
+                <input type="checkbox" [(ngModel)]="columnaDiaVisible" enterFocusNext> Día
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaFechaActualVisible"> Fecha Actual
+                <input type="checkbox" [(ngModel)]="columnaFechaActualVisible" enterFocusNext> Fecha Actual
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaDiaActualVisible"> Día Actual
+                <input type="checkbox" [(ngModel)]="columnaDiaActualVisible" enterFocusNext> Día Actual
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaAnteriorBsVisible"> Ventas Ant. (Bs)
+                <input type="checkbox" [(ngModel)]="columnaAnteriorBsVisible" enterFocusNext> Ventas Ant. (Bs)
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaAnteriorUSDVisible"> Ventas Ant. ($)
+                <input type="checkbox" [(ngModel)]="columnaAnteriorUSDVisible" enterFocusNext> Ventas Ant. ($)
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaTasaVisible"> Tasa
+                <input type="checkbox" [(ngModel)]="columnaTasaVisible" enterFocusNext> Tasa
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaMetaExtraUSDVisible"> Meta ($)
+                <input type="checkbox" [(ngModel)]="columnaMetaExtraUSDVisible" enterFocusNext> Meta ($)
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaMetaExtraBsVisible"> Meta (Bs)
+                <input type="checkbox" [(ngModel)]="columnaMetaExtraBsVisible" enterFocusNext> Meta (Bs)
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaTargetUSDVisible"> Total ($)
+                <input type="checkbox" [(ngModel)]="columnaTargetUSDVisible" enterFocusNext> Total ($)
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="columnaTargetBsVisible"> Total (Bs)
+                <input type="checkbox" [(ngModel)]="columnaTargetBsVisible" enterFocusNext> Total (Bs)
               </label>
             </div>
           </div>
@@ -663,7 +663,7 @@
 
           <div class="impresion-section">
             <h4>Comentario</h4>
-            <textarea class="comentario-input" [(ngModel)]="comentarioImpresion" placeholder="Agregue un comentario que aparecerá al final de la hoja" rows="3"></textarea>
+            <textarea class="comentario-input" [(ngModel)]="comentarioImpresion" placeholder="Agregue un comentario que aparecerá al final de la hoja" rows="3" enterFocusNext></textarea>
           </div>
         </div>
 

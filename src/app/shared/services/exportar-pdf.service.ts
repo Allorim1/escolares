@@ -13,9 +13,14 @@ export class ExportarPdfService {
 
 
    formatFecha(fechaRaw: string | Date): string {
-  const date = new Date(fechaRaw);
-  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
-}
+    if (typeof fechaRaw === 'string') {
+      const parts = fechaRaw.split('-');
+      const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+    }
+    const date = new Date(fechaRaw);
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+  }
 
 private cargarImagenLocal(url: string): Promise<string> {
     return new Promise((resolve, reject) => {

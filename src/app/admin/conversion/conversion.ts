@@ -168,6 +168,8 @@ comparaciones = signal<ComparacionResultado[]>([]);
     comentarioImpresion = signal('');
     columnaFechaVisible = signal(true);
     columnaDiaVisible = signal(true);
+    columnaFechaActualVisible = signal(true);
+    columnaDiaActualVisible = signal(true);
     columnaAnteriorBsVisible = signal(true);
     columnaAnteriorUSDVisible = signal(true);
     columnaTasaVisible = signal(true);
@@ -2245,12 +2247,14 @@ abrirModalExpectativas() {
       this.mostrarModalExpectativas.set(true);
     }
 
-  getExpectativasPorDia(): { fecha: string; dia: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number; metaExtraUSD: number; metaExtraBs: number }[] {
+  getExpectativasPorDia(): { fecha: string; dia: string; fechaActual: string; diaActual: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number; metaExtraUSD: number; metaExtraBs: number }[] {
     const resultadosAnterior = this.resultadosAnterior();
     const meta = this.metaVariacion();
     const tasaPromedioActual = this.tasaPromedioActual() || this.promedioTasaActual();
     
     if (resultadosAnterior.length === 0) return [];
+    
+    const anioActual = new Date().getFullYear();
     
     return resultadosAnterior.map(r => {
       const expectativaUSD = r.totalConvertido > 0 
@@ -2264,9 +2268,43 @@ abrirModalExpectativas() {
         ? Math.round(metaExtraUSD * tasaPromedioActual * 100) / 100 
         : 0;
       
+      const [y, m, d] = r.fecha.split('-').map(Number);
+      const fechaDateAnterior = new Date(y, m - 1, d);
+      const diaSemanaAnterior = fechaDateAnterior.getDay();
+      
+      let fechaActual = '';
+      let diaActual = '';
+      
+      const ultimoDiaMes = new Date(anioActual, m, 0).getDate();
+      
+      let mejorDia = d;
+      let mejorDistancia = 7;
+      
+      const diasSemanaNombres = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      
+      for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        const fechaObjMesActual = new Date(anioActual, m - 1, dia);
+        const diaSemanaMesActual = fechaObjMesActual.getDay();
+        
+        if (diaSemanaMesActual === diaSemanaAnterior) {
+          const distancia = Math.abs(dia - d);
+          if (distancia < mejorDistancia) {
+            mejorDistancia = distancia;
+            mejorDia = dia;
+          }
+        }
+      }
+      
+      if (mejorDistancia < 7) {
+        fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
+        diaActual = diasSemanaNombres[diaSemanaAnterior];
+      }
+      
       return {
         fecha: r.fecha,
         dia: r.dia || '',
+        fechaActual,
+        diaActual,
         anteriorBs: r.totalOriginal,
         anteriorUSD: r.totalConvertido,
         tasa: r.tasa,
@@ -2415,15 +2453,17 @@ imprimirExpectativas() {
           `;
       
 if (this.columnaFechaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Fecha</th>';
-       if (this.columnaDiaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día</th>';
-       if (this.columnaAnteriorBsVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas (Bs)</th>';
-       if (this.columnaAnteriorUSDVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas ($)</th>';
-       if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
-if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
+        if (this.columnaDiaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día</th>';
+        if (this.columnaFechaActualVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Fecha Actual</th>';
+        if (this.columnaDiaActualVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día Actual</th>';
+        if (this.columnaAnteriorBsVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas (Bs)</th>';
+        if (this.columnaAnteriorUSDVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas ($)</th>';
+        if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
+        if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
         if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
         if (this.columnaTargetUSDVisible()) html += '<th class="numeric">Total ($)</th>';
         if (this.columnaTargetBsVisible()) html += '<th class="numeric">Total (Bs)</th>';
-       html += '<th class="wrap-center">\&nbsp;</th>';
+        html += '<th class="wrap-center">&nbsp;</th>';
       
       html += `
               </tr>
@@ -2432,19 +2472,21 @@ if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th
       `;
       
 for (const e of expectativas) {
-         html += '<tr>';
-         if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
-         if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${e.dia}</td>`;
-if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
-         if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafad8; class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
-if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
-         if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
-         if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
-         if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
-         if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
-         html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
-         html += '</tr>';
-       }
+          html += '<tr>';
+          if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
+          if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${e.dia}</td>`;
+          if (this.columnaFechaActualVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${e.fechaActual ? this.formatFechaDisplay(e.fechaActual) : ''}</td>`;
+          if (this.columnaDiaActualVisible()) html += `<td style="background-color: #fafafad8; class="wrap-center">${e.diaActual || (e.fechaActual ? this.diaSemanaLabel(e.fechaActual) : '')}</td>`;
+          if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+          if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafad8; class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+          if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
+          if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+          if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+          if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
+          if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+          html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
+          html += '</tr>';
+        }
       
 html += `
              </tbody>

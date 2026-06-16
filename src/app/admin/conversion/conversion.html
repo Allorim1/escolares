@@ -521,44 +521,48 @@
             </div>
           </div>
 
-          <div class="expectativa-section">
-            <h4>Expectativas por Día</h4>
-            <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
-            <div class="expectativas-table-wrapper">
-              <table class="result-table">
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Día</th>
-                    <th class="numeric">Ventas Ant. (Bs)</th>
-                    <th class="numeric">Ventas Ant. ($)</th>
-                    <th class="numeric">Tasa</th>
-                    <th class="numeric">Meta ($)</th>
-                    <th class="numeric">Meta (Bs)</th>
-                    <th class="numeric">Total ($)</th>
-                    <th class="numeric">Total (Bs)</th>
-                    <th class="print-only">Cumplido</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (e of getExpectativasPorDia(); track e.fecha) {
-                    <tr>
-                      <td>{{ formatFechaDisplay(e.fecha) }}</td>
-                      <td>{{ e.dia }}</td>
-                      <td class="expectativa-anterior-bs numeric">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
-                      <td class="expectativa-anterior-usd numeric">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
-                      <td class="expectativa-tasa numeric">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
-                      <td class="meta-extra-usd numeric">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
-                      <td class="meta-extra-bs numeric">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
-                      <td class="expectativa-target-usd numeric">$ {{ formatearMoneda(e.targetUSD) }}</td>
-                      <td class="expectativa-target-bs numeric">Bs {{ formatearMoneda(e.targetBs) }}</td>
-                      <td class="print-only"><input type="checkbox" disabled></td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          </div>
+<div class="expectativa-section">
+             <h4>Expectativas por Día</h4>
+             <p class="expectativa-help">Para alcanzar el {{ metaVariacion() }}% de más del año anterior</p>
+             <div class="expectativas-table-wrapper">
+               <table class="result-table">
+                 <thead>
+                   <tr>
+                     <th>Fecha</th>
+                     <th>Día</th>
+                     <th>Fecha Actual</th>
+                     <th>Día Actual</th>
+                     <th class="numeric">Ventas Ant. (Bs)</th>
+                     <th class="numeric">Ventas Ant. ($)</th>
+                     <th class="numeric">Tasa</th>
+                     <th class="numeric">Meta ($)</th>
+                     <th class="numeric">Meta (Bs)</th>
+                     <th class="numeric">Total ($)</th>
+                     <th class="numeric">Total (Bs)</th>
+                     <th class="print-only">Cumplido</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   @for (e of getExpectativasPorDia(); track e.fecha) {
+                     <tr>
+                       <td>{{ formatFechaDisplay(e.fecha) }}</td>
+                       <td>{{ e.dia }}</td>
+                       <td>{{ formatFechaDisplay(e.fechaActual) }}</td>
+                       <td>{{ e.diaActual || (e.fechaActual ? diaSemanaLabel(e.fechaActual) : '') }}</td>
+                       <td class="expectativa-anterior-bs numeric">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
+                       <td class="expectativa-anterior-usd numeric">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
+                       <td class="expectativa-tasa numeric">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
+                       <td class="meta-extra-usd numeric">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
+                       <td class="meta-extra-bs numeric">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
+                       <td class="expectativa-target-usd numeric">$ {{ formatearMoneda(e.targetUSD) }}</td>
+                       <td class="expectativa-target-bs numeric">Bs {{ formatearMoneda(e.targetBs) }}</td>
+                       <td class="print-only"><input type="checkbox" disabled></td>
+                     </tr>
+                   }
+                 </tbody>
+               </table>
+             </div>
+           </div>
 
           @if (resultados().length > 0) {
             <div class="expectativa-section">
@@ -610,6 +614,12 @@
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="columnaDiaVisible"> Día
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaFechaActualVisible"> Fecha Actual
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="columnaDiaActualVisible"> Día Actual
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="columnaAnteriorBsVisible"> Ventas Ant. (Bs)

@@ -2290,7 +2290,7 @@ abrirModalExpectativas() {
       let mejorDia = d;
       let mejorDistancia = 7;
       
-      const diasSemanaNombres = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const diasSemanaNombres = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
       
       for (let dia = 1; dia <= ultimoDiaMes; dia++) {
         const fechaObjMesActual = new Date(anioActual, m - 1, dia);
@@ -2582,7 +2582,7 @@ html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p
     const variacion = this.variacionUSDPorcentaje();
 
     const diaSeleccionado = this.filtroDiaSemana();
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     const filtroLabel = diaSeleccionado !== null ? ` - ${dias[diaSeleccionado]}` : '';
 
   let html = `
@@ -2721,7 +2721,7 @@ html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p
 `;
 
 for (const r of comparacion) {
-   const esDomingoFila = r.dia === 'Domingo';
+   const esDomingoFila = r.dia === 'DOMINGO';
    html += `
          <tr>
            <td class="${esDomingoFila ? 'domingo' : ''}"><strong>${r.dia}</strong></td>

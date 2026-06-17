@@ -28,17 +28,18 @@
           <div class="rate-input-wrapper">
 <label class="rate-input-label">
                Promedio de tasa anterior
-               <input
-                 type="text"
-                 inputmode="numeric"
-                 pattern="[0-9.]*"
-                 class="rate-input tiny-rate-input"
-                 [value]="showBlankAnterior() ? '' : formatRateFromCents(promedioTasaAnteriorCents())"
-                 (mousedown)="rateInputJustFocused.update(s => ({...s, anterior: true}))"(focus)="onRateFocus('anterior', $event)"
-                 (blur)="onRateBlur('anterior')"
-                 (keydown)="onRateKey($event, 'anterior')"
-                 (paste)="onRatePaste($event, 'anterior')"
-               />
+<input
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9.]*"
+                  class="rate-input tiny-rate-input"
+                  [value]="showBlankAnterior() ? '' : formatRateFromCents(promedioTasaAnteriorCents())"
+                  (mousedown)="rateInputJustFocused.update(s => ({...s, anterior: true}))"(focus)="onRateFocus('anterior', $event)"
+                  (blur)="onRateBlur('anterior')"
+                  (keydown)="onRateKey($event, 'anterior')"
+                  (paste)="onRatePaste($event, 'anterior')"
+                  enterFocusNext
+                />
              </label>
             <small class="rate-input-note">Se aplicará el valor ingresado a todas las fechas del período anterior si no se cargan tasas específicas.</small>
           </div>
@@ -48,7 +49,7 @@
           }
           @if (tasasAnterioresGuardadas().length > 0) {
             <div class="select-tasas-guardadas">
-              <select (change)="onSeleccionarTasaAnteriorGuardada($event)" class="config-select">
+              <select (change)="onSeleccionarTasaAnteriorGuardada($event)" class="config-select" enterFocusNext>
                 <option value="">-- Seleccionar tasas guardadas --</option>
                 @for (tasa of tasasAnterioresGuardadas(); track tasa._id) {
                   <option [value]="tasa._id">{{ tasa.nombre }}</option>
@@ -81,17 +82,18 @@
           <div class="rate-input-wrapper">
 <label class="rate-input-label">
                Promedio de tasa
-               <input
-                 type="text"
-                 inputmode="numeric"
-                 pattern="[0-9.]*"
-                 class="rate-input tiny-rate-input"
-                 [value]="showBlankActual() ? '' : formatRateFromCents(promedioTasaActualCents())"
-                 (mousedown)="rateInputJustFocused.update(s => ({...s, actual: true}))"(focus)="onRateFocus('actual', $event)"
-                 (blur)="onRateBlur('actual')"
-                 (keydown)="onRateKey($event, 'actual')"
-                 (paste)="onRatePaste($event, 'actual')"
-               />
+<input
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9.]*"
+                  class="rate-input tiny-rate-input"
+                  [value]="showBlankActual() ? '' : formatRateFromCents(promedioTasaActualCents())"
+                  (mousedown)="rateInputJustFocused.update(s => ({...s, actual: true}))"(focus)="onRateFocus('actual', $event)"
+                  (blur)="onRateBlur('actual')"
+                  (keydown)="onRateKey($event, 'actual')"
+                  (paste)="onRatePaste($event, 'actual')"
+                  enterFocusNext
+                />
              </label>
             <small class="rate-input-note">Se aplicará el valor ingresado a todas las fechas de ventas si no se cargan tasas específicas.</small>
           </div>
@@ -101,7 +103,7 @@
           }
           @if (tasasGuardadas().length > 0) {
             <div class="select-tasas-guardadas">
-              <select (change)="onSeleccionarTasaGuardada($event)" class="config-select">
+              <select (change)="onSeleccionarTasaGuardada($event)" class="config-select" enterFocusNext>
                 <option value="">-- Seleccionar tasas guardadas --</option>
                 @for (tasa of tasasGuardadas(); track tasa._id) {
                   <option [value]="tasa._id">{{ tasa.nombre }}</option>
@@ -116,7 +118,7 @@
 
   <div class="actions-bar" style="margin-top: 2rem;">
     @if (ventasRaw().length > 1 || ventasAnteriorRaw().length > 1) {
-      <button class="btn-primary" (click)="procesar()" [disabled]="procesando()">
+      <button class="btn-primary" (click)="procesar()" [disabled]="procesando()" enterFocusNext>
         @if (procesando()) {
           <span class="spinner"></span> Procesando...
         } @else {
@@ -390,9 +392,9 @@
                  </tr>
                </thead>
 <tbody>
-                  @for (item of getComparacionConIndices(); track item.index) {
+@for (item of getComparacionConIndices(); track item.index) {
                     <tr>
-                      <td>{{ item.dia }}</td>
+                      <td [class.domingo]="item.dia === 'Domingo'">{{ item.dia }}</td>
                       <td>{{ formatFechaDisplay(item.fechaActual) }}</td>
 <td class="num">
 @if (tieneFechasRepetidasEnComparacion() && item.actual > 0) {
@@ -543,16 +545,16 @@
                    </tr>
                  </thead>
                  <tbody>
-                   @for (e of getExpectativasPorDia(); track e.fecha) {
-                     <tr>
-                       <td>{{ formatFechaDisplay(e.fecha) }}</td>
-                       <td>{{ e.dia }}</td>
-                       <td class="expectativa-anterior-bs numeric">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
-                       <td class="expectativa-anterior-usd numeric">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
-                       <td class="expectativa-tasa numeric">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
-                      <td>{{ formatFechaDisplay(e.fechaActual) }}</td>
-                       <td>{{ e.diaActual || (e.fechaActual ? diaSemanaLabel(e.fechaActual) : '') }}</td>
-                       <td class="meta-extra-usd numeric">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
+@for (e of getExpectativasPorDia(); track e.fecha) {
+                      <tr>
+                        <td>{{ formatFechaDisplay(e.fecha) }}</td>
+                        <td [class.domingo]="esDomingo(e.fecha)">{{ e.dia }}</td>
+                        <td class="expectativa-anterior-bs numeric">Bs {{ formatearMoneda(e.anteriorBs) }}</td>
+                        <td class="expectativa-anterior-usd numeric">$ {{ formatearMoneda(e.anteriorUSD) }}</td>
+                        <td class="expectativa-tasa numeric">{{ e.tasa > 0 ? formatearMoneda(e.tasa) : '-' }}</td>
+                       <td>{{ formatFechaDisplay(e.fechaActual) }}</td>
+                        <td [class.domingo]="e.fechaActual && esDomingo(e.fechaActual)">{{ e.diaActual || (e.fechaActual ? diaSemanaLabel(e.fechaActual) : '') }}</td>
+                        <td class="meta-extra-usd numeric">$ {{ formatearMoneda(e.metaExtraUSD) }}</td>
                        <td class="meta-extra-bs numeric">Bs {{ formatearMoneda(e.metaExtraBs) }}</td>
                        <td class="expectativa-target-usd numeric">$ {{ formatearMoneda(e.targetUSD) }}</td>
                        <td class="expectativa-target-bs numeric">Bs {{ formatearMoneda(e.targetBs) }}</td>

@@ -1198,8 +1198,18 @@
    color: #2e7d32;
  }
 
-.expectativa-pct.negativo {
-  color: #c62828;
+.es-dia {
+  font-weight: 600;
+}
+
+.domingo {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+.sabado {
+  color: #6c757d;
+  font-weight: 600;
 }
 
 .expectativa-help {

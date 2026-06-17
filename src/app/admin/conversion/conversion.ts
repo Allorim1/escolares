@@ -1822,8 +1822,17 @@ private procesarVentasActual(
 
   diaSemanaLabel(fecha: string): string {
     const d = new Date(fecha + 'T00:00:00');
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dias = ['DOMINGO', 'LUNES', 'Martes', 'MIÉRCOLES', 'JUEVES', 'ViERNES', 'SÁBADO'];
     return dias[d.getDay()];
+  }
+
+  esDomingo(fecha: string): boolean {
+    const d = new Date(fecha + 'T00:00:00');
+    return d.getDay() === 0;
+  }
+
+  getDiaSemanaClase(fecha: string): string {
+    return this.esDomingo(fecha) ? 'domingo' : this.esFinDeSemana(fecha) ? 'sabado' : 'es-dia';
   }
 
   asignarTasaAnteriorManual(fecha: string, valor: any) {
@@ -2440,12 +2449,16 @@ imprimirExpectativas() {
                margin: 0;
                padding: 0;
              }
-             .cumplido-checkbox {
-               padding: 0 !important;
-               text-align: center;
-               width: 20px;
-             }
-           </style>
+.cumplido-checkbox {
+                padding: 0 !important;
+                text-align: center;
+                width: 20px;
+              }
+              .domingo {
+                color: #dc3545 !important;
+                font-weight: 700 !important;
+              }
+            </style>
         </head>
         <body>
           <div class="container">
@@ -2508,22 +2521,23 @@ html += `
 `;
       
 for (const e of expectativas) {
-  html += '<tr>';
-  // Nota: Corregí las comillas rotas en style="background-color: #fafafad8;" de tu código original
-  if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
-  if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${e.dia}</td>`;
-  if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
-  if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
-  if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
-  if (this.columnaFechaActualVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${e.fechaActual ? this.formatFechaDisplay(e.fechaActual) : ''}</td>`;
-  if (this.columnaDiaActualVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${e.diaActual || (e.fechaActual ? this.diaSemanaLabel(e.fechaActual) : '')}</td>`;
-  if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
-  if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
-  if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
-  if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
-  html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
-  html += '</tr>';
-}
+   html += '<tr>';
+   const esDomingoAnterior = this.esDomingo(e.fecha);
+   const esDomingoActual = e.fechaActual ? this.esDomingo(e.fechaActual) : false;
+   if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
+   if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center ${esDomingoAnterior ? 'domingo' : ''}"><strong>${e.dia}</strong></td>`;
+   if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+   if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+   if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
+   if (this.columnaFechaActualVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${e.fechaActual ? this.formatFechaDisplay(e.fechaActual) : ''}</td>`;
+   if (this.columnaDiaActualVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center ${esDomingoActual ? 'domingo' : ''}"><strong>${e.diaActual || (e.fechaActual ? this.diaSemanaLabel(e.fechaActual) : '')}</strong></td>`;
+   if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+   if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+   if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
+   if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+   html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
+   html += '</tr>';
+ }
       
 html += `
         </tbody>
@@ -2670,14 +2684,18 @@ html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p
       font-size: 9.5pt;
     }
     
-    .footer {
-      margin-top: auto;   /* Empuja el footer al final de la página */
-      font-size: 9pt;
-      color: #666;
-      text-align: right;
-      padding-top: 10px;
-    }
-  </style>
+.footer {
+       margin-top: auto;   /* Empuja el footer al final de la página */
+       font-size: 9pt;
+       color: #666;
+       text-align: right;
+       padding-top: 10px;
+     }
+     .domingo {
+       color: #dc3545 !important;
+       font-weight: 700 !important;
+     }
+   </style>
 </head>
 <body>
   <div class="container">
@@ -2703,17 +2721,18 @@ html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p
 `;
 
 for (const r of comparacion) {
-  html += `
-        <tr>
-          <td>${r.dia}</td>
-          <td>${this.formatFechaDisplay(r.fechaAnterior)}</td>
-          <td class="text-right">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
-          <td>${this.formatFechaDisplay(r.fechaActual)}</td>
-          <td class="text-right">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
-          <td class="text-right">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
-        </tr>
-  `;
-}
+   const esDomingoFila = r.dia === 'Domingo';
+   html += `
+         <tr>
+           <td class="${esDomingoFila ? 'domingo' : ''}"><strong>${r.dia}</strong></td>
+           <td>${this.formatFechaDisplay(r.fechaAnterior)}</td>
+           <td class="text-right">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
+           <td>${this.formatFechaDisplay(r.fechaActual)}</td>
+           <td class="text-right">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
+           <td class="text-right">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
+         </tr>
+   `;
+ }
 
 html += `
       </tbody>

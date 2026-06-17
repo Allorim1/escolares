@@ -1745,7 +1745,7 @@ private procesarVentasActual(
   }
 
   getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     const actuales = this.resultados();
     const anteriores = this.resultadosAnterior();
     const filtro = this.filtroDiaSemana();

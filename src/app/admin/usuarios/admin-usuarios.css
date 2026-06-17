@@ -641,10 +641,59 @@
 }
 
 .user-details-tabs button.active {
-  color: #1d63c1;
-  border-bottom-color: #1d63c1;
-  font-weight: 600;
-}
+   color: #1d63c1;
+   border-bottom-color: #1d63c1;
+   font-weight: 600;
+ }
+
+ .btn-danger {
+   padding: 10px 20px;
+   background: #dc3545;
+   color: white;
+   border: none;
+   border-radius: 6px;
+   font-weight: 600;
+   cursor: pointer;
+ }
+
+ .btn-danger:hover {
+   background: #c82333;
+ }
+
+ .password-group {
+   position: relative;
+ }
+
+ .password-input-container {
+   position: relative;
+ }
+
+ .password-input-container input {
+   width: 100%;
+   padding: 8px 40px 8px 12px;
+   border: 2px solid #e0e0e0;
+   border-radius: 6px;
+   font-size: 14px;
+ }
+
+ .toggle-password {
+   position: absolute;
+   right: 10px;
+   top: 50%;
+   transform: translateY(-50%);
+   background: none;
+   border: none;
+   cursor: pointer;
+   padding: 4px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   color: #666;
+ }
+
+ .toggle-password:hover {
+   color: #333;
+ }
 
 .btn-danger {
   padding: 10px 20px;

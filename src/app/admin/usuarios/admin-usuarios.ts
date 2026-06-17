@@ -111,6 +111,7 @@ export class AdminUsuarios implements OnInit {
   newComentario = '';
   
   showCreateModal = signal(false);
+  showPassword = signal(false);
   newUser: NewUser = {
     username: '',
     email: '',
@@ -127,9 +128,10 @@ export class AdminUsuarios implements OnInit {
     rolId: undefined
   };
 
-  userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
-  selectedUserRolData = '';
-  newPassword = '';
+userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
+   selectedUserRolData = '';
+   newPassword = '';
+   showPasswordChange = signal(false);
   
   editRolPermisosState = signal<EditRolPermisosState>({
     show: false,
@@ -238,6 +240,7 @@ export class AdminUsuarios implements OnInit {
     this.selectedUser.set(null);
     this.editingUser.set(null);
     this.userDetailsTab.set('info');
+    this.showPasswordChange.set(false);
   }
 
   getSelectedRolFromId(): Rol | undefined {

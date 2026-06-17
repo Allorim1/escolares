@@ -1822,7 +1822,7 @@ private procesarVentasActual(
 
   diaSemanaLabel(fecha: string): string {
     const d = new Date(fecha + 'T00:00:00');
-    const dias = ['DOMINGO', 'LUNES', 'Martes', 'MIÉRCOLES', 'JUEVES', 'ViERNES', 'SÁBADO'];
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'ViERNES', 'SÁBADO'];
     return dias[d.getDay()];
   }
 
@@ -2001,7 +2001,7 @@ cerrarModalExpectativas() {
   }
 
   getDiaSemanaNum(diaSemana: number): string {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     return dias[diaSemana] || '';
   }
 
@@ -2082,7 +2082,7 @@ if (mismoMes) {
   }
 
   getComparacionDiaPorDia(filtroDia: number | null = null): { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     const actuales = this.resultados();
     const anteriores = this.resultadosAnterior();
     const filtro = filtroDia !== null ? filtroDia : this.filtroDiaSemana();

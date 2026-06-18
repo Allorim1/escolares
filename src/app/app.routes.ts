@@ -230,12 +230,16 @@ export const routes: Routes = [
              path: 'retenciones',
              loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
            },
-          {
-            path: 'repartidor',
-            loadComponent: () => import('./admin/repartidor/admin-repartidor').then((m) => m.AdminRepartidorComponent),
-          },
-        ],
-      },
+{
+             path: 'repartidor',
+             loadComponent: () => import('./admin/repartidor/admin-repartidor').then((m) => m.AdminRepartidorComponent),
+           },
+           {
+             path: 'asistencias',
+             loadComponent: () => import('./admin/asistencias/asistencias').then((m) => m.Asistencias),
+           },
+         ],
+       },
       {
         path: 'repartidor',
         loadComponent: () => import('./repartidor/repartidor').then((m) => m.RepartidorComponent),

@@ -224,17 +224,17 @@
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeCreateUser()">Cancelar</button>
-        <button class="btn-primary" (click)="createUser()">Crear Usuario</button>
-      </div>
+<div class="modal-footer">
+         <button class="btn-secondary" (click)="closeCreateUser()">Cancelar</button>
+         <button class="btn-primary" (click)="createUser()" enterFocusPrev>Crear Usuario</button>
+       </div>
     </div>
   </div>
 }
 
 @if (selectedUser()) {
-  <div class="modal-overlay" (click)="closeUserDetails()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+   <div class="modal-overlay">
+     <div class="modal-content modal-large" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Detalles del Usuario</h3>
         <button class="close-btn" (click)="closeUserDetails()">&times;</button>
@@ -335,56 +335,57 @@
          }
       </div>
 
-      <div class="modal-footer">
-        @if (userDetailsTab() === 'info') {
-          <button class="btn-danger" (click)="confirmDeleteUserFromDetails()">Eliminar</button>
-          <button class="btn-primary" (click)="saveUserDetails()">Guardar</button>
-        }
-        @if (userDetailsTab() === 'rol') {
-          <button class="btn-primary" (click)="saveUserRoleFromDetails()">Guardar Rol</button>
-        }
-        @if (userDetailsTab() === 'password') {
-          <button class="btn-primary" (click)="changePasswordFromDetails()">Cambiar Contraseña</button>
-        }
-      </div>
+<div class="modal-footer">
+         @if (userDetailsTab() === 'info') {
+           <button class="btn-danger" (click)="confirmDeleteUserFromDetails()" enterFocusPrev>Eliminar</button>
+           <button class="btn-primary" (click)="saveUserDetails()" enterFocusPrev>Guardar</button>
+         }
+         @if (userDetailsTab() === 'rol') {
+           <button class="btn-primary" (click)="saveUserRoleFromDetails()" enterFocusPrev>Guardar Rol</button>
+         }
+         @if (userDetailsTab() === 'password') {
+           <button class="btn-primary" (click)="changePasswordFromDetails()" enterFocusPrev>Cambiar Contraseña</button>
+         }
+       </div>
     </div>
   </div>
 }
 
 @if (editRolPermisosState().show && editRolPermisosState().rol) {
-  <div class="modal-overlay" (click)="closeEditPermisos()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Editar Permisos: {{ editRolPermisosState().rol?.nombre }}</h3>
-        <button class="close-btn" (click)="closeEditPermisos()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="permisos-edit-grid">
-          @for (modulo of getModulos(); track modulo) {
-            <div class="modulo-section">
-              <h5>{{ modulo }}</h5>
-              <div class="permisos-checkboxes">
-                @for (permiso of getPermisosPorModulo(modulo); track permiso.id) {
-                  <label class="permiso-checkbox">
-                    <input 
-                      type="checkbox" 
-                      [checked]="isPermisoSelected(permiso.id)"
-                      (change)="togglePermiso(permiso.id)"
-                    />
-                    <span>{{ permiso.nombre }}</span>
-                  </label>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeEditPermisos()">Cancelar</button>
-        <button class="btn-primary" (click)="saveRolPermisos()">Guardar Permisos</button>
-      </div>
-    </div>
-  </div>
-}
+   <div class="modal-overlay">
+     <div class="modal-content" (click)="$event.stopPropagation()">
+       <div class="modal-header">
+         <h3>Editar Permisos: {{ editRolPermisosState().rol?.nombre }}</h3>
+         <button class="close-btn" (click)="closeEditPermisos()">&times;</button>
+       </div>
+       
+       <div class="modal-body">
+         <div class="permisos-edit-grid">
+           @for (modulo of getModulos(); track modulo) {
+             <div class="modulo-section">
+               <h5>{{ modulo }}</h5>
+               <div class="permisos-checkboxes">
+                 @for (permiso of getPermisosPorModulo(modulo); track permiso.id) {
+                   <label class="permiso-checkbox">
+                     <input 
+                       type="checkbox" 
+                       [checked]="isPermisoSelected(permiso.id)"
+                       (change)="togglePermiso(permiso.id)"
+                       enterFocusNext
+                     />
+                     <span>{{ permiso.nombre }}</span>
+                   </label>
+                 }
+               </div>
+             </div>
+           }
+         </div>
+       </div>
+       
+       <div class="modal-footer">
+         <button class="btn-secondary" (click)="closeEditPermisos()" enterFocusPrev>Cancelar</button>
+         <button class="btn-primary" (click)="saveRolPermisos()" enterFocusPrev>Guardar Permisos</button>
+       </div>
+     </div>
+   </div>
+ }

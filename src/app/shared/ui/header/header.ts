@@ -145,30 +145,41 @@ export class Header implements OnInit, OnDestroy {
   }
 
   mobileMenuOpen = signal(false);
-  userDropdownOpen = signal(false);
-  private dropdownTimer: any = null;
-  private cartPreviewTimer: any = null;
-  notificationsOpen = signal(false);
-  notificationsTimer: any = null;
+userDropdownOpen = signal(false);
+   private dropdownTimer: any = null;
+   private cartPreviewTimer: any = null;
+   private searchTimer: any = null;
+   notificationsOpen = signal(false);
+   notificationsTimer: any = null;
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.mobile-menu-btn') && !target.closest('.mobile-nav')) {
-      this.mobileMenuOpen.set(false);
-    }
-    if (!target.closest('.user-dropdown')) {
-      this.userDropdownOpen.set(false);
-    }
-    if (!target.closest('.header-search')) {
-      this.showDropdown.set(false);
-    }
-    const notifBtn = target.closest('.notification-btn');
-    const notifDropdown = target.closest('.notifications-dropdown');
-    if (!notifBtn && !notifDropdown) {
-      this.notificationsOpen.set(false);
-    }
-  }
+   onSearchEnter() {
+     if (this.searchTimer) {
+       clearTimeout(this.searchTimer);
+       this.searchTimer = null;
+     }
+   }
+
+   onSearchLeave() {
+     this.searchTimer = setTimeout(() => {
+       this.showDropdown.set(false);
+     }, 500);
+   }
+
+@HostListener('document:click', ['$event'])
+   onDocumentClick(event: MouseEvent) {
+     const target = event.target as HTMLElement;
+     if (!target.closest('.mobile-menu-btn') && !target.closest('.mobile-nav')) {
+       this.mobileMenuOpen.set(false);
+     }
+     if (!target.closest('.user-dropdown')) {
+       this.userDropdownOpen.set(false);
+     }
+     const notifBtn = target.closest('.notification-btn');
+     const notifDropdown = target.closest('.notifications-dropdown');
+     if (!notifBtn && !notifDropdown) {
+       this.notificationsOpen.set(false);
+     }
+   }
 
   onUserDropdownEnter() {
     if (this.dropdownTimer) {
@@ -244,32 +255,37 @@ onCartPreviewLeave() {
 
   dropdownAnchor = signal<'category' | 'search' | null>(null);
 
-  onSearchInput() {
-    const query = this.searchQuery.toLowerCase().trim();
-    if (query.length > 0 || this.selectedCategory()) {
-      let filtered = this.allProducts();
+onSearchInput() {
+     const query = this.searchQuery.toLowerCase().trim();
+     if (query.length > 0 || this.selectedCategory()) {
+       let filtered = this.allProducts();
 
-      if (this.selectedCategory()) {
-        filtered = filtered.filter((p: Product) => p.category === this.selectedCategory());
-      }
+       if (this.selectedCategory()) {
+         filtered = filtered.filter((p: Product) => p.category === this.selectedCategory());
+       }
 
-      if (query.length > 0) {
-        filtered = filtered.filter((p: Product) => p.title.toLowerCase().includes(query));
-      }
+       if (query.length > 0) {
+         filtered = filtered.filter((p: Product) => p.title.toLowerCase().includes(query));
+       }
 
-      this.suggestions.set(filtered.slice(0, 5));
-      this.dropdownAnchor.set('search');
-      this.showDropdown.set(true);
-    } else if (this.searchHistory().length > 0 && !this.selectedCategory()) {
-      this.suggestions.set([]);
-      this.dropdownAnchor.set('search');
-      this.showDropdown.set(true);
-    } else {
-      this.suggestions.set([]);
-      this.dropdownAnchor.set(null);
-      this.showDropdown.set(false);
-    }
-  }
+       this.suggestions.set(filtered.slice(0, 5));
+       this.dropdownAnchor.set('search');
+       this.showDropdown.set(true);
+     } else if (this.searchHistory().length > 0 && !this.selectedCategory()) {
+       this.suggestions.set([]);
+       this.dropdownAnchor.set('search');
+       this.showDropdown.set(true);
+     } else {
+       this.suggestions.set([]);
+       this.dropdownAnchor.set(null);
+       this.showDropdown.set(false);
+     }
+     // Clear any pending hide timer when actively searching
+     if (this.searchTimer) {
+       clearTimeout(this.searchTimer);
+       this.searchTimer = null;
+     }
+   }
 
   selectCategory(category: string) {
     this.selectedCategory.set(category);

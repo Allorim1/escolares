@@ -192,11 +192,24 @@
 }
 
 .form-group input[type="checkbox"] {
-  width: auto;
-  margin-right: 8px;
-}
+   width: auto;
+   margin-right: 8px;
+ }
 
-.form-actions {
+ .checkbox-label {
+   display: flex !important;
+   align-items: center;
+   cursor: pointer;
+ }
+
+ .google-places-info {
+   font-size: 0.8rem;
+   color: #1d63c1;
+   margin-top: 4px;
+   font-style: italic;
+ }
+
+ .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -241,49 +254,11 @@
   cursor: not-allowed;
 }
 
-.autocomplete-dropdown {
-  position: absolute;
-  background: white;
-  border: 1px solid #ced4da;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  width: 100%;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.autocomplete-item {
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.autocomplete-item:hover {
-  background-color: #f8f9fa;
-}
-
-.autocomplete-item:last-child {
-  border-bottom: none;
-}
-
-.autocomplete-loading {
-  position: absolute;
-  background: white;
-  padding: 8px 12px;
-  color: #666;
-  font-size: 0.9rem;
-  border: 1px solid #ced4da;
-  border-top: none;
-  z-index: 1000;
-}
-
 .map-preview-container {
-  margin-top: 16px;
-}
+   margin-top: 16px;
+ }
 
-.map-preview-container label {
+ .map-preview-container label {
   display: block;
   margin-bottom: 6px;
   font-weight: bold;
@@ -291,16 +266,12 @@
 }
 
 .map-preview {
-  width: 100%;
-  height: 200px;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
-  background: #f8f9fa;
-}
-
-.form-group {
-  position: relative;
-}
+   width: 100%;
+   height: 200px;
+   border: 1px solid #ced4da;
+   border-radius: 6px;
+   background: #f8f9fa;
+ }
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -326,30 +297,26 @@
 [data-theme="dark"] .empty-state,
 [data-theme="dark"] .direcciones-list,
 [data-theme="dark"] .direccion-form,
-[data-theme="dark"] .autocomplete-dropdown,
-[data-theme="dark"] .autocomplete-loading,
 [data-theme="dark"] .map-preview {
-  background: var(--card-bg) !important;
-}
+   background: var(--card-bg) !important;
+ }
 
 [data-theme="dark"] .direcciones-header h3,
 [data-theme="dark"] .direccion-info h4,
 [data-theme="dark"] .direccion-form h4,
 [data-theme="dark"] .form-group label,
 [data-theme="dark"] .map-preview-container label {
-  color: var(--text-primary) !important;
-}
+   color: var(--text-primary) !important;
+ }
 
 [data-theme="dark"] .direccion-item,
 [data-theme="dark"] .form-group input,
-[data-theme="dark"] .autocomplete-item,
 [data-theme="dark"] .direccion-text,
 [data-theme="dark"] .direccion-details,
 [data-theme="dark"] .form-error {
-  color: var(--text-secondary) !important;
-}
+   color: var(--text-secondary) !important;
+ }
 
-[data-theme="dark"] .direccion-item,
-[data-theme="dark"] .autocomplete-item {
-  border-color: var(--border-color) !important;
-}
+[data-theme="dark"] .direccion-item {
+   border-color: var(--border-color) !important;
+ }

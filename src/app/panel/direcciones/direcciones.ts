@@ -15,14 +15,16 @@ interface DireccionUsuario extends Direccion {
   placeId?: string;
 }
 
+declare const google: any;
+
 @Component({
-  selector: 'app-direcciones',
-  standalone: true,
-  templateUrl: './direcciones.html',
-  styleUrls: ['./direcciones.css'],
-  imports: [FormsModule],
-})
-export class Direcciones implements OnChanges {
+   selector: 'app-direcciones',
+   standalone: true,
+   templateUrl: './direcciones.html',
+   styleUrls: ['./direcciones.css'],
+   imports: [FormsModule],
+ })
+ export class Direcciones implements AfterViewInit, OnChanges {
   authService = inject(AuthService);
   mapsService = inject(GoogleMapsService);
 
@@ -38,16 +40,15 @@ export class Direcciones implements OnChanges {
   formEstado = signal('');
   formCodigoPostal = signal('');
   formPrincipal = signal(false);
-  formPlaceId = signal('');
-  formLatitud = signal<number | null>(null);
-  formLongitud = signal<number | null>(null);
+formPlaceId = signal('');
+   formLatitud = signal<number | null>(null);
+   formLongitud = signal<number | null>(null);
 
-  autocompleteResults = signal<any[]>([]);
-  buscandoAutocomplete = signal(false);
-  
-  @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
+   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
+  @ViewChild('addressInput', { static: false }) addressInput!: ElementRef;
   private map: any = null;
   private marker: any = null;
+  private placesAutocomplete: any = null;
 
   readonly estadosVenezuela = [
     'Amazonas', 'Anzoátegui', 'Apure', 'Aragua', 'Barinas', 'Bolívar', 'Carabobo',
@@ -77,20 +78,14 @@ export class Direcciones implements OnChanges {
     return Array.from(new Set([...this.estadosVenezuela, ...existentes]));
   });
 
-  ciudadSugerencias = computed(() => {
-    const estado = this.formEstado().trim();
-    const porEstado = estado ? (this.ciudadesPorEstado[estado] || []) : [];
-    const existentes = this.direcciones().map((d) => (d.ciudad || '').trim()).filter(Boolean) as string[];
-    return Array.from(new Set([...porEstado, ...existentes]));
-  });
+ciudadSugerencias = computed(() => {
+     const estado = this.formEstado().trim();
+     const porEstado = estado ? (this.ciudadesPorEstado[estado] || []) : [];
+     const existentes = this.direcciones().map((d) => (d.ciudad || '').trim()).filter(Boolean) as string[];
+     return Array.from(new Set([...porEstado, ...existentes]));
+   });
 
-  calleSugerencias = computed(() => {
-    const base = ['Av. Principal', 'Calle Principal', 'Av. Bolívar', 'Av. Libertador'];
-    const existentes = this.direcciones().map((d) => (d.calle || '').trim()).filter(Boolean) as string[];
-    return Array.from(new Set([...base, ...existentes]));
-  });
-
-  constructor() {
+   constructor() {
     this.cargarDesdeUsuario();
   }
 
@@ -270,59 +265,50 @@ export class Direcciones implements OnChanges {
     this.formPrincipal.set(false);
   }
 
-  getTituloDireccion(dir: DireccionUsuario, index: number): string {
-    return (dir.alias || dir.nombre || `Dirección ${index + 1}`).trim();
-  }
+getTituloDireccion(dir: DireccionUsuario, index: number): string {
+     return (dir.alias || dir.nombre || `Dirección ${index + 1}`).trim();
+   }
+   
+  async ngAfterViewInit() {
+     if (this.addressInput?.nativeElement) {
+       try {
+         await this.mapsService.loadApi();
+         this.placesAutocomplete = new google.maps.places.Autocomplete(this.addressInput.nativeElement, {
+           componentRestrictions: { country: 've' },
+           fields: ['geometry', 'formatted_address', 'address_components', 'place_id']
+         });
+         this.placesAutocomplete.addListener('place_changed', () => {
+           this.onPlaceSelected();
+         });
+       } catch (error) {
+         console.error('Error loading Google Places Autocomplete:', error);
+       }
+     }
+   }
 
-  buscarDireccion(query: string) {
-    if (!query || query.length < 3) {
-      this.autocompleteResults.set([]);
-      return;
-    }
-    
-    this.buscandoAutocomplete.set(true);
-    this.mapsService?.autocomplete(query).then(results => {
-      this.autocompleteResults.set(results || []);
-      this.buscandoAutocomplete.set(false);
-    }).catch(() => {
-      this.autocompleteResults.set([]);
-      this.buscandoAutocomplete.set(false);
-    });
-  }
+   private onPlaceSelected() {
+     const place = this.placesAutocomplete.getPlace();
+     
+     if (place.geometry && place.geometry.location) {
+       this.formLatitud.set(place.geometry.location.lat());
+       this.formLongitud.set(place.geometry.location.lng());
+       this.formPlaceId.set(place.place_id || '');
+       this.formCalle.set(place.formatted_address || '');
 
-  seleccionarAutocomplete(result: any) {
-    if (!result) return;
-    
-    this.autocompleteResults.set([]);
-    this.formCalle.set(result.description || '');
-    this.formPlaceId.set(result.place_id || '');
-    
-    if (result.place_id) {
-      this.mapsService?.geocodePlaceId(result.place_id).then(geo => {
-        if (geo?.results?.[0]) {
-          const components = geo.results[0].address_components || [];
-          let ciudad = '';
-          let estado = '';
-          
-          for (const comp of components) {
-            if (comp.types.includes('locality')) ciudad = comp.long_name;
-            if (comp.types.includes('administrative_area_level_1')) estado = comp.long_name;
-          }
-          
-          const geometry = geo.results[0].geometry?.location || {};
-          this.formCiudad.set(ciudad);
-          this.formEstado.set(estado);
-          this.formLatitud.set(geometry.lat || null);
-          this.formLongitud.set(geometry.lng || null);
-        }
-      });
-    }
-  }
-
-  limpiarAutocomplete() {
-    setTimeout(() => this.autocompleteResults.set([]), 200);
-  }
-  
+       const components = place.address_components || [];
+       let ciudad = '';
+       let estado = '';
+       
+       for (const comp of components) {
+         if (comp.types.includes('locality')) ciudad = comp.long_name;
+         if (comp.types.includes('administrative_area_level_1')) estado = comp.long_name;
+       }
+       
+       this.formCiudad.set(ciudad);
+       this.formEstado.set(estado);
+     }
+   }
+   
   ngOnChanges(changes: SimpleChanges) {
     if (changes['formLatitud'] || changes['formLongitud']) {
       this.actualizarMapa();

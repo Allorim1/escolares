@@ -167,6 +167,7 @@
 
 .form-group {
   margin-bottom: 16px;
+  position: relative;
 }
 
 .form-group label {
@@ -192,63 +193,63 @@
 }
 
 .form-group input[type="checkbox"] {
-   width: auto;
-   margin-right: 8px;
- }
+  width: auto;
+  margin-right: 8px;
+}
 
- .checkbox-label {
-   display: flex !important;
-   align-items: center;
-   cursor: pointer;
- }
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  cursor: pointer;
+}
 
- .google-places-info {
-   font-size: 0.8rem;
-   color: #1d63c1;
-   margin-top: 4px;
-   font-style: italic;
- }
+.google-places-info {
+  font-size: 0.8rem;
+  color: #1d63c1;
+  margin-top: 4px;
+  font-style: italic;
+}
 
- .form-actions {
-   display: flex;
-   justify-content: flex-end;
-   gap: 10px;
-   margin-top: 20px;
- }
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
 
- /* Google Places Autocomplete dropdown styles */
- .pac-container {
-   background-color: white !important;
-   border: 1px solid #ced4da !important;
-   border-top: none !important;
-   border-radius: 0 0 4px 4px !important;
-   box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-   z-index: 1000 !important;
-   max-height: 200px !important;
-   overflow-y: auto !important;
- }
+/* Google Places Autocomplete dropdown styles */
+.pac-container {
+  background-color: white !important;
+  border: 1px solid #ced4da !important;
+  border-top: none !important;
+  border-radius: 0 0 4px 4px !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+  z-index: 1000 !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+}
 
- .pac-item {
-   padding: 10px !important;
-   cursor: pointer !important;
-   border-bottom: 1px solid #f0f0f0 !important;
-   font-size: 0.95rem !important;
-   color: #333 !important;
- }
+.pac-item {
+  padding: 10px !important;
+  cursor: pointer !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  font-size: 0.95rem !important;
+  color: #333 !important;
+}
 
- .pac-item:hover {
-   background-color: #f8f9fa !important;
- }
+.pac-item:hover {
+  background-color: #f8f9fa !important;
+}
 
- .pac-item:last-child {
-   border-bottom: none !important;
- }
+.pac-item:last-child {
+  border-bottom: none !important;
+}
 
 .pac-item-selected {
-   background-color: #e9ecef !important;
- }
- 
- .form-error {
+  background-color: #e9ecef !important;
+}
+
+.form-error {
   color: #c62828;
   font-size: 0.9rem;
   margin: 6px 0 0;
@@ -287,10 +288,10 @@
 }
 
 .map-preview-container {
-   margin-top: 16px;
- }
+  margin-top: 16px;
+}
 
- .map-preview-container label {
+.map-preview-container label {
   display: block;
   margin-bottom: 6px;
   font-weight: bold;
@@ -298,12 +299,12 @@
 }
 
 .map-preview {
-   width: 100%;
-   height: 200px;
-   border: 1px solid #ced4da;
-   border-radius: 6px;
-   background: #f8f9fa;
- }
+  width: 100%;
+  height: 200px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  background: #f8f9fa;
+}
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -330,25 +331,25 @@
 [data-theme="dark"] .direcciones-list,
 [data-theme="dark"] .direccion-form,
 [data-theme="dark"] .map-preview {
-   background: var(--card-bg) !important;
- }
+  background: var(--card-bg) !important;
+}
 
 [data-theme="dark"] .direcciones-header h3,
 [data-theme="dark"] .direccion-info h4,
 [data-theme="dark"] .direccion-form h4,
 [data-theme="dark"] .form-group label,
 [data-theme="dark"] .map-preview-container label {
-   color: var(--text-primary) !important;
- }
+  color: var(--text-primary) !important;
+}
 
 [data-theme="dark"] .direccion-item,
 [data-theme="dark"] .form-group input,
 [data-theme="dark"] .direccion-text,
 [data-theme="dark"] .direccion-details,
 [data-theme="dark"] .form-error {
-   color: var(--text-secondary) !important;
- }
+  color: var(--text-secondary) !important;
+}
 
 [data-theme="dark"] .direccion-item {
-   border-color: var(--border-color) !important;
- }
+  border-color: var(--border-color) !important;
+}

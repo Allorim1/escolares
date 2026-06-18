@@ -13,7 +13,7 @@ interface Empleado {
 interface Asistencia {
   _id?: any;
   empleadoId: any;
-  empleadoNombre: string;
+  empleadoNombre?: string;
   fecha: Date;
   tipo: 'entrada' | 'salida';
   hora?: string;
@@ -114,6 +114,7 @@ export class Asistencias implements OnInit {
     } else {
       this.editingAsistencia = {
         empleadoId: '',
+        empleadoNombre: '',
         tipo: 'entrada',
         fecha: new Date(),
         hora: '',

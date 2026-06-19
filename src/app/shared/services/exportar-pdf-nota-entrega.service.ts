@@ -193,7 +193,8 @@ export class ExportarPdfNotaEntregaService {
                   rowSpan: 6,
                   stack: [
                     { text: 'ESCOLARES CA. RIF: J-30488367-6', fontSize: 9.5, bold: true, margin: [0, 2, 0, 1] },
-                    { text: `DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno        TELÉFONO: 0241-8580281`, fontSize: 8.5, bold: true, margin: [0, 1, 0, 1] },
+                    { text: `DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno`, fontSize: 8.5, bold: true, margin: [0, 1, 0, 1] },
+                    { text: 'TELÉFONO: 0241-8580281', fontSize: 8.5, bold: true, margin: [0, 1, 0, 1] },
                     { text: 'INSTAGRAM: @escolaresonline       WHATSAPP: 04144329235', fontSize: 8, bold: true, italic: true },
                     { text: `OBSERVACIONES: EL TOTAL DE LA NOTA DE ENTREGA SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, bold: true, fontSize: 7.5},
                   ],
@@ -246,7 +247,7 @@ export class ExportarPdfNotaEntregaService {
           margin: [0, 10, 0, 0],
           columns: [
             {
-              width: '100%',  text: '"SIN DERECHO A CREDITO FISCAL", LA FACTURA SERÁ EMITIDA UNA VEZ CONFIRMADO EL PAGO', alignment: 'center'
+              width: '100%',  text: '"SIN DERECHO A CREDITO FISCAL", LA FACTURA SERÁ EMITIDA UNA VEZ CONFIRMADO EL PAGO', alignment: 'center', fontSize: 7, fillColor: '#DBDBDB'
             }
           ]
         }

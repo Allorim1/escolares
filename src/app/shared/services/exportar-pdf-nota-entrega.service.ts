@@ -75,8 +75,8 @@ export class ExportarPdfNotaEntregaService {
   stack: [
     { 
       text: [
-        { text: 'NOTA ', fontSize: 10, bold: true }, // Un poco más grande
-        { text: 'DE ENTREGA', fontSize: 9, bold: true }   // Mantiene tu estilo base (fontSize: 18)
+        { text: 'NOTA ', fontSize: 14, bold: true }, // Un poco más grande
+        { text: 'DE ENTREGA', fontSize: 13, bold: true }   // Mantiene tu estilo base (fontSize: 18)
       ],
       alignment: 'right'
     },

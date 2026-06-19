@@ -80,7 +80,7 @@ export class ExportarPdfNotaEntregaService {
       ],
       alignment: 'right'
     },
-    { text: data.numeroNota, style: 'numeroDoc', alignment: 'center' },
+    { text: `No. ${data.numeroNota}`, style: 'numeroDoc', alignment: 'center' },
   ],
   alignment: 'right',
   width: '24%',
@@ -192,9 +192,9 @@ export class ExportarPdfNotaEntregaService {
                 {
                   rowSpan: 6,
                   stack: [
-                    { text: `TELÉFONO: 0241-8580281        DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno`, fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
-                    { text: 'ESCOLARES CA.', fontSize: 7.5, bold: true, margin: [0, 2, 0, 1] },
-                    { text: 'INSTAGRAM: @escolaresonline       WHATSAPP: 04144329235', fontSize: 7, bold: true, italic: true },
+                    { text: `TELÉFONO: 0241-8580281        DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno`, fontSize: 8.5, bold: true, margin: [0, 1, 0, 1] },
+                    { text: 'ESCOLARES CA.', fontSize: 9.5, bold: true, margin: [0, 2, 0, 1] },
+                    { text: 'INSTAGRAM: @escolaresonline       WHATSAPP: 04144329235', fontSize: 8, bold: true, italic: true },
                   ],
                   colSpan: 3,
                   border: [false, false, false, false],

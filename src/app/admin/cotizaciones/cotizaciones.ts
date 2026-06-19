@@ -89,7 +89,15 @@ export class Cotizaciones implements OnInit {
     return this.cotizacionService.cotizaciones();
   }
 
-  openModal(cotizacion?: Cotizacion) {
+  openModal() {
+    if (this.currentTab === 'cotizaciones') {
+      this.openModalCotizacion();
+    } else {
+      this.openModalNotaEntrega();
+    }
+  }
+
+  openModalCotizacion(cotizacion?: Cotizacion) {
     this.modalMode = 'cotizacion';
     if (cotizacion) {
       this.editingCotizacion = { ...cotizacion };
@@ -442,6 +450,7 @@ export class Cotizaciones implements OnInit {
       };
     } else {
       this.editingNotaEntrega = null;
+      this.resetFormNotaEntrega();
     }
     this.showModal = true;
   }
@@ -566,6 +575,10 @@ export class Cotizaciones implements OnInit {
     }
 
     this.closeModal();
+    
+    setTimeout(() => {
+      alert(this.editingNotaEntrega?._id ? 'Nota de entrega actualizada exitosamente' : 'Nota de entrega creada exitosamente');
+    }, 100);
   }
 
   eliminarNotaEntrega(nota: NotaEntrega) {

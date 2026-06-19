@@ -2,8 +2,11 @@ import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CotizacionService } from '../../shared/data-access/cotizacion.service';
+import { NotaEntregaService } from '../../shared/data-access/nota-entrega.service';
 import { ExportarPdfService } from '../../shared/services/exportar-pdf.service';
+import { ExportarPdfNotaEntregaService } from '../../shared/services/exportar-pdf-nota-entrega.service';
 import { Cotizacion, ItemCotizacion } from '../../shared/interfaces/cotizacion.interface';
+import { NotaEntrega } from '../../shared/interfaces/nota-entrega.interface';
 
 @Component({
   selector: 'app-cotizaciones',
@@ -14,16 +17,28 @@ import { Cotizacion, ItemCotizacion } from '../../shared/interfaces/cotizacion.i
 })
 export class Cotizaciones implements OnInit {
   cotizacionService = inject(CotizacionService);
+  notaEntregaService = inject(NotaEntregaService);
   exportarPdfService = inject(ExportarPdfService);
+  exportarPdfNotaEntregaService = inject(ExportarPdfNotaEntregaService);
 
   @ViewChild('cotizacionModal') cotizacionModal!: ElementRef<HTMLElement>;
+  @ViewChild('notaEntregaModal') notaEntregaModal!: ElementRef<HTMLElement>;
 
   ngOnInit() {
     this.cotizacionService.loadCotizaciones();
+    this.notaEntregaService.loadNotasEntrega();
+  }
+
+  currentTab: 'cotizaciones' | 'notas-entrega' = 'cotizaciones';
+
+  switchTab(tab: 'cotizaciones' | 'notas-entrega') {
+    this.currentTab = tab;
   }
 
   showModal = false;
+  modalMode: 'cotizacion' | 'nota-entrega' = 'cotizacion';
   editingCotizacion: Cotizacion | null = null;
+  editingNotaEntrega: NotaEntrega | null = null;
 
   newCotizacion: Cotizacion = {
     numeroCotizacion: '',
@@ -75,6 +90,7 @@ export class Cotizaciones implements OnInit {
   }
 
   openModal(cotizacion?: Cotizacion) {
+    this.modalMode = 'cotizacion';
     if (cotizacion) {
       this.editingCotizacion = { ...cotizacion };
       this.newCotizacion = {
@@ -106,7 +122,7 @@ export class Cotizaciones implements OnInit {
       };
     } else {
       this.editingCotizacion = null;
-      this.resetForm();
+      this.resetFormCotizacion();
     }
     this.showModal = true;
   }
@@ -118,12 +134,59 @@ export class Cotizaciones implements OnInit {
   closeModal() {
     this.showModal = false;
     this.editingCotizacion = null;
-    this.resetForm();
+    this.editingNotaEntrega = null;
+    this.resetFormCotizacion();
+    this.resetFormNotaEntrega();
   }
 
-  resetForm() {
+  resetFormCotizacion() {
     this.newCotizacion = {
       numeroCotizacion: '',
+      fecha: new Date().toISOString().split('T')[0],
+      cliente: {
+        nombre: '',
+        rif: '',
+        direccion: '',
+        telefono: '',
+      },
+      items: [],
+      referencia: {
+        numeroReferencia: '',
+        validezDias: 5,
+        vendedor: '',
+        nroZona: ''
+      },
+      totales: {
+        netoBs: 0,
+        porcentajeDescuento: 0,
+        descuentoBs: 0,
+        subTotalBs: 0,
+        ivaPorcentaje: 16,
+        ivaBs: 0,
+        exentoBs: 0,
+        totalBs: 0,
+      },
+    };
+    this.newItem = {
+      codigo: '',
+      cantidad: 1,
+      descripcion: '',
+      precioUnitarioBs: 0,
+      montoTotalBs: 0,
+    };
+    this.editingItemIndex = null;
+    this.editingItem = {
+      codigo: '',
+      cantidad: 1,
+      descripcion: '',
+      precioUnitarioBs: 0,
+      montoTotalBs: 0,
+    };
+  }
+
+  resetFormNotaEntrega() {
+    this.newNotaEntrega = {
+      numeroNota: '',
       fecha: new Date().toISOString().split('T')[0],
       cliente: {
         nombre: '',
@@ -311,5 +374,203 @@ export class Cotizaciones implements OnInit {
       currency: 'VES',
       minimumFractionDigits: 2,
     }).format(value);
+  }
+
+  // --- Nota de Entrega ---
+  newNotaEntrega: NotaEntrega = {
+    numeroNota: '',
+    fecha: new Date().toISOString().split('T')[0],
+    cliente: {
+      nombre: '',
+      rif: '',
+      direccion: '',
+      telefono: '',
+    },
+    items: [],
+    referencia: {
+      numeroReferencia: '',
+      validezDias: 5,
+      vendedor: '',
+      nroZona: ''
+    },
+    totales: {
+      netoBs: 0,
+      porcentajeDescuento: 0,
+      descuentoBs: 0,
+      subTotalBs: 0,
+      ivaPorcentaje: 16,
+      ivaBs: 0,
+      exentoBs: 0,
+      totalBs: 0,
+    },
+  };
+
+  get notasEntrega() {
+    return this.notaEntregaService.notasEntrega();
+  }
+
+  openModalNotaEntrega(nota?: NotaEntrega) {
+    this.modalMode = 'nota-entrega';
+    if (nota) {
+      this.editingNotaEntrega = { ...nota };
+      this.newNotaEntrega = {
+        numeroNota: nota.numeroNota || '',
+        fecha: nota.fecha || new Date().toISOString().split('T')[0],
+        cliente: {
+          nombre: nota.cliente?.nombre || '',
+          rif: nota.cliente?.rif || '',
+          direccion: nota.cliente?.direccion || '',
+          telefono: nota.cliente?.telefono || '',
+        },
+        items: nota.items || [],
+        referencia: {
+          nroZona: nota.referencia?.nroZona || '',
+          validezDias: nota.referencia?.validezDias || 5,
+          vendedor: nota.referencia?.vendedor || '',
+          numeroReferencia: nota.referencia?.numeroReferencia || ''
+        },
+        totales: {
+          netoBs: nota.totales?.netoBs || 0,
+          porcentajeDescuento: nota.totales?.porcentajeDescuento || 0,
+          descuentoBs: nota.totales?.descuentoBs || 0,
+          subTotalBs: nota.totales?.subTotalBs || 0,
+          ivaPorcentaje: nota.totales?.ivaPorcentaje || 16,
+          ivaBs: nota.totales?.ivaBs || 0,
+          exentoBs: nota.totales?.exentoBs || 0,
+          totalBs: nota.totales?.totalBs || 0,
+        },
+      };
+    } else {
+      this.editingNotaEntrega = null;
+    }
+    this.showModal = true;
+  }
+
+  generatePdfNotaEntrega(nota: NotaEntrega) {
+    this.exportarPdfNotaEntregaService.generarYAbrirPdf(nota);
+  }
+
+  addItemNotaEntrega() {
+    if (!this.newItem.codigo || !this.newItem.descripcion || this.newItem.cantidad <= 0 || this.newItem.precioUnitarioBs <= 0) {
+      alert('Por favor completa todos los campos del artículo');
+      return;
+    }
+
+    this.newItem.montoTotalBs = this.newItem.cantidad * this.newItem.precioUnitarioBs;
+    this.newNotaEntrega.items = [...this.newNotaEntrega.items, { ...this.newItem }];
+    
+    this.calculateTotalsNotaEntrega();
+    
+    this.newItem = {
+      codigo: '',
+      cantidad: 1,
+      descripcion: '',
+      precioUnitarioBs: 0,
+      montoTotalBs: 0,
+    };
+  }
+
+  startEditItemNotaEntrega(index: number) {
+    const item = this.newNotaEntrega.items[index];
+
+    if (!item) {
+      return;
+    }
+
+    this.editingItemIndex = index;
+    this.editingItem = { ...item };
+
+    setTimeout(() => this.focusNextFieldNotaEntrega());
+  }
+
+  saveEditedItemNotaEntrega() {
+    if (!this.editingItem.codigo || !this.editingItem.descripcion || this.editingItem.cantidad <= 0 || this.editingItem.precioUnitarioBs <= 0) {
+      alert('Por favor completa todos los campos del artículo');
+      return;
+    }
+
+    if (this.editingItemIndex === null) {
+      return;
+    }
+
+    this.editingItem.montoTotalBs = this.editingItem.cantidad * this.editingItem.precioUnitarioBs;
+    this.newNotaEntrega.items = this.newNotaEntrega.items.map((item, index) => index === this.editingItemIndex ? { ...this.editingItem } : item);
+    this.calculateTotalsNotaEntrega();
+    this.cancelEditItem();
+  }
+
+  removeItemNotaEntrega(index: number) {
+    if (this.editingItemIndex === index) {
+      this.cancelEditItem();
+    } else if (this.editingItemIndex !== null && index < this.editingItemIndex) {
+      this.editingItemIndex--;
+    }
+
+    this.newNotaEntrega.items = this.newNotaEntrega.items.filter((_, i) => i !== index);
+    this.calculateTotalsNotaEntrega();
+  }
+
+  calculateTotalsNotaEntrega() {
+    const neto = this.newNotaEntrega.items.reduce((sum, item) => sum + item.montoTotalBs, 0);
+    this.newNotaEntrega.totales.netoBs = neto;
+    
+    const descuento = (neto * this.newNotaEntrega.totales.porcentajeDescuento) / 100;
+    this.newNotaEntrega.totales.descuentoBs = descuento;
+    
+    const subTotal = neto - descuento;
+    this.newNotaEntrega.totales.subTotalBs = subTotal;
+    
+    const iva = (subTotal * this.newNotaEntrega.totales.ivaPorcentaje) / 100;
+    this.newNotaEntrega.totales.ivaBs = iva;
+    
+    this.newNotaEntrega.totales.totalBs = subTotal + iva;
+  }
+
+  focusNextFieldNotaEntrega() {
+    const modal = this.notaEntregaModal?.nativeElement;
+
+    if (!modal) {
+      return;
+    }
+
+    const focusableElements = Array.from(
+      modal.querySelectorAll<HTMLElement>('input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled])')
+    ).filter((element) => element.offsetParent !== null);
+
+    if (focusableElements.length === 0) {
+      return;
+    }
+
+    const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const activeIndex = activeElement ? focusableElements.indexOf(activeElement) : -1;
+    const nextIndex = activeIndex === -1 ? 0 : (activeIndex + 1) % focusableElements.length;
+
+    focusableElements[nextIndex].focus();
+  }
+
+  saveNotaEntrega() {
+    if (!this.newNotaEntrega.numeroNota || !this.newNotaEntrega.cliente.nombre) {
+      alert('Por favor completa los campos obligatorios');
+      return;
+    }
+
+    if (this.newNotaEntrega.items.length === 0) {
+      alert('Agrega al menos un artículo a la nota de entrega');
+      return;
+    }
+
+    if (this.editingNotaEntrega?._id) {
+      this.notaEntregaService.actualizarNotaEntrega(this.editingNotaEntrega._id, this.newNotaEntrega);
+    } else {
+      this.notaEntregaService.crearNotaEntrega(this.newNotaEntrega);
+    }
+
+    this.closeModal();
+  }
+
+  eliminarNotaEntrega(nota: NotaEntrega) {
+    if (confirm('¿Eliminar esta nota de entrega?')) {
+      this.notaEntregaService.eliminarNotaEntrega(nota._id!);
+    }
   }
 }

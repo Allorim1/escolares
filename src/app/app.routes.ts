@@ -223,10 +223,10 @@ export const routes: Routes = [
              loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
            },
 {
-              path: 'cotizaciones',
-              loadComponent: () => import('./admin/cotizaciones/cotizaciones').then((m) => m.Cotizaciones),
-            },
-           {
+                path: 'cotizaciones',
+                loadComponent: () => import('./admin/cotizaciones/cotizaciones').then((m) => m.Cotizaciones),
+              },
+            {
              path: 'retenciones',
              loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
            },

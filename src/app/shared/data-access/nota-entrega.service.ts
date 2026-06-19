@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RegistroService } from './registro.service';
 import { NotaEntrega } from '../interfaces/nota-entrega.interface';
@@ -11,7 +11,8 @@ export class NotaEntregaService {
 
   notasEntrega = signal<NotaEntrega[]>([]);
 
-  constructor(private http: HttpClient, private registroService: RegistroService) {}
+  private http = inject(HttpClient);
+  private registroService = inject(RegistroService);
 
   loadNotasEntrega() {
     this.http.get<NotaEntrega[]>(this.API_URL).subscribe({

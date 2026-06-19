@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RegistroService } from './registro.service';
 import { Cotizacion } from '../interfaces/cotizacion.interface';
@@ -11,7 +11,8 @@ export class CotizacionService {
 
   cotizaciones = signal<Cotizacion[]>([]);
 
-  constructor(private http: HttpClient, private registroService: RegistroService) {}
+  private http = inject(HttpClient);
+  private registroService = inject(RegistroService);
 
   loadCotizaciones() {
     this.http.get<Cotizacion[]>(this.API_URL).subscribe({

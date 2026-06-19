@@ -4,6 +4,9 @@ import { HttpClient } from '@angular/common/http';
 
 declare const pdfMake: any;
 
+type TableLayoutNode = any;
+type TableLayoutContext = any;
+
 @Injectable({
   providedIn: 'root',
 })

@@ -165,7 +165,7 @@ export class ExportarPdfNotaEntregaService {
         },
         {
           table: {
-            widths: ['auto', 'auto', '*', 'auto', 'auto'],
+            widths: [45, 45, '*', 75, 75],
             body: [
               [
                 { text: 'CODIGO', style: 'headerCen' },
@@ -192,8 +192,8 @@ export class ExportarPdfNotaEntregaService {
                 {
                   rowSpan: 6,
                   stack: [
-                    { text: `TELÉFONO: 0241-8580281        DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno`, fontSize: 8.5, bold: true, margin: [0, 1, 0, 1] },
-                    { text: 'ESCOLARES CA.', fontSize: 9.5, bold: true, margin: [0, 2, 0, 1] },
+                    { text: 'ESCOLARES CA. RIF: J-30488367-6', fontSize: 9.5, bold: true, margin: [0, 2, 0, 1] },
+                    { text: `DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno        TELÉFONO: 0241-8580281`, fontSize: 8.5, bold: true, margin: [0, 1, 0, 1] },
                     { text: 'INSTAGRAM: @escolaresonline       WHATSAPP: 04144329235', fontSize: 8, bold: true, italic: true },
                     { text: `OBSERVACIONES: EL TOTAL DE LA NOTA DE ENTREGA SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, bold: true, fontSize: 7.5},
                   ],
@@ -241,9 +241,16 @@ export class ExportarPdfNotaEntregaService {
             { width: '50%', text: '________________________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },
             { width: '50%', text: '________________________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', bold: true }
           ]
+        },
+        {
+          margin: [0, 10, 0, 0],
+          columns: [
+            {
+              width: '100%',  text: '"SIN DERECHO A CREDITO FISCAL", LA FACTURA SERÁ EMITIDA UNA VEZ CONFIRMADO EL PAGO', alignment: 'center'
+            }
+          ]
         }
       ],
-
       styles: {
         headerTitle: { fontSize: 16, bold: true, color: '#0d3b66' },
         headerSub: { fontSize: 10, bold: true },

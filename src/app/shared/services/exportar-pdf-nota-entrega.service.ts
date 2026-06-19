@@ -71,15 +71,21 @@ export class ExportarPdfNotaEntregaService {
               alignment: 'center',
               margin: [0, -10, 0, 0]
             },
-            {
-              stack: [
-                { text: 'NOTA DE ENTREGA', style: 'tituloDoc' },
-                { text: data.numeroNota, style: 'numeroDoc', alignment: 'center'  },
-              ],
-              alignment: 'right',
-              width: '24%',
-              margin: [0, 10, 0, 0]
-            }
+           {
+  stack: [
+    { 
+      text: [
+        { text: 'NOTA ', fontSize: 21, bold: true }, // Un poco más grande
+        { text: 'DE ENTREGA', style: 'tituloDoc' }   // Mantiene tu estilo base (fontSize: 18)
+      ],
+      alignment: 'right'
+    },
+    { text: data.numeroNota, style: 'numeroDoc', alignment: 'center' },
+  ],
+  alignment: 'right',
+  width: '24%',
+  margin: [0, 10, 0, 0]
+}
           ]
         },
 
@@ -159,7 +165,7 @@ export class ExportarPdfNotaEntregaService {
         },
         {
           table: {
-            widths: ['18%', '12%', '*', '19%', '19%'], // Ajustado levemente para balancear los totales y datos
+            widths: ['auto', 'auto', '*', 'auto', 'auto'],
             body: [
               [
                 { text: 'CODIGO', style: 'headerCen' },
@@ -182,60 +188,42 @@ export class ExportarPdfNotaEntregaService {
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
-              // FILA 1 TOTALES: Datos de la empresa arriba a la izquierda
               [
                 {
-                  rowSpan: 3,
+                  rowSpan: 6,
                   stack: [
-                    { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5, bold: true, margin: [0, 0, 0, 1] },
-                    { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, bold: true, margin: [0, 0, 0, 4] },
-                    { text: `FAVOR TRANSFERENCIA BANCARIA A NOMBRE DE: ESCOLARES, C.A.  R.I.F.: J-30488367-6\nA CUALQUIERA DE NUESTRAS CUENTAS CORRIENTES:`, fontSize: 6.5, bold: true, margin: [0, 0, 0, 2] },
-                    { text: 'TELÉFONO: 0241-8580281      DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno', fontSize: 6.5, bold: true, margin: [0, 0, 0, 3] },
-                    { text: 'ESCOLARES CA.', fontSize: 7, bold: true, margin: [0, 0, 0, 1] },
-                    { text: 'INSTAGRAM: @escolaresonline     WHATSAPP: 04144329235', fontSize: 6.5, bold: true, italic: true },
+                    { text: `TELÉFONO: 0241-8580281        DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno`, fontSize: 7.5, bold: true, margin: [0, 1, 0, 1] },
+                    { text: 'ESCOLARES CA.', fontSize: 7.5, bold: true, margin: [0, 2, 0, 1] },
+                    { text: 'INSTAGRAM: @escolaresonline       WHATSAPP: 04144329235', fontSize: 7, bold: true, italic: true },
                   ],
                   colSpan: 3,
                   border: [false, false, false, false],
-                  margin: [0, 4, 10, 0]
+                  margin: [0, 6, 10, 0]
                 },
                 '', '', 
                 { text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
-              // FILA 2 TOTALES: Descuento
               [
                 '', '', '', 
                 { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
-              // FILA 3 TOTALES: Subtotal
               [
                 '', '', '', 
                 { text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
-              // FILA 4 TOTALES: IVA (Aquí empiezan las firmas al lado izquierdo)
               [
-                {
-                  rowSpan: 3,
-                  columns: [
-                    { width: '50%', text: '___________________________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 15, 0, 0] },
-                    { width: '50%', text: '___________________________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', margin: [0, 15, 0, 0] }
-                  ],
-                  colSpan: 3,
-                  border: [false, false, false, false]
-                },
-                '', '',
+                '', '', '', 
                 { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
-              // FILA 5 TOTALES: Exento
               [
                 '', '', '', 
                 { text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
-              // FILA 6 TOTALES: Total Final
               [
                 '', '', '', 
                 { text: 'TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
@@ -246,17 +234,17 @@ export class ExportarPdfNotaEntregaService {
           layout: 'tablaComercial'
         },
 
-        // OBSERVACIONES: Ahora van abajo del todo, completamente independientes
         {
-          margin: [0, 15, 0, 0],
+          margin: [0, 60, 0, 0],
           columns: [
-            { width: '100%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA NOTA DE ENTREGA SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]}
+            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA NOTA DE ENTREGA SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]},
+            { width: '25%', text: '________________________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },
+            { width: '25%', text: '________________________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', bold: true }
           ]
         }
       ],
 
       styles: {
-        // ... Se mantienen tus mismos estilos intactos
         headerTitle: { fontSize: 16, bold: true, color: '#0d3b66' },
         headerSub: { fontSize: 10, bold: true },
         datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
@@ -285,11 +273,14 @@ export class ExportarPdfNotaEntregaService {
       pageMargins: [40, 30, 40, 30]
     };
 
-    // ... Se mantiene tu propiedad docDefinition.tableLayouts original
     docDefinition.tableLayouts = {
       tablaComercial: {
-        hLineWidth: (_i: number, _node: TableLayoutNode) => 0.8,
-        vLineWidth: (_i: number, node: TableLayoutNode) => (node.table.widths.length > 0) ? 1.2 : 0.8,
+        hLineWidth: (_i: number, _node: TableLayoutNode) => {
+          return 0.8;
+        },
+        vLineWidth: (_i: number, node: TableLayoutNode) => {
+          return (node.table.widths.length > 0) ? 1.2 : 0.8;
+        },
         hLineColor: () => '#000000',
         vLineColor: () => '#000000',
         paddingLeft: () => 4,

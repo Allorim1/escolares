@@ -195,6 +195,7 @@ export class ExportarPdfNotaEntregaService {
                     { text: `TELÉFONO: 0241-8580281        DIRECCIÓN: Calle Girardoth, entre Av. Constitucion y diaz Moreno`, fontSize: 8.5, bold: true, margin: [0, 1, 0, 1] },
                     { text: 'ESCOLARES CA.', fontSize: 9.5, bold: true, margin: [0, 2, 0, 1] },
                     { text: 'INSTAGRAM: @escolaresonline       WHATSAPP: 04144329235', fontSize: 8, bold: true, italic: true },
+                    { text: `OBSERVACIONES: EL TOTAL DE LA NOTA DE ENTREGA SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, bold: true, fontSize: 7.5},
                   ],
                   colSpan: 3,
                   border: [false, false, false, false],
@@ -237,9 +238,8 @@ export class ExportarPdfNotaEntregaService {
         {
           margin: [0, 60, 0, 0],
           columns: [
-            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA NOTA DE ENTREGA SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]},
-            { width: '25%', text: '________________________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },
-            { width: '25%', text: '________________________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', bold: true }
+            { width: '50%', text: '________________________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },
+            { width: '50%', text: '________________________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', bold: true }
           ]
         }
       ],

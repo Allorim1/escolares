@@ -1744,94 +1744,73 @@ private procesarVentasActual(
     return tieneRepetidasActual || tieneRepetidasAnterior;
   }
 
-  getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
+getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
     const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     const actuales = this.resultados();
     const anteriores = this.resultadosAnterior();
     const filtro = this.filtroDiaSemana();
 
-    const mapaActual = new Map<string, FilaResultado>();
-    const mapaAnterior = new Map<string, FilaResultado>();
+    if (anteriores.length === 0) return [];
 
-    actuales.forEach(r => mapaActual.set(r.fecha, r));
-    anteriores.forEach(r => mapaAnterior.set(r.fecha, r));
+    const anioActual = new Date().getFullYear();
 
     const resultado: { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
 
-    // Obtener fechas del año anterior y ordenarlas por fecha
-    const fechasAnteriorOrdenadas = [...mapaAnterior.keys()].sort();
-    let indexCounter = 0;
+    // Ordenar fechas del año anterior por fecha
+    const fechasAnteriorOrdenadas = [...anteriores.map(r => r.fecha)].sort();
 
-    for (const fechaAnterior of fechasAnteriorOrdenadas) {
-      const anterior = mapaAnterior.get(fechaAnterior);
+    for (let idx = 0; idx < fechasAnteriorOrdenadas.length; idx++) {
+      const fechaAnterior = fechasAnteriorOrdenadas[idx];
+      const anterior = anteriores.find(r => r.fecha === fechaAnterior);
       if (!anterior) continue;
 
       // Filtrar por día de la semana si hay filtro
       if (filtro !== null && anterior.diaSemana !== filtro) continue;
 
       const anteriorUSD = anterior.totalConvertido || 0;
+      const diaAnterior = anterior.diaSemana;
 
-      // Encontrar fechas del año actual con el mismo día de la semana
-      const fechasActualMismoDia = [...mapaActual.entries()]
-        .filter(([, r]) => r.diaSemana === anterior.diaSemana)
-        .sort((a, b) => a[0].localeCompare(b[0]));
+      // Encontrar la fecha del año actual con el mismo día de la semana
+      const [y, m, d] = anterior.fecha.split('-').map(Number);
+      const ultimoDiaMes = new Date(anioActual, m, 0).getDate();
 
-      // Contar cuántas veces aparece este día de la semana antes en el año anterior
-      const indiceEnAnterior = fechasAnteriorOrdenadas
-        .slice(0, indexCounter)
-        .filter(f => mapaAnterior.get(f)?.diaSemana === anterior.diaSemana).length;
+      let mejorDia = d;
+      let mejorDistancia = 7;
 
-const fechaActualEncontrada = fechasActualMismoDia[indiceEnAnterior]?.[0] || '';
-      const actual = fechaActualEncontrada ? mapaActual.get(fechaActualEncontrada) : undefined;
+      for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        const fechaObjMesActual = new Date(anioActual, m - 1, dia);
+        const diaSemanaMesActual = fechaObjMesActual.getDay();
 
+        if (diaSemanaMesActual === diaAnterior) {
+          const distancia = Math.abs(dia - d);
+          // Aceptar distancia 0 o 1, o excepciones: primero/último del mes
+          const esPrimeroMes = d === 1 || dia === 1;
+          const esUltimoMes = d === ultimoDiaMes || dia === ultimoDiaMes;
+          if (distancia <= 1 || esPrimeroMes || esUltimoMes) {
+            mejorDistancia = distancia;
+            mejorDia = dia;
+            break; // Tomar la primera coincidencia cercana
+          }
+        }
+      }
+
+      let fechaActual = '';
+      if (mejorDistancia <= 1 || d === 1 || d === ultimoDiaMes || mejorDia === 1 || mejorDia === ultimoDiaMes) {
+        fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
+      }
+
+      const actual = fechaActual ? actuales.find(r => r.fecha === fechaActual) : undefined;
       const actualUSD = actual?.totalConvertido || 0;
 
       resultado.push({
-        index: indexCounter,
-        fechaActual: actual?.fecha || '',
+        index: idx,
+        fechaActual: fechaActual,
         fechaAnterior: anterior.fecha,
         dia: dias[anterior.diaSemana],
         actual: Math.round(actualUSD * 100) / 100,
         anterior: Math.round(anteriorUSD * 100) / 100,
         variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
       });
-
-      indexCounter++;
-    }
-
-    // Agregar filas adicionales del año actual que no tienen pareja en el anterior
-    const fechasActualOrdenadas = [...mapaActual.keys()].sort();
-    for (const fechaActual of fechasActualOrdenadas) {
-      const actual = mapaActual.get(fechaActual);
-      if (!actual || (filtro !== null && actual.diaSemana !== filtro)) continue;
-
-      // Verificar si esta fecha ya fue emparejada
-      const yaEmparejada = resultado.some(r => r.fechaActual === fechaActual);
-      if (yaEmparejada) continue;
-
-      // Verificar si hay fechas del año anterior con el mismo día
-      const indiceEnActual = fechasActualOrdenadas
-        .slice(0, fechasActualOrdenadas.indexOf(fechaActual))
-        .filter(f => mapaActual.get(f)?.diaSemana === actual.diaSemana).length;
-
-      // Solo añadir si hay menos fechas del año anterior con este día de la semana
-      const fechasAnteriorMismoDia = fechasAnteriorOrdenadas.filter(f => mapaAnterior.get(f)?.diaSemana === actual.diaSemana).length;
-      if (indiceEnActual >= fechasAnteriorMismoDia) {
-        const ultimaFechaAnteriorMismoDia = fechasAnteriorOrdenadas
-          .filter(f => mapaAnterior.get(f)?.diaSemana === actual.diaSemana)
-          .sort()
-          .pop();
-
-        resultado.push({
-          index: indexCounter,
-          fechaActual: actual.fecha,
-          fechaAnterior: ultimaFechaAnteriorMismoDia || '',
-          dia: dias[actual.diaSemana],
-          actual: Math.round(actual.totalConvertido * 100) / 100,
-          anterior: 0,
-          variacion: 0
-        });
-      }
     }
 
     return resultado;
@@ -2125,86 +2104,66 @@ getComparacionDiaPorDia(filtroDia: number | null = null): { fechaActual: string;
     const anteriores = this.resultadosAnterior();
     const filtro = filtroDia !== null ? filtroDia : this.filtroDiaSemana();
 
-    const mapaActual = new Map<string, FilaResultado>();
-    const mapaAnterior = new Map<string, FilaResultado>();
+    if (anteriores.length === 0) return [];
 
-    actuales.forEach(r => mapaActual.set(r.fecha, r));
-    anteriores.forEach(r => mapaAnterior.set(r.fecha, r));
+    const anioActual = new Date().getFullYear();
 
     const resultado: { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
 
-    // Obtener fechas del año anterior y ordenarlas por fecha
-    const fechasAnteriorOrdenadas = [...mapaAnterior.keys()].sort();
-    let indexCounter = 0;
+    // Ordenar fechas del año anterior por fecha
+    const fechasAnteriorOrdenadas = [...anteriores.map(r => r.fecha)].sort();
 
-    for (const fechaAnterior of fechasAnteriorOrdenadas) {
-      const anterior = mapaAnterior.get(fechaAnterior);
+    for (let idx = 0; idx < fechasAnteriorOrdenadas.length; idx++) {
+      const fechaAnterior = fechasAnteriorOrdenadas[idx];
+      const anterior = anteriores.find(r => r.fecha === fechaAnterior);
       if (!anterior) continue;
 
       // Filtrar por día de la semana si hay filtro
       if (filtro !== null && anterior.diaSemana !== filtro) continue;
 
       const anteriorUSD = anterior.totalConvertido || 0;
+      const diaAnterior = anterior.diaSemana;
 
-      // Encontrar fechas del año actual con el mismo día de la semana
-      const fechasActualMismoDia = [...mapaActual.entries()]
-        .filter(([, r]) => r.diaSemana === anterior.diaSemana)
-        .sort((a, b) => a[0].localeCompare(b[0]));
+      // Encontrar la fecha del año actual con el mismo día de la semana
+      const [y, m, d] = anterior.fecha.split('-').map(Number);
+      const ultimoDiaMes = new Date(anioActual, m, 0).getDate();
 
-      // Contar cuántas veces aparece este día de la semana antes en el año anterior
-      const indiceEnAnterior = fechasAnteriorOrdenadas
-        .slice(0, indexCounter)
-        .filter(f => mapaAnterior.get(f)?.diaSemana === anterior.diaSemana).length;
+      let mejorDia = d;
+      let mejorDistancia = 7;
 
-      const fechaActualEncontrada = fechasActualMismoDia[indiceEnAnterior]?.[0] || '';
-      const actual = fechaActualEncontrada ? mapaActual.get(fechaActualEncontrada) : undefined;
+      for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        const fechaObjMesActual = new Date(anioActual, m - 1, dia);
+        const diaSemanaMesActual = fechaObjMesActual.getDay();
 
+        if (diaSemanaMesActual === diaAnterior) {
+          const distancia = Math.abs(dia - d);
+          // Aceptar distancia 0 o 1, o excepciones: primero/último del mes
+          const esPrimeroMes = d === 1 || dia === 1;
+          const esUltimoMes = d === ultimoDiaMes || dia === ultimoDiaMes;
+          if (distancia <= 1 || esPrimeroMes || esUltimoMes) {
+            mejorDistancia = distancia;
+            mejorDia = dia;
+            break; // Tomar la primera coincidencia cercana
+          }
+        }
+      }
+
+      let fechaActual = '';
+      if (mejorDistancia <= 1 || d === 1 || d === ultimoDiaMes || mejorDia === 1 || mejorDia === ultimoDiaMes) {
+        fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
+      }
+
+      const actual = fechaActual ? actuales.find(r => r.fecha === fechaActual) : undefined;
       const actualUSD = actual?.totalConvertido || 0;
 
       resultado.push({
-        fechaActual: actual?.fecha || '',
+        fechaActual: fechaActual,
         fechaAnterior: anterior.fecha,
         dia: dias[anterior.diaSemana],
         actual: Math.round(actualUSD * 100) / 100,
         anterior: Math.round(anteriorUSD * 100) / 100,
         variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
       });
-
-      indexCounter++;
-    }
-
-    // Agregar filas adicionales del año actual que no tienen pareja en el anterior
-    const fechasActualOrdenadas = [...mapaActual.keys()].sort();
-    for (const fechaActual of fechasActualOrdenadas) {
-      const actual = mapaActual.get(fechaActual);
-      if (!actual || (filtro !== null && actual.diaSemana !== filtro)) continue;
-
-      // Verificar si esta fecha ya fue emparejada
-      const yaEmparejada = resultado.some(r => r.fechaActual === fechaActual);
-      if (yaEmparejada) continue;
-
-      // Verificar si hay fechas del año anterior con el mismo día
-      const indiceEnActual = fechasActualOrdenadas
-        .slice(0, fechasActualOrdenadas.indexOf(fechaActual))
-        .filter(f => mapaActual.get(f)?.diaSemana === actual.diaSemana).length;
-
-      // Solo añadir si hay menos fechas del año anterior con este día de la semana
-      const fechasAnteriorMismoDia = fechasAnteriorOrdenadas.filter(f => mapaAnterior.get(f)?.diaSemana === actual.diaSemana).length;
-      if (indiceEnActual >= fechasAnteriorMismoDia) {
-        const ultimaFechaAnteriorMismoDia = fechasAnteriorOrdenadas
-          .filter(f => mapaAnterior.get(f)?.diaSemana === actual.diaSemana)
-          .sort()
-          .pop();
-
-        resultado.push({
-          fechaActual: actual.fecha,
-          fechaAnterior: ultimaFechaAnteriorMismoDia || '',
-          dia: dias[actual.diaSemana],
-          actual: Math.round(actual.totalConvertido * 100) / 100,
-          anterior: 0,
-          variacion: 0
-        });
-      }
     }
 
     return resultado;

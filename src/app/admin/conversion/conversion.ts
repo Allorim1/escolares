@@ -1753,6 +1753,7 @@ getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior:
     if (anteriores.length === 0) return [];
 
     const anioActual = new Date().getFullYear();
+    const fechasActualesEmparejadas = new Set<string>();
 
     const resultado: { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
 
@@ -1777,25 +1778,33 @@ getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior:
       let mejorDia = d;
       let mejorDistancia = 7;
 
+      // Excepción: primero o último del mes
+      const esPrimeroMesAnterior = d === 1;
+      const esUltimoMesAnterior = d === ultimoDiaMes;
+
       for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        // Saltar fechas ya emparejadas
+        const fechaCandidato = `${anioActual}-${String(m).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        if (fechasActualesEmparejadas.has(fechaCandidato)) continue;
+
         const fechaObjMesActual = new Date(anioActual, m - 1, dia);
         const diaSemanaMesActual = fechaObjMesActual.getDay();
 
         if (diaSemanaMesActual === diaAnterior) {
           const distancia = Math.abs(dia - d);
-          // Aceptar distancia 0 o 1, o excepciones: primero/último del mes
-          const esPrimeroMes = d === 1 || dia === 1;
-          const esUltimoMes = d === ultimoDiaMes || dia === ultimoDiaMes;
-          if (distancia <= 1 || esPrimeroMes || esUltimoMes) {
+          // Aceptar si: es primero/último del mes (excepción) o distancia <= 1
+          if (distancia <= 1 || (esPrimeroMesAnterior && dia === 1) || (esUltimoMesAnterior && dia === ultimoDiaMes)) {
             mejorDistancia = distancia;
             mejorDia = dia;
+            fechasActualesEmparejadas.add(fechaCandidato);
             break; // Tomar la primera coincidencia cercana
           }
         }
       }
 
       let fechaActual = '';
-      if (mejorDistancia <= 1 || d === 1 || d === ultimoDiaMes || mejorDia === 1 || mejorDia === ultimoDiaMes) {
+      // Solo asignar fecha actual si se encontró equivalencia
+      if (mejorDistancia <= 1 || (esPrimeroMesAnterior && mejorDia === 1) || (esUltimoMesAnterior && mejorDia === ultimoDiaMes)) {
         fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
       }
 
@@ -2107,6 +2116,7 @@ getComparacionDiaPorDia(filtroDia: number | null = null): { fechaActual: string;
     if (anteriores.length === 0) return [];
 
     const anioActual = new Date().getFullYear();
+    const fechasActualesEmparejadas = new Set<string>();
 
     const resultado: { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
 
@@ -2131,25 +2141,33 @@ getComparacionDiaPorDia(filtroDia: number | null = null): { fechaActual: string;
       let mejorDia = d;
       let mejorDistancia = 7;
 
+      // Excepción: primero o último del mes
+      const esPrimeroMesAnterior = d === 1;
+      const esUltimoMesAnterior = d === ultimoDiaMes;
+
       for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        // Saltar fechas ya emparejadas
+        const fechaCandidato = `${anioActual}-${String(m).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        if (fechasActualesEmparejadas.has(fechaCandidato)) continue;
+
         const fechaObjMesActual = new Date(anioActual, m - 1, dia);
         const diaSemanaMesActual = fechaObjMesActual.getDay();
 
         if (diaSemanaMesActual === diaAnterior) {
           const distancia = Math.abs(dia - d);
-          // Aceptar distancia 0 o 1, o excepciones: primero/último del mes
-          const esPrimeroMes = d === 1 || dia === 1;
-          const esUltimoMes = d === ultimoDiaMes || dia === ultimoDiaMes;
-          if (distancia <= 1 || esPrimeroMes || esUltimoMes) {
+          // Aceptar si: es primero/último del mes (excepción) o distancia <= 1
+          if (distancia <= 1 || (esPrimeroMesAnterior && dia === 1) || (esUltimoMesAnterior && dia === ultimoDiaMes)) {
             mejorDistancia = distancia;
             mejorDia = dia;
+            fechasActualesEmparejadas.add(fechaCandidato);
             break; // Tomar la primera coincidencia cercana
           }
         }
       }
 
       let fechaActual = '';
-      if (mejorDistancia <= 1 || d === 1 || d === ultimoDiaMes || mejorDia === 1 || mejorDia === ultimoDiaMes) {
+      // Solo asignar fecha actual si se encontró equivalencia
+      if (mejorDistancia <= 1 || (esPrimeroMesAnterior && mejorDia === 1) || (esUltimoMesAnterior && mejorDia === ultimoDiaMes)) {
         fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
       }
 

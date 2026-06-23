@@ -382,60 +382,60 @@
            <div class="result-table-wrapper">
              <table class="result-table">
                <thead>
-                 <tr>
-                   <th>Día</th>
-                   <th>Fecha Año Actual</th>
-                   <th>Actual ($)</th>
-                   <th>Fecha Año Anterior</th>
-                   <th>Anterior ($)</th>
-                   <th>Var. (%)</th>
-                 </tr>
+<tr>
+                    <th>Día</th>
+                    <th>Fecha Año Anterior</th>
+                    <th class="text-right">Anterior ($)</th>
+                    <th>Fecha Año Actual</th>
+                    <th class="text-right">Actual ($)</th>
+                    <th class="text-right">Var. (%)</th>
+                  </tr>
                </thead>
 <tbody>
-@for (item of getComparacionConIndices(); track item.index) {
-                    <tr>
-                      <td [class.domingo]="item.dia === 'Domingo'">{{ item.dia }}</td>
-                      <td>{{ formatFechaDisplay(item.fechaActual) }}</td>
-<td class="num">
-@if (tieneFechasRepetidasEnComparacion() && item.actual > 0) {
-                          <input
-                            #montoActualInput
-                            type="number"
-                            class="monto-editable-input"
-                            step="0.01"
-                            min="0"
-                            (focus)="montoActualInput.value = item.actual.toString(); $event.target.select()"
-                            (blur)="onMontoBlur($event, item.index, 'actual')"
-                          />
-                        } @else {
-                          {{ item.actual > 0 ? '$ ' + formatearMoneda(item.actual) : '-' }}
-                        }
-                      </td>
-                      <td>{{ formatFechaDisplay(item.fechaAnterior) }}</td>
-                      <td class="num">
+ @for (item of getComparacionConIndices(); track item.index) {
+                     <tr>
+                       <td [class.domingo]="item.dia === 'Domingo'">{{ item.dia }}</td>
+                       <td>{{ formatFechaDisplay(item.fechaAnterior) }}</td>
+                       <td class="num">
 @if (tieneFechasRepetidasEnComparacion() && item.anterior > 0) {
-                          <input
-                            #montoAnteriorInput
-                            type="number"
-                            class="monto-editable-input"
-                            step="0.01"
-                            min="0"
-                            (focus)="montoAnteriorInput.value = item.anterior.toString(); $event.target.select()"
-                            (blur)="onMontoBlur($event, item.index, 'anterior')"
-                          />
-                        } @else {
-                          {{ item.anterior > 0 ? '$ ' + formatearMoneda(item.anterior) : '-' }}
-                        }
-                      </td>
-                      <td class="num"
-                        [class.positivo]="item.variacion > 0"
-                        [class.negativo]="item.variacion < 0"
-                        [class.meta-cumplida]="item.variacion > 0 && cumpleMeta(item.variacion)">
-                        {{ item.variacion > 0 ? '+' : '' }}{{ item.variacion }}%
-                      </td>
-                    </tr>
-                  }
-               </tbody>
+                           <input
+                             #montoAnteriorInput
+                             type="number"
+                             class="monto-editable-input"
+                             step="0.01"
+                             min="0"
+                             (focus)="montoAnteriorInput.value = item.anterior.toString(); $event.target.select()"
+                             (blur)="onMontoBlur($event, item.index, 'anterior')"
+                           />
+                         } @else {
+                           {{ item.anterior > 0 ? '$ ' + formatearMoneda(item.anterior) : '-' }}
+                         }
+                       </td>
+                       <td>{{ formatFechaDisplay(item.fechaActual) }}</td>
+                       <td class="num">
+@if (tieneFechasRepetidasEnComparacion() && item.actual > 0) {
+                           <input
+                             #montoActualInput
+                             type="number"
+                             class="monto-editable-input"
+                             step="0.01"
+                             min="0"
+                             (focus)="montoActualInput.value = item.actual.toString(); $event.target.select()"
+                             (blur)="onMontoBlur($event, item.index, 'actual')"
+                           />
+                         } @else {
+                           {{ item.actual > 0 ? '$ ' + formatearMoneda(item.actual) : '-' }}
+                         }
+                       </td>
+                       <td class="num"
+                         [class.positivo]="item.variacion > 0"
+                         [class.negativo]="item.variacion < 0"
+                         [class.meta-cumplida]="item.variacion > 0 && cumpleMeta(item.variacion)">
+                         {{ item.variacion > 0 ? '+' : '' }}{{ item.variacion }}%
+                       </td>
+                     </tr>
+                   }
+                </tbody>
              </table>
            </div>
          </div>

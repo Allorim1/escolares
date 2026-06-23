@@ -1771,19 +1771,14 @@ getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior:
       const anteriorUSD = anterior.totalConvertido || 0;
       const diaAnterior = anterior.diaSemana;
 
-      // Encontrar la fecha del año actual con el mismo día de la semana
+      // Encontrar la fecha del año actual con el mismo día de la semana (max 1 dia de diferencia)
       const [y, m, d] = anterior.fecha.split('-').map(Number);
       const ultimoDiaMes = new Date(anioActual, m, 0).getDate();
 
       let mejorDia = d;
       let mejorDistancia = 7;
 
-      // Excepción: primero o último del mes
-      const esPrimeroMesAnterior = d === 1;
-      const esUltimoMesAnterior = d === ultimoDiaMes;
-
       for (let dia = 1; dia <= ultimoDiaMes; dia++) {
-        // Saltar fechas ya emparejadas
         const fechaCandidato = `${anioActual}-${String(m).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
         if (fechasActualesEmparejadas.has(fechaCandidato)) continue;
 
@@ -1792,19 +1787,17 @@ getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior:
 
         if (diaSemanaMesActual === diaAnterior) {
           const distancia = Math.abs(dia - d);
-          // Aceptar si: es primero/último del mes (excepción) o distancia <= 1
-          if (distancia <= 1 || (esPrimeroMesAnterior && dia === 1) || (esUltimoMesAnterior && dia === ultimoDiaMes)) {
+          if (distancia <= 1) {
             mejorDistancia = distancia;
             mejorDia = dia;
             fechasActualesEmparejadas.add(fechaCandidato);
-            break; // Tomar la primera coincidencia cercana
+            break;
           }
         }
       }
 
       let fechaActual = '';
-      // Solo asignar fecha actual si se encontró equivalencia
-      if (mejorDistancia <= 1 || (esPrimeroMesAnterior && mejorDia === 1) || (esUltimoMesAnterior && mejorDia === ultimoDiaMes)) {
+      if (mejorDistancia <= 1) {
         fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
       }
 
@@ -2134,19 +2127,14 @@ getComparacionDiaPorDia(filtroDia: number | null = null): { fechaActual: string;
       const anteriorUSD = anterior.totalConvertido || 0;
       const diaAnterior = anterior.diaSemana;
 
-      // Encontrar la fecha del año actual con el mismo día de la semana
+      // Encontrar la fecha del año actual con el mismo día de la semana (max 1 dia de diferencia)
       const [y, m, d] = anterior.fecha.split('-').map(Number);
       const ultimoDiaMes = new Date(anioActual, m, 0).getDate();
 
       let mejorDia = d;
       let mejorDistancia = 7;
 
-      // Excepción: primero o último del mes
-      const esPrimeroMesAnterior = d === 1;
-      const esUltimoMesAnterior = d === ultimoDiaMes;
-
       for (let dia = 1; dia <= ultimoDiaMes; dia++) {
-        // Saltar fechas ya emparejadas
         const fechaCandidato = `${anioActual}-${String(m).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
         if (fechasActualesEmparejadas.has(fechaCandidato)) continue;
 
@@ -2155,19 +2143,17 @@ getComparacionDiaPorDia(filtroDia: number | null = null): { fechaActual: string;
 
         if (diaSemanaMesActual === diaAnterior) {
           const distancia = Math.abs(dia - d);
-          // Aceptar si: es primero/último del mes (excepción) o distancia <= 1
-          if (distancia <= 1 || (esPrimeroMesAnterior && dia === 1) || (esUltimoMesAnterior && dia === ultimoDiaMes)) {
+          if (distancia <= 1) {
             mejorDistancia = distancia;
             mejorDia = dia;
             fechasActualesEmparejadas.add(fechaCandidato);
-            break; // Tomar la primera coincidencia cercana
+            break;
           }
         }
       }
 
       let fechaActual = '';
-      // Solo asignar fecha actual si se encontró equivalencia
-      if (mejorDistancia <= 1 || (esPrimeroMesAnterior && mejorDia === 1) || (esUltimoMesAnterior && mejorDia === ultimoDiaMes)) {
+      if (mejorDistancia <= 1) {
         fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
       }
 

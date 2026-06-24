@@ -25,77 +25,84 @@ interface MenuCategory {
 }
 
 const QUICK_ITEMS: QuickItem[] = [
-  { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
-  { label: 'Costos', route: 'costo-tasa', icon: '💰', permiso: 'tasas_gestionar' },
-  { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
-  { label: 'Facturación', route: 'facturacion', icon: '🧾', permiso: 'facturas_gestionar' },
-  { label: 'Gastos', route: 'gastos', icon: '💸', permiso: 'gastos_gestionar' },
-  { label: 'Nómina', route: 'nomina', icon: '👥', permiso: 'nomina_ver' },
-  { label: 'Asistencias', route: 'asistencias', icon: '📅', permiso: 'nomina_ver' },
-  { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
-  { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
-  { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
-  { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
-  { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
-  { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
-  { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
-  { label: 'Cotizaciones\n/ N. Entrega', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
-];
+   { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
+   { label: 'Costos', route: 'costo-tasa', icon: '💰', permiso: 'tasas_gestionar' },
+   { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
+   { label: 'Facturación', route: 'facturacion', icon: '🧾', permiso: 'facturas_gestionar' },
+   { label: 'Gastos', route: 'gastos', icon: '💸', permiso: 'gastos_gestionar' },
+   { label: 'Nómina', route: 'nomina', icon: '👥', permiso: 'nomina_ver' },
+   { label: 'Asistencias', route: 'asistencias', icon: '📅', permiso: 'asistencias_gestionar' },
+   { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
+   { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
+   { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
+   { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
+   { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
+   { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
+   { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
+   { label: 'Cotizaciones\n/ N. Entrega', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
+ ];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
-{
-      name: 'Panel Admin',
+ {
+       name: 'Panel Admin',
+       expanded: false,
+       items: [
+         { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
+         { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
+         { label: 'Histórico Costos', route: 'historico-costos', permiso: 'tasas_ver' },
+         { label: 'Registro', route: 'registro', permiso: 'facturas_registrar' },
+         { label: 'Facturación', route: 'facturacion', permiso: 'facturas_gestionar' },
+         { label: 'Cotizaciones', route: 'cotizaciones', permiso: 'cotizaciones_gestionar' },
+         { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
+         { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
+         { label: 'Control de Asistencias', route: 'asistencias', permiso: 'asistencias_gestionar' },
+         { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
+         { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
+         { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
+         { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
+         { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
+       ]
+     },
+   {
+      name: 'Empleado',
       expanded: false,
       items: [
-        { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
-        { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
-        { label: 'Histórico Costos', route: 'historico-costos', permiso: 'tasas_ver' },
-        { label: 'Registro', route: 'registro', permiso: 'facturas_registrar' },
-        { label: 'Facturación', route: 'facturacion', permiso: 'facturas_gestionar' },
-        { label: 'Cotizaciones', route: 'cotizaciones', permiso: 'cotizaciones_gestionar' },
-        { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
-        { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
-        { label: 'Control de Asistencias', route: 'asistencias', permiso: 'nomina_ver' },
-        { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
-        { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
-        { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
-        { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
-        { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
+        { label: 'Asistencias', route: 'asistencias', permiso: 'empleado_ver_asistencias' },
       ]
     },
-   {
-     name: 'Cuentas por Pagar',
-     expanded: false,
-     items: [
-       { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
-       { label: 'Retenciones', route: 'retenciones', permiso: 'ver_retenciones' },
-       { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
-     ]
-   },
-   {
-     name: 'Panel Web',
-     expanded: false,
-     items: [
-       { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
-       { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
-       { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
-       { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
-       { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
-       { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
-       { label: 'Noticias', route: 'noticias', permiso: 'noticias_gestionar' },
-       { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
-       { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
-       { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
-       { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
-     ]
-   },
-   {
-     name: 'Repartidor',
-     expanded: false,
-     items: [
-       { label: 'Mis Pedidos', route: 'repartidor' },
-     ]
-   }
+    {
+      name: 'Cuentas por Pagar',
+      expanded: false,
+      items: [
+        { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
+        { label: 'Retenciones', route: 'retenciones', permiso: 'ver_retenciones' },
+        { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
+      ]
+    },
+    {
+      name: 'Panel Web',
+      expanded: false,
+      items: [
+        { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
+        { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
+        { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
+        { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
+        { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
+        { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
+        { label: 'Noticias', route: 'noticias', permiso: 'noticias_gestionar' },
+        { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
+        { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
+        { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
+        { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
+      ]
+    },
+    {
+      name: 'Repartidor',
+      expanded: false,
+      items: [
+        { label: 'Mis Pedidos', route: 'repartidor' },
+      ]
+    }
  ];
 
 @Component({
@@ -121,18 +128,20 @@ userPermissions = signal<string[]>([]);
      this.loadUserPermissions();
    }
 
-   setQuickItems() {
-     const user = this.authService.user();
-     const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-     const permissions = this.userPermissions();
+setQuickItems() {
+      const user = this.authService.user();
+      const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+      const isEmpleado = user?.rol === 'empleado';
+      const permissions = this.userPermissions();
 
-     const items = QUICK_ITEMS.filter(item => {
-       if (!item.permiso) return true;
-       if (isRoot) return true;
-       return permissions.includes(item.permiso);
-     });
-     this.quickItems.set(items);
-   }
+      const items = QUICK_ITEMS.filter(item => {
+        if (isEmpleado && item.route === 'asistencias') return true;
+        if (!item.permiso) return true;
+        if (isRoot || isEmpleado) return true;
+        return permissions.includes(item.permiso);
+      });
+      this.quickItems.set(items);
+    }
 
    loadUserPermissions() {
     const user = this.authService.user();
@@ -181,23 +190,25 @@ if (!user) {
    }
 
 setCategoriesWithExpanded() {
-      const permissions = this.userPermissions();
-      const user = this.authService.user();
-      const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-      const isRepartidor = user?.rol === 'repartidor';
+       const permissions = this.userPermissions();
+       const user = this.authService.user();
+       const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+       const isRepartidor = user?.rol === 'repartidor';
+       const isEmpleado = user?.rol === 'empleado';
 
-     const categories = DEFAULT_CATEGORIAS
-       .filter(cat => !isRepartidor || cat.name === 'Repartidor')
-       .map(cat => {
-         const hasVisibleItems = cat.items.some(item => {
-           if (!item.permiso) return true;
-           if (isRoot) return true;
-           return permissions.includes(item.permiso);
-         });
-         return { ...cat, expanded: false };
-       });
-     this.categorias.set(categories);
-   }
+      const categories = DEFAULT_CATEGORIAS
+        .filter(cat => !isRepartidor || cat.name === 'Repartidor')
+        .filter(cat => !isEmpleado || cat.name === 'Empleado' || cat.name === 'Repartidor')
+        .map(cat => {
+          const hasVisibleItems = cat.items.some(item => {
+            if (!item.permiso) return true;
+            if (isRoot) return true;
+            return permissions.includes(item.permiso);
+          });
+          return { ...cat, expanded: false };
+        });
+      this.categorias.set(categories);
+    }
 
   hasPermission(permiso?: string): boolean {
     const user = this.authService.user();

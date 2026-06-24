@@ -2,6 +2,7 @@ import { Component, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../shared/data-access/auth.service';
 
 interface Empleado {
   _id?: any;
@@ -29,6 +30,7 @@ interface Asistencia {
 })
 export class Asistencias implements OnInit {
   private http = inject(HttpClient);
+  authService = inject(AuthService);
 
   private readonly API_EMPLEADOS = '/api/nomina/empleados';
   private readonly API_ASISTENCIAS = '/api/asistencias';
@@ -53,6 +55,10 @@ export class Asistencias implements OnInit {
   });
 
   tiposAsistencia: ('entrada' | 'salida')[] = ['entrada', 'salida'];
+
+  get isEmpleado(): boolean {
+    return this.authService.user()?.rol === 'empleado';
+  }
 
   ngOnInit() {
     this.loadEmpleados();
@@ -173,26 +179,56 @@ export class Asistencias implements OnInit {
     }
   }
 
-  registrarAsistenciaRapida(empleadoId: any, tipo: 'entrada' | 'salida') {
-    const emp = this.empleados().find((e) => String(e._id) === String(empleadoId));
-    if (!emp) return;
+registrarAsistenciaRapida(empleadoId: any, tipo: 'entrada' | 'salida') {
+     const emp = this.empleados().find((e) => String(e._id) === String(empleadoId));
+     if (!emp) return;
 
-    const ahora = new Date();
-    const hora = ahora.toTimeString().split(':').slice(0, 2).join(':');
+     const ahora = new Date();
+     const hora = ahora.toTimeString().split(':').slice(0, 2).join(':');
 
-    const asistencia: Partial<Asistencia> = {
-      empleadoId: emp._id,
-      empleadoNombre: emp.nombre,
-      tipo,
-      fecha: ahora,
-      hora,
-    };
+     const asistencia: Partial<Asistencia> = {
+       empleadoId: emp._id,
+       empleadoNombre: emp.nombre,
+       tipo,
+       fecha: ahora,
+       hora,
+     };
 
-    this.http.post(this.API_ASISTENCIAS, asistencia).subscribe({
-      next: () => this.loadAsistencias(),
-      error: (err) => console.error('Error registering asistencia:', err),
-    });
-  }
+     this.http.post(this.API_ASISTENCIAS, asistencia).subscribe({
+       next: () => this.loadAsistencias(),
+       error: (err) => console.error('Error registering asistencia:', err),
+     });
+   }
+
+   registrarAsistenciaEmpleado(tipo: 'entrada' | 'salida') {
+     const userId = this.authService.user()?.id;
+     if (!userId) return;
+
+     const ahora = new Date();
+     const hora = ahora.toTimeString().split(':').slice(0, 2).join(':');
+
+     const asistencia: Partial<Asistencia> = {
+       empleadoId: userId,
+       empleadoNombre: this.authService.user()?.nombreCompleto || this.authService.user()?.username,
+       tipo,
+       fecha: ahora,
+       hora,
+     };
+
+     this.http.post(this.API_ASISTENCIAS, asistencia).subscribe({
+       next: () => this.loadAsistencias(),
+       error: (err) => console.error('Error registering asistencia:', err),
+     });
+   }
+
+   get misAsistencias() {
+     const userId = this.authService.user()?.id;
+     if (!userId) return [];
+     return this.asistencias()
+       .filter((a) => String(a.empleadoId) === String(userId))
+       .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+       .slice(0, 20);
+   }
 
   eliminarAsistencia(id: any) {
     if (!confirm('¿Está seguro de eliminar este registro de asistencia?')) return;

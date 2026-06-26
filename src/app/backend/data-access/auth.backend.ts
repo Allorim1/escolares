@@ -43,7 +43,7 @@ export class AuthBackend {
         const user = JSON.parse(stored);
         this.currentUser.set(user);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(user.isAdmin || user.rol === 'owner' || user.rol === 'root' || user.rol === 'admin' || user.rol === 'repartidor' || user.rol === 'empleado');
+        this.isAdmin.set(user.isAdmin || user.rol === 'owner' || user.rol === 'root' || user.rol === 'admin' || user.rol === 'repartidor');
         // Start token renewal service if user is already logged in
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
@@ -98,18 +98,16 @@ export class AuthBackend {
             localStorage.setItem('refreshToken', response.refreshToken);
           }
         }
-// Start token renewal service after successful login
-         this.tokenRenewalService.start();
-         this.loginLoading.set(false);
-         if (response.rol === 'repartidor') {
-           this.router.navigate(['/repartidor']);
-         } else if (response.rol === 'empleado') {
-           this.router.navigate(['/admin/asistencias']);
-         } else if (response.isAdmin || response.rol === 'owner' || response.rol === 'root') {
-           this.router.navigate(['/admin/inicio']);
-         } else {
-           this.router.navigate(['/panel/perfil']);
-         }
+        // Start token renewal service after successful login
+        this.tokenRenewalService.start();
+        this.loginLoading.set(false);
+        if (response.rol === 'repartidor') {
+          this.router.navigate(['/repartidor']);
+        } else if (response.isAdmin || response.rol === 'owner' || response.rol === 'root') {
+          this.router.navigate(['/admin/inicio']);
+        } else {
+          this.router.navigate(['/panel/perfil']);
+        }
       },
       error: () => {
         this.loginLoading.set(false);
@@ -170,9 +168,9 @@ export class AuthBackend {
     }
   }
 
-updateUserRol(targetUserId: string, rol: 'owner' | 'usuario' | 'repartidor' | 'empleado', rolId?: string) {
-     return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
-   }
+  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario' | 'repartidor', rolId?: string) {
+    return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
+  }
 
   private saveToStorage(user: User) {
     if (typeof window !== 'undefined' && window.localStorage) {

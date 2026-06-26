@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../data-access/auth.service';
+import { AuthService, Direccion } from '../../data-access/auth.service';
 import { ProductsService } from '../../../products/data-access/products.service';
 import { CartStateService } from '../../data-access/cart-state.service';
 import { CurrencyService } from '../../data-access/currency.service';
@@ -22,8 +22,25 @@ export class Header implements OnInit, OnDestroy {
   private noticiasService = inject(NoticiasService);
   currencyService = inject(CurrencyService);
   cartPreviewOpen = signal(false);
+  addressPopoverOpen = signal(false);
+  selectedAddressId = signal<string | null>(null);
+
   unreadCount = computed(() => this.noticiasService.userNotificaciones().filter(n => !n.leido).length);
   isAdminRoute = signal(false);
+
+  userAddresses = computed<Direccion[]>(() => this.authService.user()?.direcciones || []);
+  hasAddresses = computed(() => this.userAddresses().length > 0);
+
+  displayAddress = computed(() => {
+    const addresses = this.userAddresses();
+    if (addresses.length === 0) return 'Selecciona una ubicación';
+    const selectedId = this.selectedAddressId();
+    const selected = selectedId ? addresses.find((a) => a.id === selectedId) : null;
+    const principal = addresses.find((a) => a.principal);
+    const address = selected || principal || addresses[0];
+    const parts = (address.direccion || '').split(',').map((p) => p.trim()).filter(Boolean);
+    return parts[0] || address.direccion || 'Dirección';
+  });
 
   cartCount = () => this.cartState.state().products.reduce((sum, p) => sum + p.quantity, 0);
   cartPreviewItems = () => this.cartState.state().products.slice(0, 4);
@@ -171,10 +188,13 @@ userDropdownOpen = signal(false);
      if (!target.closest('.mobile-menu-btn') && !target.closest('.mobile-nav')) {
        this.mobileMenuOpen.set(false);
      }
-     if (!target.closest('.user-dropdown')) {
-       this.userDropdownOpen.set(false);
-     }
-     const notifBtn = target.closest('.notification-btn');
+      if (!target.closest('.user-dropdown')) {
+        this.userDropdownOpen.set(false);
+      }
+      if (!target.closest('.address-selector-container')) {
+        this.addressPopoverOpen.set(false);
+      }
+      const notifBtn = target.closest('.notification-btn');
      const notifDropdown = target.closest('.notifications-dropdown');
      if (!notifBtn && !notifDropdown) {
        this.notificationsOpen.set(false);
@@ -410,5 +430,30 @@ onSearchInput() {
 
   openRegister() {
     this.router.navigate(['/register']);
+  }
+
+  toggleAddressPopover(event: Event) {
+    event.stopPropagation();
+    if (!this.addressPopoverOpen()) {
+      const addresses = this.userAddresses();
+      if (addresses.length > 0 && !this.selectedAddressId()) {
+        const principal = addresses.find((a) => a.principal);
+        const savedId = localStorage.getItem('escolares-selected-address-id');
+        const savedAddress = savedId ? addresses.find((a) => a.id === savedId) : null;
+        this.selectedAddressId.set(savedAddress?.id || principal?.id || addresses[0].id);
+      }
+    }
+    this.addressPopoverOpen.update((v) => !v);
+  }
+
+  selectAddress(address: Direccion) {
+    this.selectedAddressId.set(address.id);
+    localStorage.setItem('escolares-selected-address-id', address.id);
+    this.addressPopoverOpen.set(false);
+  }
+
+  goToAddresses() {
+    this.addressPopoverOpen.set(false);
+    this.router.navigate(['/panel/direcciones']);
   }
 }

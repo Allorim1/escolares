@@ -25,22 +25,22 @@ interface MenuCategory {
 }
 
 const QUICK_ITEMS: QuickItem[] = [
-   { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
-   { label: 'Costos', route: 'costo-tasa', icon: '💰', permiso: 'tasas_gestionar' },
-   { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
-   { label: 'Facturación', route: 'facturacion', icon: '🧾', permiso: 'facturas_gestionar' },
-   { label: 'Gastos', route: 'gastos', icon: '💸', permiso: 'gastos_gestionar' },
-   { label: 'Nómina', route: 'nomina', icon: '👥', permiso: 'nomina_ver' },
-   { label: 'Asistencias', route: 'asistencias', icon: '📅', permiso: 'asistencias_gestionar' },
-   { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
-   { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
-   { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
-   { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
-   { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
-   { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
-   { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
-   { label: 'Cotizaciones\n/ N. Entrega', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
- ];
+  { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
+  { label: 'Costos', route: 'costo-tasa', icon: '💰', permiso: 'tasas_gestionar' },
+  { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
+  { label: 'Facturación', route: 'facturacion', icon: '🧾', permiso: 'facturas_gestionar' },
+  { label: 'Gastos', route: 'gastos', icon: '💸', permiso: 'gastos_gestionar' },
+  { label: 'Nómina', route: 'nomina', icon: '👥', permiso: 'nomina_ver' },
+  { label: 'Asistencias', route: 'asistencias', icon: '📅', permiso: 'nomina_ver' },
+  { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
+  { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
+  { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
+  { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
+  { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
+  { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
+  { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
+  { label: 'Cotizaciones\n/ N. Entrega', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
+];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
  {
@@ -55,7 +55,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
          { label: 'Cotizaciones', route: 'cotizaciones', permiso: 'cotizaciones_gestionar' },
          { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
          { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
-         { label: 'Control de Asistencias', route: 'asistencias', permiso: 'asistencias_gestionar' },
+         { label: 'Control de Asistencias', route: 'asistencias', permiso: 'nomina_ver' },
          { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
          { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
          { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
@@ -63,13 +63,6 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
          { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
        ]
      },
-   {
-      name: 'Empleado',
-      expanded: false,
-      items: [
-        { label: 'Asistencias', route: 'asistencias', permiso: 'empleado_ver_asistencias' },
-      ]
-    },
     {
       name: 'Cuentas por Pagar',
       expanded: false,
@@ -131,13 +124,11 @@ userPermissions = signal<string[]>([]);
 setQuickItems() {
       const user = this.authService.user();
       const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-      const isEmpleado = user?.rol === 'empleado';
       const permissions = this.userPermissions();
 
       const items = QUICK_ITEMS.filter(item => {
-        if (isEmpleado && item.route === 'asistencias') return true;
         if (!item.permiso) return true;
-        if (isRoot || isEmpleado) return true;
+        if (isRoot) return true;
         return permissions.includes(item.permiso);
       });
       this.quickItems.set(items);
@@ -190,25 +181,23 @@ if (!user) {
    }
 
 setCategoriesWithExpanded() {
-       const permissions = this.userPermissions();
-       const user = this.authService.user();
-       const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-       const isRepartidor = user?.rol === 'repartidor';
-       const isEmpleado = user?.rol === 'empleado';
+      const permissions = this.userPermissions();
+      const user = this.authService.user();
+      const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+      const isRepartidor = user?.rol === 'repartidor';
 
-      const categories = DEFAULT_CATEGORIAS
-        .filter(cat => !isRepartidor || cat.name === 'Repartidor')
-        .filter(cat => !isEmpleado || cat.name === 'Empleado' || cat.name === 'Repartidor')
-        .map(cat => {
-          const hasVisibleItems = cat.items.some(item => {
-            if (!item.permiso) return true;
-            if (isRoot) return true;
-            return permissions.includes(item.permiso);
-          });
-          return { ...cat, expanded: false };
-        });
-      this.categorias.set(categories);
-    }
+     const categories = DEFAULT_CATEGORIAS
+       .filter(cat => !isRepartidor || cat.name === 'Repartidor')
+       .map(cat => {
+         const hasVisibleItems = cat.items.some(item => {
+           if (!item.permiso) return true;
+           if (isRoot) return true;
+           return permissions.includes(item.permiso);
+         });
+         return { ...cat, expanded: false };
+       });
+     this.categorias.set(categories);
+   }
 
   hasPermission(permiso?: string): boolean {
     const user = this.authService.user();

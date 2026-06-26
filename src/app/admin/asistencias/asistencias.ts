@@ -59,55 +59,6 @@ export class Asistencias implements OnInit {
     this.loadAsistencias();
   }
 
-interface Asistencia {
-  _id?: any;
-  empleadoId: any;
-  empleadoNombre?: string;
-  fecha: Date;
-  tipo: 'entrada' | 'salida';
-  hora?: string;
-  justificacion?: string;
-}
-
-@Component({
-  selector: 'app-asistencias',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './asistencias.html',
-  styleUrl: './asistencias.css',
-})
-export class Asistencias implements OnInit {
-  private http = inject(HttpClient);
-
-  private readonly API_EMPLEADOS = '/api/nomina/empleados';
-  private readonly API_ASISTENCIAS = '/api/asistencias';
-
-  empleados = signal<Empleado[]>([]);
-  asistencias = signal<Asistencia[]>([]);
-  loading = signal(false);
-  saving = signal(false);
-
-  showModal = signal(false);
-  editingAsistencia: Asistencia | null = null;
-
-  filtroEmpleadoId = '';
-  filtroFecha = '';
-
-  nuevaAsistencia = signal<Partial<Asistencia>>({
-    empleadoId: '',
-    tipo: 'entrada',
-    fecha: new Date(),
-    hora: '',
-    justificacion: '',
-  });
-
-  tiposAsistencia: ('entrada' | 'salida')[] = ['entrada', 'salida'];
-
-  ngOnInit() {
-    this.loadEmpleados();
-    this.loadAsistencias();
-  }
-
   loadEmpleados() {
     this.http.get<Empleado[]>(this.API_EMPLEADOS).subscribe({
       next: (data) => this.empleados.set(data.sort((a, b) => a.nombre.localeCompare(b.nombre))),
@@ -222,7 +173,7 @@ export class Asistencias implements OnInit {
     }
   }
 
-registrarAsistenciaRapida(empleadoId: any, tipo: 'entrada' | 'salida') {
+  registrarAsistenciaRapida(empleadoId: any, tipo: 'entrada' | 'salida') {
     const emp = this.empleados().find((e) => String(e._id) === String(empleadoId));
     if (!emp) return;
 

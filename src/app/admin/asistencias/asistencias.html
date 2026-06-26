@@ -10,7 +10,7 @@
       <select [(ngModel)]="filtroEmpleadoId">
         <option value="">Todos</option>
         @for (emp of empleados(); track emp._id) {
-            <option [value]="emp._id">{{ emp.nombre }}</option>
+            <option [value]="emp._id">{{ emp.nombreCompleto || emp.username }}</option>
           }
       </select>
     </div>
@@ -84,7 +84,7 @@
           <select [(ngModel)]="editingAsistencia!.empleadoId" name="empleadoId" required>
             <option value="">Seleccionar</option>
             @for (emp of empleados(); track emp._id) {
-              <option [value]="emp._id">{{ emp.nombre }}</option>
+              <option [value]="emp._id">{{ emp.nombreCompleto || emp.username }}</option>
             }
           </select>
         </div>

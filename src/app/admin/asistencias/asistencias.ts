@@ -5,9 +5,12 @@ import { HttpClient } from '@angular/common/http';
 
 interface Empleado {
   _id?: any;
-  nombre: string;
-  cedula: string;
-  cargo: string;
+  nombreCompleto?: string;
+  username?: string;
+  email?: string;
+  isAdmin?: boolean;
+  rol?: 'root' | 'owner' | 'admin' | 'usuario' | 'repartidor';
+  id?: string;
 }
 
 interface Asistencia {
@@ -30,7 +33,7 @@ interface Asistencia {
 export class Asistencias implements OnInit {
   private http = inject(HttpClient);
 
-  private readonly API_EMPLEADOS = '/api/nomina/empleados';
+  private readonly API_USERS = '/api/auth/users';
   private readonly API_ASISTENCIAS = '/api/asistencias';
 
   empleados = signal<Empleado[]>([]);
@@ -60,8 +63,11 @@ export class Asistencias implements OnInit {
   }
 
   loadEmpleados() {
-    this.http.get<Empleado[]>(this.API_EMPLEADOS).subscribe({
-      next: (data) => this.empleados.set(data.sort((a, b) => a.nombre.localeCompare(b.nombre))),
+    this.http.get<Empleado[]>(this.API_USERS).subscribe({
+      next: (data) => {
+        const empleadosPanel = data.filter(u => u.isAdmin || u.rol === 'owner' || u.rol === 'root' || u.rol === 'admin');
+        this.empleados.set(empleadosPanel.sort((a, b) => (a.nombreCompleto || a.username || '').localeCompare(b.nombreCompleto || b.username || '')));
+      },
       error: (err) => console.error('Error loading empleados:', err),
     });
   }
@@ -141,7 +147,7 @@ export class Asistencias implements OnInit {
 
     const emp = this.empleados().find((e) => String(e._id) === String(this.editingAsistencia!.empleadoId));
     if (emp) {
-      this.editingAsistencia.empleadoNombre = emp.nombre;
+      this.editingAsistencia.empleadoNombre = emp.nombreCompleto || emp.username || emp.email;
     }
 
     if (this.editingAsistencia._id) {
@@ -182,7 +188,7 @@ export class Asistencias implements OnInit {
 
     const asistencia: Partial<Asistencia> = {
       empleadoId: emp._id,
-      empleadoNombre: emp.nombre,
+      empleadoNombre: emp.nombreCompleto || emp.username || emp.email,
       tipo,
       fecha: ahora,
       hora,
@@ -213,7 +219,7 @@ export class Asistencias implements OnInit {
 
   getNombreEmpleado(empleadoId: any): string {
     const emp = this.empleados().find((e) => String(e._id) === String(empleadoId));
-    return emp?.nombre || '-';
+    return emp?.nombreCompleto || emp?.username || emp?.email || '-';
   }
 
   formatFechaInput(fecha: Date | string | undefined): string {

@@ -30,7 +30,7 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
   standalone: true,
   imports: [FormsModule, CommonModule, MarkdownPipe, RouterLink, LoginCardComponent],
   templateUrl: './home.html',
-  styles: [
+  styles: [`
       @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
 
       .reveal-init {
@@ -764,27 +764,27 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
           color: #666;
         }
 
-        .price-usd-muted {
+.price-usd-muted {
           font-size: 0.75rem;
           color: #888;
         }
 
-.carousel-btn {
-           width: 40px;
-           height: 40px;
-           border-radius: 50%;
-           background: rgba(29, 99, 193, 0.9);
-           color: white;
-           border: none;
-           cursor: pointer;
-           font-size: 1.2rem;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           transition: all 0.2s;
-           z-index: 10;
-           position: absolute;
-         }
+        .carousel-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(29, 99, 193, 0.9);
+          color: white;
+          border: none;
+          cursor: pointer;
+          font-size: 1.2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+          z-index: 10;
+          position: absolute;
+        }
 
         .carousel-btn:hover {
           background: #1d63c1;
@@ -799,7 +799,7 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
           right: 1rem;
         }
 
-@media (max-width: 768px) {
+      @media (max-width: 768px) {
           .productos-carousel {
             padding: 1rem 30px;
           }
@@ -821,7 +821,7 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
           }
         }
 
-        @media (max-width: 480px) {
+@media (max-width: 480px) {
           .productos-carousel {
             padding: 0.75rem 25px;
           }
@@ -832,13 +832,13 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
 
           .producto-slide {
             flex: 0 0 150px;
-         }
+          }
 
-         .producto-image {
-           height: 100px;
-           padding: 0.25rem;
-         }
-       }
+          .producto-image {
+            height: 100px;
+            padding: 0.25rem;
+          }
+        }
      `,
   ],
 })

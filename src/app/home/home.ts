@@ -23,14 +23,14 @@ import { ProductsStateService } from '../products/data-access/products-state.ser
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { CurrencyService } from '../shared/data-access/currency.service';
 import { Product } from '../shared/interfaces/product.interface';
+import { LoginCardComponent } from '../shared/ui/login-card/login-card.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, CommonModule, MarkdownPipe, RouterLink],
+  imports: [FormsModule, CommonModule, MarkdownPipe, RouterLink, LoginCardComponent],
   templateUrl: './home.html',
   styles: [
-    `
       @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
 
       .reveal-init {
@@ -84,11 +84,18 @@ import { Product } from '../shared/interfaces/product.interface';
         display: block;
       }
 
-      .banner-carousel {
+.banner-carousel {
         width: 100%;
         position: relative;
         overflow: hidden;
         margin-bottom: 1rem;
+      }
+
+      .login-card-wrapper {
+        width: 100%;
+        max-width: 450px;
+        margin: 0 auto 2rem;
+        padding: 0 1rem;
       }
 
       .banner-slide {
@@ -457,11 +464,15 @@ import { Product } from '../shared/interfaces/product.interface';
           height: 100px;
         }
 
-        .marca-name {
-          font-size: 0.85rem;
-        }
+.marca-name {
+           font-size: 0.85rem;
+         }
 
-        .whatsapp-float {
+         .login-card-wrapper {
+           padding: 0 0.5rem;
+         }
+
+         .whatsapp-float {
           width: 50px;
           height: 50px;
           bottom: 1rem;

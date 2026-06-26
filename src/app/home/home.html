@@ -7,6 +7,8 @@
     <button class="banner-btn next" (click)="nextBanner()">›</button>
   </div>
 
+  <app-login-card class="login-card-wrapper reveal-init" #revealElement></app-login-card>
+
 @if (duplicatedMarcas.length > 0) {
      <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">
        <button class="carousel-btn prev" (click)="prev()">‹</button>

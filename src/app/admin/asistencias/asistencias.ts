@@ -4,13 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
 interface Empleado {
-  _id?: any;
+  id: string;
   nombreCompleto?: string;
   username?: string;
   email?: string;
   isAdmin?: boolean;
   rol?: 'root' | 'owner' | 'admin' | 'usuario' | 'repartidor';
-  id?: string;
 }
 
 interface Asistencia {
@@ -108,7 +107,7 @@ export class Asistencias implements OnInit {
         .filter((a) => a.tipo === 'entrada' && new Date(a.fecha).toISOString().split('T')[0] === hoy)
         .map((a) => String(a.empleadoId))
     );
-    return this.empleados().filter((e) => idsConEntrada.has(String(e._id)));
+    return this.empleados().filter((e) => idsConEntrada.has(String(e.id)));
   }
 
   abrirModal(asistencia?: Asistencia) {
@@ -145,7 +144,7 @@ export class Asistencias implements OnInit {
 
     this.saving.set(true);
 
-    const emp = this.empleados().find((e) => String(e._id) === String(this.editingAsistencia!.empleadoId));
+    const emp = this.empleados().find((e) => String(e.id) === String(this.editingAsistencia!.empleadoId));
     if (emp) {
       this.editingAsistencia.empleadoNombre = emp.nombreCompleto || emp.username || emp.email;
     }
@@ -165,7 +164,13 @@ export class Asistencias implements OnInit {
           },
         });
     } else {
-      this.http.post(this.API_ASISTENCIAS, this.editingAsistencia).subscribe({
+      const nuevaAsistencia = { 
+        ...this.editingAsistencia, 
+        empleadoId: String(this.editingAsistencia!.empleadoId) 
+      };
+      const tempId = 'temp-' + Date.now();
+      this.asistencias.update(list => [{ ...nuevaAsistencia, _id: tempId } as any, ...list]);
+      this.http.post(this.API_ASISTENCIAS, nuevaAsistencia).subscribe({
         next: () => {
           this.saving.set(false);
           this.cerrarModal();
@@ -174,20 +179,21 @@ export class Asistencias implements OnInit {
         error: (err) => {
           console.error('Error creating asistencia:', err);
           this.saving.set(false);
+          this.asistencias.update(list => list.filter(a => a._id !== tempId));
         },
       });
     }
   }
 
   registrarAsistenciaRapida(empleadoId: any, tipo: 'entrada' | 'salida') {
-    const emp = this.empleados().find((e) => String(e._id) === String(empleadoId));
+    const emp = this.empleados().find((e) => String(e.id) === String(empleadoId));
     if (!emp) return;
 
     const ahora = new Date();
     const hora = ahora.toTimeString().split(':').slice(0, 2).join(':');
 
     const asistencia: Partial<Asistencia> = {
-      empleadoId: emp._id,
+      empleadoId: emp.id,
       empleadoNombre: emp.nombreCompleto || emp.username || emp.email,
       tipo,
       fecha: ahora,
@@ -218,7 +224,7 @@ export class Asistencias implements OnInit {
   }
 
   getNombreEmpleado(empleadoId: any): string {
-    const emp = this.empleados().find((e) => String(e._id) === String(empleadoId));
+    const emp = this.empleados().find((e) => String(e.id) === String(empleadoId));
     return emp?.nombreCompleto || emp?.username || emp?.email || '-';
   }
 

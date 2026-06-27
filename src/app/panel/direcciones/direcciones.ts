@@ -50,6 +50,7 @@ export class Direcciones implements AfterViewInit {
   private map: any = null;
   private marker: any = null;
   private placesAutocomplete: any = null;
+  private listenerClickAgregado = false;
 
   readonly estadosVenezuela = [
     'Amazonas', 'Anzoátegui', 'Apure', 'Aragua', 'Barinas', 'Bolívar', 'Carabobo',
@@ -334,6 +335,22 @@ export class Direcciones implements AfterViewInit {
     this.formPlaceId.set('');
   }
 
+  private procesarResultadoGeocodificacion(result: any) {
+    const components = result.address_components || [];
+    const calle = result.formatted_address || '';
+    let ciudad = '';
+    let estado = '';
+    
+    for (const comp of components) {
+      if (comp.types.includes('locality')) ciudad = comp.long_name;
+      if (comp.types.includes('administrative_area_level_1')) estado = comp.long_name;
+    }
+    
+    this.formCalle.set(calle);
+    this.formCiudad.set(ciudad);
+    this.formEstado.set(estado);
+  }
+
   getTituloDireccion(dir: DireccionUsuario, index: number): string {
     return (dir.alias || dir.nombre || `Dirección ${index + 1}`).trim();
   }
@@ -356,6 +373,29 @@ export class Direcciones implements AfterViewInit {
           position: { lat, lng },
           map: this.map,
         });
+        
+        if (!this.listenerClickAgregado) {
+          this.listenerClickAgregado = true;
+          this.map.addListener('click', async (event: google.maps.MapMouseEvent) => {
+            if (!event.latLng) return;
+            const clickedLat = event.latLng.lat();
+            const clickedLng = event.latLng.lng();
+            
+            this.formLatitud.set(clickedLat);
+            this.formLongitud.set(clickedLng);
+            
+            if (this.marker) {
+              this.marker.setPosition({ lat: clickedLat, lng: clickedLng });
+            }
+            
+            try {
+              const result = await this.mapsService.reverseGeocode(clickedLat, clickedLng);
+              this.procesarResultadoGeocodificacion(result);
+            } catch (error) {
+              console.error('Error en geocodificación inversa:', error);
+            }
+          });
+        }
       } else {
         const position = { lat, lng };
         (this.map as any).setCenter(position);

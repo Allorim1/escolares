@@ -80,11 +80,11 @@ autocomplete(input: string): Promise<any[]> {
      });
    }
 
-    reverseGeocode(lat: number, lng: number): Promise<any> {
+    reverseGeocode(lat: number, lng: number): Promise<google.maps.GeocoderResult> {
       const geocoder = new google.maps.Geocoder();
       const latlng = new google.maps.LatLng(lat, lng);
       return new Promise((resolve, reject) => {
-        geocoder.geocode({ location: latlng }, (results, status) => {
+        geocoder.geocode({ location: latlng }, (results: google.maps.GeocoderResult[] | null, status: string) => {
           if (status === 'OK' && results && results[0]) {
             resolve(results[0]);
           } else {

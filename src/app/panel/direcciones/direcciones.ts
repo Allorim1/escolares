@@ -335,7 +335,7 @@ export class Direcciones implements AfterViewInit {
     this.formPlaceId.set('');
   }
 
-  private procesarResultadoGeocodificacion(result: any) {
+  private procesarResultadoGeocodificacion(result: google.maps.GeocoderResult) {
     const components = result.address_components || [];
     const calle = result.formatted_address || '';
     let ciudad = '';

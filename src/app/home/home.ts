@@ -43,7 +43,7 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
         opacity: 1;
         transform: translateY(0);
       }
-      :host {
+:host {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -84,7 +84,7 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
         display: block;
       }
 
-.banner-carousel {
+      .banner-carousel {
         width: 100%;
         position: relative;
         overflow: hidden;
@@ -92,9 +92,10 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
       }
 
       .login-card-wrapper {
+        display: block;
         width: 100%;
         max-width: 450px;
-        margin: 0 auto 2rem;
+        margin: 2rem auto;
         padding: 0 1rem;
       }
 

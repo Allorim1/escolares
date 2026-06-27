@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ViewChild, ElementRef, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, computed, effect, inject, signal, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService, Direccion } from '../../shared/data-access/auth.service';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
@@ -24,7 +24,7 @@ declare const google: any;
   styleUrls: ['./direcciones.css'],
   imports: [FormsModule],
 })
-export class Direcciones implements AfterViewInit, OnChanges {
+export class Direcciones implements AfterViewInit {
   authService = inject(AuthService);
   mapsService = inject(GoogleMapsService);
 
@@ -88,6 +88,14 @@ export class Direcciones implements AfterViewInit, OnChanges {
 
   constructor() {
     this.cargarDesdeUsuario();
+
+    effect(() => {
+      const lat = this.formLatitud();
+      const lng = this.formLongitud();
+      if (lat && lng) {
+        setTimeout(() => this.actualizarMapa(), 50);
+      }
+    });
   }
 
   private cargarDesdeUsuario() {
@@ -141,17 +149,16 @@ export class Direcciones implements AfterViewInit, OnChanges {
     this.formLongitud.set(dir.longitud || null);
     this.formPlaceId.set(dir.placeId || '');
     this.error.set('');
+    
+    if (dir.latitud && dir.longitud) {
+      setTimeout(() => this.actualizarMapa(), 100);
+    }
+    
     setTimeout(() => this.initAutocompleteIfNeeded(), 50);
   }
 
   ngAfterViewInit() {
     this.initAutocompleteIfNeeded();
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['formLatitud'] || changes['formLongitud']) {
-      this.actualizarMapa();
-    }
   }
 
   private async initAutocompleteIfNeeded() {
@@ -195,6 +202,8 @@ export class Direcciones implements AfterViewInit, OnChanges {
       
       this.formCiudad.set(ciudad);
       this.formEstado.set(estado);
+      
+      setTimeout(() => this.actualizarMapa(), 0);
     }
   }
 

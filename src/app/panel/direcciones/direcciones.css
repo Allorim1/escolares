@@ -22,11 +22,11 @@
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .btn-agregar:hover {
@@ -109,38 +109,38 @@
 
 .btn-editar, .btn-eliminar, .btn-principal {
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .btn-editar {
-  background-color: #ffc107;
-  color: #212529;
+  background-color: #007bff;
+  color: white;
 }
 
 .btn-editar:hover {
-  background-color: #e0a800;
+  background-color: #0056b3;
 }
 
 .btn-eliminar {
-  background-color: #dc3545;
+  background-color: #007bff;
   color: white;
 }
 
 .btn-eliminar:hover {
-  background-color: #c82333;
+  background-color: #0056b3;
 }
 
 .btn-principal {
-  background-color: #17a2b8;
+  background-color: #007bff;
   color: white;
 }
 
 .btn-principal:hover {
-  background-color: #138496;
+  background-color: #0056b3;
 }
 
 .btn-principal.activo {
@@ -257,11 +257,11 @@
 
 .btn-cancelar, .btn-guardar {
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .btn-cancelar {
@@ -274,12 +274,12 @@
 }
 
 .btn-guardar {
-  background-color: #28a745;
+  background-color: #007bff;
   color: white;
 }
 
 .btn-guardar:hover {
-  background-color: #1e7e34;
+  background-color: #0056b3;
 }
 
 .btn-guardar[disabled] {

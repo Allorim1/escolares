@@ -1,13 +1,15 @@
 <section>
-  <div class="banner-carousel reveal-init" #revealElement>
-    <button class="banner-btn prev" (click)="prevBanner()">‹</button>
-    <div class="banner-slide active">
-      <img src="/banner principal.png" alt="Banner principal" class="main-banner" />
+  <div class="hero-container reveal-init" #revealElement>
+    <div class="banner-carousel">
+      <button class="banner-btn prev" (click)="prevBanner()">‹</button>
+      <div class="banner-slide active">
+        <img src="/banner principal.png" alt="Banner principal" class="main-banner" />
+      </div>
+      <button class="banner-btn next" (click)="nextBanner()">›</button>
     </div>
-    <button class="banner-btn next" (click)="nextBanner()">›</button>
-  </div>
 
-  <app-login-card class="login-card-wrapper"></app-login-card>
+    <app-login-card class="login-card-wrapper"></app-login-card>
+  </div>
 
 @if (duplicatedMarcas.length > 0) {
      <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">

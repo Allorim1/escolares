@@ -12,7 +12,7 @@ import { NoticiasService } from '../../data-access/noticias.service';
   selector: 'app-header',
   imports: [FormsModule, RouterLink],
   templateUrl: './header.html',
-  styleUrls: ['./header.css'],
+  styleUrls: ['./header.css', './mobile-header-fixes.css'],
 })
 export class Header implements OnInit, OnDestroy {
   authService = inject(AuthService);

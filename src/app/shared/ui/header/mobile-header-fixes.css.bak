@@ -1,25 +1,22 @@
+﻿
 /* Mobile Header Improvements - Enhanced */
 @media (max-width: 768px) {
   .header-top {
     padding: 10px 12px;
     min-height: 56px;
     gap: 12px;
-    flex-wrap: wrap;
-    overflow-x: hidden;
-    max-width: 100%;
   }
   .brand-logo { height: 32px; }
   .header-search {
     max-width: 100%;
     order: 2;
-    flex: 1 1 100%;
+    flex: 1;
     margin: 0 8px;
-    min-width: 0;
   }
   .search-input { font-size: 0.9rem; padding: 8px 12px; }
   .category-btn { padding: 0 12px; font-size: 0.8rem; }
   .search-btn { padding: 0 12px; height: 40px; }
-  .header-icons { gap: 12px; flex-wrap: wrap; }
+  .header-icons { gap: 12px; }
   .dark-toggle { padding: 6px; margin-right: 4px; }
   .dark-toggle svg { width: 18px; height: 18px; }
   .nav-address-btn { padding: 4px 8px; gap: 4px; }

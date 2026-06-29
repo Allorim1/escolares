@@ -79,7 +79,7 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
       }
 
       .main-banner {
-        width: 100%;
+        width: 60%;
         height: auto;
         display: block;
       }

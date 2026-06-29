@@ -587,7 +587,7 @@ getDescuento(product: Product): number {
     return Math.round(descuento);
   }
 
-  toggleFavorito(product: Product) {
+toggleFavorito(product: Product) {
     this.favoritesService.toggleFavorito(product.id);
   }
 
@@ -600,6 +600,8 @@ getDescuento(product: Product): number {
   filterBrand = signal('');
   filterPriceMin = signal<number | null>(null);
   filterPriceMax = signal<number | null>(null);
+  filterPriceMinBs = signal<number | null>(null);
+  filterPriceMaxBs = signal<number | null>(null);
   currentBrand = signal('');
 
   ngOnInit() {
@@ -624,25 +626,45 @@ getDescuento(product: Product): number {
     });
   }
 
-// compute unique categories from products
-    categories = computed(() => {
-      const allProducts = this.productsState.allProducts() || [];
-      const cats = new Set<string>();
-      allProducts.forEach((p) => {
-        if (p.category) cats.add(p.category);
-      });
-      return Array.from(cats).sort();
+  // compute unique categories from products
+  categories = computed(() => {
+    const allProducts = this.productsState.allProducts() || [];
+    const cats = new Set<string>();
+    allProducts.forEach((p) => {
+      if (p.category) cats.add(p.category);
     });
+    return Array.from(cats).sort();
+  });
 
-    // compute price range
-    priceRange = computed(() => {
-      const allProducts = this.productsState.allProducts() || [];
-      if (!allProducts.length) return { min: 0, max: 1000 };
-      const prices = allProducts.map((p) => p.price);
-      return {
-        min: Math.floor(Math.min(...prices)),
-        max: Math.ceil(Math.max(...prices)),
+  // compute price range in USD
+  priceRange = computed(() => {
+    const allProducts = this.productsState.allProducts() || [];
+    if (!allProducts.length) return { min: 0, max: 1000 };
+    const prices = allProducts.map((p) => p.price);
+    return {
+      min: Math.floor(Math.min(...prices)),
+      max: Math.ceil(Math.max(...prices)),
     };
+  });
+
+  // compute price range in Bs (converted from USD)
+  priceRangeBs = computed(() => {
+    const usdRange = this.priceRange();
+    const tasa = this.currencyService.currentTasa();
+    if (tasa <= 0) return usdRange;
+    return {
+      min: Math.floor(usdRange.min * tasa),
+      max: Math.ceil(usdRange.max * tasa),
+    };
+  });
+
+  // max price in Bs for filter max attribute
+  maxPriceBs = computed(() => {
+    const allProducts = this.productsState.allProducts() || [];
+    if (!allProducts.length) return 1000;
+    const tasa = this.currencyService.currentTasa();
+    if (tasa <= 0) return Math.ceil(Math.max(...allProducts.map((p) => p.price || 0)));
+    return Math.ceil(Math.max(...allProducts.map((p) => (p.price || 0) * tasa)));
   });
 
   filteredProducts = computed(() => {
@@ -650,15 +672,19 @@ getDescuento(product: Product): number {
     const text = this.filterText().toLowerCase();
     const category = this.filterCategory();
     const brand = this.filterBrand();
-    const minPrice = this.filterPriceMin();
-    const maxPrice = this.filterPriceMax();
+    const minPriceUsd = this.filterPriceMin();
+    const maxPriceUsd = this.filterPriceMax();
+    const minPriceBs = this.filterPriceMinBs();
+    const maxPriceBs = this.filterPriceMaxBs();
+    const tasa = this.currencyService.currentTasa() || 1;
 
     return list.filter((p) => {
       const title = (p.title || '').toString().toLowerCase();
       const description = (p.description || '').toString().toLowerCase();
       const categoryValue = (p.category || '').toString().toLowerCase();
       const brandValue = (p.marca || '').toString().toLowerCase();
-      const priceValue = typeof p.price === 'number' ? p.price : Number(p.price || 0);
+      const priceUsd = typeof p.price === 'number' ? p.price : Number(p.price || 0);
+      const priceBs = priceUsd * tasa;
 
       // text filter
       if (text && !title.includes(text) && !description.includes(text)) {
@@ -672,25 +698,32 @@ getDescuento(product: Product): number {
       if (brand && brandValue !== brand.toLowerCase()) {
         return false;
       }
-      // price range filter
-      if (minPrice !== null && priceValue < minPrice) {
+      // price range filter in USD
+      if (minPriceUsd !== null && priceUsd < minPriceUsd) {
         return false;
       }
-      if (maxPrice !== null && priceValue > maxPrice) {
+      if (maxPriceUsd !== null && priceUsd > maxPriceUsd) {
+        return false;
+      }
+      // price range filter in Bs
+      if (minPriceBs !== null && priceBs < minPriceBs) {
+        return false;
+      }
+      if (maxPriceBs !== null && priceBs > maxPriceBs) {
         return false;
       }
       return true;
     });
   });
 
-// paginated filtered products - pagination happens client-side on filtered results
-    paginatedProducts = computed(() => {
-      const page = this.productsState.state.page();
-      const pageSize = 28;
-      const start = (page - 1) * pageSize;
-      const filtered = this.filteredProducts() || [];
-      return filtered.slice(start, start + pageSize);
-    });
+  // paginated filtered products - pagination happens client-side on filtered results
+  paginatedProducts = computed(() => {
+    const page = this.productsState.state.page();
+    const pageSize = 28;
+    const start = (page - 1) * pageSize;
+    const filtered = this.filteredProducts() || [];
+    return filtered.slice(start, start + pageSize);
+  });
 
   clearFilters() {
     this.filterText.set('');
@@ -698,6 +731,8 @@ getDescuento(product: Product): number {
     this.filterBrand.set('');
     this.filterPriceMin.set(null);
     this.filterPriceMax.set(null);
+    this.filterPriceMinBs.set(null);
+    this.filterPriceMaxBs.set(null);
     this.productsState.reset();
   }
 

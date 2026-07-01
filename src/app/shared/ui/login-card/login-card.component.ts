@@ -58,74 +58,67 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
     .login-card {
       background-color: #f8f9ff;
       border-radius: 8px;
-      padding: 16px;
+      padding: 24px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       width: 100%;
-      border: 2px solid #1d63c1;
+      border: 3px solid #1d63c1;
       font-family: 'Segoe UI', Roboto, sans-serif;
     }
 
     .card-header h2 {
       color: #002855;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
       margin: 0 0 4px 0;
     }
 
     .subtitle {
       color: #757575;
-      font-size: 12px;
-      margin: 0 0 16px 0;
+      font-size: 13px;
+      margin: 0 0 20px 0;
     }
 
     .phone-input-group {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       border: 1px solid #e0e0e0;
       border-radius: 4px;
       overflow: hidden;
       background-color: #fff;
-      gap: 1px;
-    }
-
-    .country-operator-row {
-      display: flex;
-      align-items: center;
     }
 
     .country-select {
       display: flex;
       align-items: center;
-      gap: 4px;
-      padding: 8px 10px;
+      gap: 6px;
+      padding: 10px 12px;
       background-color: #fff;
       border-right: 1px solid #e0e0e0;
-      font-size: 13px;
+      font-size: 14px;
       color: #333;
     }
 
     .arrow {
-      font-size: 8px;
+      font-size: 9px;
       color: #888;
     }
 
     .operator-select {
       border: none;
       border-right: 1px solid #e0e0e0;
-      padding: 8px 6px;
+      padding: 10px;
       background-color: #fff;
-      font-size: 13px;
+      font-size: 14px;
       color: #333;
       outline: none;
       cursor: pointer;
-      width: 60px;
     }
 
     .phone-input {
       border: none;
-      padding: 8px 10px;
+      padding: 10px 12px;
       flex-grow: 1;
-      font-size: 13px;
+      font-size: 14px;
       outline: none;
       color: #333;
     }
@@ -138,10 +131,11 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
       border: none;
       background-color: #e0e0e0;
       color: #a0a0a0;
-      padding: 10px;
-      font-size: 13px;
+      padding: 10px 16px;
+      font-size: 14px;
       font-weight: 600;
       cursor: not-allowed;
+      white-space: nowrap;
       transition: all 0.2s ease;
     }
 
@@ -157,11 +151,10 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
     .card-footer {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 12px;
-      font-size: 11px;
-      text-align: center;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      font-size: 12px;
     }
 
     .forgot-password {
@@ -188,51 +181,47 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
       text-decoration: underline;
     }
 
-    @media (min-width: 350px) {
+    /* Compact mode for small screens */
+    @media (max-width: 280px) {
       .login-card {
-        padding: 20px;
-        border: 3px solid #1d63c1;
+        padding: 16px;
+        border: 2px solid #1d63c1;
       }
 
       .card-header h2 {
-        font-size: 18px;
+        font-size: 16px;
       }
 
       .subtitle {
-        font-size: 13px;
-        margin: 0 0 20px 0;
-      }
-
-      .phone-input-group {
-        flex-direction: row;
+        font-size: 12px;
+        margin: 0 0 16px 0;
       }
 
       .country-select {
-        padding: 10px 12px;
-        font-size: 14px;
+        padding: 8px 10px;
+        font-size: 13px;
+        gap: 4px;
       }
 
       .operator-select {
-        padding: 10px;
-        font-size: 14px;
-        width: auto;
+        padding: 8px 6px;
+        font-size: 13px;
       }
 
       .phone-input {
-        padding: 10px 12px;
-        font-size: 14px;
+        padding: 8px 10px;
+        font-size: 13px;
       }
 
       .submit-btn {
-        padding: 10px 16px;
-        font-size: 14px;
+        padding: 8px 12px;
+        font-size: 13px;
       }
 
       .card-footer {
-        flex-direction: row;
-        justify-content: space-between;
-        font-size: 12px;
-        text-align: left;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 11px;
       }
     }
   `]

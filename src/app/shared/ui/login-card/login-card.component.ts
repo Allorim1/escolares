@@ -58,67 +58,74 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
     .login-card {
       background-color: #f8f9ff;
       border-radius: 8px;
-      padding: 24px;
+      padding: 16px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       width: 100%;
-      border: 3px solid #1d63c1;
+      border: 2px solid #1d63c1;
       font-family: 'Segoe UI', Roboto, sans-serif;
     }
 
     .card-header h2 {
       color: #002855;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       margin: 0 0 4px 0;
     }
 
     .subtitle {
       color: #757575;
-      font-size: 13px;
-      margin: 0 0 20px 0;
+      font-size: 12px;
+      margin: 0 0 16px 0;
     }
 
     .phone-input-group {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       border: 1px solid #e0e0e0;
       border-radius: 4px;
       overflow: hidden;
       background-color: #fff;
+      gap: 1px;
+    }
+
+    .country-operator-row {
+      display: flex;
+      align-items: center;
     }
 
     .country-select {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 12px;
+      gap: 4px;
+      padding: 8px 10px;
       background-color: #fff;
       border-right: 1px solid #e0e0e0;
-      font-size: 14px;
+      font-size: 13px;
       color: #333;
     }
 
     .arrow {
-      font-size: 9px;
+      font-size: 8px;
       color: #888;
     }
 
     .operator-select {
       border: none;
       border-right: 1px solid #e0e0e0;
-      padding: 10px;
+      padding: 8px 6px;
       background-color: #fff;
-      font-size: 14px;
+      font-size: 13px;
       color: #333;
       outline: none;
       cursor: pointer;
+      width: 60px;
     }
 
     .phone-input {
       border: none;
-      padding: 10px 12px;
+      padding: 8px 10px;
       flex-grow: 1;
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
       color: #333;
     }
@@ -131,11 +138,10 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
       border: none;
       background-color: #e0e0e0;
       color: #a0a0a0;
-      padding: 10px 16px;
-      font-size: 14px;
+      padding: 10px;
+      font-size: 13px;
       font-weight: 600;
       cursor: not-allowed;
-      white-space: nowrap;
       transition: all 0.2s ease;
     }
 
@@ -151,10 +157,11 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
     .card-footer {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 16px;
-      font-size: 12px;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 11px;
+      text-align: center;
     }
 
     .forgot-password {
@@ -179,6 +186,54 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
     .register-link:hover {
       text-decoration: underline;
+    }
+
+    @media (min-width: 350px) {
+      .login-card {
+        padding: 20px;
+        border: 3px solid #1d63c1;
+      }
+
+      .card-header h2 {
+        font-size: 18px;
+      }
+
+      .subtitle {
+        font-size: 13px;
+        margin: 0 0 20px 0;
+      }
+
+      .phone-input-group {
+        flex-direction: row;
+      }
+
+      .country-select {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .operator-select {
+        padding: 10px;
+        font-size: 14px;
+        width: auto;
+      }
+
+      .phone-input {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      .submit-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+      }
+
+      .card-footer {
+        flex-direction: row;
+        justify-content: space-between;
+        font-size: 12px;
+        text-align: left;
+      }
     }
   `]
 })

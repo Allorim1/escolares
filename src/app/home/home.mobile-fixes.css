@@ -1,6 +1,5 @@
 /* Home Mobile Fixes */
 @media (max-width: 768px) {
-  .banner-carousel { margin-bottom: 0.5rem; }
   .main-banner { width: 100%; height: auto; max-height: 40vh; object-fit: cover; }
   .banner-btn { width: 36px; height: 36px; font-size: 1.2rem; }
   .newsletter-section { padding: 1.5rem; margin: 1.5rem auto; }

@@ -25,7 +25,7 @@ interface NewUser {
    tipoDocumento: 'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e';
    numeroDocumento: string;
    genero: 'hombre' | 'mujer' | 'no_especificado';
-   rol: 'owner' | 'usuario' | 'repartidor';
+    rol: 'usuario' | 'repartidor';
    rolId?: string;
  }
 
@@ -65,7 +65,7 @@ export class AdminUsuarios implements OnInit {
 
     if (tipo === 'admin') {
       resultado = resultado.filter(u => {
-        if (u.rol === 'root' || u.rol === 'owner') return true;
+        if (u.rol === 'root') return true;
         if (u.rolId) {
           const rol = this.roles().find(r => r.id === u.rolId);
           if (rol && rol.permisos && rol.permisos.length > 0) return true;
@@ -74,7 +74,7 @@ export class AdminUsuarios implements OnInit {
       });
     } else if (tipo === 'comun') {
       resultado = resultado.filter(u => {
-        if (u.rol === 'root' || u.rol === 'owner') return false;
+        if (u.rol === 'root') return false;
         if (!u.rolId) return true;
         const rol = this.roles().find(r => r.id === u.rolId);
         if (!rol || !rol.permisos || rol.permisos.length === 0) return true;
@@ -201,24 +201,22 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
     return this.getRolLabel(user.rol);
   }
 
-  esOwner(): boolean {
-    return this.authService.user()?.rol === 'owner' || this.authService.user()?.rol === 'root';
-  }
+   esOwner(): boolean {
+     return this.authService.user()?.rol === 'root';
+   }
 
-  esRoot(): boolean {
-    return this.authService.user()?.rol === 'root';
-  }
+   esRoot(): boolean {
+     return this.authService.user()?.rol === 'root';
+   }
 
-  esAdmin(): boolean {
-    return this.esOwner();
-  }
+   esAdmin(): boolean {
+     return this.esRoot();
+   }
 
   getRolLabel(rol?: string): string {
     switch (rol) {
       case 'root':
         return 'Root';
-      case 'owner':
-        return 'Owner';
       case 'repartidor':
         return 'Repartidor';
       case 'usuario':
@@ -331,7 +329,7 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
     if (!user) return;
 
     const rolParts = this.selectedUserRolData.split(':');
-    const rol = rolParts[0] as 'owner' | 'usuario' | 'repartidor';
+    const rol = rolParts[0] as 'usuario' | 'repartidor';
     const rolId = rolParts[1] || undefined;
 
     this.authService.updateUserRol(user.id, rol, rolId).subscribe({
@@ -500,7 +498,7 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
         documentoCompleto = numero;
     }
 
-    const rol = userData.rolId ? 'usuario' : 'owner';
+    const rol = userData.rolId ? 'usuario' : 'root';
 
     this.http.post('/api/auth/register-simple', {
       username: userData.username,

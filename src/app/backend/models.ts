@@ -22,8 +22,7 @@ export interface User {
   email: string;
   password?: string;
   isAdmin: boolean;
-  isOwner?: boolean;
-  rol?: 'root' | 'owner' | 'admin' | 'usuario' | 'repartidor';
+  rol?: 'root' | 'admin' | 'usuario' | 'repartidor';
   rolId?: string;
   deliveryPersonId?: string;
   nombreCompleto?: string;

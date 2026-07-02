@@ -9,7 +9,7 @@ interface Empleado {
   username?: string;
   email?: string;
   isAdmin?: boolean;
-  rol?: 'root' | 'owner' | 'admin' | 'usuario' | 'repartidor';
+  rol?: 'root' | 'admin' | 'usuario' | 'repartidor';
 }
 
 interface Asistencia {
@@ -64,7 +64,7 @@ export class Asistencias implements OnInit {
   loadEmpleados() {
     this.http.get<Empleado[]>(this.API_USERS).subscribe({
       next: (data) => {
-        const empleadosPanel = data.filter(u => u.isAdmin || u.rol === 'owner' || u.rol === 'root' || u.rol === 'admin');
+        const empleadosPanel = data.filter(u => u.isAdmin || u.rol === 'root' || u.rol === 'admin');
         this.empleados.set(empleadosPanel.sort((a, b) => (a.nombreCompleto || a.username || '').localeCompare(b.nombreCompleto || b.username || '')));
       },
       error: (err) => console.error('Error loading empleados:', err),

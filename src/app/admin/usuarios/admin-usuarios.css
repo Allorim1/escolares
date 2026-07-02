@@ -104,11 +104,6 @@
   font-weight: 600;
 }
 
-.rol-badge.owner {
-  background: #6f42c1;
-  color: white;
-}
-
 .rol-badge.admin {
   background: #dc3545;
   color: white;

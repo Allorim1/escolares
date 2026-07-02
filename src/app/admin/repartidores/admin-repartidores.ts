@@ -60,12 +60,12 @@ export class AdminRepartidoresComponent implements OnInit {
     this.http.get<any[]>('/api/users?role=repartidor').subscribe({
       next: (users) => {
         const repartidores = users.map(user => {
-          const deliveryPersonId = user._id || user.deliveryPersonId;
+          const deliveryPersonId = user.deliveryPersonId || user.id;
           return {
             id: deliveryPersonId,
             nombre: user.nombreCompleto || user.username,
             telefono: user.telefono,
-            activo: user.activo,
+            activo: user.activo !== undefined ? user.activo : true,
             createdAt: new Date(user.createdAt),
             updatedAt: new Date(user.updatedAt),
             isUser: true

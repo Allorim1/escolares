@@ -166,7 +166,6 @@ export class Chat implements OnInit, AfterViewChecked {
     const labels: Record<string, string> = {
       'root': 'Administrador',
       'admin': 'Admin',
-      'owner': 'Propietario',
       'usuario': 'Usuario',
     };
     return labels[rol] || rol;

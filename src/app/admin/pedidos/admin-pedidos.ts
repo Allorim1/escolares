@@ -130,7 +130,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
 
 private tienePermisosAdmin(user: any): boolean {
-     if (user.rol === 'root' || user.rol === 'owner' || user.isAdmin) {
+      if (user.rol === 'root' || user.isAdmin) {
        return true;
      }
     
@@ -656,12 +656,12 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
     this.http.get<any[]>('/api/users?role=repartidor').subscribe({
       next: (users) => {
         const repartidores = users.map(user => {
-          const deliveryPersonId = user._id || user.deliveryPersonId;
+          const deliveryPersonId = user.deliveryPersonId || user.id;
           return {
             id: deliveryPersonId,
             nombre: user.nombreCompleto || user.username,
             telefono: user.telefono,
-            activo: user.activo,
+            activo: user.activo !== undefined ? user.activo : true,
             createdAt: new Date(user.createdAt),
             updatedAt: new Date(user.updatedAt)
           };

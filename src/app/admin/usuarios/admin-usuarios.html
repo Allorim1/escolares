@@ -284,7 +284,7 @@
               <label>Seleccionar Rol</label>
               <select class="rol-select" [(ngModel)]="selectedUserRolData" enterFocusNext>
                 <option value="usuario">Usuario</option>
-                <option value="owner">Owner</option>
+                <option value="repartidor">Repartidor</option>
                 @for (rol of roles(); track rol.id) {
                   <option [value]="'usuario:' + rol.id">{{ rol.nombre }}</option>
                 }
@@ -316,7 +316,14 @@
         }
 
 @if (userDetailsTab() === 'password') {
-           <div class="form-group password-group">
+<div class="form-group">
+               <label>Rol *</label>
+                <select [(ngModel)]="newUser.rol" enterFocusNext>
+                  <option value="usuario">Usuario</option>
+                  <option value="repartidor">Repartidor</option>
+                </select>
+             </div>
+             <div class="form-group password-group">
              <label>Nueva Contraseña</label>
              <div class="password-input-container">
                <input [type]="showPasswordChange() ? 'text' : 'password'" [(ngModel)]="newPassword" placeholder="Ingrese nueva contraseña" enterFocusNext />

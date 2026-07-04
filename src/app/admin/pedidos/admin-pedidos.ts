@@ -681,7 +681,18 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
       ...this.deliveryPersons(),
       ...this.repartidorUsers()
     ];
-    return combined.filter(p => p.activo);
+
+    const seen = new Set<string>();
+
+    return combined.filter((person) => {
+      const key = person.id || person.nombre;
+      if (!person.activo || !key || seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
   }
 
   openAssignDeliveryModal() {

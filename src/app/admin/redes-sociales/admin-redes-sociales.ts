@@ -368,7 +368,6 @@ private iniciarVerificacionMensajes() {
     if (!token) return;
 
     const baseUrl = window.location.origin;
-    const token = localStorage.getItem('token');
     const sseUrl = `${baseUrl}/api/redes-sociales/events/messages?token=${encodeURIComponent(token || '')}`;
 
     try {

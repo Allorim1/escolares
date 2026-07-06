@@ -357,7 +357,7 @@ private iniciarVerificacionMensajes() {
 
     this.mensajesInterval = window.setInterval(() => {
       this.actualizarMensajes();
-    }, 15000);
+    }, 5000);
   }
 
   // Conexión SSE para recibir mensajes en tiempo real
@@ -372,6 +372,7 @@ private iniciarVerificacionMensajes() {
 
     try {
       this.sseSource = new EventSource(sseUrl);
+      this.sseSource.onopen = () => console.log('✅ SSE conectado para mensajes en tiempo real');
 
       this.sseSource.addEventListener('message', (event) => {
         try {
@@ -654,7 +655,7 @@ private iniciarVerificacionMensajes() {
 
   async enviarMensajeChat() {
     const chat = this.chatSeleccionado();
-    const texto = this.nuevoMensajeTexto().trim();
+    const texto = this.nuevoMensajeTexto().trim().replace(/(\.{3,}|…)\s*$/u, '').trim();
     const archivo = this.archivoSeleccionadoSignal();
 
     if (!chat || (!texto && !archivo)) {

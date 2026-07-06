@@ -106,11 +106,11 @@
 /* Chat System Styles */
 .mensajes-container {
   display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 1.5rem;
-  height: calc(100vh - 280px);
-  min-height: 650px;
+  grid-template-columns: minmax(320px, 380px) 1fr;
+  gap: 1.25rem;
+  min-height: min(82vh, 900px);
   margin-top: 1rem;
+  align-items: stretch;
 }
 
 .chats-sidebar {
@@ -120,6 +120,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -163,13 +164,14 @@
 .chats-list {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 420px);
+  min-height: 0;
+  padding: 0.25rem 0;
 }
 
 .chat-item {
   display: flex;
   align-items: center;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -199,8 +201,8 @@
 }
 
 .chat-avatar {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   display: flex;
@@ -347,6 +349,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 640px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 

@@ -17,6 +17,56 @@ interface ChatMessage extends MensajeRedSocial {
   esRespuesta: boolean;
 }
 
+export function buildChatSnapshot(
+  selectedChat: {
+    usuario: string;
+    plataforma: string;
+    mensajes: ChatMessage[];
+    ultimoMensaje: MensajeRedSocial;
+    tieneNoLeidos: boolean;
+    noLeidosCount: number;
+  } | null,
+  mensajes: MensajeRedSocial[]
+) {
+  if (!selectedChat) {
+    return null;
+  }
+
+  const mensajesDelChat = mensajes.filter(
+    mensaje => mensaje.usuario === selectedChat.usuario && mensaje.plataforma === selectedChat.plataforma
+  );
+
+  if (mensajesDelChat.length === 0) {
+    return null;
+  }
+
+  const mensajesOrdenados = mensajesDelChat
+    .map(mensaje => ({
+      ...mensaje,
+      fecha: mensaje.fecha instanceof Date ? mensaje.fecha : new Date(mensaje.fecha),
+      createdAt: mensaje.createdAt instanceof Date ? mensaje.createdAt : new Date(mensaje.createdAt),
+      updatedAt: mensaje.updatedAt instanceof Date ? mensaje.updatedAt : new Date(mensaje.updatedAt),
+      esRespuesta: !!mensaje.respondido,
+    }))
+    .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+
+  const ultimoMensaje = mensajesOrdenados.reduce((prev, current) =>
+    new Date(current.fecha).getTime() > new Date(prev.fecha).getTime() ? current : prev,
+    mensajesOrdenados[0]
+  );
+
+  const noLeidos = mensajesOrdenados.filter(mensaje => !mensaje.leido);
+
+  return {
+    usuario: selectedChat.usuario,
+    plataforma: selectedChat.plataforma,
+    mensajes: mensajesOrdenados,
+    ultimoMensaje,
+    tieneNoLeidos: noLeidos.length > 0,
+    noLeidosCount: noLeidos.length,
+  };
+}
+
 @Component({
   selector: 'app-admin-redes-sociales',
   standalone: true,
@@ -158,6 +208,12 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
   private mensajesPollingInterval: any;
+  private readonly manejarEnfoqueVentana = () => this.actualizarMensajes();
+  private readonly manejarCambioVisibilidad = () => {
+    if (document.visibilityState === 'visible') {
+      this.actualizarMensajes();
+    }
+  };
 
   async ngOnInit() {
     await this.cargarDatos();
@@ -167,10 +223,9 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   }
 
   private iniciarPollingMensajes() {
-    // Actualizar mensajes cada 10 segundos para mostrar mensajes nuevos en tiempo real
     this.mensajesPollingInterval = setInterval(() => {
       this.actualizarMensajes();
-    }, 10000); // 10 segundos
+    }, 5000);
   }
 
   // Método para verificar el estado de los webhooks
@@ -251,6 +306,7 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
         if (nuevosMensajes.length > 0 || mensajesActualesArray.length !== mensajesPrevios.length) {
           console.log('Actualizando mensajes desde polling:', { nuevos: nuevosMensajes.length, total: mensajesActualesArray.length });
           this.mensajes.set(mensajesActualesArray);
+          this.sincronizarChatSeleccionado();
 
           // Scroll to bottom if there's a selected chat and new messages
           if (this.chatSeleccionado() && (nuevosMensajes.length > 0)) {
@@ -291,10 +347,12 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   }
 
 private iniciarVerificacionMensajes() {
-    // Verificar nuevos mensajes cada 30 segundos
-    this.mensajesInterval = setInterval(() => {
+    window.addEventListener('focus', this.manejarEnfoqueVentana);
+    document.addEventListener('visibilitychange', this.manejarCambioVisibilidad);
+
+    this.mensajesInterval = window.setInterval(() => {
       this.actualizarMensajes();
-    }, 30000); // 30 segundos
+    }, 15000);
   }
 
   // Conexión SSE para recibir mensajes en tiempo real
@@ -326,6 +384,7 @@ private iniciarVerificacionMensajes() {
             if (!mensajesPrevios.some((m: any) => m.id === nuevoMensaje.id)) {
               const nuevosMensajes = [nuevoMensaje, ...mensajesPrevios];
               this.mensajes.set(nuevosMensajes);
+              this.sincronizarChatSeleccionado();
 
               // Mostrar notificación
               this.ultimoMensajeNotificado.set(nuevoMensaje);
@@ -369,6 +428,8 @@ private iniciarVerificacionMensajes() {
     if (this.mensajesPollingInterval) {
       clearInterval(this.mensajesPollingInterval);
     }
+    window.removeEventListener('focus', this.manejarEnfoqueVentana);
+    document.removeEventListener('visibilitychange', this.manejarCambioVisibilidad);
     if (this.sseSource) {
       this.sseSource.close();
     }
@@ -423,6 +484,7 @@ private iniciarVerificacionMensajes() {
       }));
 
       this.mensajes.set(mensajesConFechas);
+      this.sincronizarChatSeleccionado();
       this.respuestasAutomaticas.set(respuestas || []);
       this.notificaciones.set(notificaciones || []);
     } catch (err) {
@@ -579,6 +641,7 @@ private iniciarVerificacionMensajes() {
           return chatMensaje ? { ...msg, leido: true } : msg;
         })
       );
+      this.sincronizarChatSeleccionado();
     } catch (error) {
       console.error('Error marcando chat como leído:', error);
     }
@@ -653,6 +716,7 @@ private iniciarVerificacionMensajes() {
         
         const mensajesActuales = this.mensajes();
         this.mensajes.set([mensajeConFechas, ...mensajesActuales]);
+        this.sincronizarChatSeleccionado();
 
         // Marcar como respondido para enviar por la plataforma
         await this.redesSocialesBackend.updateMensaje(mensajeCreado.id, {
@@ -850,6 +914,20 @@ private iniciarVerificacionMensajes() {
     if (event.key === 'Enter' && !event.shiftKey) {
       this.enviarMensajeChat();
       event.preventDefault();
+    }
+  }
+
+  private sincronizarChatSeleccionado(): void {
+    const chatActual = this.chatSeleccionado();
+    if (!chatActual) {
+      return;
+    }
+
+    const chatActualizado = buildChatSnapshot(chatActual, this.mensajes());
+    if (chatActualizado) {
+      this.chatSeleccionado.set(chatActualizado);
+    } else {
+      this.chatSeleccionado.set(null);
     }
   }
 

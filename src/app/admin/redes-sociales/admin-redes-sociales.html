@@ -280,9 +280,11 @@
                  (dragover)="onDragOver($event)"
                  (dragleave)="onDragLeave($event)"
                  (drop)="onDrop($event)">
-              <div class="drop-overlay" @if (arrastrando())>
-                <span>Suelta el archivo para adjuntarlo</span>
-              </div>
+              @if (arrastrando()) {
+                <div class="drop-overlay">
+                  <span>Suelta el archivo para adjuntarlo</span>
+                </div>
+              }
 
               <div class="message-input-container">
                 <textarea

@@ -884,6 +884,17 @@ private iniciarVerificacionMensajes() {
     }
   }
 
+  getPlatformIconSvg(plataforma: string): string {
+    switch (plataforma) {
+      case 'WhatsApp':
+        return `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.04 3.5C7.44 3.5 3.73 7.22 3.73 11.82c0 1.67.44 3.3 1.27 4.71L3.5 20.5l4.1-1.08a8.96 8.96 0 0 0 4.44 1.14c4.6 0 8.31-3.72 8.31-8.32S16.64 3.5 12.04 3.5Zm0 15.5a7.26 7.26 0 0 1-3.69-1l-.26-.15-2.43.64.65-2.37-.17-.26a7.27 7.27 0 1 1 5.9 2.74Z" fill="currentColor"/><path d="M15.97 13.57c-.1-.05-1.8-.89-2.08-.99-.28-.1-.49-.15-.69.15-.2.3-.77.99-.94 1.19-.17.2-.35.22-.64.07-.29-.15-1.22-.45-2.33-1.43a8.65 8.65 0 0 1-1.6-2c-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.5.14-.17.19-.29.29-.49.1-.2.05-.37-.02-.52-.08-.15-.69-1.65-.95-2.27-.25-.59-.51-.5-.69-.5-.18 0-.38-.02-.58-.02-.2 0-.52.07-.79.34-.27.27-1.03 1.01-1.03 2.46 0 1.45 1.05 2.86 1.2 3.06.15.2 2.07 3.16 5.02 4.43.7.3 1.25.48 1.68.62.71.23 1.35.2 1.86.12.57-.08 1.8-.74 2.05-1.45.25-.72.25-1.34.17-1.47-.08-.13-.28-.2-.58-.35Z" fill="#FFF"/></svg>`;
+      case 'Instagram':
+        return `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/></svg>`;
+      default:
+        return '<span class="platform-emoji">💬</span>';
+    }
+  }
+
   getUserDisplayName(usuario: string): string {
     // Si es un ID numérico largo (probablemente Instagram/Facebook), mostrar abreviado
     if (/^\d{10,}$/.test(usuario)) {

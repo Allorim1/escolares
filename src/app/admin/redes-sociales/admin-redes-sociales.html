@@ -202,9 +202,7 @@
                 [class.has-unread]="chat.tieneNoLeidos"
                 (click)="seleccionarChat(chat)"
               >
-                <div class="chat-avatar">
-                  <span class="platform-icon">{{ getPlatformIcon(chat.plataforma) }}</span>
-                </div>
+                <div class="chat-avatar" [innerHTML]="getPlatformIconSvg(chat.plataforma)"></div>
                 <div class="chat-info">
                   <div class="chat-header-row">
                     <span class="chat-user">{{ getUserDisplayName(chat.usuario) }}</span>
@@ -226,110 +224,137 @@
           </div>
         </aside>
 
-        <div class="chat-area">
-        @if (chatSeleccionado()) {
-          <!-- Modal Overlay -->
-          <div class="chat-modal-overlay" (click)="cerrarModalChat()">
-            <div class="chat-modal" (click)="$event.stopPropagation()">
-              <!-- Modal Header -->
-              <div class="chat-modal-header">
-                <div class="chat-user-info">
-                  <div class="chat-avatar chat-avatar-large">
-                    <span class="platform-icon">{{ getPlatformIcon(chatSeleccionado()!.plataforma) }}</span>
-                  </div>
-                  <div>
-                    <div class="chat-user-name">{{ getUserDisplayName(chatSeleccionado()!.usuario) }}</div>
-                    <div class="chat-platform-badge">{{ chatSeleccionado()!.plataforma }} · En línea</div>
-                  </div>
-                </div>
-                <div class="chat-actions">
-                  <button (click)="marcarChatComoLeido(chatSeleccionado()!); $event.stopPropagation()" class="btn btn-sm btn-outline">
-                    Marcar leído
-                  </button>
-                  <button (click)="cerrarModalChat()" class="btn btn-sm btn-outline" title="Cerrar chat">
-                    ✕
-                  </button>
+        <section class="chat-area">
+          @if (chatSeleccionado()) {
+            <div class="chat-header">
+              <div class="chat-user-info">
+                <div class="chat-avatar chat-avatar-large" [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"></div>
+                <div>
+                  <div class="chat-user-name">{{ getUserDisplayName(chatSeleccionado()!.usuario) }}</div>
+                  <div class="chat-platform-badge">{{ chatSeleccionado()!.plataforma }} · En línea</div>
                 </div>
               </div>
-
-              <div class="chat-modal-messages" #messagesContainer>
-                @for (mensaje of chatSeleccionado()!.mensajes; track mensaje.id) {
-                  <div class="message" [class.own]="mensaje.esRespuesta" [class.other]="!mensaje.esRespuesta">
-                    <div class="message-content">
-                      @if (mensaje.mediaUrl) {
-                        @if (mensaje.mediaType?.startsWith('image/')) {
-                          <img [src]="mensaje.mediaUrl" [alt]="mensaje.mediaCaption || 'Imagen'" class="message-image" />
-                        } @else if (mensaje.mediaType?.startsWith('video/')) {
-                          <video controls class="message-video">
-                            <source [src]="mensaje.mediaUrl" [type]="mensaje.mediaType">
-                          </video>
-                        } @else {
-                          <div class="message-file">
-                            <span class="file-icon">📎</span>
-                            <a [href]="mensaje.mediaUrl" target="_blank" class="file-link">{{ mensaje.mediaFilename || 'Archivo' }}</a>
-                          </div>
-                        }
-                      }
-                      @if (mensaje.texto) {
-                        <div class="message-text">{{ mensaje.texto }}</div>
-                      }
-                      @if (mensaje.mediaCaption) {
-                        <div class="message-caption">{{ mensaje.mediaCaption }}</div>
-                      }
-                      <div class="message-time">{{ mensaje.fecha | date:'HH:mm' }}</div>
-                    </div>
-                  </div>
-                }
-              </div>
-
-              <!-- Modal Input Area -->
-              <div class="chat-modal-input-area">
-                <div class="message-input-container">
-                  <textarea
-                    [ngModel]="nuevoMensajeTexto()"
-                    (ngModelChange)="nuevoMensajeTexto.set($event)"
-                    (keydown)="onKeyDown($event)"
-                    placeholder="Escribe un mensaje..."
-                    rows="1"
-                    class="message-input"
-                    #messageInput
-                  ></textarea>
-
-                  <div class="message-actions">
-                    <input
-                      type="file"
-                      #fileInput
-                      (change)="onArchivoSeleccionado($event)"
-                      accept="image/*,video/*,audio/*,application/*"
-                      style="display: none"
-                    />
-                    <button (click)="fileInput.click()" class="btn btn-outline btn-sm" title="Adjuntar archivo">📎</button>
-                    <button (click)="enviarMensajeChat(); $event.stopPropagation()" class="btn btn-primary btn-sm" [disabled]="!nuevoMensajeTexto().trim() && !archivoSeleccionado()">Enviar</button>
-                  </div>
-                </div>
-
-                @if (archivoSeleccionado()) {
-                  <div class="file-preview">
-                    <div class="file-info">
-                      <span class="file-icon">📄</span>
-                      <span class="file-name">{{ archivoSeleccionado()?.name }}</span>
-                      <button (click)="removerArchivo()" class="btn btn-sm btn-danger">×</button>
-                    </div>
-                  </div>
-                }
+              <div class="chat-actions">
+                <button (click)="marcarChatComoLeido(chatSeleccionado()!); $event.stopPropagation()" class="btn btn-sm btn-outline">
+                  Marcar leído
+                </button>
               </div>
             </div>
-          </div>
-        } @else {
-          <div class="no-chat-selected">
-            <div class="no-chat-icon">💬</div>
-            <h4>Selecciona un chat</h4>
-            <p>Elige un chat de la lista para ver los mensajes y responder</p>
-          </div>
-        }
-</div>
-    </div>
-  </section>
+
+            <div class="chat-messages" #messagesContainer>
+              @for (mensaje of chatSeleccionado()!.mensajes; track mensaje.id) {
+                <div class="message" [class.agent]="mensaje.esRespuesta" [class.client]="!mensaje.esRespuesta">
+                  <div class="message-content">
+                    @if (mensaje.mediaUrl) {
+                      @if (mensaje.mediaType?.startsWith('image/')) {
+                        <img [src]="mensaje.mediaUrl" [alt]="mensaje.mediaCaption || 'Imagen'" class="message-image" />
+                      } @else if (mensaje.mediaType?.startsWith('video/')) {
+                        <video controls class="message-video">
+                          <source [src]="mensaje.mediaUrl" [type]="mensaje.mediaType">
+                        </video>
+                      } @else {
+                        <div class="message-file">
+                          <span class="file-icon">📎</span>
+                          <a [href]="mensaje.mediaUrl" target="_blank" class="file-link">{{ mensaje.mediaFilename || 'Archivo' }}</a>
+                        </div>
+                      }
+                    }
+                    @if (mensaje.texto) {
+                      <div class="message-text">{{ mensaje.texto }}</div>
+                    }
+                    @if (mensaje.mediaCaption) {
+                      <div class="message-caption">{{ mensaje.mediaCaption }}</div>
+                    }
+                    <div class="message-time">{{ mensaje.fecha | date:'HH:mm' }}</div>
+                    <div class="message-origin" [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"></div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="chat-input-area">
+              <div class="message-input-container">
+                <textarea
+                  [ngModel]="nuevoMensajeTexto()"
+                  (ngModelChange)="nuevoMensajeTexto.set($event)"
+                  (keydown)="onKeyDown($event)"
+                  placeholder="Escribe un mensaje..."
+                  rows="1"
+                  class="message-input"
+                  #messageInput
+                ></textarea>
+
+                <div class="message-actions">
+                  <input
+                    type="file"
+                    #fileInput
+                    (change)="onArchivoSeleccionado($event)"
+                    accept="image/*,video/*,audio/*,application/*"
+                    style="display: none"
+                  />
+                  <button (click)="fileInput.click()" class="btn btn-outline btn-sm" title="Adjuntar archivo">📎</button>
+                  <button (click)="enviarMensajeChat(); $event.stopPropagation()" class="btn btn-primary btn-sm" [disabled]="!nuevoMensajeTexto().trim() && !archivoSeleccionado()">Enviar</button>
+                </div>
+              </div>
+
+              @if (archivoSeleccionado()) {
+                <div class="file-preview">
+                  <div class="file-info">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name">{{ archivoSeleccionado()?.name }}</span>
+                    <button (click)="removerArchivo()" class="btn btn-sm btn-danger">×</button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="no-chat-selected">
+              <div class="no-chat-icon">💬</div>
+              <h4>Selecciona un chat</h4>
+              <p>Elige un chat de la lista para ver los mensajes y responder</p>
+            </div>
+          }
+        </section>
+
+        <aside class="contact-details-panel">
+          @if (chatSeleccionado()) {
+            <div class="contact-details-header">
+              <h4>Detalles del contacto</h4>
+            </div>
+            <div class="contact-card">
+              <div class="contact-avatar" [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"></div>
+              <div>
+                <h5>{{ getUserDisplayName(chatSeleccionado()!.usuario) }}</h5>
+                <p>{{ chatSeleccionado()!.plataforma }}</p>
+              </div>
+            </div>
+            <div class="detail-section">
+              <h6>Detalle</h6>
+              <div class="detail-row">
+                <span>Canal</span>
+                <strong>{{ chatSeleccionado()!.plataforma }}</strong>
+              </div>
+              <div class="detail-row">
+                <span>Usuario</span>
+                <strong>{{ chatSeleccionado()!.usuario }}</strong>
+              </div>
+              <div class="detail-row">
+                <span>Estado</span>
+                <strong>En línea</strong>
+              </div>
+            </div>
+            <div class="detail-section">
+              <h6>Notas internas</h6>
+              <p>No hay notas guardadas para este contacto.</p>
+            </div>
+          } @else {
+            <div class="contact-details-empty">
+              <p>Selecciona una conversación para ver información del contacto.</p>
+            </div>
+          }
+        </aside>
+      </div>
+    </section>
 
   <section class="section">
     <h2>🤖 Respuestas Automáticas (Opcional)</h2>

@@ -232,10 +232,36 @@
   transition: transform 0.2s ease;
 }
 
+.chat-avatar svg,
+.contact-avatar svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  color: #fff;
+  fill: currentColor;
+}
+
 .chat-avatar-large {
   width: 48px;
   height: 48px;
   border-radius: 16px;
+}
+
+.chat-avatar-large svg {
+  width: 26px;
+  height: 26px;
+}
+
+.message-origin svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  color: #94a3b8;
+}
+
+.platform-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .chat-item:hover .chat-avatar {

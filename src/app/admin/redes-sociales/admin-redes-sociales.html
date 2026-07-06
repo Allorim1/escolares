@@ -241,7 +241,10 @@
               </div>
             </div>
 
-            <div class="chat-messages" #messagesContainer>
+            <div class="chat-messages" #messagesContainer
+                 (dragover)="onDragOver($event)"
+                 (dragleave)="onDragLeave($event)"
+                 (drop)="onDrop($event)">
               @for (mensaje of chatSeleccionado()!.mensajes; track mensaje.id) {
                 <div class="message" [class.agent]="mensaje.esRespuesta" [class.client]="!mensaje.esRespuesta">
                   <div class="message-content">
@@ -272,13 +275,22 @@
               }
             </div>
 
-            <div class="chat-input-area">
+            <div class="chat-input-area"
+                 [class.drag-over]="arrastrando()"
+                 (dragover)="onDragOver($event)"
+                 (dragleave)="onDragLeave($event)"
+                 (drop)="onDrop($event)">
+              <div class="drop-overlay" @if (arrastrando())>
+                <span>Suelta el archivo para adjuntarlo</span>
+              </div>
+
               <div class="message-input-container">
                 <textarea
                   [ngModel]="nuevoMensajeTexto()"
                   (ngModelChange)="nuevoMensajeTexto.set($event)"
                   (keydown)="onKeyDown($event)"
-                  placeholder="Escribe un mensaje..."
+                  (paste)="onPaste($event)"
+                  placeholder="Escribe un mensaje... (pega o arrastra un archivo)"
                   rows="1"
                   class="message-input"
                   #messageInput
@@ -299,12 +311,25 @@
 
               @if (archivoSeleccionado()) {
                 <div class="file-preview">
-                  <div class="file-info">
-                    <span class="file-icon">📄</span>
-                    <span class="file-name">{{ archivoSeleccionado()?.name }}</span>
-                    <button (click)="removerArchivo()" class="btn btn-sm btn-danger">×</button>
+                  <div class="file-preview-thumb">
+                    @if (archivoPreviewEsImagen()) {
+                      <img [src]="archivoPreviewUrl()" alt="Vista previa" />
+                    } @else if (archivoPreviewEsVideo()) {
+                      <video [src]="archivoPreviewUrl()" muted></video>
+                    } @else {
+                      <span class="file-icon">📄</span>
+                    }
                   </div>
+                  <div class="file-info">
+                    <span class="file-name">{{ archivoSeleccionado()?.name }}</span>
+                    <span class="file-size">{{ formatearTamano(archivoSeleccionado()?.size || 0) }}</span>
+                  </div>
+                  <button (click)="removerArchivo()" class="btn btn-sm btn-danger" title="Quitar archivo">×</button>
                 </div>
+              }
+
+              @if (confirmacionEnvio()) {
+                <div class="send-confirmation">✓ {{ confirmacionEnvio() }}</div>
               }
             </div>
           } @else {

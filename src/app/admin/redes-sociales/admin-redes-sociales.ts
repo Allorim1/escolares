@@ -108,6 +108,11 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   chatSeleccionado = signal<Chat | null>(null);
   nuevoMensajeTexto = signal<string>('');
   archivoSeleccionadoSignal = signal<File | null>(null);
+  archivoPreviewUrl = signal<string | null>(null);
+  arrastrando = signal<boolean>(false);
+  confirmacionEnvio = signal<string | null>(null);
+  archivoPreviewEsImagen = computed(() => this.archivoSeleccionadoSignal()?.type.startsWith('image/') ?? false);
+  archivoPreviewEsVideo = computed(() => this.archivoSeleccionadoSignal()?.type.startsWith('video/') ?? false);
   mostrarNotificacionMensaje = signal<boolean>(false);
   ultimoMensajeNotificado = signal<MensajeRedSocial | null>(null);
   modalChatAbierto = signal<boolean>(false);
@@ -609,7 +614,7 @@ private iniciarVerificacionMensajes() {
   seleccionarChat(chat: Chat) {
     this.chatSeleccionado.set(chat);
     this.nuevoMensajeTexto.set('');
-    this.archivoSeleccionadoSignal.set(null);
+    this.removerArchivo();
     // Marcar todos los mensajes del chat como leídos
     if (chat.tieneNoLeidos) {
       this.marcarChatComoLeido(chat);
@@ -623,7 +628,7 @@ private iniciarVerificacionMensajes() {
     this.modalChatAbierto.set(false);
     this.chatSeleccionado.set(null);
     this.nuevoMensajeTexto.set('');
-    this.archivoSeleccionadoSignal.set(null);
+    this.removerArchivo();
   }
 
   async marcarChatComoLeido(chat: Chat) {
@@ -729,7 +734,11 @@ private iniciarVerificacionMensajes() {
         }).toPromise();
 
         this.nuevoMensajeTexto.set('');
-        this.archivoSeleccionadoSignal.set(null);
+        this.removerArchivo();
+
+        // Confirmación visual de envío
+        this.confirmacionEnvio.set('Mensaje enviado');
+        setTimeout(() => this.confirmacionEnvio.set(null), 2500);
 
         // Scroll to bottom to show the new message
         setTimeout(() => this.scrollToBottom(), 50);
@@ -744,12 +753,74 @@ private iniciarVerificacionMensajes() {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) {
-      this.archivoSeleccionadoSignal.set(file);
+      this.setArchivo(file);
+    }
+    input.value = '';
+  }
+
+  setArchivo(file: File) {
+    this.removerArchivo();
+    this.archivoSeleccionadoSignal.set(file);
+    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+      this.archivoPreviewUrl.set(URL.createObjectURL(file));
+    } else {
+      this.archivoPreviewUrl.set(null);
     }
   }
 
   removerArchivo() {
+    const url = this.archivoPreviewUrl();
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
+    this.archivoPreviewUrl.set(null);
     this.archivoSeleccionadoSignal.set(null);
+  }
+
+  onPaste(event: ClipboardEvent) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) {
+          event.preventDefault();
+          this.setArchivo(file);
+          break;
+        }
+      }
+    }
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer?.types.includes('Files')) {
+      this.arrastrando.set(true);
+    }
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastrando.set(false);
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastrando.set(false);
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+      this.setArchivo(file);
+    }
+  }
+
+  formatearTamano(bytes: number): string {
+    if (!bytes) return '0 B';
+    const unidades = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${unidades[i]}`;
   }
 
   archivoSeleccionado() {
@@ -919,10 +990,12 @@ private iniciarVerificacionMensajes() {
 
   onKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape' && this.modalChatAbierto()) {
-      this.cerrarModalChat();
-      event.preventDefault();
-      return;
-    }
+    this.cerrarModalChat();
+    this.modalChatAbierto.set(false);
+    this.chatSeleccionado.set(null);
+    this.nuevoMensajeTexto.set('');
+    this.removerArchivo();
+  }
     if (event.key === 'Enter' && !event.shiftKey) {
       this.enviarMensajeChat();
       event.preventDefault();

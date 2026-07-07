@@ -126,19 +126,21 @@
             <label>Monto Factura</label>
             <input type="number" [(ngModel)]="editingAbono!.montoFactura" name="montoFactura" min="0" step="0.01" (input)="calcularDerivados()">
           </div>
-          <div class="form-group">
-            <label>IVA</label>
-            <input type="number" [(ngModel)]="editingAbono!.iva" name="iva" min="0" step="0.01">
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="editingAbono!.ivaIncluido" name="ivaIncluido" (change)="calcularDerivados()">
+              <span>IVA incluido (16%)</span>
+            </label>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Diferencia</label>
-            <input type="number" [(ngModel)]="editingAbono!.diferencia" name="diferencia" min="0" step="0.01">
+            <label>IVA</label>
+            <input type="number" [(ngModel)]="editingAbono!.iva" name="iva" min="0" step="0.01">
           </div>
           <div class="form-group">
-            <label>Tasa</label>
-            <input type="number" [(ngModel)]="editingAbono!.tasa" name="tasa" min="0" step="0.01" (input)="calcularDiviza()">
+            <label>Diferencia</label>
+            <input type="number" [(ngModel)]="editingAbono!.diferencia" name="diferencia" min="0" step="0.01">
           </div>
         </div>
         <div class="form-row">

@@ -20,6 +20,33 @@
           @if (ventasAnteriorNombre()) {
             <span class="file-name">{{ ventasAnteriorNombre() }}</span>
           }
+          <div class="triple-tasas-wrapper">
+            <div class="triple-tasas-title">Tasas Promedio Anteriores</div>
+            @for (i of [0, 1, 2]; track i) {
+              <div class="triple-tasa-row">
+                <input
+                  type="date"
+                  class="triple-tasa-fecha"
+                  [value]="tasasAnterioresTripleFechas()[i]"
+                  (change)="onTripleFechaChange(i, $event)"
+                  enterFocusNext
+                />
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9.]*"
+                  class="rate-input tiny-rate-input"
+                  [value]="tasasAnterioresTripleCents()[i] === 0 ? '' : formatTripleRateFromCents(i)"
+                  (focus)="onTripleRateFocus(i, $event)"
+                  (blur)="onTripleRateBlur(i)"
+                  (keydown)="onTripleRateKey($event, i)"
+                  (paste)="onTripleRatePaste($event, i)"
+                  enterFocusNext
+                />
+              </div>
+            }
+            <small class="rate-input-note">El promedio de estas 3 tasas se reflejará en "Promedio de tasa anterior".</small>
+          </div>
         </div>
 
         <div class="upload-card upload-card-tasas-anteriores">
@@ -28,16 +55,15 @@
           <div class="rate-input-wrapper">
 <label class="rate-input-label">
                Promedio de tasa anterior
-<input
+                <input
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9.]*"
                   class="rate-input tiny-rate-input"
+                  readonly
                   [value]="showBlankAnterior() ? '' : formatRateFromCents(promedioTasaAnteriorCents())"
                   (mousedown)="rateInputJustFocused.update(s => ({...s, anterior: true}))"(focus)="onRateFocus('anterior', $event)"
                   (blur)="onRateBlur('anterior')"
-                  (keydown)="onRateKey($event, 'anterior')"
-                  (paste)="onRatePaste($event, 'anterior')"
                   enterFocusNext
                 />
              </label>

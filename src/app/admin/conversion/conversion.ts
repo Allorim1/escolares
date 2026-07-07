@@ -72,6 +72,8 @@ export class Conversion implements OnInit {
   promedioTasaAnteriorCents = signal<number>(0);
   showBlankActual = signal<boolean>(false);
   showBlankAnterior = signal<boolean>(false);
+  tasasAnterioresTripleCents = signal<[number, number, number]>([0, 0, 0]);
+  tasasAnterioresTripleFechas = signal<[string, string, string]>(['', '', '']);
 rateInputSelected = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
   rateInputJustFocused = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
 
@@ -1676,6 +1678,8 @@ private procesarVentasActual(
     this.promedioTasaAnterior.set(0);
     this.promedioTasaActualCents.set(0);
     this.promedioTasaAnteriorCents.set(0);
+    this.tasasAnterioresTripleCents.set([0, 0, 0]);
+    this.tasasAnterioresTripleFechas.set(['', '', '']);
     this.showBlankActual.set(false);
     this.showBlankAnterior.set(false);
     this.rateInputSelected.set({actual: false, anterior: false});
@@ -1912,6 +1916,82 @@ cerrarModalExpectativas() {
   // Helpers for compact rate input (cent-based shifting)
   formatRateFromCents(cents: number): string {
     return (cents / 100).toFixed(2);
+  }
+
+  formatTripleRateFromCents(idx: number): string {
+    return (this.tasasAnterioresTripleCents()[idx] / 100).toFixed(2);
+  }
+
+  onTripleFechaChange(idx: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const fechas = [...this.tasasAnterioresTripleFechas()] as [string, string, string];
+    fechas[idx] = input.value || '';
+    this.tasasAnterioresTripleFechas.set(fechas);
+  }
+
+  onTripleRateFocus(idx: number, event?: FocusEvent) {
+    const target = event?.target as HTMLInputElement;
+    if (target) {
+      setTimeout(() => target.select());
+    }
+  }
+
+  onTripleRateBlur(idx: number) {}
+
+  recalcularPromedioTripleAnterior() {
+    const arr = this.tasasAnterioresTripleCents();
+    const count = arr.filter(v => v > 0).length;
+    const avgCents = count > 0 ? Math.round(arr.reduce((s, v) => s + v, 0) / count) : 0;
+    this.promedioTasaAnteriorCents.set(avgCents);
+    this.promedioTasaAnterior.set(Math.round((avgCents / 100) * 10000) / 10000);
+  }
+
+  onTripleRateKey(event: KeyboardEvent, idx: number) {
+    const key = event.key;
+    if (/^[0-9]$/.test(key)) {
+      event.preventDefault();
+      const d = parseInt(key, 10);
+      const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+      arr[idx] = Math.min(Math.floor(arr[idx] * 10 + d), 999999999);
+      this.tasasAnterioresTripleCents.set(arr);
+      this.recalcularPromedioTripleAnterior();
+      return;
+    }
+
+    if (key === 'Backspace') {
+      event.preventDefault();
+      const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+      arr[idx] = Math.floor(arr[idx] / 10);
+      this.tasasAnterioresTripleCents.set(arr);
+      this.recalcularPromedioTripleAnterior();
+      return;
+    }
+
+    if (key === 'Delete') {
+      event.preventDefault();
+      const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+      arr[idx] = 0;
+      this.tasasAnterioresTripleCents.set(arr);
+      this.recalcularPromedioTripleAnterior();
+      return;
+    }
+
+    if (key === '.' || key === ',') {
+      event.preventDefault();
+      return;
+    }
+  }
+
+  onTripleRatePaste(event: ClipboardEvent, idx: number) {
+    event.preventDefault();
+    const text = event.clipboardData?.getData('text') || '';
+    const parsed = parseFloat(text.replace(',', '.'));
+    if (isNaN(parsed)) return;
+    const cents = Math.round(parsed * 100);
+    const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+    arr[idx] = cents;
+    this.tasasAnterioresTripleCents.set(arr);
+    this.recalcularPromedioTripleAnterior();
   }
 
   onRateFocus(kind: 'actual' | 'anterior', event?: FocusEvent) {

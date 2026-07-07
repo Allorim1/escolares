@@ -571,9 +571,52 @@
   background: #c82333;
 }
 
-.upload-card-anterior {
-  border: 1px solid rgba(46, 125, 50, 0.2);
-  background: #ffffff;
+.triple-tasas-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.triple-tasas-title {
+  font-weight: 600;
+  color: #2e7d32;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.triple-tasa-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.triple-tasa-fecha {
+  flex: 1;
+  max-width: 150px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.triple-tasa-fecha:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.triple-tasa-row .tiny-rate-input {
+  flex: 0 0 auto;
+}
+
+.triple-tasas-wrapper .rate-input-note {
+  text-align: left;
+  margin-top: 0.2rem;
 }
 
 .upload-btn-anterior {

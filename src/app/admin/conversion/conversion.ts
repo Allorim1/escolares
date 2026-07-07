@@ -1930,7 +1930,25 @@ cerrarModalExpectativas() {
     const input = event.target as HTMLInputElement;
     const fechas = [...this.tasasAnterioresTripleFechas()] as [string, string, string];
     fechas[idx] = input.value || '';
-    this.tasasAnterioresTripleFechas.set(fechas);
+    if (idx === 0) {
+      this.tasasAnterioresTripleFechas.set(this.propagarMesAnioDesdePrimera(fechas));
+    } else {
+      this.tasasAnterioresTripleFechas.set(fechas);
+    }
+  }
+
+  private propagarMesAnioDesdePrimera(fechas: [string, string, string]): [string, string, string] {
+    const primera = fechas[0];
+    const m = primera.match(/^(\d{4})-(\d{2})-/);
+    if (!m) return fechas;
+    const [year, month] = [m[1], m[2]];
+    const nuevo = [...fechas] as [string, string, string];
+    for (let i = 1; i < 3; i++) {
+      const dm = nuevo[i].match(/^\d{4}-\d{2}-(\d{2})$/);
+      const day = dm ? dm[1] : '01';
+      nuevo[i] = `${year}-${month}-${day}`;
+    }
+    return nuevo;
   }
 
   onTripleRateFocus(idx: number, event?: FocusEvent) {
@@ -2006,7 +2024,11 @@ cerrarModalExpectativas() {
     const input = event.target as HTMLInputElement;
     const fechas = [...this.tasasActualesTripleFechas()] as [string, string, string];
     fechas[idx] = input.value || '';
-    this.tasasActualesTripleFechas.set(fechas);
+    if (idx === 0) {
+      this.tasasActualesTripleFechas.set(this.propagarMesAnioDesdePrimera(fechas));
+    } else {
+      this.tasasActualesTripleFechas.set(fechas);
+    }
   }
 
   onTripleActualRateFocus(idx: number, event?: FocusEvent) {

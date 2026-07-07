@@ -89,14 +89,21 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
         { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
       ]
     },
+     {
+       name: 'Repartidor',
+       expanded: false,
+       items: [
+         { label: 'Mis Pedidos', route: 'repartidor' },
+       ]
+     },
     {
-      name: 'Repartidor',
+      name: 'Polar',
       expanded: false,
       items: [
-        { label: 'Mis Pedidos', route: 'repartidor' },
+        { label: 'Abonos Polar', route: 'abonos-polar' },
       ]
     }
- ];
+  ];
 
 @Component({
   selector: 'app-admin',

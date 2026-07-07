@@ -235,10 +235,14 @@ export const routes: Routes = [
              loadComponent: () => import('./admin/repartidor/admin-repartidor').then((m) => m.AdminRepartidorComponent),
            },
            {
-             path: 'asistencias',
-             loadComponent: () => import('./admin/asistencias/asistencias').then((m) => m.Asistencias),
-           },
-         ],
+              path: 'asistencias',
+              loadComponent: () => import('./admin/asistencias/asistencias').then((m) => m.Asistencias),
+            },
+            {
+              path: 'abonos-polar',
+              loadComponent: () => import('./admin/abonos-polar/abonos-polar').then((m) => m.AbonosPolar),
+            },
+          ],
        },
       {
         path: 'repartidor',

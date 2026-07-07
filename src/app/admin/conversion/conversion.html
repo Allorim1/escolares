@@ -100,6 +100,33 @@
           @if (ventasNombre()) {
             <span class="file-name">{{ ventasNombre() }}</span>
           }
+          <div class="triple-tasas-wrapper">
+            <div class="triple-tasas-title">Tasas Promedio Actuales</div>
+            @for (i of [0, 1, 2]; track i) {
+              <div class="triple-tasa-row">
+                <input
+                  type="date"
+                  class="triple-tasa-fecha"
+                  [value]="tasasActualesTripleFechas()[i]"
+                  (change)="onTripleActualFechaChange(i, $event)"
+                  enterFocusNext
+                />
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9.]*"
+                  class="rate-input tiny-rate-input"
+                  [value]="tasasActualesTripleCents()[i] === 0 ? '' : formatTripleActualRateFromCents(i)"
+                  (focus)="onTripleActualRateFocus(i, $event)"
+                  (blur)="onTripleActualRateBlur(i)"
+                  (keydown)="onTripleActualRateKey($event, i)"
+                  (paste)="onTripleActualRatePaste($event, i)"
+                  enterFocusNext
+                />
+              </div>
+            }
+            <small class="rate-input-note">El promedio de estas 3 tasas se reflejará en "Promedio de tasa".</small>
+          </div>
         </div>
 
         <div class="upload-card">
@@ -108,16 +135,15 @@
           <div class="rate-input-wrapper">
 <label class="rate-input-label">
                Promedio de tasa
-<input
+                <input
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9.]*"
                   class="rate-input tiny-rate-input"
+                  readonly
                   [value]="showBlankActual() ? '' : formatRateFromCents(promedioTasaActualCents())"
                   (mousedown)="rateInputJustFocused.update(s => ({...s, actual: true}))"(focus)="onRateFocus('actual', $event)"
                   (blur)="onRateBlur('actual')"
-                  (keydown)="onRateKey($event, 'actual')"
-                  (paste)="onRatePaste($event, 'actual')"
                   enterFocusNext
                 />
              </label>

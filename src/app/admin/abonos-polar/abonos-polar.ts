@@ -19,6 +19,7 @@ interface AbonoPolar {
   iva: number;
   diferencia: number;
   tasa: number;
+  diviza: number;
   status: string;
 }
 
@@ -102,6 +103,7 @@ export class AbonosPolar implements OnInit {
         iva: 0,
         diferencia: 0,
         tasa: 0,
+        diviza: 0,
         status: '',
       };
     }
@@ -111,6 +113,24 @@ export class AbonosPolar implements OnInit {
   cerrarModal() {
     this.showModal.set(false);
     this.editingAbono = null;
+  }
+
+  calcularDerivados() {
+    if (!this.editingAbono) return;
+    const monto = Number(this.editingAbono.montoFactura) || 0;
+    this.editingAbono.iva = Number((monto * 0.16).toFixed(2));
+    this.editingAbono.diferencia = Number((monto - this.editingAbono.iva).toFixed(2));
+    this.calcularDiviza();
+  }
+
+  calcularDiviza() {
+    if (!this.editingAbono) return;
+    const tasa = Number(this.editingAbono.tasa);
+    if (tasa > 0) {
+      this.editingAbono.diviza = Number((this.editingAbono.diferencia / tasa).toFixed(2));
+    } else {
+      this.editingAbono.diviza = 0;
+    }
   }
 
   guardarAbono() {
@@ -206,12 +226,13 @@ export class AbonosPolar implements OnInit {
       a.iva.toFixed(2),
       a.diferencia.toFixed(2),
       a.tasa.toFixed(2),
+      a.diviza?.toFixed(2) || '0.00',
       a.status,
     ]);
 
     autoTable(doc, {
       startY: plantaFiltro ? 46 : 40,
-      head: [['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Status']],
+      head: [['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Diviza', 'Status']],
       body: tableData,
       theme: 'grid',
       headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 8 },
@@ -228,7 +249,8 @@ export class AbonosPolar implements OnInit {
         7: { cellWidth: 15 },
         8: { cellWidth: 20 },
         9: { cellWidth: 15 },
-        10: { cellWidth: 20 },
+        10: { cellWidth: 18 },
+        11: { cellWidth: 20 },
       },
     });
 
@@ -257,9 +279,10 @@ export class AbonosPolar implements OnInit {
       { width: 18 },
       { width: 15 },
       { width: 18 },
+      { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Diviza', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -279,6 +302,7 @@ export class AbonosPolar implements OnInit {
         a.iva,
         a.diferencia,
         a.tasa,
+        a.diviza ?? 0,
         a.status,
       ]);
       row.eachCell((cell) => {

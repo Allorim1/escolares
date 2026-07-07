@@ -46,6 +46,7 @@
           <th>IVA</th>
           <th>Diferencia</th>
           <th>Tasa</th>
+          <th>Diviza</th>
           <th>Status</th>
           <th>Acciones</th>
         </tr>
@@ -63,6 +64,7 @@
             <td class="monto">{{ formatMonto(abono.iva) }}</td>
             <td class="monto">{{ formatMonto(abono.diferencia) }}</td>
             <td>{{ abono.tasa.toFixed(2) }}</td>
+            <td>{{ abono.diviza?.toFixed(2) ?? '0.00' }}</td>
             <td>{{ abono.status }}</td>
             <td class="actions">
               <button class="btn-edit" (click)="abrirModal(abono)">Editar</button>
@@ -122,7 +124,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Monto Factura</label>
-            <input type="number" [(ngModel)]="editingAbono!.montoFactura" name="montoFactura" min="0" step="0.01">
+            <input type="number" [(ngModel)]="editingAbono!.montoFactura" name="montoFactura" min="0" step="0.01" (input)="calcularDerivados()">
           </div>
           <div class="form-group">
             <label>IVA</label>
@@ -136,12 +138,22 @@
           </div>
           <div class="form-group">
             <label>Tasa</label>
-            <input type="number" [(ngModel)]="editingAbono!.tasa" name="tasa" min="0" step="0.01">
+            <input type="number" [(ngModel)]="editingAbono!.tasa" name="tasa" min="0" step="0.01" (input)="calcularDiviza()">
           </div>
         </div>
-        <div class="form-group">
-          <label>Status</label>
-          <input type="text" [(ngModel)]="editingAbono!.status" name="status">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Diviza</label>
+            <input type="number" [(ngModel)]="editingAbono!.diviza" name="diviza" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="editingAbono!.status" name="status" required>
+              <option value="">Seleccionar</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Pagado">Pagado</option>
+            </select>
+          </div>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>

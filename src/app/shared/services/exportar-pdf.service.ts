@@ -45,15 +45,19 @@ async generarCotizacionPdf(data: Cotizacion) {
     }
 
     const MAX_ARTICULOS = 12;
-const articulosActuales = data.items ? data.items.length : 0;
+    const articulosActuales = data.items ? data.items.length : 0;
 
-// 2. Calcula cuántas líneas vacías hacen falta para llegar al tope
-const lineasFaltantes = Math.max(0, MAX_ARTICULOS - articulosActuales);
+    const lineasFaltantes = Math.max(0, MAX_ARTICULOS - articulosActuales);
+    const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
 
-// 3. Genera los saltos de línea (\n). 
-// Multiplicamos por 2 para que el espacio vertical sea equivalente al tamaño de una fila real
-const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
-    
+    const ivaCalculado = data.items.reduce((sum: number, item: any) => {
+      const tieneIva = item.tieneIva ?? false;
+      const itemIvaPorcentaje = item.ivaPorcentaje ?? 16;
+      if (!tieneIva) return sum;
+      const discountedBase = (item.montoTotalBs * (100 - data.totales.porcentajeDescuento)) / 100;
+      return sum + (discountedBase * itemIvaPorcentaje) / 100;
+    }, 0);
+
     const docDefinition: any = {
       content: [
         {
@@ -243,7 +247,7 @@ const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
               [
                 '', '', '', 
                 { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.ivaBs.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+                { text: ivaCalculado.toLocaleString('de-DE', { minimumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
                 '', '', '', 

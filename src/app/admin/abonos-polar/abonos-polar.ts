@@ -241,6 +241,7 @@ export class AbonosPolar implements OnInit {
       headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 8 },
       bodyStyles: { fontSize: 8 },
       styles: { cellPadding: 2, fontSize: 8 },
+      margin: { left: 15, right: 15 },
       columnStyles: {
         0: { cellWidth: 20 },
         1: { cellWidth: 30 },

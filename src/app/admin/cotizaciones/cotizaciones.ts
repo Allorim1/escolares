@@ -74,6 +74,8 @@ export class Cotizaciones implements OnInit {
     descripcion: '',
     precioUnitarioBs: 0,
     montoTotalBs: 0,
+    tieneIva: true,
+    ivaPorcentaje: 16,
   };
 
   editingItemIndex: number | null = null;
@@ -83,6 +85,8 @@ export class Cotizaciones implements OnInit {
     descripcion: '',
     precioUnitarioBs: 0,
     montoTotalBs: 0,
+    tieneIva: true,
+    ivaPorcentaje: 16,
   };
 
   get cotizaciones() {
@@ -181,6 +185,8 @@ export class Cotizaciones implements OnInit {
       descripcion: '',
       precioUnitarioBs: 0,
       montoTotalBs: 0,
+      tieneIva: true,
+      ivaPorcentaje: 16,
     };
     this.editingItemIndex = null;
     this.editingItem = {
@@ -189,6 +195,8 @@ export class Cotizaciones implements OnInit {
       descripcion: '',
       precioUnitarioBs: 0,
       montoTotalBs: 0,
+      tieneIva: true,
+      ivaPorcentaje: 16,
     };
   }
 
@@ -226,6 +234,8 @@ export class Cotizaciones implements OnInit {
       descripcion: '',
       precioUnitarioBs: 0,
       montoTotalBs: 0,
+      tieneIva: true,
+      ivaPorcentaje: 16,
     };
     this.editingItemIndex = null;
     this.editingItem = {
@@ -234,7 +244,35 @@ export class Cotizaciones implements OnInit {
       descripcion: '',
       precioUnitarioBs: 0,
       montoTotalBs: 0,
+      tieneIva: true,
+      ivaPorcentaje: 16,
     };
+  }
+
+  saveCotizacion() {
+    if (!this.newCotizacion.numeroCotizacion || !this.newCotizacion.cliente.nombre) {
+      alert('Por favor completa los campos obligatorios');
+      return;
+    }
+
+    if (this.newCotizacion.items.length === 0) {
+      alert('Agrega al menos un artículo a la cotización');
+      return;
+    }
+
+    if (this.editingCotizacion?._id) {
+      this.cotizacionService.actualizarCotizacion(this.editingCotizacion._id, this.newCotizacion);
+    } else {
+      this.cotizacionService.crearCotizacion(this.newCotizacion);
+    }
+
+    this.closeModal();
+  }
+
+  eliminarCotizacion(cotizacion: Cotizacion) {
+    if (confirm('¿Eliminar esta cotización?')) {
+      this.cotizacionService.eliminarCotizacion(cotizacion._id!);
+    }
   }
 
   addItem() {
@@ -254,6 +292,8 @@ export class Cotizaciones implements OnInit {
       descripcion: '',
       precioUnitarioBs: 0,
       montoTotalBs: 0,
+      tieneIva: true,
+      ivaPorcentaje: 16,
     };
   }
 
@@ -294,6 +334,8 @@ export class Cotizaciones implements OnInit {
       descripcion: '',
       precioUnitarioBs: 0,
       montoTotalBs: 0,
+      tieneIva: true,
+      ivaPorcentaje: 16,
     };
   }
 
@@ -311,16 +353,22 @@ export class Cotizaciones implements OnInit {
   calculateTotals() {
     const neto = this.newCotizacion.items.reduce((sum, item) => sum + item.montoTotalBs, 0);
     this.newCotizacion.totales.netoBs = neto;
-    
+
     const descuento = (neto * this.newCotizacion.totales.porcentajeDescuento) / 100;
     this.newCotizacion.totales.descuentoBs = descuento;
-    
+
     const subTotal = neto - descuento;
     this.newCotizacion.totales.subTotalBs = subTotal;
-    
-    const iva = (subTotal * this.newCotizacion.totales.ivaPorcentaje) / 100;
+
+    const iva = this.newCotizacion.items.reduce((sum, item) => {
+      const tieneIva = item.tieneIva ?? true;
+      const itemIvaPorcentaje = item.ivaPorcentaje ?? 16;
+      if (!tieneIva) return sum;
+      const discountedBase = (item.montoTotalBs * (100 - this.newCotizacion.totales.porcentajeDescuento)) / 100;
+      return sum + (discountedBase * itemIvaPorcentaje) / 100;
+    }, 0);
     this.newCotizacion.totales.ivaBs = iva;
-    
+
     this.newCotizacion.totales.totalBs = subTotal + iva;
   }
 
@@ -344,32 +392,6 @@ export class Cotizaciones implements OnInit {
     const nextIndex = activeIndex === -1 ? 0 : (activeIndex + 1) % focusableElements.length;
 
     focusableElements[nextIndex].focus();
-  }
-
-  saveCotizacion() {
-    if (!this.newCotizacion.numeroCotizacion || !this.newCotizacion.cliente.nombre) {
-      alert('Por favor completa los campos obligatorios');
-      return;
-    }
-
-    if (this.newCotizacion.items.length === 0) {
-      alert('Agrega al menos un artículo a la cotización');
-      return;
-    }
-
-    if (this.editingCotizacion?._id) {
-      this.cotizacionService.actualizarCotizacion(this.editingCotizacion._id, this.newCotizacion);
-    } else {
-      this.cotizacionService.crearCotizacion(this.newCotizacion);
-    }
-
-    this.closeModal();
-  }
-
-  eliminarCotizacion(cotizacion: Cotizacion) {
-    if (confirm('¿Eliminar esta cotización?')) {
-      this.cotizacionService.eliminarCotizacion(cotizacion._id!);
-    }
   }
 
   formatearFecha(fecha: Date | string): string {
@@ -522,16 +544,22 @@ export class Cotizaciones implements OnInit {
   calculateTotalsNotaEntrega() {
     const neto = this.newNotaEntrega.items.reduce((sum, item) => sum + item.montoTotalBs, 0);
     this.newNotaEntrega.totales.netoBs = neto;
-    
+
     const descuento = (neto * this.newNotaEntrega.totales.porcentajeDescuento) / 100;
     this.newNotaEntrega.totales.descuentoBs = descuento;
-    
+
     const subTotal = neto - descuento;
     this.newNotaEntrega.totales.subTotalBs = subTotal;
-    
-    const iva = (subTotal * this.newNotaEntrega.totales.ivaPorcentaje) / 100;
+
+    const iva = this.newNotaEntrega.items.reduce((sum, item) => {
+      const tieneIva = item.tieneIva ?? true;
+      const itemIvaPorcentaje = item.ivaPorcentaje ?? 16;
+      if (!tieneIva) return sum;
+      const discountedBase = (item.montoTotalBs * (100 - this.newNotaEntrega.totales.porcentajeDescuento)) / 100;
+      return sum + (discountedBase * itemIvaPorcentaje) / 100;
+    }, 0);
     this.newNotaEntrega.totales.ivaBs = iva;
-    
+
     this.newNotaEntrega.totales.totalBs = subTotal + iva;
   }
 

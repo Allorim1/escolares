@@ -371,6 +371,19 @@
   background: #dc2626;
 }
 
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
 .totales-display {
   background: #f9fafb;
   padding: 12px;

@@ -11,6 +11,8 @@ export interface ItemCotizacion {
   descripcion: string;
   precioUnitarioBs: number;
   montoTotalBs: number;
+  tieneIva: boolean;
+  ivaPorcentaje: number;
 }
 
 export interface Referencia {

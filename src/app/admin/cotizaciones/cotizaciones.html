@@ -161,17 +161,30 @@
                   <input id="cotizacion-edit-cantidad" type="number" [(ngModel)]="editingItem.cantidad" min="1" step="1">
                 </div>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="cotizacion-edit-descripcion">Descripción</label>
-                  <input id="cotizacion-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo">
-                </div>
-                <div class="form-group">
-                  <label for="cotizacion-edit-precio">Precio Unitario Bs.</label>
-                  <input id="cotizacion-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01">
-                </div>
-              </div>
-              <div class="item-edit-actions">
+               <div class="form-row">
+                 <div class="form-group">
+                   <label for="cotizacion-edit-descripcion">Descripción</label>
+                   <input id="cotizacion-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo">
+                 </div>
+                 <div class="form-group">
+                   <label for="cotizacion-edit-precio">Precio Unitario Bs.</label>
+                   <input id="cotizacion-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01">
+                 </div>
+               </div>
+               <div class="form-row">
+                 <div class="form-group">
+                   <label for="cotizacion-edit-tiene-iva" class="checkbox-label">
+                     <input id="cotizacion-edit-tiene-iva" type="checkbox" [(ngModel)]="editingItem.tieneIva"> Aplica I.V.A.
+                   </label>
+                 </div>
+                 @if (editingItem.tieneIva) {
+                 <div class="form-group">
+                   <label for="cotizacion-edit-iva-porcentaje">% I.V.A.</label>
+                   <input id="cotizacion-edit-iva-porcentaje" type="number" [(ngModel)]="editingItem.ivaPorcentaje" min="0" max="100" step="1">
+                 </div>
+                 }
+               </div>
+               <div class="item-edit-actions">
                 <button class="btn-update-item" (click)="saveEditedItem()" (keyup.enter)="saveEditedItem()">Actualizar Artículo</button>
                 <button class="btn-cancel-edit-item" (click)="cancelEditItem()" (keyup.enter)="cancelEditItem()">Cancelar Edición</button>
               </div>
@@ -186,48 +199,63 @@
                   <input id="cotizacion-nuevo-cantidad" type="number" [(ngModel)]="newItem.cantidad" min="1" step="1">
                 </div>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="cotizacion-nuevo-descripcion">Descripción</label>
-                  <input id="cotizacion-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
-                </div>
-                <div class="form-group">
-                  <label for="cotizacion-nuevo-precio">Precio Unitario Bs.</label>
-                  <input id="cotizacion-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
-                </div>
-              </div>
-              <button class="btn-add-item" (click)="addItem()" (keyup.enter)="addItem()">+ Agregar Artículo</button>
+               <div class="form-row">
+                 <div class="form-group">
+                   <label for="cotizacion-nuevo-descripcion">Descripción</label>
+                   <input id="cotizacion-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
+                 </div>
+                 <div class="form-group">
+                   <label for="cotizacion-nuevo-precio">Precio Unitario Bs.</label>
+                   <input id="cotizacion-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
+                 </div>
+               </div>
+               <div class="form-row">
+                 <div class="form-group">
+                   <label for="cotizacion-nuevo-tiene-iva" class="checkbox-label">
+                     <input id="cotizacion-nuevo-tiene-iva" type="checkbox" [(ngModel)]="newItem.tieneIva"> Aplica I.V.A.
+                   </label>
+                 </div>
+                 @if (newItem.tieneIva) {
+                 <div class="form-group">
+                   <label for="cotizacion-nuevo-iva-porcentaje">% I.V.A.</label>
+                   <input id="cotizacion-nuevo-iva-porcentaje" type="number" [(ngModel)]="newItem.ivaPorcentaje" min="0" max="100" step="1">
+                 </div>
+                 }
+               </div>
+               <button class="btn-add-item" (click)="addItem()" (keyup.enter)="addItem()">+ Agregar Artículo</button>
             }
           </div>
 
           @if (newCotizacion.items.length > 0) {
-            <table class="items-table">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Cant.</th>
-                  <th>Descripción</th>
-                  <th>P. Unit.</th>
-                  <th>Total</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (item of newCotizacion.items; track $index) {
-                  <tr>
-                    <td>{{ item.codigo }}</td>
-                    <td>{{ item.cantidad }}</td>
-                    <td>{{ item.descripcion }}</td>
-                    <td>{{ formatCurrency(item.precioUnitarioBs) }}</td>
-                    <td>{{ formatCurrency(item.montoTotalBs) }}</td>
-                    <td>
-                      <button class="btn-edit-item" (click)="startEditItem($index)" (keyup.enter)="startEditItem($index)">Editar</button>
-                      <button class="btn-remove" (click)="removeItem($index)" (keyup.enter)="removeItem($index)">×</button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+             <table class="items-table">
+               <thead>
+                 <tr>
+                   <th>Código</th>
+                   <th>Cant.</th>
+                   <th>Descripción</th>
+                   <th>P. Unit.</th>
+                   <th>Total</th>
+                   <th>I.V.A.</th>
+                   <th>Acciones</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 @for (item of newCotizacion.items; track $index) {
+                   <tr>
+                     <td>{{ item.codigo }}</td>
+                     <td>{{ item.cantidad }}</td>
+                     <td>{{ item.descripcion }}</td>
+                     <td>{{ formatCurrency(item.precioUnitarioBs) }}</td>
+                     <td>{{ formatCurrency(item.montoTotalBs) }}</td>
+                     <td>{{ item.tieneIva ? item.ivaPorcentaje + '%' : 'Exento' }}</td>
+                     <td>
+                       <button class="btn-edit-item" (click)="startEditItem($index)" (keyup.enter)="startEditItem($index)">Editar</button>
+                       <button class="btn-remove" (click)="removeItem($index)" (keyup.enter)="removeItem($index)">×</button>
+                     </td>
+                   </tr>
+                 }
+               </tbody>
+             </table>
           }
         </div>
 
@@ -260,10 +288,10 @@
               <label for="cotizacion-descuento">% Descuento</label>
               <input id="cotizacion-descuento" type="number" [(ngModel)]="newCotizacion.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotals()">
             </div>
-            <div class="form-group">
-              <label for="cotizacion-iva">% IVA</label>
-              <input id="cotizacion-iva" type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1" (change)="calculateTotals()">
-            </div>
+             <div class="form-group">
+               <label for="cotizacion-iva">% IVA</label>
+               <input id="cotizacion-iva" type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1">
+             </div>
           </div>
           <div class="totales-display">
             <div class="total-row"><span>Neto:</span> <span>{{ formatCurrency(newCotizacion.totales.netoBs) }}</span></div>
@@ -341,17 +369,30 @@
                   <input id="nota-edit-cantidad" type="number" [(ngModel)]="editingItem.cantidad" min="1" step="1">
                 </div>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="nota-edit-descripcion">Descripción</label>
-                  <input id="nota-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo">
-                </div>
-                <div class="form-group">
-                  <label for="nota-edit-precio">Precio Unitario Bs.</label>
-                  <input id="nota-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01">
-                </div>
-              </div>
-              <div class="item-edit-actions">
+               <div class="form-row">
+                 <div class="form-group">
+                   <label for="nota-edit-descripcion">Descripción</label>
+                   <input id="nota-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo">
+                 </div>
+                 <div class="form-group">
+                   <label for="nota-edit-precio">Precio Unitario Bs.</label>
+                   <input id="nota-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01">
+                 </div>
+               </div>
+               <div class="form-row">
+                 <div class="form-group">
+                   <label for="nota-edit-tiene-iva" class="checkbox-label">
+                     <input id="nota-edit-tiene-iva" type="checkbox" [(ngModel)]="editingItem.tieneIva"> Aplica I.V.A.
+                   </label>
+                 </div>
+                 @if (editingItem.tieneIva) {
+                 <div class="form-group">
+                   <label for="nota-edit-iva-porcentaje">% I.V.A.</label>
+                   <input id="nota-edit-iva-porcentaje" type="number" [(ngModel)]="editingItem.ivaPorcentaje" min="0" max="100" step="1">
+                 </div>
+                 }
+               </div>
+               <div class="item-edit-actions">
                 <button class="btn-update-item" (click)="saveEditedItemNotaEntrega()" (keyup.enter)="saveEditedItemNotaEntrega()">Actualizar Artículo</button>
                 <button class="btn-cancel-edit-item" (click)="cancelEditItem()" (keyup.enter)="cancelEditItem()">Cancelar Edición</button>
               </div>
@@ -366,17 +407,30 @@
                   <input id="nota-nuevo-cantidad" type="number" [(ngModel)]="newItem.cantidad" min="1" step="1">
                 </div>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="nota-nuevo-descripcion">Descripción</label>
-                  <input id="nota-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
-                </div>
-                <div class="form-group">
-                  <label for="nota-nuevo-precio">Precio Unitario Bs.</label>
-                  <input id="nota-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
-                </div>
-              </div>
-              <button class="btn-add-item" (click)="addItemNotaEntrega()" (keyup.enter)="addItemNotaEntrega()">+ Agregar Artículo</button>
+               <div class="form-row">
+                 <div class="form-group">
+                   <label for="nota-nuevo-descripcion">Descripción</label>
+                   <input id="nota-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
+                 </div>
+                 <div class="form-group">
+                   <label for="nota-nuevo-precio">Precio Unitario Bs.</label>
+                   <input id="nota-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
+                 </div>
+               </div>
+               <div class="form-row">
+                 <div class="form-group">
+                   <label for="nota-nuevo-tiene-iva" class="checkbox-label">
+                     <input id="nota-nuevo-tiene-iva" type="checkbox" [(ngModel)]="newItem.tieneIva"> Aplica I.V.A.
+                   </label>
+                 </div>
+                 @if (newItem.tieneIva) {
+                 <div class="form-group">
+                   <label for="nota-nuevo-iva-porcentaje">% I.V.A.</label>
+                   <input id="nota-nuevo-iva-porcentaje" type="number" [(ngModel)]="newItem.ivaPorcentaje" min="0" max="100" step="1">
+                 </div>
+                 }
+               </div>
+               <button class="btn-add-item" (click)="addItemNotaEntrega()" (keyup.enter)="addItemNotaEntrega()">+ Agregar Artículo</button>
             }
           </div>
 
@@ -389,6 +443,7 @@
                   <th>Descripción</th>
                   <th>P. Unit.</th>
                   <th>Total</th>
+                  <th>I.V.A.</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -400,6 +455,7 @@
                     <td>{{ item.descripcion }}</td>
                     <td>{{ formatCurrency(item.precioUnitarioBs) }}</td>
                     <td>{{ formatCurrency(item.montoTotalBs) }}</td>
+                    <td>{{ item.tieneIva ? item.ivaPorcentaje + '%' : 'Exento' }}</td>
                     <td>
                       <button class="btn-edit-item" (click)="startEditItemNotaEntrega($index)" (keyup.enter)="startEditItemNotaEntrega($index)">Editar</button>
                       <button class="btn-remove" (click)="removeItemNotaEntrega($index)" (keyup.enter)="removeItemNotaEntrega($index)">×</button>
@@ -440,10 +496,10 @@
               <label for="nota-descuento">% Descuento</label>
               <input id="nota-descuento" type="number" [(ngModel)]="newNotaEntrega.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotalsNotaEntrega()">
             </div>
-            <div class="form-group">
-              <label for="nota-iva">% IVA</label>
-              <input id="nota-iva" type="number" [(ngModel)]="newNotaEntrega.totales.ivaPorcentaje" min="0" max="100" step="1" (change)="calculateTotalsNotaEntrega()">
-            </div>
+             <div class="form-group">
+               <label for="nota-iva">% IVA</label>
+               <input id="nota-iva" type="number" [(ngModel)]="newNotaEntrega.totales.ivaPorcentaje" min="0" max="100" step="1">
+             </div>
           </div>
           <div class="totales-display">
             <div class="total-row"><span>Neto:</span> <span>{{ formatCurrency(newNotaEntrega.totales.netoBs) }}</span></div>

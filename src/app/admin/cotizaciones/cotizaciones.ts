@@ -355,13 +355,13 @@ export class Cotizaciones implements OnInit {
 
   calculateTotals() {
     const neto = this.newCotizacion.items.reduce((sum, item) => sum + item.montoTotalBs, 0);
-    this.newCotizacion.totales.netoBs = neto;
+    this.newCotizacion.totales.netoBs = Math.round(neto * 100) / 100;
 
     const descuento = (neto * this.newCotizacion.totales.porcentajeDescuento) / 100;
-    this.newCotizacion.totales.descuentoBs = descuento;
+    this.newCotizacion.totales.descuentoBs = Math.round(descuento * 100) / 100;
 
     const subTotal = neto - descuento;
-    this.newCotizacion.totales.subTotalBs = subTotal;
+    this.newCotizacion.totales.subTotalBs = Math.round(subTotal * 100) / 100;
 
     const iva = this.newCotizacion.items.reduce((sum, item) => {
       const tieneIva = item.tieneIva ?? false;
@@ -370,9 +370,9 @@ export class Cotizaciones implements OnInit {
       const discountedBase = (item.montoTotalBs * (100 - this.newCotizacion.totales.porcentajeDescuento)) / 100;
       return sum + (discountedBase * itemIvaPorcentaje) / 100;
     }, 0);
-    this.newCotizacion.totales.ivaBs = iva;
+    this.newCotizacion.totales.ivaBs = Math.round(iva * 100) / 100;
 
-    this.newCotizacion.totales.totalBs = subTotal + iva;
+    this.newCotizacion.totales.totalBs = Math.round((subTotal + iva) * 100) / 100;
   }
 
   focusNextField() {
@@ -406,6 +406,7 @@ export class Cotizaciones implements OnInit {
       style: 'currency',
       currency: 'VES',
       minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(value);
   }
 
@@ -549,13 +550,13 @@ export class Cotizaciones implements OnInit {
 
   calculateTotalsNotaEntrega() {
     const neto = this.newNotaEntrega.items.reduce((sum, item) => sum + item.montoTotalBs, 0);
-    this.newNotaEntrega.totales.netoBs = neto;
+    this.newNotaEntrega.totales.netoBs = Math.round(neto * 100) / 100;
 
     const descuento = (neto * this.newNotaEntrega.totales.porcentajeDescuento) / 100;
-    this.newNotaEntrega.totales.descuentoBs = descuento;
+    this.newNotaEntrega.totales.descuentoBs = Math.round(descuento * 100) / 100;
 
     const subTotal = neto - descuento;
-    this.newNotaEntrega.totales.subTotalBs = subTotal;
+    this.newNotaEntrega.totales.subTotalBs = Math.round(subTotal * 100) / 100;
 
     const iva = this.newNotaEntrega.items.reduce((sum, item) => {
       const tieneIva = item.tieneIva ?? false;
@@ -564,9 +565,9 @@ export class Cotizaciones implements OnInit {
       const discountedBase = (item.montoTotalBs * (100 - this.newNotaEntrega.totales.porcentajeDescuento)) / 100;
       return sum + (discountedBase * itemIvaPorcentaje) / 100;
     }, 0);
-    this.newNotaEntrega.totales.ivaBs = iva;
+    this.newNotaEntrega.totales.ivaBs = Math.round(iva * 100) / 100;
 
-    this.newNotaEntrega.totales.totalBs = subTotal + iva;
+    this.newNotaEntrega.totales.totalBs = Math.round((subTotal + iva) * 100) / 100;
   }
 
   focusNextFieldNotaEntrega() {

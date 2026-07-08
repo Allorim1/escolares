@@ -238,12 +238,120 @@ export class AbonosPolar implements OnInit {
     return `${dia}/${mes}/${anio}`;
   }
 
-  generarReportePdf() {
+  private async cargarImagenLocal(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      fetch(url)
+        .then(response => response.blob())
+        .then(blob => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject('Error leyendo imagen');
+          reader.readAsDataURL(blob);
+        })
+        .catch(() => reject('No se pudo cargar la imagen: ' + url));
+    });
+  }
+
+  private obtenerDimensionesImagen(base64: string): Promise<{width: number, height: number}> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.width, height: img.height });
+      img.src = base64;
+    });
+  }
+
+  async generarReportePdf() {
     const datos = this.abonosFiltrados();
     if (datos.length === 0) {
       alert('No hay datos para generar el reporte');
       return;
     }
+
+    const columnas = this.columnasDisponibles.filter(c => this.columnasSeleccionadas().has(c.key));
+    if (columnas.length === 0) {
+      alert('Seleccione al menos una columna');
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    const logoWidth = 70;
+    let logoHeight = 0;
+    if (logoBase64) {
+      const dims = await this.obtenerDimensionesImagen(logoBase64);
+      logoHeight = (logoWidth * dims.height) / dims.width;
+    }
+
+    const logoY = 15;
+    const offsetY = logoY + logoHeight + 8;
+
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
+    }
+
+    doc.setFontSize(16);
+    doc.setTextColor(29, 99, 193);
+    doc.text('Reporte de Pagos', pageWidth / 2, offsetY, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, offsetY + 10, { align: 'center' });
+    doc.text(`Total registros: ${datos.length}`, pageWidth / 2, offsetY + 16, { align: 'center' });
+
+    const plantaFiltro = this.filtros().planta;
+    let headerHeight = offsetY + 22;
+    if (plantaFiltro) {
+      doc.text(`Planta: ${plantaFiltro}`, pageWidth / 2, offsetY + 22, { align: 'center' });
+      headerHeight = offsetY + 28;
+    }
+
+    const head = columnas.map(c => c.label);
+    const body = datos.map((a: AbonoPolar) => {
+      return columnas.map(c => {
+        if (c.key === 'fecha') return this.formatFecha(a.fecha);
+        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return `Bs ${(a as any)[c.key].toFixed(2)}`;
+        if (c.key === 'divisa') return `$ ${(a as any)[c.key]?.toFixed(2) || '0.00'}`;
+        return (a as any)[c.key] ?? '';
+      });
+    });
+
+    const marginBottom = 18;
+    const rowHeight = 7;
+    const maxRows = Math.floor((pageHeight - headerHeight - marginBottom) / rowHeight);
+
+    while (body.length < maxRows) {
+      body.push(columnas.map(() => ''));
+    }
+
+    const columnWidths: any = {};
+    columnas.forEach((c, i) => {
+      columnWidths[i] = { cellWidth: c.key === 'nombre' ? 32 : c.key === 'planta' ? 24 : 20 };
+    });
+
+    autoTable(doc, {
+      startY: headerHeight,
+      head: [head],
+      body: body,
+      theme: 'grid',
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7 },
+      bodyStyles: { fontSize: 7 },
+      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
+      margin: { left: 18, right: 18 },
+      tableWidth: 'auto',
+      columnStyles: columnWidths,
+    });
+
+    doc.save(`abonos_polar_${new Date().toISOString().split('T')[0]}.pdf`);
+  }
 
     const columnas = this.columnasDisponibles.filter(c => this.columnasSeleccionadas().has(c.key));
     if (columnas.length === 0) {

@@ -498,6 +498,8 @@ export class Cotizaciones implements OnInit {
       descripcion: '',
       precioUnitarioBs: 0,
       montoTotalBs: 0,
+      tieneIva: true,
+      ivaPorcentaje: 16,
     };
   }
 

@@ -19,7 +19,7 @@ interface AbonoPolar {
   iva: number;
   diferencia: number;
   tasa: number;
-  diviza: number;
+  divisa: number;
   status: string;
 }
 
@@ -58,6 +58,23 @@ export class AbonosPolar implements OnInit {
   showModal = signal(false);
   editingAbono: AbonoPolar | null = null;
 
+  showModalColumnas = signal(false);
+  columnasDisponibles = [
+    { key: 'fecha', label: 'Fecha' },
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'planta', label: 'Planta' },
+    { key: 'cedula', label: 'Cédula' },
+    { key: 'telefono', label: 'Teléfono' },
+    { key: 'nFact', label: 'N. Fact' },
+    { key: 'montoFactura', label: 'Monto Factura' },
+    { key: 'iva', label: 'IVA' },
+    { key: 'diferencia', label: 'Diferencia' },
+    { key: 'tasa', label: 'Tasa' },
+    { key: 'divisa', label: 'Divisa' },
+    { key: 'status', label: 'Status' },
+  ];
+  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map(c => c.key)));
+
   plantas = ['Salsas y Untables', 'Limpieza', 'Metal Grafica', 'Super Envases', 'Cerveceria'];
 
   filtros = signal({
@@ -84,6 +101,30 @@ export class AbonosPolar implements OnInit {
     });
   }
 
+  abrirModalColumnas() {
+    this.showModalColumnas.set(true);
+  }
+
+  cerrarModalColumnas() {
+    this.showModalColumnas.set(false);
+  }
+
+  toggleColumna(key: string) {
+    this.columnasSeleccionadas.update(actual => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(key)) {
+        nuevo.delete(key);
+      } else {
+        nuevo.add(key);
+      }
+      return nuevo;
+    });
+  }
+
+  isColumnaSeleccionada(key: string): boolean {
+    return this.columnasSeleccionadas().has(key);
+  }
+
   filtrarAbonos() {
   }
 
@@ -105,7 +146,7 @@ export class AbonosPolar implements OnInit {
         iva: 0,
         diferencia: 0,
         tasa: 0,
-        diviza: 0,
+        divisa: 0,
         status: '',
       };
     }
@@ -122,16 +163,16 @@ export class AbonosPolar implements OnInit {
     const monto = Number(this.editingAbono.montoFactura) || 0;
     const iva = Number(this.editingAbono.iva) || 0;
     this.editingAbono.diferencia = Number((monto - iva).toFixed(2));
-    this.calcularDiviza();
+    this.calcularDivisa();
   }
 
-  calcularDiviza() {
+  calcularDivisa() {
     if (!this.editingAbono) return;
     const tasa = Number(this.editingAbono.tasa);
     if (tasa > 0) {
-      this.editingAbono.diviza = Number((this.editingAbono.diferencia / tasa).toFixed(2));
+      this.editingAbono.divisa = Number((this.editingAbono.diferencia / tasa).toFixed(2));
     } else {
-      this.editingAbono.diviza = 0;
+      this.editingAbono.divisa = 0;
     }
   }
 
@@ -204,13 +245,19 @@ export class AbonosPolar implements OnInit {
       return;
     }
 
+    const columnas = this.columnasDisponibles.filter(c => this.columnasSeleccionadas().has(c.key));
+    if (columnas.length === 0) {
+      alert('Seleccione al menos una columna');
+      return;
+    }
+
     const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
     doc.setFontSize(16);
     doc.setTextColor(29, 99, 193);
-    doc.text('Reporte de Abonos Polar', pageWidth / 2, 20, { align: 'center' });
+    doc.text('Reporte de Pagos', pageWidth / 2, 20, { align: 'center' });
 
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -222,54 +269,41 @@ export class AbonosPolar implements OnInit {
       doc.text(`Planta: ${plantaFiltro}`, pageWidth / 2, 40, { align: 'center' });
     }
 
-    const tableData = datos.map((a) => [
-      this.formatFecha(a.fecha),
-      a.nombre,
-      a.planta,
-      a.cedula,
-      a.telefono,
-      a.nFact,
-      `Bs ${a.montoFactura.toFixed(2)}`,
-      `Bs ${a.iva.toFixed(2)}`,
-      `Bs ${a.diferencia.toFixed(2)}`,
-      `Bs ${a.tasa.toFixed(2)}`,
-      `$ ${a.diviza?.toFixed(2) || '0.00'}`,
-      a.status,
-    ]);
-
     const headerHeight = plantaFiltro ? 46 : 40;
     const marginBottom = 18;
     const rowHeight = 7;
     const maxRows = Math.floor((pageHeight - headerHeight - marginBottom) / rowHeight);
 
-    while (tableData.length < maxRows) {
-      tableData.push(['', '', '', '', '', '', '', '', '', '', '', '']);
+    const head = columnas.map(c => c.label);
+    const body = datos.map((a) => {
+      return columnas.map(c => {
+        if (c.key === 'fecha') return this.formatFecha(a.fecha);
+        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return `Bs ${(a as any)[c.key].toFixed(2)}`;
+        if (c.key === 'divisa') return `$ ${(a as any)[c.key]?.toFixed(2) || '0.00'}`;
+        return (a as any)[c.key] ?? '';
+      });
+    });
+
+    while (body.length < maxRows) {
+      body.push(columnas.map(() => ''));
     }
+
+    const columnWidths: any = {};
+    columnas.forEach((c, i) => {
+      columnWidths[i] = { cellWidth: c.key === 'nombre' ? 32 : c.key === 'planta' ? 24 : 20 };
+    });
 
     autoTable(doc, {
       startY: headerHeight,
-      head: [['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Diviza', 'Status']],
-      body: tableData,
+      head: [head],
+      body: body,
       theme: 'grid',
       headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7 },
       bodyStyles: { fontSize: 7 },
       styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
       margin: { left: 18, right: 18 },
       tableWidth: 'auto',
-      columnStyles: {
-        0: { cellWidth: 20 },
-        1: { cellWidth: 32 },
-        2: { cellWidth: 24 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 22 },
-        5: { cellWidth: 18 },
-        6: { cellWidth: 26 },
-        7: { cellWidth: 18 },
-        8: { cellWidth: 24 },
-        9: { cellWidth: 18 },
-        10: { cellWidth: 20 },
-        11: { cellWidth: 22 },
-      },
+      columnStyles: columnWidths,
     });
 
     doc.save(`abonos_polar_${new Date().toISOString().split('T')[0]}.pdf`);

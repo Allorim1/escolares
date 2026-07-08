@@ -201,7 +201,7 @@ export class AbonosPolar implements OnInit {
       return;
     }
 
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();
 
     doc.setFontSize(16);

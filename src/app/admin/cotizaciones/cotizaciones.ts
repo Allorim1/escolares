@@ -361,7 +361,7 @@ export class Cotizaciones implements OnInit {
     this.newCotizacion.totales.subTotalBs = subTotal;
 
     const iva = this.newCotizacion.items.reduce((sum, item) => {
-      const tieneIva = item.tieneIva ?? true;
+      const tieneIva = item.tieneIva ?? false;
       const itemIvaPorcentaje = item.ivaPorcentaje ?? 16;
       if (!tieneIva) return sum;
       const discountedBase = (item.montoTotalBs * (100 - this.newCotizacion.totales.porcentajeDescuento)) / 100;
@@ -554,7 +554,7 @@ export class Cotizaciones implements OnInit {
     this.newNotaEntrega.totales.subTotalBs = subTotal;
 
     const iva = this.newNotaEntrega.items.reduce((sum, item) => {
-      const tieneIva = item.tieneIva ?? true;
+      const tieneIva = item.tieneIva ?? false;
       const itemIvaPorcentaje = item.ivaPorcentaje ?? 16;
       if (!tieneIva) return sum;
       const discountedBase = (item.montoTotalBs * (100 - this.newNotaEntrega.totales.porcentajeDescuento)) / 100;

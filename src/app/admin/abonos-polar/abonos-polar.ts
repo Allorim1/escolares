@@ -21,7 +21,6 @@ interface AbonoPolar {
   tasa: number;
   diviza: number;
   status: string;
-  ivaIncluido?: boolean;
 }
 
 @Component({
@@ -94,7 +93,6 @@ export class AbonosPolar implements OnInit {
       this.editingAbono = { 
         ...abono, 
         fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
-        ivaIncluido: abono.iva > 0,
       };
     } else {
       this.editingAbono = {
@@ -110,7 +108,6 @@ export class AbonosPolar implements OnInit {
         tasa: 0,
         diviza: 0,
         status: '',
-        ivaIncluido: false,
       };
     }
     this.showModal.set(true);
@@ -124,13 +121,8 @@ export class AbonosPolar implements OnInit {
   calcularDerivados() {
     if (!this.editingAbono) return;
     const monto = Number(this.editingAbono.montoFactura) || 0;
-    if (this.editingAbono.ivaIncluido) {
-      this.editingAbono.iva = Number((monto * 0.16).toFixed(2));
-      this.editingAbono.diferencia = Number((monto - this.editingAbono.iva).toFixed(2));
-    } else {
-      this.editingAbono.iva = 0;
-      this.editingAbono.diferencia = monto;
-    }
+    const iva = Number(this.editingAbono.iva) || 0;
+    this.editingAbono.diferencia = Number((monto - iva).toFixed(2));
     this.calcularDiviza();
   }
 

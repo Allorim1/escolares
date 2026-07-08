@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
+import { Component, signal, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -275,7 +275,7 @@ export class AbonosPolar implements OnInit {
     const maxRows = Math.floor((pageHeight - headerHeight - marginBottom) / rowHeight);
 
     const head = columnas.map(c => c.label);
-    const body = datos.map((a) => {
+    const body = datos.map((a: AbonoPolar) => {
       return columnas.map(c => {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
         if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return `Bs ${(a as any)[c.key].toFixed(2)}`;
@@ -334,7 +334,7 @@ export class AbonosPolar implements OnInit {
       { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Diviza', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Divisa', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -342,7 +342,7 @@ export class AbonosPolar implements OnInit {
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
     });
 
-    datos.forEach((a) => {
+    datos.forEach((a: AbonoPolar) => {
       const row = worksheet.addRow([
         this.formatFecha(a.fecha),
         a.nombre,
@@ -354,7 +354,7 @@ export class AbonosPolar implements OnInit {
         a.iva,
         a.diferencia,
         a.tasa,
-        a.diviza ?? 0,
+        a.divisa ?? 0,
         a.status,
       ]);
       row.eachCell((cell) => {

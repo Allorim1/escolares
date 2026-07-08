@@ -36,6 +36,22 @@ export class AbonosPolar implements OnInit {
   private readonly API = '/api/abonos-polar';
 
   abonos = signal<AbonoPolar[]>([]);
+  abonosFiltrados = computed(() => {
+    const f = this.filtros();
+    return this.abonos().filter((a) => {
+      let passes = true;
+      if (f.planta) {
+        passes = passes && a.planta === f.planta;
+      }
+      if (f.fechaDesde) {
+        passes = passes && new Date(a.fecha) >= new Date(f.fechaDesde);
+      }
+      if (f.fechaHasta) {
+        passes = passes && new Date(a.fecha) <= new Date(f.fechaHasta + 'T23:59:59');
+      }
+      return passes;
+    });
+  });
   loading = signal(false);
   saving = signal(false);
 
@@ -65,23 +81,6 @@ export class AbonosPolar implements OnInit {
         console.error('Error loading abonos:', err);
         this.loading.set(false);
       },
-    });
-  }
-
-  getAbonosFiltrados(): AbonoPolar[] {
-    const f = this.filtros();
-    return this.abonos().filter((a) => {
-      let passes = true;
-      if (f.planta) {
-        passes = passes && a.planta === f.planta;
-      }
-      if (f.fechaDesde) {
-        passes = passes && new Date(a.fecha) >= new Date(f.fechaDesde);
-      }
-      if (f.fechaHasta) {
-        passes = passes && new Date(a.fecha) <= new Date(f.fechaHasta + 'T23:59:59');
-      }
-      return passes;
     });
   }
 
@@ -162,7 +161,7 @@ export class AbonosPolar implements OnInit {
         });
     } else {
       this.http.post(this.API, this.editingAbono).subscribe({
-        next: () => {
+        next: (res: any) => {
           this.saving.set(false);
           this.cerrarModal();
           this.loadAbonos();
@@ -199,7 +198,7 @@ export class AbonosPolar implements OnInit {
   }
 
   generarReportePdf() {
-    const datos = this.getAbonosFiltrados();
+    const datos = this.abonosFiltrados();
     if (datos.length === 0) {
       alert('No hay datos para generar el reporte');
       return;
@@ -277,7 +276,7 @@ export class AbonosPolar implements OnInit {
   }
 
   async generarReporteExcel() {
-    const datos = this.getAbonosFiltrados();
+    const datos = this.abonosFiltrados();
     if (datos.length === 0) {
       alert('No hay datos para generar el reporte');
       return;

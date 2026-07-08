@@ -52,7 +52,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (abono of getAbonosFiltrados(); track abono._id) {
+        @for (abono of abonosFiltrados(); track abono._id) {
           <tr>
             <td>{{ formatFecha(abono.fecha) }}</td>
             <td>{{ abono.nombre }}</td>

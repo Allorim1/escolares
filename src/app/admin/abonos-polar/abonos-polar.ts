@@ -207,6 +207,7 @@ export class AbonosPolar implements OnInit {
 
     const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
     doc.setFontSize(16);
     doc.setTextColor(29, 99, 193);
@@ -237,8 +238,17 @@ export class AbonosPolar implements OnInit {
       a.status,
     ]);
 
+    const headerHeight = plantaFiltro ? 46 : 40;
+    const marginBottom = 18;
+    const rowHeight = 7;
+    const maxRows = Math.floor((pageHeight - headerHeight - marginBottom) / rowHeight);
+
+    while (tableData.length < maxRows) {
+      tableData.push(['', '', '', '', '', '', '', '', '', '', '', '']);
+    }
+
     autoTable(doc, {
-      startY: plantaFiltro ? 46 : 40,
+      startY: headerHeight,
       head: [['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Diviza', 'Status']],
       body: tableData,
       theme: 'grid',

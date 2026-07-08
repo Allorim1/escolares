@@ -191,7 +191,11 @@ export class AbonosPolar implements OnInit {
   }
 
   formatFecha(fecha: string): string {
-    return new Date(fecha).toLocaleDateString('es-VE');
+    const date = new Date(fecha);
+    const dia = String(date.getDate()).padStart(2, '0');
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const anio = date.getFullYear();
+    return `${dia}/${mes}/${anio}`;
   }
 
   generarReportePdf() {
@@ -225,11 +229,11 @@ export class AbonosPolar implements OnInit {
       a.cedula,
       a.telefono,
       a.nFact,
-      a.montoFactura.toFixed(2),
-      a.iva.toFixed(2),
-      a.diferencia.toFixed(2),
-      a.tasa.toFixed(2),
-      a.diviza?.toFixed(2) || '0.00',
+      `Bs ${a.montoFactura.toFixed(2)}`,
+      `Bs ${a.iva.toFixed(2)}`,
+      `Bs ${a.diferencia.toFixed(2)}`,
+      `Bs ${a.tasa.toFixed(2)}`,
+      `$ ${a.diviza?.toFixed(2) || '0.00'}`,
       a.status,
     ]);
 
@@ -238,23 +242,23 @@ export class AbonosPolar implements OnInit {
       head: [['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Diviza', 'Status']],
       body: tableData,
       theme: 'grid',
-      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 8 },
-      bodyStyles: { fontSize: 8 },
-      styles: { cellPadding: 2, fontSize: 8 },
-      margin: { left: 15, right: 15 },
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7 },
+      bodyStyles: { fontSize: 7 },
+      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
+      margin: { left: 20, right: 20 },
       columnStyles: {
-        0: { cellWidth: 20 },
-        1: { cellWidth: 30 },
-        2: { cellWidth: 25 },
-        3: { cellWidth: 20 },
-        4: { cellWidth: 22 },
-        5: { cellWidth: 18 },
-        6: { cellWidth: 22 },
-        7: { cellWidth: 15 },
-        8: { cellWidth: 20 },
-        9: { cellWidth: 15 },
+        0: { cellWidth: 18 },
+        1: { cellWidth: 28 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 16 },
+        6: { cellWidth: 24 },
+        7: { cellWidth: 16 },
+        8: { cellWidth: 22 },
+        9: { cellWidth: 16 },
         10: { cellWidth: 18 },
-        11: { cellWidth: 20 },
+        11: { cellWidth: 18 },
       },
     });
 

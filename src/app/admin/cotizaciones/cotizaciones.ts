@@ -132,6 +132,7 @@ export class Cotizaciones implements OnInit {
           totalBs: cotizacion.totales?.totalBs || 0,
         },
       };
+      this.calculateTotals();
     } else {
       this.editingCotizacion = null;
       this.resetFormCotizacion();
@@ -259,6 +260,8 @@ export class Cotizaciones implements OnInit {
       alert('Agrega al menos un artículo a la cotización');
       return;
     }
+
+    this.calculateTotals();
 
     if (this.editingCotizacion?._id) {
       this.cotizacionService.actualizarCotizacion(this.editingCotizacion._id, this.newCotizacion);
@@ -470,6 +473,7 @@ export class Cotizaciones implements OnInit {
           totalBs: nota.totales?.totalBs || 0,
         },
       };
+      this.calculateTotalsNotaEntrega();
     } else {
       this.editingNotaEntrega = null;
       this.resetFormNotaEntrega();
@@ -597,6 +601,8 @@ export class Cotizaciones implements OnInit {
       alert('Agrega al menos un artículo a la nota de entrega');
       return;
     }
+
+    this.calculateTotalsNotaEntrega();
 
     if (this.editingNotaEntrega?._id) {
       this.notaEntregaService.actualizarNotaEntrega(this.editingNotaEntrega._id, this.newNotaEntrega);

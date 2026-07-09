@@ -11,7 +11,7 @@ interface Abono {
   _id?: string;
   fecha: string;
   nombre: string;
-  empresa: string;
+  empresa?: string;
   planta: string;
   cedula: string;
   telefono: string;
@@ -183,6 +183,7 @@ export class Abonos implements OnInit {
       this.editingAbono = {
         ...abono,
         fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
+        empresa: abono.empresa || '',
       };
     } else {
       this.editingAbono = {

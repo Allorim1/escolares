@@ -66,7 +66,7 @@
           <tr>
             <td>{{ formatFecha(abono.fecha) }}</td>
             <td>{{ abono.nombre }}</td>
-            <td>{{ abono.empresa }}</td>
+            <td>{{ abono.empresa || '-' }}</td>
             <td><span class="planta-badge">{{ abono.planta }}</span></td>
             <td>{{ abono.cedula }}</td>
             <td>{{ abono.telefono }}</td>
@@ -74,8 +74,8 @@
             <td class="monto">{{ formatMonto(abono.montoFactura) }}</td>
             <td class="monto">{{ formatMonto(abono.iva) }}</td>
             <td class="monto">{{ formatMonto(abono.diferencia) }}</td>
-            <td>{{ abono.tasa.toFixed(2) }}</td>
-            <td>{{ abono.divisa.toFixed(2) }}</td>
+            <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
+            <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
             <td>{{ abono.status }}</td>
             <td class="actions">
               <button class="btn-edit" (click)="abrirModal(abono)">Editar</button>

@@ -73,6 +73,7 @@ export class Abonos implements OnInit {
   });
   loading = signal(false);
   saving = signal(false);
+  empresasCargadas = signal(false);
 
   showModal = signal(false);
   editingAbono: Abono | null = null;
@@ -105,7 +106,7 @@ export class Abonos implements OnInit {
 
   ngOnInit() {
     this.loadAbonos();
-    this.loadEmpresas();
+    this.cargarEmpresasYSetear();
   }
 
   loadAbonos() {
@@ -122,10 +123,14 @@ export class Abonos implements OnInit {
     });
   }
 
-  loadEmpresas() {
+  private cargarEmpresasYSetear(empresaNombre?: string) {
     this.http.get<Empresa[]>(this.API_EMPRESAS).subscribe({
       next: (data) => {
         this.empresas.set(data);
+        this.empresasCargadas.set(true);
+        if (empresaNombre) {
+          this.selectedEmpresaInModal.set(empresaNombre);
+        }
       },
       error: (err) => console.error('Error loading empresas:', err),
     });
@@ -180,14 +185,13 @@ export class Abonos implements OnInit {
   }
 
   abrirModal(abono?: Abono) {
-    this.loadEmpresas();
     if (abono) {
       this.editingAbono = {
         ...abono,
         fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
         empresa: abono.empresa || '',
       };
-      this.selectedEmpresaInModal.set(abono.empresa || '');
+      this.cargarEmpresasYSetear(abono.empresa);
     } else {
       this.editingAbono = {
         fecha: new Date().toISOString().split('T')[0],
@@ -204,7 +208,7 @@ export class Abonos implements OnInit {
         divisa: 0,
         status: '',
       };
-      this.selectedEmpresaInModal.set('');
+      this.cargarEmpresasYSetear('');
     }
     this.showModal.set(true);
   }
@@ -368,6 +372,7 @@ export class Abonos implements OnInit {
 
     const plantaFiltro = this.filtros().planta;
     const infoY = offsetY + 10;
+    let headerHeight: number;
 
     if (plantaFiltro) {
       doc.setFontSize(10);

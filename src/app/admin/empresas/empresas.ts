@@ -96,10 +96,10 @@ export class Empresas implements OnInit {
       });
     } else {
       this.http.post(this.API, this.editingEmpresa).subscribe({
-        next: () => {
+        next: (res: any) => {
           this.saving.set(false);
           this.cerrarModal();
-          this.loadEmpresas();
+          this.empresas.update(empresas => [...empresas, res]);
         },
         error: (err) => {
           console.error('Error creating empresa:', err);

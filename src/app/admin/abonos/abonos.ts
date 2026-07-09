@@ -46,7 +46,7 @@ export class Abonos implements OnInit {
   abonos = signal<Abono[]>([]);
   empresas = signal<Empresa[]>([]);
   plantasFiltradas = computed(() => {
-    const empresaNombre = this.editingAbono?.empresa || this.filtros().empresa;
+    const empresaNombre = this.selectedEmpresaInModal() || this.filtros().empresa;
     if (!empresaNombre) return [];
     const empresa = this.empresas().find((e) => e.nombre === empresaNombre);
     return empresa?.plantas || [];
@@ -76,6 +76,7 @@ export class Abonos implements OnInit {
 
   showModal = signal(false);
   editingAbono: Abono | null = null;
+  selectedEmpresaInModal = signal('');
 
   showModalColumnas = signal(false);
   columnasDisponibles = [
@@ -186,6 +187,7 @@ export class Abonos implements OnInit {
         fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
         empresa: abono.empresa || '',
       };
+      this.selectedEmpresaInModal.set(abono.empresa || '');
     } else {
       this.editingAbono = {
         fecha: new Date().toISOString().split('T')[0],
@@ -202,6 +204,7 @@ export class Abonos implements OnInit {
         divisa: 0,
         status: '',
       };
+      this.selectedEmpresaInModal.set('');
     }
     this.showModal.set(true);
   }
@@ -209,10 +212,12 @@ export class Abonos implements OnInit {
   cerrarModal() {
     this.showModal.set(false);
     this.editingAbono = null;
+    this.selectedEmpresaInModal.set('');
   }
 
   onFormEmpresaChange() {
     if (!this.editingAbono) return;
+    this.selectedEmpresaInModal.set(this.editingAbono.empresa);
     this.editingAbono.planta = '';
   }
 

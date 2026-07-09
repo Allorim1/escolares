@@ -179,6 +179,7 @@ export class Abonos implements OnInit {
   }
 
   abrirModal(abono?: Abono) {
+    this.loadEmpresas();
     if (abono) {
       this.editingAbono = {
         ...abono,

@@ -383,9 +383,10 @@ export class Abonos implements OnInit {
     if (plantaFiltro) {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text(`Planta: \n${plantaFiltro}`, 18, infoY, { align: 'left' });
+      doc.text('Planta:', 18, infoY, { align: 'left' });
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
+      doc.text(plantaFiltro, 18, infoY + 6, { align: 'left' });
       doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
       doc.text(`Total registros: ${datos.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
       headerHeight = infoY + 14;

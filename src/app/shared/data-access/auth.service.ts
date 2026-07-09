@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthBackend } from '../../backend/data-access/auth.backend';
 import { Observable } from 'rxjs';
-import { User, Direccion } from '../../backend/models';
+import { User, Direccion, UserSession } from '../../backend/models';
 
-export type { User, Direccion };
+export type { User, Direccion, UserSession };
 
 
 @Injectable({
@@ -48,6 +48,22 @@ export class AuthService {
 
   getAllUsers() {
     return this.backend.getAllUsers();
+  }
+
+  getAllSessions() {
+    return this.backend.getAllSessions();
+  }
+
+  getMySessions() {
+    return this.backend.getMySessions();
+  }
+
+  terminateSession(sessionId: string) {
+    return this.backend.terminateSession(sessionId);
+  }
+
+  terminateAllUserSessions(userId: string) {
+    return this.backend.terminateAllUserSessions(userId);
   }
 
   updateUserRol(targetUserId: string, rol: 'usuario' | 'repartidor', rolId?: string) {

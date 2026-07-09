@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
-import { User } from '../models';
+import { User, UserSession } from '../models';
 import { TokenRenewalService } from '../../shared/data-access/token-renewal.service';
 
 @Injectable({
@@ -170,6 +170,42 @@ export class AuthBackend {
 
   updateUserRol(targetUserId: string, rol: 'usuario' | 'repartidor', rolId?: string) {
     return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
+  }
+
+  getAllSessions() {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.get<UserSession[]>(`${this.API_URL}/sessions`, { headers });
+  }
+
+  getMySessions() {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.get<UserSession[]>(`${this.API_URL}/sessions/mine`, { headers });
+  }
+
+  terminateSession(sessionId: string) {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.delete(`${this.API_URL}/sessions/${sessionId}`, { headers });
+  }
+
+  terminateAllUserSessions(userId: string) {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.delete(`${this.API_URL}/sessions/user/${userId}`, { headers });
   }
 
   private saveToStorage(user: User) {

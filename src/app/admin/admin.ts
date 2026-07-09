@@ -25,22 +25,23 @@ interface MenuCategory {
 }
 
 const QUICK_ITEMS: QuickItem[] = [
-  { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
-  { label: 'Costos', route: 'costo-tasa', icon: '💰', permiso: 'tasas_gestionar' },
-  { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
-  { label: 'Facturación', route: 'facturacion', icon: '🧾', permiso: 'facturas_gestionar' },
-  { label: 'Gastos', route: 'gastos', icon: '💸', permiso: 'gastos_gestionar' },
-  { label: 'Nómina', route: 'nomina', icon: '👥', permiso: 'nomina_ver' },
-  { label: 'Asistencias', route: 'asistencias', icon: '📅', permiso: 'nomina_ver' },
-  { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
-  { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
-  { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
-  { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
-  { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
-  { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
-  { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
-  { label: 'Cotizaciones\n/ N. Entrega', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
-];
+   { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
+   { label: 'Costos', route: 'costo-tasa', icon: '💰', permiso: 'tasas_gestionar' },
+   { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
+   { label: 'Facturación', route: 'facturacion', icon: '🧾', permiso: 'facturas_gestionar' },
+   { label: 'Gastos', route: 'gastos', icon: '💸', permiso: 'gastos_gestionar' },
+   { label: 'Nómina', route: 'nomina', icon: '👥', permiso: 'nomina_ver' },
+   { label: 'Asistencias', route: 'asistencias', icon: '📅', permiso: 'nomina_ver' },
+   { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
+   { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
+   { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
+   { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
+   { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
+   { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
+   { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
+   { label: 'Cotizaciones\n/ N. Entrega', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
+   { label: 'Sesiones', route: 'sesiones', icon: '🔐', permiso: 'sesiones_gestionar' },
+ ];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
  {
@@ -96,15 +97,22 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
          { label: 'Mis Pedidos', route: 'repartidor' },
        ]
      },
-     {
-       name: 'Empresas',
-       expanded: false,
-       items: [
-         { label: 'Empresas', route: 'empresas' },
-         { label: 'Abonos', route: 'abonos' },
-       ]
-     }
-  ];
+      {
+         name: 'Seguridad',
+         expanded: false,
+         items: [
+           { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
+         ]
+       },
+      {
+        name: 'Empresas',
+        expanded: false,
+        items: [
+          { label: 'Empresas', route: 'empresas' },
+          { label: 'Abonos', route: 'abonos' },
+        ]
+      }
+   ];
 
 @Component({
   selector: 'app-admin',

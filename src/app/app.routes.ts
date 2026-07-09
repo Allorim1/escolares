@@ -242,12 +242,16 @@ export const routes: Routes = [
               path: 'empresas',
               loadComponent: () => import('./admin/empresas/empresas').then((m) => m.Empresas),
             },
-            {
-              path: 'abonos',
-              loadComponent: () => import('./admin/abonos/abonos').then((m) => m.Abonos),
-            },
-          ],
-       },
+             {
+               path: 'abonos',
+               loadComponent: () => import('./admin/abonos/abonos').then((m) => m.Abonos),
+             },
+             {
+               path: 'sesiones',
+               loadComponent: () => import('./admin/sesiones/admin-sesiones').then((m) => m.AdminSesiones),
+             },
+           ],
+        },
       {
         path: 'repartidor',
         loadComponent: () => import('./repartidor/repartidor').then((m) => m.RepartidorComponent),

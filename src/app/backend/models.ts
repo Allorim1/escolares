@@ -59,3 +59,19 @@ export interface MetodoPago {
   telefono?: string;
   principal?: boolean;
 }
+
+export interface UserSession {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  rol: string;
+  ip?: string;
+  userAgent?: string;
+  device?: string;
+  browser?: string;
+  os?: string;
+  active: boolean;
+  createdAt: string;
+  lastActive: string;
+}

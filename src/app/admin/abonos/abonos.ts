@@ -192,6 +192,7 @@ export class Abonos implements OnInit {
         empresa: abono.empresa || '',
       };
       this.cargarEmpresasYSetear(abono.empresa);
+      this.calcularDerivados();
     } else {
       this.editingAbono = {
         fecha: new Date().toISOString().split('T')[0],

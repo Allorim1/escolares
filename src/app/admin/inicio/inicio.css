@@ -303,37 +303,6 @@
   text-overflow: ellipsis;
 }
 
-.popup-small {
-  padding: 20px;
-}
-
-.popup-content h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.popup-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.save-btn, .cancel-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
 .save-btn {
   background: #2563eb;
   color: white;
@@ -351,6 +320,7 @@
 .cancel-btn:hover {
   background: #d1d5db;
 }
+
 .store-control-card {
   background: white;
   border-radius: 12px;

@@ -7,10 +7,11 @@ import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-interface AbonoPolar {
+interface Abono {
   _id?: string;
   fecha: string;
   nombre: string;
+  empresa: string;
   planta: string;
   cedula: string;
   telefono: string;
@@ -23,23 +24,41 @@ interface AbonoPolar {
   status: string;
 }
 
+interface Empresa {
+  _id?: string;
+  nombre: string;
+  plantas: string[];
+}
+
 @Component({
-  selector: 'app-abonos-polar',
+  selector: 'app-abonos',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './abonos-polar.html',
-  styleUrl: './abonos-polar.css',
+  templateUrl: './abonos.html',
+  styleUrl: './abonos.css',
 })
-export class AbonosPolar implements OnInit {
+export class Abonos implements OnInit {
   private http = inject(HttpClient);
 
   private readonly API = '/api/abonos-polar';
+  private readonly API_EMPRESAS = '/api/empresas';
 
-  abonos = signal<AbonoPolar[]>([]);
+  abonos = signal<Abono[]>([]);
+  empresas = signal<Empresa[]>([]);
+  plantasFiltradas = computed(() => {
+    const empresaNombre = this.filtros().empresa;
+    if (!empresaNombre) return [];
+    const empresa = this.empresas().find((e) => e.nombre === empresaNombre);
+    return empresa?.plantas || [];
+  });
+
   abonosFiltrados = computed(() => {
     const f = this.filtros();
     return this.abonos().filter((a) => {
       let passes = true;
+      if (f.empresa) {
+        passes = passes && a.empresa === f.empresa;
+      }
       if (f.planta) {
         passes = passes && a.planta === f.planta;
       }
@@ -56,12 +75,13 @@ export class AbonosPolar implements OnInit {
   saving = signal(false);
 
   showModal = signal(false);
-  editingAbono: AbonoPolar | null = null;
+  editingAbono: Abono | null = null;
 
   showModalColumnas = signal(false);
   columnasDisponibles = [
     { key: 'fecha', label: 'Fecha' },
     { key: 'nombre', label: 'Nombre' },
+    { key: 'empresa', label: 'Empresa' },
     { key: 'planta', label: 'Planta' },
     { key: 'cedula', label: 'Cédula' },
     { key: 'telefono', label: 'Teléfono' },
@@ -73,11 +93,10 @@ export class AbonosPolar implements OnInit {
     { key: 'divisa', label: 'Divisa' },
     { key: 'status', label: 'Status' },
   ];
-  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map(c => c.key)));
-
-  plantas = ['Salsas y Untables', 'Limpieza', 'Metal Grafica', 'Super Envases', 'Cerveceria'];
+  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
 
   filtros = signal({
+    empresa: '',
     planta: '',
     fechaDesde: '',
     fechaHasta: '',
@@ -85,11 +104,12 @@ export class AbonosPolar implements OnInit {
 
   ngOnInit() {
     this.loadAbonos();
+    this.loadEmpresas();
   }
 
   loadAbonos() {
     this.loading.set(true);
-    this.http.get<AbonoPolar[]>(this.API).subscribe({
+    this.http.get<Abono[]>(this.API).subscribe({
       next: (data) => {
         this.abonos.set(data.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
         this.loading.set(false);
@@ -101,6 +121,35 @@ export class AbonosPolar implements OnInit {
     });
   }
 
+  loadEmpresas() {
+    this.http.get<Empresa[]>(this.API_EMPRESAS).subscribe({
+      next: (data) => {
+        this.empresas.set(data);
+      },
+      error: (err) => console.error('Error loading empresas:', err),
+    });
+  }
+
+  onEmpresaFilterChange(empresa: string) {
+    this.filtros.update((f) => ({ ...f, empresa, planta: '' }));
+  }
+
+  onEmpresaChange() {
+    this.filtros.update((f) => ({ ...f, planta: '' }));
+  }
+
+  onPlantaFilterChange(planta: string) {
+    this.filtros.update((f) => ({ ...f, planta }));
+  }
+
+  onFechaDesdeChange(fecha: string) {
+    this.filtros.update((f) => ({ ...f, fechaDesde: fecha }));
+  }
+
+  onFechaHastaChange(fecha: string) {
+    this.filtros.update((f) => ({ ...f, fechaHasta: fecha }));
+  }
+
   abrirModalColumnas() {
     this.showModalColumnas.set(true);
   }
@@ -110,7 +159,7 @@ export class AbonosPolar implements OnInit {
   }
 
   toggleColumna(key: string) {
-    this.columnasSeleccionadas.update(actual => {
+    this.columnasSeleccionadas.update((actual) => {
       const nuevo = new Set(actual);
       if (nuevo.has(key)) {
         nuevo.delete(key);
@@ -126,18 +175,20 @@ export class AbonosPolar implements OnInit {
   }
 
   filtrarAbonos() {
+    // No-op: filtering handled by computed signal
   }
 
-  abrirModal(abono?: AbonoPolar) {
+  abrirModal(abono?: Abono) {
     if (abono) {
-      this.editingAbono = { 
-        ...abono, 
+      this.editingAbono = {
+        ...abono,
         fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
       };
     } else {
       this.editingAbono = {
         fecha: new Date().toISOString().split('T')[0],
         nombre: '',
+        empresa: '',
         planta: '',
         cedula: '',
         telefono: '',
@@ -156,6 +207,11 @@ export class AbonosPolar implements OnInit {
   cerrarModal() {
     this.showModal.set(false);
     this.editingAbono = null;
+  }
+
+  onFormEmpresaChange() {
+    if (!this.editingAbono) return;
+    this.editingAbono.planta = '';
   }
 
   calcularDerivados() {
@@ -179,30 +235,28 @@ export class AbonosPolar implements OnInit {
   guardarAbono() {
     if (!this.editingAbono) return;
 
-    if (!this.editingAbono.nombre.trim() || !this.editingAbono.planta || !this.editingAbono.nFact) {
-      alert('Por favor, complete los campos requeridos: Nombre, Planta y N. Fact');
+    if (!this.editingAbono.nombre.trim() || !this.editingAbono.empresa || !this.editingAbono.planta || !this.editingAbono.nFact) {
+      alert('Por favor, complete los campos requeridos: Nombre, Empresa, Planta y N. Fact');
       return;
     }
 
     this.saving.set(true);
 
     if (this.editingAbono._id) {
-      this.http
-        .put(`${this.API}/${this.editingAbono._id}`, this.editingAbono)
-        .subscribe({
-          next: () => {
-            this.saving.set(false);
-            this.cerrarModal();
-            this.loadAbonos();
-          },
-          error: (err) => {
-            console.error('Error updating abono:', err);
-            this.saving.set(false);
-          },
-        });
+      this.http.put(`${this.API}/${this.editingAbono._id}`, this.editingAbono).subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.cerrarModal();
+          this.loadAbonos();
+        },
+        error: (err) => {
+          console.error('Error updating abono:', err);
+          this.saving.set(false);
+        },
+      });
     } else {
       this.http.post(this.API, this.editingAbono).subscribe({
-        next: (res: any) => {
+        next: () => {
           this.saving.set(false);
           this.cerrarModal();
           this.loadAbonos();
@@ -241,8 +295,8 @@ export class AbonosPolar implements OnInit {
   private async cargarImagenLocal(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
       fetch(url)
-        .then(response => response.blob())
-        .then(blob => {
+        .then((response) => response.blob())
+        .then((blob) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
           reader.onerror = () => reject('Error leyendo imagen');
@@ -252,7 +306,7 @@ export class AbonosPolar implements OnInit {
     });
   }
 
-  private obtenerDimensionesImagen(base64: string): Promise<{width: number, height: number}> {
+  private obtenerDimensionesImagen(base64: string): Promise<{ width: number; height: number }> {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => resolve({ width: img.width, height: img.height });
@@ -267,7 +321,7 @@ export class AbonosPolar implements OnInit {
       return;
     }
 
-    const columnas = this.columnasDisponibles.filter(c => this.columnasSeleccionadas().has(c.key));
+    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
     if (columnas.length === 0) {
       alert('Seleccione al menos una columna');
       return;
@@ -298,9 +352,12 @@ export class AbonosPolar implements OnInit {
       doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
     }
 
+    const empresaSeleccionada = this.filtros().empresa;
+    const titulo = empresaSeleccionada ? `Reporte de Pagos (${empresaSeleccionada})` : 'Reporte de Pagos';
+
     doc.setFontSize(16);
     doc.setTextColor(29, 99, 193);
-    doc.text('Reporte de Pagos', pageWidth / 2, offsetY, { align: 'center' });
+    doc.text(titulo, pageWidth / 2, offsetY, { align: 'center' });
 
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -314,9 +371,9 @@ export class AbonosPolar implements OnInit {
       headerHeight = offsetY + 28;
     }
 
-    const head = columnas.map(c => c.label);
-    const body = datos.map((a: AbonoPolar) => {
-      return columnas.map(c => {
+    const head = columnas.map((c) => c.label);
+    const body = datos.map((a: Abono) => {
+      return columnas.map((c) => {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
         if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return `Bs ${(a as any)[c.key].toFixed(2)}`;
         if (c.key === 'divisa') return `$ ${(a as any)[c.key]?.toFixed(2) || '0.00'}`;
@@ -350,7 +407,11 @@ export class AbonosPolar implements OnInit {
       columnStyles: columnWidths,
     });
 
-    doc.save(`abonos_polar_${new Date().toISOString().split('T')[0]}.pdf`);
+    const fileName = empresaSeleccionada
+      ? `abonos_${empresaSeleccionada.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
+      : `abonos_${new Date().toISOString().split('T')[0]}.pdf`;
+
+    doc.save(fileName);
   }
 
   async generarReporteExcel() {
@@ -361,7 +422,10 @@ export class AbonosPolar implements OnInit {
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Abonos Polar');
+
+    const empresaSeleccionada = this.filtros().empresa;
+    const sheetName = empresaSeleccionada ? `Abonos ${empresaSeleccionada}` : 'Abonos';
+    const worksheet = workbook.addWorksheet(sheetName);
 
     worksheet.columns = [
       { width: 15 },
@@ -378,7 +442,7 @@ export class AbonosPolar implements OnInit {
       { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Divisa', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Divisa', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -386,10 +450,11 @@ export class AbonosPolar implements OnInit {
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
     });
 
-    datos.forEach((a: AbonoPolar) => {
+    datos.forEach((a: Abono) => {
       const row = worksheet.addRow([
         this.formatFecha(a.fecha),
         a.nombre,
+        a.empresa,
         a.planta,
         a.cedula,
         a.telefono,
@@ -408,6 +473,10 @@ export class AbonosPolar implements OnInit {
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `abonos_polar_${new Date().toISOString().split('T')[0]}.xlsx`);
+    const fileName = empresaSeleccionada
+      ? `abonos_${empresaSeleccionada.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`
+      : `abonos_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    saveAs(new Blob([buffer]), fileName);
   }
 }

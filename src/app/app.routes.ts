@@ -239,8 +239,12 @@ export const routes: Routes = [
               loadComponent: () => import('./admin/asistencias/asistencias').then((m) => m.Asistencias),
             },
             {
-              path: 'abonos-polar',
-              loadComponent: () => import('./admin/abonos-polar/abonos-polar').then((m) => m.AbonosPolar),
+              path: 'empresas',
+              loadComponent: () => import('./admin/empresas/empresas').then((m) => m.Empresas),
+            },
+            {
+              path: 'abonos',
+              loadComponent: () => import('./admin/abonos/abonos').then((m) => m.Abonos),
             },
           ],
        },

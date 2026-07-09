@@ -1,27 +1,36 @@
 <div class="abonos-container">
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="abonos-header">
-    <h1>Abonos Polar</h1>
+    <h1>Abonos</h1>
     <button class="btn-primary" (click)="abrirModal()">+ Nuevo Abono</button>
   </div>
 
   <div class="filtros">
     <div class="filtro-group">
-      <label>Planta:</label>
-      <select [ngModel]="filtros().planta" (ngModelChange)="filtros.update(f => ({...f, planta: $event})); filtrarAbonos()">
+      <label>Empresa:</label>
+      <select [ngModel]="filtros().empresa" (ngModelChange)="onEmpresaFilterChange($event)">
         <option value="">Todas</option>
-        @for (planta of plantas; track planta) {
+        @for (empresa of empresas(); track empresa._id) {
+          <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Planta:</label>
+      <select [ngModel]="filtros().planta" (ngModelChange)="onPlantaFilterChange($event)" [disabled]="!filtros().empresa">
+        <option value="">Todas</option>
+        @for (planta of plantasFiltradas(); track planta) {
           <option [value]="planta">{{ planta }}</option>
         }
       </select>
     </div>
     <div class="filtro-group">
       <label>Desde:</label>
-      <input type="date" [ngModel]="filtros().fechaDesde" (ngModelChange)="filtros.update(f => ({...f, fechaDesde: $event})); filtrarAbonos()">
+      <input type="date" [ngModel]="filtros().fechaDesde" (ngModelChange)="onFechaDesdeChange($event)">
     </div>
     <div class="filtro-group">
       <label>Hasta:</label>
-      <input type="date" [ngModel]="filtros().fechaHasta" (ngModelChange)="filtros.update(f => ({...f, fechaHasta: $event})); filtrarAbonos()">
+      <input type="date" [ngModel]="filtros().fechaHasta" (ngModelChange)="onFechaHastaChange($event)">
     </div>
     <div class="filtro-group">
       <label>Reporte:</label>
@@ -38,6 +47,7 @@
         <tr>
           <th>Fecha</th>
           <th>Nombre</th>
+          <th>Empresa</th>
           <th>Planta</th>
           <th>Cédula</th>
           <th>Teléfono</th>
@@ -56,6 +66,7 @@
           <tr>
             <td>{{ formatFecha(abono.fecha) }}</td>
             <td>{{ abono.nombre }}</td>
+            <td>{{ abono.empresa }}</td>
             <td><span class="planta-badge">{{ abono.planta }}</span></td>
             <td>{{ abono.cedula }}</td>
             <td>{{ abono.telefono }}</td>
@@ -73,7 +84,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="12" class="empty">No hay abonos registrados</td>
+            <td colspan="14" class="empty">No hay abonos registrados</td>
           </tr>
         }
       </tbody>
@@ -85,7 +96,7 @@
   <div class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h2>{{ editingAbono?._id ? 'Editar' : 'Nuevo' }} Abono Polar</h2>
+        <h2>{{ editingAbono?._id ? 'Editar' : 'Nuevo' }} Abono</h2>
         <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
       </div>
       <form (ngSubmit)="guardarAbono()">
@@ -101,54 +112,65 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Planta *</label>
-            <select [(ngModel)]="editingAbono!.planta" name="planta" required>
+            <label>Empresa *</label>
+            <select [(ngModel)]="editingAbono!.empresa" name="empresa" (ngModelChange)="onFormEmpresaChange()" required>
               <option value="">Seleccionar</option>
-              @for (planta of plantas; track planta) {
-                <option [value]="planta">{{ planta }}</option>
+              @for (empresa of empresas(); track empresa._id) {
+                <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
               }
             </select>
           </div>
           <div class="form-group">
-            <label>Cédula</label>
-            <input type="text" [(ngModel)]="editingAbono!.cedula" name="cedula">
+            <label>Planta *</label>
+            <select [(ngModel)]="editingAbono!.planta" name="planta" [disabled]="!editingAbono?.empresa" required>
+              <option value="">Seleccionar</option>
+              @for (planta of plantasFiltradas(); track planta) {
+                <option [value]="planta">{{ planta }}</option>
+              }
+            </select>
           </div>
         </div>
         <div class="form-row">
+          <div class="form-group">
+            <label>Cédula</label>
+            <input type="text" [(ngModel)]="editingAbono!.cedula" name="cedula">
+          </div>
           <div class="form-group">
             <label>Teléfono</label>
             <input type="text" [(ngModel)]="editingAbono!.telefono" name="telefono">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>N. Fact *</label>
             <input type="text" [(ngModel)]="editingAbono!.nFact" name="nFact" required>
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label>Monto Factura</label>
             <input type="number" [(ngModel)]="editingAbono!.montoFactura" name="montoFactura" min="0" step="0.01" (input)="calcularDerivados()">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>IVA</label>
             <input type="number" [(ngModel)]="editingAbono!.iva" name="iva" min="0" step="0.01" (input)="calcularDerivados()">
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label>Diferencia</label>
             <input type="number" [(ngModel)]="editingAbono!.diferencia" name="diferencia" min="0" step="0.01" readonly>
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>Tasa</label>
             <input type="number" [(ngModel)]="editingAbono!.tasa" name="tasa" min="0" step="0.01" (input)="calcularDivisa()">
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label>Divisa</label>
             <input type="number" [(ngModel)]="editingAbono!.divisa" name="divisa" min="0" step="0.01" readonly>
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>Status</label>
             <select [(ngModel)]="editingAbono!.status" name="status" required>

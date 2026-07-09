@@ -96,13 +96,14 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
          { label: 'Mis Pedidos', route: 'repartidor' },
        ]
      },
-    {
-      name: 'Polar',
-      expanded: false,
-      items: [
-        { label: 'Abonos Polar', route: 'abonos-polar' },
-      ]
-    }
+     {
+       name: 'Empresas',
+       expanded: false,
+       items: [
+         { label: 'Empresas', route: 'empresas' },
+         { label: 'Abonos', route: 'abonos' },
+       ]
+     }
   ];
 
 @Component({

@@ -370,7 +370,7 @@ export class Abonos implements OnInit {
     }
 
     const empresaSeleccionada = this.filtros().empresa;
-    const titulo = empresaSeleccionada ? `Reporte de Pagos (${empresaSeleccionada})` : 'Reporte de Pagos';
+    const titulo = empresaSeleccionada ? `Reporte de Pagos ${empresaSeleccionada}` : 'Reporte de Pagos';
 
     doc.setFontSize(16);
     doc.setTextColor(0, 51, 111);

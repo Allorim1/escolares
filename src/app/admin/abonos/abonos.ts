@@ -363,19 +363,27 @@ export class Abonos implements OnInit {
     const titulo = empresaSeleccionada ? `Reporte de Pagos (${empresaSeleccionada})` : 'Reporte de Pagos';
 
     doc.setFontSize(16);
-    doc.setTextColor(29, 99, 193);
+    doc.setTextColor(0, 51, 111);
     doc.text(titulo, pageWidth / 2, offsetY, { align: 'center' });
 
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, offsetY + 10, { align: 'center' });
-    doc.text(`Total registros: ${datos.length}`, pageWidth / 2, offsetY + 16, { align: 'center' });
-
     const plantaFiltro = this.filtros().planta;
-    let headerHeight = offsetY + 22;
+    const infoY = offsetY + 10;
+
     if (plantaFiltro) {
-      doc.text(`Planta: ${plantaFiltro}`, pageWidth / 2, offsetY + 22, { align: 'center' });
-      headerHeight = offsetY + 28;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Planta: ${plantaFiltro}`, 18, infoY, { align: 'left' });
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100);
+      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
+      doc.text(`Total registros: ${datos.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
+      headerHeight = infoY + 14;
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
+      doc.text(`Total registros: ${datos.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
+      headerHeight = infoY + 14;
     }
 
     const head = columnas.map((c) => c.label);

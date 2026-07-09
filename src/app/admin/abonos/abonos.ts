@@ -16,11 +16,11 @@ interface Abono {
   cedula: string;
   telefono: string;
   nFact: string;
-  montoFactura: number;
-  iva: number;
-  diferencia: number;
-  tasa: number;
-  divisa: number;
+  montoFactura?: number;
+  iva?: number;
+  diferencia?: number;
+  tasa?: number;
+  divisa?: number;
   status: string;
 }
 
@@ -217,7 +217,7 @@ export class Abonos implements OnInit {
 
   onFormEmpresaChange() {
     if (!this.editingAbono) return;
-    this.selectedEmpresaInModal.set(this.editingAbono.empresa);
+      this.selectedEmpresaInModal.set(this.editingAbono.empresa || '');
     this.editingAbono.planta = '';
   }
 

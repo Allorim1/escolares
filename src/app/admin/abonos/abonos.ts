@@ -46,7 +46,7 @@ export class Abonos implements OnInit {
   abonos = signal<Abono[]>([]);
   empresas = signal<Empresa[]>([]);
   plantasFiltradas = computed(() => {
-    const empresaNombre = this.filtros().empresa;
+    const empresaNombre = this.editingAbono?.empresa || this.filtros().empresa;
     if (!empresaNombre) return [];
     const empresa = this.empresas().find((e) => e.nombre === empresaNombre);
     return empresa?.plantas || [];

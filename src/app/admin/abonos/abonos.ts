@@ -190,6 +190,11 @@ export class Abonos implements OnInit {
         ...abono,
         fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
         empresa: abono.empresa || '',
+        montoFactura: abono.montoFactura ?? 0,
+        iva: abono.iva ?? 0,
+        diferencia: abono.diferencia ?? 0,
+        tasa: abono.tasa ?? 0,
+        divisa: abono.divisa ?? 0,
       };
       this.cargarEmpresasYSetear(abono.empresa);
       this.calcularDerivados();

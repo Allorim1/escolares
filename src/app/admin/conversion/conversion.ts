@@ -96,9 +96,33 @@ rateInputSelected = signal<{actual: boolean; anterior: boolean}>({actual: false,
   constructor(private tasasGuardadasService: TasasGuardadasService) {}
 
    ngOnInit() {
-     this.cargarTasasGuardadas();
-     this.cargarTasasAnterioresGuardadas();
-   }
+      this.cargarTasasGuardadas();
+      this.cargarTasasAnterioresGuardadas();
+      this.cargarTripleAnteriorGuardado();
+    }
+
+   cargarTripleAnteriorGuardado() {
+      this.tasasGuardadasService.getTripleAnterior().subscribe({
+        next: (data) => {
+          if (data && data.cents && data.fechas) {
+            this.tasasAnterioresTripleCents.set(data.cents as [number, number, number]);
+            this.tasasAnterioresTripleFechas.set(data.fechas as [string, string, string]);
+            if (data.cents.some(v => v > 0)) {
+              this.recalcularPromedioTripleAnterior();
+            }
+          }
+        },
+        error: (err) => console.error('Error cargando triple anterior:', err)
+      });
+    }
+
+    guardarTripleAnteriorEnBD() {
+      const cents = this.tasasAnterioresTripleCents();
+      const fechas = this.tasasAnterioresTripleFechas();
+      this.tasasGuardadasService.saveTripleAnterior(cents, fechas).subscribe({
+        error: (err) => console.error('Error guardando triple anterior:', err)
+      });
+    }
 
    cargarTasasGuardadas() {
      this.tasasGuardadasService.getAll('actual').subscribe({
@@ -1927,15 +1951,16 @@ cerrarModalExpectativas() {
   }
 
   onTripleFechaChange(idx: number, event: Event) {
-    const input = event.target as HTMLInputElement;
-    const fechas = [...this.tasasAnterioresTripleFechas()] as [string, string, string];
-    fechas[idx] = input.value || '';
-    if (idx === 0) {
-      this.tasasAnterioresTripleFechas.set(this.propagarMesAnioDesdePrimera(fechas));
-    } else {
-      this.tasasAnterioresTripleFechas.set(fechas);
-    }
-  }
+     const input = event.target as HTMLInputElement;
+     const fechas = [...this.tasasAnterioresTripleFechas()] as [string, string, string];
+     fechas[idx] = input.value || '';
+     if (idx === 0) {
+       this.tasasAnterioresTripleFechas.set(this.propagarMesAnioDesdePrimera(fechas));
+     } else {
+       this.tasasAnterioresTripleFechas.set(fechas);
+     }
+     this.guardarTripleAnteriorEnBD();
+   }
 
   private propagarMesAnioDesdePrimera(fechas: [string, string, string]): [string, string, string] {
     const primera = fechas[0];
@@ -1958,7 +1983,9 @@ cerrarModalExpectativas() {
     }
   }
 
-  onTripleRateBlur(idx: number) {}
+  onTripleRateBlur(idx: number) {
+     this.guardarTripleAnteriorEnBD();
+   }
 
   recalcularPromedioTripleAnterior() {
     const arr = this.tasasAnterioresTripleCents();
@@ -2005,16 +2032,17 @@ cerrarModalExpectativas() {
   }
 
   onTripleRatePaste(event: ClipboardEvent, idx: number) {
-    event.preventDefault();
-    const text = event.clipboardData?.getData('text') || '';
-    const parsed = parseFloat(text.replace(',', '.'));
-    if (isNaN(parsed)) return;
-    const cents = Math.round(parsed * 100);
-    const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
-    arr[idx] = cents;
-    this.tasasAnterioresTripleCents.set(arr);
-    this.recalcularPromedioTripleAnterior();
-  }
+     event.preventDefault();
+     const text = event.clipboardData?.getData('text') || '';
+     const parsed = parseFloat(text.replace(',', '.'));
+     if (isNaN(parsed)) return;
+     const cents = Math.round(parsed * 100);
+     const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+     arr[idx] = cents;
+     this.tasasAnterioresTripleCents.set(arr);
+     this.recalcularPromedioTripleAnterior();
+     this.guardarTripleAnteriorEnBD();
+   }
 
   formatTripleActualRateFromCents(idx: number): string {
     return (this.tasasActualesTripleCents()[idx] / 100).toFixed(2);

@@ -71,9 +71,9 @@
             <td>{{ abono.cedula }}</td>
             <td>{{ abono.telefono }}</td>
             <td>{{ abono.nFact }}</td>
-            <td class="monto">{{ formatMonto(abono.montoFactura) }}</td>
-            <td class="monto">{{ formatMonto(abono.iva) }}</td>
-            <td class="monto">{{ formatMonto(abono.diferencia) }}</td>
+            <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+            <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
+            <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
             <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
             <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
             <td>{{ abono.status }}</td>

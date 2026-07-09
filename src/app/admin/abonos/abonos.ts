@@ -233,7 +233,7 @@ export class Abonos implements OnInit {
     if (!this.editingAbono) return;
     const tasa = Number(this.editingAbono.tasa);
     if (tasa > 0) {
-      this.editingAbono.divisa = Number((this.editingAbono.diferencia / tasa).toFixed(2));
+      this.editingAbono.divisa = Number(((this.editingAbono.diferencia ?? 0) / tasa).toFixed(2));
     } else {
       this.editingAbono.divisa = 0;
     }

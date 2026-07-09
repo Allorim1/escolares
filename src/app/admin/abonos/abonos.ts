@@ -113,7 +113,7 @@ export class Abonos implements OnInit {
     this.loading.set(true);
     this.http.get<Abono[]>(this.API).subscribe({
       next: (data) => {
-        this.abonos.set(data.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
+        this.abonos.set([...data].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
         this.loading.set(false);
       },
       error: (err) => {

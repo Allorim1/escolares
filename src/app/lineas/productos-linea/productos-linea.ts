@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { CommonModule, FormsModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterOutlet, ActivatedRoute, Router } from '@angular/router';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { ProductsService } from '../../products/data-access/products.service';

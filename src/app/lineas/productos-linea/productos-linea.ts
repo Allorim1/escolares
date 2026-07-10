@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterOutlet, ActivatedRoute, Router } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
@@ -15,7 +15,7 @@ import { FavoritesService } from '../../shared/data-access/favorites.service';
 @Component({
   selector: 'app-productos-linea',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RouterOutlet],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './productos-linea.html',
   styleUrl: './productos-linea.css',
 })

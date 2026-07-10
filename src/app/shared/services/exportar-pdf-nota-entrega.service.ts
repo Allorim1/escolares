@@ -197,13 +197,7 @@ export class ExportarPdfNotaEntregaService {
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
 
-              {
-                  rowSpan: 6, 
-                  stack: ['', '', '', '', '', ''],
-                  colSpan: 3,
-                  border: [false, false, false, false],
-                  margin: [0, 6, 10, 0]
-                },
+   
  
               [
                 '', '', '', 

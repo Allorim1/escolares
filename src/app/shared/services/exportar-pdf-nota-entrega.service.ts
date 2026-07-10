@@ -198,16 +198,8 @@ export class ExportarPdfNotaEntregaService {
               ],
 
               {
-                  rowSpan: 6, // Mantiene el bloque informativo alineado arriba al ras del NETO
-                  stack: [
-                    { text: '',  },
-                    { text: '',  },
-                    { text: '',  },
-                    { text: '',  },
-                    { text: '',  },
-                    { text: '',  },
-                    { text: '',  },
-                  ],
+                  rowSpan: 6, 
+                  stack: ['', '', '', '', '', ''],
                   colSpan: 3,
                   border: [false, false, false, false],
                   margin: [0, 6, 10, 0]

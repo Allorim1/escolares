@@ -99,23 +99,21 @@
     </div>
 
     @if (mostrarConsultaUnica) {
-      <div class="popup-overlay" (click)="cerrarConsultaUnica()">
-        <div class="popup-content" (click)="$event.stopPropagation()">
+      <div class="popup-overlay">
+        <div class="popup-content">
           <h3>Consulta Única</h3>
           <div class="consulta-inputs">
             <div class="consulta-input-group">
               <label>Costo ($)</label>
               <input
                 #consultaCostoInput
-                type="number"
-                [(ngModel)]="consultaCosto"
-                (ngModelChange)="calcularConsultaUnica()"
-                (focus)="consultaCostoInput.value = ''; consultaCosto = 0"
-                (keydown.enter)="
-                  consultaCostoInput.value = ''; consultaCostoInput.focus();
-                "
-                step="0.01"
-                min="0"
+                type="text"
+                inputmode="numeric"
+                [value]="consultaCostoFormateado"
+                (input)="onConsultaCostoInput($event)"
+                (click)="consultaCostoInput.select()"
+                (focus)="consultaCostoInput.select()"
+                (keydown.enter)="consultaUtilidadInput.focus()"
                 class="input-consulta"
               />
             </div>
@@ -133,9 +131,13 @@
             <div class="consulta-input-group">
               <label>Utilidad (%)</label>
               <input
+                #consultaUtilidadInput
                 type="number"
                 [(ngModel)]="consultaUtilidad"
                 (ngModelChange)="calcularConsultaUnica()"
+                (click)="consultaUtilidadInput.select()"
+                (focus)="consultaUtilidadInput.select()"
+                (keydown.enter)="consultaCostoInput.focus()"
                 step="1"
                 min="0"
                 max="100"

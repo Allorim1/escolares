@@ -136,6 +136,7 @@ pvpBsf: 0,
   cotizacionTelefono = '';
   cotizacionVendedor = '';
   consultaCosto = 0;
+  consultaCostoTexto = '';
   consultaIva = false;
   consultaUtilidad = 10;
   consultaTasaPvp: 'dolar' | 'euro' | 'binance' = 'dolar';
@@ -1095,11 +1096,33 @@ pvpDolar: Math.round(pvpDolar * 100) / 100,
 
   consultaUnica() {
     this.consultaCosto = this.costo() || 0;
+    this.consultaCostoTexto = Math.round(this.consultaCosto * 100).toString();
     this.consultaIva = this.ivaActivo();
     this.consultaUtilidad = 0;
     this.consultaTasaPvp = this.tasaPvp();
     this.calcularConsultaUnica();
     this.mostrarConsultaUnica = true;
+  }
+
+  get consultaCostoFormateado(): string {
+    return this.formatearCentimos(this.consultaCostoTexto);
+  }
+
+  private formatearCentimos(digitos: string): string {
+    const soloDigitos = (digitos || '').replace(/\D/g, '');
+    const numero = parseInt(soloDigitos || '0', 10);
+    const entero = Math.floor(numero / 100);
+    const centimos = numero % 100;
+    return `${entero}.${centimos.toString().padStart(2, '0')}`;
+  }
+
+  onConsultaCostoInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const digitos = input.value.replace(/\D/g, '');
+    this.consultaCostoTexto = digitos;
+    this.consultaCosto = parseInt(digitos || '0', 10) / 100;
+    input.value = this.formatearCentimos(digitos);
+    this.calcularConsultaUnica();
   }
 
   calcularConsultaUnica() {

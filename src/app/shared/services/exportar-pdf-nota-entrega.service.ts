@@ -189,13 +189,16 @@ export class ExportarPdfNotaEntregaService {
                 { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] },
                 { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] }
               ]),
-              [
-                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
-                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
-                { text: stringRelleno, style: 'tdRelleno', border: [true, false, true, true] },
-                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
-                { text: '', style: 'tdRelleno', border: [true, false, true, true] }
-              ],
+             // REEMPLÁZALO POR ESTO:
+[
+  { 
+    text: stringRelleno, 
+    colSpan: 5, 
+    style: 'tdRelleno', 
+    border: [true, false, true, true] 
+  },
+  '', '', '', '' // Se dejan vacíos los espacios de las columnas unificadas por el colSpan
+],
  
               [
                 '', '', '', 

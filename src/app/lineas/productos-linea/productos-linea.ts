@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink, ActivatedRoute } from '@angular/router';
-import { LineasService, Linea } from '../shared/data-access/lineas.service';
+import { CommonModule, FormsModule } from '@angular/common';
+import { RouterLink, RouterOutlet, ActivatedRoute, Router } from '@angular/router';
+import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
 import { CurrencyService } from '../../shared/data-access/currency.service';
@@ -14,7 +14,7 @@ import { FavoritesService } from '../../shared/data-access/favorites.service';
 @Component({
   selector: 'app-productos-linea',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, RouterOutlet],
   templateUrl: './productos-linea.html',
   styleUrl: './productos-linea.css',
 })
@@ -24,7 +24,7 @@ export class ProductosLinea implements OnInit {
   private lineasService = inject(LineasService);
   private productsService = inject(ProductsService);
   currencyService = inject(CurrencyService);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   apiKeyStatusService = inject(ApiKeyStatusService);
   cartState = inject(CartStateService).state;
   private ofertasService = inject(OfertasService);
@@ -100,8 +100,8 @@ export class ProductosLinea implements OnInit {
 
   totalPages = computed(() => Math.ceil(this.filteredProducts().length / this.pageSize));
 
-  onFilterTextChange(value: string) {
-    this.filterText.set(value);
+  onFilterTextChange(value: string | null) {
+    this.filterText.set(value || '');
     this.filterProducts();
   }
 
@@ -155,7 +155,7 @@ export class ProductosLinea implements OnInit {
   }
 
   decreaseCartQuantity(product: Product) {
-    const currentQty = this.getCardQuantity(product.id) ?? 0;
+    const currentQty = this.getCardQuantity(product.id);
     if (currentQty <= 1) {
       this.cartState.remove(product.id);
     } else {

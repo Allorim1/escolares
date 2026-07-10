@@ -8,12 +8,12 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { LineasService } from './shared/data-access/lineas.service';
+import { RouterLink, RouterOutlet } from '@angular/router';
+import { LineasService } from '../shared/data-access/lineas.service';
 
 @Component({
   selector: 'app-lineas',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RouterOutlet],
   templateUrl: './lineas.html',
   styleUrl: './lineas.css',
 })

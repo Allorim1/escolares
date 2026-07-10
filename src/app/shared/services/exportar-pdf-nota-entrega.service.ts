@@ -173,7 +173,7 @@ export class ExportarPdfNotaEntregaService {
         },
         {
           table: {
-            widths: [45, 45, '*', 75, 75],
+            widths: ['auto', 'auto', '*', 'auto', 'auto'],
             body: [
               [
                 { text: 'CODIGO', style: 'headerCen' },

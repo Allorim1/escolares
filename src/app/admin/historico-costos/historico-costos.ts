@@ -85,7 +85,7 @@ export class HistoricoCostos implements OnInit {
   }
 
   // Tabs
-  setTab(tab: typeof this.activeTab) {
+  setTab(tab: 'registro' | 'variacion' | 'comparativa' | 'alertas' | 'acuerdos' | 'rotacion') {
     this.activeTab.set(tab);
   }
 
@@ -331,6 +331,14 @@ export class HistoricoCostos implements OnInit {
   }
 
   // Helpers
+  inputValue(event: Event): string {
+    return (event.target as HTMLInputElement).value;
+  }
+
+  toNumber(value: string): number {
+    return parseFloat(value) || 0;
+  }
+
   formatMoneda(valor: number): string {
     return new Intl.NumberFormat('es-VE').format(valor);
   }

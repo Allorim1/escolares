@@ -97,7 +97,7 @@ export class Empresas implements OnInit {
         },
       });
     } else {
-      this.http.post(this.API, this.editingEmpresa).subscribe({
+      this.http.post<Empresa>(this.API, this.editingEmpresa).subscribe({
         next: (res: Empresa) => {
           this.saving.set(false);
           this.cerrarModal();

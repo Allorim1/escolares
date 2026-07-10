@@ -109,8 +109,8 @@ export class ComprasHistorialService {
 
   getCompras(filters?: { proveedor?: string; fecha?: string }) {
     const params: Record<string, string> = {};
-    if (filters?.proveedor) params.proveedor = filters.proveedor;
-    if (filters?.fecha) params.fecha = filters.fecha;
+    if (filters?.['proveedor']) params['proveedor'] = filters['proveedor'];
+    if (filters?.['fecha']) params['fecha'] = filters['fecha'];
     return this.http.get<Compra[]>(this.API, { params }).pipe(
       catchError((err) => {
         console.error('Error cargando compras:', err);

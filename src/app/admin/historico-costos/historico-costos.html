@@ -269,11 +269,11 @@
                 <tbody>
                   @for (item of compraItems(); track $index) {
                     <tr>
-                      <td><input type="number" [value]="item.productoId" (input)="updateCompraItem($index, 'productoId', parseInt(($any)($event.target).value))"></td>
-                      <td><input type="text" [value]="item.nombreProducto" (input)="updateCompraItem($index, 'nombreProducto', ($any)($event.target).value)"></td>
-                      <td><input type="number" [value]="item.cantidad" (input)="updateCompraItem($index, 'cantidad', parseFloat(($any)($event.target).value))"></td>
-                      <td><input type="number" [value]="item.precioUnitario" (input)="updateCompraItem($index, 'precioUnitario', parseFloat(($any)($event.target).value))"></td>
-                      <td><input type="number" [value]="item.descuento" (input)="updateCompraItem($index, 'descuento', parseFloat(($any)($event.target).value))"></td>
+                      <td><input type="number" [value]="item.productoId" (input)="updateCompraItem($index, 'productoId', toNumber(inputValue($event)))"></td>
+                      <td><input type="text" [value]="item.nombreProducto" (input)="updateCompraItem($index, 'nombreProducto', inputValue($event))"></td>
+                      <td><input type="number" [value]="item.cantidad" (input)="updateCompraItem($index, 'cantidad', toNumber(inputValue($event)))"></td>
+                      <td><input type="number" [value]="item.precioUnitario" (input)="updateCompraItem($index, 'precioUnitario', toNumber(inputValue($event)))"></td>
+                      <td><input type="number" [value]="item.descuento" (input)="updateCompraItem($index, 'descuento', toNumber(inputValue($event)))"></td>
                       <td class="text-primary">{{ formatMoneda(item.subtotal) }}</td>
                        <td><button type="button" class="btn-sm btn-danger" (click)="removeCompraItem($index)" (keydown.enter)="removeCompraItem($index)" tabindex="0">✕</button></td>
                     </tr>

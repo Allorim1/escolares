@@ -196,8 +196,22 @@ export class ExportarPdfNotaEntregaService {
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
-
-   
+                {
+                  rowSpan: 6, // Mantiene el bloque informativo alineado arriba al ras del NETO
+                  stack: [
+  { text: 'Texto oculto 1', color: 'transparent' },
+  { text: 'Texto oculto 2', color: 'transparent' },
+  { text: 'Texto oculto 3', color: 'transparent' },
+  { text: 'Texto oculto 4', color: 'transparent' },
+  { text: 'Texto oculto 5', color: 'transparent' },
+  { text: 'Texto oculto 6', color: 'transparent' },
+  { text: 'Texto oculto 7', color: 'transparent' },
+  { text: 'Texto oculto 8', color: 'transparent' }
+],
+                  colSpan: 3,
+                  border: [false, false, false, false],
+                  margin: [0, 6, 10, 0]
+                },
  
               [
                 '', '', '', 

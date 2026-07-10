@@ -189,13 +189,29 @@ export class ExportarPdfNotaEntregaService {
                 { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] },
                 { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] }
               ]),
-              // REEMPLÁZALO POR ESTE BLOQUE:
-[
-  { text: stringRelleno, colSpan: 3, border: [true, false, false, true] },
-  '', '', // Celdas vacías requeridas por el colSpan de las 3 primeras columnas
-  { text: '', border: [false, false, false, false] }, // Quita las líneas de P. UNITARIO en esta zona vacía
-  { text: '', border: [false, false, true, false] }   // Mantiene solo el borde exterior derecho del documento
-],
+              [
+                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
+                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
+                { text: stringRelleno, style: 'tdRelleno', border: [true, false, true, true] },
+                { text: '', style: 'tdRelleno', border: [true, false, true, true] },
+                { text: '', style: 'tdRelleno', border: [true, false, true, true] }
+              ],
+
+              {
+                  rowSpan: 6, // Mantiene el bloque informativo alineado arriba al ras del NETO
+                  stack: [
+                    { text: '',  },
+                    { text: '',  },
+                    { text: '',  },
+                    { text: '',  },
+                    { text: '',  },
+                    { text: '',  },
+                    { text: '',  },
+                  ],
+                  colSpan: 3,
+                  border: [false, false, false, false],
+                  margin: [0, 6, 10, 0]
+                },
  
               [
                 '', '', '', 

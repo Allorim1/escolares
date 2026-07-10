@@ -196,48 +196,47 @@ export class ExportarPdfNotaEntregaService {
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
+             [
                 {
-                  rowSpan: 6, // Mantiene el bloque informativo alineado arriba al ras del NETO
-                  stack: [
-  { text: 'Texto oculto 1', color: 'transparent' },
-  { text: 'Texto oculto 2', color: 'transparent' },
-  { text: 'Texto oculto 3', color: 'transparent' },
-  { text: 'Texto oculto 4', color: 'transparent' },
-  { text: 'Texto oculto 5', color: 'transparent' },
-  { text: 'Texto oculto 6', color: 'transparent' }
-],
+                  rowSpan: 6, 
                   colSpan: 3,
+                  stack: [
+                    { text: ' ' },
+                    { text: ' ' },
+                    { text: ' ' },
+                    { text: ' ' },
+                    { text: ' ' },
+                    { text: ' ' }
+                  ],
                   border: [false, false, false, false],
                   margin: [0, 6, 10, 0]
                 },
- 
-              [
-                '', '', 
+                // CORRECCIÓN: Se eliminaron los dos {} que distorsionaban la primera fila
                 { text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
+                {}, {}, {}, 
                 { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
+                {}, {}, {}, 
                 { text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
+                {}, {}, {}, 
                 { text: `I.V.A. 16% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: ivaCalculado.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
+                {}, {}, {}, 
                 { text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
+                {}, {}, {}, 
                 { text: 'TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA', border: [true, true, true, true] }
               ]

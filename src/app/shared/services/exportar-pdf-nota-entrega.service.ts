@@ -196,7 +196,8 @@ export class ExportarPdfNotaEntregaService {
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
-             [
+             // FILA NETO: Celda 1 (ocupa 3 columnas usando colSpan), Celda 4 (Etiqueta), Celda 5 (Monto)
+              [
                 {
                   rowSpan: 6, 
                   colSpan: 3,
@@ -211,32 +212,47 @@ export class ExportarPdfNotaEntregaService {
                   border: [false, false, false, false],
                   margin: [0, 6, 10, 0]
                 },
-                // CORRECCIÓN: Se eliminaron los dos {} que distorsionaban la primera fila
+                {}, {}, // <--- DEBEN estar aquí para que el array tenga las 5 celdas físicas que el validador de layouts necesita
                 { text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
+              // FILA DESCUENTO
               [
-                {}, {}, {}, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] }, // <--- Usamos celdas explícitas sin bordes en vez de llaves vacías
                 { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
+              // FILA SUB TOTAL
               [
-                {}, {}, {}, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] },
                 { text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
+              // FILA I.V.A.
               [
-                {}, {}, {}, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] },
                 { text: `I.V.A. 16% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: ivaCalculado.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
+              // FILA EXENTO
               [
-                {}, {}, {}, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] },
                 { text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
+              // FILA TOTAL
               [
-                {}, {}, {}, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] }, 
+                { text: '', border: [false, false, false, false] },
                 { text: 'TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA', border: [true, true, true, true] }
               ]

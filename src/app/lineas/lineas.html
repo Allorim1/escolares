@@ -1,5 +1,5 @@
 <div class="lineas-container">
-  @if (showGrid()) {
+  <div class="lineas-grid-wrapper" [class.hidden]="!showGrid()">
     <h1 class="page-title reveal-init" #revealElement>Nuestras Líneas</h1>
 
     <div class="lineas-grid">
@@ -15,7 +15,7 @@
         </a>
       }
     </div>
-  }
+  </div>
 
   <router-outlet></router-outlet>
 </div>

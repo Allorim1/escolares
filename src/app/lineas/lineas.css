@@ -4,6 +4,14 @@
   padding: 3rem 2rem;
 }
 
+.lineas-grid-wrapper {
+  transition: opacity 0.3s ease;
+}
+
+.lineas-grid-wrapper.hidden {
+  display: none;
+}
+
 .reveal-init {
   opacity: 0;
   transform: translateY(30px);

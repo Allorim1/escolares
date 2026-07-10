@@ -43,6 +43,9 @@ export class Lineas implements AfterViewInit {
 
   ngAfterViewInit() {
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      this.revealElements.changes.subscribe(() => {
+        setTimeout(() => this.revealAll(), 100);
+      });
       setTimeout(() => this.revealAll(), 100);
     }
   }

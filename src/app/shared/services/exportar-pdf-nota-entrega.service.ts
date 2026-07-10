@@ -204,9 +204,7 @@ export class ExportarPdfNotaEntregaService {
   { text: 'Texto oculto 3', color: 'transparent' },
   { text: 'Texto oculto 4', color: 'transparent' },
   { text: 'Texto oculto 5', color: 'transparent' },
-  { text: 'Texto oculto 6', color: 'transparent' },
-  { text: 'Texto oculto 7', color: 'transparent' },
-  { text: 'Texto oculto 8', color: 'transparent' }
+  { text: 'Texto oculto 6', color: 'transparent' }
 ],
                   colSpan: 3,
                   border: [false, false, false, false],
@@ -214,7 +212,7 @@ export class ExportarPdfNotaEntregaService {
                 },
  
               [
-                '', '', '', 
+                '', '', 
                 { text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],

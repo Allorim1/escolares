@@ -189,15 +189,12 @@ export class ExportarPdfNotaEntregaService {
                 { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] },
                 { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] }
               ]),
-             // REEMPLÁZALO POR ESTO:
+              // REEMPLÁZALO POR ESTE BLOQUE:
 [
-  { 
-    text: stringRelleno, 
-    colSpan: 5, 
-    style: 'tdRelleno', 
-    border: [true, false, true, true] 
-  },
-  '', '', '', '' // Se dejan vacíos los espacios de las columnas unificadas por el colSpan
+  { text: stringRelleno, colSpan: 3, border: [true, false, false, true] },
+  '', '', // Celdas vacías requeridas por el colSpan de las 3 primeras columnas
+  { text: '', border: [false, false, false, false] }, // Quita las líneas de P. UNITARIO en esta zona vacía
+  { text: '', border: [false, false, true, false] }   // Mantiene solo el borde exterior derecho del documento
 ],
  
               [

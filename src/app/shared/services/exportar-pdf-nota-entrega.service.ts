@@ -198,7 +198,7 @@ export class ExportarPdfNotaEntregaService {
               ],
  
               [
-                '', '', 
+                '', '', '', 
                 { text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],

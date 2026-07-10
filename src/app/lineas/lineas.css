@@ -29,6 +29,8 @@
 }
 
 .linea-card {
+  display: flex;
+  flex-direction: column;
   background: white;
   border-radius: 12px;
   overflow: hidden;
@@ -36,6 +38,8 @@
   transition:
     transform 0.3s,
     box-shadow 0.3s;
+  text-decoration: none;
+  color: inherit;
 }
 
 .linea-card:hover {

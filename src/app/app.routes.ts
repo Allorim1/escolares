@@ -45,6 +45,12 @@ export const routes: Routes = [
   {
     path: 'lineas',
     component: Lineas,
+    children: [
+      {
+        path: ':id',
+        loadComponent: () => import('./lineas/productos-linea/productos-linea').then((m) => m.ProductosLinea),
+      },
+    ],
   },
   {
     path: 'terminos',

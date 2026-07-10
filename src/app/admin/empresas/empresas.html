@@ -30,6 +30,7 @@
             <td class="actions">
               <button class="btn-edit" (click)="abrirModal(empresa)">Editar</button>
               <button class="btn-delete" (click)="eliminarEmpresa(empresa._id || '')">Eliminar</button>
+              <button class="btn-primary" (click)="verHistorialCompras()">Ver Historial de Compras</button>
             </td>
           </tr>
         } @empty {
@@ -51,24 +52,24 @@
       </div>
       <form (ngSubmit)="guardarEmpresa()">
         <div class="form-group">
-          <label>Nombre *</label>
-          <input type="text" [(ngModel)]="editingEmpresa!.nombre" name="nombre" required>
+          <label for="empresa-nombre">Nombre *</label>
+          <input id="empresa-nombre" type="text" [(ngModel)]="editingEmpresa!.nombre" name="nombre" required>
         </div>
-        <div class="form-group">
-          <label>Plantas</label>
-          <div class="plantas-list">
-            @for (planta of editingEmpresa?.plantas; track planta) {
-              <div class="planta-item">
-                <span>{{ planta }}</span>
-                <button type="button" class="btn-remove" (click)="eliminarPlanta(planta)">✕</button>
-              </div>
-            }
+          <div class="form-group">
+            <label for="nuevaPlanta">Plantas</label>
+            <div class="plantas-list">
+              @for (planta of editingEmpresa?.plantas; track planta) {
+                <div class="planta-item">
+                  <span>{{ planta }}</span>
+                  <button type="button" class="btn-remove" (click)="eliminarPlanta(planta)">✕</button>
+                </div>
+              }
+            </div>
+            <div class="add-planta">
+              <input id="nuevaPlanta" type="text" [ngModel]="nuevaPlanta()" (ngModelChange)="nuevaPlanta.set($event)" name="nuevaPlanta" placeholder="Nueva planta">
+              <button type="button" class="btn-add" (click)="agregarPlanta()">Agregar</button>
+            </div>
           </div>
-          <div class="add-planta">
-            <input type="text" [ngModel]="nuevaPlanta()" (ngModelChange)="nuevaPlanta.set($event)" name="nuevaPlanta" placeholder="Nueva planta">
-            <button type="button" class="btn-add" (click)="agregarPlanta()">Agregar</button>
-          </div>
-        </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
           <button type="submit" class="btn-save" [disabled]="saving()">

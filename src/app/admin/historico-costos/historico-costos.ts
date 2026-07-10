@@ -1,179 +1,354 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { catchError, of } from 'rxjs';
-
-interface CostoGuardado {
-  _id?: any;
-  nombre?: string;
-  costo: number;
-  iva: number;
-  cargoPersonalizado: number;
-  cargoPersonalizadoPorcentaje: number;
-  dolar: number;
-  euro: number;
-  binance: number;
-  pvpBsf: number;
-  pvpDolar: number;
-  tasaPvp: string;
-  ivaActivo: boolean;
-  fecha: Date;
-  idProducto?: number;
-}
-
-interface Reporte {
-  _id?: any;
-  nombre: string;
-  numero: number;
-  tipo: 'Nota' | 'Factura';
-  fecha: Date;
-  data: CostoGuardado[];
-}
-
-interface ProductoHistorico {
-  idProducto: number;
-  nombreProducto: string;
-  mejorProveedor: string;
-  menorCosto: number;
-  mayorUtilidad: number;
-  mayorUtilidadPorcentaje: number;
-  registros: {
-    proveedor: string;
-    numeroReporte: number;
-    costo: number;
-    utilidad: number;
-    utilidadPorcentaje: number;
-    pvpDolar: number;
-    tasaPvp: string;
-  }[];
-}
+import { FormsModule } from '@angular/forms';
+import { ComprasHistorialService, ItemCompra, Compra, VariacionPrecio, CPP, ComparativaProveedor, InversionProveedor, Alerta, AcuerdoComercial, ReporteRotacion } from '../../shared/data-access/compras-historial.service';
 
 @Component({
   selector: 'app-historico-costos',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './historico-costos.html',
   styleUrl: './historico-costos.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HistoricoCostos implements OnInit {
-  private http = inject(HttpClient);
+  private service = new ComprasHistorialService();
 
-  reportes = signal<Reporte[]>([]);
-  productosHistoricos = signal<ProductoHistorico[]>([]);
-  loading = signal(true);
-  filtroNombre = '';
-  productosExpandidos = new Set<string>();
+  activeTab = signal<'registro' | 'variacion' | 'comparativa' | 'alertas' | 'acuerdos' | 'rotacion'>('registro');
+  loading = signal(false);
 
-  private readonly API_COSTOS = '/api/costos';
+  // Registro de Comras
+  compras = signal<Compra[]>([]);
+  compraItems = signal<Compra['items']>([]);
+  showCompraModal = signal(false);
+  editingCompra: Compra | null = null;
+  compraForm: { proveedor: string; fecha: string; notas: string; estado: 'pendiente' | 'completada' | 'cancelada' } = { proveedor: '', fecha: '', notas: '', estado: 'pendiente' };
+  savingCompra = signal(false);
+  filtroProveedor = signal('');
+  filtroFecha = signal('');
 
-  ngOnInit() {
-    this.loadReportes();
+  // Variación de Precios
+  busquedaProducto = signal('');
+  variaciones = signal<VariacionPrecio[]>([]);
+  cppList = signal<CPP[]>([]);
+  buscarLoading = signal(false);
+
+  // Comparativa
+  comparativa = signal<ComparativaProveedor[]>([]);
+  inversion = signal<InversionProveedor[]>([]);
+
+  // Alertas
+  alertas = signal<Alerta[]>([]);
+  revisandoId = signal<string | null>(null);
+
+  // Acuerdos Comerciales
+  acuerdos = signal<AcuerdoComercial[]>([]);
+  showAcuerdoModal = signal(false);
+  editingAcuerdo: AcuerdoComercial | null = null;
+  acuerdoForm: { proveedorId: string; proveedor: string; tipo: AcuerdoComercial['tipo']; descripcion: string; descuentoPorcentaje: number; montoMinimo: number; montoMaximo: number; fechaInicio: string; fechaFin: string; activo: boolean } = {
+    proveedorId: '',
+    proveedor: '',
+    tipo: 'volumen',
+    descripcion: '',
+    descuentoPorcentaje: 0,
+    montoMinimo: 0,
+    montoMaximo: 0,
+    fechaInicio: '',
+    fechaFin: '',
+    activo: true,
+  };
+  savingAcuerdo = signal(false);
+
+  // Rotación
+  rotacion = signal<ReporteRotacion[]>([]);
+
+  readonly comprasFiltradas = computed(() => {
+    let data = this.compras();
+    const prov = this.filtroProveedor().trim().toLowerCase();
+    const fecha = this.filtroFecha().trim();
+    if (prov) {
+      data = data.filter((c) => c.proveedor.toLowerCase().includes(prov));
+    }
+    if (fecha) {
+      data = data.filter((c) => c.fecha === fecha);
+    }
+    return data;
+  });
+
+  ngOnInit(): void {
+    this.loadCompras();
+    this.loadComparativa();
+    this.loadInversion();
+    this.loadAlertas();
+    this.loadAcuerdos();
+    this.loadRotacion();
   }
 
-  loadReportes() {
+  // Tabs
+  setTab(tab: typeof this.activeTab) {
+    this.activeTab.set(tab);
+  }
+
+  // Compra CRUD
+  loadCompras() {
     this.loading.set(true);
-    this.http
-      .get<Reporte[]>(this.API_COSTOS)
-      .pipe(
-        catchError((err) => {
-          console.error('Error loading reportes:', err);
-          return of([]);
-        }),
-      )
-      .subscribe((data) => {
-        this.reportes.set(data);
-        this.calcularHistorico();
+    this.service.getCompras({ proveedor: this.filtroProveedor(), fecha: this.filtroFecha() }).subscribe({
+      next: (data) => {
+        this.compras.set(data);
         this.loading.set(false);
-      });
+      },
+      error: () => this.loading.set(false),
+    });
   }
 
-  calcularHistorico() {
-    const productosMap = new Map<string, ProductoHistorico>();
+  openCompraModal(compra?: Compra) {
+    if (compra) {
+      this.editingCompra = compra;
+      this.compraForm = {
+        proveedor: compra.proveedor,
+        fecha: compra.fecha,
+        notas: compra.notas || '',
+        estado: compra.estado || 'pendiente',
+      };
+      this.compraItems.set([...compra.items]);
+    } else {
+      this.editingCompra = null;
+      const hoy = new Date().toISOString().split('T')[0];
+      this.compraForm = { proveedor: '', fecha: hoy, notas: '', estado: 'pendiente' };
+      this.compraItems.set([]);
+    }
+    this.showCompraModal.set(true);
+  }
 
-    for (const reporte of this.reportes()) {
-      for (let i = 0; i < reporte.data.length; i++) {
-        const item = reporte.data[i];
-        
-        if (!item.nombre || !item.nombre.trim()) {
-          continue;
-        }
+  closeCompraModal() {
+    this.showCompraModal.set(false);
+    this.editingCompra = null;
+    this.compraItems.set([]);
+  }
 
-        const nombreKey = item.nombre.toLowerCase();
-        const nombreProducto = item.nombre;
-        const idProducto = item.idProducto || 0;
+  addCompraItem() {
+    this.compraItems.update((items) => [
+      ...items,
+      { productoId: 0, nombreProducto: '', cantidad: 1, precioUnitario: 0, descuento: 0, subtotal: 0 },
+    ]);
+  }
 
-        if (!productosMap.has(nombreKey)) {
-          productosMap.set(nombreKey, {
-            idProducto,
-            nombreProducto,
-            mejorProveedor: reporte.nombre,
-            menorCosto: item.costo,
-            mayorUtilidad: item.cargoPersonalizado,
-            mayorUtilidadPorcentaje: item.cargoPersonalizadoPorcentaje || 0,
-            registros: [],
-          });
-        }
+  removeCompraItem(index: number) {
+    this.compraItems.update((items) => items.filter((_, i) => i !== index));
+  }
 
-        const producto = productosMap.get(nombreKey)!;
-
-        if (idProducto && idProducto !== producto.idProducto) {
-          producto.idProducto = idProducto;
-        }
-
-        if (item.costo < producto.menorCosto) {
-          producto.menorCosto = item.costo;
-          producto.mejorProveedor = reporte.nombre;
-        }
-
-        if (item.cargoPersonalizado > producto.mayorUtilidad) {
-          producto.mayorUtilidad = item.cargoPersonalizado;
-          producto.mayorUtilidadPorcentaje = item.cargoPersonalizadoPorcentaje || 0;
-        }
-
-        producto.registros.push({
-          proveedor: reporte.nombre,
-          numeroReporte: reporte.numero,
-          costo: item.costo,
-          utilidad: item.cargoPersonalizado,
-          utilidadPorcentaje: item.cargoPersonalizadoPorcentaje || 0,
-          pvpDolar: item.pvpDolar,
-          tasaPvp: item.tasaPvp,
-        });
+  updateCompraItem(index: number, field: keyof ItemCompra, value: string | number) {
+    this.compraItems.update((items) => {
+      const updated = [...items];
+      updated[index] = { ...updated[index], [field]: value };
+      if (field === 'cantidad' || field === 'precioUnitario' || field === 'descuento') {
+        const item = updated[index];
+        item.subtotal = item.cantidad * item.precioUnitario - item.descuento;
       }
+      return updated;
+    });
+  }
+
+  saveCompra() {
+    if (!this.compraForm.proveedor.trim()) {
+      alert('El proveedor es requerido');
+      return;
     }
-
-    const productosArray = Array.from(productosMap.values());
-    this.productosHistoricos.set(productosArray);
-  }
-
-  get productosFiltrados() {
-    if (!this.filtroNombre.trim()) {
-      return this.productosHistoricos();
+    const items = this.compraItems();
+    if (items.length === 0) {
+      alert('Agrega al menos un item');
+      return;
     }
-    const filtro = this.filtroNombre.toLowerCase();
-    return this.productosHistoricos().filter(
-      (p) =>
-        p.nombreProducto.toLowerCase().includes(filtro) ||
-        p.mejorProveedor.toLowerCase().includes(filtro) ||
-        p.idProducto.toString().includes(filtro)
-    );
+    const subtotal = items.reduce((s, i) => s + i.subtotal, 0);
+    const iva = subtotal * 0.16;
+    const total = subtotal + iva;
+    const payload: Omit<Compra, '_id'> = {
+      numero: this.editingCompra?.numero || Date.now(),
+      proveedor: this.compraForm.proveedor,
+      proveedorId: this.editingCompra?.proveedorId,
+      fecha: this.compraForm.fecha,
+      items,
+      subtotal,
+      iva,
+      total,
+      notas: this.compraForm.notas,
+      estado: this.compraForm.estado,
+    };
+    this.savingCompra.set(true);
+    if (this.editingCompra?._id) {
+      this.service.updateCompra(this.editingCompra._id, payload).subscribe({
+        next: () => {
+          this.savingCompra.set(false);
+          this.closeCompraModal();
+          this.loadCompras();
+        },
+        error: () => this.savingCompra.set(false),
+      });
+    } else {
+      this.service.createCompra(payload).subscribe({
+        next: () => {
+          this.savingCompra.set(false);
+          this.closeCompraModal();
+          this.loadCompras();
+        },
+        error: () => this.savingCompra.set(false),
+      });
+    }
   }
 
-  formatNumero(numero: number): string {
-    return numero.toString().padStart(7, '0');
+  deleteCompra(id: string) {
+    if (!confirm('¿Eliminar esta compra?')) return;
+    this.service.deleteCompra(id).subscribe({
+      next: () => this.loadCompras(),
+    });
   }
 
-  formatearMoneda(valor: number): string {
+  // Variación
+  buscarVariaciones() {
+    const productoId = parseInt(this.busquedaProducto());
+    if (isNaN(productoId)) {
+      alert('ID de producto inválido');
+      return;
+    }
+    this.buscarLoading.set(true);
+    this.service.getVariacionesPrecio(productoId).subscribe({
+      next: (data) => {
+        this.variaciones.set(data);
+        this.buscarLoading.set(false);
+      },
+      error: () => this.buscarLoading.set(false),
+    });
+    this.service.getCPP(productoId).subscribe({
+      next: (data) => this.cppList.set(data),
+    });
+  }
+
+  // Comparativa
+  loadComparativa() {
+    this.service.getComparativaProveedores().subscribe((data) => this.comparativa.set(data));
+  }
+
+  loadInversion() {
+    this.service.getInversionProveedores().subscribe((data) => this.inversion.set(data));
+  }
+
+  // Alertas
+  loadAlertas() {
+    this.service.getAlertas().subscribe((data) => this.alertas.set(data));
+  }
+
+  revisarAlerta(id: string) {
+    this.revisandoId.set(id);
+    this.service.revisarAlerta(id).subscribe({
+      next: () => {
+        this.revisandoId.set(null);
+        this.loadAlertas();
+      },
+      error: () => this.revisandoId.set(null),
+    });
+  }
+
+  // Acuerdos
+  loadAcuerdos() {
+    this.service.getAcuerdosComerciales().subscribe((data) => this.acuerdos.set(data));
+  }
+
+  openAcuerdoModal(acuerdo?: AcuerdoComercial) {
+    if (acuerdo) {
+      this.editingAcuerdo = acuerdo;
+      this.acuerdoForm = {
+        proveedorId: acuerdo.proveedorId,
+        proveedor: acuerdo.proveedor,
+        tipo: acuerdo.tipo,
+        descripcion: acuerdo.descripcion,
+        descuentoPorcentaje: acuerdo.descuentoPorcentaje,
+        montoMinimo: acuerdo.montoMinimo || 0,
+        montoMaximo: acuerdo.montoMaximo || 0,
+        fechaInicio: acuerdo.fechaInicio,
+        fechaFin: acuerdo.fechaFin,
+        activo: acuerdo.activo,
+      };
+    } else {
+      this.editingAcuerdo = null;
+      this.acuerdoForm = {
+        proveedorId: '',
+        proveedor: '',
+        tipo: 'volumen',
+        descripcion: '',
+        descuentoPorcentaje: 0,
+        montoMinimo: 0,
+        montoMaximo: 0,
+        fechaInicio: '',
+        fechaFin: '',
+        activo: true,
+      };
+    }
+    this.showAcuerdoModal.set(true);
+  }
+
+  closeAcuerdoModal() {
+    this.showAcuerdoModal.set(false);
+    this.editingAcuerdo = null;
+  }
+
+  saveAcuerdo() {
+    if (!this.acuerdoForm.proveedor.trim() || !this.acuerdoForm.descripcion.trim()) {
+      alert('Proveedor y descripción son requeridos');
+      return;
+    }
+    this.savingAcuerdo.set(true);
+    if (this.editingAcuerdo?._id) {
+      this.service.updateAcuerdoComercial(this.editingAcuerdo._id, this.acuerdoForm).subscribe({
+        next: () => {
+          this.savingAcuerdo.set(false);
+          this.closeAcuerdoModal();
+          this.loadAcuerdos();
+        },
+        error: () => this.savingAcuerdo.set(false),
+      });
+    } else {
+      this.service.createAcuerdoComercial(this.acuerdoForm).subscribe({
+        next: () => {
+          this.savingAcuerdo.set(false);
+          this.closeAcuerdoModal();
+          this.loadAcuerdos();
+        },
+        error: () => this.savingAcuerdo.set(false),
+      });
+    }
+  }
+
+  deleteAcuerdo(id: string) {
+    if (!confirm('¿Eliminar este acuerdo comercial?')) return;
+    this.service.deleteAcuerdoComercial(id).subscribe({
+      next: () => this.loadAcuerdos(),
+    });
+  }
+
+  // Rotación
+  loadRotacion() {
+    this.service.getReporteRotacion().subscribe((data) => this.rotacion.set(data));
+  }
+
+  // Helpers
+  formatMoneda(valor: number): string {
     return new Intl.NumberFormat('es-VE').format(valor);
   }
 
-  toggleRegistros(nombreProducto: string) {
-    const key = nombreProducto.toLowerCase();
-    if (this.productosExpandidos.has(key)) {
-      this.productosExpandidos.delete(key);
-    } else {
-      this.productosExpandidos.add(key);
-    }
+  formatFecha(fecha: string): string {
+    if (!fecha) return '-';
+    return new Date(fecha).toLocaleDateString('es-VE');
+  }
+
+  trackByCompraId(index: number, compra: Compra) {
+    return compra._id ?? index;
+  }
+
+  trackByAlertaId(index: number, alerta: Alerta) {
+    return alerta._id ?? index;
+  }
+
+  trackByAcuerdoId(index: number, acuerdo: AcuerdoComercial) {
+    return acuerdo._id ?? index;
   }
 }

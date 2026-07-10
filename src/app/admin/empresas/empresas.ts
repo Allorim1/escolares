@@ -2,6 +2,7 @@ import { Component, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 interface Empresa {
   _id?: string;
@@ -26,6 +27,7 @@ export class Empresas implements OnInit {
   editingEmpresa: Empresa | null = null;
   nuevaPlanta = signal('');
   saving = signal(false);
+  private router = inject(Router);
 
   ngOnInit() {
     this.loadEmpresas();
@@ -96,7 +98,7 @@ export class Empresas implements OnInit {
       });
     } else {
       this.http.post(this.API, this.editingEmpresa).subscribe({
-        next: (res: any) => {
+        next: (res: Empresa) => {
           this.saving.set(false);
           this.cerrarModal();
           this.empresas.update(empresas => [...empresas, res]);
@@ -109,11 +111,15 @@ export class Empresas implements OnInit {
     }
   }
 
-  eliminarEmpresa(id: string) {
+   eliminarEmpresa(id: string) {
     if (!confirm('¿Está seguro de eliminar esta empresa?')) return;
     this.http.delete(`${this.API}/${id}`).subscribe({
       next: () => this.loadEmpresas(),
       error: (err) => console.error('Error deleting empresa:', err),
     });
+  }
+
+  verHistorialCompras() {
+    this.router.navigate(['/admin/historico-costos']);
   }
 }

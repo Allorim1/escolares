@@ -20,11 +20,11 @@
     }
 
     interface GeocoderResult {
-      address_components: Array<{
+      address_components: {
         types: string[];
         long_name: string;
         short_name: string;
-      }>;
+      }[];
       formatted_address: string;
     }
 

@@ -248,7 +248,7 @@ export const routes: Routes = [
               path: 'empresas',
               loadComponent: () => import('./admin/empresas/empresas').then((m) => m.Empresas),
             },
-             {
+            {
                path: 'abonos',
                loadComponent: () => import('./admin/abonos/abonos').then((m) => m.Abonos),
              },
@@ -256,7 +256,11 @@ export const routes: Routes = [
                path: 'sesiones',
                loadComponent: () => import('./admin/sesiones/admin-sesiones').then((m) => m.AdminSesiones),
              },
-           ],
+             {
+               path: 'estadisticas',
+               loadComponent: () => import('./admin/estadisticas/estadisticas').then((m) => m.Estadisticas),
+             },
+            ],
         },
       {
         path: 'repartidor',

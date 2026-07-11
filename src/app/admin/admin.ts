@@ -60,8 +60,9 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
          { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
          { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
          { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
-         { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
-         { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
+          { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
+          { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
+          { label: 'Estadísticas', route: 'estadisticas', permiso: 'estadisticas_ver' },
        ]
      },
     {

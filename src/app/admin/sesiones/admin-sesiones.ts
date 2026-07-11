@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -14,7 +14,7 @@ import { NotificationModalService } from '../../shared/ui/notification-modal/not
   templateUrl: './admin-sesiones.html',
   styleUrl: './admin-sesiones.css',
 })
-export class AdminSesiones implements OnInit {
+export class AdminSesiones implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private http = inject(HttpClient);
   private router = inject(Router);

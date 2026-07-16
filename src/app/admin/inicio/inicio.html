@@ -45,9 +45,9 @@
             />
           </div>
           <div class="popup-buttons">
-            <button class="cancel-btn" (click)="closeApiKeyModal()" [disabled]="savingApiKey">Cancelar</button>
+            <button class="cancel-btn" (click)="closeApiKeyModal()" [disabled]="savingApiKey">❌</button>
             <button class="save-btn" (click)="guardarApiKey()" [disabled]="savingApiKey">
-              @if (savingApiKey) { Guardando... } @else { Guardar }
+              @if (savingApiKey) { ⏳ } @else { 💾 }
             </button>
           </div>
         </div>

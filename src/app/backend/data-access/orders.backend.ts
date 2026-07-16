@@ -70,6 +70,10 @@ export interface CreateOrderData {
   scheduledFor?: string;
   shippingRef?: number;
   shippingLabel?: string;
+  direccionCompleta?: string;
+  placeId?: string;
+  latitud?: number;
+  longitud?: number;
 }
 
 @Injectable({

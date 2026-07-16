@@ -96,24 +96,24 @@
   <div class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h2>{{ editingAbono?._id ? 'Editar' : 'Nuevo' }} Abono</h2>
+        <h2>{{ editingAbono?._id ? 'Editar' : 'Nueva' }} Relación</h2>
         <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
       </div>
       <form (ngSubmit)="guardarAbono()">
         <div class="form-row">
           <div class="form-group">
             <label>Fecha *</label>
-            <input type="date" [(ngModel)]="editingAbono!.fecha" name="fecha" required>
+            <input type="date" [(ngModel)]="editingAbono!.fecha" name="fecha" required enterFocusNext>
           </div>
           <div class="form-group">
             <label>Nombre *</label>
-            <input type="text" [(ngModel)]="editingAbono!.nombre" name="nombre" required>
+            <input type="text" [(ngModel)]="editingAbono!.nombre" name="nombre" required enterFocusNext>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Empresa *</label>
-            <select [(ngModel)]="editingAbono!.empresa" name="empresa" (ngModelChange)="onFormEmpresaChange()" required>
+            <select [(ngModel)]="editingAbono!.empresa" name="empresa" (ngModelChange)="onFormEmpresaChange()" required enterFocusNext>
               <option value="">Seleccionar</option>
               @for (empresa of empresas(); track empresa._id) {
                 <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
@@ -122,7 +122,7 @@
           </div>
           <div class="form-group">
             <label>Planta *</label>
-            <select [(ngModel)]="editingAbono!.planta" name="planta" [disabled]="!editingAbono?.empresa" required>
+            <select [(ngModel)]="editingAbono!.planta" name="planta" [disabled]="!editingAbono?.empresa" required enterFocusNext>
               <option value="">Seleccionar</option>
               @for (planta of plantasFiltradas(); track planta) {
                 <option [value]="planta">{{ planta }}</option>
@@ -133,47 +133,47 @@
         <div class="form-row">
           <div class="form-group">
             <label>Cédula</label>
-            <input type="text" [(ngModel)]="editingAbono!.cedula" name="cedula">
+            <input type="text" [(ngModel)]="editingAbono!.cedula" name="cedula" enterFocusNext>
           </div>
           <div class="form-group">
             <label>Teléfono</label>
-            <input type="text" [(ngModel)]="editingAbono!.telefono" name="telefono">
+            <input type="text" [(ngModel)]="editingAbono!.telefono" name="telefono" enterFocusNext>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>N. Fact *</label>
-            <input type="text" [(ngModel)]="editingAbono!.nFact" name="nFact" required>
+            <input type="text" [(ngModel)]="editingAbono!.nFact" name="nFact" required enterFocusNext>
           </div>
           <div class="form-group">
             <label>Monto Factura</label>
-            <input type="number" [(ngModel)]="editingAbono!.montoFactura" name="montoFactura" min="0" step="0.01" (ngModelChange)="calcularDerivados()">
+            <input type="text" [value]="formatearMontoInput(editingAbono!.montoFactura)" (input)="actualizarMonto($event, 'montoFactura')" (focus)="onMontoFocus($event)" enterFocusNext>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>IVA</label>
-            <input type="number" [(ngModel)]="editingAbono!.iva" name="iva" min="0" step="0.01" (ngModelChange)="calcularDerivados()">
+            <input type="text" [value]="formatearMontoInput(editingAbono!.iva)" (input)="actualizarMonto($event, 'iva')" (focus)="onMontoFocus($event)" enterFocusNext>
           </div>
           <div class="form-group">
             <label>Diferencia</label>
-            <input type="number" [(ngModel)]="editingAbono!.diferencia" name="diferencia" min="0" step="0.01" readonly>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.diferencia)" (input)="actualizarMonto($event, 'diferencia')" (focus)="onMontoFocus($event)" readonly enterFocusNext>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Tasa</label>
-            <input type="number" [(ngModel)]="editingAbono!.tasa" name="tasa" min="0" step="0.01" (ngModelChange)="calcularDivisa()">
+            <input type="text" [value]="formatearMontoInput(editingAbono!.tasa)" (input)="actualizarMonto($event, 'tasa')" (focus)="onMontoFocus($event)" enterFocusNext>
           </div>
           <div class="form-group">
             <label>Divisa</label>
-            <input type="number" [(ngModel)]="editingAbono!.divisa" name="divisa" min="0" step="0.01" readonly>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.divisa)" (input)="actualizarMonto($event, 'divisa')" (focus)="onMontoFocus($event)" readonly enterFocusNext>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Status</label>
-            <select [(ngModel)]="editingAbono!.status" name="status" required>
+            <select [(ngModel)]="editingAbono!.status" name="status" required enterFocusNext>
               <option value="">Seleccionar</option>
               <option value="Pendiente">Pendiente</option>
               <option value="Pagado">Pagado</option>
@@ -181,8 +181,8 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
-          <button type="submit" class="btn-save" [disabled]="saving()">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()" enterFocusNext>
             {{ saving() ? 'Guardando...' : 'Guardar' }}
           </button>
         </div>

@@ -2,6 +2,7 @@ import { Component, signal, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { EnterFocusNextDirective } from '../shared/ui/enter-focus-next.directive';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
@@ -33,7 +34,7 @@ interface Empresa {
 @Component({
   selector: 'app-abonos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
   templateUrl: './abonos.html',
   styleUrl: './abonos.css',
 })
@@ -250,8 +251,38 @@ export class Abonos implements OnInit {
 
   onFormEmpresaChange() {
     if (!this.editingAbono) return;
-      this.selectedEmpresaInModal.set(this.editingAbono.empresa || '');
+    this.selectedEmpresaInModal.set(this.editingAbono.empresa || '');
     this.editingAbono.planta = '';
+  }
+
+  formatearMontoInput(valor: number | undefined | null): string {
+    const num = Number(valor) || 0;
+    return num.toFixed(2).replace('.', ',');
+  }
+
+  parsearMontoInput(valor: string): number {
+    const limpio = valor.replace(',', '.').replace(/\D/g, '');
+    const numero = Number(limpio) || 0;
+    return Number((numero / 100).toFixed(2));
+  }
+
+  onMontoFocus(event: FocusEvent) {
+    const input = event.target as HTMLInputElement;
+    input.select();
+  }
+
+  actualizarMonto(event: Event, campo: 'montoFactura' | 'iva' | 'diferencia' | 'tasa' | 'divisa') {
+    if (!this.editingAbono) return;
+    const input = event.target as HTMLInputElement;
+    const valor = this.parsearMontoInput(input.value);
+    (this.editingAbono as any)[campo] = valor;
+    input.value = this.formatearMontoInput(valor);
+
+    if (campo === 'montoFactura' || campo === 'iva') {
+      this.calcularDerivados();
+    } else if (campo === 'tasa') {
+      this.calcularDivisa();
+    }
   }
 
   calcularDerivados() {

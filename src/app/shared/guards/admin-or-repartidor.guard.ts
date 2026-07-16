@@ -8,7 +8,7 @@ export const adminOrRepartidorGuard: CanActivateFn = async () => {
 
    const user = authService.user();
    
-   const hasAccess = user && (user.isAdmin || user.rol === 'owner' || user.rol === 'root' || user.rol === 'admin' || user.rol === 'repartidor');
+    const hasAccess = user && (user.isAdmin || user.rol === 'root' || user.rol === 'admin' || user.rol === 'repartidor');
    
    if (!hasAccess) {
      router.navigate(['/login']);

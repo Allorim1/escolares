@@ -45,6 +45,12 @@ export const routes: Routes = [
   {
     path: 'lineas',
     component: Lineas,
+    children: [
+      {
+        path: ':id',
+        loadComponent: () => import('./lineas/productos-linea/productos-linea').then((m) => m.ProductosLinea),
+      },
+    ],
   },
   {
     path: 'terminos',
@@ -218,20 +224,44 @@ export const routes: Routes = [
             path: 'historico-costos',
             loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
           },
-          {
-            path: 'ofertas',
-            loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
-          },
-          {
-            path: 'retenciones',
-            loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
-          },
-          {
-            path: 'repartidor',
-            loadComponent: () => import('./admin/repartidor/admin-repartidor').then((m) => m.AdminRepartidorComponent),
-          },
-        ],
-      },
+{
+             path: 'ofertas',
+             loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
+           },
+{
+                path: 'cotizaciones',
+                loadComponent: () => import('./admin/cotizaciones/cotizaciones').then((m) => m.Cotizaciones),
+              },
+            {
+             path: 'retenciones',
+             loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
+           },
+{
+             path: 'repartidor',
+             loadComponent: () => import('./admin/repartidor/admin-repartidor').then((m) => m.AdminRepartidorComponent),
+           },
+           {
+              path: 'asistencias',
+              loadComponent: () => import('./admin/asistencias/asistencias').then((m) => m.Asistencias),
+            },
+            {
+              path: 'empresas',
+              loadComponent: () => import('./admin/empresas/empresas').then((m) => m.Empresas),
+            },
+            {
+               path: 'abonos',
+               loadComponent: () => import('./admin/abonos/abonos').then((m) => m.Abonos),
+             },
+             {
+               path: 'sesiones',
+               loadComponent: () => import('./admin/sesiones/admin-sesiones').then((m) => m.AdminSesiones),
+             },
+             {
+               path: 'estadisticas',
+               loadComponent: () => import('./admin/estadisticas/estadisticas').then((m) => m.Estadisticas),
+             },
+            ],
+        },
       {
         path: 'repartidor',
         loadComponent: () => import('./repartidor/repartidor').then((m) => m.RepartidorComponent),

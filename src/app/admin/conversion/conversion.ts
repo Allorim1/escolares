@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import * as ExcelJS from 'exceljs';
 import * as XLSX from 'xlsx';
 import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 interface FilaResultado {
   fecha: string;
@@ -31,7 +32,7 @@ interface ComparacionResultado {
 @Component({
   selector: 'app-conversion',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, EnterFocusNextDirective],
   templateUrl: './conversion.html',
   styleUrl: './conversion.css',
 })
@@ -39,18 +40,10 @@ export class Conversion implements OnInit {
   ventasNombre = signal('');
   tasasNombre = signal('');
 
-  ventasColumnas = signal<string[]>([]);
-  tasasColumnas = signal<string[]>([]);
-  tasasFilas = signal<any[][]>([]);
-
-  columnaFechaVentas = signal('');
-  columnaTotalVentas = signal('');
-
   ventasRaw = signal<any[][]>([]);
   tasasMap = signal<Map<string, number>>(new Map());
-
-  ventasPreview = signal<any[][]>([]);
-  tasasPreview = signal<any[][]>([]);
+  columnaFechaVentas = signal('FECHA');
+  columnaTotalVentas = signal('VENTAS');
 
   resultados = signal<FilaResultado[]>([]);
   procesando = signal(false);
@@ -62,38 +55,74 @@ export class Conversion implements OnInit {
   tasasManuales = signal<Map<string, number>>(new Map());
   fechasSinTasa = signal<string[]>([]);
 
-  // Archivo de ventas del período anterior
   ventasAnteriorNombre = signal('');
   ventasAnteriorRaw = signal<any[][]>([]);
-  ventasAnteriorColumnas = signal<string[]>([]);
-  columnaFechaAnterior = signal('');
-  columnaTotalAnterior = signal('');
-  ventasAnteriorPreview = signal<any[][]>([]);
+  columnaFechaAnterior = signal('FECHA');
+  columnaTotalAnterior = signal('VENTAS');
 
   resultadosAnterior = signal<FilaResultado[]>([]);
   totalOriginalAnterior = signal(0);
   totalConvertidoAnterior = signal(0);
 
-  // Archivo de tasas del período anterior
   tasasAnterioresNombre = signal('');
   tasasAnterioresMap = signal<Map<string, number>>(new Map());
-  tasasAnterioresFilas = signal<any[][]>([]);
-  tasasAnterioresColumnas = signal<string[]>([]);
-tasasAnterioresPreview = signal<any[][]>([]);
- 
-   // Tasas manuales para año anterior
-   tasasAnterioresManuales = signal<Map<string, number>>(new Map());
-   fechasSinTasaAnterior = signal<string[]>([]);
- 
-   tasasGuardadas = signal<TasaGuardada[]>([]);
-   tasasAnterioresGuardadas = signal<TasaGuardada[]>([]);
- 
-   constructor(private tasasGuardadasService: TasasGuardadasService) {}
+  promedioTasaActual = signal<number>(0);
+  promedioTasaAnterior = signal<number>(0);
+  promedioTasaActualCents = signal<number>(0);
+  promedioTasaAnteriorCents = signal<number>(0);
+  showBlankActual = signal<boolean>(false);
+  showBlankAnterior = signal<boolean>(false);
+  tasasAnterioresTripleCents = signal<[number, number, number]>([0, 0, 0]);
+  tasasAnterioresTripleFechas = signal<[string, string, string]>(['', '', '']);
+  tasasActualesTripleCents = signal<[number, number, number]>([0, 0, 0]);
+  tasasActualesTripleFechas = signal<[string, string, string]>(['', '', '']);
+rateInputSelected = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
+  rateInputJustFocused = signal<{actual: boolean; anterior: boolean}>({actual: false, anterior: false});
+
+  onMontoBlur(event: any, index: number, tipo: 'actual' | 'anterior') {
+    const monto = parseFloat(event.target.value);
+    if (isNaN(monto) || monto < 0) return;
+    this.actualizarMontoComparacion(index, tipo, monto);
+  }
+
+  tasasAnterioresManuales = signal<Map<string, number>>(new Map());
+  fechasSinTasaAnterior = signal<string[]>([]);
+
+  filtroDiaSemana = signal<number | null>(null);
+
+  tasasGuardadas = signal<TasaGuardada[]>([]);
+  tasasAnterioresGuardadas = signal<TasaGuardada[]>([]);
+
+  constructor(private tasasGuardadasService: TasasGuardadasService) {}
 
    ngOnInit() {
-     this.cargarTasasGuardadas();
-     this.cargarTasasAnterioresGuardadas();
-   }
+      this.cargarTasasGuardadas();
+      this.cargarTasasAnterioresGuardadas();
+      this.cargarTripleAnteriorGuardado();
+    }
+
+   cargarTripleAnteriorGuardado() {
+      this.tasasGuardadasService.getTripleAnterior().subscribe({
+        next: (data) => {
+          if (data && data.cents && data.fechas) {
+            this.tasasAnterioresTripleCents.set(data.cents as [number, number, number]);
+            this.tasasAnterioresTripleFechas.set(data.fechas as [string, string, string]);
+            if (data.cents.some(v => v > 0)) {
+              this.recalcularPromedioTripleAnterior();
+            }
+          }
+        },
+        error: (err) => console.error('Error cargando triple anterior:', err)
+      });
+    }
+
+    guardarTripleAnteriorEnBD() {
+      const cents = this.tasasAnterioresTripleCents();
+      const fechas = this.tasasAnterioresTripleFechas();
+      this.tasasGuardadasService.saveTripleAnterior(cents, fechas).subscribe({
+        error: (err) => console.error('Error guardando triple anterior:', err)
+      });
+    }
 
    cargarTasasGuardadas() {
      this.tasasGuardadasService.getAll('actual').subscribe({
@@ -127,11 +156,9 @@ tasasAnterioresPreview = signal<any[][]>([]);
        next: (tasa) => {
          const mapaTasas = new Map<string, number>();
          tasa.tasas.forEach(t => mapaTasas.set(t.fecha, t.valor));
-         this.tasasAnterioresMap.set(mapaTasas);
-         this.tasasAnterioresNombre.set(tasa.nombre);
-         const preview: any[][] = [['Fecha', 'Tasa'], ...tasa.tasas.map(t => [t.fecha, t.valor])];
-         this.tasasAnterioresPreview.set(preview.slice(0, 11));
-         this.error.set('');
+this.tasasAnterioresMap.set(mapaTasas);
+          this.tasasAnterioresNombre.set(tasa.nombre);
+          this.error.set('');
        },
        error: (err) => this.error.set('Error al cargar tasas anteriores desde BD')
      });
@@ -161,9 +188,17 @@ comparaciones = signal<ComparacionResultado[]>([]);
     mostrarModalExpectativas = signal(false);
     mostrarModalImpresion = signal(false);
     metaVariacion = signal(30);
+    get metaVariacionValue(): number {
+      return this.metaVariacion();
+    }
+    set metaVariacionValue(v: number) {
+      this.metaVariacion.set(Number(v));
+    }
     comentarioImpresion = signal('');
     columnaFechaVisible = signal(true);
     columnaDiaVisible = signal(true);
+    columnaFechaActualVisible = signal(true);
+    columnaDiaActualVisible = signal(true);
     columnaAnteriorBsVisible = signal(true);
     columnaAnteriorUSDVisible = signal(true);
     columnaTasaVisible = signal(true);
@@ -173,21 +208,22 @@ comparaciones = signal<ComparacionResultado[]>([]);
     columnaMetaExtraBsVisible = signal(true);
     diasSeleccionados = signal<Set<string>>(new Set());
 
-calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
-     const totalAnteriorUSD = this.totalConvertidoAnterior();
-     const meta = this.metaVariacion();
-     const tasaPromedio = this.tasaPromedioActual() || this.tasaPromedioAnterior();
-     
-     const targetUSD = totalAnteriorUSD > 0 
-       ? Math.round(totalAnteriorUSD * (1 + meta / 100) * 100) / 100 
-       : 0;
-     
-     const targetBs = tasaPromedio > 0 
-       ? Math.round(targetUSD * tasaPromedio * 100) / 100 
-       : 0;
-     
-     return { targetUSD, targetBs, tasaPromedio };
-   }
+  calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: number } {
+      const totalAnteriorUSD = this.totalConvertidoAnterior();
+      const meta = this.metaVariacion();
+      const tasaPromedio = this.tasaPromedioActual() || this.tasaPromedioAnterior() || this.promedioTasaActual() || this.promedioTasaAnterior();
+      const tasaPromedioActual = this.tasaPromedioActual() || this.promedioTasaActual();
+      
+      const targetUSD = totalAnteriorUSD > 0 
+        ? Math.round(totalAnteriorUSD * (1 + meta / 100) * 100) / 100 
+        : 0;
+      
+      const targetBs = tasaPromedioActual > 0 
+        ? Math.round(targetUSD * tasaPromedioActual * 100) / 100 
+        : 0;
+      
+      return { targetUSD, targetBs, tasaPromedio };
+    }
 
    onFileVentas(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -331,14 +367,11 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
         return;
       }
 
-      this.ventasRaw.set(dataRows);
-      this.ventasColumnas.set(headers);
-      this.ventasNombre.set(file.name);
-      this.ventasPreview.set(dataRows.slice(0, 6));
-
       // Configurar columnas automáticamente
       this.columnaFechaVentas.set('FECHA');
       this.columnaTotalVentas.set('VENTAS');
+      this.ventasRaw.set(dataRows);
+      this.ventasNombre.set(file.name);
     };
     reader.readAsText(file);
   }
@@ -357,10 +390,23 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
       for (let i = 1; i < lines.length; i++) {
         rows.push(this.parseCSVLine(lines[i]));
       }
-      this.tasasFilas.set(rows);
-      this.tasasColumnas.set(headers);
       this.tasasNombre.set(file.name);
-      this.tasasPreview.set(rows.slice(0, 6));
+
+      // Procesar filas de tasas para extraer mapa de fechas
+      const mapaTasas = new Map<string, number>();
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        for (let j = 0; j < row.length; j++) {
+          const fecha = this.normalizarFecha(row[j]);
+          if (fecha) {
+            const tasa = this.parseNumber(row[j + 1] ?? row[1]);
+            if (tasa > 0) {
+              mapaTasas.set(fecha, tasa);
+            }
+          }
+        }
+      }
+      this.tasasMap.set(mapaTasas);
     };
     reader.readAsText(file);
   }
@@ -398,10 +444,23 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
       for (let i = 1; i < lines.length; i++) {
         rows.push(this.parseCSVLine(lines[i]));
       }
-      this.tasasAnterioresFilas.set(rows);
-      this.tasasAnterioresColumnas.set(headers);
       this.tasasAnterioresNombre.set(file.name);
-      this.tasasAnterioresPreview.set(rows.slice(0, 6));
+
+      // Procesar filas de tasas anteriores para extraer mapa de fechas
+      const mapaTasas = new Map<string, number>();
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        for (let j = 0; j < row.length; j++) {
+          const fecha = this.normalizarFecha(row[j]);
+          if (fecha) {
+            const tasa = this.parseNumber(row[j + 1] ?? row[1]);
+            if (tasa > 0) {
+              mapaTasas.set(fecha, tasa);
+            }
+          }
+        }
+      }
+      this.tasasAnterioresMap.set(mapaTasas);
     };
     reader.readAsText(file);
   }
@@ -467,9 +526,7 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
       }
 
       this.ventasAnteriorRaw.set(dataRows);
-      this.ventasAnteriorColumnas.set(headers);
       this.ventasAnteriorNombre.set(file.name);
-      this.ventasAnteriorPreview.set(dataRows.slice(0, 6));
       this.columnaFechaAnterior.set('FECHA');
       this.columnaTotalAnterior.set('VENTAS');
     };
@@ -535,9 +592,7 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
         );
 
         this.ventasAnteriorRaw.set(rows);
-        this.ventasAnteriorColumnas.set(headers);
         this.ventasAnteriorNombre.set(file.name);
-        this.ventasAnteriorPreview.set(rows.slice(0, 6));
         if (colFecha) this.columnaFechaAnterior.set(colFecha);
         if (colTotal) this.columnaTotalAnterior.set(colTotal);
       } catch (err) {
@@ -662,13 +717,6 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
 
         this.tasasAnterioresMap.set(mapaTasas);
         this.tasasAnterioresNombre.set(file.name);
-        this.tasasAnterioresColumnas.set(['Fecha', 'Tasa']);
-
-        const preview: any[][] = [['Fecha', 'Tasa']];
-        mapaTasas.forEach((tasa, fecha) => {
-          preview.push([fecha, tasa]);
-        });
-        this.tasasAnterioresPreview.set(preview.slice(0, 11));
       } catch (err) {
         console.error('Error parsing Excel tasas anteriores:', err);
         this.error.set('Error al leer el archivo Excel de tasas anteriores: ' + (err as Error).message);
@@ -734,9 +782,7 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
 
         const headers = rows[0].map(h => String(h).trim());
         this.ventasRaw.set(rows);
-        this.ventasColumnas.set(headers);
         this.ventasNombre.set(file.name);
-        this.ventasPreview.set(rows.slice(0, 6));
 
         const colFecha = headers.find(h =>
           h.toLowerCase().includes('fecha') || h.toLowerCase().includes('date')
@@ -905,13 +951,6 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
 
         this.tasasMap.set(mapaTasas);
         this.tasasNombre.set(file.name);
-        this.tasasColumnas.set(['Fecha', 'Tasa']);
-
-        const preview: any[][] = [['Fecha', 'Tasa']];
-        mapaTasas.forEach((tasa, fecha) => {
-          preview.push([fecha, tasa]);
-        });
-        this.tasasPreview.set(preview.slice(0, 11));
       } catch (err) {
         console.error('Error parsing Excel tasas:', err);
         this.error.set('Error al leer el archivo Excel de tasas: ' + (err as Error).message);
@@ -920,205 +959,77 @@ calcularExpectativas(): { targetUSD: number; targetBs: number; tasaPromedio: num
     reader.readAsArrayBuffer(file);
   }
 
-  procesarTasasDesdeTabla() {
-    const filas = this.tasasFilas();
-    if (filas.length < 2) {
-      this.error.set('No hay datos de tasas para procesar');
-      return;
-    }
+procesarTasasDesdeTabla() {
+    this.error.set('Use el archivo de tasas con nombre de hoja como fecha para procesar');
+  }
 
-    const headers = filas[0];
-    const mapaTasas = new Map<string, number>();
-
-    for (let i = 1; i < filas.length; i++) {
-      const row = filas[i];
-      for (let j = 0; j < headers.length; j++) {
-        const fecha = this.normalizarFecha(row[j]);
-        if (fecha) {
-          const tasa = this.parseNumber(row[j + 1] ?? row[1]);
-          if (tasa > 0) {
-            mapaTasas.set(fecha, tasa);
-          }
-        }
-      }
-    }
-
-this.tasasMap.set(mapaTasas);
-     this.guardarTasasEnBD();
-   }
-
-   guardarTasasEnBD() {
-     if (this.tasasMap().size === 0) return;
-     
-     const nombre = `Tasas ${new Date().toLocaleDateString('es-VE')}`;
-     this.tasasGuardadasService.save(nombre, this.tasasMap(), 'actual').subscribe({
-       next: () => {
-         this.cargarTasasGuardadas();
-       },
-       error: (err) => console.error('Error guardando tasas:', err)
-     });
-   }
+  guardarTasasEnBD() {
+    if (this.tasasMap().size === 0) return;
+    
+    const nombre = `Tasas ${new Date().toLocaleDateString('es-VE')}`;
+    this.tasasGuardadasService.save(nombre, this.tasasMap(), 'actual').subscribe({
+      next: () => {
+        this.cargarTasasGuardadas();
+      },
+      error: (err) => console.error('Error guardando tasas:', err)
+    });
+  }
 
   procesarTasasAnterioresDesdeTabla() {
-    const filas = this.tasasAnterioresFilas();
-    if (filas.length < 2) {
-      this.error.set('No hay datos de tasas anteriores para procesar');
-      return;
-    }
+    this.error.set('Use el archivo de tasas anteriores con nombre de hoja como fecha para procesar');
+  }
 
-    const headers = filas[0];
-    const mapaTasas = new Map<string, number>();
+  guardarTasasAnterioresEnBD() {
+    if (this.tasasAnterioresMap().size === 0) return;
+    
+    const nombre = `Tasas Anterior ${new Date().toLocaleDateString('es-VE')}`;
+    this.tasasGuardadasService.save(nombre, this.tasasAnterioresMap(), 'anterior').subscribe({
+      next: () => {
+        this.cargarTasasAnterioresGuardadas();
+      },
+      error: (err) => console.error('Error guardando tasas anteriores:', err)
+    });
+  }
 
-    for (let i = 1; i < filas.length; i++) {
-      const row = filas[i];
-      for (let j = 0; j < headers.length; j++) {
-        const fecha = this.normalizarFecha(row[j]);
-        if (fecha) {
-          const tasa = this.parseNumber(row[j + 1] ?? row[1]);
-          if (tasa > 0) {
-            mapaTasas.set(fecha, tasa);
-          }
-        }
-      }
-    }
+procesar() {
+     const tieneVentasActual = this.ventasRaw().length >= 2;
+     const tieneVentasAnterior = this.ventasAnteriorRaw().length >= 2;
 
-this.tasasAnterioresMap.set(mapaTasas);
-     this.guardarTasasAnterioresEnBD();
-   }
+     if (!tieneVentasActual && !tieneVentasAnterior) {
+       this.error.set('Debe cargar al menos un archivo de ventas');
+       return;
+     }
 
-   guardarTasasAnterioresEnBD() {
-     if (this.tasasAnterioresMap().size === 0) return;
-     
-     const nombre = `Tasas Anterior ${new Date().toLocaleDateString('es-VE')}`;
-     this.tasasGuardadasService.save(nombre, this.tasasAnterioresMap(), 'anterior').subscribe({
-       next: () => {
-         this.cargarTasasAnterioresGuardadas();
-       },
-       error: (err) => console.error('Error guardando tasas anteriores:', err)
-     });
-   }
+     this.procesando.set(true);
+     this.error.set('');
 
-  procesar() {
-    if (!this.columnaFechaVentas() || !this.columnaTotalVentas()) {
-      this.error.set('Debe seleccionar las columnas de fecha y total del archivo de ventas');
-      return;
-    }
-
-    const ventasRows = this.ventasRaw();
-    if (ventasRows.length < 2) {
-      this.error.set('Debe cargar el archivo de ventas');
-      return;
-    }
-
-    this.procesando.set(true);
-    this.error.set('');
-
-    try {
-      const ventasHeaders = ventasRows[0];
-      const idxFechaV = ventasHeaders.indexOf(this.columnaFechaVentas());
-      const idxTotalV = ventasHeaders.indexOf(this.columnaTotalVentas());
-
-      if (idxFechaV < 0 || idxTotalV < 0) {
-        this.error.set('No se encontraron las columnas seleccionadas');
-        this.procesando.set(false);
-        return;
-      }
-
-      if (this.tasasMap().size === 0) {
-        this.error.set('Debe cargar y procesar el archivo de tasas primero');
-        this.procesando.set(false);
-        return;
-      }
-
+     try {
       const tasaMap = this.tasasMap();
       const tasasManuales = this.tasasManuales();
       const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
-      const fechasFaltantes: string[] = [];
+      const promedioActual = this.promedioTasaActual();
 
-      // Primera pasada: recopilar todas las fechas únicas de ventas
-      const fechasVentas = new Set<string>();
-      for (let i = 1; i < ventasRows.length; i++) {
-        const fecha = this.normalizarFecha(ventasRows[i][idxFechaV]);
-        if (fecha) fechasVentas.add(fecha);
-      }
+      // Procesar Ventas Año Actual si existe
+      if (tieneVentasActual) {
+        const ventasRows = this.ventasRaw();
+        const ventasHeaders = ventasRows[0];
+        const idxFechaV = ventasHeaders.indexOf(this.columnaFechaVentas());
+        const idxTotalV = ventasHeaders.indexOf(this.columnaTotalVentas());
 
-      // Para fechas de fin de semana sin tasa, buscar la del próximo lunes
-      for (const fecha of fechasVentas) {
-        if (todasLasTasas.has(fecha)) continue;
-        const fechaDate = new Date(fecha + 'T00:00:00');
-        const diaSemana = fechaDate.getDay(); // 0=Dom, 6=Sáb
-
-        if (diaSemana === 0 || diaSemana === 6) {
-          // Buscar el próximo lunes
-          const diasHastaLunes = diaSemana === 6 ? 2 : 1;
-          const lunesDate = new Date(fechaDate);
-          lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
-          const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
-          const tasaLunes = todasLasTasas.get(lunesStr);
-          if (tasaLunes) {
-            todasLasTasas.set(fecha, tasaLunes);
-            console.log(`Fin de semana ${fecha} (${diaSemana === 6 ? 'Sábado' : 'Domingo'}) -> tasa del lunes ${lunesStr}: ${tasaLunes}`);
-          }
+        if (idxFechaV < 0 || idxTotalV < 0) {
+          this.error.set('No se encontraron las columnas ' + this.columnaFechaVentas() + ' o ' + this.columnaTotalVentas() + ' en el archivo de ventas');
+          this.procesando.set(false);
+          return;
         }
+
+        this.procesarVentasActual(ventasRows, this.columnaFechaVentas(), this.columnaTotalVentas(), todasLasTasas, promedioActual);
       }
 
-      // Detectar fechas laborales sin tasa (no fin de semana)
-      for (const fecha of fechasVentas) {
-        if (todasLasTasas.has(fecha)) continue;
-        const fechaDate = new Date(fecha + 'T00:00:00');
-        const diaSemana = fechaDate.getDay();
-        if (diaSemana !== 0 && diaSemana !== 6) {
-          fechasFaltantes.push(fecha);
-        }
+      // Procesar Ventas Año Anterior si existe
+      if (tieneVentasAnterior) {
+        this.procesarSoloAnterior();
       }
 
-      this.fechasSinTasa.set(fechasFaltantes);
-
-      // Segunda pasada: calcular resultados
-      const resultados: FilaResultado[] = [];
-      let totalOrig = 0;
-      let totalConv = 0;
-
-      const idxDiaV = ventasHeaders.findIndex(h => h.toUpperCase() === 'DIA');
-
-      for (let i = 1; i < ventasRows.length; i++) {
-        const row = ventasRows[i];
-        const fecha = this.normalizarFecha(row[idxFechaV]);
-        const dia = idxDiaV >= 0 ? String(row[idxDiaV] || '') : '';
-        const total = this.parseNumber(row[idxTotalV]);
-
-        if (!fecha) continue;
-
-        const fechaDate = new Date(fecha + 'T00:00:00');
-        const diaSemana = fechaDate.getDay();
-
-        const tasa = todasLasTasas.get(fecha) || 0;
-        const totalConvertido = tasa > 0 ? total / tasa : 0;
-
-        const columnasExtra: Record<string, any> = {};
-        ventasHeaders.forEach((h: string, idx: number) => {
-          if (idx !== idxFechaV && idx !== idxTotalV) {
-            columnasExtra[h] = row[idx];
-          }
-        });
-
-        resultados.push({
-          fecha,
-          dia,
-          diaSemana,
-          totalOriginal: total,
-          tasa,
-          totalConvertido,
-          columnasExtra
-        });
-
-        totalOrig += total;
-        totalConv += totalConvertido;
-      }
-
-      this.resultados.set(resultados);
-      this.totalOriginal.set(Math.round(totalOrig * 100) / 100);
-      this.totalConvertido.set(Math.round(totalConv * 100) / 100);
     } catch (err) {
       console.error('Error procesando:', err);
       this.error.set('Error al procesar los archivos');
@@ -1127,14 +1038,116 @@ this.tasasAnterioresMap.set(mapaTasas);
     }
   }
 
+private procesarVentasActual(
+    ventasRows: any[][],
+    colFecha: string,
+    colTotal: string,
+    todasLasTasas: Map<string, number>,
+    promedioTasa: number
+  ) {
+     const fechasFaltantes: string[] = [];
+
+       // Primera pasada: recopilar todas las fechas únicas de ventas
+       const fechasVentas = new Set<string>();
+       for (let i = 1; i < ventasRows.length; i++) {
+         const fecha = this.normalizarFecha(ventasRows[i][ventasRows[0].indexOf(colFecha)]);
+         if (fecha) fechasVentas.add(fecha);
+       }
+
+       // Para fechas sin tasa, usar el promedio o buscar el lunes
+       for (const fecha of fechasVentas) {
+         if (todasLasTasas.has(fecha)) continue;
+         if (promedioTasa > 0) {
+           todasLasTasas.set(fecha, promedioTasa);
+           continue;
+         }
+
+         const fechaDate = new Date(fecha + 'T00:00:00');
+         const diaSemana = fechaDate.getDay();
+
+         if (diaSemana === 0 || diaSemana === 6) {
+           const diasHastaLunes = diaSemana === 6 ? 2 : 1;
+           const lunesDate = new Date(fechaDate);
+           lunesDate.setDate(lunesDate.getDate() + diasHastaLunes);
+           const lunesStr = `${lunesDate.getFullYear()}-${String(lunesDate.getMonth() + 1).padStart(2, '0')}-${String(lunesDate.getDate()).padStart(2, '0')}`;
+           const tasaLunes = todasLasTasas.get(lunesStr);
+           if (tasaLunes) {
+             todasLasTasas.set(fecha, tasaLunes);
+           }
+         }
+       }
+
+       // Detectar fechas laborales sin tasa (no fin de semana)
+       for (const fecha of fechasVentas) {
+         if (todasLasTasas.has(fecha)) continue;
+         const fechaDate = new Date(fecha + 'T00:00:00');
+         const diaSemana = fechaDate.getDay();
+         if (diaSemana !== 0 && diaSemana !== 6) {
+           fechasFaltantes.push(fecha);
+         }
+       }
+
+       this.fechasSinTasa.set(fechasFaltantes);
+
+       // Segunda pasada: calcular resultados
+       const resultados: FilaResultado[] = [];
+       let totalOrig = 0;
+       let totalConv = 0;
+
+       const idxFechaV = ventasRows[0].indexOf(colFecha);
+       const idxTotalV = ventasRows[0].indexOf(colTotal);
+       const idxDiaV = ventasRows[0].findIndex((h: string) => h.toUpperCase() === 'DIA');
+
+       for (let i = 1; i < ventasRows.length; i++) {
+         const row = ventasRows[i];
+         const fecha = this.normalizarFecha(row[idxFechaV]);
+         const dia = idxDiaV >= 0 ? String(row[idxDiaV] || '') : '';
+         const total = this.parseNumber(row[idxTotalV]);
+
+         if (!fecha) continue;
+
+         const fechaDate = new Date(fecha + 'T00:00:00');
+         const diaSemana = fechaDate.getDay();
+
+         const tasa = todasLasTasas.get(fecha) || 0;
+         const totalConvertido = tasa > 0 ? total / tasa : 0;
+
+         const columnasExtra: Record<string, any> = {};
+         ventasRows[0].forEach((h: string, idx: number) => {
+           if (idx !== idxFechaV && idx !== idxTotalV) {
+             columnasExtra[h] = row[idx];
+           }
+         });
+
+         resultados.push({
+           fecha,
+           dia,
+           diaSemana,
+           totalOriginal: total,
+           tasa,
+           totalConvertido,
+           columnasExtra
+         });
+
+         totalOrig += total;
+         totalConv += totalConvertido;
+       }
+
+       this.resultados.set(resultados);
+       this.totalOriginal.set(Math.round(totalOrig * 100) / 100);
+       this.totalConvertido.set(Math.round(totalConv * 100) / 100);
+  }
+
   procesarComparacion() {
     const tasaMap = this.tasasMap();
     const tasasManuales = this.tasasManuales();
     const todasLasTasas = new Map<string, number>([...tasaMap, ...tasasManuales]);
+    const promedioActual = this.promedioTasaActual();
 
     const tasasAnterioresBase = this.tasasAnterioresMap();
     const tasasAnterioresManual = this.tasasAnterioresManuales();
     let todasLasTasasAnteriores = new Map<string, number>([...tasasAnterioresBase, ...tasasAnterioresManual]);
+    const promedioAnterior = this.promedioTasaAnterior();
 
     // Si no hay tasas anteriores, usar las actuales como fallback
     if (todasLasTasasAnteriores.size === 0) {
@@ -1145,6 +1158,17 @@ this.tasasAnterioresMap.set(mapaTasas);
 
     // Procesar archivo actual con tasas actuales
     if (this.resultados().length === 0 && this.ventasRaw().length >= 2) {
+      if (todasLasTasas.size === 0 && promedioActual > 0) {
+        const ventasHeaders = this.ventasRaw()[0];
+        const idxFechaV = ventasHeaders.indexOf(this.columnaFechaVentas());
+        const fechasVentas = new Set<string>();
+        for (let i = 1; i < this.ventasRaw().length; i++) {
+          const fecha = this.normalizarFecha(this.ventasRaw()[i][idxFechaV]);
+          if (fecha) fechasVentas.add(fecha);
+        }
+        fechasVentas.forEach(fecha => todasLasTasas.set(fecha, promedioActual));
+      }
+
       const resActual = this.calcularResultados(
         this.ventasRaw(),
         this.columnaFechaVentas(),
@@ -1172,6 +1196,15 @@ this.tasasAnterioresMap.set(mapaTasas);
       // Para fechas de fin de semana sin tasa, buscar la del próximo lunes
       for (const fecha of fechasVentasAnterior) {
         if (todasLasTasasAnteriores.has(fecha)) continue;
+        if (promedioAnterior > 0) {
+          todasLasTasasAnteriores.set(fecha, promedioAnterior);
+          continue;
+        }
+        if (promedioActual > 0) {
+          todasLasTasasAnteriores.set(fecha, promedioActual);
+          continue;
+        }
+
         const fechaDate = new Date(fecha + 'T00:00:00');
         const diaSemana = fechaDate.getDay();
 
@@ -1628,51 +1661,194 @@ this.tasasAnterioresMap.set(mapaTasas);
       a.click();
       URL.revokeObjectURL(url);
     });
+}
+
+  getCoincidencias(): number {
+    return this.resultados().filter(r => r.tasa > 0).length;
   }
 
   limpiar() {
     this.ventasNombre.set('');
     this.tasasNombre.set('');
-    this.ventasColumnas.set([]);
-    this.tasasColumnas.set([]);
-    this.tasasFilas.set([]);
-    this.columnaFechaVentas.set('');
-    this.columnaTotalVentas.set('');
     this.ventasRaw.set([]);
     this.tasasMap.set(new Map());
-    this.ventasPreview.set([]);
-    this.tasasPreview.set([]);
+    this.columnaFechaVentas.set('FECHA');
+    this.columnaTotalVentas.set('VENTAS');
     this.resultados.set([]);
     this.error.set('');
     this.totalOriginal.set(0);
     this.totalConvertido.set(0);
     this.tasasManuales.set(new Map());
     this.fechasSinTasa.set([]);
-    // Limpiar comparaciones
+
     this.ventasAnteriorNombre.set('');
     this.ventasAnteriorRaw.set([]);
-    this.ventasAnteriorColumnas.set([]);
-    this.columnaFechaAnterior.set('');
-    this.columnaTotalAnterior.set('');
-    this.ventasAnteriorPreview.set([]);
+    this.columnaFechaAnterior.set('FECHA');
+    this.columnaTotalAnterior.set('VENTAS');
     this.resultadosAnterior.set([]);
     this.totalOriginalAnterior.set(0);
     this.totalConvertidoAnterior.set(0);
-    // Limpiar tasas anteriores
+
     this.tasasAnterioresNombre.set('');
     this.tasasAnterioresMap.set(new Map());
-    this.tasasAnterioresFilas.set([]);
-    this.tasasAnterioresColumnas.set([]);
-    this.tasasAnterioresPreview.set([]);
     this.tasasAnterioresManuales.set(new Map());
     this.fechasSinTasaAnterior.set([]);
     this.comparaciones.set([]);
     this.comparacionesActual.set([]);
     this.comparacionesAnterior.set([]);
-this.variacionTotalPct.set(0);
-     this.mostrarModalComparacion.set(false);
-     this.mostrarModalExpectativas.set(false);
-   }
+    this.variacionTotalPct.set(0);
+    this.mostrarModalComparacion.set(false);
+    this.mostrarModalExpectativas.set(false);
+    this.filtroDiaSemana.set(null);
+    this.promedioTasaActual.set(0);
+    this.promedioTasaAnterior.set(0);
+    this.promedioTasaActualCents.set(0);
+    this.promedioTasaAnteriorCents.set(0);
+    this.tasasAnterioresTripleCents.set([0, 0, 0]);
+    this.tasasAnterioresTripleFechas.set(['', '', '']);
+    this.tasasActualesTripleCents.set([0, 0, 0]);
+    this.tasasActualesTripleFechas.set(['', '', '']);
+    this.showBlankActual.set(false);
+    this.showBlankAnterior.set(false);
+    this.rateInputSelected.set({actual: false, anterior: false});
+
+    setTimeout(() => {
+      const fileInputs = document.querySelectorAll('input[type="file"][accept*="xlsx"], input[type="file"][accept*="csv"]');
+      fileInputs.forEach((el) => {
+        const input = el as HTMLInputElement;
+        input.value = '';
+      });
+    });
+  }
+
+  set filtroDiaBinding(val: number | null) {
+    this.filtroDiaSemana.set(val);
+  }
+
+  getFiltroDia(): number | null {
+    return this.filtroDiaSemana();
+  }
+
+  actualizarMontoComparacion(index: number, tipo: 'actual' | 'anterior', nuevoMonto: any) {
+    const monto = parseFloat(nuevoMonto);
+    if (isNaN(monto) || monto < 0) return;
+
+    const comparacionesConIndices = this.getComparacionConIndices();
+    if (index < 0 || index >= comparacionesConIndices.length) return;
+
+    const item = comparacionesConIndices[index];
+
+    if (tipo === 'actual' && item.fechaActual) {
+      const nuevosResultados = [...this.resultados()];
+      const idx = nuevosResultados.findIndex(r => r.fecha === item.fechaActual);
+      if (idx >= 0) {
+        nuevosResultados[idx] = { ...nuevosResultados[idx], totalConvertido: monto };
+        this.resultados.set(nuevosResultados);
+        this.calcularComparaciones();
+      }
+    }
+
+    if (tipo === 'anterior' && item.fechaAnterior) {
+      const nuevosResultados = [...this.resultadosAnterior()];
+      const idx = nuevosResultados.findIndex(r => r.fecha === item.fechaAnterior);
+      if (idx >= 0) {
+        nuevosResultados[idx] = { ...nuevosResultados[idx], totalConvertido: monto };
+        this.resultadosAnterior.set(nuevosResultados);
+        this.calcularComparaciones();
+      }
+    }
+  }
+
+  tieneFechasRepetidasEnComparacion(): boolean {
+    const filtro = this.filtroDiaSemana();
+
+    if (filtro !== null) {
+      const actuales = this.resultados().filter(r => r.diaSemana === filtro);
+      const anteriores = this.resultadosAnterior().filter(r => r.diaSemana === filtro);
+      return actuales.length > 1 || anteriores.length > 1;
+    }
+
+    const actuales = this.resultados();
+    const anteriores = this.resultadosAnterior();
+    const tieneRepetidasActual = actuales.length !== new Set(actuales.map(r => r.fecha)).size;
+    const tieneRepetidasAnterior = anteriores.length !== new Set(anteriores.map(r => r.fecha)).size;
+
+    return tieneRepetidasActual || tieneRepetidasAnterior;
+  }
+
+getComparacionConIndices(): { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+    const actuales = this.resultados();
+    const anteriores = this.resultadosAnterior();
+    const filtro = this.filtroDiaSemana();
+
+    if (anteriores.length === 0) return [];
+
+    const anioActual = new Date().getFullYear();
+    const fechasActualesEmparejadas = new Set<string>();
+
+    const resultado: { index: number; fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
+
+    // Ordenar fechas del año anterior por fecha
+    const fechasAnteriorOrdenadas = [...anteriores.map(r => r.fecha)].sort();
+
+    for (let idx = 0; idx < fechasAnteriorOrdenadas.length; idx++) {
+      const fechaAnterior = fechasAnteriorOrdenadas[idx];
+      const anterior = anteriores.find(r => r.fecha === fechaAnterior);
+      if (!anterior) continue;
+
+      // Filtrar por día de la semana si hay filtro
+      if (filtro !== null && anterior.diaSemana !== filtro) continue;
+
+      const anteriorUSD = anterior.totalConvertido || 0;
+      const diaAnterior = anterior.diaSemana;
+
+      // Encontrar la fecha del año actual con el mismo día de la semana (max 1 dia de diferencia)
+      const [y, m, d] = anterior.fecha.split('-').map(Number);
+      const ultimoDiaMes = new Date(anioActual, m, 0).getDate();
+
+      let mejorDia = d;
+      let mejorDistancia = 7;
+
+      for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        const fechaCandidato = `${anioActual}-${String(m).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        if (fechasActualesEmparejadas.has(fechaCandidato)) continue;
+
+        const fechaObjMesActual = new Date(anioActual, m - 1, dia);
+        const diaSemanaMesActual = fechaObjMesActual.getDay();
+
+        if (diaSemanaMesActual === diaAnterior) {
+          const distancia = Math.abs(dia - d);
+          if (distancia <= 1) {
+            mejorDistancia = distancia;
+            mejorDia = dia;
+            fechasActualesEmparejadas.add(fechaCandidato);
+            break;
+          }
+        }
+      }
+
+      let fechaActual = '';
+      if (mejorDistancia <= 1) {
+        fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
+      }
+
+      const actual = fechaActual ? actuales.find(r => r.fecha === fechaActual) : undefined;
+      const actualUSD = actual?.totalConvertido || 0;
+
+      resultado.push({
+        index: idx,
+        fechaActual: fechaActual,
+        fechaAnterior: anterior.fecha,
+        dia: dias[anterior.diaSemana],
+        actual: Math.round(actualUSD * 100) / 100,
+        anterior: Math.round(anteriorUSD * 100) / 100,
+        variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+      });
+    }
+
+    return resultado;
+  }
 
   asignarTasaManual(fecha: string, valor: any) {
     const tasa = parseFloat(valor);
@@ -1697,8 +1873,17 @@ this.variacionTotalPct.set(0);
 
   diaSemanaLabel(fecha: string): string {
     const d = new Date(fecha + 'T00:00:00');
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'ViERNES', 'SÁBADO'];
     return dias[d.getDay()];
+  }
+
+  esDomingo(fecha: string): boolean {
+    const d = new Date(fecha + 'T00:00:00');
+    return d.getDay() === 0;
+  }
+
+  getDiaSemanaClase(fecha: string): string {
+    return this.esDomingo(fecha) ? 'domingo' : this.esFinDeSemana(fecha) ? 'sabado' : 'es-dia';
   }
 
   asignarTasaAnteriorManual(fecha: string, valor: any) {
@@ -1756,8 +1941,296 @@ cerrarModalExpectativas() {
     return count > 0 ? Math.round((sumaTasa / count) * 10000) / 10000 : 0;
   }
 
+  // Helpers for compact rate input (cent-based shifting)
+  formatRateFromCents(cents: number): string {
+    return (cents / 100).toFixed(2);
+  }
+
+  formatTripleRateFromCents(idx: number): string {
+    return (this.tasasAnterioresTripleCents()[idx] / 100).toFixed(2);
+  }
+
+  onTripleFechaChange(idx: number, event: Event) {
+     const input = event.target as HTMLInputElement;
+     const fechas = [...this.tasasAnterioresTripleFechas()] as [string, string, string];
+     fechas[idx] = input.value || '';
+     if (idx === 0) {
+       this.tasasAnterioresTripleFechas.set(this.propagarMesAnioDesdePrimera(fechas));
+     } else {
+       this.tasasAnterioresTripleFechas.set(fechas);
+     }
+     this.guardarTripleAnteriorEnBD();
+   }
+
+  private propagarMesAnioDesdePrimera(fechas: [string, string, string]): [string, string, string] {
+    const primera = fechas[0];
+    const m = primera.match(/^(\d{4})-(\d{2})-/);
+    if (!m) return fechas;
+    const [year, month] = [m[1], m[2]];
+    const nuevo = [...fechas] as [string, string, string];
+    for (let i = 1; i < 3; i++) {
+      const dm = nuevo[i].match(/^\d{4}-\d{2}-(\d{2})$/);
+      const day = dm ? dm[1] : '01';
+      nuevo[i] = `${year}-${month}-${day}`;
+    }
+    return nuevo;
+  }
+
+  onTripleRateFocus(idx: number, event?: FocusEvent) {
+    const target = event?.target as HTMLInputElement;
+    if (target) {
+      setTimeout(() => target.select());
+    }
+  }
+
+  onTripleRateBlur(idx: number) {
+     this.guardarTripleAnteriorEnBD();
+   }
+
+  recalcularPromedioTripleAnterior() {
+    const arr = this.tasasAnterioresTripleCents();
+    const count = arr.filter(v => v > 0).length;
+    const avgCents = count > 0 ? Math.round(arr.reduce((s, v) => s + v, 0) / count) : 0;
+    this.promedioTasaAnteriorCents.set(avgCents);
+    this.promedioTasaAnterior.set(Math.round((avgCents / 100) * 10000) / 10000);
+  }
+
+  onTripleRateKey(event: KeyboardEvent, idx: number) {
+    const key = event.key;
+    if (/^[0-9]$/.test(key)) {
+      event.preventDefault();
+      const d = parseInt(key, 10);
+      const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+      arr[idx] = Math.min(Math.floor(arr[idx] * 10 + d), 999999999);
+      this.tasasAnterioresTripleCents.set(arr);
+      this.recalcularPromedioTripleAnterior();
+      return;
+    }
+
+    if (key === 'Backspace') {
+      event.preventDefault();
+      const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+      arr[idx] = Math.floor(arr[idx] / 10);
+      this.tasasAnterioresTripleCents.set(arr);
+      this.recalcularPromedioTripleAnterior();
+      return;
+    }
+
+    if (key === 'Delete') {
+      event.preventDefault();
+      const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+      arr[idx] = 0;
+      this.tasasAnterioresTripleCents.set(arr);
+      this.recalcularPromedioTripleAnterior();
+      return;
+    }
+
+    if (key === '.' || key === ',') {
+      event.preventDefault();
+      return;
+    }
+  }
+
+  onTripleRatePaste(event: ClipboardEvent, idx: number) {
+     event.preventDefault();
+     const text = event.clipboardData?.getData('text') || '';
+     const parsed = parseFloat(text.replace(',', '.'));
+     if (isNaN(parsed)) return;
+     const cents = Math.round(parsed * 100);
+     const arr = [...this.tasasAnterioresTripleCents()] as [number, number, number];
+     arr[idx] = cents;
+     this.tasasAnterioresTripleCents.set(arr);
+     this.recalcularPromedioTripleAnterior();
+     this.guardarTripleAnteriorEnBD();
+   }
+
+  formatTripleActualRateFromCents(idx: number): string {
+    return (this.tasasActualesTripleCents()[idx] / 100).toFixed(2);
+  }
+
+  onTripleActualFechaChange(idx: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const fechas = [...this.tasasActualesTripleFechas()] as [string, string, string];
+    fechas[idx] = input.value || '';
+    if (idx === 0) {
+      this.tasasActualesTripleFechas.set(this.propagarMesAnioDesdePrimera(fechas));
+    } else {
+      this.tasasActualesTripleFechas.set(fechas);
+    }
+  }
+
+  onTripleActualRateFocus(idx: number, event?: FocusEvent) {
+    const target = event?.target as HTMLInputElement;
+    if (target) {
+      setTimeout(() => target.select());
+    }
+  }
+
+  onTripleActualRateBlur(idx: number) {}
+
+  recalcularPromedioTripleActual() {
+    const arr = this.tasasActualesTripleCents();
+    const count = arr.filter(v => v > 0).length;
+    const avgCents = count > 0 ? Math.round(arr.reduce((s, v) => s + v, 0) / count) : 0;
+    this.promedioTasaActualCents.set(avgCents);
+    this.promedioTasaActual.set(Math.round((avgCents / 100) * 10000) / 10000);
+  }
+
+  onTripleActualRateKey(event: KeyboardEvent, idx: number) {
+    const key = event.key;
+    if (/^[0-9]$/.test(key)) {
+      event.preventDefault();
+      const d = parseInt(key, 10);
+      const arr = [...this.tasasActualesTripleCents()] as [number, number, number];
+      arr[idx] = Math.min(Math.floor(arr[idx] * 10 + d), 999999999);
+      this.tasasActualesTripleCents.set(arr);
+      this.recalcularPromedioTripleActual();
+      return;
+    }
+
+    if (key === 'Backspace') {
+      event.preventDefault();
+      const arr = [...this.tasasActualesTripleCents()] as [number, number, number];
+      arr[idx] = Math.floor(arr[idx] / 10);
+      this.tasasActualesTripleCents.set(arr);
+      this.recalcularPromedioTripleActual();
+      return;
+    }
+
+    if (key === 'Delete') {
+      event.preventDefault();
+      const arr = [...this.tasasActualesTripleCents()] as [number, number, number];
+      arr[idx] = 0;
+      this.tasasActualesTripleCents.set(arr);
+      this.recalcularPromedioTripleActual();
+      return;
+    }
+
+    if (key === '.' || key === ',') {
+      event.preventDefault();
+      return;
+    }
+  }
+
+  onTripleActualRatePaste(event: ClipboardEvent, idx: number) {
+    event.preventDefault();
+    const text = event.clipboardData?.getData('text') || '';
+    const parsed = parseFloat(text.replace(',', '.'));
+    if (isNaN(parsed)) return;
+    const cents = Math.round(parsed * 100);
+    const arr = [...this.tasasActualesTripleCents()] as [number, number, number];
+    arr[idx] = cents;
+    this.tasasActualesTripleCents.set(arr);
+    this.recalcularPromedioTripleActual();
+  }
+
+  onRateFocus(kind: 'actual' | 'anterior', event?: FocusEvent) {
+    const target = event?.target as HTMLInputElement;
+    if (target && target.selectionStart !== target.selectionEnd) {
+      this.rateInputSelected.update(s => ({...s, [kind]: true}));
+    }
+    if (kind === 'actual') {
+      if (this.promedioTasaActualCents() === 0) this.showBlankActual.set(true);
+    } else {
+      if (this.promedioTasaAnteriorCents() === 0) this.showBlankAnterior.set(true);
+    }
+    // Select text after focus
+    if (target) {
+      setTimeout(() => target.select());
+    }
+  }
+
+  onRateBlur(kind: 'actual' | 'anterior') {
+    if (kind === 'actual') {
+      this.showBlankActual.set(false);
+    } else {
+      this.showBlankAnterior.set(false);
+    }
+  }
+
+  onRateKey(event: KeyboardEvent, kind: 'actual' | 'anterior') {
+    const key = event.key;
+    const isDigit = /^[0-9]$/.test(key);
+    if (isDigit) {
+      event.preventDefault();
+      const d = parseInt(key, 10);
+      const selected = this.rateInputSelected()[kind] || this.rateInputJustFocused()[kind as 'actual' | 'anterior'];
+      if (kind === 'actual') {
+        let cents = selected ? d : this.promedioTasaActualCents();
+        if (!selected) {
+          cents = Math.min(Math.floor(cents * 10 + d), 999999999);
+        }
+        this.promedioTasaActualCents.set(cents);
+        this.promedioTasaActual.set(Math.round((cents / 100) * 10000) / 10000);
+        this.showBlankActual.set(false);
+        this.rateInputSelected.update(s => ({...s, actual: false}));
+        this.rateInputJustFocused.update(s => ({...s, actual: false}));
+      } else {
+        let cents = selected ? d : this.promedioTasaAnteriorCents();
+        if (!selected) {
+          cents = Math.min(Math.floor(cents * 10 + d), 999999999);
+        }
+        this.promedioTasaAnteriorCents.set(cents);
+        this.promedioTasaAnterior.set(Math.round((cents / 100) * 10000) / 10000);
+        this.showBlankAnterior.set(false);
+        this.rateInputSelected.update(s => ({...s, anterior: false}));
+        this.rateInputJustFocused.update(s => ({...s, anterior: false}));
+      }
+      return;
+    }
+
+    if (key === 'Backspace') {
+      event.preventDefault();
+      if (kind === 'actual') {
+        const cents = Math.floor(this.promedioTasaActualCents() / 10);
+        this.promedioTasaActualCents.set(cents);
+        this.promedioTasaActual.set(Math.round((cents / 100) * 10000) / 10000);
+      } else {
+        const cents = Math.floor(this.promedioTasaAnteriorCents() / 10);
+        this.promedioTasaAnteriorCents.set(cents);
+        this.promedioTasaAnterior.set(Math.round((cents / 100) * 10000) / 10000);
+      }
+      return;
+    }
+
+    if (key === 'Delete') {
+      event.preventDefault();
+      if (kind === 'actual') {
+        this.promedioTasaActualCents.set(0);
+        this.promedioTasaActual.set(0);
+      } else {
+        this.promedioTasaAnteriorCents.set(0);
+        this.promedioTasaAnterior.set(0);
+      }
+      return;
+    }
+
+    // Treat dot as noop (input is cents-shifting); prevent default to avoid caret
+    if (key === '.' || key === ',') {
+      event.preventDefault();
+      return;
+    }
+  }
+
+  onRatePaste(event: ClipboardEvent, kind: 'actual' | 'anterior') {
+    event.preventDefault();
+    const text = event.clipboardData?.getData('text') || '';
+    const parsed = parseFloat(text.replace(',', '.'));
+    if (isNaN(parsed)) return;
+    const cents = Math.round(parsed * 100);
+    if (kind === 'actual') {
+      this.promedioTasaActualCents.set(cents);
+      this.promedioTasaActual.set(Math.round((cents / 100) * 10000) / 10000);
+      this.showBlankActual.set(false);
+    } else {
+      this.promedioTasaAnteriorCents.set(cents);
+      this.promedioTasaAnterior.set(Math.round((cents / 100) * 10000) / 10000);
+      this.showBlankAnterior.set(false);
+    }
+  }
+
   getDiaSemanaNum(diaSemana: number): string {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     return dias[diaSemana] || '';
   }
 
@@ -1780,146 +2253,161 @@ cumpleMeta(variacion: number): boolean {
        : 0;
    }
 
-  getResumenPorDiaSemana(): { dia: string; actual: number; anterior: number; variacion: number }[] {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const actuales = this.resultados();
-    const anteriores = this.resultadosAnterior();
+   getPeriodoVentasAnterior(): string {
+     const resultadosAnterior = this.resultadosAnterior();
+     if (resultadosAnterior.length === 0) return '';
+     
+     const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+     
+     const fechas = resultadosAnterior.map(r => r.fecha);
+     const primerFecha = fechas[0];
+     const ultimaFecha = fechas[fechas.length - 1];
+     
+     if (!primerFecha || !ultimaFecha) return '';
+     
+     const fechaObj = new Date(primerFecha + 'T00:00:00');
+     const anio = fechaObj.getFullYear();
+     const mes = fechaObj.getMonth();
+     
+     // Verificar si todas son del mismo mes
+     const mismoMes = fechas.every(f => {
+       const d = new Date(f + 'T00:00:00');
+       return d.getMonth() === mes && d.getFullYear() === anio;
+     });
+     
+if (mismoMes) {
+        return `${meses[mes]} ${anio + 1}`;
+      }
+      
+      const fechaUltimaObj = new Date(ultimaFecha + 'T00:00:00');
+      const anioUltima = fechaUltimaObj.getFullYear();
+      return `${this.formatFechaDisplay(primerFecha)} - ${this.formatFechaDisplay(ultimaFecha)} ${anioUltima + 1}`;
+   }
 
-    const totalesPorDia = new Map<number, { actual: number; anterior: number }>();
-
-    for (let i = 0; i < 7; i++) {
-      totalesPorDia.set(i, { actual: 0, anterior: 0 });
+   formatFechaDisplay(fecha: string | Date | null | undefined): string {
+    if (!fecha) return '';
+    if (fecha instanceof Date && !isNaN(fecha.getTime())) {
+      const dia = String(fecha.getDate()).padStart(2, '0');
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      const anio = fecha.getFullYear();
+      return `${dia}/${mes}/${anio}`;
     }
-
-    actuales.forEach(r => {
-      const current = totalesPorDia.get(r.diaSemana);
-      if (current) {
-        current.actual += r.totalConvertido;
+    if (typeof fecha === 'string') {
+      const isoMatch = fecha.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (isoMatch) {
+        const [, year, month, day] = isoMatch;
+        return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
       }
-    });
-
-    anteriores.forEach(r => {
-      const current = totalesPorDia.get(r.diaSemana);
-      if (current) {
-        current.anterior += r.totalConvertido;
+      const parsedDate = new Date(fecha);
+      if (!isNaN(parsedDate.getTime())) {
+        const dia = String(parsedDate.getDate()).padStart(2, '0');
+        const mes = String(parsedDate.getMonth() + 1).padStart(2, '0');
+        const anio = parsedDate.getFullYear();
+        return `${dia}/${mes}/${anio}`;
       }
-    });
-
-    return Array.from(totalesPorDia.entries()).map(([diaSemana, valores]) => ({
-      dia: dias[diaSemana],
-      actual: Math.round(valores.actual * 100) / 100,
-      anterior: Math.round(valores.anterior * 100) / 100,
-      variacion: valores.anterior > 0 
-        ? Math.round(((valores.actual - valores.anterior) / valores.anterior) * 10000) / 100 
-        : 0
-    }));
+    }
+    return '';
   }
 
-  getComparacionDiaPorDia(): { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+getComparacionDiaPorDia(filtroDia: number | null = null): { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] {
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     const actuales = this.resultados();
     const anteriores = this.resultadosAnterior();
+    const filtro = filtroDia !== null ? filtroDia : this.filtroDiaSemana();
 
-    const mapaActual = new Map<number, FilaResultado[]>();
-    const mapaAnterior = new Map<number, FilaResultado[]>();
+    if (anteriores.length === 0) return [];
 
-    actuales.forEach(r => {
-      const lista = mapaActual.get(r.diaSemana) || [];
-      lista.push(r);
-      mapaActual.set(r.diaSemana, lista);
-    });
-
-    anteriores.forEach(r => {
-      const lista = mapaAnterior.get(r.diaSemana) || [];
-      lista.push(r);
-      mapaAnterior.set(r.diaSemana, lista);
-    });
+    const anioActual = new Date().getFullYear();
+    const fechasActualesEmparejadas = new Set<string>();
 
     const resultado: { fechaActual: string; fechaAnterior: string; dia: string; actual: number; anterior: number; variacion: number }[] = [];
 
-    for (let diaSemana = 0; diaSemana < 7; diaSemana++) {
-      const diasActual = mapaActual.get(diaSemana) || [];
-      const diasAnterior = mapaAnterior.get(diaSemana) || [];
+    // Ordenar fechas del año anterior por fecha
+    const fechasAnteriorOrdenadas = [...anteriores.map(r => r.fecha)].sort();
 
-      const maxLen = Math.max(diasActual.length, diasAnterior.length);
-      const minLen = Math.min(diasActual.length, diasAnterior.length);
+    for (let idx = 0; idx < fechasAnteriorOrdenadas.length; idx++) {
+      const fechaAnterior = fechasAnteriorOrdenadas[idx];
+      const anterior = anteriores.find(r => r.fecha === fechaAnterior);
+      if (!anterior) continue;
 
-      for (let i = 0; i < minLen; i++) {
-        const actual = diasActual[i];
-        const anterior = diasAnterior[i];
+      // Filtrar por día de la semana si hay filtro
+      if (filtro !== null && anterior.diaSemana !== filtro) continue;
 
-        const actualUSD = actual?.totalConvertido || 0;
-        const anteriorUSD = anterior?.totalConvertido || 0;
+      const anteriorUSD = anterior.totalConvertido || 0;
+      const diaAnterior = anterior.diaSemana;
 
-        resultado.push({
-          fechaActual: actual?.fecha || '',
-          fechaAnterior: anterior?.fecha || '',
-          dia: dias[diaSemana],
-          actual: Math.round(actualUSD * 100) / 100,
-          anterior: Math.round(anteriorUSD * 100) / 100,
-          variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
-        });
-      }
+      // Encontrar la fecha del año actual con el mismo día de la semana (max 1 dia de diferencia)
+      const [y, m, d] = anterior.fecha.split('-').map(Number);
+      const ultimoDiaMes = new Date(anioActual, m, 0).getDate();
 
-      if (diasActual.length > diasAnterior.length) {
-        const primerDiaAnterior = diasAnterior[0];
-        const anteriorUSD = primerDiaAnterior?.totalConvertido || 0;
-        
-        for (let i = minLen; i < diasActual.length; i++) {
-          const actual = diasActual[i];
-          const actualUSD = actual?.totalConvertido || 0;
+      let mejorDia = d;
+      let mejorDistancia = 7;
 
-          resultado.push({
-            fechaActual: actual?.fecha || '',
-            fechaAnterior: primerDiaAnterior?.fecha || '',
-            dia: dias[diaSemana],
-            actual: Math.round(actualUSD * 100) / 100,
-            anterior: Math.round(anteriorUSD * 100) / 100,
-            variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
-          });
-        }
-      } else if (diasAnterior.length > diasActual.length) {
-        const ultimoDiaActual = diasActual[diasActual.length - 1];
-        const actualUSD = ultimoDiaActual?.totalConvertido || 0;
+      for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        const fechaCandidato = `${anioActual}-${String(m).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        if (fechasActualesEmparejadas.has(fechaCandidato)) continue;
 
-        for (let i = minLen; i < diasAnterior.length; i++) {
-          const anterior = diasAnterior[i];
-          const anteriorUSD = anterior?.totalConvertido || 0;
+        const fechaObjMesActual = new Date(anioActual, m - 1, dia);
+        const diaSemanaMesActual = fechaObjMesActual.getDay();
 
-          resultado.push({
-            fechaActual: ultimoDiaActual?.fecha || '',
-            fechaAnterior: anterior?.fecha || '',
-            dia: dias[diaSemana],
-            actual: Math.round(actualUSD * 100) / 100,
-            anterior: Math.round(anteriorUSD * 100) / 100,
-            variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
-          });
+        if (diaSemanaMesActual === diaAnterior) {
+          const distancia = Math.abs(dia - d);
+          if (distancia <= 1) {
+            mejorDistancia = distancia;
+            mejorDia = dia;
+            fechasActualesEmparejadas.add(fechaCandidato);
+            break;
+          }
         }
       }
+
+      let fechaActual = '';
+      if (mejorDistancia <= 1) {
+        fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
+      }
+
+      const actual = fechaActual ? actuales.find(r => r.fecha === fechaActual) : undefined;
+      const actualUSD = actual?.totalConvertido || 0;
+
+      resultado.push({
+        fechaActual: fechaActual,
+        fechaAnterior: anterior.fecha,
+        dia: dias[anterior.diaSemana],
+        actual: Math.round(actualUSD * 100) / 100,
+        anterior: Math.round(anteriorUSD * 100) / 100,
+        variacion: anteriorUSD > 0 ? Math.round(((actualUSD - anteriorUSD) / anteriorUSD) * 10000) / 100 : 0
+      });
     }
 
-    return resultado.filter(r => r.fechaActual || r.fechaAnterior);
+    return resultado;
   }
 
-  procesarSoloAnterior() {
-    let todasLasTasasAnteriores = new Map<string, number>([
-      ...this.tasasAnterioresMap(),
-      ...this.tasasAnterioresManuales()
-    ]);
+procesarSoloAnterior() {
+     let todasLasTasasAnteriores = new Map<string, number>([
+       ...this.tasasAnterioresMap(),
+       ...this.tasasAnterioresManuales()
+     ]);
 
-    // Si no hay tasas anteriores, usar las actuales como fallback
-    if (todasLasTasasAnteriores.size === 0 && this.tasasMap().size > 0) {
-      todasLasTasasAnteriores = new Map(this.tasasMap());
-    }
+     // Si no hay tasas anteriores, usar las actuales como fallback
+     if (todasLasTasasAnteriores.size === 0 && this.tasasMap().size > 0) {
+       todasLasTasasAnteriores = new Map(this.tasasMap());
+     }
 
-    if (this.ventasAnteriorRaw().length < 2 || todasLasTasasAnteriores.size === 0) return;
+     // Si aún no hay tasas, usar promedio anterior
+     if (todasLasTasasAnteriores.size === 0 && this.promedioTasaAnterior() > 0) {
+       todasLasTasasAnteriores = new Map();
+       // El promedio se aplicará en el procesamiento
+     }
 
-    const ventasAnteriorRows = this.ventasAnteriorRaw();
-    const ventasAnteriorHeaders = ventasAnteriorRows[0];
-    const idxFechaAnterior = ventasAnteriorHeaders.indexOf(this.columnaFechaAnterior());
-    const idxTotalAnterior = ventasAnteriorHeaders.indexOf(this.columnaTotalAnterior());
+     if (this.ventasAnteriorRaw().length < 2) return;
 
-    if (idxFechaAnterior < 0 || idxTotalAnterior < 0) return;
+     const ventasAnteriorRows = this.ventasAnteriorRaw();
+     const ventasAnteriorHeaders = ventasAnteriorRows[0];
+     const idxFechaAnterior = ventasAnteriorHeaders.indexOf(this.columnaFechaAnterior());
+     const idxTotalAnterior = ventasAnteriorHeaders.indexOf(this.columnaTotalAnterior());
+
+     if (idxFechaAnterior < 0 || idxTotalAnterior < 0) return;
 
     const fechasFaltantesAnterior: string[] = [];
     const fechasVentasAnterior = new Set<string>();
@@ -1955,6 +2443,12 @@ cumpleMeta(variacion: number): boolean {
       }
     }
 
+    // Usar promedio anterior como fallback si no hay tasas
+    const promedioAnterior = this.promedioTasaAnterior();
+    if (todasLasTasasAnteriores.size === 0 && promedioAnterior > 0) {
+      fechasVentasAnterior.forEach(fecha => todasLasTasasAnteriores.set(fecha, promedioAnterior));
+    }
+
     this.fechasSinTasaAnterior.set(fechasFaltantesAnterior);
 
     const resAnterior = this.calcularResultados(
@@ -1968,31 +2462,66 @@ cumpleMeta(variacion: number): boolean {
     this.totalConvertidoAnterior.set(resAnterior.totalConv);
   }
 
-  abrirModalExpectativas() {
-    if (this.ventasRaw().length >= 2 && this.tasasMap().size > 0 && this.resultados().length === 0) {
-      this.procesar();
+abrirModalExpectativas() {
+      // Procesar Ventas Año Anterior si no está procesada
+      if (this.ventasAnteriorRaw().length >= 2 && this.resultadosAnterior().length === 0) {
+        this.procesarSoloAnterior();
+      }
+      this.mostrarModalExpectativas.set(true);
     }
-    this.procesarSoloAnterior();
-    this.mostrarModalExpectativas.set(true);
-  }
 
-  getExpectativasPorDia(): { fecha: string; dia: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number; metaExtraUSD: number; metaExtraBs: number }[] {
+  getExpectativasPorDia(): { fecha: string; dia: string; fechaActual: string; diaActual: string; anteriorBs: number; anteriorUSD: number; tasa: number; targetUSD: number; targetBs: number; metaExtraUSD: number; metaExtraBs: number }[] {
     const resultadosAnterior = this.resultadosAnterior();
     const meta = this.metaVariacion();
+    const tasaPromedioActual = this.tasaPromedioActual() || this.promedioTasaActual();
     
     if (resultadosAnterior.length === 0) return [];
+    
+    const anioActual = new Date().getFullYear();
     
     return resultadosAnterior.map(r => {
       const expectativaUSD = r.totalConvertido > 0 
         ? Math.round(r.totalConvertido * (1 + meta / 100) * 100) / 100 
         : 0;
       const metaExtraUSD = expectativaUSD - r.totalConvertido;
-      const expectativaBs = r.tasa > 0 
-        ? Math.round(expectativaUSD * r.tasa * 100) / 100 
+      const expectativaBs = tasaPromedioActual > 0 
+        ? Math.round(expectativaUSD * tasaPromedioActual * 100) / 100 
         : 0;
-      const metaExtraBs = r.tasa > 0 
-        ? Math.round(metaExtraUSD * r.tasa * 100) / 100 
+      const metaExtraBs = tasaPromedioActual > 0 
+        ? Math.round(metaExtraUSD * tasaPromedioActual * 100) / 100 
         : 0;
+      
+      const [y, m, d] = r.fecha.split('-').map(Number);
+      const fechaDateAnterior = new Date(y, m - 1, d);
+      const diaSemanaAnterior = fechaDateAnterior.getDay();
+      
+      let fechaActual = '';
+      let diaActual = '';
+      
+      const ultimoDiaMes = new Date(anioActual, m, 0).getDate();
+      
+      let mejorDia = d;
+      let mejorDistancia = 7;
+      
+      const diasSemanaNombres = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+      
+      for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+        const fechaObjMesActual = new Date(anioActual, m - 1, dia);
+        const diaSemanaMesActual = fechaObjMesActual.getDay();
+        
+        if (diaSemanaMesActual === diaSemanaAnterior) {
+          const distancia = Math.abs(dia - d);
+          if (distancia < mejorDistancia) {
+            mejorDistancia = distancia;
+            mejorDia = dia;
+          }
+        }
+      }
+      
+      if (mejorDistancia < 7) {
+        fechaActual = `${anioActual}-${String(m).padStart(2, '0')}-${String(mejorDia).padStart(2, '0')}`;
+        diaActual = diasSemanaNombres[diaSemanaAnterior];
+      }
       
       return {
         fecha: r.fecha,
@@ -2000,6 +2529,8 @@ cumpleMeta(variacion: number): boolean {
         anteriorBs: r.totalOriginal,
         anteriorUSD: r.totalConvertido,
         tasa: r.tasa,
+        fechaActual,
+        diaActual,
         targetUSD: expectativaUSD,
         targetBs: expectativaBs,
         metaExtraUSD: metaExtraUSD,
@@ -2046,130 +2577,411 @@ imprimirExpectativas() {
         <head>
           <title>Expectativas de Ventas</title>
           <style>
-            @page {
-              size: letter portrait;
-              margin: 0.2in;
-            }
-            html, body {
-              margin: 0;
-              padding: 0;
-              font-family: Arial, sans-serif;
-              font-size: 8pt;
-              box-sizing: border-box;
-              height: 100%;
-            }
-            .container {
-              padding: 5px;
-              box-sizing: border-box;
-              min-height: 100%;
-              display: flex;
-              flex-direction: column;
-            }
-            h1 { color: #1d63c1; text-align: center; font-size: 14pt; margin: 0 0 5px 0; }
-            .meta-info { text-align: center; margin-bottom: 5px; font-size: 9pt; }
-            table { 
-              width: 100%; 
-              border-collapse: collapse;
-              flex: 1;
-            }
-            th, td { 
-              border: 1px solid #666; 
-              padding: 3px 5px; 
-              text-align: left;
-              font-size: 7pt;
-              line-height: 1.2;
-            }
-            th { background: #ff9800; color: white; font-weight: 600; }
-            .comment { 
-              margin-top: auto;
-              margin-bottom: 5px;
-              padding: 5px; 
-              background: #f5f5f5; 
-              border-radius: 3px;
-              font-size: 8pt;
-            }
-            .footer { 
-              margin-top: 5px; 
-              font-size: 7pt; 
-              color: #666;
-            }
-            input[type="checkbox"] { 
-              width: 16px; 
-              height: 16px; 
-              margin: 0;
-              padding: 0;
-            }
-            .cumplido-checkbox {
-              padding: 0 !important;
-              text-align: center;
-              width: 22px;
-            }
-          </style>
+             @page {
+               size: letter portrait;
+               margin: 0.2in;
+             }
+             html, body {
+               margin: 0;
+               padding: 0;
+               font-family: Arial, sans-serif;
+               font-size: 8pt;
+               box-sizing: border-box;
+               height: 100%;
+               text-align: left;
+             }
+             .container {
+               padding: 5px;
+               box-sizing: border-box;
+               min-height: 100%;
+               display: flex;
+               flex-direction: column;
+             }
+             .print-header {
+               display: flex;
+               align-items: flex-start;
+               margin-bottom: 12px;
+               position: relative;
+             }
+             .print-logo {
+               width: 120px;
+               max-height: 100px;
+               object-fit: contain;
+               position: absolute;
+               top: 0;
+               left: 0;
+             }
+             .print-title-section {
+               flex: 1;
+               text-align: center;
+             }
+             h1 { color: #1d63c1; text-align: center; font-size: 14pt; margin: 0 0 6px 0; }
+             .meta-info { text-align: center; margin-bottom: 6px; font-size: 9pt; }
+             table { 
+               width: 100%; 
+               border-collapse: collapse;
+               flex: 1;
+               font-size: 7pt;
+             }
+             th, td { 
+               border: 1px solid #666; 
+               padding: 3px 5px; 
+               text-align: left;
+               font-size: 9pt;
+               line-height: 1.2;
+             }
+             th { background: #ff9800 !important; color: #111 !important; font-weight: 800 !important; font-size: 10pt !important; }
+             /* Estilo para la fila superior de los años */
+             th.year-header {
+               background: #1d63c1 !important;
+               color: #fff !important;
+               text-align: center;
+               font-size: 11pt !important;
+             }
+             th.numeric, td.numeric { text-align: right; }
+             th.wrap-center, td.wrap-center { text-align: center; }
+             .expectativa-meta { text-align: right; }
+             .comment { 
+               margin-top: auto;
+               margin-bottom: 5px;
+               padding: 5px; 
+               background: #f5f5f5; 
+               border-radius: 3px;
+               font-size: 13pt;
+             }
+             .footer { 
+               margin-top: 10px; 
+               font-size: 9pt; 
+               color: #333;
+               font-weight: 600;
+               text-align: right;
+             }
+             input[type="checkbox"] { 
+               width: 14px; 
+               height: 14px; 
+               margin: 0;
+               padding: 0;
+             }
+.cumplido-checkbox {
+                padding: 0 !important;
+                text-align: center;
+                width: 20px;
+              }
+              .domingo {
+                color: #dc3545 !important;
+                font-weight: 700 !important;
+              }
+            </style>
         </head>
         <body>
           <div class="container">
-            <h1>🎯 Metas Ventas</h1>
-            <div class="meta-info">Período de ventas: ${resultadosAnterior.length > 0 ? resultadosAnterior[0].fecha + ' - ' + resultadosAnterior[resultadosAnterior.length - 1].fecha : '-'}</div>
+            <div class="print-header">
+              <img src="/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
+              <div class="print-title-section">
+                <h1>Metas Ventas ${this.getPeriodoVentasAnterior()}</h1>
+              </div>
+            </div>
             <table>
               <thead>
-                <tr>
-          `;
+`;
+
+// --- CÁLCULO DINÁMICO DE COLSPAN PARA 2025 Y 2026 ---
+let colspan2025 = 0;
+if (this.columnaFechaVisible()) colspan2025++;
+if (this.columnaDiaVisible()) colspan2025++;
+if (this.columnaAnteriorBsVisible()) colspan2025++;
+if (this.columnaAnteriorUSDVisible()) colspan2025++;
+if (this.columnaTasaVisible()) colspan2025++;
+
+let colspan2026 = 0;
+if (this.columnaFechaActualVisible()) colspan2026++;
+if (this.columnaDiaActualVisible()) colspan2026++;
+if (this.columnaMetaExtraUSDVisible()) colspan2026++;
+if (this.columnaMetaExtraBsVisible()) colspan2026++;
+if (this.columnaTargetUSDVisible()) colspan2026++;
+if (this.columnaTargetBsVisible()) colspan2026++;
+
+// Primera fila del head: Bloques de Años
+html += '<tr>';
+if (colspan2025 > 0) {
+  html += `<th colspan="${colspan2025}" class="year-header">2025</th>`;
+}
+if (colspan2026 > 0) {
+  html += `<th colspan="${colspan2026}" class="year-header">2026</th>`;
+}
+// Espacio en blanco sobre la columna del checkbox final
+html += '<th style="background-color: #f5f5f5;">&nbsp;</th>'; 
+html += '</tr>';
+
+// Segunda fila del head: Títulos de las columnas (Tu código original corregido)
+html += '<tr>';
+if (this.columnaFechaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Fecha</th>';
+if (this.columnaDiaVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día</th>';
+if (this.columnaAnteriorBsVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas (Bs)</th>';
+if (this.columnaAnteriorUSDVisible()) html += '<th style="background-color: #f5f5f5;" class="numeric">Ventas ($)</th>';
+if (this.columnaTasaVisible()) html += '<th class="numeric">Tasa</th>';
+if (this.columnaFechaActualVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Fecha</th>';
+if (this.columnaDiaActualVisible()) html += '<th style="background-color: #f5f5f5;" class="wrap-center">Día</th>';
+if (this.columnaMetaExtraUSDVisible()) html += '<th class="numeric">Meta ($)</th>';
+if (this.columnaMetaExtraBsVisible()) html += '<th class="numeric">Meta (Bs)</th>';
+if (this.columnaTargetUSDVisible()) html += '<th class="numeric">Total ($)</th>';
+if (this.columnaTargetBsVisible()) html += '<th class="numeric">Total (Bs)</th>';
+html += '<th class="wrap-center">&nbsp;</th>';
+html += `
+        </tr>
+      </thead>
+      <tbody>
+`;
       
-      if (this.columnaFechaVisible()) html += '<th>Fecha</th>';
-      if (this.columnaDiaVisible()) html += '<th>Día</th>';
-      if (this.columnaAnteriorBsVisible()) html += '<th>Ventas Ant. (Bs)</th>';
-      if (this.columnaAnteriorUSDVisible()) html += '<th>Ventas Ant. ($)</th>';
-      if (this.columnaTasaVisible()) html += '<th>Tasa</th>';
-if (this.columnaMetaExtraUSDVisible()) html += '<th>Meta ($)</th>';
-       if (this.columnaMetaExtraBsVisible()) html += '<th>Meta (Bs)</th>';
-       if (this.columnaTargetUSDVisible()) html += '<th>Total ($)</th>';
-       if (this.columnaTargetBsVisible()) html += '<th>Total (Bs)</th>';
-      html += '<th>Cumplido</th>';
-      
-      html += `
-              </tr>
-            </thead>
-            <tbody>
-      `;
-      
-      for (const e of expectativas) {
-        html += '<tr>';
-        if (this.columnaFechaVisible()) html += `<td>${e.fecha}</td>`;
-        if (this.columnaDiaVisible()) html += `<td>${e.dia}</td>`;
-if (this.columnaAnteriorBsVisible()) html += `<td class="expectativa-anterior-bs">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
-         if (this.columnaAnteriorUSDVisible()) html += `<td class="expectativa-anterior-usd">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
-if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
-         if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
-         if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
-         if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd">$${this.formatearMoneda(e.targetUSD)}</td>`;
-         if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
-         html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
-        html += '</tr>';
-      }
+for (const e of expectativas) {
+   html += '<tr>';
+   const esDomingoAnterior = this.esDomingo(e.fecha);
+   const esDomingoActual = e.fechaActual ? this.esDomingo(e.fechaActual) : false;
+   if (this.columnaFechaVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${this.formatFechaDisplay(e.fecha)}</td>`;
+   if (this.columnaDiaVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center ${esDomingoAnterior ? 'domingo' : ''}"><strong>${e.dia}</strong></td>`;
+   if (this.columnaAnteriorBsVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-bs numeric">Bs ${this.formatearMoneda(e.anteriorBs)}</td>`;
+   if (this.columnaAnteriorUSDVisible()) html += `<td style="background-color: #fafafad8;" class="expectativa-anterior-usd numeric">$${this.formatearMoneda(e.anteriorUSD)}</td>`;
+   if (this.columnaTasaVisible()) html += `<td class="expectativa-tasa numeric">${e.tasa > 0 ? this.formatearMoneda(e.tasa) : '-'}</td>`;
+   if (this.columnaFechaActualVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center">${e.fechaActual ? this.formatFechaDisplay(e.fechaActual) : ''}</td>`;
+   if (this.columnaDiaActualVisible()) html += `<td style="background-color: #fafafad8;" class="wrap-center ${esDomingoActual ? 'domingo' : ''}"><strong>${e.diaActual || (e.fechaActual ? this.diaSemanaLabel(e.fechaActual) : '')}</strong></td>`;
+   if (this.columnaMetaExtraUSDVisible()) html += `<td class="meta-extra-usd numeric">$${this.formatearMoneda(e.metaExtraUSD)}</td>`;
+   if (this.columnaMetaExtraBsVisible()) html += `<td class="meta-extra-bs numeric">Bs ${this.formatearMoneda(e.metaExtraBs)}</td>`;
+   if (this.columnaTargetUSDVisible()) html += `<td class="expectativa-target-usd numeric">$${this.formatearMoneda(e.targetUSD)}</td>`;
+   if (this.columnaTargetBsVisible()) html += `<td class="expectativa-target-bs numeric">Bs ${this.formatearMoneda(e.targetBs)}</td>`;
+   html += '<td class="cumplido-checkbox"><input type="checkbox"></td>';
+   html += '</tr>';
+ }
       
 html += `
-             </tbody>
-           </table>
-           
-           <div style="flex: 1; min-height: 20px;"></div>
-       `;
+        </tbody>
+       </table>
        
-       if (comentario) {
-         html += `<div class="comment" style="margin-top: auto;"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
-       }
+       <div style="flex: 1; min-height: 20px;"></div>
+`;
+       
+if (comentario) {
+  html += `<div class="comment" style="margin-top: auto;"><strong>Comentario:</strong><br>${comentario.replace(/\n/g, '<br>')}</div>`;
+}
       
-      html += `<div class="footer"><p>Fecha: ${new Date().toLocaleDateString('es-VE')}</p></div>
-          </div>
-        </body>
-        </html>
-      `;
+html += `<div class="footer"><p>Fecha: ${this.formatFechaDisplay(new Date())}</p></div>
+    </div>
+<script>
+(function(){
+  function doPrint(){ try{ window.focus(); window.print(); }catch(e){} }
+  function whenImagesLoaded(cb){
+    var imgs = document.images, total = imgs.length; if(total === 0){ cb(); return; }
+    var count = 0; function check(){ if(++count >= total) cb(); }
+    for(var i=0;i<total;i++){ if(imgs[i].complete) check(); else { imgs[i].addEventListener('load', check); imgs[i].addEventListener('error', check); } }
+  }
+  whenImagesLoaded(function(){ setTimeout(doPrint, 120); });
+})();
+</script>
+    </body>
+  </html>
+`;
       
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(html);
         printWindow.document.close();
-        printWindow.print();
         this.cerrarModalImpresion();
       }
     }
+
+  imprimirComparacionDiaPorDia() {
+    const comparacion = this.getComparacionDiaPorDia(this.filtroDiaSemana());
+    const totalActual = this.totalConvertido();
+    const totalAnterior = this.totalConvertidoAnterior();
+    const variacion = this.variacionUSDPorcentaje();
+
+    const diaSeleccionado = this.filtroDiaSemana();
+    const dias = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+    const filtroLabel = diaSeleccionado !== null ? ` - ${dias[diaSeleccionado]}` : '';
+
+  let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Comparación Día a Día</title>
+  <style>
+    @page {
+      size: letter portrait;
+      margin: 0.3in; /* Aumentado ligeramente para un margen de impresión óptimo */
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      font-size: 8.5pt;
+      box-sizing: border-box;
+      height: 100%;
+      background-color: #ffffff;
+    }
+    
+    /* Contenedor principal que controla el ancho del reporte en la hoja */
+    .container {
+      width: 85%;          /* Incrementa este porcentaje (ej. 90%) si quieres que use aún más hoja */
+      max-width: 800px;     /* Límite físico para que luzca balanceado al imprimir */
+      margin: 0 auto;       /* Centra de manera absoluta todo el reporte */
+      padding: 6px;
+      box-sizing: border-box;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Encabezado estructurado para que el título se alinee con la tabla */
+    .print-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .print-logo {
+      width: 130px;
+      max-height: 80px;
+      object-fit: contain;
+    }
+    .print-title-section {
+      flex: 1;
+      text-align: right; /* Al estar el logo a la izquierda, el título a la derecha equilibra el peso visual */
+    }
+    
+    h1 { 
+      color: #1d63c1; 
+      font-size: 18pt;    /* Un poco más grande para darle presencia */
+      margin: 0 0 4px 0; 
+      font-weight: 700;
+    }
+    .meta-info { 
+      font-size: 10pt; 
+      color: #666;
+      margin: 0;
+    }
+    
+    /* Configuración de la tabla expandida */
+    table {
+      width: 100%;         /* Se expande exactamente al ancho controlado por .container */
+      border-collapse: collapse;
+      font-size: 9pt;      /* Subido un punto para facilitar la lectura */
+      margin-bottom: 12px;
+    }
+    th, td {
+      border: 1px solid #777; /* Bordes ligeramente más nítidos */
+      padding: 4px 7px;    /* Un padding balanceado: compacto pero respira */
+      text-align: left;
+      line-height: 1.3;
+      white-space: nowrap; /* Mantiene montos y fechas en una sola línea */
+    }
+    
+    /* Encabezado Naranja con texto blanco para excelente legibilidad */
+    th { 
+      background: #e65100 !important; 
+      color: #111 !important; 
+      font-weight: 700 !important; 
+      font-size: 10pt !important; 
+    }
+    
+    /* Alineaciones del reporte */
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    
+    /* Resaltado del pie de tabla */
+    tfoot tr {
+      background-color: #f5f5f5;
+    }
+    tfoot td {
+      border-top: 2px solid #555;
+      font-size: 9.5pt;
+    }
+    
+.footer {
+       margin-top: auto;   /* Empuja el footer al final de la página */
+       font-size: 9pt;
+       color: #666;
+       text-align: right;
+       padding-top: 10px;
+     }
+     .domingo {
+       color: #dc3545 !important;
+       font-weight: 700 !important;
+     }
+   </style>
+</head>
+<body>
+  <div class="container">
+    <div class="print-header">
+      <img src="/ESCOLARES%20AZUL%20RIF%20GRANDE.png" class="print-logo" alt="Escolares logo" onerror="this.style.display='none'">
+      <div class="print-title-section">
+        <h1>Comparación Día a Día${filtroLabel}</h1>
+        <p class="meta-info">Reporte Gerencial Operativo</p>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>Anterior</th>
+          <th class="text-right">Anterior ($)</th>
+          <th>Actual</th>
+          <th class="text-right">Actual ($)</th>
+          <th class="text-right">Var. (%)</th>
+        </tr>
+      </thead>
+      <tbody>
+`;
+
+for (const r of comparacion) {
+   const esDomingoFila = r.dia === 'DOMINGO';
+   html += `
+         <tr>
+           <td class="${esDomingoFila ? 'domingo' : ''}"><strong>${r.dia}</strong></td>
+           <td>${this.formatFechaDisplay(r.fechaAnterior)}</td>
+           <td class="text-right">${r.anterior > 0 ? '$ ' + this.formatearMoneda(r.anterior) : '-'}</td>
+           <td>${this.formatFechaDisplay(r.fechaActual)}</td>
+           <td class="text-right">${r.actual > 0 ? '$ ' + this.formatearMoneda(r.actual) : '-'}</td>
+           <td class="text-right">${r.variacion > 0 ? '+' : ''}${r.variacion}%</td>
+         </tr>
+   `;
+ }
+
+html += `
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>TOTAL</strong></td>
+          <td></td>
+          <td class="text-right"><strong>${totalAnterior > 0 ? '$ ' + this.formatearMoneda(totalAnterior) : '-'}</strong></td>
+          <td></td>
+          <td class="text-right"><strong>$ ${this.formatearMoneda(totalActual)}</strong></td>
+          <td class="text-right"><strong>${variacion > 0 ? '+' : ''}${variacion}%</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="footer"><p>Fecha de impresión: ${this.formatFechaDisplay(new Date())}</p></div>
+  </div>
+<script>
+(function(){
+  function doPrint(){ try{ window.focus(); window.print(); }catch(e){} }
+  function whenImagesLoaded(cb){
+    var imgs = document.images, total = imgs.length; if(total === 0){ cb(); return; }
+    var count = 0; function check(){ if(++count >= total) cb(); }
+    for(var i=0;i<total;i++){ if(imgs[i].complete) check(); else { imgs[i].addEventListener('load', check); imgs[i].addEventListener('error', check); } }
+  }
+  whenImagesLoaded(function(){ setTimeout(doPrint, 120); });
+})();
+</script>
+</body>
+</html>
+`;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
+  }
 }
+

@@ -72,9 +72,43 @@
 
 .contact-form {
   text-align: center;
-  padding: 2rem;
+  padding: 5rem 2rem 2rem;
   background: #f8f9fa;
   border-radius: 12px;
+  position: relative;
+}
+
+.form-logo {
+  position: absolute;
+  top: 40px;
+  left: 30px;
+  width: 160px;
+  height: auto;
+}
+
+.whatsapp-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background-color: #25d366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.1);
+}
+
+.whatsapp-float img {
+  width: 36px;
+  height: 36px;
 }
 
 .contact-form h2 {

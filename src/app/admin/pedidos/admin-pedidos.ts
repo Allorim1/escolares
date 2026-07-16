@@ -130,7 +130,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
 
 private tienePermisosAdmin(user: any): boolean {
-     if (user.rol === 'root' || user.rol === 'owner' || user.isAdmin) {
+      if (user.rol === 'root' || user.isAdmin) {
        return true;
      }
     
@@ -656,12 +656,12 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
     this.http.get<any[]>('/api/users?role=repartidor').subscribe({
       next: (users) => {
         const repartidores = users.map(user => {
-          const deliveryPersonId = user._id || user.deliveryPersonId;
+          const deliveryPersonId = user.deliveryPersonId || user.id;
           return {
             id: deliveryPersonId,
             nombre: user.nombreCompleto || user.username,
             telefono: user.telefono,
-            activo: user.activo,
+            activo: user.activo !== undefined ? user.activo : true,
             createdAt: new Date(user.createdAt),
             updatedAt: new Date(user.updatedAt)
           };
@@ -681,7 +681,18 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
       ...this.deliveryPersons(),
       ...this.repartidorUsers()
     ];
-    return combined.filter(p => p.activo);
+
+    const seen = new Set<string>();
+
+    return combined.filter((person) => {
+      const key = person.id || person.nombre;
+      if (!person.activo || !key || seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
   }
 
   openAssignDeliveryModal() {
@@ -736,7 +747,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
   }
 
   openDeliveryPersonModal(personId: string) {
-    let person = this.getAvailableDeliveryPersons().find(p => p.id === personId);
+    const person = this.getAvailableDeliveryPersons().find(p => p.id === personId);
     if (person) {
       this.selectedDeliveryPerson.set(person);
       this.showDeliveryPersonModal.set(true);

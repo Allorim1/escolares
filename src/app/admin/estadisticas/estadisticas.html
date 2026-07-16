@@ -1,0 +1,94 @@
+<div class="estadisticas-container">
+  <h2>Estadísticas de Productos</h2>
+
+  <div *ngIf="loading()" class="loading">Cargando estadísticas...</div>
+
+  <div *ngIf="!loading() && resumen()" class="stats-content">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Productos</span>
+        <span class="stat-value">{{ formatNumber(resumen()!.totalProducts) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Pedidos</span>
+        <span class="stat-value">{{ formatNumber(resumen()!.totalOrders) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Pedidos Pendientes</span>
+        <span class="stat-value warning">{{ formatNumber(resumen()!.pendingOrders) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Pedidos Entregados</span>
+        <span class="stat-value success">{{ formatNumber(resumen()!.deliveredOrders) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Visualizaciones</span>
+        <span class="stat-value info">{{ formatNumber(resumen()!.totalViews) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Compras</span>
+        <span class="stat-value success">{{ formatNumber(resumen()!.totalPurchases) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Tasa de Conversión</span>
+        <span class="stat-value highlight">{{ resumen()!.conversionRate }}%</span>
+      </div>
+    </div>
+
+    <div class="rankings">
+      <div class="ranking-card">
+        <h3>Top 10 por Visualizaciones</h3>
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Visualizaciones</th>
+              <th>Compras</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of resumen()!.topByViews; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td class="product-name">
+                <img [src]="p.image" alt="{{ p.title }}" />
+                {{ p.title }}
+              </td>
+              <td>{{ p.price | number:'1.2-2' }}</td>
+              <td class="highlight">{{ formatNumber(p.views) }}</td>
+              <td>{{ formatNumber(p.purchases) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ranking-card">
+        <h3>Top 10 por Compras</h3>
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Visualizaciones</th>
+              <th>Compras</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of resumen()!.topByPurchases; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td class="product-name">
+                <img [src]="p.image" alt="{{ p.title }}" />
+                {{ p.title }}
+              </td>
+              <td>{{ p.price | number:'1.2-2' }}</td>
+              <td>{{ formatNumber(p.views) }}</td>
+              <td class="highlight">{{ formatNumber(p.purchases) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

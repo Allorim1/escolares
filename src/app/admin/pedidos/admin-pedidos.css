@@ -1069,3 +1069,38 @@
 .btn-view-dni:hover {
   background: #0056b3;
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .pedidos-header h2,
+[data-theme="dark"] .pedidos-filters,
+[data-theme="dark"] .filter-group label,
+[data-theme="dark"] .status-tab,
+[data-theme="dark"] .search-input,
+[data-theme="dark"] .pedidos-table th,
+[data-theme="dark"] .pedidos-table td,
+[data-theme="dark"] .pedido-card,
+[data-theme="dark"] .detalle-section,
+[data-theme="dark"] .cliente-info,
+[data-theme="dark"] .productos-section,
+[data-theme="dark"] .productos-section h4,
+[data-theme="dark"] .productos-list,
+[data-theme="dark"] .producto-item,
+[data-theme="dark"] .product-placeholder,
+[data-theme="dark"] .delivery-person-profile,
+[data-theme="dark"] .dni-image-container {
+  background: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .pedidos-header h2,
+[data-theme="dark"] .filter-group label,
+[data-theme="dark"] .pedidos-table th,
+[data-theme="dark"] .productos-section h4 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .pedidos-table th,
+[data-theme="dark"] .pedido-card,
+[data-theme="dark"] .producto-item {
+  border-color: var(--border-color) !important;
+}

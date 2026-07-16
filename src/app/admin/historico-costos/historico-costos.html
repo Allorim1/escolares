@@ -1,89 +1,354 @@
 <div class="historico-container">
-  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
-  <h2>Histórico de Costos</h2>
+  <h1>Histórico de Costos y Compras</h1>
 
-  <div class="filtro-section">
-    <input
-      type="text"
-      [(ngModel)]="filtroNombre"
-      placeholder="Buscar por producto, proveedor o ID..."
-      class="input-filtro"
-    />
+  <div class="tabs-container">
+    <div class="tabs-header">
+      <button class="tab-btn" [class.active]="activeTab() === 'registro'" (click)="setTab('registro')">Registro de Compras</button>
+      <button class="tab-btn" [class.active]="activeTab() === 'variacion'" (click)="setTab('variacion')">Variación de Precios</button>
+      <button class="tab-btn" [class.active]="activeTab() === 'comparativa'" (click)="setTab('comparativa')">Comparativa Proveedores</button>
+      <button class="tab-btn" [class.active]="activeTab() === 'alertas'" (click)="setTab('alertas')">Alertas</button>
+      <button class="tab-btn" [class.active]="activeTab() === 'acuerdos'" (click)="setTab('acuerdos')">Acuerdos Comerciales</button>
+      <button class="tab-btn" [class.active]="activeTab() === 'rotacion'" (click)="setTab('rotacion')">Rotación</button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading"><span class="spinner"></span> Cargando...</div>
+    } @else {
+
+      <!-- TAB: Registro de Compras -->
+      <div class="tab-content" [class.hidden]="activeTab() !== 'registro'">
+        <div class="tab-toolbar">
+          <div class="filters">
+            <input type="text" [ngModel]="filtroProveedor()" (ngModelChange)="filtroProveedor.set($event)" placeholder="Filtrar por proveedor..." (input)="loadCompras()">
+            <input type="date" [ngModel]="filtroFecha()" (ngModelChange)="filtroFecha.set($event)" (change)="loadCompras()">
+          </div>
+          <button class="btn-primary" (click)="openCompraModal()" (keydown.enter)="openCompraModal()" tabindex="0">+ Nueva Compra</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Proveedor</th>
+                <th>Fecha</th>
+                <th>Items</th>
+                <th>Subtotal</th>
+                <th>IVA</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (compra of comprasFiltradas(); track trackByCompraId($index, compra)) {
+                <tr>
+                  <td>{{ compra.numero }}</td>
+                  <td>{{ compra.proveedor }}</td>
+                  <td>{{ formatFecha(compra.fecha) }}</td>
+                  <td>{{ compra.items.length }}</td>
+                  <td>{{ formatMoneda(compra.subtotal) }}</td>
+                  <td>{{ formatMoneda(compra.iva) }}</td>
+                  <td class="text-primary">{{ formatMoneda(compra.total) }}</td>
+                  <td>
+                    <span class="badge" [class.badge-pendiente]="compra.estado === 'pendiente'" [class.badge-completada]="compra.estado === 'completada'" [class.badge-cancelada]="compra.estado === 'cancelada'">
+                      {{ compra.estado }}
+                    </span>
+                  </td>
+                  <td class="actions">
+                    <button class="btn-sm btn-primary" (click)="openCompraModal(compra)" (keydown.enter)="openCompraModal(compra)" tabindex="0">Editar</button>
+                    <button class="btn-sm btn-danger" (click)="deleteCompra(compra._id || '')" (keydown.enter)="deleteCompra(compra._id || '')" tabindex="0">Eliminar</button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="9" class="empty">No hay compras registradas</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: Variación de Precios -->
+      <div class="tab-content" [class.hidden]="activeTab() !== 'variacion'">
+        <div class="search-bar">
+          <input type="number" [ngModel]="busquedaProducto()" (ngModelChange)="busquedaProducto.set($event)" placeholder="ID de producto">
+          <button class="btn-primary" (click)="buscarVariaciones()" (keydown.enter)="buscarVariaciones()" [disabled]="buscarLoading()" tabindex="0">Buscar</button>
+        </div>
+        @if (buscarLoading()) {
+          <div class="loading"><span class="spinner"></span> Cargando...</div>
+        } @else {
+          @for (v of variaciones(); track v.productoId) {
+            <div class="card">
+              <h3>{{ v.nombreProducto }} (ID: {{ v.productoId }})</h3>
+              <div class="cost-breakdown">
+                <div class="cost-item"><span>Precio Lista:</span> <b>{{ formatMoneda(v.precioLista) }}</b></div>
+                <div class="cost-item"><span>Flete:</span> <b>{{ formatMoneda(v.flete) }}</b></div>
+                <div class="cost-item"><span>Seguro:</span> <b>{{ formatMoneda(v.seguro) }}</b></div>
+                <div class="cost-item"><span>Aduana:</span> <b>{{ formatMoneda(v.aduana) }}</b></div>
+                <div class="cost-item total"><span>Costo Total:</span> <b>{{ formatMoneda(v.costoTotal) }}</b></div>
+              </div>
+              <p class="best-cost">Mejor costo histórico: {{ v.mejorCosto.proveedor }} - {{ formatMoneda(v.mejorCosto.costo) }} ({{ formatFecha(v.mejorCosto.fecha) }})</p>
+              <table class="modern-table mini">
+                <thead><tr><th>Proveedor</th><th>Costo</th><th>Fecha</th></tr></thead>
+                <tbody>
+                  @for (h of v.historico; track h.proveedor) {
+                    <tr><td>{{ h.proveedor }}</td><td>{{ formatMoneda(h.costo) }}</td><td>{{ formatFecha(h.fecha) }}</td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @empty {
+            <p class="empty-text">Busca un producto para ver su variación de precios</p>
+          }
+        }
+
+        @if (cppList().length > 0) {
+          <h3 class="section-title">Proveedores por Producto (CPP)</h3>
+          <div class="table-wrapper">
+            <table class="modern-table">
+              <thead><tr><th>Producto</th><th>Proveedor</th><th>Costo</th><th>Fecha</th></tr></thead>
+              <tbody>
+                @for (c of cppList(); track c.productoId + c.proveedorId) {
+                  <tr><td>{{ c.nombreProducto }}</td><td>{{ c.proveedor }}</td><td>{{ formatMoneda(c.costo) }}</td><td>{{ formatFecha(c.fecha) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- TAB: Comparativa Proveedores -->
+      <div class="tab-content" [class.hidden]="activeTab() !== 'comparativa'">
+        <h3 class="section-title">Comparativa de Proveedores</h3>
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr><th>Proveedor</th><th>Total Comprado</th><th>Precio Promedio</th><th>Última Compra</th><th>Artículos</th></tr>
+            </thead>
+            <tbody>
+              @for (c of comparativa(); track c.proveedorId) {
+                <tr><td>{{ c.proveedor }}</td><td>{{ formatMoneda(c.totalComprado) }}</td><td>{{ formatMoneda(c.precioPromedio) }}</td><td>{{ formatFecha(c.ultimaCompra) }}</td><td>{{ c.cantidadArticulos }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <h3 class="section-title">Inversión por Proveedor</h3>
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead><tr><th>Proveedor</th><th>Total Invertido</th><th>Compras</th><th>% del Total</th></tr></thead>
+            <tbody>
+              @for (inv of inversion(); track inv.proveedorId) {
+                <tr><td>{{ inv.proveedor }}</td><td>{{ formatMoneda(inv.totalInvertido) }}</td><td>{{ inv.cantidadCompras }}</td><td>{{ inv.porcentajeInversion.toFixed(2) }}%</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: Alertas -->
+      <div class="tab-content" [class.hidden]="activeTab() !== 'alertas'">
+        <h3 class="section-title">Alertas de Aumento de Precios (> 15%)</h3>
+        <div class="alerts-grid">
+          @for (a of alertas(); track trackByAlertaId($index, a)) {
+            <div class="alert-card" [class.revisada]="a.revisada">
+              <div class="alert-header">
+                <h4>{{ a.nombreProducto }}</h4>
+                <span class="badge" [class.badge-pendiente]="!a.revisada" [class.badge-completada]="a.revisada">{{ a.revisada ? 'Revisada' : 'Pendiente' }}</span>
+              </div>
+              <div class="alert-body">
+                <p><b>Proveedor anterior:</b> {{ a.proveedorAnterior }} - {{ formatMoneda(a.costoAnterior) }}</p>
+                <p><b>Proveedor nuevo:</b> {{ a.proveedorNuevo }} - {{ formatMoneda(a.costoNuevo) }}</p>
+                <p class="alert-increase"><b>Aumento:</b> {{ a.porcentajeAumento.toFixed(2) }}%</p>
+                <p class="alert-date"><b>Fecha:</b> {{ formatFecha(a.fecha) }}</p>
+              </div>
+               @if (!a.revisada) {
+                 <button class="btn-primary" (click)="revisarAlerta(a._id || '')" (keydown.enter)="revisarAlerta(a._id || '')" [disabled]="revisandoId() === a._id" tabindex="0">Marcar como Revisada</button>
+               }
+            </div>
+          } @empty {
+            <div class="empty-box">No hay alertas pendientes</div>
+          }
+        </div>
+      </div>
+
+      <!-- TAB: Acuerdos Comerciales -->
+      <div class="tab-content" [class.hidden]="activeTab() !== 'acuerdos'">
+        <div class="tab-toolbar">
+          <h3 class="section-title">Acuerdos Comerciales</h3>
+          <button class="btn-primary" (click)="openAcuerdoModal()" (keydown.enter)="openAcuerdoModal()" tabindex="0">+ Nuevo Acuerdo</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr><th>Proveedor</th><th>Tipo</th><th>Descripción</th><th>Descuento %</th><th>Monto Mín</th><th>Monto Máx</th><th>Vigencia</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+              @for (a of acuerdos(); track trackByAcuerdoId($index, a)) {
+                <tr>
+                  <td>{{ a.proveedor }}</td>
+                  <td class="text-uppercase">{{ a.tipo }}</td>
+                  <td>{{ a.descripcion }}</td>
+                  <td>{{ a.descuentoPorcentaje }}%</td>
+                  <td>{{ a.montoMinimo ? formatMoneda(a.montoMinimo) : '-' }}</td>
+                  <td>{{ a.montoMaximo ? formatMoneda(a.montoMaximo) : '-' }}</td>
+                  <td>{{ formatFecha(a.fechaInicio) }} - {{ formatFecha(a.fechaFin) }}</td>
+                  <td>
+                    <span class="badge" [class.badge-completada]="a.activo" [class.badge-cancelada]="!a.activo">{{ a.activo ? 'Activo' : 'Inactivo' }}</span>
+                  </td>
+                  <td class="actions">
+                    <button class="btn-sm btn-primary" (click)="openAcuerdoModal(a)" (keydown.enter)="openAcuerdoModal(a)" tabindex="0">Editar</button>
+                    <button class="btn-sm btn-danger" (click)="deleteAcuerdo(a._id || '')" (keydown.enter)="deleteAcuerdo(a._id || '')" tabindex="0">Eliminar</button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="9" class="empty">No hay acuerdos comerciales</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB: Rotación -->
+      <div class="tab-content" [class.hidden]="activeTab() !== 'rotacion'">
+        <h3 class="section-title">Rotación de Compras (últimos 30 días)</h3>
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead><tr><th>ID</th><th>Producto</th><th>Cantidad</th><th>Monto Total</th><th>Última Compra</th><th>Frecuencia</th></tr></thead>
+            <tbody>
+              @for (r of rotacion(); track r.productoId) {
+                <tr><td>{{ r.productoId }}</td><td>{{ r.nombreProducto }}</td><td>{{ r.cantidadComprada }}</td><td>{{ formatMoneda(r.montoTotal) }}</td><td>{{ formatFecha(r.ultimaCompra) }}</td><td>{{ r.frecuencia.toFixed(2) }}</td></tr>
+              } @empty {
+                <tr><td colspan="6" class="empty">No hay datos de rotación</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
   </div>
 
-  @if (loading()) {
-    <div class="loading">
-      <span class="spinner"></span> Cargando...
+  <!-- Modal: Compra -->
+  @if (showCompraModal()) {
+    <div class="modal-overlay" (click)="closeCompraModal()" (keydown.enter)="closeCompraModal()" tabindex="0" role="button" aria-label="Cerrar modal">
+      <div class="modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0">
+        <div class="modal-header">
+          <h2>{{ editingCompra ? 'Editar' : 'Nueva' }} Compra</h2>
+          <button class="btn-cerrar" type="button" (click)="closeCompraModal()" (keydown.enter)="closeCompraModal()" tabindex="0">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="compra-proveedor">Proveedor *</label>
+              <input id="compra-proveedor" type="text" [(ngModel)]="compraForm.proveedor" name="proveedor" required>
+            </div>
+            <div class="form-group">
+              <label for="compra-fecha">Fecha</label>
+              <input id="compra-fecha" type="date" [(ngModel)]="compraForm.fecha" name="fecha">
+            </div>
+            <div class="form-group">
+              <label for="compra-estado">Estado</label>
+              <select id="compra-estado" [(ngModel)]="compraForm.estado" name="estado">
+                <option value="pendiente">Pendiente</option>
+                <option value="completada">Completada</option>
+                <option value="cancelada">Cancelada</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label for="compra-notas">Notas</label>
+              <textarea id="compra-notas" [(ngModel)]="compraForm.notas" name="notas" rows="2"></textarea>
+            </div>
+          </div>
+
+          <div class="items-section">
+            <div class="items-header">
+              <h4>Items</h4>
+              <button type="button" class="btn-sm btn-primary" (click)="addCompraItem()" (keydown.enter)="addCompraItem()" tabindex="0">+ Agregar Item</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="modern-table mini">
+                <thead><tr><th>ID Producto</th><th>Nombre</th><th>Cantidad</th><th>Precio Unitario</th><th>Descuento</th><th>Subtotal</th><th></th></tr></thead>
+                <tbody>
+                  @for (item of compraItems(); track $index) {
+                    <tr>
+                      <td><input type="number" [value]="item.productoId" (input)="updateCompraItem($index, 'productoId', toNumber(inputValue($event)))"></td>
+                      <td><input type="text" [value]="item.nombreProducto" (input)="updateCompraItem($index, 'nombreProducto', inputValue($event))"></td>
+                      <td><input type="number" [value]="item.cantidad" (input)="updateCompraItem($index, 'cantidad', toNumber(inputValue($event)))"></td>
+                      <td><input type="number" [value]="item.precioUnitario" (input)="updateCompraItem($index, 'precioUnitario', toNumber(inputValue($event)))"></td>
+                      <td><input type="number" [value]="item.descuento" (input)="updateCompraItem($index, 'descuento', toNumber(inputValue($event)))"></td>
+                      <td class="text-primary">{{ formatMoneda(item.subtotal) }}</td>
+                       <td><button type="button" class="btn-sm btn-danger" (click)="removeCompraItem($index)" (keydown.enter)="removeCompraItem($index)" tabindex="0">✕</button></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" type="button" (click)="closeCompraModal()" (keydown.enter)="closeCompraModal()" tabindex="0">Cancelar</button>
+          <button class="btn-save" type="button" (click)="saveCompra()" (keydown.enter)="saveCompra()" [disabled]="savingCompra()" tabindex="0">Guardar</button>
+        </div>
+      </div>
     </div>
-  } @else if (productosFiltrados.length === 0) {
-    <div class="no-data">
-      <p>No hay productos en el histórico</p>
-    </div>
-  } @else {
-    <div class="table-section">
-      <table class="historico-table">
-        <thead>
-          <tr>
-            <th>ID Producto</th>
-            <th>Nombre Producto</th>
-            <th>Mejor Proveedor (Menor Costo)</th>
-            <th>Menor Costo ($)</th>
-            <th>Mayor Ganancia ($)</th>
-            <th>Mayor Ganancia (%)</th>
-            <th>Proveedores</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (producto of productosFiltrados; track producto.nombreProducto) {
-            <tr>
-              <td>{{ formatNumero(producto.idProducto) }}</td>
-              <td>{{ producto.nombreProducto }}</td>
-              <td class="mejor-proveedor">{{ producto.mejorProveedor }}</td>
-              <td class="costo-menor">${{ producto.menorCosto.toFixed(2) }}</td>
-              <td class="utilidad-mayor">${{ producto.mayorUtilidad.toFixed(2) }}</td>
-              <td>{{ producto.mayorUtilidadPorcentaje.toFixed(2) }}%</td>
-              <td>
-                <button class="view-btn" (click)="toggleRegistros(producto.nombreProducto)">
-                  {{ producto.registros.length }} proveedor(es)
-                </button>
-              </td>
-            </tr>
-            @if (productosExpandidos.has(producto.nombreProducto.toLowerCase())) {
-              <tr class="registros-row">
-                <td colspan="7">
-                  <div class="registros-detalle">
-                    <h4>Detalle de Proveedores - {{ producto.nombreProducto }}</h4>
-                    <table class="detalle-table">
-                      <thead>
-                        <tr>
-                          <th>Proveedor</th>
-                          <th>Costo</th>
-                          <th>Utilidad $</th>
-                          <th>Utilidad %</th>
-                          <th>PVP $</th>
-                          <th>Tasa</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        @for (registro of producto.registros; track $index) {
-                          <tr [class.best-cost]="registro.costo === producto.menorCosto" [class.best-utility]="registro.utilidad === producto.mayorUtilidad">
-                            <td>{{ registro.proveedor }} - #{{ formatNumero(registro.numeroReporte) }}</td>
-                            <td>${{ registro.costo.toFixed(2) }}</td>
-                            <td>${{ registro.utilidad.toFixed(2) }}</td>
-                            <td>{{ registro.utilidadPorcentaje.toFixed(2) }}%</td>
-                            <td>${{ registro.pvpDolar.toFixed(2) }}</td>
-                            <td>{{ registro.tasaPvp | uppercase }}</td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                </td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
+  }
+
+  <!-- Modal: Acuerdo Comercial -->
+  @if (showAcuerdoModal()) {
+    <div class="modal-overlay" (click)="closeAcuerdoModal()" (keydown.enter)="closeAcuerdoModal()" tabindex="0" role="button" aria-label="Cerrar modal">
+      <div class="modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="0">
+        <div class="modal-header">
+          <h2>{{ editingAcuerdo ? 'Editar' : 'Nuevo' }} Acuerdo Comercial</h2>
+          <button class="btn-cerrar" type="button" (click)="closeAcuerdoModal()" (keydown.enter)="closeAcuerdoModal()" tabindex="0">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="acuerdo-proveedor">Proveedor *</label>
+              <input id="acuerdo-proveedor" type="text" [(ngModel)]="acuerdoForm.proveedor" name="proveedor" required>
+            </div>
+            <div class="form-group">
+              <label for="acuerdo-tipo">Tipo</label>
+              <select id="acuerdo-tipo" [(ngModel)]="acuerdoForm.tipo" name="tipo">
+                <option value="volumen">Volumen</option>
+                <option value="temporada">Temporada</option>
+                <option value="anticipo">Anticipo</option>
+                <option value="anual">Anual</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label for="acuerdo-descripcion">Descripción *</label>
+              <input id="acuerdo-descripcion" type="text" [(ngModel)]="acuerdoForm.descripcion" name="descripcion">
+            </div>
+            <div class="form-group">
+              <label for="acuerdo-descuento">Descuento %</label>
+              <input id="acuerdo-descuento" type="number" [(ngModel)]="acuerdoForm.descuentoPorcentaje" name="descuento">
+            </div>
+            <div class="form-group">
+              <label for="acuerdo-monto-min">Monto Mínimo</label>
+              <input id="acuerdo-monto-min" type="number" [(ngModel)]="acuerdoForm.montoMinimo" name="montoMinimo">
+            </div>
+            <div class="form-group">
+              <label for="acuerdo-monto-max">Monto Máximo</label>
+              <input id="acuerdo-monto-max" type="number" [(ngModel)]="acuerdoForm.montoMaximo" name="montoMaximo">
+            </div>
+            <div class="form-group">
+              <label for="acuerdo-fecha-inicio">Fecha Inicio</label>
+              <input id="acuerdo-fecha-inicio" type="date" [(ngModel)]="acuerdoForm.fechaInicio" name="fechaInicio">
+            </div>
+            <div class="form-group">
+              <label for="acuerdo-fecha-fin">Fecha Fin</label>
+              <input id="acuerdo-fecha-fin" type="date" [(ngModel)]="acuerdoForm.fechaFin" name="fechaFin">
+            </div>
+            <div class="form-group">
+              <label for="acuerdo-activo">Activo</label>
+              <input id="acuerdo-activo" type="checkbox" [(ngModel)]="acuerdoForm.activo" name="activo">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" type="button" (click)="closeAcuerdoModal()" (keydown.enter)="closeAcuerdoModal()" tabindex="0">Cancelar</button>
+          <button class="btn-save" type="button" (click)="saveAcuerdo()" (keydown.enter)="saveAcuerdo()" [disabled]="savingAcuerdo()" tabindex="0">Guardar</button>
+        </div>
+      </div>
     </div>
   }
 </div>

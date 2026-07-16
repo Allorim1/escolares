@@ -47,7 +47,7 @@ export class Perfil implements OnInit {
   }
 
   tienePermisosAdmin(user: any): boolean {
-    if (user.rol === 'root' || user.rol === 'owner' || user.isAdmin) {
+    if (user.rol === 'root' || user.isAdmin) {
       return true;
     }
     

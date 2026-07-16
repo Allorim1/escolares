@@ -1,0 +1,215 @@
+<div class="abonos-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+  <div class="abonos-header">
+    <h1>Relación</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación</button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtro-group">
+      <label>Empresa:</label>
+      <select [ngModel]="filtros().empresa" (ngModelChange)="onEmpresaFilterChange($event)">
+        <option value="">Todas</option>
+        @for (empresa of empresas(); track empresa._id) {
+          <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Planta:</label>
+      <select [ngModel]="filtros().planta" (ngModelChange)="onPlantaFilterChange($event)" [disabled]="!filtros().empresa">
+        <option value="">Todas</option>
+        @for (planta of plantasFiltradas(); track planta) {
+          <option [value]="planta">{{ planta }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Desde:</label>
+      <input type="date" [ngModel]="filtros().fechaDesde" (ngModelChange)="onFechaDesdeChange($event)">
+    </div>
+    <div class="filtro-group">
+      <label>Hasta:</label>
+      <input type="date" [ngModel]="filtros().fechaHasta" (ngModelChange)="onFechaHastaChange($event)">
+    </div>
+    <div class="filtro-group">
+      <label>Reporte:</label>
+      <button class="btn-secondary" (click)="abrirModalColumnas()">📄 PDF</button>
+      <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="abonos-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Nombre</th>
+          <th>Empresa</th>
+          <th>Planta</th>
+          <th>Cédula</th>
+          <th>Teléfono</th>
+          <th>N. Fact</th>
+          <th>Monto Factura</th>
+          <th>IVA</th>
+          <th>Diferencia</th>
+          <th>Tasa</th>
+          <th>Divisa</th>
+          <th>Status</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (abono of abonosFiltrados(); track abono._id) {
+          <tr>
+            <td>{{ formatFecha(abono.fecha) }}</td>
+            <td>{{ abono.nombre }}</td>
+            <td>{{ abono.empresa || '-' }}</td>
+            <td><span class="planta-badge">{{ abono.planta }}</span></td>
+            <td>{{ abono.cedula }}</td>
+            <td>{{ abono.telefono }}</td>
+            <td>{{ abono.nFact }}</td>
+            <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+            <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
+            <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
+            <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
+            <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
+            <td>{{ abono.status }}</td>
+            <td class="actions">
+              <button class="btn-edit" (click)="abrirModal(abono)">Editar</button>
+              <button class="btn-delete" (click)="eliminarAbono(abono._id || '')">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="14" class="empty">No hay abonos registrados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editingAbono?._id ? 'Editar' : 'Nueva' }} Relación</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      </div>
+      <form (ngSubmit)="guardarAbono()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha *</label>
+            <input type="date" [(ngModel)]="editingAbono!.fecha" name="fecha" required enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="editingAbono!.nombre" name="nombre" required enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa *</label>
+            <select [(ngModel)]="editingAbono!.empresa" name="empresa" (ngModelChange)="onFormEmpresaChange()" required enterFocusNext>
+              <option value="">Seleccionar</option>
+              @for (empresa of empresas(); track empresa._id) {
+                <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Planta *</label>
+            <select [(ngModel)]="editingAbono!.planta" name="planta" [disabled]="!editingAbono?.empresa" required enterFocusNext>
+              <option value="">Seleccionar</option>
+              @for (planta of plantasFiltradas(); track planta) {
+                <option [value]="planta">{{ planta }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cédula</label>
+            <input type="text" [(ngModel)]="editingAbono!.cedula" name="cedula" enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="editingAbono!.telefono" name="telefono" enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>N. Fact *</label>
+            <input type="text" [(ngModel)]="editingAbono!.nFact" name="nFact" required enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Monto Factura</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.montoFactura)" (input)="actualizarMonto($event, 'montoFactura')" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IVA</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.iva)" (input)="actualizarMonto($event, 'iva')" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Diferencia</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.diferencia)" (input)="actualizarMonto($event, 'diferencia')" (focus)="onMontoFocus($event)" readonly enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tasa</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.tasa)" (input)="actualizarMonto($event, 'tasa')" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Divisa</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.divisa)" (input)="actualizarMonto($event, 'divisa')" (focus)="onMontoFocus($event)" readonly enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="editingAbono!.status" name="status" required enterFocusNext>
+              <option value="">Seleccionar</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Pagado">Pagado</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()" enterFocusNext>
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showModalColumnas()) {
+  <div class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2>Seleccionar Columnas para PDF</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalColumnas()">✕</button>
+      </div>
+      <div class="columnas-grid">
+        @for (col of columnasDisponibles; track col.key) {
+          <label class="checkbox-label">
+            <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionada(col.key)" (change)="toggleColumna(col.key)">
+            {{ col.label }}
+          </label>
+        }
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModalColumnas()">Cancelar</button>
+        <button type="button" class="btn-save" (click)="generarReportePdf()">Generar PDF</button>
+      </div>
+    </div>
+  </div>
+}

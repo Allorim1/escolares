@@ -30,7 +30,8 @@ export interface Product {
   estado?: 'disponible' | 'agotado';
   colorido?: boolean;
   colores?: Color[];
-  // stock removido según solicitud
+  views?: number;
+  purchases?: number;
 }
 
 export interface ProductItemCart {

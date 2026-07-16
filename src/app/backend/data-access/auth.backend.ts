@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
-import { User } from '../models';
+import { User, UserSession } from '../models';
 import { TokenRenewalService } from '../../shared/data-access/token-renewal.service';
 
 @Injectable({
@@ -43,7 +43,7 @@ export class AuthBackend {
         const user = JSON.parse(stored);
         this.currentUser.set(user);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(user.isAdmin || user.rol === 'owner' || user.rol === 'root' || user.rol === 'repartidor');
+        this.isAdmin.set(user.isAdmin || user.rol === 'root' || user.rol === 'admin' || user.rol === 'repartidor');
         // Start token renewal service if user is already logged in
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
@@ -90,7 +90,7 @@ export class AuthBackend {
       next: (response) => {
         this.currentUser.set(response);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(response.isAdmin || response.rol === 'owner' || response.rol === 'root' || response.rol === 'admin' || response.rol === 'repartidor');
+        this.isAdmin.set(response.isAdmin || response.rol === 'root' || response.rol === 'admin' || response.rol === 'repartidor');
         this.saveToStorage(response);
         if (response.accessToken) {
           this.saveToken(response.accessToken);
@@ -103,7 +103,7 @@ export class AuthBackend {
         this.loginLoading.set(false);
         if (response.rol === 'repartidor') {
           this.router.navigate(['/repartidor']);
-        } else if (response.isAdmin || response.rol === 'owner' || response.rol === 'root') {
+        } else if (response.isAdmin || response.rol === 'root') {
           this.router.navigate(['/admin/inicio']);
         } else {
           this.router.navigate(['/panel/perfil']);
@@ -168,8 +168,44 @@ export class AuthBackend {
     }
   }
 
-  updateUserRol(targetUserId: string, rol: 'owner' | 'usuario' | 'repartidor', rolId?: string) {
+  updateUserRol(targetUserId: string, rol: 'usuario' | 'repartidor', rolId?: string) {
     return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
+  }
+
+  getAllSessions() {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.get<UserSession[]>(`${this.API_URL}/sessions`, { headers });
+  }
+
+  getMySessions() {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.get<UserSession[]>(`${this.API_URL}/sessions/mine`, { headers });
+  }
+
+  terminateSession(sessionId: string) {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.delete(`${this.API_URL}/sessions/${sessionId}`, { headers });
+  }
+
+  terminateAllUserSessions(userId: string) {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.delete(`${this.API_URL}/sessions/user/${userId}`, { headers });
   }
 
   private saveToStorage(user: User) {

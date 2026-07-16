@@ -25,7 +25,7 @@ async loadApi(): Promise<void> {
      
      return new Promise((resolve, reject) => {
        const script = document.createElement('script');
-       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,directions,marker`;
+       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
        script.async = true;
        script.defer = true;
        script.onload = () => {
@@ -80,7 +80,21 @@ autocomplete(input: string): Promise<any[]> {
      });
    }
 
-   createLatLngBounds(): any {
-     return new (window as any).google.maps.LatLngBounds();
-   }
- }
+    reverseGeocode(lat: number, lng: number): Promise<google.maps.GeocoderResult> {
+      const geocoder = new google.maps.Geocoder();
+      const latlng = new google.maps.LatLng(lat, lng);
+      return new Promise((resolve, reject) => {
+        geocoder.geocode({ location: latlng }, (results: google.maps.GeocoderResult[] | null, status: string) => {
+          if (status === 'OK' && results && results[0]) {
+            resolve(results[0]);
+          } else {
+            reject(new Error(`Reverse geocode failed: ${status}`));
+          }
+        });
+      });
+    }
+
+    createLatLngBounds(): any {
+      return new (window as any).google.maps.LatLngBounds();
+    }
+  }

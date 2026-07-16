@@ -1,0 +1,120 @@
+<div class="asistencias-container">
+  <div class="asistencias-header">
+    <h1>Control de Asistencias</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Nueva Asistencia</button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtro-group">
+      <label>Empleado:</label>
+      <select [(ngModel)]="filtroEmpleadoId">
+        <option value="">Todos</option>
+        @for (emp of empleados(); track emp.id) {
+            <option [value]="emp.id">{{ emp.nombreCompleto || emp.username }}</option>
+          }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Fecha:</label>
+      <input type="date" [(ngModel)]="filtroFecha">
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <div class="resumen">
+      <div class="resumen-card">
+        <span class="label">Total Registros:</span>
+        <span class="value">{{ getTotalAsistencias() }}</span>
+      </div>
+      <div class="resumen-card">
+        <span class="label">Asistieron Hoy:</span>
+        <span class="value">{{ empleadosConAsistenciaHoy.length }}</span>
+      </div>
+    </div>
+
+    <div class="tabla-container">
+      <table class="asistencias-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Empleado</th>
+            <th>Tipo</th>
+            <th>Justificación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (asistencia of asistenciasFiltradas; track asistencia._id) {
+            <tr>
+              <td>{{ formatFecha(asistencia.fecha) }}</td>
+              <td>{{ formatHora(asistencia.hora || '') }}</td>
+              <td>{{ getNombreEmpleado(asistencia.empleadoId) }}</td>
+              <td>
+                <span class="tipo-badge" [class.entrada]="asistencia.tipo === 'entrada'" [class.salida]="asistencia.tipo === 'salida'">
+                  {{ asistencia.tipo }}
+                </span>
+              </td>
+              <td>{{ asistencia.justificacion || '-' }}</td>
+              <td class="actions">
+                <button class="btn-edit" (click)="abrirModal(asistencia)">Editar</button>
+                <button class="btn-delete" (click)="eliminarAsistencia(asistencia._id)">Eliminar</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty">No hay registros de asistencia</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editingAsistencia?._id ? 'Editar' : 'Nueva' }} Asistencia</h2>
+      <form (ngSubmit)="guardarAsistencia()">
+        <div class="form-group">
+          <label>Empleado *</label>
+          <select [(ngModel)]="editingAsistencia!.empleadoId" name="empleadoId" required>
+            <option value="">Seleccionar</option>
+            @for (emp of empleados(); track emp.id) {
+              <option [value]="emp.id">{{ emp.nombreCompleto || emp.username }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select [(ngModel)]="editingAsistencia!.tipo" name="tipo" required>
+            @for (tipo of tiposAsistencia; track tipo) {
+              <option [value]="tipo">{{ tipo }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" [ngModel]="formatFechaInput(editingAsistencia?.fecha)" (ngModelChange)="editingAsistencia!.fecha = $event" name="fecha" required>
+        </div>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" [(ngModel)]="editingAsistencia!.hora" name="hora">
+        </div>
+        <div class="form-group">
+          <label>Justificación</label>
+          <textarea [(ngModel)]="editingAsistencia!.justificacion" name="justificacion" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

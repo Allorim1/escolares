@@ -13,6 +13,23 @@
       lng: number;
     }
 
+    class LatLng {
+      constructor(lat: number, lng: number);
+      lat(): number;
+      lng(): number;
+    }
+
+    interface GeocoderResult {
+      address_components: {
+        types: string[];
+        long_name: string;
+        short_name: string;
+      }[];
+      formatted_address: string;
+    }
+
+    type GeocoderStatus = 'OK' | 'ZERO_RESULTS' | 'ERROR';
+
     interface MarkerOptions {
       position?: LatLngLiteral;
       map?: Map;
@@ -78,6 +95,14 @@
 
     class DirectionsService {
       route(request: DirectionsRequest, callback: (result: DirectionsResult, status: string) => void): void;
+    }
+
+    class Geocoder {
+      geocode(request: { location: LatLng }, callback: (results: GeocoderResult[] | null, status: string) => void): void;
+    }
+
+    class MapMouseEvent {
+      latLng: LatLng | null;
     }
 
     interface DirectionsRequest {

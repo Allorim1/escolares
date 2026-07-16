@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProductoCategoriasBackend, ProductoCategoria } from '../../backend/data-access/producto-categorias.backend';
+import { ProductoCategoriasBackend, ProductoCategoria, ProductsResponse } from '../../backend/data-access/producto-categorias.backend';
 import { NotificationService } from '../../shared/data-access/notification.service';
 
 @Component({
@@ -17,9 +17,13 @@ export class AdminProductoCategorias implements OnInit {
 
   categorias = signal<ProductoCategoria[]>([]);
   loading = signal(true);
+  loadingProducts = signal(false);
   showModal = signal(false);
+  showProductsModal = signal(false);
   editingCategoria = signal<ProductoCategoria | null>(null);
-  
+  selectedCategoria = signal<ProductoCategoria | null>(null);
+  categoriaProducts = signal<any[]>([]);
+   
   formNombre = '';
   formDescripcion = '';
   formImagen = '';
@@ -67,6 +71,37 @@ export class AdminProductoCategorias implements OnInit {
   closeModal() {
     this.showModal.set(false);
     this.editingCategoria.set(null);
+  }
+
+  openProductsModal(categoria: ProductoCategoria) {
+    this.selectedCategoria.set(categoria);
+    this.categoriaProducts.set([]);
+    this.showProductsModal.set(true);
+    this.loadProductsForCategoria(categoria.nombre);
+  }
+
+  closeProductsModal() {
+    this.showProductsModal.set(false);
+    this.selectedCategoria.set(null);
+    this.categoriaProducts.set([]);
+  }
+
+  loadProductsForCategoria(nombreCategoria: string) {
+    this.loadingProducts.set(true);
+    this.backend.getProductsByCategory(nombreCategoria).subscribe({
+      next: (response) => {
+        this.categoriaProducts.set(response?.products || []);
+        this.loadingProducts.set(false);
+      },
+      error: () => {
+        this.categoriaProducts.set([]);
+        this.loadingProducts.set(false);
+      }
+    });
+  }
+
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'USD' }).format(price || 0);
   }
 
   onImagenError() {

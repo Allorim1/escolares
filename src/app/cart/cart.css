@@ -1983,3 +1983,30 @@
     font-size: 1rem;
   }
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .cart-container,
+[data-theme="dark"] .floating-summary,
+[data-theme="dark"] .cart-summary,
+[data-theme="dark"] .delivery-type-selector,
+[data-theme="dark"] .delivery-type-content,
+[data-theme="dark"] .checkout-form-container,
+[data-theme="dark"] .saved-for-later-section,
+[data-theme="dark"] .saved-item-card,
+[data-theme="dark"] .cart-item-card,
+[data-theme="dark"] .checkout-confirmation {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .cart-container h2,
+[data-theme="dark"] .cart-title,
+[data-theme="dark"] .floating-summary-content h4,
+[data-theme="dark"] .cart-item-title,
+[data-theme="dark"] .saved-item-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .summary-row,
+[data-theme="dark"] .floating-summary-row {
+  border-color: var(--border-color) !important;
+}

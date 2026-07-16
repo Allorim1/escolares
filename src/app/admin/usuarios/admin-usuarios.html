@@ -66,7 +66,7 @@
 </section>
 
 @if (showCreateModal()) {
-  <div class="modal-overlay" (click)="closeCreateUser()">
+  <div class="modal-overlay">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Crear Nuevo Usuario</h3>
@@ -74,57 +74,62 @@
       </div>
 
       <div class="modal-body">
-<div class="form-section">
-           <div class="form-section-title">Información de Acceso</div>
-           <div class="form-grid">
-             <div class="form-group">
-               <label>Usuario *</label>
-               <input type="text" [(ngModel)]="newUser.username" placeholder="Nombre de usuario" />
-             </div>
-             <div class="form-group">
+        <div class="form-section">
+          <div class="form-section-title">Información de Acceso</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Usuario *</label>
+              <input type="text" [(ngModel)]="newUser.username" placeholder="Nombre de usuario" enterFocusNext />
+            </div>
+<div class="form-group password-group">
                <label>Contraseña *</label>
-               <input type="password" [(ngModel)]="newUser.password" placeholder="Contraseña" />
+               <div class="password-input-container">
+                 <input [type]="showPassword() ? 'text' : 'password'" [(ngModel)]="newUser.password" placeholder="Contraseña" enterFocusNext />
+                 <button type="button" class="toggle-password" (click)="showPassword.set(!showPassword())" tabindex="-1" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                   <svg *ngIf="!showPassword()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                     <circle cx="12" cy="12" r="3"></circle>
+                   </svg>
+                   <svg *ngIf="showPassword()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                     <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"></path>
+                     <line x1="1" y1="1" x2="23" y2="23"></line>
+                   </svg>
+                 </button>
+               </div>
              </div>
-             <div class="form-group">
-               <label>Email *</label>
-               <input type="email" [(ngModel)]="newUser.email" placeholder="correo@ejemplo.com" />
-             </div>
-<div class="form-group">
-                <label>Rol</label>
-                <select [(ngModel)]="newUser.rol" (change)="newUser.rolId = undefined">
-                  <option value="usuario">Usuario</option>
-                  <option value="owner">Owner</option>
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" [(ngModel)]="newUser.email" placeholder="correo@ejemplo.com" enterFocusNext />
+            </div>
+            @if (roles().length > 0) {
+              <div class="form-group">
+                <label>Seleccionar Rol Específico</label>
+                <select [(ngModel)]="newUser.rolId" enterFocusNext>
+                  <option value="">-- Seleccionar rol --</option>
+                  @for (rol of roles(); track rol.id) {
+                    <option [value]="rol.id">{{ rol.nombre }}</option>
+                  }
                 </select>
               </div>
-              @if (newUser.rol === 'usuario' && roles().length > 0) {
-                <div class="form-group">
-                  <label>Seleccionar Rol Específico</label>
-                  <select [(ngModel)]="newUser.rolId">
-                    <option value="">-- Seleccionar rol --</option>
-                    @for (rol of roles(); track rol.id) {
-                      <option [value]="rol.id">{{ rol.nombre }}</option>
-                    }
-                  </select>
-                </div>
-              }
-           </div>
-         </div>
+            }
+          </div>
+        </div>
 
         <div class="form-section">
           <div class="form-section-title">Datos Personales</div>
           <div class="form-grid">
             <div class="form-group">
               <label>Nombre</label>
-              <input type="text" [(ngModel)]="newUser.nombreCompleto" placeholder="Nombre completo" />
+              <input type="text" [(ngModel)]="newUser.nombreCompleto" placeholder="Nombre completo" enterFocusNext />
             </div>
             <div class="form-group">
               <label>Apellido</label>
-              <input type="text" [(ngModel)]="newUser.apellido" placeholder="Apellido" />
+              <input type="text" [(ngModel)]="newUser.apellido" placeholder="Apellido" enterFocusNext />
             </div>
 
             <div class="form-group">
               <label for="tipoDocumento">Tipo de Documento</label>
-              <select id="tipoDocumento" [(ngModel)]="newUser.tipoDocumento">
+              <select id="tipoDocumento" [(ngModel)]="newUser.tipoDocumento" enterFocusNext>
                 <option value="cedula">Cédula</option>
                 <option value="rif">RIF</option>
                 <option value="rif_personal_natural">RIF Personal Natural</option>
@@ -160,6 +165,7 @@
                 type="text"
                 id="numeroDocumento"
                 [(ngModel)]="newUser.numeroDocumento"
+                enterFocusNext
                 [placeholder]="
                   newUser.tipoDocumento === 'rif' ? 'J-12345678-9' :
                   newUser.tipoDocumento === 'cedula' ? '12345678' :
@@ -177,7 +183,7 @@
 
             <div class="form-group">
               <label for="genero">Género</label>
-              <select id="genero" [(ngModel)]="newUser.genero">
+              <select id="genero" [(ngModel)]="newUser.genero" enterFocusNext>
                 <option value="no_especificado">No especificado</option>
                 <option value="hombre">Hombre</option>
                 <option value="mujer">Mujer</option>
@@ -186,7 +192,7 @@
 
             <div class="form-group">
               <label>Teléfono</label>
-              <input type="text" [(ngModel)]="newUser.telefono" placeholder="Número de teléfono" />
+              <input type="text" [(ngModel)]="newUser.telefono" placeholder="Número de teléfono" enterFocusNext />
             </div>
           </div>
         </div>
@@ -205,29 +211,30 @@
               <input
                 type="text"
                 [(ngModel)]="newUser.direccion"
+                enterFocusNext
                 [placeholder]="newUser.tipoDocumento === 'rif' || newUser.tipoDocumento === 'rif_personal_natural' || newUser.tipoDocumento === 'rif_v' || newUser.tipoDocumento === 'rif_e' ? 'Dirección fiscal del negocio' : 'Dirección'"
               />
             </div>
 
             <div class="form-group full-width">
               <label>Comentarios</label>
-              <textarea [(ngModel)]="newUser.comentarios" rows="2" placeholder="Comentarios"></textarea>
+              <textarea [(ngModel)]="newUser.comentarios" rows="2" placeholder="Comentarios" enterFocusNext></textarea>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeCreateUser()">Cancelar</button>
-        <button class="btn-primary" (click)="createUser()">Crear Usuario</button>
-      </div>
+<div class="modal-footer">
+         <button class="btn-secondary" (click)="closeCreateUser()">Cancelar</button>
+         <button class="btn-primary" (click)="createUser()" enterFocusPrev>Crear Usuario</button>
+       </div>
     </div>
   </div>
 }
 
 @if (selectedUser()) {
-  <div class="modal-overlay" (click)="closeUserDetails()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+   <div class="modal-overlay">
+     <div class="modal-content modal-large" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Detalles del Usuario</h3>
         <button class="close-btn" (click)="closeUserDetails()">&times;</button>
@@ -245,95 +252,114 @@
             <div class="form-grid">
               <div class="form-group">
                 <label>Usuario</label>
-                <input type="text" [(ngModel)]="editingUser()!.username" />
+                <input type="text" [(ngModel)]="editingUser()!.username" enterFocusNext />
               </div>
               <div class="form-group">
                 <label>Email</label>
-                <input type="email" [(ngModel)]="editingUser()!.email" />
+                <input type="email" [(ngModel)]="editingUser()!.email" enterFocusNext />
               </div>
               <div class="form-group">
                 <label>Nombre Completo</label>
-                <input type="text" [(ngModel)]="editingUser()!.nombreCompleto" />
+                <input type="text" [(ngModel)]="editingUser()!.nombreCompleto" enterFocusNext />
               </div>
               <div class="form-group">
                 <label>Teléfono</label>
-                <input type="text" [(ngModel)]="editingUser()!.telefono" />
+                <input type="text" [(ngModel)]="editingUser()!.telefono" enterFocusNext />
               </div>
               <div class="form-group full-width">
                 <label>Dirección</label>
-                <input type="text" [(ngModel)]="editingUser()!.direccion" />
+                <input type="text" [(ngModel)]="editingUser()!.direccion" enterFocusNext />
               </div>
               <div class="form-group full-width">
                 <label>Comentarios</label>
-                <textarea [(ngModel)]="editingUser()!.comentarios" rows="3"></textarea>
+                <textarea [(ngModel)]="editingUser()!.comentarios" rows="3" enterFocusNext></textarea>
               </div>
             </div>
           }
         }
 
-@if (userDetailsTab() === 'rol') {
-            <div class="rol-info">
-              <div class="form-group">
-                <label>Seleccionar Rol</label>
-                <select class="rol-select" [(ngModel)]="selectedUserRolData">
-                  <option value="usuario">Usuario</option>
-                  <option value="owner">Owner</option>
-                  @for (rol of roles(); track rol.id) {
-                    <option [value]="'usuario:' + rol.id">{{ rol.nombre }}</option>
-                  }
-                </select>
-              </div>
-              
-              @if (getSelectedRolFromId(); as selectedRol) {
-                <div class="rol-permisos-section">
-                  <div class="rol-permisos-header">
-                    <h4>Permisos del Rol: {{ selectedRol.nombre }}</h4>
-                    <button class="btn-edit-permisos" (click)="openEditPermisos(selectedRol)">Editar Permisos</button>
-                  </div>
-                  <div class="permisos-list">
-                    @if (getPermisosDelRol().length === 0) {
-                      <p class="no-permisos">Este rol no tiene permisos asignados</p>
-                    } @else {
-                      @for (permiso of getPermisosDelRol(); track permiso.id) {
-                        <div class="permiso-item">
-                          <span class="permiso-nombre">{{ permiso.nombre }}</span>
-                          <span class="permiso-modulo">{{ permiso.modulo }}</span>
-                        </div>
-                      }
-                    }
-                  </div>
-                  <p class="permisos-count">{{ getPermisosCount() }} permisos asignados</p>
-                </div>
-              }
+        @if (userDetailsTab() === 'rol') {
+          <div class="rol-info">
+            <div class="form-group">
+              <label>Seleccionar Rol</label>
+              <select class="rol-select" [(ngModel)]="selectedUserRolData" enterFocusNext>
+                <option value="usuario">Usuario</option>
+                <option value="repartidor">Repartidor</option>
+                @for (rol of roles(); track rol.id) {
+                  <option [value]="'usuario:' + rol.id">{{ rol.nombre }}</option>
+                }
+              </select>
             </div>
-          }
+            
+            @if (getSelectedRolFromId(); as selectedRol) {
+              <div class="rol-permisos-section">
+                <div class="rol-permisos-header">
+                  <h4>Permisos del Rol: {{ selectedRol.nombre }}</h4>
+                  <button class="btn-edit-permisos" (click)="openEditPermisos(selectedRol)">Editar Permisos</button>
+                </div>
+                <div class="permisos-list">
+                  @if (getPermisosDelRol().length === 0) {
+                    <p class="no-permisos">Este rol no tiene permisos asignados</p>
+                  } @else {
+                    @for (permiso of getPermisosDelRol(); track permiso.id) {
+                      <div class="permiso-item">
+                        <span class="permiso-nombre">{{ permiso.nombre }}</span>
+                        <span class="permiso-modulo">{{ permiso.modulo }}</span>
+                      </div>
+                    }
+                  }
+                </div>
+                <p class="permisos-count">{{ getPermisosCount() }} permisos asignados</p>
+              </div>
+            }
+          </div>
+        }
 
 @if (userDetailsTab() === 'password') {
-           <div class="form-group">
+<div class="form-group">
+               <label>Rol *</label>
+                <select [(ngModel)]="newUser.rol" enterFocusNext>
+                  <option value="usuario">Usuario</option>
+                  <option value="repartidor">Repartidor</option>
+                </select>
+             </div>
+             <div class="form-group password-group">
              <label>Nueva Contraseña</label>
-             <input type="password" [(ngModel)]="newPassword" placeholder="Ingrese nueva contraseña" />
+             <div class="password-input-container">
+               <input [type]="showPasswordChange() ? 'text' : 'password'" [(ngModel)]="newPassword" placeholder="Ingrese nueva contraseña" enterFocusNext />
+               <button type="button" class="toggle-password" (click)="showPasswordChange.set(!showPasswordChange())" tabindex="-1" [attr.aria-label]="showPasswordChange() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                 <svg *ngIf="!showPasswordChange()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                   <circle cx="12" cy="12" r="3"></circle>
+                 </svg>
+                 <svg *ngIf="showPasswordChange()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                   <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"></path>
+                   <line x1="1" y1="1" x2="23" y2="23"></line>
+                 </svg>
+               </button>
+             </div>
            </div>
          }
-       </div>
+      </div>
 
-       <div class="modal-footer">
+<div class="modal-footer">
          @if (userDetailsTab() === 'info') {
-           <button class="btn-danger" (click)="confirmDeleteUserFromDetails()">Eliminar</button>
-           <button class="btn-primary" (click)="saveUserDetails()">Guardar</button>
+           <button class="btn-danger" (click)="confirmDeleteUserFromDetails()" enterFocusPrev>Eliminar</button>
+           <button class="btn-primary" (click)="saveUserDetails()" enterFocusPrev>Guardar</button>
          }
          @if (userDetailsTab() === 'rol') {
-           <button class="btn-primary" (click)="saveUserRoleFromDetails()">Guardar Rol</button>
+           <button class="btn-primary" (click)="saveUserRoleFromDetails()" enterFocusPrev>Guardar Rol</button>
          }
          @if (userDetailsTab() === 'password') {
-           <button class="btn-primary" (click)="changePasswordFromDetails()">Cambiar Contraseña</button>
+           <button class="btn-primary" (click)="changePasswordFromDetails()" enterFocusPrev>Cambiar Contraseña</button>
          }
        </div>
-     </div>
-   </div>
- }
+    </div>
+  </div>
+}
 
- @if (editRolPermisosState().show && editRolPermisosState().rol) {
-   <div class="modal-overlay" (click)="closeEditPermisos()">
+@if (editRolPermisosState().show && editRolPermisosState().rol) {
+   <div class="modal-overlay">
      <div class="modal-content" (click)="$event.stopPropagation()">
        <div class="modal-header">
          <h3>Editar Permisos: {{ editRolPermisosState().rol?.nombre }}</h3>
@@ -345,13 +371,14 @@
            @for (modulo of getModulos(); track modulo) {
              <div class="modulo-section">
                <h5>{{ modulo }}</h5>
-<div class="permisos-checkboxes">
-                  @for (permiso of getPermisosPorModulo(modulo); track permiso.id) {
+               <div class="permisos-checkboxes">
+                 @for (permiso of getPermisosPorModulo(modulo); track permiso.id) {
                    <label class="permiso-checkbox">
                      <input 
                        type="checkbox" 
                        [checked]="isPermisoSelected(permiso.id)"
                        (change)="togglePermiso(permiso.id)"
+                       enterFocusNext
                      />
                      <span>{{ permiso.nombre }}</span>
                    </label>
@@ -363,8 +390,8 @@
        </div>
        
        <div class="modal-footer">
-         <button class="btn-secondary" (click)="closeEditPermisos()">Cancelar</button>
-         <button class="btn-primary" (click)="saveRolPermisos()">Guardar Permisos</button>
+         <button class="btn-secondary" (click)="closeEditPermisos()" enterFocusPrev>Cancelar</button>
+         <button class="btn-primary" (click)="saveRolPermisos()" enterFocusPrev>Guardar Permisos</button>
        </div>
      </div>
    </div>

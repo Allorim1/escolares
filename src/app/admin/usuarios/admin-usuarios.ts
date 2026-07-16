@@ -7,6 +7,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 import { User } from '../../backend/models';
 import { RolesBackend, Rol, Permiso } from '../../backend/data-access/roles.backend';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 interface UserWithRol extends User {
   rolName?: string;
@@ -24,7 +25,7 @@ interface NewUser {
    tipoDocumento: 'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e';
    numeroDocumento: string;
    genero: 'hombre' | 'mujer' | 'no_especificado';
-   rol: 'owner' | 'usuario' | 'repartidor';
+    rol: 'usuario' | 'repartidor';
    rolId?: string;
  }
 
@@ -37,7 +38,7 @@ interface EditRolPermisosState {
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
   templateUrl: './admin-usuarios.html',
   styleUrl: './admin-usuarios.css',
 })
@@ -64,7 +65,7 @@ export class AdminUsuarios implements OnInit {
 
     if (tipo === 'admin') {
       resultado = resultado.filter(u => {
-        if (u.rol === 'root' || u.rol === 'owner') return true;
+        if (u.rol === 'root') return true;
         if (u.rolId) {
           const rol = this.roles().find(r => r.id === u.rolId);
           if (rol && rol.permisos && rol.permisos.length > 0) return true;
@@ -73,7 +74,7 @@ export class AdminUsuarios implements OnInit {
       });
     } else if (tipo === 'comun') {
       resultado = resultado.filter(u => {
-        if (u.rol === 'root' || u.rol === 'owner') return false;
+        if (u.rol === 'root') return false;
         if (!u.rolId) return true;
         const rol = this.roles().find(r => r.id === u.rolId);
         if (!rol || !rol.permisos || rol.permisos.length === 0) return true;
@@ -110,6 +111,7 @@ export class AdminUsuarios implements OnInit {
   newComentario = '';
   
   showCreateModal = signal(false);
+  showPassword = signal(false);
   newUser: NewUser = {
     username: '',
     email: '',
@@ -126,9 +128,10 @@ export class AdminUsuarios implements OnInit {
     rolId: undefined
   };
 
-  userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
-  selectedUserRolData = '';
-  newPassword = '';
+userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
+   selectedUserRolData = '';
+   newPassword = '';
+   showPasswordChange = signal(false);
   
   editRolPermisosState = signal<EditRolPermisosState>({
     show: false,
@@ -198,24 +201,22 @@ export class AdminUsuarios implements OnInit {
     return this.getRolLabel(user.rol);
   }
 
-  esOwner(): boolean {
-    return this.authService.user()?.rol === 'owner' || this.authService.user()?.rol === 'root';
-  }
+   esOwner(): boolean {
+     return this.authService.user()?.rol === 'root';
+   }
 
-  esRoot(): boolean {
-    return this.authService.user()?.rol === 'root';
-  }
+   esRoot(): boolean {
+     return this.authService.user()?.rol === 'root';
+   }
 
-  esAdmin(): boolean {
-    return this.esOwner();
-  }
+   esAdmin(): boolean {
+     return this.esRoot();
+   }
 
   getRolLabel(rol?: string): string {
     switch (rol) {
       case 'root':
         return 'Root';
-      case 'owner':
-        return 'Owner';
       case 'repartidor':
         return 'Repartidor';
       case 'usuario':
@@ -237,6 +238,7 @@ export class AdminUsuarios implements OnInit {
     this.selectedUser.set(null);
     this.editingUser.set(null);
     this.userDetailsTab.set('info');
+    this.showPasswordChange.set(false);
   }
 
   getSelectedRolFromId(): Rol | undefined {
@@ -327,7 +329,7 @@ export class AdminUsuarios implements OnInit {
     if (!user) return;
 
     const rolParts = this.selectedUserRolData.split(':');
-    const rol = rolParts[0] as 'owner' | 'usuario' | 'repartidor';
+    const rol = rolParts[0] as 'usuario' | 'repartidor';
     const rolId = rolParts[1] || undefined;
 
     this.authService.updateUserRol(user.id, rol, rolId).subscribe({
@@ -463,7 +465,6 @@ export class AdminUsuarios implements OnInit {
       return;
     }
 
-    // Construir el documento completo según el tipo
     let documentoCompleto = '';
     const tipo = userData.tipoDocumento;
     const numero = userData.numeroDocumento;
@@ -473,7 +474,6 @@ export class AdminUsuarios implements OnInit {
         documentoCompleto = 'V-' + numero;
         break;
       case 'rif':
-        // Para RIF en creación de usuarios, asumimos V- (natural) por defecto
         documentoCompleto = 'V-' + numero;
         break;
       case 'rif_personal_natural':
@@ -498,6 +498,8 @@ export class AdminUsuarios implements OnInit {
         documentoCompleto = numero;
     }
 
+    const rol = userData.rolId ? 'usuario' : 'root';
+
     this.http.post('/api/auth/register-simple', {
       username: userData.username,
       email: userData.email,
@@ -511,7 +513,7 @@ export class AdminUsuarios implements OnInit {
       tipoDocumento: tipo,
       numeroDocumento: numero,
       genero: userData.genero,
-      rol: userData.rol,
+      rol: rol,
       rolId: userData.rolId,
     }).subscribe({
       next: () => {

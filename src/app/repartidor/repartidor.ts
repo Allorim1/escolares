@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -56,7 +56,7 @@ interface Order {
    templateUrl: './repartidor.html',
    styleUrls: ['./repartidor.css']
  })
- export class RepartidorComponent implements OnInit {
+ export class RepartidorComponent implements OnInit, OnDestroy {
    orders = signal<Order[]>([]);
    loading = signal(true);
    selectedStatus = signal<Order['status'] | ''>('');

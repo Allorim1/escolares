@@ -5,7 +5,7 @@
     <!-- Sidebar with category filters -->
     <aside class="products-sidebar">
       <div class="sidebar-section">
-        <h3 class="sidebar-title">Categorías</h3>
+<h3 class="sidebar-title">Categorías</h3>
         <ul class="category-list">
           <li>
             <button
@@ -28,6 +28,66 @@
             </li>
           }
         </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">Filtrar por Precio</h3>
+        <div class="price-filter">
+          <p style="font-size: 0.8rem; color: #666; margin: 0 0 0.5rem 0;">Rango disponible: ${{ priceRange().min }} - ${{ priceRange().max }} USD</p>
+          <p style="font-size: 0.8rem; color: #666; margin: 0 0 0.75rem 0;">Rango en Bs: Bs. {{ priceRangeBs().min }} - Bs. {{ priceRangeBs().max }}</p>
+          <div class="filter-group" style="margin-bottom: 0.75rem;">
+            <label for="priceMinUsd" style="font-size: 0.85rem;">Precio mínimo (USD)</label>
+            <input
+              type="number"
+              id="priceMinUsd"
+              [ngModel]="filterPriceMin()"
+              (ngModelChange)="filterPriceMin.set($event ? $event : null)"
+              [min]="priceRange().min"
+              [max]="priceRange().max"
+              placeholder="Min USD"
+              style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 100px;"
+            />
+          </div>
+          <div class="filter-group" style="margin-bottom: 0.75rem;">
+            <label for="priceMaxUsd" style="font-size: 0.85rem;">Precio máximo (USD)</label>
+            <input
+              type="number"
+              id="priceMaxUsd"
+              [ngModel]="filterPriceMax()"
+              (ngModelChange)="filterPriceMax.set($event ? $event : null)"
+              [min]="priceRange().min"
+              [max]="priceRange().max"
+              placeholder="Max USD"
+              style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 100px;"
+            />
+          </div>
+          <div class="filter-group" style="margin-bottom: 0.75rem;">
+            <label for="priceMinBs" style="font-size: 0.85rem;">Precio mínimo (Bs)</label>
+            <input
+              type="number"
+              id="priceMinBs"
+              [ngModel]="filterPriceMinBs()"
+              (ngModelChange)="filterPriceMinBs.set($event ? $event : null)"
+              [min]="priceRangeBs().min"
+              [max]="maxPriceBs()"
+              placeholder="Min Bs"
+              style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 100px;"
+            />
+          </div>
+          <div class="filter-group" style="margin-bottom: 0.75rem;">
+            <label for="priceMaxBs" style="font-size: 0.85rem;">Precio máximo (Bs)</label>
+            <input
+              type="number"
+              id="priceMaxBs"
+              [ngModel]="filterPriceMaxBs()"
+              (ngModelChange)="filterPriceMaxBs.set($event ? $event : null)"
+              [min]="priceRangeBs().min"
+              [max]="maxPriceBs()"
+              placeholder="Max Bs"
+              style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 100px;"
+            />
+          </div>
+        </div>
       </div>
 
       @if (currentBrand()) {
@@ -104,7 +164,7 @@
         class="product-cards"
         style="
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
           gap: 1rem;
           justify-items: center;
           padding: 0.5rem;

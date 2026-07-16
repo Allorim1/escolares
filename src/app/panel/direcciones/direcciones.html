@@ -44,48 +44,39 @@
     <div class="direccion-form">
       <h4>{{ editandoId() ? 'Editar Dirección' : 'Nueva Dirección' }}</h4>
       <form (ngSubmit)="guardarDireccion()">
-        <div class="form-group">
-          <label>Alias:</label>
-          <input
-            type="text"
-            [ngModel]="formAlias()"
-            (ngModelChange)="formAlias.set($event)"
-            name="alias"
-            placeholder="Ej: Casa, Trabajo"
-            list="alias-sugerencias"
-            required
-          />
-          <datalist id="alias-sugerencias">
-            @for (op of aliasSugerencias(); track op) {
-              <option [value]="op"></option>
-            }
-          </datalist>
-        </div>
-        <div class="form-group">
-          <label>Calle:</label>
-          <input
-            type="text"
-            [ngModel]="formCalle()"
-            (ngModelChange)="formCalle.set($event); buscarDireccion($event)"
-            (blur)="limpiarAutocomplete()"
-            name="calle"
-            placeholder="Calle, número, urbanización"
-            autocomplete="off"
-            required
-          />
-          @if (autocompleteResults().length > 0) {
-            <div class="autocomplete-dropdown">
-              @for (result of autocompleteResults(); track result.place_id) {
-                <div class="autocomplete-item" (mousedown)="seleccionarAutocomplete(result)">
-                  {{ result.description }}
-                </div>
-              }
-            </div>
-          }
-          @if (buscandoAutocomplete()) {
-            <div class="autocomplete-loading">Buscando...</div>
-          }
-        </div>
+<div class="form-group">
+           <label>Alias:</label>
+           <input
+             type="text"
+             [ngModel]="formAlias()"
+             (ngModelChange)="formAlias.set($event)"
+             name="alias"
+             placeholder="Ej: Casa, Trabajo"
+             list="alias-sugerencias"
+             required
+             enterFocusNext
+           />
+           <datalist id="alias-sugerencias">
+             @for (op of aliasSugerencias(); track op) {
+               <option [value]="op"></option>
+             }
+           </datalist>
+         </div>
+<div class="form-group">
+           <label>Calle:</label>
+           <input
+             #addressInput
+             type="text"
+             [ngModel]="formCalle()"
+             (ngModelChange)="formCalle.set($event)"
+             name="calle"
+             placeholder="Ej: Las Mercedes, Caracas..."
+             autocomplete="off"
+             enterFocusNext
+             required
+           />
+           <div class="google-places-info">Google Places autocompletado activado - escribe para ver sugerencias</div>
+         </div>
         
         @if (formLatitud() && formLongitud()) {
           <div class="map-preview-container">
@@ -93,50 +84,53 @@
             <div class="map-preview" #mapContainer></div>
           </div>
         }
-        <div class="form-group">
-          <label>Ciudad:</label>
-          <input
-            type="text"
-            [ngModel]="formCiudad()"
-            (ngModelChange)="formCiudad.set($event)"
-            name="ciudad"
-            placeholder="Ciudad"
-            list="ciudad-sugerencias"
-            required
-          />
-          <datalist id="ciudad-sugerencias">
-            @for (op of ciudadSugerencias(); track op) {
-              <option [value]="op"></option>
-            }
-          </datalist>
-        </div>
-        <div class="form-group">
-          <label>Estado:</label>
-          <input
-            type="text"
-            [ngModel]="formEstado()"
-            (ngModelChange)="formEstado.set($event)"
-            name="estado"
-            placeholder="Estado"
-            list="estado-sugerencias"
-            required
-          />
-          <datalist id="estado-sugerencias">
-            @for (op of estadoSugerencias(); track op) {
-              <option [value]="op"></option>
-            }
-          </datalist>
-        </div>
-        <div class="form-group">
-          <label>Código Postal:</label>
-          <input
-            type="text"
-            [ngModel]="formCodigoPostal()"
-            (ngModelChange)="formCodigoPostal.set($event)"
-            name="codigoPostal"
-            placeholder="Opcional"
-          />
-        </div>
+<div class="form-group">
+           <label>Ciudad:</label>
+           <input
+             type="text"
+             [ngModel]="formCiudad()"
+             (ngModelChange)="formCiudad.set($event)"
+             name="ciudad"
+             placeholder="Ciudad"
+             list="ciudad-sugerencias"
+             required
+             enterFocusNext
+           />
+           <datalist id="ciudad-sugerencias">
+             @for (op of ciudadSugerencias(); track op) {
+               <option [value]="op"></option>
+             }
+           </datalist>
+         </div>
+         <div class="form-group">
+           <label>Estado:</label>
+           <input
+             type="text"
+             [ngModel]="formEstado()"
+             (ngModelChange)="formEstado.set($event)"
+             name="estado"
+             placeholder="Estado"
+             list="estado-sugerencias"
+             required
+             enterFocusNext
+           />
+           <datalist id="estado-sugerencias">
+             @for (op of estadoSugerencias(); track op) {
+               <option [value]="op"></option>
+             }
+           </datalist>
+         </div>
+         <div class="form-group">
+           <label>Código Postal:</label>
+           <input
+             type="text"
+             [ngModel]="formCodigoPostal()"
+             (ngModelChange)="formCodigoPostal.set($event)"
+             name="codigoPostal"
+             placeholder="Opcional"
+             enterFocusNext
+           />
+         </div>
         <div class="form-group">
           <label>
             <input
@@ -151,12 +145,12 @@
         @if (error()) {
           <p class="form-error">{{ error() }}</p>
         }
-        <div class="form-actions">
-          <button type="button" class="btn-cancelar" (click)="cancelarEdicion()">Cancelar</button>
-          <button type="submit" class="btn-guardar" [disabled]="guardando()">
-            {{ guardando() ? 'Guardando...' : (editandoId() ? 'Guardar Cambios' : 'Guardar Dirección') }}
-          </button>
-        </div>
+<div class="form-actions">
+           <button type="button" class="btn-cancelar" (click)="cancelarEdicion()" enterFocusPrev>Cancelar</button>
+           <button type="submit" class="btn-guardar" [disabled]="guardando()" enterFocusPrev>
+             {{ guardando() ? 'Guardando...' : (editandoId() ? 'Guardar Cambios' : 'Guardar Dirección') }}
+           </button>
+         </div>
       </form>
     </div>
   }

@@ -9,6 +9,7 @@ import { LineasService, Linea } from '../../shared/data-access/lineas.service';
 import { OfertasBackend } from '../../backend/data-access/ofertas.backend';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 interface CategoriaProducto {
   id: string;
@@ -37,7 +38,7 @@ interface ProductFormData {
 @Component({
   selector: 'app-admin-productos',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, EnterFocusNextDirective],
   templateUrl: './admin-productos.html',
   styleUrl: './admin-productos.css',
 })
@@ -59,6 +60,7 @@ export class AdminProductos implements OnInit {
   isAdding = signal(false);
   showModal = signal(false);
   uploadingImage = signal(false);
+  saving = signal(false);
   uploadError = signal<string | null>(null);
   dragOver = signal(false);
   preciosOcultosParaNoRegistrados = signal(false);
@@ -236,9 +238,18 @@ export class AdminProductos implements OnInit {
     this.loading.set(true);
     this.productsService.getAllProducts().subscribe({
       next: (products: Product[]) => {
-        this.products.set(products);
-        this.totalProducts.set(products.length);
-        this.totalPages.set(Math.ceil(products.length / this.itemsPerPage));
+        const sortedProducts = [...products].sort((a, b) => {
+          const left = Number(a.id);
+          const right = Number(b.id);
+          return Number.isNaN(left) || Number.isNaN(right) ? String(a.id).localeCompare(String(b.id)) : left - right;
+        });
+        this.products.set(sortedProducts);
+        this.totalProducts.set(sortedProducts.length);
+        const pages = Math.max(1, Math.ceil(sortedProducts.length / this.itemsPerPage));
+        this.totalPages.set(pages);
+        if (this.currentPage() > pages) {
+          this.currentPage.set(pages);
+        }
         this.loading.set(false);
       },
       error: () => {
@@ -306,7 +317,7 @@ export class AdminProductos implements OnInit {
   showEditForm(product: Product) {
     this.uploadError.set(null);
     this.isAdding.set(false);
-    this.editingProduct.set(product);
+    this.editingProduct.set({ ...product });
     this.ofertaFieldModifiedByUser.set(null);
     this.formData.set({
       title: product.title,
@@ -329,19 +340,20 @@ export class AdminProductos implements OnInit {
     this.showModal.set(true);
   }
 
+  closeModal() {
+    this.uploadError.set(null);
+    this.showModal.set(false);
+    this.editingProduct.set(null);
+  }
+
   cancelEdit() {
     if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
-      this.uploadError.set(null);
-      this.showModal.set(false);
-      this.editingProduct.set(null);
+      this.closeModal();
     }
   }
 
   confirmCancel() {
-    if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
-      this.showModal.set(false);
-      this.editingProduct.set(null);
-    }
+    this.cancelEdit();
   }
 
   saveProduct() {
@@ -377,32 +389,15 @@ export class AdminProductos implements OnInit {
       rating: { rate: data.ratingRate, count: data.ratingCount },
     };
 
-    if (this.isAdding()) {
-      this.http.post<any>('/api/products', payload).subscribe({
-        next: (newProduct) => {
-          this.productsService.clearProductsCache();
-          this.loadProducts();
-          if (data.lineaId) {
-            this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
-          }
-          if (data.enOferta && data.ofertaPrecio > 0) {
-            console.log('Agregando oferta:', newProduct.id, data.ofertaPrecio);
-            this.ofertasBackend.agregarOferta(newProduct.id, data.ofertaPrecio);
-          }
-          this.cancelEdit();
-          this.notificationModal.success('Producto creado correctamente');
-        },
-        error: (err) => {
-          console.error('Error creating product:', err);
-          this.handleProductError(err, 'Error al crear producto');
-        }
-      });
-    } else if (this.editingProduct()) {
-      const productId = this.editingProduct()!.id;
+    const isEditing = !!(this.editingProduct() && this.editingProduct()!.id !== undefined && this.editingProduct()!.id !== null);
+
+    if (isEditing) {
+      if (this.saving()) return;
+      this.saving.set(true);
+      const productId = String(this.editingProduct()!.id);
       this.http.put<any>(`/api/products/${productId}`, payload).subscribe({
         next: (updated) => {
           this.productsService.clearProductsCache();
-          this.loadProducts();
           if (data.lineaId) {
             this.lineasService.agregarProductoALinea(data.lineaId, updated.id);
           }
@@ -410,12 +405,39 @@ export class AdminProductos implements OnInit {
             console.log('Actualizando oferta:', updated.id, data.ofertaPrecio);
             this.ofertasBackend.agregarOferta(updated.id, data.ofertaPrecio);
           }
-          this.cancelEdit();
+          this.closeModal();
           this.notificationModal.success('Producto actualizado correctamente');
+          this.saving.set(false);
+          this.loadProducts();
         },
         error: (err) => {
           console.error('Error updating product:', err);
           this.handleProductError(err, 'Error al actualizar producto');
+          this.saving.set(false);
+        }
+      });
+    } else {
+      if (this.saving()) return;
+      this.saving.set(true);
+      this.http.post<any>('/api/products', payload).subscribe({
+        next: (newProduct) => {
+          this.productsService.clearProductsCache();
+          if (data.lineaId) {
+            this.lineasService.agregarProductoALinea(data.lineaId, newProduct.id);
+          }
+          if (data.enOferta && data.ofertaPrecio > 0) {
+            console.log('Agregando oferta:', newProduct.id, data.ofertaPrecio);
+            this.ofertasBackend.agregarOferta(newProduct.id, data.ofertaPrecio);
+          }
+          this.closeModal();
+          this.notificationModal.success('Producto creado correctamente');
+          this.saving.set(false);
+          this.loadProducts();
+        },
+        error: (err) => {
+          console.error('Error creating product:', err);
+          this.handleProductError(err, 'Error al crear producto');
+          this.saving.set(false);
         }
       });
     }
@@ -593,15 +615,20 @@ export class AdminProductos implements OnInit {
 
   deleteProduct(id: number | string) {
     if (confirm('¿Estás seguro de eliminar este producto?')) {
-      this.http.delete<any>(`/api/products/${id}`).subscribe({
+      if (this.saving()) return;
+      this.saving.set(true);
+      const productId = String(id);
+      this.http.delete<any>(`/api/products/${productId}`).subscribe({
         next: () => {
           this.productsService.clearProductsCache();
-          this.loadProducts();
           this.notificationModal.success('Producto eliminado correctamente');
+          this.saving.set(false);
+          this.loadProducts();
         },
         error: (err) => {
           console.error('Error deleting product:', err);
           this.notificationModal.error('Error al eliminar producto');
+          this.saving.set(false);
         }
       });
     }

@@ -1,0 +1,19 @@
+/* Home Mobile Fixes */
+@media (max-width: 768px) {
+  .main-banner { width: 100%; height: auto; max-height: 40vh; object-fit: cover; }
+  .banner-btn { width: 36px; height: 36px; font-size: 1.2rem; }
+  .newsletter-section { padding: 1.5rem; margin: 1.5rem auto; }
+  .newsletter-form { flex-direction: column; gap: 0.75rem; }
+  .newsletter-content h2 { font-size: 1.4rem; }
+  .newsletter-content p { font-size: 0.9rem; }
+}
+@media (max-width: 480px) {
+  .main-banner { max-height: 30vh; }
+  .banner-btn { width: 30px; height: 30px; font-size: 1rem; }
+  .newsletter-section { padding: 1rem; margin: 1rem auto; border-radius: 12px; }
+  .newsletter-content h2 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+  .newsletter-form input, .newsletter-form button { width: 100%; font-size: 0.9rem; }
+  .noticias-section { padding: 1rem; margin: 2rem auto 1rem; }
+  .noticias-section h2 { font-size: 1.5rem; }
+  .noticias-grid { grid-template-columns: 1fr; gap: 1rem; }
+}

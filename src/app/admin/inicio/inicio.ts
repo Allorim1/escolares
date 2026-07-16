@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { StoreSettingsService } from '../../shared/data-access/store-settings.service';
 import { ApiKeyStatusService } from '../../shared/data-access/api-key-status.service';
+import { NotificationService } from '../../shared/data-access/notification.service';
 
 interface DashboardStats {
   totalProveedores: number;
@@ -29,6 +30,7 @@ export class AdminInicio implements OnInit, OnDestroy {
   authService = inject(AuthService);
   storeSettings = inject(StoreSettingsService);
   apiKeyStatusService = inject(ApiKeyStatusService);
+  notificationService = inject(NotificationService);
   
   get userName(): string {
     const user = this.authService.user();
@@ -41,7 +43,6 @@ export class AdminInicio implements OnInit, OnDestroy {
   }
   
   showApiKeyModal = false;
-  showSuccessModal = false;
   dolarApiKey = '';
   savingApiKey = false;
   
@@ -117,7 +118,7 @@ export class AdminInicio implements OnInit, OnDestroy {
   
   guardarApiKey() {
     if (!this.dolarApiKey.trim()) {
-      alert('Ingresa una API key válida');
+      this.notificationService.warning('API Key vacía', 'Ingresa una API key válida.');
       return;
     }
     
@@ -125,17 +126,15 @@ export class AdminInicio implements OnInit, OnDestroy {
     
     this.http.put('/api/settings/dolar-api-key', { apiKey: this.dolarApiKey.trim() }).subscribe({
       next: () => {
-        this.apiKeyStatusService.updateApiKeyRenewalDate();
+        this.apiKeyStatusService.loadApiKeyRenewalInfo();
+        this.apiKeyStatusService.setApiKeyExpired(false);
         this.savingApiKey = false;
         this.closeApiKeyModal();
-        this.showSuccessModal = true;
-        setTimeout(() => {
-          this.showSuccessModal = false;
-        }, 2000);
+        this.notificationService.success('API Key renovada', 'La API key ha sido actualizada correctamente.');
       },
       error: (err) => {
         this.savingApiKey = false;
-        alert('Error al guardar la API key: ' + (err.error?.error || 'Error desconocido'));
+        this.notificationService.error('Error al guardar', 'Error al guardar la API key: ' + (err.error?.error || 'Error desconocido'));
       }
     });
   }

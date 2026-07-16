@@ -244,6 +244,7 @@
   width: 100%;
   max-width: 500px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .popup-small {
@@ -255,16 +256,38 @@
   font-size: 18px;
   font-weight: 600;
   color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .form-group {
   margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.input-api-key-modal {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.input-api-key-modal:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .popup-buttons {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .save-btn, .cancel-btn {
@@ -275,6 +298,9 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .save-btn {
@@ -294,6 +320,7 @@
 .cancel-btn:hover {
   background: #d1d5db;
 }
+
 .store-control-card {
   background: white;
   border-radius: 12px;
@@ -590,4 +617,23 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Dark mode styles */
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .recent-orders-section,
+[data-theme="dark"] .orders-table th,
+[data-theme="dark"] .orders-table td,
+[data-theme="dark"] .store-control-card,
+[data-theme="dark"] .api-key-card,
+[data-theme="dark"] .empty-state {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .inicio-header h1,
+[data-theme="dark"] .stat-value,
+[data-theme="dark"] .recent-orders-section h3,
+[data-theme="dark"] .store-control-card h3,
+[data-theme="dark"] .api-key-info h3 {
+  color: var(--text-primary) !important;
 }

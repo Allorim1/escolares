@@ -11,6 +11,11 @@ export interface ProductoCategoria {
   orden: number;
 }
 
+export interface ProductsResponse {
+  products: any[];
+  total: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -20,6 +25,10 @@ export class ProductoCategoriasBackend {
 
   getAll(): Observable<ProductoCategoria[]> {
     return this.http.get<ProductoCategoria[]>(this.API_URL);
+  }
+
+  getProductsByCategory(nombreCategoria: string): Observable<ProductsResponse> {
+    return this.http.get<ProductsResponse>(`/api/products?all=true&category=${encodeURIComponent(nombreCategoria)}`);
   }
 
   create(categoria: Partial<ProductoCategoria>): Observable<ProductoCategoria> {

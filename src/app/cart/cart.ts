@@ -21,6 +21,10 @@ interface PaymentData {
   cedula: string;
   telefono: string;
   direccion: string;
+  direccionCompleta?: string;
+  placeId?: string;
+  latitud?: number;
+  longitud?: number;
   metodoPago: string;
   referencia: string;
   fotoComprobante: string;
@@ -510,6 +514,10 @@ price = () => {
       cedula: currentUser?.cedula || '',
       telefono: currentUser?.telefono || '',
       direccion: defaultAddress?.direccion || currentUser?.direccion || '',
+      direccionCompleta: defaultAddress?.direccion || currentUser?.direccion || '',
+      placeId: defaultAddress?.placeId || '',
+      latitud: defaultAddress?.latitud,
+      longitud: defaultAddress?.longitud,
       metodoPago: defaultPaymentMethod?.tipo || 'pago_movil',
       referencia: defaultPaymentMethod?.referencia || '',
       fotoComprobante: '',
@@ -531,7 +539,14 @@ price = () => {
     const addresses = this.userAddresses;
     const selected = addresses.find(a => a.id === addressId);
     if (selected) {
-      this.paymentData.update(p => ({ ...p, direccion: selected.direccion }));
+      this.paymentData.update(p => ({
+        ...p,
+        direccion: selected.direccion,
+        direccionCompleta: selected.direccion || p.direccionCompleta,
+        placeId: selected.placeId || '',
+        latitud: selected.latitud,
+        longitud: selected.longitud
+      }));
     }
   }
 
@@ -766,25 +781,29 @@ guardarOrdenTemporal() {
        image: item.product.image,
      }));
 
-    const orderData = {
-      items,
-      total: this.totalWithShipping(),
-      nombre: this.paymentData().nombre,
-      cedula: this.paymentData().cedula,
-      telefono: this.paymentData().telefono,
-      direccion: this.paymentData().direccion,
-      metodoPago: this.paymentData().metodoPago,
-      referencia: this.paymentData().referencia,
-      fotoComprobante: this.paymentData().fotoComprobante,
-      bancoEmisor: this.paymentData().bancoEmisor,
-      cedulaTitular: this.paymentData().cedulaTitular,
-      correo: this.paymentData().correo,
-      status: 'confirmar' as OrderStatus,
-      deliveryType: this.deliveryType(),
-      scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
-      shippingRef: this.shippingCost(),
-      shippingLabel: this.getSelectedShippingRate().label,
-    };
+     const orderData = {
+       items,
+       total: this.totalWithShipping(),
+       nombre: this.paymentData().nombre,
+       cedula: this.paymentData().cedula,
+       telefono: this.paymentData().telefono,
+       direccion: this.paymentData().direccion,
+       direccionCompleta: this.paymentData().direccionCompleta || this.paymentData().direccion,
+       placeId: this.paymentData().placeId || '',
+       latitud: this.paymentData().latitud,
+       longitud: this.paymentData().longitud,
+       metodoPago: this.paymentData().metodoPago,
+       referencia: this.paymentData().referencia,
+       fotoComprobante: this.paymentData().fotoComprobante,
+       bancoEmisor: this.paymentData().bancoEmisor,
+       cedulaTitular: this.paymentData().cedulaTitular,
+       correo: this.paymentData().correo,
+       status: 'confirmar' as OrderStatus,
+       deliveryType: this.deliveryType(),
+       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
+       shippingRef: this.shippingCost(),
+       shippingLabel: this.getSelectedShippingRate().label,
+     };
 
     this.ordersBackend.createOrder(orderData).subscribe({
       next: (order) => {
@@ -813,25 +832,29 @@ confirmarPedido() {
        image: item.product.image,
      }));
 
-    const orderData = {
-      items,
-      total: this.totalWithShipping(),
-      nombre: this.paymentData().nombre,
-      cedula: this.paymentData().cedula,
-      telefono: this.paymentData().telefono,
-      direccion: this.paymentData().direccion,
-      metodoPago: this.paymentData().metodoPago,
-      referencia: this.paymentData().referencia,
-      fotoComprobante: this.paymentData().fotoComprobante,
-      bancoEmisor: this.paymentData().bancoEmisor,
-      cedulaTitular: this.paymentData().cedulaTitular,
-      correo: this.paymentData().correo,
-      status: 'pendiente' as OrderStatus,
-      deliveryType: this.deliveryType(),
-      scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
-      shippingRef: this.shippingCost(),
-      shippingLabel: this.getSelectedShippingRate().label,
-    };
+     const orderData = {
+       items,
+       total: this.totalWithShipping(),
+       nombre: this.paymentData().nombre,
+       cedula: this.paymentData().cedula,
+       telefono: this.paymentData().telefono,
+       direccion: this.paymentData().direccion,
+       direccionCompleta: this.paymentData().direccionCompleta || this.paymentData().direccion,
+       placeId: this.paymentData().placeId || '',
+       latitud: this.paymentData().latitud,
+       longitud: this.paymentData().longitud,
+       metodoPago: this.paymentData().metodoPago,
+       referencia: this.paymentData().referencia,
+       fotoComprobante: this.paymentData().fotoComprobante,
+       bancoEmisor: this.paymentData().bancoEmisor,
+       cedulaTitular: this.paymentData().cedulaTitular,
+       correo: this.paymentData().correo,
+       status: 'pendiente' as OrderStatus,
+       deliveryType: this.deliveryType(),
+       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
+       shippingRef: this.shippingCost(),
+       shippingLabel: this.getSelectedShippingRate().label,
+     };
 
 this.ordersBackend.createOrder(orderData).subscribe({
        next: (order) => {

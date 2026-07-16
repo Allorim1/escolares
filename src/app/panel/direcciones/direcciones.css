@@ -22,11 +22,11 @@
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .btn-agregar:hover {
@@ -109,38 +109,38 @@
 
 .btn-editar, .btn-eliminar, .btn-principal {
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .btn-editar {
-  background-color: #ffc107;
-  color: #212529;
+  background-color: #007bff;
+  color: white;
 }
 
 .btn-editar:hover {
-  background-color: #e0a800;
+  background-color: #0056b3;
 }
 
 .btn-eliminar {
-  background-color: #dc3545;
+  background-color: #007bff;
   color: white;
 }
 
 .btn-eliminar:hover {
-  background-color: #c82333;
+  background-color: #0056b3;
 }
 
 .btn-principal {
-  background-color: #17a2b8;
+  background-color: #007bff;
   color: white;
 }
 
 .btn-principal:hover {
-  background-color: #138496;
+  background-color: #0056b3;
 }
 
 .btn-principal.activo {
@@ -167,6 +167,7 @@
 
 .form-group {
   margin-bottom: 16px;
+  position: relative;
 }
 
 .form-group label {
@@ -196,11 +197,56 @@
   margin-right: 8px;
 }
 
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  cursor: pointer;
+}
+
+.google-places-info {
+  font-size: 0.8rem;
+  color: #1d63c1;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
+}
+
+/* Google Places Autocomplete dropdown styles */
+.pac-container {
+  background-color: white !important;
+  border: 1px solid #ced4da !important;
+  border-top: none !important;
+  border-radius: 0 0 4px 4px !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+  z-index: 1000 !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+}
+
+.pac-item {
+  padding: 10px !important;
+  cursor: pointer !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  font-size: 0.95rem !important;
+  color: #333 !important;
+}
+
+.pac-item:hover {
+  background-color: #f8f9fa !important;
+}
+
+.pac-item:last-child {
+  border-bottom: none !important;
+}
+
+.pac-item-selected {
+  background-color: #e9ecef !important;
 }
 
 .form-error {
@@ -211,11 +257,11 @@
 
 .btn-cancelar, .btn-guardar {
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .btn-cancelar {
@@ -228,55 +274,17 @@
 }
 
 .btn-guardar {
-  background-color: #28a745;
+  background-color: #007bff;
   color: white;
 }
 
 .btn-guardar:hover {
-  background-color: #1e7e34;
+  background-color: #0056b3;
 }
 
 .btn-guardar[disabled] {
   background-color: #6c757d;
   cursor: not-allowed;
-}
-
-.autocomplete-dropdown {
-  position: absolute;
-  background: white;
-  border: 1px solid #ced4da;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  width: 100%;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.autocomplete-item {
-  padding: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.autocomplete-item:hover {
-  background-color: #f8f9fa;
-}
-
-.autocomplete-item:last-child {
-  border-bottom: none;
-}
-
-.autocomplete-loading {
-  position: absolute;
-  background: white;
-  padding: 8px 12px;
-  color: #666;
-  font-size: 0.9rem;
-  border: 1px solid #ced4da;
-  border-top: none;
-  z-index: 1000;
 }
 
 .map-preview-container {
@@ -298,10 +306,6 @@
   background: #f8f9fa;
 }
 
-.form-group {
-  position: relative;
-}
-
 /* Responsive design */
 @media (max-width: 768px) {
   .direcciones-header {
@@ -320,4 +324,32 @@
   .direccion-actions {
     align-self: flex-start;
   }
+}
+
+/* Dark mode styles */
+[data-theme="dark"] .empty-state,
+[data-theme="dark"] .direcciones-list,
+[data-theme="dark"] .direccion-form,
+[data-theme="dark"] .map-preview {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .direcciones-header h3,
+[data-theme="dark"] .direccion-info h4,
+[data-theme="dark"] .direccion-form h4,
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] .map-preview-container label {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .direccion-item,
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .direccion-text,
+[data-theme="dark"] .direccion-details,
+[data-theme="dark"] .form-error {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .direccion-item {
+  border-color: var(--border-color) !important;
 }

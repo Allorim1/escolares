@@ -117,48 +117,40 @@
   height: 18px;
 }
 
-.btn-guardar {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  margin-top: 1rem;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.btn-guardar:hover {
-  background: #0056b3;
-}
-
-.btn-guardar:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
 .perfil-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 1rem;
+   display: flex;
+   gap: 10px;
+   margin-top: 1rem;
 }
 
 .perfil-actions button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
+   flex: 1;
+   padding: 10px;
+   border: none;
+   border-radius: 5px;
+   font-size: 16px;
+   cursor: pointer;
 }
 
 .btn-cancelar {
-  background: #6c757d;
-  color: white;
+   background: #6c757d;
+   color: white;
 }
 
 .btn-cancelar:hover {
-  background: #5a6268;
+   background: #5a6268;
+}
+
+.perfil-actions .btn-guardar {
+   background: #007bff;
+   color: white;
+}
+
+.perfil-actions .btn-guardar:hover {
+   background: #0056b3;
+}
+
+.perfil-actions .btn-guardar:disabled {
+   background: #ccc;
+   cursor: not-allowed;
 }

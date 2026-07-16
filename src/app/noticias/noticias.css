@@ -286,3 +286,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Dark mode styles */
+[data-theme="dark"] .noticia-card,
+[data-theme="dark"] .noticia-header,
+[data-theme="dark"] .empty-state,
+[data-theme="dark"] .loading-container,
+[data-theme="dark"] .error-container {
+  background: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .page-header h1,
+[data-theme="dark"] .noticia-titulo,
+[data-theme="dark"] .noticia-contenido h1,
+[data-theme="dark"] .noticia-contenido h2,
+[data-theme="dark"] .noticia-contenido h3 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .page-subtitle,
+[data-theme="dark"] .noticia-fecha,
+[data-theme="dark"] .noticia-contenido p,
+[data-theme="dark"] .noticia-contenido ul,
+[data-theme="dark"] .noticia-contenido ol,
+[data-theme="dark"] .empty-state p {
+  color: var(--text-secondary) !important;
+}

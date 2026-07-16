@@ -26,10 +26,10 @@ interface OrderTracking {
   createdAt?: Date;
 }
 
-type ApiResponse = {
+interface ApiResponse {
   order?: OrderTracking;
   directions?: google.maps.DirectionsResult;
-};
+}
 
 @Component({
   selector: 'app-order-tracking-map',

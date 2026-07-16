@@ -22,13 +22,14 @@
       <button type="button" class="back-btn" (click)="cancelarEdicion()">← Volver</button>
       <div class="form-group">
         <label>Nombre de la marca</label>
-        <input
-          type="text"
-          [ngModel]="newMarcaName()"
-          (ngModelChange)="newMarcaName.set($event)"
-          placeholder="Nombre de la marca"
-          class="marca-input"
-        />
+<input
+           type="text"
+           [ngModel]="newMarcaName()"
+           (ngModelChange)="newMarcaName.set($event)"
+           placeholder="Nombre de la marca"
+           class="marca-input"
+           enterFocusNext
+         />
       </div>
       <div class="form-group">
         <label>Imagen de la marca</label>

@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { MarcasService } from '../../shared/data-access/marcas.service';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { RegistroService } from '../../shared/data-access/registro.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 @Component({
   selector: 'app-admin-marcas',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, EnterFocusNextDirective],
   templateUrl: './admin-marcas.html',
   styleUrl: './admin-marcas.css',
 })

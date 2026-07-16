@@ -29,8 +29,8 @@
     </div>
 
     @if (showApiKeyModal) {
-      <div class="popup-overlay">
-        <div class="popup-content popup-small">
+      <div class="popup-overlay" (click)="closeApiKeyModal()">
+        <div class="popup-content popup-small" (click)="$event.stopPropagation()">
           <h3>API Key de DolarVzla</h3>
           <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
             Ingresa tu API key de <a href="https://www.dolarvzla.com/settings/api/" target="_blank">dolarvzla.com</a>
@@ -41,12 +41,14 @@
               [(ngModel)]="dolarApiKey" 
               placeholder="API Key"
               class="input-api-key-modal"
-              (keydown.enter)="guardarApiKey()"
+              (keydown.enter)="!savingApiKey && guardarApiKey()"
             />
           </div>
           <div class="popup-buttons">
-            <button class="cancel-btn" (click)="closeApiKeyModal()">Cancelar</button>
-            <button class="save-btn" (click)="guardarApiKey()">Guardar</button>
+            <button class="cancel-btn" (click)="closeApiKeyModal()" [disabled]="savingApiKey">❌</button>
+            <button class="save-btn" (click)="guardarApiKey()" [disabled]="savingApiKey">
+              @if (savingApiKey) { ⏳ } @else { 💾 }
+            </button>
           </div>
         </div>
       </div>

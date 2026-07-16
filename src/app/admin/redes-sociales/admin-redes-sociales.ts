@@ -17,6 +17,56 @@ interface ChatMessage extends MensajeRedSocial {
   esRespuesta: boolean;
 }
 
+export function buildChatSnapshot(
+  selectedChat: {
+    usuario: string;
+    plataforma: string;
+    mensajes: ChatMessage[];
+    ultimoMensaje: MensajeRedSocial;
+    tieneNoLeidos: boolean;
+    noLeidosCount: number;
+  } | null,
+  mensajes: MensajeRedSocial[]
+) {
+  if (!selectedChat) {
+    return null;
+  }
+
+  const mensajesDelChat = mensajes.filter(
+    mensaje => mensaje.usuario === selectedChat.usuario && mensaje.plataforma === selectedChat.plataforma
+  );
+
+  if (mensajesDelChat.length === 0) {
+    return null;
+  }
+
+  const mensajesOrdenados = mensajesDelChat
+    .map(mensaje => ({
+      ...mensaje,
+      fecha: mensaje.fecha instanceof Date ? mensaje.fecha : new Date(mensaje.fecha),
+      createdAt: mensaje.createdAt instanceof Date ? mensaje.createdAt : new Date(mensaje.createdAt),
+      updatedAt: mensaje.updatedAt instanceof Date ? mensaje.updatedAt : new Date(mensaje.updatedAt),
+      esRespuesta: !!mensaje.respondido,
+    }))
+    .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+
+  const ultimoMensaje = mensajesOrdenados.reduce((prev, current) =>
+    new Date(current.fecha).getTime() > new Date(prev.fecha).getTime() ? current : prev,
+    mensajesOrdenados[0]
+  );
+
+  const noLeidos = mensajesOrdenados.filter(mensaje => !mensaje.leido);
+
+  return {
+    usuario: selectedChat.usuario,
+    plataforma: selectedChat.plataforma,
+    mensajes: mensajesOrdenados,
+    ultimoMensaje,
+    tieneNoLeidos: noLeidos.length > 0,
+    noLeidosCount: noLeidos.length,
+  };
+}
+
 @Component({
   selector: 'app-admin-redes-sociales',
   standalone: true,
@@ -58,6 +108,11 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   chatSeleccionado = signal<Chat | null>(null);
   nuevoMensajeTexto = signal<string>('');
   archivoSeleccionadoSignal = signal<File | null>(null);
+  archivoPreviewUrl = signal<string | null>(null);
+  arrastrando = signal<boolean>(false);
+  confirmacionEnvio = signal<string | null>(null);
+  archivoPreviewEsImagen = computed(() => this.archivoSeleccionadoSignal()?.type.startsWith('image/') ?? false);
+  archivoPreviewEsVideo = computed(() => this.archivoSeleccionadoSignal()?.type.startsWith('video/') ?? false);
   mostrarNotificacionMensaje = signal<boolean>(false);
   ultimoMensajeNotificado = signal<MensajeRedSocial | null>(null);
   modalChatAbierto = signal<boolean>(false);
@@ -158,6 +213,12 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
   private mensajesPollingInterval: any;
+  private readonly manejarEnfoqueVentana = () => this.actualizarMensajes();
+  private readonly manejarCambioVisibilidad = () => {
+    if (document.visibilityState === 'visible') {
+      this.actualizarMensajes();
+    }
+  };
 
   async ngOnInit() {
     await this.cargarDatos();
@@ -167,10 +228,9 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   }
 
   private iniciarPollingMensajes() {
-    // Actualizar mensajes cada 10 segundos para mostrar mensajes nuevos en tiempo real
     this.mensajesPollingInterval = setInterval(() => {
       this.actualizarMensajes();
-    }, 10000); // 10 segundos
+    }, 5000);
   }
 
   // Método para verificar el estado de los webhooks
@@ -251,6 +311,7 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
         if (nuevosMensajes.length > 0 || mensajesActualesArray.length !== mensajesPrevios.length) {
           console.log('Actualizando mensajes desde polling:', { nuevos: nuevosMensajes.length, total: mensajesActualesArray.length });
           this.mensajes.set(mensajesActualesArray);
+          this.sincronizarChatSeleccionado();
 
           // Scroll to bottom if there's a selected chat and new messages
           if (this.chatSeleccionado() && (nuevosMensajes.length > 0)) {
@@ -291,10 +352,12 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   }
 
 private iniciarVerificacionMensajes() {
-    // Verificar nuevos mensajes cada 30 segundos
-    this.mensajesInterval = setInterval(() => {
+    window.addEventListener('focus', this.manejarEnfoqueVentana);
+    document.addEventListener('visibilitychange', this.manejarCambioVisibilidad);
+
+    this.mensajesInterval = window.setInterval(() => {
       this.actualizarMensajes();
-    }, 30000); // 30 segundos
+    }, 5000);
   }
 
   // Conexión SSE para recibir mensajes en tiempo real
@@ -305,10 +368,11 @@ private iniciarVerificacionMensajes() {
     if (!token) return;
 
     const baseUrl = window.location.origin;
-    const sseUrl = `${baseUrl}/api/redes-sociales/events/messages`;
+    const sseUrl = `${baseUrl}/api/redes-sociales/events/messages?token=${encodeURIComponent(token || '')}`;
 
     try {
       this.sseSource = new EventSource(sseUrl);
+      this.sseSource.onopen = () => console.log('✅ SSE conectado para mensajes en tiempo real');
 
       this.sseSource.addEventListener('message', (event) => {
         try {
@@ -326,6 +390,7 @@ private iniciarVerificacionMensajes() {
             if (!mensajesPrevios.some((m: any) => m.id === nuevoMensaje.id)) {
               const nuevosMensajes = [nuevoMensaje, ...mensajesPrevios];
               this.mensajes.set(nuevosMensajes);
+              this.sincronizarChatSeleccionado();
 
               // Mostrar notificación
               this.ultimoMensajeNotificado.set(nuevoMensaje);
@@ -369,6 +434,8 @@ private iniciarVerificacionMensajes() {
     if (this.mensajesPollingInterval) {
       clearInterval(this.mensajesPollingInterval);
     }
+    window.removeEventListener('focus', this.manejarEnfoqueVentana);
+    document.removeEventListener('visibilitychange', this.manejarCambioVisibilidad);
     if (this.sseSource) {
       this.sseSource.close();
     }
@@ -423,6 +490,7 @@ private iniciarVerificacionMensajes() {
       }));
 
       this.mensajes.set(mensajesConFechas);
+      this.sincronizarChatSeleccionado();
       this.respuestasAutomaticas.set(respuestas || []);
       this.notificaciones.set(notificaciones || []);
     } catch (err) {
@@ -547,7 +615,7 @@ private iniciarVerificacionMensajes() {
   seleccionarChat(chat: Chat) {
     this.chatSeleccionado.set(chat);
     this.nuevoMensajeTexto.set('');
-    this.archivoSeleccionadoSignal.set(null);
+    this.removerArchivo();
     // Marcar todos los mensajes del chat como leídos
     if (chat.tieneNoLeidos) {
       this.marcarChatComoLeido(chat);
@@ -561,7 +629,7 @@ private iniciarVerificacionMensajes() {
     this.modalChatAbierto.set(false);
     this.chatSeleccionado.set(null);
     this.nuevoMensajeTexto.set('');
-    this.archivoSeleccionadoSignal.set(null);
+    this.removerArchivo();
   }
 
   async marcarChatComoLeido(chat: Chat) {
@@ -579,6 +647,7 @@ private iniciarVerificacionMensajes() {
           return chatMensaje ? { ...msg, leido: true } : msg;
         })
       );
+      this.sincronizarChatSeleccionado();
     } catch (error) {
       console.error('Error marcando chat como leído:', error);
     }
@@ -586,7 +655,7 @@ private iniciarVerificacionMensajes() {
 
   async enviarMensajeChat() {
     const chat = this.chatSeleccionado();
-    const texto = this.nuevoMensajeTexto().trim();
+    const texto = this.nuevoMensajeTexto().trim().replace(/(\.{3,}|…)\s*$/u, '').trim();
     const archivo = this.archivoSeleccionadoSignal();
 
     if (!chat || (!texto && !archivo)) {
@@ -653,6 +722,7 @@ private iniciarVerificacionMensajes() {
         
         const mensajesActuales = this.mensajes();
         this.mensajes.set([mensajeConFechas, ...mensajesActuales]);
+        this.sincronizarChatSeleccionado();
 
         // Marcar como respondido para enviar por la plataforma
         await this.redesSocialesBackend.updateMensaje(mensajeCreado.id, {
@@ -665,7 +735,11 @@ private iniciarVerificacionMensajes() {
         }).toPromise();
 
         this.nuevoMensajeTexto.set('');
-        this.archivoSeleccionadoSignal.set(null);
+        this.removerArchivo();
+
+        // Confirmación visual de envío
+        this.confirmacionEnvio.set('Mensaje enviado');
+        setTimeout(() => this.confirmacionEnvio.set(null), 2500);
 
         // Scroll to bottom to show the new message
         setTimeout(() => this.scrollToBottom(), 50);
@@ -680,12 +754,74 @@ private iniciarVerificacionMensajes() {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) {
-      this.archivoSeleccionadoSignal.set(file);
+      this.setArchivo(file);
+    }
+    input.value = '';
+  }
+
+  setArchivo(file: File) {
+    this.removerArchivo();
+    this.archivoSeleccionadoSignal.set(file);
+    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+      this.archivoPreviewUrl.set(URL.createObjectURL(file));
+    } else {
+      this.archivoPreviewUrl.set(null);
     }
   }
 
   removerArchivo() {
+    const url = this.archivoPreviewUrl();
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
+    this.archivoPreviewUrl.set(null);
     this.archivoSeleccionadoSignal.set(null);
+  }
+
+  onPaste(event: ClipboardEvent) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) {
+          event.preventDefault();
+          this.setArchivo(file);
+          break;
+        }
+      }
+    }
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer?.types.includes('Files')) {
+      this.arrastrando.set(true);
+    }
+  }
+
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastrando.set(false);
+  }
+
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastrando.set(false);
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+      this.setArchivo(file);
+    }
+  }
+
+  formatearTamano(bytes: number): string {
+    if (!bytes) return '0 B';
+    const unidades = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${unidades[i]}`;
   }
 
   archivoSeleccionado() {
@@ -820,6 +956,18 @@ private iniciarVerificacionMensajes() {
     }
   }
 
+  getPlatformIconSvg(plataforma: string): string {
+    const p = (plataforma || '').toLowerCase();
+    switch (p) {
+      case 'whatsapp':
+        return `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.04 3.5C7.44 3.5 3.73 7.22 3.73 11.82c0 1.67.44 3.3 1.27 4.71L3.5 20.5l4.1-1.08a8.96 8.96 0 0 0 4.44 1.14c4.6 0 8.31-3.72 8.31-8.32S16.64 3.5 12.04 3.5Zm0 15.5a7.26 7.26 0 0 1-3.69-1l-.26-.15-2.43.64.65-2.37-.17-.26a7.27 7.27 0 1 1 5.9 2.74Z" fill="currentColor"/><path d="M15.97 13.57c-.1-.05-1.8-.89-2.08-.99-.28-.1-.49-.15-.69.15-.2.3-.77.99-.94 1.19-.17.2-.35.22-.64.07-.29-.15-1.22-.45-2.33-1.43a8.65 8.65 0 0 1-1.6-2c-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.5.14-.17.19-.29.29-.49.1-.2.05-.37-.02-.52-.08-.15-.69-1.65-.95-2.27-.25-.59-.51-.5-.69-.5-.18 0-.38-.02-.58-.02-.2 0-.52.07-.79.34-.27.27-1.03 1.01-1.03 2.46 0 1.45 1.05 2.86 1.2 3.06.15.2 2.07 3.16 5.02 4.43.7.3 1.25.48 1.68.62.71.23 1.35.2 1.86.12.57-.08 1.8-.74 2.05-1.45.25-.72.25-1.34.17-1.47-.08-.13-.28-.2-.58-.35Z" fill="#FFF"/></svg>`;
+      case 'instagram':
+        return `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor"/></svg>`;
+      default:
+        return '<span class="platform-emoji">💬</span>';
+    }
+  }
+
   getUserDisplayName(usuario: string): string {
     // Si es un ID numérico largo (probablemente Instagram/Facebook), mostrar abreviado
     if (/^\d{10,}$/.test(usuario)) {
@@ -843,13 +991,29 @@ private iniciarVerificacionMensajes() {
 
   onKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape' && this.modalChatAbierto()) {
-      this.cerrarModalChat();
-      event.preventDefault();
-      return;
-    }
+    this.cerrarModalChat();
+    this.modalChatAbierto.set(false);
+    this.chatSeleccionado.set(null);
+    this.nuevoMensajeTexto.set('');
+    this.removerArchivo();
+  }
     if (event.key === 'Enter' && !event.shiftKey) {
       this.enviarMensajeChat();
       event.preventDefault();
+    }
+  }
+
+  private sincronizarChatSeleccionado(): void {
+    const chatActual = this.chatSeleccionado();
+    if (!chatActual) {
+      return;
+    }
+
+    const chatActualizado = buildChatSnapshot(chatActual, this.mensajes());
+    if (chatActualizado) {
+      this.chatSeleccionado.set(chatActualizado);
+    } else {
+      this.chatSeleccionado.set(null);
     }
   }
 

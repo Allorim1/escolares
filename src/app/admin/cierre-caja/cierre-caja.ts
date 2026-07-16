@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CurrencyService } from '../../shared/data-access/currency.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 interface CierreCajaData {
   _id?: string;
@@ -31,7 +32,7 @@ interface CajaData {
 @Component({
   selector: 'app-cierre-caja',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
   templateUrl: './cierre-caja.html',
   styleUrl: './cierre-caja.css',
 })
@@ -282,6 +283,18 @@ export class CierreCaja implements OnInit {
     this.http.delete(`/api/cierre-caja/${id}`).subscribe({
       next: () => this.cargarCierres(),
       error: (err) => console.error('Error eliminando cierre:', err)
+    });
+  }
+
+  enviarCorreo(id: string) {
+    if (!confirm('¿Enviar este cierre de caja por correo?')) return;
+    
+    this.http.post(`/api/cierre-caja/${id}/email`, {}).subscribe({
+      next: () => alert('Cierre de caja enviado al correo'),
+      error: (err) => {
+        console.error('Error enviando correo:', err);
+        alert('Error al enviar el correo');
+      }
     });
   }
 

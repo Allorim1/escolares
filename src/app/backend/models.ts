@@ -22,8 +22,7 @@ export interface User {
   email: string;
   password?: string;
   isAdmin: boolean;
-  isOwner?: boolean;
-  rol?: 'root' | 'owner' | 'admin' | 'usuario' | 'repartidor';
+  rol?: 'root' | 'admin' | 'usuario' | 'repartidor';
   rolId?: string;
   deliveryPersonId?: string;
   nombreCompleto?: string;
@@ -39,16 +38,20 @@ export interface User {
 }
 
 export interface Direccion {
-  id: string;
-  nombre: string;
-  direccion: string;
-  alias?: string;
-  calle?: string;
-  ciudad?: string;
-  estado?: string;
-  codigoPostal?: string;
-  principal?: boolean;
-}
+   id: string;
+   nombre: string;
+   direccion: string;
+   alias?: string;
+   calle?: string;
+   ciudad?: string;
+   estado?: string;
+   codigoPostal?: string;
+   principal?: boolean;
+   direccionCompleta?: string;
+   placeId?: string;
+   latitud?: number;
+   longitud?: number;
+ }
 
 export interface MetodoPago {
   id: string;
@@ -59,4 +62,20 @@ export interface MetodoPago {
   banco?: string;
   telefono?: string;
   principal?: boolean;
+}
+
+export interface UserSession {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  rol: string;
+  ip?: string;
+  userAgent?: string;
+  device?: string;
+  browser?: string;
+  os?: string;
+  active: boolean;
+  createdAt: string;
+  lastActive: string;
 }

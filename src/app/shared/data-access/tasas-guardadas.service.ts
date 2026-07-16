@@ -34,4 +34,12 @@ export class TasasGuardadasService {
   delete(id: string) {
     return this.http.delete<{ success: boolean }>(`${this.apiUrl}/${id}`);
   }
+
+  getTripleAnterior() {
+    return this.http.get<{ cents: number[]; fechas: string[] }>('/api/conversion/triple-anterior');
+  }
+
+  saveTripleAnterior(cents: [number, number, number], fechas: [string, string, string]) {
+    return this.http.post<{ success: boolean }>('/api/conversion/triple-anterior', { cents, fechas });
+  }
 }

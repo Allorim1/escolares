@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ViewChild, ElementRef, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, computed, effect, inject, signal, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService, Direccion } from '../../shared/data-access/auth.service';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
@@ -15,6 +15,8 @@ interface DireccionUsuario extends Direccion {
   placeId?: string;
 }
 
+declare const google: any;
+
 @Component({
   selector: 'app-direcciones',
   standalone: true,
@@ -22,7 +24,7 @@ interface DireccionUsuario extends Direccion {
   styleUrls: ['./direcciones.css'],
   imports: [FormsModule],
 })
-export class Direcciones {
+export class Direcciones implements AfterViewInit {
   authService = inject(AuthService);
   mapsService = inject(GoogleMapsService);
 
@@ -42,12 +44,13 @@ export class Direcciones {
   formLatitud = signal<number | null>(null);
   formLongitud = signal<number | null>(null);
 
-  autocompleteResults = signal<any[]>([]);
-  buscandoAutocomplete = signal(false);
-  
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
+  @ViewChild('addressInput', { static: false }) addressInput!: ElementRef;
+  
   private map: any = null;
   private marker: any = null;
+  private placesAutocomplete: any = null;
+  private listenerClickAgregado = false;
 
   readonly estadosVenezuela = [
     'Amazonas', 'Anzoátegui', 'Apure', 'Aragua', 'Barinas', 'Bolívar', 'Carabobo',
@@ -84,14 +87,16 @@ export class Direcciones {
     return Array.from(new Set([...porEstado, ...existentes]));
   });
 
-  calleSugerencias = computed(() => {
-    const base = ['Av. Principal', 'Calle Principal', 'Av. Bolívar', 'Av. Libertador'];
-    const existentes = this.direcciones().map((d) => (d.calle || '').trim()).filter(Boolean) as string[];
-    return Array.from(new Set([...base, ...existentes]));
-  });
-
   constructor() {
     this.cargarDesdeUsuario();
+
+    effect(() => {
+      const lat = this.formLatitud();
+      const lng = this.formLongitud();
+      if (lat && lng) {
+        setTimeout(() => this.actualizarMapa(), 50);
+      }
+    });
   }
 
   private cargarDesdeUsuario() {
@@ -129,6 +134,7 @@ export class Direcciones {
     this.editandoId.set(null);
     this.limpiarFormulario();
     this.error.set('');
+    setTimeout(() => this.initAutocompleteIfNeeded(), 50);
   }
 
   editarDireccion(dir: DireccionUsuario) {
@@ -144,6 +150,62 @@ export class Direcciones {
     this.formLongitud.set(dir.longitud || null);
     this.formPlaceId.set(dir.placeId || '');
     this.error.set('');
+    
+    if (dir.latitud && dir.longitud) {
+      setTimeout(() => this.actualizarMapa(), 100);
+    }
+    
+    setTimeout(() => this.initAutocompleteIfNeeded(), 50);
+  }
+
+  ngAfterViewInit() {
+    this.initAutocompleteIfNeeded();
+  }
+
+  private async initAutocompleteIfNeeded() {
+    if (this.addressInput?.nativeElement) {
+      try {
+        await this.mapsService.loadApi();
+        if (this.placesAutocomplete) {
+          this.placesAutocomplete.setTarget(this.addressInput.nativeElement);
+        } else {
+          this.placesAutocomplete = new google.maps.places.Autocomplete(this.addressInput.nativeElement, {
+            componentRestrictions: { country: 've' },
+            fields: ['geometry', 'formatted_address', 'address_components', 'place_id']
+          });
+          this.placesAutocomplete.addListener('place_changed', () => {
+            this.onPlaceSelected();
+          });
+        }
+      } catch (error) {
+        console.error('Error loading Google Places Autocomplete:', error);
+      }
+    }
+  }
+
+  private onPlaceSelected() {
+    const place = this.placesAutocomplete.getPlace();
+    
+    if (place.geometry && place.geometry.location) {
+      this.formLatitud.set(place.geometry.location.lat());
+      this.formLongitud.set(place.geometry.location.lng());
+      this.formPlaceId.set(place.place_id || '');
+      this.formCalle.set(place.formatted_address || '');
+
+      const components = place.address_components || [];
+      let ciudad = '';
+      let estado = '';
+      
+      for (const comp of components) {
+        if (comp.types.includes('locality')) ciudad = comp.long_name;
+        if (comp.types.includes('administrative_area_level_1')) estado = comp.long_name;
+      }
+      
+      this.formCiudad.set(ciudad);
+      this.formEstado.set(estado);
+      
+      setTimeout(() => this.actualizarMapa(), 0);
+    }
   }
 
   eliminarDireccion(id: string) {
@@ -268,104 +330,91 @@ export class Direcciones {
     this.formEstado.set('');
     this.formCodigoPostal.set('');
     this.formPrincipal.set(false);
+    this.formLatitud.set(null);
+    this.formLongitud.set(null);
+    this.formPlaceId.set('');
+  }
+
+  private procesarResultadoGeocodificacion(result: google.maps.GeocoderResult) {
+    const components = result.address_components || [];
+    const calle = result.formatted_address || '';
+    let ciudad = '';
+    let estado = '';
+    
+    for (const comp of components) {
+      if (comp.types.includes('locality')) ciudad = comp.long_name;
+      if (comp.types.includes('administrative_area_level_1')) estado = comp.long_name;
+    }
+    
+    this.formCalle.set(calle);
+    this.formCiudad.set(ciudad);
+    this.formEstado.set(estado);
   }
 
   getTituloDireccion(dir: DireccionUsuario, index: number): string {
     return (dir.alias || dir.nombre || `Dirección ${index + 1}`).trim();
   }
 
-  buscarDireccion(query: string) {
-    if (!query || query.length < 3) {
-      this.autocompleteResults.set([]);
-      return;
-    }
+  private async actualizarMapa() {
+    const lat = this.formLatitud();
+    const lng = this.formLongitud();
     
-    this.buscandoAutocomplete.set(true);
-    this.mapsService?.autocomplete(query).then(results => {
-      this.autocompleteResults.set(results || []);
-      this.buscandoAutocomplete.set(false);
-    }).catch(() => {
-      this.autocompleteResults.set([]);
-      this.buscandoAutocomplete.set(false);
-    });
-  }
-
-  seleccionarAutocomplete(result: any) {
-    if (!result) return;
+    if (!lat || !lng || !this.mapContainer?.nativeElement) return;
     
-    this.autocompleteResults.set([]);
-    this.formCalle.set(result.description || '');
-    this.formPlaceId.set(result.place_id || '');
-    
-    if (result.place_id) {
-      this.mapsService?.geocodePlaceId(result.place_id).then(geo => {
-        if (geo?.results?.[0]) {
-          const components = geo.results[0].address_components || [];
-          let ciudad = '';
-          let estado = '';
-          
-          for (const comp of components) {
-            if (comp.types.includes('locality')) ciudad = comp.long_name;
-            if (comp.types.includes('administrative_area_level_1')) estado = comp.long_name;
-          }
-          
-          const geometry = geo.results[0].geometry?.location || {};
-          this.formCiudad.set(ciudad);
-          this.formEstado.set(estado);
-          this.formLatitud.set(geometry.lat || null);
-          this.formLongitud.set(geometry.lng || null);
+    try {
+      await this.mapsService.loadApi();
+      
+      if (!this.map) {
+        this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
+          center: { lat, lng },
+          zoom: 16,
+        });
+        this.marker = this.mapsService.createMarker({
+          position: { lat, lng },
+          map: this.map,
+        });
+        
+        if (!this.listenerClickAgregado) {
+          this.listenerClickAgregado = true;
+          this.map.addListener('click', async (event: google.maps.MapMouseEvent) => {
+            if (!event.latLng) return;
+            const clickedLat = event.latLng.lat();
+            const clickedLng = event.latLng.lng();
+            
+            this.formLatitud.set(clickedLat);
+            this.formLongitud.set(clickedLng);
+            
+            if (this.marker) {
+              this.marker.setPosition({ lat: clickedLat, lng: clickedLng });
+            }
+            
+            try {
+              const result = await this.mapsService.reverseGeocode(clickedLat, clickedLng);
+              this.procesarResultadoGeocodificacion(result);
+            } catch (error) {
+              console.error('Error en geocodificación inversa:', error);
+            }
+          });
         }
-      });
+      } else {
+        const position = { lat, lng };
+        (this.map as any).setCenter(position);
+        if (this.marker) {
+          const m = this.marker as any;
+          if (m.setPosition) {
+            m.setPosition(position);
+          } else {
+            m.position = position;
+          }
+        } else {
+          this.marker = this.mapsService.createMarker({
+            position,
+            map: this.map,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading map:', error);
     }
   }
-
-  limpiarAutocomplete() {
-    setTimeout(() => this.autocompleteResults.set([]), 200);
-  }
-  
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['formLatitud'] || changes['formLongitud']) {
-      this.actualizarMapa();
-    }
-  }
-  
-private async actualizarMapa() {
-     const lat = this.formLatitud();
-     const lng = this.formLongitud();
-     
-     if (!lat || !lng || !this.mapContainer?.nativeElement) return;
-     
-     try {
-       await this.mapsService.loadApi();
-       
-       if (!this.map) {
-         this.map = this.mapsService.createMap(this.mapContainer.nativeElement, {
-           center: { lat, lng },
-           zoom: 16,
-         });
-         this.marker = this.mapsService.createMarker({
-           position: { lat, lng },
-           map: this.map,
-         });
-       } else {
-         const position = { lat, lng };
-         (this.map as any).setCenter(position);
-         if (this.marker) {
-           const m = this.marker as any;
-           if (m.setPosition) {
-             m.setPosition(position);
-           } else {
-             m.position = position;
-           }
-         } else {
-           this.marker = this.mapsService.createMarker({
-             position,
-             map: this.map,
-           });
-         }
-       }
-     } catch (error) {
-       console.error('Error loading map:', error);
-     }
-   }
- }
+}

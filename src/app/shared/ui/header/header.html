@@ -9,8 +9,7 @@
         <img src="/ESCOLARES RR PNG BLANCO.png" alt="Escolares logo" class="brand-logo" />
       </a>
 
-    @if (!isAdminRoute()) {
-      <div class="header-search">
+<div class="header-search" (mouseenter)="onSearchEnter()" (mouseleave)="onSearchLeave()">
         <form (ngSubmit)="search()" class="search-form">
           <div class="search-input-container">
             <button 
@@ -50,55 +49,52 @@
           </button>
         </form>
 
-        @if (showDropdown()) {
-          <div class="search-dropdown">
-            @if (dropdownAnchor() === 'category') {
-              <div class="category-filter-section">
-                <div class="category-filter-label">Filtrar por categoría:</div>
-                <div class="category-filter-options">
-                  @for (cat of categories(); track cat) {
-                    <button type="button" class="category-filter-btn" (mousedown)="selectCategory(cat)">
-                      {{ cat }}
-                    </button>
-                  }
-                </div>
+        <div class="search-dropdown" [class.open]="showDropdown()" (mouseenter)="onSearchEnter()" (mouseleave)="onSearchLeave()">
+          @if (dropdownAnchor() === 'category') {
+            <div class="category-filter-section">
+              <div class="category-filter-label">Filtrar por categoría:</div>
+              <div class="category-filter-options">
+                @for (cat of categories(); track cat) {
+                  <button type="button" class="category-filter-btn" (mousedown)="selectCategory(cat)">
+                    {{ cat }}
+                  </button>
+                }
               </div>
-            }
-            @if (dropdownAnchor() === 'search') {
-              @if (searchHistory().length > 0 && suggestions().length === 0 && searchQuery.length === 0) {
-                <div class="search-history-section">
-                  <div class="search-history-header">
-                    <span>Búsquedas recientes</span>
-                    <button type="button" class="clear-history-btn" (mousedown)="clearSearchHistory()" title="Limpiar historial">
-                      Limpiar
+            </div>
+          }
+          @if (dropdownAnchor() === 'search') {
+            @if (searchHistory().length > 0 && suggestions().length === 0 && searchQuery.length === 0) {
+              <div class="search-history-section">
+                <div class="search-history-header">
+                  <span>Búsquedas recientes</span>
+                  <button type="button" class="clear-history-btn" (mousedown)="clearSearchHistory()" title="Limpiar historial">
+                    Limpiar
+                  </button>
+                </div>
+                @for (item of searchHistory(); track item) {
+                  <div class="search-history-item">
+                    <button type="button" class="history-text" (mousedown)="selectFromHistory(item)">
+                      {{ item }}
+                    </button>
+                    <button type="button" class="remove-history-btn" (mousedown)="removeFromHistory(item)" title="Eliminar">
+                      ×
                     </button>
                   </div>
-                  @for (item of searchHistory(); track item) {
-                    <div class="search-history-item">
-                      <button type="button" class="history-text" (mousedown)="selectFromHistory(item)">
-                        {{ item }}
-                      </button>
-                      <button type="button" class="remove-history-btn" (mousedown)="removeFromHistory(item)" title="Eliminar">
-                        ×
-                      </button>
-                    </div>
-                  }
-                </div>
-              }
+                }
+              </div>
             }
-            @for (product of suggestions(); track product.id) {
-              <a class="search-dropdown-item" (mousedown)="selectProduct(product)">
-                <img [src]="product.image" [alt]="product.title" />
-                <div class="item-info">
-                  <div class="item-title">{{ product.title }}</div>
-                  <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
-                </div>
-              </a>
-            }
-          </div>
-        }
+          }
+          @for (product of suggestions(); track product.id) {
+            <a class="search-dropdown-item" (mousedown)="selectProduct(product)">
+              <img [src]="product.image" [alt]="product.title" />
+              <div class="item-info">
+                <div class="item-title">{{ product.title }}</div>
+                <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
+              </div>
+            </a>
+          }
+        </div>
       </div>
-    }
 
     <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Menú" [class.hidden]="isAdminRoute()">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -109,6 +105,43 @@
     </button>
 
 <div class="header-icons">
+      <div class="address-selector-container">
+  <button class="nav-address-btn" (click)="toggleAddressPopover($event)">
+    <span class="address-icon">📍</span>
+    <span class="address-text">{{ displayAddress() }}</span>
+    <span class="arrow-icon">▼</span>
+  </button>
+  @if (addressPopoverOpen()) {
+    <div class="address-popover" (click)="$event.stopPropagation()">
+      <div class="popover-arrow"></div>
+      <div class="popover-header">
+        <h3>¿A dónde quieres pedir?</h3>
+      </div>
+      <div class="popover-body">
+        @if (userAddresses().length > 0) {
+          @for (address of userAddresses(); track address.id) {
+            <div class="address-item"
+               [class.active]="address.id === selectedAddressId()"
+               (click)="selectAddress(address)">
+              <span class="address-alias">{{ address.alias || address.nombre || 'Dirección' }}</span>
+              <span class="address-details">{{ address.direccion }}</span>
+            </div>
+          }
+        } @else {
+          <div class="address-empty">
+            <p>No tienes direcciones registradas</p>
+            <button class="add-address-btn" (click)="goToAddresses()">Agregar dirección</button>
+          </div>
+        }
+      </div>
+      @if (hasAddresses()) {
+        <div class="popover-footer">
+          <button class="add-address-btn" (click)="goToAddresses()">Agregar dirección</button>
+        </div>
+      }
+    </div>
+  }
+</div>
       <button class="dark-toggle" (click)="toggleDarkMode(); $event.stopPropagation()" [title]="isDarkMode() ? 'Modo claro' : 'Modo oscuro'">
         @if (isDarkMode()) {
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
@@ -146,7 +179,7 @@
           <span class="user-greeting">Iniciar sesión</span>
         </button>
       }
-      <button class="notification-btn" type="button" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
+<button class="notification-btn" type="button" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -156,8 +189,8 @@
         }
       </button>
 
-      @if (notificationsOpen()) {
-        <div class="notifications-dropdown" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
+<div class="notifications-container" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
+        <div class="notifications-dropdown" [class.open]="notificationsOpen()">
           <div class="notifications-header">
             <span>Notificaciones</span>
             @if (unreadCount() > 0) {
@@ -189,9 +222,9 @@
           }
           <a class="notifications-footer" routerLink="/noticias" (click)="closeNotifications($event)">Ver todas las noticias</a>
         </div>
-      }
+      </div>
 
-      @if (!isAdminRoute()) {
+@if (!isAdminRoute()) {
         <div class="cart-hover-container" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
           <a class="cart-btn" routerLink="/cart">
             <img src="/cart.png" alt="Carrito" />
@@ -200,47 +233,45 @@
             }
           </a>
 
-          @if (cartPreviewOpen()) {
-            <div class="cart-preview-dropdown" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
-              <div class="cart-preview-header">
-                <span>Mi carrito</span>
-                <span>{{ cartCount() }} producto(s)</span>
+<div class="cart-preview-dropdown" [class.open]="cartPreviewOpen()" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
+            <div class="cart-preview-header">
+              <span>Mi carrito</span>
+              <span>{{ cartCount() }} producto(s)</span>
+            </div>
+
+            @if (cartPreviewItems().length > 0) {
+              <div class="cart-preview-items">
+                @for (item of cartPreviewItems(); track item.product.id) {
+                  <a class="cart-preview-item" routerLink="/cart">
+                    <img [src]="item.product.image" [alt]="item.product.title" />
+                    <div class="preview-item-info">
+                      <div class="preview-item-title">{{ item.product.title }}</div>
+                      <div class="preview-item-meta">
+                        {{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span>
+                      </div>
+                    </div>
+                    <div class="preview-item-total" [innerHTML]="formatPrice(getCartItemTotal(item))"></div>
+                  </a>
+                }
               </div>
 
-              @if (cartPreviewItems().length > 0) {
-                <div class="cart-preview-items">
-                  @for (item of cartPreviewItems(); track item.product.id) {
-                    <a class="cart-preview-item" routerLink="/cart">
-                      <img [src]="item.product.image" [alt]="item.product.title" />
-                      <div class="preview-item-info">
-                        <div class="preview-item-title">{{ item.product.title }}</div>
-                        <div class="preview-item-meta">
-                          {{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span>
-                        </div>
-                      </div>
-                      <div class="preview-item-total" [innerHTML]="formatPrice(getCartItemTotal(item))"></div>
-                    </a>
-                  }
-                </div>
-
-                @if (hasMoreCartItems()) {
-                  <div class="cart-preview-more">Y más productos en tu carrito...</div>
-                }
-
-                <div class="cart-preview-footer">
-                  <div class="cart-preview-total">
-                    <span>Total:</span>
-                    <strong [innerHTML]="formatPrice(cartPreviewTotal())"></strong>
-                  </div>
-                  <a class="cart-preview-action" routerLink="/cart">Ver carrito</a>
-                </div>
-              } @else {
-                <div class="cart-preview-empty">
-                  Tu carrito está vacío.
-                </div>
+              @if (hasMoreCartItems()) {
+                <div class="cart-preview-more">Y más productos en tu carrito...</div>
               }
-            </div>
-          }
+
+              <div class="cart-preview-footer">
+                <div class="cart-preview-total">
+                  <span>Total:</span>
+                  <strong [innerHTML]="formatPrice(cartPreviewTotal())"></strong>
+                </div>
+                <a class="cart-preview-action" routerLink="/cart">Ver carrito</a>
+              </div>
+            } @else {
+              <div class="cart-preview-empty">
+                Tu carrito está vacío.
+              </div>
+            }
+          </div>
         </div>
       }
     </div>

@@ -1,0 +1,299 @@
+.sesiones-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.sesiones-container h3 {
+  margin-bottom: 20px;
+  color: #1e293b;
+  font-size: 1.5rem;
+}
+
+.no-access, .error, .cargando, .no-data {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.error {
+  color: #ef4444;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+.filtros-sesiones {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.busqueda-container {
+  flex: 1;
+  min-width: 250px;
+}
+
+.busqueda-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.busqueda-input:focus {
+  border-color: #2563eb;
+}
+
+.filtro-estado-container {
+  min-width: 150px;
+}
+
+.filtro-estado-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: white;
+  cursor: pointer;
+}
+
+.btn-refrescar {
+  padding: 10px 16px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.btn-refrescar:hover {
+  background: #1d4ed8;
+}
+
+.estadisticas {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  flex: 1;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-card.activas {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.stat-card.cerradas {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.stat-card.total {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.sesiones-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sesion-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px;
+  transition: box-shadow 0.2s;
+}
+
+.sesion-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.sesion-card.inactiva {
+  opacity: 0.7;
+  background: #f8fafc;
+}
+
+.sesion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.sesion-usuario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.usuario-icon {
+  font-size: 2rem;
+}
+
+.usuario-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.usuario-nombre {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1.05rem;
+}
+
+.usuario-email {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+}
+
+.sesion-detalles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.detalle-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.detalle-icon {
+  font-size: 1.1rem;
+}
+
+.detalle-label {
+  font-weight: 500;
+  color: #64748b;
+}
+
+.detalle-valor {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.sesion-fechas {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.fecha-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.fecha-label {
+  font-weight: 500;
+}
+
+.fecha-valor {
+  color: #374151;
+}
+
+.sesion-acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-cerrar-sesion {
+  padding: 8px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-cerrar-sesion:hover {
+  background: #dc2626;
+}
+
+.btn-cerrar-todas {
+  padding: 8px 16px;
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-cerrar-todas:hover {
+  background: #d97706;
+}
+
+@media (max-width: 768px) {
+  .filtros-sesiones {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sesion-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sesion-detalles {
+    grid-template-columns: 1fr;
+  }
+
+  .estadisticas {
+    flex-direction: column;
+  }
+}

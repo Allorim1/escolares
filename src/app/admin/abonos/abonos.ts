@@ -105,13 +105,14 @@ export class Abonos implements OnInit {
   });
 
   ngOnInit() {
-    this.loadAbonos();
+    this.loadAbonos(true);
     this.cargarEmpresasYSetear();
   }
 
-  loadAbonos() {
+  loadAbonos(force = false) {
     this.loading.set(true);
-    this.http.get<Abono[]>(this.API).subscribe({
+    const url = force ? `${this.API}?t=${new Date().getTime()}` : this.API;
+    this.http.get<Abono[]>(url).subscribe({
       next: (data) => {
         this.abonos.set([...data].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
         this.loading.set(false);
@@ -186,18 +187,40 @@ export class Abonos implements OnInit {
 
   abrirModal(abono?: Abono) {
     if (abono) {
-      this.editingAbono = {
-        ...abono,
-        fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
-        empresa: abono.empresa || '',
-        montoFactura: abono.montoFactura ?? 0,
-        iva: abono.iva ?? 0,
-        diferencia: abono.diferencia ?? 0,
-        tasa: abono.tasa ?? 0,
-        divisa: abono.divisa ?? 0,
-      };
-      this.cargarEmpresasYSetear(abono.empresa);
-      this.calcularDerivados();
+      this.http.get<Abono[]>(`${this.API}?t=${new Date().getTime()}`).subscribe({
+        next: (data) => {
+          const abonoActualizado = data.find((a) => a._id === abono._id) || abono;
+          this.abonos.set([...data].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
+          this.editingAbono = {
+            ...abonoActualizado,
+            fecha: abonoActualizado.fecha ? new Date(abonoActualizado.fecha).toISOString().split('T')[0] : '',
+            empresa: abonoActualizado.empresa || '',
+            montoFactura: abonoActualizado.montoFactura ?? 0,
+            iva: abonoActualizado.iva ?? 0,
+            diferencia: abonoActualizado.diferencia ?? 0,
+            tasa: abonoActualizado.tasa ?? 0,
+            divisa: abonoActualizado.divisa ?? 0,
+          };
+          this.cargarEmpresasYSetear(abonoActualizado.empresa);
+          this.calcularDerivados();
+          this.showModal.set(true);
+        },
+        error: () => {
+          this.editingAbono = {
+            ...abono,
+            fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
+            empresa: abono.empresa || '',
+            montoFactura: abono.montoFactura ?? 0,
+            iva: abono.iva ?? 0,
+            diferencia: abono.diferencia ?? 0,
+            tasa: abono.tasa ?? 0,
+            divisa: abono.divisa ?? 0,
+          };
+          this.cargarEmpresasYSetear(abono.empresa);
+          this.calcularDerivados();
+          this.showModal.set(true);
+        },
+      });
     } else {
       this.editingAbono = {
         fecha: new Date().toISOString().split('T')[0],
@@ -215,8 +238,8 @@ export class Abonos implements OnInit {
         status: '',
       };
       this.cargarEmpresasYSetear('');
+      this.showModal.set(true);
     }
-    this.showModal.set(true);
   }
 
   cerrarModal() {
@@ -260,27 +283,45 @@ export class Abonos implements OnInit {
     this.saving.set(true);
 
     if (this.editingAbono._id) {
-      this.http.put(`${this.API}/${this.editingAbono._id}`, this.editingAbono).subscribe({
-        next: () => {
+      this.http.put<Abono>(`${this.API}/${this.editingAbono._id}`, this.editingAbono).subscribe({
+        next: (abonoActualizado) => {
           this.saving.set(false);
+          if (abonoActualizado && abonoActualizado._id) {
+            this.abonos.update((lista) => {
+              const index = lista.findIndex((a) => a._id === abonoActualizado._id);
+              if (index >= 0) {
+                lista[index] = abonoActualizado;
+              } else {
+                lista.unshift(abonoActualizado);
+              }
+              return [...lista].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+            });
+          } else {
+            this.loadAbonos(true);
+          }
           this.cerrarModal();
-          this.loadAbonos();
         },
         error: (err) => {
           console.error('Error updating abono:', err);
           this.saving.set(false);
+          this.loadAbonos(true);
         },
       });
     } else {
-      this.http.post(this.API, this.editingAbono).subscribe({
-        next: () => {
+      this.http.post<Abono>(this.API, this.editingAbono).subscribe({
+        next: (abonoCreado) => {
           this.saving.set(false);
+          if (abonoCreado && abonoCreado._id) {
+            this.abonos.update((lista) => [abonoCreado, ...lista].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
+          } else {
+            this.loadAbonos(true);
+          }
           this.cerrarModal();
-          this.loadAbonos();
         },
         error: (err) => {
           console.error('Error creating abono:', err);
           this.saving.set(false);
+          this.loadAbonos(true);
         },
       });
     }
@@ -289,7 +330,7 @@ export class Abonos implements OnInit {
   eliminarAbono(id: string) {
     if (!confirm('¿Está seguro de eliminar este abono?')) return;
     this.http.delete(`${this.API}/${id}`).subscribe({
-      next: () => this.loadAbonos(),
+      next: () => this.loadAbonos(true),
       error: (err) => console.error('Error deleting abono:', err),
     });
   }

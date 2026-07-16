@@ -110,7 +110,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
         expanded: false,
         items: [
           { label: 'Empresas', route: 'empresas' },
-          { label: 'Abonos', route: 'abonos' },
+          { label: 'Relación', route: 'abonos' },
         ]
       }
    ];

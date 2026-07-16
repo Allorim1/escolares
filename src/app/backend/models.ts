@@ -38,16 +38,20 @@ export interface User {
 }
 
 export interface Direccion {
-  id: string;
-  nombre: string;
-  direccion: string;
-  alias?: string;
-  calle?: string;
-  ciudad?: string;
-  estado?: string;
-  codigoPostal?: string;
-  principal?: boolean;
-}
+   id: string;
+   nombre: string;
+   direccion: string;
+   alias?: string;
+   calle?: string;
+   ciudad?: string;
+   estado?: string;
+   codigoPostal?: string;
+   principal?: boolean;
+   direccionCompleta?: string;
+   placeId?: string;
+   latitud?: number;
+   longitud?: number;
+ }
 
 export interface MetodoPago {
   id: string;

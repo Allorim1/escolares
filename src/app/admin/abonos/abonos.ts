@@ -2,7 +2,7 @@ import { Component, signal, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { EnterFocusNextDirective } from '../shared/ui/enter-focus-next.directive';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';

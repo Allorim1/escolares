@@ -1,7 +1,7 @@
-<div class="empresas-detalle-container">
-  <div class="empresas-detalle-header">
+<div class="clientes-detalle-container">
+  <div class="clientes-detalle-header">
     <button class="btn-back" (click)="volver()">← Volver</button>
-    <h1>{{ empresa()?.nombre || 'Detalle de Empresa' }}</h1>
+    <h1>{{ cliente()?.nombre || 'Detalle de Cliente' }}</h1>
   </div>
 
   @if (loading()) {
@@ -16,12 +16,12 @@
       <div class="detalle-body">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" [(ngModel)]="empresa()!.nombre" name="detalle-nombre">
+          <input type="text" [(ngModel)]="cliente()!.nombre" name="detalle-nombre">
         </div>
         <div class="form-group">
           <label>Plantas</label>
           <div class="plantas-list">
-            @for (planta of empresa()?.plantas; track planta) {
+            @for (planta of cliente()?.plantas; track planta) {
               <div class="planta-item">
                 <span>{{ planta }}</span>
                 <button type="button" class="btn-remove" (click)="eliminarPlanta(planta)">✕</button>
@@ -35,7 +35,7 @@
         </div>
 
         <div class="detalle-actions">
-          <button class="btn-save" (click)="guardarEmpresa()" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar Cambios' }}</button>
+          <button class="btn-save" (click)="guardarCliente()" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar Cambios' }}</button>
         </div>
       </div>
     }
@@ -49,7 +49,7 @@
               <label>Planta</label>
               <select [ngModel]="relFiltroPlanta()" (ngModelChange)="relFiltroPlanta.set($event)" name="rel-filtro-planta">
                 <option value="">Todas</option>
-                @for (planta of plantasEmpresa(); track planta) {
+                @for (planta of plantasCliente(); track planta) {
                   <option [value]="planta">{{ planta }}</option>
                 }
               </select>
@@ -73,7 +73,7 @@
         @if (abonosLoading()) {
           <div class="loading">Cargando relaciones...</div>
         } @else if (relacionesFiltradas().length === 0) {
-          <div class="empty">No hay relaciones para esta empresa</div>
+          <div class="empty">No hay relaciones para este cliente</div>
         } @else {
           <div class="relaciones-table-wrapper">
             <table class="relaciones-table">
@@ -141,7 +141,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Empresa *</label>
-            <input type="text" [(ngModel)]="editingAbono.empresa" name="abono-empresa" required [disabled]="!!empresa()">
+            <input type="text" [(ngModel)]="editingAbono.empresa" name="abono-empresa" required [disabled]="!!cliente()">
           </div>
           <div class="form-group">
             <label>Planta *</label>

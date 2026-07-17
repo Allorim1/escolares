@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 
-interface Empresa {
+interface Cliente {
   _id?: string;
   nombre: string;
   plantas: string[];
@@ -28,21 +28,21 @@ interface Abono {
 }
 
 @Component({
-  selector: 'app-empresas-detalle',
+  selector: 'app-clientes-detalle',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './empresas-detalle.html',
-  styleUrl: './empresas-detalle.css',
+  templateUrl: './clientes-detalle.html',
+  styleUrl: './clientes-detalle.css',
 })
-export class EmpresasDetalle implements OnInit {
+export class ClientesDetalle implements OnInit {
   private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private readonly API = '/api/empresas';
   private readonly API_ABONOS = '/api/abonos-polar';
 
-  empresa = signal<Empresa | null>(null);
-  empresaId = signal('');
+  cliente = signal<Cliente | null>(null);
+  clienteId = signal('');
   loading = signal(false);
   saving = signal(false);
   nuevaPlanta = signal('');
@@ -57,13 +57,13 @@ export class EmpresasDetalle implements OnInit {
   relFiltroDesde = signal('');
   relFiltroHasta = signal('');
 
-  plantasEmpresa = computed(() => {
-    return this.empresa()?.plantas ?? [];
+  plantasCliente = computed(() => {
+    return this.cliente()?.plantas ?? [];
   });
 
   relacionesFiltradas = computed(() => {
-    if (!this.empresa()) return [];
-    const nombre = this.empresa()!.nombre;
+    if (!this.cliente()) return [];
+    const nombre = this.cliente()!.nombre;
     const planta = this.relFiltroPlanta();
     const desde = this.relFiltroDesde();
     const hasta = this.relFiltroHasta();
@@ -80,21 +80,21 @@ export class EmpresasDetalle implements OnInit {
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.empresaId.set(id);
-      this.loadEmpresa(id);
+      this.clienteId.set(id);
+      this.loadCliente(id);
       this.cargarAbonos(id);
     }
   }
 
-  loadEmpresa(id: string) {
+  loadCliente(id: string) {
     this.loading.set(true);
-    this.http.get<Empresa>(`${this.API}/${id}`).subscribe({
+    this.http.get<Cliente>(`${this.API}/${id}`).subscribe({
       next: (data) => {
-        this.empresa.set(data);
+        this.cliente.set(data);
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading empresa:', err);
+        console.error('Error loading cliente:', err);
         this.loading.set(false);
       },
     });
@@ -116,45 +116,45 @@ export class EmpresasDetalle implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/admin/empresas']);
+    this.router.navigate(['/admin/clientes']);
   }
 
   agregarPlanta() {
-    if (!this.empresa()) return;
+    if (!this.cliente()) return;
     const planta = this.nuevaPlanta().trim();
     if (!planta) return;
-    if (this.empresa()!.plantas.includes(planta)) return;
-    this.empresa.update(e => e ? { ...e, plantas: [...e.plantas, planta] } : e);
+    if (this.cliente()!.plantas.includes(planta)) return;
+    this.cliente.update(e => e ? { ...e, plantas: [...e.plantas, planta] } : e);
     this.nuevaPlanta.set('');
   }
 
   eliminarPlanta(planta: string) {
-    if (!this.empresa()) return;
-    this.empresa.update(e => e ? { ...e, plantas: e.plantas.filter(p => p !== planta) } : e);
+    if (!this.cliente()) return;
+    this.cliente.update(e => e ? { ...e, plantas: e.plantas.filter(p => p !== planta) } : e);
   }
 
-  guardarEmpresa() {
-    if (!this.empresa() || !this.empresa()!._id) return;
-    if (!this.empresa()!.nombre.trim()) {
-      alert('El nombre de la empresa es requerido');
+  guardarCliente() {
+    if (!this.cliente() || !this.cliente()!._id) return;
+    if (!this.cliente()!.nombre.trim()) {
+      alert('El nombre del cliente es requerido');
       return;
     }
 
     this.saving.set(true);
-    this.http.put(`${this.API}/${this.empresa()!._id}`, this.empresa()).subscribe({
+    this.http.put(`${this.API}/${this.cliente()!._id}`, this.cliente()).subscribe({
       next: () => {
         this.saving.set(false);
-        this.loadEmpresa(this.empresa()!._id!);
+        this.loadCliente(this.cliente()!._id!);
       },
       error: (err) => {
-        console.error('Error updating empresa:', err);
+        console.error('Error updating cliente:', err);
         this.saving.set(false);
       },
     });
   }
 
   abrirModalAbono(abono?: Abono) {
-    if (!this.empresa()) return;
+    if (!this.cliente()) return;
     if (abono) {
       this.editingAbono = {
         ...abono,
@@ -169,7 +169,7 @@ export class EmpresasDetalle implements OnInit {
       this.editingAbono = {
         fecha: new Date().toISOString().split('T')[0],
         nombre: '',
-        empresa: this.empresa()!.nombre,
+        empresa: this.cliente()!.nombre,
         planta: '',
         cedula: '',
         telefono: '',
@@ -213,14 +213,14 @@ export class EmpresasDetalle implements OnInit {
               }
               return [...lista];
             });
-          } else if (this.empresaId()) {
-            this.cargarAbonos(this.empresaId());
+          } else if (this.clienteId()) {
+            this.cargarAbonos(this.clienteId());
           }
         },
         error: (err) => {
           console.error('Error updating abono:', err);
           this.saving.set(false);
-          if (this.empresaId()) this.cargarAbonos(this.empresaId());
+          if (this.clienteId()) this.cargarAbonos(this.clienteId());
         },
       });
     } else {
@@ -230,14 +230,14 @@ export class EmpresasDetalle implements OnInit {
           this.cerrarModalAbono();
           if (abonoCreado && abonoCreado._id) {
             this.abonos.update((lista) => [abonoCreado, ...lista]);
-          } else if (this.empresaId()) {
-            this.cargarAbonos(this.empresaId());
+          } else if (this.clienteId()) {
+            this.cargarAbonos(this.clienteId());
           }
         },
         error: (err) => {
           console.error('Error creating abono:', err);
           this.saving.set(false);
-          if (this.empresaId()) this.cargarAbonos(this.empresaId());
+          if (this.clienteId()) this.cargarAbonos(this.clienteId());
         },
       });
     }
@@ -247,7 +247,7 @@ export class EmpresasDetalle implements OnInit {
     if (!confirm('¿Está seguro de eliminar esta relación?')) return;
     this.http.delete(`${this.API_ABONOS}/${id}`).subscribe({
       next: () => {
-        if (this.empresaId()) this.cargarAbonos(this.empresaId());
+        if (this.clienteId()) this.cargarAbonos(this.clienteId());
       },
       error: (err) => console.error('Error deleting abono:', err),
     });

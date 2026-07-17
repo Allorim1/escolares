@@ -105,14 +105,14 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
            { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
          ]
        },
-      {
-        name: 'Empresas',
-        expanded: false,
-        items: [
-          { label: 'Empresas', route: 'empresas' },
-          { label: 'Relación', route: 'abonos' },
-        ]
-      }
+       {
+         name: 'Empresas',
+         expanded: false,
+         items: [
+           { label: 'Empresas', route: 'clientes' },
+           { label: 'Relación', route: 'abonos' },
+         ]
+       }
    ];
 
 @Component({

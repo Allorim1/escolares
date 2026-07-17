@@ -244,13 +244,13 @@ export const routes: Routes = [
               path: 'asistencias',
               loadComponent: () => import('./admin/asistencias/asistencias').then((m) => m.Asistencias),
             },
-             {
-                path: 'empresas',
-                loadComponent: () => import('./admin/empresas/empresas').then((m) => m.Empresas),
+              {
+                path: 'clientes',
+                loadComponent: () => import('./admin/clientes/clientes').then((m) => m.Clientes),
               },
               {
-                path: 'empresas/:id',
-                loadComponent: () => import('./admin/empresas/empresas-detalle').then((m) => m.EmpresasDetalle),
+                path: 'clientes/:id',
+                loadComponent: () => import('./admin/clientes/clientes-detalle').then((m) => m.ClientesDetalle),
               },
             {
                path: 'abonos',

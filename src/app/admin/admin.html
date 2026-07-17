@@ -10,6 +10,22 @@
       <a routerLink="inicio" routerLinkActive="active" class="inicio-link">
         🏠 Inicio
       </a>
+      <div class="quick-access-sidebar-wrapper">
+        <button type="button" class="quick-access-sidebar-toggle" (click)="toggleQuickAccess()" [class.open]="quickAccessOpen()">
+          <span class="quick-access-sidebar-label">⚡ Accesos Rápidos</span>
+          <span class="quick-access-sidebar-arrow" [class.open]="quickAccessOpen()">▶</span>
+        </button>
+        <div class="quick-access-sidebar-menu" [class.open]="quickAccessOpen()">
+          @for (quickItem of quickItems(); track quickItem.route) {
+            @if (!quickItem.permiso || hasPermission(quickItem.permiso)) {
+              <a [routerLink]="quickItem.route" routerLinkActive="active" class="quick-access-sidebar-item" (click)="closeQuickAccess()">
+                <span class="quick-link-icon">{{ quickItem.icon }}</span>
+                <span class="quick-link-label">{{ quickItem.label }}</span>
+              </a>
+            }
+          }
+        </div>
+      </div>
       @for (categoria of categorias(); track categoria.name; let i = $index) {
         <div class="menu-categoria">
           <button class="categoria-header" (click)="toggleCategoria(i)">

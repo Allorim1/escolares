@@ -132,6 +132,7 @@ userPermissions = signal<string[]>([]);
    apiKeyStatusLoaded = signal(false);
    categorias = signal<MenuCategory[]>([]);
    quickItems = signal<QuickItem[]>([]);
+   quickAccessOpen = signal(false);
 
    ngOnInit() {
      this.checkApiKeyStatus();
@@ -213,7 +214,15 @@ setCategoriesWithExpanded() {
          });
          return { ...cat, expanded: false };
        });
-     this.categorias.set(categories);
+      this.categorias.set(categories);
+    }
+
+   toggleQuickAccess() {
+     this.quickAccessOpen.update(v => !v);
+   }
+
+   closeQuickAccess() {
+     this.quickAccessOpen.set(false);
    }
 
   hasPermission(permiso?: string): boolean {

@@ -1,0 +1,165 @@
+<div class="clientes-container">
+  <div class="clientes-header">
+    <h1>Clientes</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Nuevo Cliente</button>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" placeholder="Buscar cliente..." name="busqueda">
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="clientes-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Plantas</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (cliente of clientesFiltrados(); track cliente._id) {
+          <tr class="cliente-row" (click)="abrirModalDetalle(cliente)">
+            <td>{{ cliente.nombre }}</td>
+            <td>
+              @for (planta of cliente.plantas; track planta) {
+                <span class="planta-badge">{{ planta }}</span>
+              }
+              @if (cliente.plantas.length === 0) {
+                <span class="sin-plantas">Sin plantas</span>
+              }
+            </td>
+            <td class="actions" (click)="$event.stopPropagation()">
+              <button class="btn-edit" (click)="abrirModal(cliente)">Editar</button>
+              <button class="btn-delete" (click)="eliminarCliente(cliente._id || '')">Eliminar</button>
+              <button class="btn-primary" (click)="verHistorialCompras()">Ver Historial de Compras</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="empty">No hay clientes registrados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editingCliente?._id ? 'Editar' : 'Nuevo' }} Cliente</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      </div>
+      <form (ngSubmit)="guardarCliente()">
+        <div class="form-group">
+          <label for="cliente-nombre">Nombre *</label>
+          <input id="cliente-nombre" type="text" [(ngModel)]="editingCliente!.nombre" name="nombre" required>
+        </div>
+          <div class="form-group">
+            <label for="nuevaPlanta">Plantas</label>
+            <div class="plantas-list">
+              @for (planta of editingCliente?.plantas; track planta) {
+                <div class="planta-item">
+                  <span>{{ planta }}</span>
+                  <button type="button" class="btn-remove" (click)="eliminarPlanta(planta)">✕</button>
+                </div>
+              }
+            </div>
+            <div class="add-planta">
+              <input id="nuevaPlanta" type="text" [ngModel]="nuevaPlanta()" (ngModelChange)="nuevaPlanta.set($event)" name="nuevaPlanta" placeholder="Nueva planta">
+              <button type="button" class="btn-add" (click)="agregarPlanta()">Agregar</button>
+            </div>
+          </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showModalDetalle() && selectedCliente) {
+  <div class="modal-overlay">
+    <div class="modal modal-detalle">
+      <div class="modal-header">
+        <h2>{{ selectedCliente.nombre }}</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalDetalle()">✕</button>
+      </div>
+
+      <div class="detalle-tabs">
+        <button class="tab-btn" [class.active]="!detalleTab()" (click)="detalleTab.set(false)">General</button>
+        <button class="tab-btn" [class.active]="detalleTab()" (click)="detalleTab.set(true)">Relaciones</button>
+      </div>
+
+      <div class="detalle-body">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" [(ngModel)]="selectedCliente.nombre" name="detalle-nombre">
+        </div>
+        <div class="form-group">
+          <label>Plantas</label>
+          <div class="plantas-list">
+            @for (planta of selectedCliente.plantas; track planta) {
+              <div class="planta-item">
+                <span>{{ planta }}</span>
+                <button type="button" class="btn-remove" (click)="eliminarPlantaDetalle(planta)">✕</button>
+              </div>
+            }
+          </div>
+          <div class="add-planta">
+            <input type="text" [(ngModel)]="nuevaPlantaDetalle" (keyup.enter)="agregarPlantaDetalle()" placeholder="Nueva planta">
+            <button type="button" class="btn-add" (click)="agregarPlantaDetalle()">Agregar</button>
+          </div>
+        </div>
+
+        <div class="detalle-actions">
+          <button class="btn-save" (click)="guardarDetalle()">Guardar Cambios</button>
+          <button class="btn-delete" (click)="eliminarCliente(selectedCliente._id || '')">Eliminar Cliente</button>
+        </div>
+
+        @if (detalleTab()) {
+          <div class="relaciones-section">
+            <h3>Relaciones / Abonos</h3>
+            @if (abonosLoading()) {
+              <div class="loading">Cargando relaciones...</div>
+            } @else if (relacionesFiltradas().length === 0) {
+              <div class="empty">No hay relaciones para este cliente</div>
+            } @else {
+              <table class="relaciones-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Planta</th>
+                    <th>N. Fact</th>
+                    <th>Monto Factura</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (abono of relacionesFiltradas(); track abono._id) {
+                    <tr>
+                      <td>{{ formatFecha(abono.fecha) }}</td>
+                      <td>{{ abono.nombre }}</td>
+                      <td><span class="planta-badge">{{ abono.planta }}</span></td>
+                      <td>{{ abono.nFact }}</td>
+                      <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+                      <td>{{ abono.status }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

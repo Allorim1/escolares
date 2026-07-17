@@ -158,6 +158,26 @@
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
+.modal-detalle {
+  max-width: 95vw;
+  width: 1100px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .modal {
+    padding: 20px;
+  }
+
+  .modal-detalle {
+    width: 95vw;
+    max-width: 95vw;
+    padding: 20px;
+  }
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -307,16 +327,26 @@
   background: #1551a3;
 }
 
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
 .cliente-row {
   cursor: pointer;
 }
 
 .cliente-row td {
   vertical-align: middle;
-}
-
-.modal-detalle {
-  max-width: 800px;
 }
 
 .detalle-tabs {
@@ -355,18 +385,70 @@
   flex-wrap: wrap;
 }
 
-.relaciones-section h3 {
-  margin: 12px 0 8px;
+.relaciones-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.relaciones-header h3 {
+  margin: 0;
   color: #1d63c1;
+}
+
+.relaciones-filtros {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.relaciones-filtros .form-group {
+  margin-bottom: 0;
+  min-width: 150px;
+}
+
+.relaciones-filtros label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #333;
+  font-size: 12px;
+}
+
+.relaciones-filtros input,
+.relaciones-filtros select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.relaciones-acciones {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.relaciones-section {
+  overflow: hidden;
+}
+
+.relaciones-table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .relaciones-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-width: 900px;
 }
 
 .relaciones-table th,
@@ -375,6 +457,7 @@
   text-align: left;
   border-bottom: 1px solid #eee;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .relaciones-table th {
@@ -400,13 +483,10 @@
   flex: 1;
 }
 
-.relaciones-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.cliente-row {
+  cursor: pointer;
 }
 
-.relaciones-header h3 {
-  margin: 0;
-  color: #1d63c1;
+.cliente-row td {
+  vertical-align: middle;
 }

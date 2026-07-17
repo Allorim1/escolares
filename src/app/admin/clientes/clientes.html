@@ -131,7 +131,30 @@
         <div class="detalle-body">
           <div class="relaciones-header">
             <h3>Relaciones / Abonos</h3>
-            <button class="btn-primary" (click)="abrirModalAbono()">+ Nueva Relación</button>
+            <div class="relaciones-filtros">
+              <div class="form-group">
+                <label>Planta</label>
+                <select [ngModel]="relFiltroPlanta()" (ngModelChange)="relFiltroPlanta.set($event)">
+                  <option value="">Todas</option>
+                  @for (planta of plantasCliente(); track planta) {
+                    <option [value]="planta">{{ planta }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Desde</label>
+                <input type="date" [ngModel]="relFiltroDesde()" (ngModelChange)="relFiltroDesde.set($event)">
+              </div>
+              <div class="form-group">
+                <label>Hasta</label>
+                <input type="date" [ngModel]="relFiltroHasta()" (ngModelChange)="relFiltroHasta.set($event)">
+              </div>
+            </div>
+            <div class="relaciones-acciones">
+              <button class="btn-primary" (click)="abrirModalAbono()">+ Nueva Relación</button>
+              <button class="btn-secondary" (click)="generarReportePdf()">📄 PDF</button>
+              <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
+            </div>
           </div>
 
           @if (abonosLoading()) {
@@ -139,43 +162,45 @@
           } @else if (relacionesFiltradas().length === 0) {
             <div class="empty">No hay relaciones para este cliente</div>
           } @else {
-            <table class="relaciones-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Nombre</th>
-                  <th>Planta</th>
-                  <th>N. Fact</th>
-                  <th>Monto Factura</th>
-                  <th>IVA</th>
-                  <th>Diferencia</th>
-                  <th>Tasa</th>
-                  <th>Divisa</th>
-                  <th>Status</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (abono of relacionesFiltradas(); track abono._id) {
+            <div class="relaciones-table-wrapper">
+              <table class="relaciones-table">
+                <thead>
                   <tr>
-                    <td>{{ formatFecha(abono.fecha) }}</td>
-                    <td>{{ abono.nombre }}</td>
-                    <td><span class="planta-badge">{{ abono.planta }}</span></td>
-                    <td>{{ abono.nFact }}</td>
-                    <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
-                    <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
-                    <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
-                    <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
-                    <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
-                    <td>{{ abono.status }}</td>
-                    <td class="actions">
-                      <button class="btn-edit" (click)="abrirModalAbono(abono)">Editar</button>
-                      <button class="btn-delete" (click)="eliminarAbono(abono._id || '')">Eliminar</button>
-                    </td>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Planta</th>
+                    <th>N. Fact</th>
+                    <th>Monto Factura</th>
+                    <th>IVA</th>
+                    <th>Diferencia</th>
+                    <th>Tasa</th>
+                    <th>Divisa</th>
+                    <th>Status</th>
+                    <th>Acciones</th>
                   </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  @for (abono of relacionesFiltradas(); track abono._id) {
+                    <tr>
+                      <td>{{ formatFecha(abono.fecha) }}</td>
+                      <td>{{ abono.nombre }}</td>
+                      <td><span class="planta-badge">{{ abono.planta }}</span></td>
+                      <td>{{ abono.nFact }}</td>
+                      <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+                      <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
+                      <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
+                      <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
+                      <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
+                      <td>{{ abono.status }}</td>
+                      <td class="actions">
+                        <button class="btn-edit" (click)="abrirModalAbono(abono)">Editar</button>
+                        <button class="btn-delete" (click)="eliminarAbono(abono._id || '')">Eliminar</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           }
         </div>
       }
@@ -262,7 +287,7 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="cerrarModalAbono()">Cancelar</button>
+          <button type="button" class="btn-cancel" (click)="cerrarModalAbono()">Volver</button>
           <button type="submit" class="btn-save" [disabled]="saving()">
             {{ saving() ? 'Guardando...' : 'Guardar' }}
           </button>

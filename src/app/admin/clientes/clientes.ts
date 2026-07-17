@@ -63,10 +63,28 @@ export class Clientes implements OnInit {
   showModalAbono = signal(false);
   editingAbono: Abono | null = null;
 
+  relFiltroPlanta = signal('');
+  relFiltroDesde = signal('');
+  relFiltroHasta = signal('');
+
+  plantasCliente = computed(() => {
+    return this.selectedCliente?.plantas ?? [];
+  });
+
   relacionesFiltradas = computed(() => {
     if (!this.selectedCliente) return [];
     const nombre = this.selectedCliente.nombre;
-    return this.abonos().filter(a => a.empresa === nombre);
+    const planta = this.relFiltroPlanta();
+    const desde = this.relFiltroDesde();
+    const hasta = this.relFiltroHasta();
+
+    return this.abonos().filter(a => {
+      if (a.empresa !== nombre) return false;
+      if (planta && a.planta !== planta) return false;
+      if (desde && new Date(a.fecha) < new Date(desde)) return false;
+      if (hasta && new Date(a.fecha) > new Date(hasta + 'T23:59:59')) return false;
+      return true;
+    });
   });
 
   ngOnInit() {
@@ -172,6 +190,9 @@ export class Clientes implements OnInit {
     this.selectedCliente = { ...cliente, plantas: [...cliente.plantas] };
     this.showModalDetalle.set(true);
     this.detalleTab.set(false);
+    this.relFiltroPlanta.set('');
+    this.relFiltroDesde.set('');
+    this.relFiltroHasta.set('');
     this.cargarAbonos(cliente);
   }
 
@@ -389,5 +410,13 @@ export class Clientes implements OnInit {
       style: 'currency',
       currency: 'VES',
     }).format(monto);
+  }
+
+  generarReportePdf() {
+    alert('Función de reporte PDF en desarrollo');
+  }
+
+  generarReporteExcel() {
+    alert('Función de reporte Excel en desarrollo');
   }
 }

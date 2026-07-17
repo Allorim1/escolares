@@ -34,6 +34,15 @@
   color: #666;
 }
 
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #dc3545;
+  background: #fff5f5;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+}
+
 .detalle-tabs {
   display: flex;
   gap: 8px;

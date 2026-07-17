@@ -282,40 +282,6 @@
         <a class="nav-btn primary liquid" routerLink="/">Inicio</a>
         <div class="quick-access-wrapper">
           <button class="nav-btn liquid quick-access-btn" (click)="toggleQuickAccess()" [class.active]="quickAccessOpen()">Accesos Rápidos</button>
-          <div class="quick-access-sideboard" [class.open]="quickAccessOpen()" (mouseenter)="onQuickAccessEnter()" (mouseleave)="onQuickAccessLeave()">
-            <div class="quick-access-content">
-              <div class="quick-access-header">
-                <h3>Accesos Rápidos</h3>
-                <button type="button" class="quick-access-close" (click)="closeQuickAccess()">✕</button>
-              </div>
-              <div class="quick-access-grid">
-                <a class="quick-access-item" routerLink="/admin/inicio" (click)="closeQuickAccess()">
-                  <span class="quick-access-icon">⚙️</span>
-                  <span>Panel Admin</span>
-                </a>
-                <a class="quick-access-item" routerLink="/cart" (click)="closeQuickAccess()">
-                  <span class="quick-access-icon">🛒</span>
-                  <span>Mi Carrito</span>
-                </a>
-                <a class="quick-access-item" routerLink="/panel/pedidos" (click)="closeQuickAccess()">
-                  <span class="quick-access-icon">📦</span>
-                  <span>Mis Pedidos</span>
-                </a>
-                <a class="quick-access-item" routerLink="/panel/favoritos" (click)="closeQuickAccess()">
-                  <span class="quick-access-icon">❤️</span>
-                  <span>Favoritos</span>
-                </a>
-                <a class="quick-access-item" routerLink="/panel/direcciones" (click)="closeQuickAccess()">
-                  <span class="quick-access-icon">📍</span>
-                  <span>Direcciones</span>
-                </a>
-                <a class="quick-access-item" routerLink="/noticias" (click)="closeQuickAccess()">
-                  <span class="quick-access-icon">📰</span>
-                  <span>Noticias</span>
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
         <a class="nav-btn liquid" routerLink="/products">Productos</a>
         <a class="nav-btn liquid" routerLink="/lineas">Líneas</a>
@@ -338,3 +304,39 @@
       <a routerLink="/feedback" (click)="closeMobileMenu()">Contáctanos</a>
     </nav>
 </header>
+
+<div class="quick-access-sideboard-overlay" [class.open]="quickAccessOpen()" (click)="closeQuickAccess()"></div>
+<div class="quick-access-sideboard" [class.open]="quickAccessOpen()">
+  <div class="quick-access-content">
+    <div class="quick-access-header">
+      <h3>Accesos Rápidos</h3>
+      <button type="button" class="quick-access-close" (click)="closeQuickAccess()">✕</button>
+    </div>
+    <div class="quick-access-grid">
+      <a class="quick-access-item" routerLink="/admin/inicio" (click)="closeQuickAccess()">
+        <span class="quick-access-icon">⚙️</span>
+        <span>Panel Admin</span>
+      </a>
+      <a class="quick-access-item" routerLink="/cart" (click)="closeQuickAccess()">
+        <span class="quick-access-icon">🛒</span>
+        <span>Mi Carrito</span>
+      </a>
+      <a class="quick-access-item" routerLink="/panel/pedidos" (click)="closeQuickAccess()">
+        <span class="quick-access-icon">📦</span>
+        <span>Mis Pedidos</span>
+      </a>
+      <a class="quick-access-item" routerLink="/panel/favoritos" (click)="closeQuickAccess()">
+        <span class="quick-access-icon">❤️</span>
+        <span>Favoritos</span>
+      </a>
+      <a class="quick-access-item" routerLink="/panel/direcciones" (click)="closeQuickAccess()">
+        <span class="quick-access-icon">📍</span>
+        <span>Direcciones</span>
+      </a>
+      <a class="quick-access-item" routerLink="/noticias" (click)="closeQuickAccess()">
+        <span class="quick-access-icon">📰</span>
+        <span>Noticias</span>
+      </a>
+    </div>
+  </div>
+</div>

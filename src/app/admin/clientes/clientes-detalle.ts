@@ -47,6 +47,7 @@ export class ClientesDetalle implements OnInit {
   saving = signal(false);
   nuevaPlanta = signal('');
   detalleTab = signal(false);
+  loadError = signal<string | null>(null);
 
   showModalAbono = signal(false);
   editingAbono: Abono | null = null;
@@ -88,6 +89,7 @@ export class ClientesDetalle implements OnInit {
 
   loadCliente(id: string) {
     this.loading.set(true);
+    this.loadError.set(null);
     this.http.get<Cliente>(`${this.API}/${id}`).subscribe({
       next: (data) => {
         this.cliente.set(data);
@@ -95,6 +97,7 @@ export class ClientesDetalle implements OnInit {
       },
       error: (err) => {
         console.error('Error loading cliente:', err);
+        this.loadError.set('No se pudo cargar la información del cliente.');
         this.loading.set(false);
       },
     });
@@ -131,6 +134,11 @@ export class ClientesDetalle implements OnInit {
   eliminarPlanta(planta: string) {
     if (!this.cliente()) return;
     this.cliente.update(e => e ? { ...e, plantas: e.plantas.filter(p => p !== planta) } : e);
+  }
+
+  actualizarNombre(valor: string) {
+    if (!this.cliente()) return;
+    this.cliente.update(e => e ? { ...e, nombre: valor } : e);
   }
 
   guardarCliente() {

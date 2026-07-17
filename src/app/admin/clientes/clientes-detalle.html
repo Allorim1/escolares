@@ -6,6 +6,10 @@
 
   @if (loading()) {
     <div class="loading">Cargando...</div>
+  } @else if (loadError()) {
+    <div class="error">{{ loadError() }}</div>
+  } @else if (!cliente()) {
+    <div class="error">Cliente no encontrado.</div>
   } @else {
     <div class="detalle-tabs">
       <button class="tab-btn" [class.active]="!detalleTab()" (click)="detalleTab.set(false)">General</button>
@@ -16,7 +20,7 @@
       <div class="detalle-body">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" [(ngModel)]="cliente()!.nombre" name="detalle-nombre">
+          <input type="text" [value]="cliente()?.nombre || ''" (input)="actualizarNombre($event.target.value)" name="detalle-nombre">
         </div>
         <div class="form-group">
           <label>Plantas</label>

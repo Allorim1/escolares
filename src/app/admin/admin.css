@@ -1,6 +1,7 @@
 .admin-container {
   display: flex;
   min-height: calc(100vh - 60px);
+  position: relative;
 }
 
 @media (max-width: 768px) {
@@ -119,9 +120,25 @@
   transform: rotate(90deg);
 }
 
-.quick-access-sidebar-menu {
+.admin-sidebar-overlay {
   position: fixed;
-  left: 260px;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+}
+
+.admin-sidebar-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.quick-access-sidebar-menu,
+.categoria-sideboard-menu {
+  position: fixed;
+  left: calc(250px + 3rem);
   top: 0;
   height: 100vh;
   width: 320px;
@@ -137,7 +154,8 @@
   overflow-y: auto;
 }
 
-.quick-access-sidebar-menu.open {
+.quick-access-sidebar-menu.open,
+.categoria-sideboard-menu.open {
   transform: translateX(0);
   opacity: 1;
   visibility: visible;

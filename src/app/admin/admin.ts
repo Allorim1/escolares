@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
@@ -20,7 +20,6 @@ interface QuickItem {
 
 interface MenuCategory {
   name: string;
-  expanded: boolean;
   items: MenuItem[];
 }
 
@@ -46,7 +45,6 @@ const QUICK_ITEMS: QuickItem[] = [
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
  {
        name: 'Panel Admin',
-       expanded: false,
        items: [
          { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
          { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
@@ -63,56 +61,51 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
           { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
           { label: 'Estadísticas', route: 'estadisticas', permiso: 'estadisticas_ver' },
+        ]
+      },
+     {
+       name: 'Cuentas por Pagar',
+       items: [
+         { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
+         { label: 'Retenciones', route: 'retenciones', permiso: 'ver_retenciones' },
+         { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
        ]
      },
-    {
-      name: 'Cuentas por Pagar',
-      expanded: false,
-      items: [
-        { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
-        { label: 'Retenciones', route: 'retenciones', permiso: 'ver_retenciones' },
-        { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
-      ]
-    },
-    {
-      name: 'Panel Web',
-      expanded: false,
-      items: [
-        { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
-        { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
-        { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
-        { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
-        { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
-        { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
-        { label: 'Noticias', route: 'noticias', permiso: 'noticias_gestionar' },
-        { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
-        { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
-        { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
-        { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
-      ]
-    },
      {
-       name: 'Repartidor',
-       expanded: false,
+       name: 'Panel Web',
        items: [
-         { label: 'Mis Pedidos', route: 'repartidor' },
+         { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
+         { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
+         { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
+         { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
+         { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
+         { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
+         { label: 'Noticias', route: 'noticias', permiso: 'noticias_gestionar' },
+         { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
+         { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
+         { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
+         { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
        ]
      },
       {
-         name: 'Seguridad',
-         expanded: false,
-         items: [
-           { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
-         ]
-       },
+        name: 'Repartidor',
+        items: [
+          { label: 'Mis Pedidos', route: 'repartidor' },
+        ]
+      },
        {
-         name: 'Empresas',
-         expanded: false,
-         items: [
-           { label: 'Empresas', route: 'clientes' },
-           { label: 'Relación', route: 'abonos' },
-         ]
-       }
+          name: 'Seguridad',
+          items: [
+            { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
+          ]
+        },
+        {
+          name: 'Empresas',
+          items: [
+            { label: 'Clientes', route: 'clientes' },
+            { label: 'Relación', route: 'abonos' },
+          ]
+        }
    ];
 
 @Component({
@@ -128,33 +121,44 @@ export class Admin implements OnInit {
   apiKeyStatusService = inject(ApiKeyStatusService);
   private rolesBackend = inject(RolesBackend);
 
-userPermissions = signal<string[]>([]);
-   apiKeyStatusLoaded = signal(false);
-   categorias = signal<MenuCategory[]>([]);
-   quickItems = signal<QuickItem[]>([]);
-   quickAccessOpen = signal(false);
+  userPermissions = signal<string[]>([]);
+  apiKeyStatusLoaded = signal(false);
+  categorias = signal<MenuCategory[]>([]);
+  quickItems = signal<QuickItem[]>([]);
+  quickAccessOpen = signal(false);
+  categoriaExpandida = signal<string | null>(null);
 
-   ngOnInit() {
-     this.checkApiKeyStatus();
-     this.loadUserPermissions();
-   }
+  ngOnInit() {
+    this.checkApiKeyStatus();
+    this.loadUserPermissions();
+  }
 
-setQuickItems() {
-      const user = this.authService.user();
-      const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-      const permissions = this.userPermissions();
-
-      const items = QUICK_ITEMS.filter(item => {
-        if (!item.permiso) return true;
-        if (isRoot) return true;
-        return permissions.includes(item.permiso);
-      });
-      this.quickItems.set(items);
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    const categoriaSideboard = target?.closest('.categoria-sideboard-menu');
+    const categoriaHeader = target?.closest('.categoria-header');
+    if (!categoriaSideboard && !categoriaHeader && this.categoriaExpandida()) {
+      this.closeCategoriaSideboard();
     }
+  }
 
-   loadUserPermissions() {
+  setQuickItems() {
+       const user = this.authService.user();
+       const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+       const permissions = this.userPermissions();
+
+       const items = QUICK_ITEMS.filter(item => {
+         if (!item.permiso) return true;
+         if (isRoot) return true;
+         return permissions.includes(item.permiso);
+       });
+       this.quickItems.set(items);
+     }
+
+  loadUserPermissions() {
     const user = this.authService.user();
-if (!user) {
+    if (!user) {
        console.log('No user found, setting default categories');
        this.setCategoriesWithExpanded();
        this.setQuickItems();
@@ -196,34 +200,42 @@ if (!user) {
        this.setCategoriesWithExpanded();
        this.setQuickItems();
      }
-   }
+  }
 
-setCategoriesWithExpanded() {
-      const permissions = this.userPermissions();
-      const user = this.authService.user();
-      const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-      const isRepartidor = user?.rol === 'repartidor';
+ setCategoriesWithExpanded() {
+       const permissions = this.userPermissions();
+       const user = this.authService.user();
+       const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+       const isRepartidor = user?.rol === 'repartidor';
 
-     const categories = DEFAULT_CATEGORIAS
-       .filter(cat => !isRepartidor || cat.name === 'Repartidor')
-       .map(cat => {
-         const hasVisibleItems = cat.items.some(item => {
-           if (!item.permiso) return true;
-           if (isRoot) return true;
-           return permissions.includes(item.permiso);
-         });
-         return { ...cat, expanded: false };
-       });
+      const categories = DEFAULT_CATEGORIAS
+        .filter(cat => !isRepartidor || cat.name === 'Repartidor')
+        .map(cat => {
+          const hasVisibleItems = cat.items.some(item => {
+            if (!item.permiso) return true;
+            if (isRoot) return true;
+            return permissions.includes(item.permiso);
+          });
+          return { ...cat };
+        });
       this.categorias.set(categories);
     }
 
-   toggleQuickAccess() {
-     this.quickAccessOpen.update(v => !v);
-   }
+  toggleQuickAccess() {
+    this.quickAccessOpen.update(v => !v);
+  }
 
-   closeQuickAccess() {
-     this.quickAccessOpen.set(false);
-   }
+  closeQuickAccess() {
+    this.quickAccessOpen.set(false);
+  }
+
+  toggleCategoria(nombre: string) {
+    this.categoriaExpandida.update(v => v === nombre ? null : nombre);
+  }
+
+  closeCategoriaSideboard() {
+    this.categoriaExpandida.set(null);
+  }
 
   hasPermission(permiso?: string): boolean {
     const user = this.authService.user();
@@ -254,14 +266,6 @@ setCategoriesWithExpanded() {
 
   isRoot(): boolean {
     return this.authService.user()?.rol === 'root';
-  }
-
-  public toggleCategoria(index: number) {
-    this.categorias.update(cats => {
-      const newCats = [...cats];
-      newCats[index].expanded = !newCats[index].expanded;
-      return newCats;
-    });
   }
 
   getVisibleItems(items: MenuItem[]): MenuItem[] {

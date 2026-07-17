@@ -177,6 +177,64 @@
   color: #60a5fa;
 }
 
+.admin-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+}
+
+.admin-sidebar-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.categoria-sideboard-menu {
+  position: fixed;
+  left: 260px;
+  top: 0;
+  height: 100vh;
+  width: 320px;
+  background: #0f172a;
+  border-left: 1px solid #1f2937;
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35);
+  z-index: 2001;
+  transform: translateX(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.25s ease, opacity 0.25s ease, visibility 0.25s;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.categoria-sideboard-menu.open {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.categoria-sideboard-item {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #111827;
+  border: 1px solid #1f2937;
+  color: #e5e7eb;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+
+.categoria-sideboard-item:hover {
+  background: rgba(29, 99, 193, 0.25);
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
 .menu-categoria {
    margin-bottom: 0.5rem;
  }

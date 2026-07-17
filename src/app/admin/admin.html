@@ -28,18 +28,24 @@
       </div>
       @for (categoria of categorias(); track categoria.name; let i = $index) {
         <div class="menu-categoria">
-          <button class="categoria-header" (click)="toggleCategoria(i)">
+          <button type="button" class="categoria-header" (click)="toggleCategoria(categoria.name)" [class.open]="categoriaExpandida() === categoria.name">
             <span>{{ categoria.name }}</span>
-            <span class="toggle-icon">{{ categoria.expanded ? '▼' : '▶' }}</span>
+            <span class="toggle-icon" [class.open]="categoriaExpandida() === categoria.name">▶</span>
           </button>
-          @if (categoria.expanded) {
-            <div class="categoria-items">
+        </div>
+      }
+      @if (categoriaExpandida()) {
+        <div class="categoria-sideboard-menu">
+          @for (categoria of categorias(); track categoria.name) {
+            @if (categoria.name === categoriaExpandida()) {
               @for (item of categoria.items; track item.route) {
                 @if (!item.permiso || hasPermission(item.permiso)) {
-                  <a [routerLink]="item.route" routerLinkActive="active">{{ item.label }}</a>
+                  <a [routerLink]="item.route" routerLinkActive="active" class="categoria-sideboard-item" (click)="closeCategoriaSideboard()">
+                    {{ item.label }}
+                  </a>
                 }
               }
-            </div>
+            }
           }
         </div>
       }
@@ -49,6 +55,8 @@
       <button (click)="logout()" class="logout-btn">Cerrar sesión</button>
     </div>
   </aside>
+
+  <div class="admin-sidebar-overlay" [class.open]="categoriaExpandida() !== null" (click)="closeCategoriaSideboard()"></div>
 
   <main class="admin-content">
     <router-outlet></router-outlet>

@@ -98,68 +98,176 @@
         <button class="tab-btn" [class.active]="detalleTab()" (click)="detalleTab.set(true)">Relaciones</button>
       </div>
 
-      <div class="detalle-body">
-        <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" [(ngModel)]="selectedCliente.nombre" name="detalle-nombre">
-        </div>
-        <div class="form-group">
-          <label>Plantas</label>
-          <div class="plantas-list">
-            @for (planta of selectedCliente.plantas; track planta) {
-              <div class="planta-item">
-                <span>{{ planta }}</span>
-                <button type="button" class="btn-remove" (click)="eliminarPlantaDetalle(planta)">✕</button>
-              </div>
-            }
+      @if (!detalleTab()) {
+        <div class="detalle-body">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="selectedCliente.nombre" name="detalle-nombre">
           </div>
-          <div class="add-planta">
-            <input type="text" [(ngModel)]="nuevaPlantaDetalle" (keyup.enter)="agregarPlantaDetalle()" placeholder="Nueva planta">
-            <button type="button" class="btn-add" (click)="agregarPlantaDetalle()">Agregar</button>
+          <div class="form-group">
+            <label>Plantas</label>
+            <div class="plantas-list">
+              @for (planta of selectedCliente.plantas; track planta) {
+                <div class="planta-item">
+                  <span>{{ planta }}</span>
+                  <button type="button" class="btn-remove" (click)="eliminarPlantaDetalle(planta)">✕</button>
+                </div>
+              }
+            </div>
+            <div class="add-planta">
+              <input type="text" [(ngModel)]="nuevaPlantaDetalle" (keyup.enter)="agregarPlantaDetalle()" placeholder="Nueva planta">
+              <button type="button" class="btn-add" (click)="agregarPlantaDetalle()">Agregar</button>
+            </div>
+          </div>
+
+          <div class="detalle-actions">
+            <button class="btn-save" (click)="guardarDetalle()">Guardar Cambios</button>
+            <button class="btn-delete" (click)="eliminarCliente(selectedCliente._id || '')">Eliminar Cliente</button>
           </div>
         </div>
+      }
 
-        <div class="detalle-actions">
-          <button class="btn-save" (click)="guardarDetalle()">Guardar Cambios</button>
-          <button class="btn-delete" (click)="eliminarCliente(selectedCliente._id || '')">Eliminar Cliente</button>
-        </div>
-
-        @if (detalleTab()) {
-          <div class="relaciones-section">
+      @if (detalleTab()) {
+        <div class="detalle-body">
+          <div class="relaciones-header">
             <h3>Relaciones / Abonos</h3>
-            @if (abonosLoading()) {
-              <div class="loading">Cargando relaciones...</div>
-            } @else if (relacionesFiltradas().length === 0) {
-              <div class="empty">No hay relaciones para este cliente</div>
-            } @else {
-              <table class="relaciones-table">
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Nombre</th>
-                    <th>Planta</th>
-                    <th>N. Fact</th>
-                    <th>Monto Factura</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (abono of relacionesFiltradas(); track abono._id) {
-                    <tr>
-                      <td>{{ formatFecha(abono.fecha) }}</td>
-                      <td>{{ abono.nombre }}</td>
-                      <td><span class="planta-badge">{{ abono.planta }}</span></td>
-                      <td>{{ abono.nFact }}</td>
-                      <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
-                      <td>{{ abono.status }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            }
+            <button class="btn-primary" (click)="abrirModalAbono()">+ Nueva Relación</button>
           </div>
-        }
+
+          @if (abonosLoading()) {
+            <div class="loading">Cargando relaciones...</div>
+          } @else if (relacionesFiltradas().length === 0) {
+            <div class="empty">No hay relaciones para este cliente</div>
+          } @else {
+            <table class="relaciones-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Nombre</th>
+                  <th>Planta</th>
+                  <th>N. Fact</th>
+                  <th>Monto Factura</th>
+                  <th>IVA</th>
+                  <th>Diferencia</th>
+                  <th>Tasa</th>
+                  <th>Divisa</th>
+                  <th>Status</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (abono of relacionesFiltradas(); track abono._id) {
+                  <tr>
+                    <td>{{ formatFecha(abono.fecha) }}</td>
+                    <td>{{ abono.nombre }}</td>
+                    <td><span class="planta-badge">{{ abono.planta }}</span></td>
+                    <td>{{ abono.nFact }}</td>
+                    <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+                    <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
+                    <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
+                    <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
+                    <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
+                    <td>{{ abono.status }}</td>
+                    <td class="actions">
+                      <button class="btn-edit" (click)="abrirModalAbono(abono)">Editar</button>
+                      <button class="btn-delete" (click)="eliminarAbono(abono._id || '')">Eliminar</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (showModalAbono() && editingAbono) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editingAbono._id ? 'Editar' : 'Nueva' }} Relación</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalAbono()">✕</button>
       </div>
+      <form (ngSubmit)="guardarAbono()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha *</label>
+            <input type="date" [(ngModel)]="editingAbono.fecha" name="abono-fecha" required>
+          </div>
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="editingAbono.nombre" name="abono-nombre" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa *</label>
+            <input type="text" [(ngModel)]="editingAbono.empresa" name="abono-empresa" required [disabled]="!!selectedCliente">
+          </div>
+          <div class="form-group">
+            <label>Planta *</label>
+            <input type="text" [(ngModel)]="editingAbono.planta" name="abono-planta" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cédula</label>
+            <input type="text" [(ngModel)]="editingAbono.cedula" name="abono-cedula">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="editingAbono.telefono" name="abono-telefono">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>N. Fact *</label>
+            <input type="text" [(ngModel)]="editingAbono.nFact" name="abono-nFact" required>
+          </div>
+          <div class="form-group">
+            <label>Monto Factura</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.montoFactura)" (input)="actualizarMonto($event, 'montoFactura')" (focus)="onMontoFocus($event)" name="abono-monto">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IVA</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.iva)" (input)="actualizarMonto($event, 'iva')" (focus)="onMontoFocus($event)" name="abono-iva">
+          </div>
+          <div class="form-group">
+            <label>Diferencia</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.diferencia)" (input)="actualizarMonto($event, 'diferencia')" (focus)="onMontoFocus($event)" name="abono-diferencia">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tasa</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.tasa)" (input)="actualizarMonto($event, 'tasa')" (focus)="onMontoFocus($event)" name="abono-tasa">
+          </div>
+          <div class="form-group">
+            <label>Divisa</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.divisa)" (input)="actualizarMonto($event, 'divisa')" (focus)="onMontoFocus($event)" name="abono-divisa">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="editingAbono.status" name="abono-status" required>
+              <option value="">Seleccionar</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Pagado">Pagado</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalAbono()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 }

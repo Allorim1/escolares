@@ -59,6 +59,10 @@ export class Clientes implements OnInit {
   abonosLoading = signal(false);
   detalleTab = signal(false);
   nuevaPlantaDetalle = '';
+
+  showModalAbono = signal(false);
+  editingAbono: Abono | null = null;
+
   relacionesFiltradas = computed(() => {
     if (!this.selectedCliente) return [];
     const nombre = this.selectedCliente.nombre;
@@ -92,41 +96,6 @@ export class Clientes implements OnInit {
     this.showModal.set(true);
   }
 
-  abrirModalDetalle(cliente: Cliente) {
-    this.selectedCliente = { ...cliente, plantas: [...cliente.plantas] };
-    this.showModalDetalle.set(true);
-    this.cargarAbonos(cliente);
-  }
-
-  cargarAbonos(cliente: Cliente) {
-    this.abonosLoading.set(true);
-    this.http.get<Abono[]>(`${this.API_ABONOS}?empresa=${encodeURIComponent(cliente.nombre)}`).subscribe({
-      next: (data) => {
-        this.abonos.set(data);
-        this.abonosLoading.set(false);
-      },
-      error: () => {
-        this.http.get<Abono[]>(this.API_ABONOS).subscribe({
-          next: (data) => {
-            this.abonos.set(data);
-            this.abonosLoading.set(false);
-          },
-          error: (err) => {
-            console.error('Error loading abonos:', err);
-            this.abonos.set([]);
-            this.abonosLoading.set(false);
-          },
-        });
-      },
-    });
-  }
-
-  cerrarModalDetalle() {
-    this.showModalDetalle.set(false);
-    this.selectedCliente = null;
-    this.abonos.set([]);
-  }
-
   cerrarModal() {
     this.showModal.set(false);
     this.editingCliente = null;
@@ -145,40 +114,6 @@ export class Clientes implements OnInit {
   eliminarPlanta(planta: string) {
     if (!this.editingCliente) return;
     this.editingCliente.plantas = this.editingCliente.plantas.filter((p) => p !== planta);
-  }
-
-  eliminarPlantaDetalle(planta: string) {
-    if (!this.selectedCliente) return;
-    this.selectedCliente.plantas = this.selectedCliente.plantas.filter((p) => p !== planta);
-  }
-
-  agregarPlantaDetalle() {
-    if (!this.selectedCliente) return;
-    const planta = this.nuevaPlantaDetalle.trim();
-    if (!planta) return;
-    if (this.selectedCliente.plantas.includes(planta)) return;
-    this.selectedCliente.plantas = [...this.selectedCliente.plantas, planta];
-    this.nuevaPlantaDetalle = '';
-  }
-
-  guardarDetalle() {
-    if (!this.selectedCliente || !this.selectedCliente._id) return;
-    if (!this.selectedCliente.nombre.trim()) {
-      alert('El nombre del cliente es requerido');
-      return;
-    }
-
-    this.saving.set(true);
-    this.http.put(`${this.API}/${this.selectedCliente._id}`, this.selectedCliente).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.loadClientes();
-      },
-      error: (err) => {
-        console.error('Error updating cliente:', err);
-        this.saving.set(false);
-      },
-    });
   }
 
   guardarCliente() {
@@ -231,6 +166,214 @@ export class Clientes implements OnInit {
 
   verHistorialCompras() {
     this.router.navigate(['/admin/historico-costos']);
+  }
+
+  abrirModalDetalle(cliente: Cliente) {
+    this.selectedCliente = { ...cliente, plantas: [...cliente.plantas] };
+    this.showModalDetalle.set(true);
+    this.detalleTab.set(false);
+    this.cargarAbonos(cliente);
+  }
+
+  cargarAbonos(cliente: Cliente) {
+    this.abonosLoading.set(true);
+    this.http.get<Abono[]>(this.API_ABONOS).subscribe({
+      next: (data) => {
+        this.abonos.set(data);
+        this.abonosLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading abonos:', err);
+        this.abonos.set([]);
+        this.abonosLoading.set(false);
+      },
+    });
+  }
+
+  cerrarModalDetalle() {
+    this.showModalDetalle.set(false);
+    this.selectedCliente = null;
+    this.abonos.set([]);
+  }
+
+  eliminarPlantaDetalle(planta: string) {
+    if (!this.selectedCliente) return;
+    this.selectedCliente.plantas = this.selectedCliente.plantas.filter((p) => p !== planta);
+  }
+
+  agregarPlantaDetalle() {
+    if (!this.selectedCliente) return;
+    const planta = this.nuevaPlantaDetalle.trim();
+    if (!planta) return;
+    if (this.selectedCliente.plantas.includes(planta)) return;
+    this.selectedCliente.plantas = [...this.selectedCliente.plantas, planta];
+    this.nuevaPlantaDetalle = '';
+  }
+
+  guardarDetalle() {
+    if (!this.selectedCliente || !this.selectedCliente._id) return;
+    if (!this.selectedCliente.nombre.trim()) {
+      alert('El nombre del cliente es requerido');
+      return;
+    }
+
+    this.saving.set(true);
+    this.http.put(`${this.API}/${this.selectedCliente._id}`, this.selectedCliente).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.loadClientes();
+      },
+      error: (err) => {
+        console.error('Error updating cliente:', err);
+        this.saving.set(false);
+      },
+    });
+  }
+
+  abrirModalAbono(abono?: Abono) {
+    if (!this.selectedCliente) return;
+    if (abono) {
+      this.editingAbono = {
+        ...abono,
+        fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
+        montoFactura: abono.montoFactura ?? 0,
+        iva: abono.iva ?? 0,
+        diferencia: abono.diferencia ?? 0,
+        tasa: abono.tasa ?? 0,
+        divisa: abono.divisa ?? 0,
+      };
+    } else {
+      this.editingAbono = {
+        fecha: new Date().toISOString().split('T')[0],
+        nombre: '',
+        empresa: this.selectedCliente.nombre,
+        planta: '',
+        cedula: '',
+        telefono: '',
+        nFact: '',
+        montoFactura: 0,
+        iva: 0,
+        diferencia: 0,
+        tasa: 0,
+        divisa: 0,
+        status: '',
+      };
+    }
+    this.showModalAbono.set(true);
+  }
+
+  cerrarModalAbono() {
+    this.showModalAbono.set(false);
+    this.editingAbono = null;
+  }
+
+  guardarAbono() {
+    if (!this.editingAbono) return;
+    if (!this.editingAbono.nombre.trim() || !this.editingAbono.empresa || !this.editingAbono.planta || !this.editingAbono.nFact) {
+      alert('Por favor, complete los campos requeridos: Nombre, Empresa, Planta y N. Fact');
+      return;
+    }
+
+    this.saving.set(true);
+    if (this.editingAbono._id) {
+      this.http.put<Abono>(`${this.API_ABONOS}/${this.editingAbono._id}`, this.editingAbono).subscribe({
+        next: (abonoActualizado) => {
+          this.saving.set(false);
+          this.cerrarModalAbono();
+          if (abonoActualizado && abonoActualizado._id) {
+            this.abonos.update((lista) => {
+              const index = lista.findIndex((a) => a._id === abonoActualizado._id);
+              if (index >= 0) {
+                lista[index] = abonoActualizado;
+              } else {
+                lista.unshift(abonoActualizado);
+              }
+              return [...lista];
+            });
+          } else {
+            this.cargarAbonos(this.selectedCliente!);
+          }
+        },
+        error: (err) => {
+          console.error('Error updating abono:', err);
+          this.saving.set(false);
+          this.cargarAbonos(this.selectedCliente!);
+        },
+      });
+    } else {
+      this.http.post<Abono>(this.API_ABONOS, this.editingAbono).subscribe({
+        next: (abonoCreado) => {
+          this.saving.set(false);
+          this.cerrarModalAbono();
+          if (abonoCreado && abonoCreado._id) {
+            this.abonos.update((lista) => [abonoCreado, ...lista]);
+          } else {
+            this.cargarAbonos(this.selectedCliente!);
+          }
+        },
+        error: (err) => {
+          console.error('Error creating abono:', err);
+          this.saving.set(false);
+          this.cargarAbonos(this.selectedCliente!);
+        },
+      });
+    }
+  }
+
+  eliminarAbono(id: string) {
+    if (!confirm('¿Está seguro de eliminar esta relación?')) return;
+    this.http.delete(`${this.API_ABONOS}/${id}`).subscribe({
+      next: () => this.cargarAbonos(this.selectedCliente!),
+      error: (err) => console.error('Error deleting abono:', err),
+    });
+  }
+
+  formatearMontoInput(valor: number | undefined | null): string {
+    const num = Number(valor) || 0;
+    return num.toFixed(2).replace('.', ',');
+  }
+
+  parsearMontoInput(valor: string): number {
+    const limpio = valor.replace(',', '.').replace(/\D/g, '');
+    const numero = Number(limpio) || 0;
+    return Number((numero / 100).toFixed(2));
+  }
+
+  onMontoFocus(event: FocusEvent) {
+    const input = event.target as HTMLInputElement;
+    input.select();
+  }
+
+  actualizarMonto(event: Event, campo: 'montoFactura' | 'iva' | 'diferencia' | 'tasa' | 'divisa') {
+    if (!this.editingAbono) return;
+    const input = event.target as HTMLInputElement;
+    const valor = this.parsearMontoInput(input.value);
+    (this.editingAbono as any)[campo] = valor;
+    input.value = this.formatearMontoInput(valor);
+
+    if (campo === 'montoFactura' || campo === 'iva') {
+      this.calcularDerivados();
+    } else if (campo === 'tasa') {
+      this.calcularDivisa();
+    }
+  }
+
+  calcularDerivados() {
+    if (!this.editingAbono) return;
+    const monto = Number(this.editingAbono.montoFactura) || 0;
+    const iva = Number(this.editingAbono.iva) || 0;
+    this.editingAbono.diferencia = Number((monto - iva).toFixed(2));
+    this.calcularDivisa();
+  }
+
+  calcularDivisa() {
+    if (!this.editingAbono) return;
+    const tasa = Number(this.editingAbono.tasa);
+    if (tasa > 0) {
+      this.editingAbono.divisa = Number(((this.editingAbono.diferencia ?? 0) / tasa).toFixed(2));
+    } else {
+      this.editingAbono.divisa = 0;
+    }
   }
 
   formatFecha(fecha: string): string {

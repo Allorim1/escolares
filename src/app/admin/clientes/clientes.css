@@ -390,3 +390,23 @@
 .relaciones-table .monto {
   text-align: right;
 }
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.relaciones-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.relaciones-header h3 {
+  margin: 0;
+  color: #1d63c1;
+}

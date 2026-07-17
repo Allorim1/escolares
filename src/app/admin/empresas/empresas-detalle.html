@@ -1,0 +1,210 @@
+<div class="empresas-detalle-container">
+  <div class="empresas-detalle-header">
+    <button class="btn-back" (click)="volver()">← Volver</button>
+    <h1>{{ empresa()?.nombre || 'Detalle de Empresa' }}</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <div class="detalle-tabs">
+      <button class="tab-btn" [class.active]="!detalleTab()" (click)="detalleTab.set(false)">General</button>
+      <button class="tab-btn" [class.active]="detalleTab()" (click)="detalleTab.set(true)">Relaciones</button>
+    </div>
+
+    @if (!detalleTab()) {
+      <div class="detalle-body">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" [(ngModel)]="empresa()!.nombre" name="detalle-nombre">
+        </div>
+        <div class="form-group">
+          <label>Plantas</label>
+          <div class="plantas-list">
+            @for (planta of empresa()?.plantas; track planta) {
+              <div class="planta-item">
+                <span>{{ planta }}</span>
+                <button type="button" class="btn-remove" (click)="eliminarPlanta(planta)">✕</button>
+              </div>
+            }
+          </div>
+          <div class="add-planta">
+            <input type="text" [ngModel]="nuevaPlanta()" (ngModelChange)="nuevaPlanta.set($event)" (keyup.enter)="agregarPlanta()" placeholder="Nueva planta" name="nueva-planta">
+            <button type="button" class="btn-add" (click)="agregarPlanta()">Agregar</button>
+          </div>
+        </div>
+
+        <div class="detalle-actions">
+          <button class="btn-save" (click)="guardarEmpresa()" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar Cambios' }}</button>
+        </div>
+      </div>
+    }
+
+    @if (detalleTab()) {
+      <div class="detalle-body">
+        <div class="relaciones-header">
+          <h3>Relaciones / Abonos</h3>
+          <div class="relaciones-filtros">
+            <div class="form-group">
+              <label>Planta</label>
+              <select [ngModel]="relFiltroPlanta()" (ngModelChange)="relFiltroPlanta.set($event)" name="rel-filtro-planta">
+                <option value="">Todas</option>
+                @for (planta of plantasEmpresa(); track planta) {
+                  <option [value]="planta">{{ planta }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Desde</label>
+              <input type="date" [ngModel]="relFiltroDesde()" (ngModelChange)="relFiltroDesde.set($event)" name="rel-filtro-desde">
+            </div>
+            <div class="form-group">
+              <label>Hasta</label>
+              <input type="date" [ngModel]="relFiltroHasta()" (ngModelChange)="relFiltroHasta.set($event)" name="rel-filtro-hasta">
+            </div>
+          </div>
+          <div class="relaciones-acciones">
+            <button class="btn-primary" (click)="abrirModalAbono()">+ Nueva Relación</button>
+            <button class="btn-secondary" (click)="generarReportePdf()">📄 PDF</button>
+            <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
+          </div>
+        </div>
+
+        @if (abonosLoading()) {
+          <div class="loading">Cargando relaciones...</div>
+        } @else if (relacionesFiltradas().length === 0) {
+          <div class="empty">No hay relaciones para esta empresa</div>
+        } @else {
+          <div class="relaciones-table-wrapper">
+            <table class="relaciones-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Nombre</th>
+                  <th>Planta</th>
+                  <th>N. Fact</th>
+                  <th>Monto Factura</th>
+                  <th>IVA</th>
+                  <th>Diferencia</th>
+                  <th>Tasa</th>
+                  <th>Divisa</th>
+                  <th>Status</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (abono of relacionesFiltradas(); track abono._id) {
+                  <tr>
+                    <td>{{ formatFecha(abono.fecha) }}</td>
+                    <td>{{ abono.nombre }}</td>
+                    <td><span class="planta-badge">{{ abono.planta }}</span></td>
+                    <td>{{ abono.nFact }}</td>
+                    <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+                    <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
+                    <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
+                    <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
+                    <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
+                    <td>{{ abono.status }}</td>
+                    <td class="actions">
+                      <button class="btn-edit" (click)="abrirModalAbono(abono)">Editar</button>
+                      <button class="btn-delete" (click)="eliminarAbono(abono._id || '')">Eliminar</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+@if (showModalAbono() && editingAbono) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editingAbono._id ? 'Editar' : 'Nueva' }} Relación</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalAbono()">✕</button>
+      </div>
+      <form (ngSubmit)="guardarAbono()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha *</label>
+            <input type="date" [(ngModel)]="editingAbono.fecha" name="abono-fecha" required>
+          </div>
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="editingAbono.nombre" name="abono-nombre" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa *</label>
+            <input type="text" [(ngModel)]="editingAbono.empresa" name="abono-empresa" required [disabled]="!!empresa()">
+          </div>
+          <div class="form-group">
+            <label>Planta *</label>
+            <input type="text" [(ngModel)]="editingAbono.planta" name="abono-planta" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cédula</label>
+            <input type="text" [(ngModel)]="editingAbono.cedula" name="abono-cedula">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="editingAbono.telefono" name="abono-telefono">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>N. Fact *</label>
+            <input type="text" [(ngModel)]="editingAbono.nFact" name="abono-nFact" required>
+          </div>
+          <div class="form-group">
+            <label>Monto Factura</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.montoFactura)" (input)="actualizarMonto($event, 'montoFactura')" (focus)="onMontoFocus($event)" name="abono-monto">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IVA</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.iva)" (input)="actualizarMonto($event, 'iva')" (focus)="onMontoFocus($event)" name="abono-iva">
+          </div>
+          <div class="form-group">
+            <label>Diferencia</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.diferencia)" (input)="actualizarMonto($event, 'diferencia')" (focus)="onMontoFocus($event)" name="abono-diferencia">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tasa</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.tasa)" (input)="actualizarMonto($event, 'tasa')" (focus)="onMontoFocus($event)" name="abono-tasa">
+          </div>
+          <div class="form-group">
+            <label>Divisa</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono.divisa)" (input)="actualizarMonto($event, 'divisa')" (focus)="onMontoFocus($event)" name="abono-divisa">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="editingAbono.status" name="abono-status" required>
+              <option value="">Seleccionar</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Pagado">Pagado</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalAbono()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

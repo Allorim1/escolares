@@ -162,12 +162,14 @@ export class Header implements OnInit, OnDestroy {
   }
 
   mobileMenuOpen = signal(false);
-userDropdownOpen = signal(false);
-   private dropdownTimer: any = null;
-   private cartPreviewTimer: any = null;
-   private searchTimer: any = null;
-   notificationsOpen = signal(false);
-   notificationsTimer: any = null;
+  userDropdownOpen = signal(false);
+  private dropdownTimer: any = null;
+  private cartPreviewTimer: any = null;
+  private searchTimer: any = null;
+  notificationsOpen = signal(false);
+  notificationsTimer: any = null;
+  quickAccessOpen = signal(false);
+  private quickAccessTimer: any = null;
 
    onSearchEnter() {
      if (this.searchTimer) {
@@ -188,16 +190,21 @@ userDropdownOpen = signal(false);
      if (!target.closest('.mobile-menu-btn') && !target.closest('.mobile-nav')) {
        this.mobileMenuOpen.set(false);
      }
-      if (!target.closest('.user-dropdown')) {
-        this.userDropdownOpen.set(false);
-      }
-      if (!target.closest('.address-selector-container')) {
-        this.addressPopoverOpen.set(false);
-      }
-      const notifBtn = target.closest('.notification-btn');
+     if (!target.closest('.user-dropdown')) {
+       this.userDropdownOpen.set(false);
+     }
+     if (!target.closest('.address-selector-container')) {
+       this.addressPopoverOpen.set(false);
+     }
+     const notifBtn = target.closest('.notification-btn');
      const notifDropdown = target.closest('.notifications-dropdown');
      if (!notifBtn && !notifDropdown) {
        this.notificationsOpen.set(false);
+     }
+     const quickAccessBtn = target.closest('.quick-access-btn');
+     const quickAccessSideboard = target.closest('.quick-access-sideboard');
+     if (!quickAccessBtn && !quickAccessSideboard) {
+       this.quickAccessOpen.set(false);
      }
    }
 
@@ -382,6 +389,28 @@ onSearchInput() {
     this.notificationsTimer = setTimeout(() => {
       this.notificationsOpen.set(false);
     }, 500);
+  }
+
+  onQuickAccessEnter() {
+    if (this.quickAccessTimer) {
+      clearTimeout(this.quickAccessTimer);
+      this.quickAccessTimer = null;
+    }
+    this.quickAccessOpen.set(true);
+  }
+
+  onQuickAccessLeave() {
+    this.quickAccessTimer = setTimeout(() => {
+      this.quickAccessOpen.set(false);
+    }, 500);
+  }
+
+  toggleQuickAccess() {
+    this.quickAccessOpen.update(v => !v);
+  }
+
+  closeQuickAccess() {
+    this.quickAccessOpen.set(false);
   }
 
   openNotifications() {

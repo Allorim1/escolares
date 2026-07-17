@@ -1,17 +1,66 @@
-.clientes-container {
+.empresas-container {
   padding: 20px;
 }
 
-.clientes-header {
+.empresas-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.clientes-header h1 {
+.empresas-header h1 {
   margin: 0;
   color: #1d63c1;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.empresas-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.empresas-table th,
+.empresas-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.empresas-table th {
+  background: #1d63c1;
+  color: white;
+  font-weight: 500;
+}
+
+.empresas-table tr:hover {
+  background: #f8f9fa;
+}
+
+.empresa-row {
+  cursor: pointer;
+}
+
+.empresa-row td {
+  vertical-align: middle;
 }
 
 .btn-primary {

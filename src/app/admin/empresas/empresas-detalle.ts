@@ -2,9 +2,9 @@ import { Component, signal, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
-interface Cliente {
+interface Empresa {
   _id?: string;
   nombre: string;
   plantas: string[];
@@ -28,52 +28,42 @@ interface Abono {
 }
 
 @Component({
-  selector: 'app-clientes',
+  selector: 'app-empresas-detalle',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './clientes.html',
-  styleUrl: './clientes.css',
+  templateUrl: './empresas-detalle.html',
+  styleUrl: './empresas-detalle.css',
 })
-export class Clientes implements OnInit {
+export class EmpresasDetalle implements OnInit {
   private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private readonly API = '/api/empresas';
   private readonly API_ABONOS = '/api/abonos-polar';
 
-  clientes = signal<Cliente[]>([]);
-  busqueda = signal('');
-  clientesFiltrados = computed(() => {
-    const termino = this.busqueda().toLowerCase().trim();
-    if (!termino) return this.clientes();
-    return this.clientes().filter(c => c.nombre.toLowerCase().includes(termino));
-  });
+  empresa = signal<Empresa | null>(null);
+  empresaId = signal('');
   loading = signal(false);
-  showModal = signal(false);
-  editingCliente: Cliente | null = null;
-  nuevaPlanta = signal('');
   saving = signal(false);
-  private router = inject(Router);
-
-  showModalDetalle = signal(false);
-  selectedCliente: Cliente | null = null;
-  abonos = signal<Abono[]>([]);
-  abonosLoading = signal(false);
+  nuevaPlanta = signal('');
   detalleTab = signal(false);
-  nuevaPlantaDetalle = '';
 
   showModalAbono = signal(false);
   editingAbono: Abono | null = null;
+  abonos = signal<Abono[]>([]);
+  abonosLoading = signal(false);
 
   relFiltroPlanta = signal('');
   relFiltroDesde = signal('');
   relFiltroHasta = signal('');
 
-  plantasCliente = computed(() => {
-    return this.selectedCliente?.plantas ?? [];
+  plantasEmpresa = computed(() => {
+    return this.empresa()?.plantas ?? [];
   });
 
   relacionesFiltradas = computed(() => {
-    if (!this.selectedCliente) return [];
-    const nombre = this.selectedCliente.nombre;
+    if (!this.empresa()) return [];
+    const nombre = this.empresa()!.nombre;
     const planta = this.relFiltroPlanta();
     const desde = this.relFiltroDesde();
     const hasta = this.relFiltroHasta();
@@ -88,115 +78,29 @@ export class Clientes implements OnInit {
   });
 
   ngOnInit() {
-    this.loadClientes();
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.empresaId.set(id);
+      this.loadEmpresa(id);
+      this.cargarAbonos(id);
+    }
   }
 
-  loadClientes() {
+  loadEmpresa(id: string) {
     this.loading.set(true);
-    this.http.get<Cliente[]>(this.API).subscribe({
+    this.http.get<Empresa>(`${this.API}/${id}`).subscribe({
       next: (data) => {
-        this.clientes.set(data);
+        this.empresa.set(data);
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Error loading clientes:', err);
+        console.error('Error loading empresa:', err);
         this.loading.set(false);
       },
     });
   }
 
-  abrirModal(cliente?: Cliente) {
-    if (cliente) {
-      this.editingCliente = { ...cliente, plantas: [...cliente.plantas] };
-    } else {
-      this.editingCliente = { nombre: '', plantas: [] };
-    }
-    this.showModal.set(true);
-  }
-
-  cerrarModal() {
-    this.showModal.set(false);
-    this.editingCliente = null;
-    this.nuevaPlanta.set('');
-  }
-
-  agregarPlanta() {
-    if (!this.editingCliente) return;
-    const planta = this.nuevaPlanta().trim();
-    if (!planta) return;
-    if (this.editingCliente.plantas.includes(planta)) return;
-    this.editingCliente.plantas = [...this.editingCliente.plantas, planta];
-    this.nuevaPlanta.set('');
-  }
-
-  eliminarPlanta(planta: string) {
-    if (!this.editingCliente) return;
-    this.editingCliente.plantas = this.editingCliente.plantas.filter((p) => p !== planta);
-  }
-
-  guardarCliente() {
-    if (!this.editingCliente) return;
-    if (!this.editingCliente.nombre.trim()) {
-      alert('El nombre del cliente es requerido');
-      return;
-    }
-
-    this.saving.set(true);
-    if (this.editingCliente._id) {
-      this.http.put(`${this.API}/${this.editingCliente._id}`, this.editingCliente).subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.cerrarModal();
-          this.loadClientes();
-        },
-        error: (err) => {
-          console.error('Error updating cliente:', err);
-          this.saving.set(false);
-        },
-      });
-    } else {
-      this.http.post<Cliente>(this.API, this.editingCliente).subscribe({
-        next: (res: Cliente) => {
-          this.saving.set(false);
-          this.cerrarModal();
-          this.clientes.update(clientes => [...clientes, res]);
-        },
-        error: (err) => {
-          console.error('Error creating cliente:', err);
-          this.saving.set(false);
-        },
-      });
-    }
-  }
-
-  eliminarCliente(id: string) {
-    if (!confirm('¿Está seguro de eliminar este cliente?')) return;
-    this.http.delete(`${this.API}/${id}`).subscribe({
-      next: () => {
-        if (this.selectedCliente && this.selectedCliente._id === id) {
-          this.cerrarModalDetalle();
-        }
-        this.loadClientes();
-      },
-      error: (err) => console.error('Error deleting cliente:', err),
-    });
-  }
-
-  verHistorialCompras() {
-    this.router.navigate(['/admin/historico-costos']);
-  }
-
-  abrirModalDetalle(cliente: Cliente) {
-    this.selectedCliente = { ...cliente, plantas: [...cliente.plantas] };
-    this.showModalDetalle.set(true);
-    this.detalleTab.set(false);
-    this.relFiltroPlanta.set('');
-    this.relFiltroDesde.set('');
-    this.relFiltroHasta.set('');
-    this.cargarAbonos(cliente);
-  }
-
-  cargarAbonos(cliente: Cliente) {
+  cargarAbonos(id: string) {
     this.abonosLoading.set(true);
     this.http.get<Abono[]>(this.API_ABONOS).subscribe({
       next: (data) => {
@@ -211,48 +115,46 @@ export class Clientes implements OnInit {
     });
   }
 
-  cerrarModalDetalle() {
-    this.showModalDetalle.set(false);
-    this.selectedCliente = null;
-    this.abonos.set([]);
+  volver() {
+    this.router.navigate(['/admin/empresas']);
   }
 
-  eliminarPlantaDetalle(planta: string) {
-    if (!this.selectedCliente) return;
-    this.selectedCliente.plantas = this.selectedCliente.plantas.filter((p) => p !== planta);
-  }
-
-  agregarPlantaDetalle() {
-    if (!this.selectedCliente) return;
-    const planta = this.nuevaPlantaDetalle.trim();
+  agregarPlanta() {
+    if (!this.empresa()) return;
+    const planta = this.nuevaPlanta().trim();
     if (!planta) return;
-    if (this.selectedCliente.plantas.includes(planta)) return;
-    this.selectedCliente.plantas = [...this.selectedCliente.plantas, planta];
-    this.nuevaPlantaDetalle = '';
+    if (this.empresa()!.plantas.includes(planta)) return;
+    this.empresa.update(e => e ? { ...e, plantas: [...e.plantas, planta] } : e);
+    this.nuevaPlanta.set('');
   }
 
-  guardarDetalle() {
-    if (!this.selectedCliente || !this.selectedCliente._id) return;
-    if (!this.selectedCliente.nombre.trim()) {
-      alert('El nombre del cliente es requerido');
+  eliminarPlanta(planta: string) {
+    if (!this.empresa()) return;
+    this.empresa.update(e => e ? { ...e, plantas: e.plantas.filter(p => p !== planta) } : e);
+  }
+
+  guardarEmpresa() {
+    if (!this.empresa() || !this.empresa()!._id) return;
+    if (!this.empresa()!.nombre.trim()) {
+      alert('El nombre de la empresa es requerido');
       return;
     }
 
     this.saving.set(true);
-    this.http.put(`${this.API}/${this.selectedCliente._id}`, this.selectedCliente).subscribe({
+    this.http.put(`${this.API}/${this.empresa()!._id}`, this.empresa()).subscribe({
       next: () => {
         this.saving.set(false);
-        this.loadClientes();
+        this.loadEmpresa(this.empresa()!._id!);
       },
       error: (err) => {
-        console.error('Error updating cliente:', err);
+        console.error('Error updating empresa:', err);
         this.saving.set(false);
       },
     });
   }
 
   abrirModalAbono(abono?: Abono) {
-    if (!this.selectedCliente) return;
+    if (!this.empresa()) return;
     if (abono) {
       this.editingAbono = {
         ...abono,
@@ -267,7 +169,7 @@ export class Clientes implements OnInit {
       this.editingAbono = {
         fecha: new Date().toISOString().split('T')[0],
         nombre: '',
-        empresa: this.selectedCliente.nombre,
+        empresa: this.empresa()!.nombre,
         planta: '',
         cedula: '',
         telefono: '',
@@ -311,14 +213,14 @@ export class Clientes implements OnInit {
               }
               return [...lista];
             });
-          } else {
-            this.cargarAbonos(this.selectedCliente!);
+          } else if (this.empresaId()) {
+            this.cargarAbonos(this.empresaId());
           }
         },
         error: (err) => {
           console.error('Error updating abono:', err);
           this.saving.set(false);
-          this.cargarAbonos(this.selectedCliente!);
+          if (this.empresaId()) this.cargarAbonos(this.empresaId());
         },
       });
     } else {
@@ -328,14 +230,14 @@ export class Clientes implements OnInit {
           this.cerrarModalAbono();
           if (abonoCreado && abonoCreado._id) {
             this.abonos.update((lista) => [abonoCreado, ...lista]);
-          } else {
-            this.cargarAbonos(this.selectedCliente!);
+          } else if (this.empresaId()) {
+            this.cargarAbonos(this.empresaId());
           }
         },
         error: (err) => {
           console.error('Error creating abono:', err);
           this.saving.set(false);
-          this.cargarAbonos(this.selectedCliente!);
+          if (this.empresaId()) this.cargarAbonos(this.empresaId());
         },
       });
     }
@@ -344,7 +246,9 @@ export class Clientes implements OnInit {
   eliminarAbono(id: string) {
     if (!confirm('¿Está seguro de eliminar esta relación?')) return;
     this.http.delete(`${this.API_ABONOS}/${id}`).subscribe({
-      next: () => this.cargarAbonos(this.selectedCliente!),
+      next: () => {
+        if (this.empresaId()) this.cargarAbonos(this.empresaId());
+      },
       error: (err) => console.error('Error deleting abono:', err),
     });
   }

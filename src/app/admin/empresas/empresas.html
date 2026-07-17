@@ -1,0 +1,85 @@
+<div class="empresas-container">
+  <div class="empresas-header">
+    <h1>Empresas</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Nueva Empresa</button>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" placeholder="Buscar empresa..." name="busqueda">
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="empresas-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Plantas</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (empresa of empresasFiltradas(); track empresa._id) {
+          <tr class="empresa-row" (click)="verDetalle(empresa)">
+            <td>{{ empresa.nombre }}</td>
+            <td>
+              @for (planta of empresa.plantas; track planta) {
+                <span class="planta-badge">{{ planta }}</span>
+              }
+              @if (empresa.plantas.length === 0) {
+                <span class="sin-plantas">Sin plantas</span>
+              }
+            </td>
+            <td class="actions" (click)="$event.stopPropagation()">
+              <button class="btn-edit" (click)="abrirModal(empresa)">Editar</button>
+              <button class="btn-delete" (click)="eliminarEmpresa(empresa._id || '')">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="empty">No hay empresas registradas</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editingEmpresa?._id ? 'Editar' : 'Nueva' }} Empresa</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      </div>
+      <form (ngSubmit)="guardarEmpresa()">
+        <div class="form-group">
+          <label for="empresa-nombre">Nombre *</label>
+          <input id="empresa-nombre" type="text" [(ngModel)]="editingEmpresa!.nombre" name="nombre" required>
+        </div>
+          <div class="form-group">
+            <label for="nuevaPlanta">Plantas</label>
+            <div class="plantas-list">
+              @for (planta of editingEmpresa?.plantas; track planta) {
+                <div class="planta-item">
+                  <span>{{ planta }}</span>
+                  <button type="button" class="btn-remove" (click)="eliminarPlanta(planta)">✕</button>
+                </div>
+              }
+            </div>
+            <div class="add-planta">
+              <input id="nuevaPlanta" type="text" [ngModel]="nuevaPlanta()" (ngModelChange)="nuevaPlanta.set($event)" name="nuevaPlanta" placeholder="Nueva planta">
+              <button type="button" class="btn-add" (click)="agregarPlanta()">Agregar</button>
+            </div>
+          </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

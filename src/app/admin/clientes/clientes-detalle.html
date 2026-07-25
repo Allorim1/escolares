@@ -149,7 +149,12 @@
           </div>
           <div class="form-group">
             <label>Planta *</label>
-            <input type="text" [(ngModel)]="editingAbono.planta" name="abono-planta" required>
+            <select [(ngModel)]="editingAbono.planta" name="abono-planta" required>
+              <option value="">Seleccionar</option>
+              @for (planta of plantasCliente(); track planta) {
+                <option [value]="planta">{{ planta }}</option>
+              }
+            </select>
           </div>
         </div>
         <div class="form-row">

@@ -4,11 +4,19 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../shared/data-access/api-key-status.service';
 import { RolesBackend } from '../backend/data-access/roles.backend';
+import { NotificationModalService } from '../shared/ui/notification-modal/notification-modal.service';
 
 interface MenuItem {
   label: string;
   route: string;
   permiso?: string;
+  soloRoot?: boolean;
+}
+
+interface ProximoGesto {
+  _id?: string;
+  nombre: string;
+  fechaProximoPago?: string;
 }
 
 interface QuickItem {
@@ -97,7 +105,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           name: 'Seguridad',
           items: [
             { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
-            { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar' },
+            { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar', soloRoot: true },
           ]
         },
         {
@@ -121,6 +129,7 @@ export class Admin implements OnInit {
   private http = inject(HttpClient);
   apiKeyStatusService = inject(ApiKeyStatusService);
   private rolesBackend = inject(RolesBackend);
+  private notificationModal = inject(NotificationModalService);
 
   userPermissions = signal<string[]>([]);
   apiKeyStatusLoaded = signal(false);
@@ -132,6 +141,7 @@ export class Admin implements OnInit {
   ngOnInit() {
     this.checkApiKeyStatus();
     this.loadUserPermissions();
+    this.verificarGastosProximosVencer();
   }
 
   @HostListener('document:click', ['$event'])
@@ -213,6 +223,7 @@ export class Admin implements OnInit {
         .filter(cat => !isRepartidor || cat.name === 'Repartidor')
         .map(cat => {
           const hasVisibleItems = cat.items.some(item => {
+            if (item.soloRoot && !isRoot) return false;
             if (!item.permiso) return true;
             if (isRoot) return true;
             return permissions.includes(item.permiso);
@@ -270,7 +281,29 @@ export class Admin implements OnInit {
   }
 
   getVisibleItems(items: MenuItem[]): MenuItem[] {
-    return items.filter(item => !item.permiso || this.hasPermission(item.permiso));
+    const isRoot = this.isRoot();
+    return items.filter(item => {
+      if (item.soloRoot && !isRoot) return false;
+      if (!item.permiso) return true;
+      return this.hasPermission(item.permiso);
+    });
+  }
+
+  verificarGastosProximosVencer() {
+    const user = this.authService.user();
+    if (!user || user.rol !== 'root') return;
+
+    this.http.get<ProximoGesto[]>('/api/gastos-operativos/proximos-vencer?dias=7').subscribe({
+      next: (gastos) => {
+        if (!gastos || gastos.length === 0) return;
+        const nombres = gastos.map(g => `${g.nombre} (${new Date(g.fechaProximoPago).toLocaleDateString('es-VE')})`).join('\n');
+        this.notificationModal.warning(
+          `Tienes ${gastos.length} gasto(s) operativo(s) próximo(s) a vencer:\n\n${nombres}`,
+          'Gastos Operativos - Próximos a Vencer'
+        );
+      },
+      error: (err) => console.error('Error verificando gastos próximos a vencer:', err),
+    });
   }
 
   logout() {

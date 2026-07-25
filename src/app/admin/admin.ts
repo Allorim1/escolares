@@ -93,10 +93,11 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           { label: 'Mis Pedidos', route: 'repartidor' },
         ]
       },
-       {
+        {
           name: 'Seguridad',
           items: [
             { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
+            { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar' },
           ]
         },
         {

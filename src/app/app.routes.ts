@@ -188,10 +188,14 @@ export const routes: Routes = [
             path: 'cierre-caja',
             loadComponent: () => import('./admin/cierre-caja/cierre-caja').then((m) => m.CierreCaja),
           },
-          {
-            path: 'gastos',
-            loadComponent: () => import('./admin/gastos/gastos').then((m) => m.Gastos),
-          },
+            {
+              path: 'gastos-operativos',
+              loadComponent: () => import('./admin/gastos-operativos/gastos-operativos').then((m) => m.GastosOperativos),
+            },
+            {
+              path: 'gastos',
+              loadComponent: () => import('./admin/gastos/gastos').then((m) => m.Gastos),
+            },
           {
             path: 'nomina',
             loadComponent: () => import('./admin/nomina/nomina').then((m) => m.Nomina),

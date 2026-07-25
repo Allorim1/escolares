@@ -72,6 +72,17 @@ export class Abonos implements OnInit {
       return passes;
     });
   });
+
+  totales = computed(() => {
+    const datos = this.abonosFiltrados();
+    return {
+      montoFactura: datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0),
+      iva: datos.reduce((sum, a) => sum + (a.iva ?? 0), 0),
+      diferencia: datos.reduce((sum, a) => sum + (a.diferencia ?? 0), 0),
+      tasa: datos.reduce((sum, a) => sum + (a.tasa ?? 0), 0),
+      divisa: datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0),
+    };
+  });
   loading = signal(false);
   saving = signal(false);
   empresasCargadas = signal(false);

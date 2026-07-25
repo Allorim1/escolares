@@ -1,0 +1,148 @@
+<div class="gastos-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+  <div class="gastos-header">
+    <h1>Gastos Operativos</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Nuevo Gasto</button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtro-group">
+      <label>Estado:</label>
+      <select [ngModel]="filtros().estado" (ngModelChange)="onEstadoChange($event)">
+        <option value="todos">Todos</option>
+        <option value="pendientes">Pendientes</option>
+        <option value="pagados">Pagados</option>
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Categoría:</label>
+        <select [ngModel]="filtros().categoria" (ngModelChange)="onCategoriaChange($event)">
+        <option value="">Todas</option>
+        @for (cat of categoriasFiltradas(); track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="gastos-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Monto</th>
+          <th>Frecuencia</th>
+          <th>Fecha Inicio</th>
+          <th>Próximo Pago</th>
+          <th>Categoría</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (gasto of gastosFiltrados(); track trackByGastoId($index, gasto)) {
+          <tr [class.pagado]="gasto.pagado">
+            <td>{{ gasto.nombre }}</td>
+            <td>{{ gasto.descripcion || '-' }}</td>
+            <td class="monto">{{ formatMonto(gasto.monto || 0) }}</td>
+            <td>{{ getFrecuenciaLabel(gasto.frecuencia) }}</td>
+            <td>{{ formatFecha(gasto.fechaInicio) }}</td>
+            <td>{{ gasto.fechaProximoPago ? formatFecha(gasto.fechaProximoPago) : '-' }}</td>
+            <td>{{ gasto.categoria || '-' }}</td>
+            <td>
+              @if (gasto.pagado) {
+                <span class="badge badge-pagado">Pagado</span>
+              } @else {
+                <span class="badge badge-pendiente">Pendiente</span>
+              }
+            </td>
+            <td class="actions">
+              @if (!gasto.pagado) {
+                <button class="btn-pay" (click)="pagarGasto(gasto)">Pagar</button>
+              }
+              <button class="btn-toggle" (click)="togglePagado(gasto)">
+                {{ gasto.pagado ? 'Marcar Pendiente' : 'Marcar Pagado' }}
+              </button>
+              <button class="btn-edit" (click)="abrirModal(gasto)">Editar</button>
+              <button class="btn-delete" (click)="eliminarGasto(gasto._id || '')">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="9" class="empty">No hay gastos operativos registrados</td>
+          </tr>
+        }
+        @if (gastosFiltrados().length > 0) {
+          <tr class="total-row">
+            <td colspan="2" class="total-label">TOTAL</td>
+            <td class="monto">{{ formatMonto(totalFiltrado()) }}</td>
+            <td colspan="6"></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editingGasto?._id ? 'Editar' : 'Nuevo' }} Gasto Operativo</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      </div>
+      <form (ngSubmit)="guardarGasto()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="editingGasto!.nombre" name="nombre" required>
+          </div>
+          <div class="form-group">
+            <label>Monto *</label>
+            <input type="number" [(ngModel)]="editingGasto!.monto" name="monto" step="0.01" min="0" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Frecuencia *</label>
+            <select [(ngModel)]="editingGasto!.frecuencia" name="frecuencia" required>
+              <option value="semanal">Semanal</option>
+              <option value="quincenal">Quincenal</option>
+              <option value="mensual">Mensual</option>
+              <option value="unico">Único</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Categoría</label>
+            <input type="text" [(ngModel)]="editingGasto!.categoria" name="categoria" placeholder="Ej: Servicios, Alquiler">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha Inicio *</label>
+            <input type="date" [(ngModel)]="editingGasto!.fechaInicio" name="fechaInicio" required>
+          </div>
+          <div class="form-group">
+            <label>Próximo Pago</label>
+            <input type="date" [(ngModel)]="editingGasto!.fechaProximoPago" name="fechaProximoPago">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea [(ngModel)]="editingGasto!.descripcion" name="descripcion" rows="3" placeholder="Detalles adicionales..."></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

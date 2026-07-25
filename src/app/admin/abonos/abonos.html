@@ -87,6 +87,17 @@
             <td colspan="14" class="empty">No hay abonos registrados</td>
           </tr>
         }
+        @if (abonosFiltrados().length > 0) {
+          <tr class="total-row">
+            <td colspan="7" class="total-label">TOTALES</td>
+            <td class="monto">{{ formatMonto(totales().montoFactura) }}</td>
+            <td class="monto">{{ formatMonto(totales().iva) }}</td>
+            <td class="monto">{{ formatMonto(totales().diferencia) }}</td>
+            <td>{{ totales().tasa.toFixed(2) }}</td>
+            <td>{{ totales().divisa.toFixed(2) }}</td>
+            <td colspan="2"></td>
+          </tr>
+        }
       </tbody>
     </table>
   }

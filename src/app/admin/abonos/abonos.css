@@ -170,6 +170,40 @@
   padding: 40px;
 }
 
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.btn-page {
+  padding: 8px 14px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: #e3f2fd;
+  border-color: #1d63c1;
+}
+
+.btn-page.active {
+  background: #1d63c1;
+  color: white;
+  border-color: #1d63c1;
+}
+
+.btn-page:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;

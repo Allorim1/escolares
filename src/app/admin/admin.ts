@@ -296,7 +296,7 @@ export class Admin implements OnInit {
     this.http.get<ProximoGesto[]>('/api/gastos-operativos/proximos-vencer?dias=7').subscribe({
       next: (gastos) => {
         if (!gastos || gastos.length === 0) return;
-        const nombres = gastos.map(g => `${g.nombre} (${new Date(g.fechaProximoPago).toLocaleDateString('es-VE')})`).join('\n');
+        const nombres = gastos.map(g => `${g.nombre} (${new Date(g.fechaProximoPago || '').toLocaleDateString('es-VE')})`).join('\n');
         this.notificationModal.warning(
           `Tienes ${gastos.length} gasto(s) operativo(s) próximo(s) a vencer:\n\n${nombres}`,
           'Gastos Operativos - Próximos a Vencer'

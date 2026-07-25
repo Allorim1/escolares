@@ -61,7 +61,7 @@ export class GastosOperativos implements OnInit {
   }
 
   private actualizarCategorias() {
-    const cats = new Set(this.gastos().map(g => g.categoria).filter(c => c));
+    const cats = new Set(this.gastos().map(g => g.categoria).filter((c): c is string => Boolean(c)));
     this.categoriasFiltradas.set(Array.from(cats));
   }
 

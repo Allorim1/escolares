@@ -62,7 +62,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (abono of abonosFiltrados(); track abono._id) {
+        @for (abono of abonosPaginados(); track abono._id) {
           <tr>
             <td>{{ formatFecha(abono.fecha) }}</td>
             <td>{{ abono.nombre }}</td>
@@ -100,6 +100,15 @@
         }
       </tbody>
     </table>
+    @if (abonosFiltrados().length > 10) {
+      <div class="pagination">
+        <button class="btn-page" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">Anterior</button>
+        @for (pagina of numerosPaginas(); track pagina) {
+          <button class="btn-page" [class.active]="paginaActual() === pagina" (click)="cambiarPagina(pagina)">{{ pagina }}</button>
+        }
+        <button class="btn-page" [disabled]="paginaActual() === totalPaginas()" (click)="cambiarPagina(paginaActual() + 1)">Siguiente</button>
+      </div>
+    }
   }
 </div>
 

@@ -116,6 +116,23 @@ export class Abonos implements OnInit {
     fechaHasta: '',
   });
 
+  paginaActual = signal(1);
+  readonly TAM_PAGINA = 10;
+
+  abonosPaginados = computed(() => {
+    const lista = this.abonosFiltrados();
+    const inicio = (this.paginaActual() - 1) * this.TAM_PAGINA;
+    return lista.slice(inicio, inicio + this.TAM_PAGINA);
+  });
+
+  totalPaginas = computed(() => {
+    return Math.max(1, Math.ceil(this.abonosFiltrados().length / this.TAM_PAGINA));
+  });
+
+  numerosPaginas = computed(() => {
+    return Array.from({ length: this.totalPaginas() }, (_, i) => i + 1);
+  });
+
   ngOnInit() {
     this.loadAbonos(true);
     this.cargarEmpresasYSetear();
@@ -151,22 +168,31 @@ export class Abonos implements OnInit {
 
   onEmpresaFilterChange(empresa: string) {
     this.filtros.update((f) => ({ ...f, empresa, planta: '' }));
+    this.paginaActual.set(1);
   }
 
   onEmpresaChange() {
     this.filtros.update((f) => ({ ...f, planta: '' }));
+    this.paginaActual.set(1);
   }
 
   onPlantaFilterChange(planta: string) {
     this.filtros.update((f) => ({ ...f, planta }));
+    this.paginaActual.set(1);
   }
 
   onFechaDesdeChange(fecha: string) {
     this.filtros.update((f) => ({ ...f, fechaDesde: fecha }));
+    this.paginaActual.set(1);
   }
 
   onFechaHastaChange(fecha: string) {
     this.filtros.update((f) => ({ ...f, fechaHasta: fecha }));
+    this.paginaActual.set(1);
+  }
+
+  cambiarPagina(pagina: number) {
+    this.paginaActual.set(pagina);
   }
 
   abrirModalColumnas() {

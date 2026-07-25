@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
+import { EmpresasService, Empresa } from '../../shared/data-access/empresas.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
@@ -25,12 +26,6 @@ interface Abono {
   status: string;
 }
 
-interface Empresa {
-  _id?: string;
-  nombre: string;
-  plantas: string[];
-}
-
 @Component({
   selector: 'app-abonos',
   standalone: true,
@@ -40,6 +35,7 @@ interface Empresa {
 })
 export class Abonos implements OnInit {
   private http = inject(HttpClient);
+  private empresasService = inject(EmpresasService);
 
   private readonly API = '/api/abonos-polar';
   private readonly API_EMPRESAS = '/api/empresas';
@@ -134,8 +130,11 @@ export class Abonos implements OnInit {
   });
 
   ngOnInit() {
+    this.empresasService.load();
+    this.empresasService.empresas$.subscribe({
+      next: (data) => this.empresas.set(data),
+    });
     this.loadAbonos(true);
-    this.cargarEmpresasYSetear();
   }
 
   loadAbonos(force = false) {
@@ -150,19 +149,6 @@ export class Abonos implements OnInit {
         console.error('Error loading abonos:', err);
         this.loading.set(false);
       },
-    });
-  }
-
-  private cargarEmpresasYSetear(empresaNombre?: string) {
-    this.http.get<Empresa[]>(this.API_EMPRESAS).subscribe({
-      next: (data) => {
-        this.empresas.set(data);
-        this.empresasCargadas.set(true);
-        if (empresaNombre) {
-          this.selectedEmpresaInModal.set(empresaNombre);
-        }
-      },
-      error: (err) => console.error('Error loading empresas:', err),
     });
   }
 
@@ -239,7 +225,9 @@ export class Abonos implements OnInit {
             tasa: abonoActualizado.tasa ?? 0,
             divisa: abonoActualizado.divisa ?? 0,
           };
-          this.cargarEmpresasYSetear(abonoActualizado.empresa);
+          if (abonoActualizado.empresa) {
+            this.selectedEmpresaInModal.set(abonoActualizado.empresa);
+          }
           this.calcularDerivados();
           this.showModal.set(true);
         },
@@ -254,7 +242,9 @@ export class Abonos implements OnInit {
             tasa: abono.tasa ?? 0,
             divisa: abono.divisa ?? 0,
           };
-          this.cargarEmpresasYSetear(abono.empresa);
+          if (abono.empresa) {
+            this.selectedEmpresaInModal.set(abono.empresa);
+          }
           this.calcularDerivados();
           this.showModal.set(true);
         },
@@ -274,9 +264,8 @@ export class Abonos implements OnInit {
         tasa: 0,
         divisa: 0,
         status: '',
-      };
-      this.cargarEmpresasYSetear('');
-      this.showModal.set(true);
+       };
+       this.showModal.set(true);
     }
   }
 

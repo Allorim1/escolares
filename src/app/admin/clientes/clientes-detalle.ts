@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { EmpresasService } from '../../shared/data-access/empresas.service';
 
 interface Cliente {
   _id?: string;
@@ -40,6 +41,7 @@ export class ClientesDetalle implements OnInit {
   private router = inject(Router);
   private readonly API = '/api/empresas';
   private readonly API_ABONOS = '/api/abonos-polar';
+  private empresasService = inject(EmpresasService);
 
   cliente = signal<Cliente | null>(null);
   clienteId = signal('');
@@ -153,6 +155,7 @@ export class ClientesDetalle implements OnInit {
       next: () => {
         this.saving.set(false);
         this.loadCliente(this.cliente()!._id!);
+        this.empresasService.load();
       },
       error: (err) => {
         console.error('Error updating cliente:', err);

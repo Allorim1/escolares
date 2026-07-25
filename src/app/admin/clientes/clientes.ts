@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { EmpresasService } from '../../shared/data-access/empresas.service';
 
 interface Cliente {
   _id?: string;
@@ -20,6 +21,7 @@ interface Cliente {
 export class Clientes implements OnInit {
   private http = inject(HttpClient);
   private readonly API = '/api/empresas';
+  private empresasService = inject(EmpresasService);
 
   clientes = signal<Cliente[]>([]);
   busqueda = signal('');
@@ -100,6 +102,7 @@ export class Clientes implements OnInit {
           this.saving.set(false);
           this.cerrarModal();
           this.loadClientes();
+          this.empresasService.load();
         },
         error: (err) => {
           console.error('Error updating cliente:', err);
@@ -112,6 +115,7 @@ export class Clientes implements OnInit {
           this.saving.set(false);
           this.cerrarModal();
           this.clientes.update(clientes => [...clientes, res]);
+          this.empresasService.load();
         },
         error: (err) => {
           console.error('Error creating cliente:', err);
@@ -124,7 +128,10 @@ export class Clientes implements OnInit {
   eliminarCliente(id: string) {
     if (!confirm('¿Está seguro de eliminar este cliente?')) return;
     this.http.delete(`${this.API}/${id}`).subscribe({
-      next: () => this.loadClientes(),
+      next: () => {
+        this.loadClientes();
+        this.empresasService.load();
+      },
       error: (err) => console.error('Error deleting cliente:', err),
     });
   }

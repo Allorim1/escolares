@@ -675,4 +675,9 @@ export class Abonos implements OnInit {
     const diferencia = this.abonoValuacion.diferencia ?? 0;
     return Number((diferencia / tasa).toFixed(2));
   }
+
+  parseTasaManual(valor: string | undefined | null): number {
+    const num = Number(valor);
+    return Number.isFinite(num) ? num : 0;
+  }
 }

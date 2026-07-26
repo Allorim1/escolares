@@ -649,7 +649,7 @@ export class Abonos implements OnInit {
     this.tasaManual.set(0);
   }
 
-  getTasasOrdenadas(): { fecha: string; valor: number }[] {
+  getTasasOrdenadas = computed(() => {
     const todas: { fecha: string; valor: number }[] = [];
     this.tasasGuardadas().forEach(tg => {
       if (tg.tasas && Array.isArray(tg.tasas)) {
@@ -661,9 +661,9 @@ export class Abonos implements OnInit {
       }
     });
     return todas.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
-  }
+  });
 
-  getDiferencialTasas(): { valor: number; porcentaje: number } | null {
+  getDiferencialTasas = computed(() => {
     const lista = this.getTasasOrdenadas();
     if (lista.length < 2 || !this.abonoValuacion) return null;
     const tasaActual = lista[lista.length - 1].valor;
@@ -672,18 +672,18 @@ export class Abonos implements OnInit {
     const valor = tasaActual - tasaAnterior;
     const porcentaje = (valor / tasaAnterior) * 100;
     return { valor, porcentaje };
-  }
+  });
 
-  getDiferencialConTasaRegistrada(): { valor: number; porcentaje: number } {
+  getDiferencialConTasaRegistrada = computed(() => {
     const tasaRegistrada = this.abonoValuacion?.tasa ?? 0;
     const lista = this.getTasasOrdenadas();
     const ultimaTasa = lista.length > 0 ? lista[lista.length - 1].valor : 0;
     const base = ultimaTasa || tasaRegistrada;
     if (base === 0) return { valor: 0, porcentaje: 0 };
     const valor = tasaRegistrada - ultimaTasa;
-    const porcentaje = (valor / ultimaTasa) * 100;
+    const porcentaje = (ultimaTasa > 0 ? (valor / ultimaTasa) * 100 : 0);
     return { valor, porcentaje };
-  }
+  });
 
   guardarNuevaTasa() {
     const fecha = this.nuevaTasaFecha();

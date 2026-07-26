@@ -471,17 +471,6 @@
   box-sizing: border-box;
 }
 
-.monto-scroller {
-  position: relative;
-  overflow: hidden;
-}
-
-.monto-scroller .monto-input {
-  transition: transform 0.2s ease;
-  direction: ltr;
-  text-align: right;
-}
-
 .btn-secondary {
   background: #6c757d;
   color: white;

@@ -703,7 +703,10 @@ export class Abonos implements OnInit {
           this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
           this.nuevaTasaValor.set(0);
         },
-        error: (err) => console.error('Error actualizando tasa:', err),
+        error: (err) => {
+          console.error('Error actualizando tasa:', err);
+          alert('Error al actualizar la tasa');
+        },
       });
     } else {
       this.tasasGuardadasService.save(nombre, new Map([[fecha, valor]]), 'actual').subscribe({
@@ -713,7 +716,10 @@ export class Abonos implements OnInit {
           this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
           this.nuevaTasaValor.set(0);
         },
-        error: (err) => console.error('Error guardando tasa:', err),
+        error: (err) => {
+          console.error('Error guardando tasa:', err);
+          alert('Error al guardar la tasa');
+        },
       });
     }
   }

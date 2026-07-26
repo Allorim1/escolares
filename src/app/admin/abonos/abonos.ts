@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { ChangeDetectorRef } from '@angular/core';
 
 interface Abono {
   _id?: string;
@@ -38,6 +39,7 @@ export class Abonos implements OnInit {
   private http = inject(HttpClient);
   private empresasService = inject(EmpresasService);
   private tasasGuardadasService = inject(TasasGuardadasService);
+  private cdr = inject(ChangeDetectorRef);
 
   private readonly API = '/api/abonos-polar';
   private readonly API_EMPRESAS = '/api/empresas';
@@ -696,9 +698,8 @@ export class Abonos implements OnInit {
       existing.tasas.push({ fecha, valor });
       this.http.put(`/api/tasas-guardadas/${existing._id}`, existing).subscribe({
         next: () => {
-          this.tasasGuardadasService.getAll().subscribe({
-            next: (data) => this.tasasGuardadas.set(data || []),
-          });
+          this.cdr.detectChanges();
+          this.abrirValuacion(this.abonoValuacion!);
           this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
           this.nuevaTasaValor.set(0);
         },
@@ -707,9 +708,8 @@ export class Abonos implements OnInit {
     } else {
       this.tasasGuardadasService.save(nombre, new Map([[fecha, valor]]), 'actual').subscribe({
         next: () => {
-          this.tasasGuardadasService.getAll().subscribe({
-            next: (data) => this.tasasGuardadas.set(data || []),
-          });
+          this.cdr.detectChanges();
+          this.abrirValuacion(this.abonoValuacion!);
           this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
           this.nuevaTasaValor.set(0);
         },
@@ -727,5 +727,12 @@ export class Abonos implements OnInit {
   parseTasaManual(valor: string | undefined | null): number {
     const num = Number(valor);
     return Number.isFinite(num) ? num : 0;
+  }
+
+  applyMontoShift(input: HTMLInputElement) {
+    if (!input) return;
+    const len = input.value.length;
+    const shift = Math.max(0, len - 4) * 6;
+    input.style.transform = `translateX(-${shift}px)`;
   }
 }

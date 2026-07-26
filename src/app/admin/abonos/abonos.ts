@@ -728,11 +728,4 @@ export class Abonos implements OnInit {
     const num = Number(valor);
     return Number.isFinite(num) ? num : 0;
   }
-
-  applyMontoShift(input: HTMLInputElement) {
-    if (!input) return;
-    const len = input.value.length;
-    const shift = Math.max(0, len - 4) * 6;
-    input.style.transform = `translateX(-${shift}px)`;
-  }
 }

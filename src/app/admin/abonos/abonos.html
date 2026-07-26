@@ -63,7 +63,7 @@
       </thead>
       <tbody>
         @for (abono of abonosPaginados(); track abono._id) {
-          <tr>
+          <tr (click)="abrirValuacion(abono)" style="cursor: pointer;">
             <td>{{ formatFecha(abono.fecha) }}</td>
             <td>{{ abono.nombre }}</td>
             <td>{{ abono.empresa || '-' }}</td>
@@ -78,9 +78,8 @@
             <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
             <td>{{ abono.status }}</td>
             <td class="actions">
-              <button class="btn-edit" (click)="abrirModal(abono)">Editar</button>
-              <button class="btn-delete" (click)="eliminarAbono(abono._id || '')">Eliminar</button>
-              <button class="btn-secondary" (click)="abrirValuacion(abono)">📊 Valuación</button>
+              <button class="btn-edit" (click)="$event.stopPropagation(); abrirModal(abono)">Editar</button>
+              <button class="btn-delete" (click)="$event.stopPropagation(); eliminarAbono(abono._id || '')">Eliminar</button>
             </td>
           </tr>
         } @empty {
@@ -251,11 +250,9 @@
         </div>
 
         <div class="valuacion-section">
-          <h3>Historial de Tasas Guardadas</h3>
+          <h3>Historial de Tasas</h3>
           @if (loadingTasas()) {
             <div class="loading">Cargando tasas...</div>
-          } @else if (getTasasOrdenadas().length === 0) {
-            <div class="empty">No hay tasas guardadas</div>
           } @else {
             <table class="tasas-table">
               <thead>
@@ -273,13 +270,27 @@
                 }
               </tbody>
             </table>
-            @if (getDiferencialTasas()) {
-              <div class="diferencial">
-                <p><strong>Diferencial última vs penúltima tasa:</strong> {{ getDiferencialTasas()!.valor.toFixed(2) }}</p>
-                <p><strong>Porcentaje:</strong> {{ getDiferencialTasas()!.porcentaje.toFixed(2) }}%</p>
-              </div>
-            }
+            <div class="diferencial">
+              <p><strong>Tasa registrada en relación:</strong> {{ (abonoValuacion.tasa ?? 0).toFixed(2) }}</p>
+              <p><strong>Diferencial vs última tasa guardada:</strong> {{ getDiferencialConTasaRegistrada().valor.toFixed(2) }}</p>
+              <p><strong>Porcentaje:</strong> {{ getDiferencialConTasaRegistrada().porcentaje.toFixed(2) }}%</p>
+            </div>
           }
+        </div>
+
+        <div class="valuacion-section">
+          <h3>Agregar Tasa</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" [(ngModel)]="nuevaTasaFecha" name="nueva-tasa-fecha">
+            </div>
+            <div class="form-group">
+              <label>Valor</label>
+              <input type="number" [(ngModel)]="nuevaTasaValor" name="nueva-tasa-valor" step="0.01" min="0">
+            </div>
+          </div>
+          <button type="button" class="btn-save" (click)="guardarNuevaTasa()">Guardar Tasa</button>
         </div>
 
         <div class="valuacion-section">

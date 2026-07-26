@@ -112,6 +112,8 @@ export class Abonos implements OnInit {
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
+  nuevaTasaFecha = signal(new Date().toISOString().split('T')[0]);
+  nuevaTasaValor = signal(0);
 
   filtros = signal({
     empresa: '',
@@ -668,6 +670,52 @@ export class Abonos implements OnInit {
     const valor = tasaActual - tasaAnterior;
     const porcentaje = (valor / tasaAnterior) * 100;
     return { valor, porcentaje };
+  }
+
+  getDiferencialConTasaRegistrada(): { valor: number; porcentaje: number } {
+    const tasaRegistrada = this.abonoValuacion?.tasa ?? 0;
+    const lista = this.getTasasOrdenadas();
+    const ultimaTasa = lista.length > 0 ? lista[lista.length - 1].valor : 0;
+    const base = ultimaTasa || tasaRegistrada;
+    if (base === 0) return { valor: 0, porcentaje: 0 };
+    const valor = tasaRegistrada - ultimaTasa;
+    const porcentaje = (valor / ultimaTasa) * 100;
+    return { valor, porcentaje };
+  }
+
+  guardarNuevaTasa() {
+    const fecha = this.nuevaTasaFecha();
+    const valor = this.nuevaTasaValor();
+    if (!fecha || !valor || valor <= 0) {
+      alert('Ingrese una fecha y un valor válido para la tasa');
+      return;
+    }
+    const nombre = `Tasa ${fecha}`;
+    const existing = this.tasasGuardadas().find(tg => tg.nombre === nombre && tg.tipo === 'actual');
+    if (existing && existing.tasas) {
+      existing.tasas.push({ fecha, valor });
+      this.http.put(`/api/tasas-guardadas/${existing._id}`, existing).subscribe({
+        next: () => {
+          this.tasasGuardadasService.getAll().subscribe({
+            next: (data) => this.tasasGuardadas.set(data || []),
+          });
+          this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
+          this.nuevaTasaValor.set(0);
+        },
+        error: (err) => console.error('Error actualizando tasa:', err),
+      });
+    } else {
+      this.tasasGuardadasService.save(nombre, new Map([[fecha, valor]]), 'actual').subscribe({
+        next: () => {
+          this.tasasGuardadasService.getAll().subscribe({
+            next: (data) => this.tasasGuardadas.set(data || []),
+          });
+          this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
+          this.nuevaTasaValor.set(0);
+        },
+        error: (err) => console.error('Error guardando tasa:', err),
+      });
+    }
   }
 
   getValuacionConTasa(tasa: number): number {

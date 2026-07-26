@@ -80,6 +80,7 @@
             <td class="actions">
               <button class="btn-edit" (click)="abrirModal(abono)">Editar</button>
               <button class="btn-delete" (click)="eliminarAbono(abono._id || '')">Eliminar</button>
+              <button class="btn-secondary" (click)="abrirValuacion(abono)">📊 Valuación</button>
             </td>
           </tr>
         } @empty {
@@ -90,11 +91,12 @@
         @if (abonosFiltrados().length > 0) {
           <tr class="total-row">
             <td colspan="7" class="total-label">TOTALES</td>
-            <td class="monto">Bs. {{ totales().montoFactura.toFixed(3) }}</td>
-            <td class="monto">Bs. {{ totales().iva.toFixed(3) }}</td>
-            <td class="monto">Bs. {{ totales().diferencia.toFixed(3) }}</td>
-            <td>Bs. {{ totales().divisa.toFixed(3) }}</td>
-            <td colspan="3"></td>
+            <td class="monto">{{ formatTotal(totales().montoFactura, 'Bs.') }}</td>
+            <td class="monto">{{ formatTotal(totales().iva, 'Bs.') }}</td>
+            <td class="monto">{{ formatTotal(totales().diferencia, 'Bs.') }}</td>
+            <td></td>
+            <td>{{ formatTotal(totales().divisa, '$') }}</td>
+            <td colspan="2"></td>
           </tr>
         }
       </tbody>
@@ -228,6 +230,71 @@
       <div class="modal-actions">
         <button type="button" class="btn-cancel" (click)="cerrarModalColumnas()">Cancelar</button>
         <button type="button" class="btn-save" (click)="generarReportePdf()">Generar PDF</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showModalValuacion() && abonoValuacion) {
+  <div class="modal-overlay">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Valuación de Relación</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarValuacion()">✕</button>
+      </div>
+      <div class="valuacion-body">
+        <div class="valuacion-info">
+          <p><strong>Nombre:</strong> {{ abonoValuacion.nombre }}</p>
+          <p><strong>Monto Diferencia:</strong> {{ formatTotal(abonoValuacion.diferencia ?? 0, 'Bs.') }}</p>
+          <p><strong>Tasa registrada:</strong> {{ abonoValuacion.tasa?.toFixed(2) ?? '0.00' }}</p>
+          <p><strong>Divisa registrada:</strong> {{ abonoValuacion.divisa?.toFixed(2) ?? '0.00' }}</p>
+        </div>
+
+        <div class="valuacion-section">
+          <h3>Historial de Tasas Guardadas</h3>
+          @if (loadingTasas()) {
+            <div class="loading">Cargando tasas...</div>
+          } @else if (getTasasOrdenadas().length === 0) {
+            <div class="empty">No hay tasas guardadas</div>
+          } @else {
+            <table class="tasas-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (tasa of getTasasOrdenadas(); track tasa.fecha) {
+                  <tr>
+                    <td>{{ formatFecha(tasa.fecha) }}</td>
+                    <td>{{ tasa.valor.toFixed(2) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if (getDiferencialTasas()) {
+              <div class="diferencial">
+                <p><strong>Diferencial última vs penúltima tasa:</strong> {{ getDiferencialTasas()!.valor.toFixed(2) }}</p>
+                <p><strong>Porcentaje:</strong> {{ getDiferencialTasas()!.porcentaje.toFixed(2) }}%</p>
+              </div>
+            }
+          }
+        </div>
+
+        <div class="valuacion-section">
+          <h3>Calculadora Manual</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tasa manual</label>
+              <input type="number" [ngModel]="tasaManual()" (ngModelChange)="tasaManual.set($event ? parseFloat($event) : 0)" name="tasa-manual" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label>Valuación resultante</label>
+              <input type="text" [value]="getValuacionConTasa(tasaManual()).toFixed(2)" readonly>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 import { EmpresasService, Empresa } from '../../shared/data-access/empresas.service';
+import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
@@ -36,6 +37,7 @@ interface Abono {
 export class Abonos implements OnInit {
   private http = inject(HttpClient);
   private empresasService = inject(EmpresasService);
+  private tasasGuardadasService = inject(TasasGuardadasService);
 
   private readonly API = '/api/abonos-polar';
   private readonly API_EMPRESAS = '/api/empresas';
@@ -104,6 +106,12 @@ export class Abonos implements OnInit {
     { key: 'status', label: 'Status' },
   ];
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+
+  showModalValuacion = signal(false);
+  abonoValuacion: Abono | null = null;
+  tasasGuardadas = signal<TasaGuardada[]>([]);
+  tasaManual = signal(0);
+  loadingTasas = signal(false);
 
   filtros = signal({
     empresa: '',
@@ -399,6 +407,15 @@ export class Abonos implements OnInit {
     }).format(monto);
   }
 
+  formatTotal(valor: number, prefijo: string): string {
+    const monto = Number(valor) || 0;
+    const numero = monto.toLocaleString('es-VE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${prefijo} ${numero}`;
+  }
+
   formatFecha(fecha: string): string {
     const date = new Date(fecha);
     const dia = String(date.getDate()).padStart(2, '0');
@@ -602,5 +619,60 @@ export class Abonos implements OnInit {
       : `abonos_${new Date().toISOString().split('T')[0]}.xlsx`;
 
     saveAs(new Blob([buffer]), fileName);
+  }
+
+  abrirValuacion(abono: Abono) {
+    this.abonoValuacion = { ...abono };
+    this.showModalValuacion.set(true);
+    this.tasaManual.set(abono.tasa ?? 0);
+    this.loadingTasas.set(true);
+    this.tasasGuardadasService.getAll().subscribe({
+      next: (data) => {
+        this.tasasGuardadas.set(data || []);
+        this.loadingTasas.set(false);
+      },
+      error: (err) => {
+        console.error('Error cargando tasas guardadas:', err);
+        this.loadingTasas.set(false);
+      },
+    });
+  }
+
+  cerrarValuacion() {
+    this.showModalValuacion.set(false);
+    this.abonoValuacion = null;
+    this.tasasGuardadas.set([]);
+    this.tasaManual.set(0);
+  }
+
+  getTasasOrdenadas(): { fecha: string; valor: number }[] {
+    const todas: { fecha: string; valor: number }[] = [];
+    this.tasasGuardadas().forEach(tg => {
+      if (tg.tasas && Array.isArray(tg.tasas)) {
+        tg.tasas.forEach(t => {
+          if (t.fecha && typeof t.valor === 'number') {
+            todas.push({ fecha: t.fecha, valor: t.valor });
+          }
+        });
+      }
+    });
+    return todas.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+  }
+
+  getDiferencialTasas(): { valor: number; porcentaje: number } | null {
+    const lista = this.getTasasOrdenadas();
+    if (lista.length < 2 || !this.abonoValuacion) return null;
+    const tasaActual = lista[lista.length - 1].valor;
+    const tasaAnterior = lista[lista.length - 2].valor;
+    if (tasaAnterior === 0) return null;
+    const valor = tasaActual - tasaAnterior;
+    const porcentaje = (valor / tasaAnterior) * 100;
+    return { valor, porcentaje };
+  }
+
+  getValuacionConTasa(tasa: number): number {
+    if (!this.abonoValuacion || tasa <= 0) return 0;
+    const diferencia = this.abonoValuacion.diferencia ?? 0;
+    return Number((diferencia / tasa).toFixed(2));
   }
 }

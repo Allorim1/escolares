@@ -108,11 +108,17 @@
   background: #e3f2fd;
   font-weight: bold;
   color: #1d63c1;
+  font-size: 15px;
+}
+
+.abonos-table .total-row td {
+  padding: 14px 10px;
 }
 
 .abonos-table .total-row .total-label {
   text-align: right;
   padding-right: 20px;
+  font-size: 16px;
 }
 
 .abonos-table .monto {
@@ -122,6 +128,10 @@
 
 .abonos-table .total-row .monto {
   color: #1d63c1;
+}
+
+.abonos-table .total-extra {
+  background: #bbdefb;
 }
 
 .abonos-table .actions {

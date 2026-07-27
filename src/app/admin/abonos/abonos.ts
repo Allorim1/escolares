@@ -75,12 +75,21 @@ export class Abonos implements OnInit {
 
   totales = computed(() => {
     const datos = this.abonosFiltrados();
+    const diferencia = datos.reduce((sum, a) => sum + (a.diferencia ?? 0), 0);
+    const divisa = datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0);
+    const tasaActual = this.tasaActual();
+    const diferenciaEnDivisa = tasaActual > 0 ? diferencia * tasaActual : 0;
+    const porcentajeCambio = diferenciaEnDivisa > 0 ? ((divisa - diferenciaEnDivisa) / diferenciaEnDivisa) * 100 : 0;
+    const cambioMonto = divisa - diferenciaEnDivisa;
     return {
       montoFactura: datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0),
       iva: datos.reduce((sum, a) => sum + (a.iva ?? 0), 0),
-      diferencia: datos.reduce((sum, a) => sum + (a.diferencia ?? 0), 0),
-      tasa: datos.reduce((sum, a) => sum + (a.tasa ?? 0), 0),
-      divisa: datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0),
+      diferencia,
+      divisa,
+      tasaActual,
+      diferenciaEnDivisa,
+      cambioMonto,
+      porcentajeCambio,
     };
   });
   loading = signal(false);
@@ -117,6 +126,9 @@ export class Abonos implements OnInit {
   nuevaTasaFecha = signal(new Date().toISOString().split('T')[0]);
   nuevaTasaValor = signal(0);
 
+  tasaActual = signal<number>(0);
+  loadingTasaActual = signal(false);
+
   filtros = signal({
     empresa: '',
     planta: '',
@@ -147,6 +159,22 @@ export class Abonos implements OnInit {
       next: (data) => this.empresas.set(data),
     });
     this.loadAbonos(true);
+    this.loadTasaActual();
+  }
+
+  loadTasaActual() {
+    this.loadingTasaActual.set(true);
+    this.http.get<{ current?: { usd?: number } }>('/api/tasas').subscribe({
+      next: (data) => {
+        const usd = data?.current?.usd;
+        this.tasaActual.set(typeof usd === 'number' ? usd : 0);
+        this.loadingTasaActual.set(false);
+      },
+      error: () => {
+        this.tasaActual.set(0);
+        this.loadingTasaActual.set(false);
+      },
+    });
   }
 
   loadAbonos(force = false) {
@@ -650,12 +678,17 @@ export class Abonos implements OnInit {
   }
 
   getTasasOrdenadas = computed(() => {
-    const todas: { fecha: string; valor: number }[] = [];
+    const todas: { fecha: string; valor: number; parentId: string; index: number }[] = [];
     this.tasasGuardadas().forEach(tg => {
       if (tg.tasas && Array.isArray(tg.tasas)) {
-        tg.tasas.forEach(t => {
+        tg.tasas.forEach((t, index) => {
           if (t.fecha && typeof t.valor === 'number') {
-            todas.push({ fecha: t.fecha, valor: t.valor });
+            todas.push({
+              fecha: t.fecha,
+              valor: t.valor,
+              parentId: tg._id || '',
+              index,
+            });
           }
         });
       }
@@ -719,6 +752,61 @@ export class Abonos implements OnInit {
         error: (err) => {
           console.error('Error guardando tasa:', err);
           alert('Error al guardar la tasa');
+        },
+      });
+    }
+  }
+
+  refrescarTasas() {
+    this.tasasGuardadasService.getAll().subscribe({
+      next: (data) => {
+        this.tasasGuardadas.set(data || []);
+      },
+      error: (err) => console.error('Error refrescando tasas:', err),
+    });
+  }
+
+  editarTasa(tasa: { parentId: string; index: number; valor: number }) {
+    const nuevoValorStr = prompt('Editar valor de tasa:', tasa.valor.toString());
+    if (nuevoValorStr === null) return;
+    const nuevoValor = parseFloat(nuevoValorStr);
+    if (isNaN(nuevoValor) || nuevoValor <= 0) {
+      alert('Valor inválido');
+      return;
+    }
+    const parent = this.tasasGuardadas().find(tg => tg._id === tasa.parentId);
+    if (!parent || !parent.tasas) return;
+    const nuevasTasas = [...parent.tasas];
+    nuevasTasas[tasa.index] = { ...nuevasTasas[tasa.index], valor: nuevoValor };
+    this.http.put(`/api/tasas-guardadas/${parent._id}`, { nombre: parent.nombre, tasas: nuevasTasas, tipo: parent.tipo }).subscribe({
+      next: () => this.refrescarTasas(),
+      error: (err) => {
+        console.error('Error actualizando tasa:', err);
+        alert('Error al actualizar la tasa');
+      },
+    });
+  }
+
+  eliminarTasa(tasa: { parentId: string; index: number }) {
+    if (!confirm('¿Eliminar esta tasa del historial?')) return;
+    const parent = this.tasasGuardadas().find(tg => tg._id === tasa.parentId);
+    if (!parent || !parent.tasas) return;
+    const nuevasTasas = [...parent.tasas];
+    nuevasTasas.splice(tasa.index, 1);
+    if (nuevasTasas.length === 0) {
+      this.http.delete(`/api/tasas-guardadas/${parent._id}`).subscribe({
+        next: () => this.refrescarTasas(),
+        error: (err) => {
+          console.error('Error eliminando tasa:', err);
+          alert('Error al eliminar la tasa');
+        },
+      });
+    } else {
+      this.http.put(`/api/tasas-guardadas/${parent._id}`, { nombre: parent.nombre, tasas: nuevasTasas, tipo: parent.tipo }).subscribe({
+        next: () => this.refrescarTasas(),
+        error: (err) => {
+          console.error('Error eliminando tasa:', err);
+          alert('Error al eliminar la tasa');
         },
       });
     }

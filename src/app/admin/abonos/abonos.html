@@ -1,14 +1,3 @@
-<style>
-.monto-scroller {
-  overflow: hidden;
-  white-space: nowrap;
-}
-.monto-input {
-  overflow: hidden;
-  white-space: nowrap;
-  transition: transform 0.2s ease;
-}
-</style>
 <div class="abonos-container">
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="abonos-header">
@@ -107,6 +96,12 @@
             <td></td>
             <td>{{ formatTotal(totales().divisa, '$') }}</td>
             <td colspan="2"></td>
+          </tr>
+          <tr class="total-row total-extra">
+            <td colspan="5" class="total-label">Diferencia × Tasa API</td>
+            <td>{{ formatTotal(totales().diferenciaEnDivisa, '$') }}</td>
+            <td>{{ formatTotal(totales().cambioMonto, '$') }}</td>
+            <td colspan="4">{{ totales().porcentajeCambio.toFixed(2) }}%</td>
           </tr>
         }
       </tbody>
@@ -255,6 +250,7 @@
       <div class="valuacion-body">
         <div class="valuacion-info">
           <p><strong>Nombre:</strong> {{ abonoValuacion.nombre }}</p>
+          <p><strong>Fecha:</strong> {{ formatFecha(abonoValuacion.fecha) }}</p>
           <p><strong>Monto Diferencia:</strong> {{ formatTotal(abonoValuacion.diferencia ?? 0, 'Bs.') }}</p>
           <p><strong>Tasa registrada:</strong> {{ abonoValuacion.tasa?.toFixed(2) ?? '0.00' }}</p>
           <p><strong>Divisa registrada:</strong> {{ abonoValuacion.divisa?.toFixed(2) ?? '0.00' }}</p>
@@ -270,13 +266,18 @@
                 <tr>
                   <th>Fecha</th>
                   <th>Valor</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                @for (tasa of getTasasOrdenadas(); track tasa.fecha) {
+                @for (tasa of getTasasOrdenadas(); track $index) {
                   <tr>
                     <td>{{ formatFecha(tasa.fecha) }}</td>
                     <td>{{ tasa.valor.toFixed(2) }}</td>
+                    <td class="actions">
+                      <button class="btn-edit" (click)="editarTasa(tasa)">Editar</button>
+                      <button class="btn-delete" (click)="eliminarTasa(tasa)">Eliminar</button>
+                    </td>
                   </tr>
                 }
               </tbody>

@@ -90,11 +90,11 @@ export class CurrencyService {
         if (data && data.current) {
           const usdValue = data.current.usd || data.current.USDT || data.current.binance;
           if (usdValue) {
-            this.tasaDolar.set(parseFloat(usdValue) || 0);
+            this.tasaDolar.set(usdValue);
           }
           const eurValue = data.current.eur;
           if (eurValue) {
-            this.tasaEuro.set(parseFloat(eurValue) || 0);
+            this.tasaEuro.set(eurValue);
           }
         }
         this.loadingTasa.set(false);

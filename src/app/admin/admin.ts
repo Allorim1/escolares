@@ -5,6 +5,7 @@ import { AuthService } from '../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../shared/data-access/api-key-status.service';
 import { RolesBackend } from '../backend/data-access/roles.backend';
 import { NotificationModalService } from '../shared/ui/notification-modal/notification-modal.service';
+import { TasaResponse } from '../shared/data-access/currency.service';
 
 interface MenuItem {
   label: string;
@@ -258,7 +259,7 @@ export class Admin implements OnInit {
   }
 
   checkApiKeyStatus() {
-    this.http.get<{ apiKeyExpired?: boolean; error?: string }>('/api/tasas').subscribe({
+    this.http.get<TasaResponse>('/api/tasas').subscribe({
       next: (data) => {
         console.log('API tasas response:', data);
         if (data.apiKeyExpired) {

@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 import { EmpresasService, Empresa } from '../../shared/data-access/empresas.service';
 import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
+import { TasaResponse } from '../../shared/data-access/currency.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
@@ -164,7 +165,7 @@ export class Abonos implements OnInit {
 
   loadTasaActual() {
     this.loadingTasaActual.set(true);
-    this.http.get<{ current?: { usd?: number } }>('/api/tasas').subscribe({
+    this.http.get<TasaResponse>('/api/tasas').subscribe({
       next: (data) => {
         const usd = data?.current?.usd;
         this.tasaActual.set(typeof usd === 'number' ? usd : 0);

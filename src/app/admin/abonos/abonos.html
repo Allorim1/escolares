@@ -97,11 +97,14 @@
             <td>{{ formatTotal(totales().divisa, '$') }}</td>
             <td colspan="2"></td>
           </tr>
-          <tr class="total-row total-extra">
-            <td colspan="5" class="total-label">Diferencia × Tasa API</td>
+          <tr class="total-row">
+            <td colspan="7" class="total-label">CON TASA API</td>
+            <td></td>
+            <td></td>
             <td>{{ formatTotal(totales().diferenciaEnDivisa, '$') }}</td>
+            <td>{{ totales().porcentajeCambio.toFixed(2) }}%</td>
             <td>{{ formatTotal(totales().cambioMonto, '$') }}</td>
-            <td colspan="4">{{ totales().porcentajeCambio.toFixed(2) }}%</td>
+            <td colspan="2"></td>
           </tr>
         }
       </tbody>

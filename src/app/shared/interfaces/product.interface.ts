@@ -30,6 +30,7 @@ export interface Product {
   estado?: 'disponible' | 'agotado';
   colorido?: boolean;
   colores?: Color[];
+  codigo?: string;
   views?: number;
   purchases?: number;
 }

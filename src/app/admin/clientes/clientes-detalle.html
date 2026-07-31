@@ -69,6 +69,7 @@
           </div>
           <div class="relaciones-acciones">
             <button class="btn-primary" (click)="abrirModalAbono()">+ Nueva Relación</button>
+            <button class="btn-secondary" (click)="abrirModalColumnas()">📋 Columnas</button>
             <button class="btn-secondary" (click)="generarReportePdf()">📄 PDF</button>
             <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
           </div>
@@ -92,6 +93,7 @@
                   <th>Diferencia</th>
                   <th>Tasa</th>
                   <th>Divisa</th>
+                  <th>Divisa Factura</th>
                   <th>Status</th>
                   <th>Acciones</th>
                 </tr>
@@ -108,6 +110,7 @@
                     <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
                     <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
                     <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
+                    <td>{{ (abono.montoFactura && abono.tasa ? (abono.montoFactura / abono.tasa).toFixed(2) : '0.00') }}</td>
                     <td>{{ abono.status }}</td>
                     <td class="actions">
                       <button class="btn-edit" (click)="abrirModalAbono(abono)">Editar</button>
@@ -214,6 +217,30 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+@if (showModalColumnas()) {
+  <div class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2>Seleccionar Columnas</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalColumnas()">✕</button>
+      </div>
+      <div class="columnas-grid">
+        @for (col of columnasDisponibles; track col.key) {
+          <label class="checkbox-label">
+            <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionada(col.key)" (change)="toggleColumna(col.key)">
+            {{ col.label }}
+          </label>
+        }
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModalColumnas()">Cancelar</button>
+        <button type="button" class="btn-save" (click)="generarReportePdf()">Generar PDF</button>
+        <button type="button" class="btn-save" (click)="generarReporteExcel()">Generar Excel</button>
+      </div>
     </div>
   </div>
 }

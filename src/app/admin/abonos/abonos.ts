@@ -115,6 +115,7 @@ export class Abonos implements OnInit {
     { key: 'diferencia', label: 'Diferencia' },
     { key: 'tasa', label: 'Tasa' },
     { key: 'divisa', label: 'Divisa' },
+    { key: 'divisaFactura', label: 'Divisa Factura' },
     { key: 'status', label: 'Status' },
   ];
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
@@ -136,6 +137,8 @@ export class Abonos implements OnInit {
     fechaDesde: '',
     fechaHasta: '',
   });
+
+  mostrarFiltrosPdf = signal(false);
 
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
@@ -518,7 +521,7 @@ export class Abonos implements OnInit {
     }
 
     const empresaSeleccionada = this.filtros().empresa;
-    const titulo = empresaSeleccionada ? `REPORTE DE PAGOS ${empresaSeleccionada}` : 'REPORTE DE PAGOS';
+    const titulo = 'REPORTE DE PAGOS';
 
     doc.setFontSize(16);
     doc.setTextColor(0, 51, 111);
@@ -528,7 +531,22 @@ export class Abonos implements OnInit {
     const infoY = offsetY + 10;
     let headerHeight: number;
 
-    if (plantaFiltro) {
+    if (this.mostrarFiltrosPdf() && (empresaSeleccionada || plantaFiltro)) {
+      const filtroY = offsetY + 7;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      if (empresaSeleccionada) {
+        doc.text(`Empresa: ${empresaSeleccionada}`, 18, filtroY, { align: 'left' });
+      }
+      if (plantaFiltro) {
+        doc.text(`Planta: ${plantaFiltro}`, 18, filtroY + (empresaSeleccionada ? 6 : 0), { align: 'left' });
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100);
+      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, filtroY, { align: 'right' });
+      doc.text(`Total registros: ${datos.length}`, pageWidth - 18, filtroY + 6, { align: 'right' });
+      headerHeight = filtroY + 14;
+    } else if (plantaFiltro) {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.text(`Planta: ${plantaFiltro}`, 18, infoY, { align: 'left' });
@@ -551,6 +569,11 @@ export class Abonos implements OnInit {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
         if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return `Bs ${(a as any)[c.key].toFixed(2)}`;
         if (c.key === 'divisa') return `$ ${(a as any)[c.key]?.toFixed(2) || '0.00'}`;
+        if (c.key === 'divisaFactura') {
+          const mf = (a as any).montoFactura;
+          const t = (a as any).tasa;
+          return t > 0 ? `$ ${(mf / t).toFixed(2)}` : '$ 0.00';
+        }
         return (a as any)[c.key] ?? '';
       });
     });
@@ -614,9 +637,10 @@ export class Abonos implements OnInit {
       { width: 15 },
       { width: 18 },
       { width: 18 },
+      { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Divisa', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Divisa', 'Divisa Factura', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -638,6 +662,7 @@ export class Abonos implements OnInit {
         a.diferencia,
         a.tasa,
         a.divisa ?? 0,
+        a.tasa > 0 ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0,
         a.status,
       ]);
       row.eachCell((cell) => {

@@ -586,7 +586,7 @@ export class Abonos implements OnInit {
       head: [head],
       body: body,
       theme: 'grid',
-      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, align: 'center', overflow: 'linebreak', cellPadding: 1.5 },
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
       bodyStyles: { fontSize: 7, overflow: 'linebreak' },
       styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
       margin: { left: 18, right: 18, bottom: marginBottom },

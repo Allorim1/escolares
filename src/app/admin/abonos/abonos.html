@@ -60,15 +60,15 @@
           <th>Nombre</th>
           <th>Empresa</th>
           <th>Planta</th>
-          <th>Cédula</th>
           <th>Teléfono</th>
+          <th>Cédula</th>
           <th>N. Fact</th>
-          <th>Monto Factura</th>
-          <th>IVA</th>
-          <th>Diferencia</th>
+          <th>Monto Fact. Bs</th>
+          <th>Monto Fact. $</th>
+          <th>Iva</th>
+          <th>Diferencia Bs</th>
+          <th>Diferencia $</th>
           <th>Tasa</th>
-          <th>Divisa</th>
-          <th>Divisa Factura</th>
           <th>Status</th>
           <th>Acciones</th>
         </tr>
@@ -80,15 +80,15 @@
             <td>{{ abono.nombre }}</td>
             <td>{{ abono.empresa || '-' }}</td>
             <td><span class="planta-badge">{{ abono.planta }}</span></td>
-            <td>{{ abono.cedula }}</td>
             <td>{{ abono.telefono }}</td>
+            <td>{{ abono.cedula }}</td>
             <td>{{ abono.nFact }}</td>
             <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+            <td>{{ (abono.montoFactura && abono.tasa ? (abono.montoFactura / abono.tasa).toFixed(2) : '0.00') }}</td>
             <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
             <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
-            <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
             <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
-            <td>{{ (abono.montoFactura && abono.tasa ? (abono.montoFactura / abono.tasa).toFixed(2) : '0.00') }}</td>
+            <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
             <td>{{ abono.status }}</td>
             <td class="actions">
               <button class="btn-edit" (click)="$event.stopPropagation(); abrirModal(abono)">Editar</button>
@@ -97,29 +97,30 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="14" class="empty">No hay abonos registrados</td>
+            <td colspan="15" class="empty">No hay abonos registrados</td>
           </tr>
         }
         @if (abonosFiltrados().length > 0) {
           <tr class="total-row">
             <td colspan="7" class="total-label">TOTALES</td>
             <td class="monto">{{ formatTotal(totales().montoFactura, 'Bs.') }}</td>
+            <td></td>
             <td class="monto">{{ formatTotal(totales().iva, 'Bs.') }}</td>
             <td class="monto">{{ formatTotal(totales().diferencia, 'Bs.') }}</td>
-            <td></td>
             <td>{{ formatTotal(totales().divisa, '$') }}</td>
             <td></td>
-            <td colspan="3"></td>
+            <td colspan="2"></td>
           </tr>
           <tr class="total-row">
             <td colspan="7" class="total-label">CON TASA API</td>
+            <td></td>
             <td></td>
             <td></td>
             <td>{{ formatTotal(totales().diferenciaEnDivisa, '$') }}</td>
             <td>{{ totales().porcentajeCambio.toFixed(2) }}%</td>
             <td>{{ formatTotal(totales().cambioMonto, '$') }}</td>
             <td></td>
-            <td colspan="3"></td>
+            <td colspan="2"></td>
           </tr>
         }
       </tbody>

@@ -107,15 +107,15 @@ export class Abonos implements OnInit {
     { key: 'nombre', label: 'Nombre' },
     { key: 'empresa', label: 'Empresa' },
     { key: 'planta', label: 'Planta' },
-    { key: 'cedula', label: 'Cédula' },
     { key: 'telefono', label: 'Teléfono' },
+    { key: 'cedula', label: 'Cédula' },
     { key: 'nFact', label: 'N. Fact' },
-    { key: 'montoFactura', label: 'Monto Factura' },
-    { key: 'iva', label: 'IVA' },
-    { key: 'diferencia', label: 'Diferencia' },
+    { key: 'montoFactura', label: 'Monto Fact. Bs' },
+    { key: 'divisaFactura', label: 'Monto Fact. $' },
+    { key: 'iva', label: 'Iva' },
+    { key: 'diferencia', label: 'Diferencia Bs' },
+    { key: 'divisa', label: 'Diferencia $' },
     { key: 'tasa', label: 'Tasa' },
-    { key: 'divisa', label: 'Divisa' },
-    { key: 'divisaFactura', label: 'Divisa Factura' },
     { key: 'status', label: 'Status' },
   ];
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
@@ -630,7 +630,7 @@ export class Abonos implements OnInit {
       { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Divisa', 'Divisa Factura', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Teléfono', 'Cédula', 'N. Fact', 'Monto Fact. Bs', 'Monto Fact. $', 'Iva', 'Diferencia Bs', 'Diferencia $', 'Tasa', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -644,15 +644,15 @@ export class Abonos implements OnInit {
         a.nombre,
         a.empresa,
         a.planta,
-        a.cedula,
         a.telefono,
+        a.cedula,
         a.nFact,
         a.montoFactura,
+        a.montoFactura && a.tasa ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0,
         a.iva,
         a.diferencia,
-        a.tasa,
         a.divisa ?? 0,
-        a.montoFactura && a.tasa ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0,
+        a.tasa?.toFixed(2) ?? '0.00',
         a.status,
       ]);
       row.eachCell((cell) => {

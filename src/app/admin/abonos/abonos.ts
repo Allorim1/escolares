@@ -437,13 +437,6 @@ export class Abonos implements OnInit {
     });
   }
 
-  formatMonto(monto: number): string {
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'VES',
-    }).format(monto);
-  }
-
   formatTotal(valor: number, prefijo: string): string {
     const monto = Number(valor) || 0;
     const numero = monto.toLocaleString('es-VE', {
@@ -674,11 +667,11 @@ export class Abonos implements OnInit {
         this.formatTelefono(a.telefono),
         this.formatCedula(a.cedula),
         a.nFact,
-        this.formatMonto(a.montoFactura),
+        this.formatMonto(a.montoFactura ?? 0),
         this.formatMonto(a.montoFactura && a.tasa ? a.montoFactura / a.tasa : 0),
-        this.formatMonto(a.iva),
-        this.formatMonto(a.diferencia),
-        this.formatMonto(a.divisa),
+        this.formatMonto(a.iva ?? 0),
+        this.formatMonto(a.diferencia ?? 0),
+        this.formatMonto(a.divisa ?? 0),
         a.tasa?.toFixed(2) ?? '0.00',
         a.status,
       ]);

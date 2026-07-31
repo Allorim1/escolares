@@ -539,7 +539,7 @@ export class ClientesDetalle implements OnInit {
           if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia') return a[c.key as keyof Abono] ?? 0;
           if (c.key === 'tasa') return a.tasa?.toFixed(2) ?? '0.00';
           if (c.key === 'divisa') return a.divisa?.toFixed(2) ?? '0.00';
-          if (c.key === 'divisaFactura') return a.tasa > 0 ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0;
+          if (c.key === 'divisaFactura') return a.tasa && a.montoFactura ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0;
           return (a as any)[c.key] ?? '';
         })
       );

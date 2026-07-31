@@ -662,7 +662,7 @@ export class Abonos implements OnInit {
         a.diferencia,
         a.tasa,
         a.divisa ?? 0,
-        a.tasa > 0 ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0,
+        a.montoFactura && a.tasa ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0,
         a.status,
       ]);
       row.eachCell((cell) => {

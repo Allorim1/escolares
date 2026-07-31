@@ -3,10 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
+import { EmpresasService, Empresa } from '../../shared/data-access/empresas.service';
+import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
+import { TasaResponse } from '../../shared/data-access/currency.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { ChangeDetectorRef } from '@angular/core';
 
 interface Abono {
   _id?: string;
@@ -25,21 +29,18 @@ interface Abono {
   status: string;
 }
 
-interface Empresa {
-  _id?: string;
-  nombre: string;
-  plantas: string[];
-}
-
 @Component({
-  selector: 'app-abonos',
+  selector: 'app-relacion-cuentas',
   standalone: true,
   imports: [CommonModule, FormsModule, EnterFocusNextDirective],
-  templateUrl: './abonos.html',
-  styleUrl: './abonos.css',
+  templateUrl: './relacion-cuentas.html',
+  styleUrl: './relacion-cuentas.css',
 })
-export class Abonos implements OnInit {
+export class RelacionCuentas implements OnInit {
   private http = inject(HttpClient);
+  private empresasService = inject(EmpresasService);
+  private tasasGuardadasService = inject(TasasGuardadasService);
+  private cdr = inject(ChangeDetectorRef);
 
   private readonly API = '/api/abonos-polar';
   private readonly API_EMPRESAS = '/api/empresas';
@@ -72,6 +73,26 @@ export class Abonos implements OnInit {
       return passes;
     });
   });
+
+  totales = computed(() => {
+    const datos = this.abonosFiltrados();
+    const diferencia = datos.reduce((sum, a) => sum + (a.diferencia ?? 0), 0);
+    const divisa = datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0);
+    const tasaActual = this.tasaActual();
+    const diferenciaEnDivisa = tasaActual > 0 ? diferencia * tasaActual : 0;
+    const porcentajeCambio = diferenciaEnDivisa > 0 ? ((divisa - diferenciaEnDivisa) / diferenciaEnDivisa) * 100 : 0;
+    const cambioMonto = divisa - diferenciaEnDivisa;
+    return {
+      montoFactura: datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0),
+      iva: datos.reduce((sum, a) => sum + (a.iva ?? 0), 0),
+      diferencia,
+      divisa,
+      tasaActual,
+      diferenciaEnDivisa,
+      cambioMonto,
+      porcentajeCambio,
+    };
+  });
   loading = signal(false);
   saving = signal(false);
   empresasCargadas = signal(false);
@@ -86,17 +107,29 @@ export class Abonos implements OnInit {
     { key: 'nombre', label: 'Nombre' },
     { key: 'empresa', label: 'Empresa' },
     { key: 'planta', label: 'Planta' },
-    { key: 'cedula', label: 'Cédula' },
     { key: 'telefono', label: 'Teléfono' },
+    { key: 'cedula', label: 'Cédula' },
     { key: 'nFact', label: 'N. Fact' },
-    { key: 'montoFactura', label: 'Monto Factura' },
-    { key: 'iva', label: 'IVA' },
-    { key: 'diferencia', label: 'Diferencia' },
+    { key: 'montoFactura', label: 'Monto Fact.\nBs' },
+    { key: 'divisaFactura', label: 'Monto Fact.\n$' },
+    { key: 'iva', label: 'Iva' },
+    { key: 'diferencia', label: 'Diferencia\nBs' },
+    { key: 'divisa', label: 'Diferencia\n$' },
     { key: 'tasa', label: 'Tasa' },
-    { key: 'divisa', label: 'Divisa' },
     { key: 'status', label: 'Status' },
   ];
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+
+  showModalValuacion = signal(false);
+  abonoValuacion: Abono | null = null;
+  tasasGuardadas = signal<TasaGuardada[]>([]);
+  tasaManual = signal(0);
+  loadingTasas = signal(false);
+  nuevaTasaFecha = signal(new Date().toISOString().split('T')[0]);
+  nuevaTasaValor = signal(0);
+
+  tasaActual = signal<number>(0);
+  loadingTasaActual = signal(false);
 
   filtros = signal({
     empresa: '',
@@ -105,9 +138,48 @@ export class Abonos implements OnInit {
     fechaHasta: '',
   });
 
+  mostrarEmpresaPdf = signal(false);
+  mostrarPlantaPdf = signal(false);
+
+  paginaActual = signal(1);
+  readonly TAM_PAGINA = 10;
+
+  abonosPaginados = computed(() => {
+    const lista = this.abonosFiltrados();
+    const inicio = (this.paginaActual() - 1) * this.TAM_PAGINA;
+    return lista.slice(inicio, inicio + this.TAM_PAGINA);
+  });
+
+  totalPaginas = computed(() => {
+    return Math.max(1, Math.ceil(this.abonosFiltrados().length / this.TAM_PAGINA));
+  });
+
+  numerosPaginas = computed(() => {
+    return Array.from({ length: this.totalPaginas() }, (_, i) => i + 1);
+  });
+
   ngOnInit() {
+    this.empresasService.load();
+    this.empresasService.empresas$.subscribe({
+      next: (data) => this.empresas.set(data),
+    });
     this.loadAbonos(true);
-    this.cargarEmpresasYSetear();
+    this.loadTasaActual();
+  }
+
+  loadTasaActual() {
+    this.loadingTasaActual.set(true);
+    this.http.get<TasaResponse>('/api/tasas').subscribe({
+      next: (data) => {
+        const usd = data?.current?.usd;
+        this.tasaActual.set(typeof usd === 'number' ? usd : 0);
+        this.loadingTasaActual.set(false);
+      },
+      error: () => {
+        this.tasaActual.set(0);
+        this.loadingTasaActual.set(false);
+      },
+    });
   }
 
   loadAbonos(force = false) {
@@ -125,37 +197,33 @@ export class Abonos implements OnInit {
     });
   }
 
-  private cargarEmpresasYSetear(empresaNombre?: string) {
-    this.http.get<Empresa[]>(this.API_EMPRESAS).subscribe({
-      next: (data) => {
-        this.empresas.set(data);
-        this.empresasCargadas.set(true);
-        if (empresaNombre) {
-          this.selectedEmpresaInModal.set(empresaNombre);
-        }
-      },
-      error: (err) => console.error('Error loading empresas:', err),
-    });
-  }
-
   onEmpresaFilterChange(empresa: string) {
     this.filtros.update((f) => ({ ...f, empresa, planta: '' }));
+    this.paginaActual.set(1);
   }
 
   onEmpresaChange() {
     this.filtros.update((f) => ({ ...f, planta: '' }));
+    this.paginaActual.set(1);
   }
 
   onPlantaFilterChange(planta: string) {
     this.filtros.update((f) => ({ ...f, planta }));
+    this.paginaActual.set(1);
   }
 
   onFechaDesdeChange(fecha: string) {
     this.filtros.update((f) => ({ ...f, fechaDesde: fecha }));
+    this.paginaActual.set(1);
   }
 
   onFechaHastaChange(fecha: string) {
     this.filtros.update((f) => ({ ...f, fechaHasta: fecha }));
+    this.paginaActual.set(1);
+  }
+
+  cambiarPagina(pagina: number) {
+    this.paginaActual.set(pagina);
   }
 
   abrirModalColumnas() {
@@ -202,7 +270,9 @@ export class Abonos implements OnInit {
             tasa: abonoActualizado.tasa ?? 0,
             divisa: abonoActualizado.divisa ?? 0,
           };
-          this.cargarEmpresasYSetear(abonoActualizado.empresa);
+          if (abonoActualizado.empresa) {
+            this.selectedEmpresaInModal.set(abonoActualizado.empresa);
+          }
           this.calcularDerivados();
           this.showModal.set(true);
         },
@@ -217,7 +287,9 @@ export class Abonos implements OnInit {
             tasa: abono.tasa ?? 0,
             divisa: abono.divisa ?? 0,
           };
-          this.cargarEmpresasYSetear(abono.empresa);
+          if (abono.empresa) {
+            this.selectedEmpresaInModal.set(abono.empresa);
+          }
           this.calcularDerivados();
           this.showModal.set(true);
         },
@@ -237,9 +309,8 @@ export class Abonos implements OnInit {
         tasa: 0,
         divisa: 0,
         status: '',
-      };
-      this.cargarEmpresasYSetear('');
-      this.showModal.set(true);
+       };
+       this.showModal.set(true);
     }
   }
 
@@ -366,11 +437,13 @@ export class Abonos implements OnInit {
     });
   }
 
-  formatMonto(monto: number): string {
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'VES',
-    }).format(monto);
+  formatTotal(valor: number, prefijo: string): string {
+    const monto = Number(valor) || 0;
+    const numero = monto.toLocaleString('es-VE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${prefijo} ${numero}`;
   }
 
   formatFecha(fecha: string): string {
@@ -379,6 +452,31 @@ export class Abonos implements OnInit {
     const mes = String(date.getMonth() + 1).padStart(2, '0');
     const anio = date.getFullYear();
     return `${dia}/${mes}/${anio}`;
+  }
+
+  formatCedula(cedula: string): string {
+    if (!cedula) return '';
+    const digits = cedula.replace(/\D/g, '');
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  formatMonto(monto: number): string {
+    const num = Number(monto) || 0;
+    const parts = num.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${parts[0]},${parts[1]}`;
+  }
+
+  formatTelefono(telefono: string): string {
+    if (!telefono) return '';
+    const digits = telefono.replace(/\D/g, '');
+    if (digits.length === 11) {
+      return digits.replace(/(\d{4})(\d{3})(\d{3})/, '$1-$2-$3');
+    }
+    if (digits.length === 10) {
+      return digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    }
+    return telefono;
   }
 
   private async cargarImagenLocal(url: string): Promise<string> {
@@ -442,7 +540,7 @@ export class Abonos implements OnInit {
     }
 
     const empresaSeleccionada = this.filtros().empresa;
-    const titulo = empresaSeleccionada ? `REPORTE DE PAGOS ${empresaSeleccionada}` : 'REPORTE DE PAGOS';
+    const titulo = 'RELACIÓN DE CUENTAS';
 
     doc.setFontSize(16);
     doc.setTextColor(0, 51, 111);
@@ -450,17 +548,26 @@ export class Abonos implements OnInit {
 
     const plantaFiltro = this.filtros().planta;
     const infoY = offsetY + 10;
+    const showEmpresa = this.mostrarEmpresaPdf() && empresaSeleccionada;
+    const showPlanta = this.mostrarPlantaPdf() && plantaFiltro;
+    const showFiltros = showEmpresa || showPlanta;
     let headerHeight: number;
 
-    if (plantaFiltro) {
+    if (showFiltros) {
+      const filtroY = offsetY + 7;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text(`Planta: ${plantaFiltro}`, 18, infoY, { align: 'left' });
+      if (showEmpresa) {
+        doc.text(`Empresa: ${empresaSeleccionada}`, 18, filtroY, { align: 'left' });
+      }
+      if (showPlanta) {
+        doc.text(`Planta: ${plantaFiltro}`, 18, filtroY + (showEmpresa ? 6 : 0), { align: 'left' });
+      }
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
-      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
-      doc.text(`Total registros: ${datos.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
-      headerHeight = infoY + 14;
+      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, filtroY, { align: 'right' });
+      doc.text(`Total registros: ${datos.length}`, pageWidth - 18, filtroY + 6, { align: 'right' });
+      headerHeight = filtroY + 14;
     } else {
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -473,19 +580,25 @@ export class Abonos implements OnInit {
     const body = datos.map((a: Abono) => {
       return columnas.map((c) => {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
-        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return `Bs ${(a as any)[c.key].toFixed(2)}`;
-        if (c.key === 'divisa') return `$ ${(a as any)[c.key]?.toFixed(2) || '0.00'}`;
+        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return this.formatMonto((a as any)[c.key]);
+        if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
+        if (c.key === 'divisaFactura') {
+          const mf = (a as any).montoFactura;
+          const t = (a as any).tasa;
+          return t ? `$ ${this.formatMonto(mf / t)}` : '$ 0,00';
+        }
+        if (c.key === 'cedula') return this.formatCedula((a as any)[c.key]);
+        if (c.key === 'telefono') return this.formatTelefono((a as any)[c.key]);
+        if (c.key === 'nFact') {
+          const val = (a as any)[c.key];
+          return val ? String(+val) : '';
+        }
         return (a as any)[c.key] ?? '';
       });
     });
 
     const marginBottom = 18;
     const rowHeight = 7;
-    const maxRows = Math.floor((pageHeight - headerHeight - marginBottom) / rowHeight);
-
-    while (body.length < maxRows) {
-      body.push(columnas.map(() => ''));
-    }
 
     const columnWidths: any = {};
     columnas.forEach((c, i) => {
@@ -497,10 +610,10 @@ export class Abonos implements OnInit {
       head: [head],
       body: body,
       theme: 'grid',
-      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7 },
-      bodyStyles: { fontSize: 7 },
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
+      bodyStyles: { fontSize: 7, overflow: 'linebreak' },
       styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
-      margin: { left: 18, right: 18 },
+      margin: { left: 18, right: 18, bottom: marginBottom },
       tableWidth: 'auto',
       columnStyles: columnWidths,
     });
@@ -538,9 +651,10 @@ export class Abonos implements OnInit {
       { width: 15 },
       { width: 18 },
       { width: 18 },
+      { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Cédula', 'Teléfono', 'N. Fact', 'Monto Factura', 'IVA', 'Diferencia', 'Tasa', 'Divisa', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Teléfono', 'Cédula', 'N. Fact', 'Monto Fact. Bs', 'Monto Fact. $', 'Iva', 'Diferencia Bs', 'Diferencia $', 'Tasa', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -554,14 +668,15 @@ export class Abonos implements OnInit {
         a.nombre,
         a.empresa,
         a.planta,
-        a.cedula,
-        a.telefono,
-        a.nFact,
-        a.montoFactura,
-        a.iva,
-        a.diferencia,
-        a.tasa,
-        a.divisa ?? 0,
+        this.formatTelefono(a.telefono),
+        this.formatCedula(a.cedula),
+        a.nFact ? String(+a.nFact) : '',
+        this.formatMonto(a.montoFactura ?? 0),
+        this.formatMonto(a.montoFactura && a.tasa ? a.montoFactura / a.tasa : 0),
+        this.formatMonto(a.iva ?? 0),
+        this.formatMonto(a.diferencia ?? 0),
+        this.formatMonto(a.divisa ?? 0),
+        a.tasa?.toFixed(2) ?? '0.00',
         a.status,
       ]);
       row.eachCell((cell) => {
@@ -576,5 +691,175 @@ export class Abonos implements OnInit {
       : `abonos_${new Date().toISOString().split('T')[0]}.xlsx`;
 
     saveAs(new Blob([buffer]), fileName);
+  }
+
+  abrirValuacion(abono: Abono) {
+    this.abonoValuacion = { ...abono };
+    this.showModalValuacion.set(true);
+    this.tasaManual.set(abono.tasa ?? 0);
+    this.loadingTasas.set(true);
+    this.tasasGuardadasService.getAll().subscribe({
+      next: (data) => {
+        this.tasasGuardadas.set(data || []);
+        this.loadingTasas.set(false);
+      },
+      error: (err) => {
+        console.error('Error cargando tasas guardadas:', err);
+        this.loadingTasas.set(false);
+      },
+    });
+  }
+
+  cerrarValuacion() {
+    this.showModalValuacion.set(false);
+    this.abonoValuacion = null;
+    this.tasasGuardadas.set([]);
+    this.tasaManual.set(0);
+  }
+
+  getTasasOrdenadas = computed(() => {
+    const todas: { fecha: string; valor: number; parentId: string; index: number }[] = [];
+    this.tasasGuardadas().forEach(tg => {
+      if (tg.tasas && Array.isArray(tg.tasas)) {
+        tg.tasas.forEach((t, index) => {
+          if (t.fecha && typeof t.valor === 'number') {
+            todas.push({
+              fecha: t.fecha,
+              valor: t.valor,
+              parentId: tg._id || '',
+              index,
+            });
+          }
+        });
+      }
+    });
+    return todas.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+  });
+
+  getDiferencialTasas = computed(() => {
+    const lista = this.getTasasOrdenadas();
+    if (lista.length < 2 || !this.abonoValuacion) return null;
+    const tasaActual = lista[lista.length - 1].valor;
+    const tasaAnterior = lista[lista.length - 2].valor;
+    if (tasaAnterior === 0) return null;
+    const valor = tasaActual - tasaAnterior;
+    const porcentaje = (valor / tasaAnterior) * 100;
+    return { valor, porcentaje };
+  });
+
+  getDiferencialConTasaRegistrada = computed(() => {
+    const tasaRegistrada = this.abonoValuacion?.tasa ?? 0;
+    const lista = this.getTasasOrdenadas();
+    const ultimaTasa = lista.length > 0 ? lista[lista.length - 1].valor : 0;
+    const base = ultimaTasa || tasaRegistrada;
+    if (base === 0) return { valor: 0, porcentaje: 0 };
+    const valor = tasaRegistrada - ultimaTasa;
+    const porcentaje = (ultimaTasa > 0 ? (valor / ultimaTasa) * 100 : 0);
+    return { valor, porcentaje };
+  });
+
+  guardarNuevaTasa() {
+    const fecha = this.nuevaTasaFecha();
+    const valor = this.nuevaTasaValor();
+    if (!fecha || !valor || valor <= 0) {
+      alert('Ingrese una fecha y un valor válido para la tasa');
+      return;
+    }
+    const nombre = `Tasa ${fecha}`;
+    const existing = this.tasasGuardadas().find(tg => tg.nombre === nombre && tg.tipo === 'actual');
+    if (existing && existing.tasas) {
+      existing.tasas.push({ fecha, valor });
+      this.http.put(`/api/tasas-guardadas/${existing._id}`, existing).subscribe({
+        next: () => {
+          this.cdr.detectChanges();
+          this.abrirValuacion(this.abonoValuacion!);
+          this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
+          this.nuevaTasaValor.set(0);
+        },
+        error: (err) => {
+          console.error('Error actualizando tasa:', err);
+          alert('Error al actualizar la tasa');
+        },
+      });
+    } else {
+      this.tasasGuardadasService.save(nombre, new Map([[fecha, valor]]), 'actual').subscribe({
+        next: () => {
+          this.cdr.detectChanges();
+          this.abrirValuacion(this.abonoValuacion!);
+          this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
+          this.nuevaTasaValor.set(0);
+        },
+        error: (err) => {
+          console.error('Error guardando tasa:', err);
+          alert('Error al guardar la tasa');
+        },
+      });
+    }
+  }
+
+  refrescarTasas() {
+    this.tasasGuardadasService.getAll().subscribe({
+      next: (data) => {
+        this.tasasGuardadas.set(data || []);
+      },
+      error: (err) => console.error('Error refrescando tasas:', err),
+    });
+  }
+
+  editarTasa(tasa: { parentId: string; index: number; valor: number }) {
+    const nuevoValorStr = prompt('Editar valor de tasa:', tasa.valor.toString());
+    if (nuevoValorStr === null) return;
+    const nuevoValor = parseFloat(nuevoValorStr);
+    if (isNaN(nuevoValor) || nuevoValor <= 0) {
+      alert('Valor inválido');
+      return;
+    }
+    const parent = this.tasasGuardadas().find(tg => tg._id === tasa.parentId);
+    if (!parent || !parent.tasas) return;
+    const nuevasTasas = [...parent.tasas];
+    nuevasTasas[tasa.index] = { ...nuevasTasas[tasa.index], valor: nuevoValor };
+    this.http.put(`/api/tasas-guardadas/${parent._id}`, { nombre: parent.nombre, tasas: nuevasTasas, tipo: parent.tipo }).subscribe({
+      next: () => this.refrescarTasas(),
+      error: (err) => {
+        console.error('Error actualizando tasa:', err);
+        alert('Error al actualizar la tasa');
+      },
+    });
+  }
+
+  eliminarTasa(tasa: { parentId: string; index: number }) {
+    if (!confirm('¿Eliminar esta tasa del historial?')) return;
+    const parent = this.tasasGuardadas().find(tg => tg._id === tasa.parentId);
+    if (!parent || !parent.tasas) return;
+    const nuevasTasas = [...parent.tasas];
+    nuevasTasas.splice(tasa.index, 1);
+    if (nuevasTasas.length === 0) {
+      this.http.delete(`/api/tasas-guardadas/${parent._id}`).subscribe({
+        next: () => this.refrescarTasas(),
+        error: (err) => {
+          console.error('Error eliminando tasa:', err);
+          alert('Error al eliminar la tasa');
+        },
+      });
+    } else {
+      this.http.put(`/api/tasas-guardadas/${parent._id}`, { nombre: parent.nombre, tasas: nuevasTasas, tipo: parent.tipo }).subscribe({
+        next: () => this.refrescarTasas(),
+        error: (err) => {
+          console.error('Error eliminando tasa:', err);
+          alert('Error al eliminar la tasa');
+        },
+      });
+    }
+  }
+
+  getValuacionConTasa(tasa: number): number {
+    if (!this.abonoValuacion || tasa <= 0) return 0;
+    const diferencia = this.abonoValuacion.diferencia ?? 0;
+    return Number((diferencia / tasa).toFixed(2));
+  }
+
+  parseTasaManual(valor: string | undefined | null): number {
+    const num = Number(valor);
+    return Number.isFinite(num) ? num : 0;
   }
 }

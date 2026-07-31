@@ -33,6 +33,7 @@ interface ProductFormData {
   ofertaPrecio: number;
   ratingRate: number;
   ratingCount: number;
+  codigo: string;
 }
 
 @Component({
@@ -93,6 +94,7 @@ export class AdminProductos implements OnInit {
     ofertaPrecio: 0,
     ratingRate: 0,
     ratingCount: 0,
+    codigo: '',
   });
 
   ofertaFieldModifiedByUser = signal<string | null>(null);
@@ -310,6 +312,7 @@ export class AdminProductos implements OnInit {
       ofertaPrecio: 0,
       ratingRate: 0,
       ratingCount: 0,
+      codigo: '',
     });
     this.showModal.set(true);
   }
@@ -336,6 +339,7 @@ export class AdminProductos implements OnInit {
       ofertaPrecio: (product as any).ofertaPrecio || 0,
       ratingRate: product.rating?.rate || 0,
       ratingCount: product.rating?.count || 0,
+      codigo: (product as any).codigo || '',
     });
     this.showModal.set(true);
   }
@@ -387,6 +391,7 @@ export class AdminProductos implements OnInit {
       ofertaPorcentaje: data.ofertaPorcentaje,
       ofertaPrecio: data.ofertaPrecio,
       rating: { rate: data.ratingRate, count: data.ratingCount },
+      codigo: data.codigo || null,
     };
 
     const isEditing = !!(this.editingProduct() && this.editingProduct()!.id !== undefined && this.editingProduct()!.id !== null);

@@ -3,6 +3,17 @@ import { HttpClient } from '@angular/common/http';
 
 export type CurrencyDisplay = 'USD' | 'BS' | 'BOTH';
 
+export interface TasaResponse {
+  current?: {
+    usd?: number;
+    eur?: number;
+    binance?: number;
+    USDT?: number;
+  };
+  apiKeyExpired?: boolean;
+  error?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -13,21 +24,17 @@ export class CurrencyService {
   private readonly API_TASAS = '/api/tasas';
   private readonly API_CURRENCY_DISPLAY = '/api/settings/currency-display';
   
-  // Signal to control the currency display mode (global setting)
   private currencyDisplayInternal = signal<CurrencyDisplay>(this.loadFromStorage());
-  
-  // Current USD rate signal
   private tasaDolar = signal<number>(0);
+  private tasaEuro = signal<number>(0);
   
-  // Loading state for tasa and currency display
   loadingTasa = signal(false);
   loadingCurrencyDisplay = signal(false);
   
-  // Public read-only signals
   currencyDisplay = this.currencyDisplayInternal.asReadonly();
   currentTasa = this.tasaDolar.asReadonly();
+  currentTasaEur = this.tasaEuro.asReadonly();
   
-  // Computed signal to check display mode
   isDisplayBs = computed(() => this.currencyDisplayInternal() === 'BS');
   isDisplayUsd = computed(() => this.currencyDisplayInternal() === 'USD');
   isDisplayBoth = computed(() => this.currencyDisplayInternal() === 'BOTH');
@@ -74,16 +81,20 @@ export class CurrencyService {
   }
   
   /**
-   * Load the current USD rate from the server
+   * Load the current USD and EUR rates from the server
    */
   loadTasa() {
     this.loadingTasa.set(true);
-    this.http.get<any>(this.API_TASAS).subscribe({
+    this.http.get<TasaResponse>(this.API_TASAS).subscribe({
       next: (data) => {
         if (data && data.current) {
           const usdValue = data.current.usd || data.current.USDT || data.current.binance;
           if (usdValue) {
-            this.tasaDolar.set(parseFloat(usdValue) || 0);
+            this.tasaDolar.set(usdValue);
+          }
+          const eurValue = data.current.eur;
+          if (eurValue) {
+            this.tasaEuro.set(eurValue);
           }
         }
         this.loadingTasa.set(false);

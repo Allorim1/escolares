@@ -28,6 +28,7 @@ header.app-header {
   justify-content: center;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
 }
 
 .header-bottom.hidden {
@@ -502,6 +503,7 @@ header.app-header {
 .controls {
   display: flex;
   gap: 10px;
+  position: relative;
 }
 
 .nav-btn {
@@ -1253,6 +1255,48 @@ header.app-header {
 }
 
 [data-theme="dark"] .add-address-btn {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .quick-access-sideboard,
+[data-theme="dark"] .quick-access-sideboard::before {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .quick-access-header {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .quick-access-header h3 {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .quick-access-close {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .quick-access-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .quick-access-item {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .quick-access-item:hover {
+  background: rgba(29, 99, 193, 0.25);
+  border-color: #60a5fa;
+}
+
+[data-theme="dark"] .quick-access-item span:last-child {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .quick-access-item:hover span:last-child {
   color: #60a5fa;
 }
 

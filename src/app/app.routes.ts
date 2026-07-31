@@ -188,10 +188,14 @@ export const routes: Routes = [
             path: 'cierre-caja',
             loadComponent: () => import('./admin/cierre-caja/cierre-caja').then((m) => m.CierreCaja),
           },
-          {
-            path: 'gastos',
-            loadComponent: () => import('./admin/gastos/gastos').then((m) => m.Gastos),
-          },
+            {
+              path: 'gastos-operativos',
+              loadComponent: () => import('./admin/gastos-operativos/gastos-operativos').then((m) => m.GastosOperativos),
+            },
+            {
+              path: 'gastos',
+              loadComponent: () => import('./admin/gastos/gastos').then((m) => m.Gastos),
+            },
           {
             path: 'nomina',
             loadComponent: () => import('./admin/nomina/nomina').then((m) => m.Nomina),
@@ -244,13 +248,17 @@ export const routes: Routes = [
               path: 'asistencias',
               loadComponent: () => import('./admin/asistencias/asistencias').then((m) => m.Asistencias),
             },
-            {
-              path: 'empresas',
-              loadComponent: () => import('./admin/empresas/empresas').then((m) => m.Empresas),
-            },
-            {
-               path: 'abonos',
-               loadComponent: () => import('./admin/abonos/abonos').then((m) => m.Abonos),
+              {
+                path: 'clientes',
+                loadComponent: () => import('./admin/clientes/clientes').then((m) => m.Clientes),
+              },
+              {
+                path: 'clientes/:id',
+                loadComponent: () => import('./admin/clientes/clientes-detalle').then((m) => m.ClientesDetalle),
+              },
+             {
+                path: 'relacion-cuentas',
+                loadComponent: () => import('./admin/relacion-cuentas/relacion-cuentas').then((m) => m.RelacionCuentas),
              },
              {
                path: 'sesiones',

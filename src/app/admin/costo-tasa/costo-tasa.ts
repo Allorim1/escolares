@@ -8,6 +8,7 @@ import html2canvas from 'html2canvas';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../shared/data-access/api-key-status.service';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { TasaResponse } from '../../shared/data-access/currency.service';
 
 interface Tasa {
   costo: number;
@@ -189,7 +190,7 @@ pvpBsf: 0,
       return;
     }
 
-    this.http.get<any>('/api/tasas').subscribe({
+    this.http.get<TasaResponse>('/api/tasas').subscribe({
       next: (data) => {
         window.open('https://www.dolarvzla.com/settings/api/', '_blank');
       },

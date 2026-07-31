@@ -1,14 +1,23 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../shared/data-access/api-key-status.service';
 import { RolesBackend } from '../backend/data-access/roles.backend';
+import { NotificationModalService } from '../shared/ui/notification-modal/notification-modal.service';
+import { TasaResponse } from '../shared/data-access/currency.service';
 
 interface MenuItem {
   label: string;
   route: string;
   permiso?: string;
+  soloRoot?: boolean;
+}
+
+interface ProximoGesto {
+  _id?: string;
+  nombre: string;
+  fechaProximoPago?: string;
 }
 
 interface QuickItem {
@@ -20,7 +29,6 @@ interface QuickItem {
 
 interface MenuCategory {
   name: string;
-  expanded: boolean;
   items: MenuItem[];
 }
 
@@ -46,7 +54,6 @@ const QUICK_ITEMS: QuickItem[] = [
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
  {
        name: 'Panel Admin',
-       expanded: false,
        items: [
          { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
          { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
@@ -63,56 +70,52 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
           { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
           { label: 'Estadísticas', route: 'estadisticas', permiso: 'estadisticas_ver' },
-       ]
-     },
-    {
-      name: 'Cuentas por Pagar',
-      expanded: false,
-      items: [
-        { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
-        { label: 'Retenciones', route: 'retenciones', permiso: 'ver_retenciones' },
-        { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
-      ]
-    },
-    {
-      name: 'Panel Web',
-      expanded: false,
-      items: [
-        { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
-        { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
-        { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
-        { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
-        { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
-        { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
-        { label: 'Noticias', route: 'noticias', permiso: 'noticias_gestionar' },
-        { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
-        { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
-        { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
-        { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
-      ]
-    },
-     {
-       name: 'Repartidor',
-       expanded: false,
-       items: [
-         { label: 'Mis Pedidos', route: 'repartidor' },
-       ]
-     },
-      {
-         name: 'Seguridad',
-         expanded: false,
-         items: [
-           { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
-         ]
-       },
-      {
-        name: 'Empresas',
-        expanded: false,
-        items: [
-          { label: 'Empresas', route: 'empresas' },
-          { label: 'Relación', route: 'abonos' },
         ]
-      }
+      },
+     {
+       name: 'Cuentas por Pagar',
+       items: [
+         { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
+         { label: 'Retenciones', route: 'retenciones', permiso: 'ver_retenciones' },
+         { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
+       ]
+     },
+     {
+       name: 'Panel Web',
+       items: [
+         { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
+         { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
+         { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
+         { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
+         { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
+         { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
+         { label: 'Noticias', route: 'noticias', permiso: 'noticias_gestionar' },
+         { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
+         { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
+         { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
+         { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
+       ]
+     },
+      {
+        name: 'Repartidor',
+        items: [
+          { label: 'Mis Pedidos', route: 'repartidor' },
+        ]
+      },
+        {
+          name: 'Seguridad',
+          items: [
+            { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
+            { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar', soloRoot: true },
+          ]
+        },
+        {
+          name: 'Empresas',
+          items: [
+            { label: 'Clientes', route: 'clientes' },
+            { label: 'Relación de Cuentas', route: 'relacion-cuentas' },
+          ]
+        }
    ];
 
 @Component({
@@ -127,33 +130,47 @@ export class Admin implements OnInit {
   private http = inject(HttpClient);
   apiKeyStatusService = inject(ApiKeyStatusService);
   private rolesBackend = inject(RolesBackend);
+  private notificationModal = inject(NotificationModalService);
 
-userPermissions = signal<string[]>([]);
-   apiKeyStatusLoaded = signal(false);
-   categorias = signal<MenuCategory[]>([]);
-   quickItems = signal<QuickItem[]>([]);
+  userPermissions = signal<string[]>([]);
+  apiKeyStatusLoaded = signal(false);
+  categorias = signal<MenuCategory[]>([]);
+  quickItems = signal<QuickItem[]>([]);
+  quickAccessOpen = signal(false);
+  categoriaExpandida = signal<string | null>(null);
 
-   ngOnInit() {
-     this.checkApiKeyStatus();
-     this.loadUserPermissions();
-   }
+  ngOnInit() {
+    this.checkApiKeyStatus();
+    this.loadUserPermissions();
+    this.verificarGastosProximosVencer();
+  }
 
-setQuickItems() {
-      const user = this.authService.user();
-      const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-      const permissions = this.userPermissions();
-
-      const items = QUICK_ITEMS.filter(item => {
-        if (!item.permiso) return true;
-        if (isRoot) return true;
-        return permissions.includes(item.permiso);
-      });
-      this.quickItems.set(items);
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    const categoriaSideboard = target?.closest('.categoria-sideboard-menu');
+    const categoriaHeader = target?.closest('.categoria-header');
+    if (!categoriaSideboard && !categoriaHeader && this.categoriaExpandida()) {
+      this.closeCategoriaSideboard();
     }
+  }
 
-   loadUserPermissions() {
+  setQuickItems() {
+       const user = this.authService.user();
+       const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+       const permissions = this.userPermissions();
+
+       const items = QUICK_ITEMS.filter(item => {
+         if (!item.permiso) return true;
+         if (isRoot) return true;
+         return permissions.includes(item.permiso);
+       });
+       this.quickItems.set(items);
+     }
+
+  loadUserPermissions() {
     const user = this.authService.user();
-if (!user) {
+    if (!user) {
        console.log('No user found, setting default categories');
        this.setCategoriesWithExpanded();
        this.setQuickItems();
@@ -195,26 +212,43 @@ if (!user) {
        this.setCategoriesWithExpanded();
        this.setQuickItems();
      }
-   }
+  }
 
-setCategoriesWithExpanded() {
-      const permissions = this.userPermissions();
-      const user = this.authService.user();
-      const isRoot = user?.rol === 'root' || user?.rol === 'admin';
-      const isRepartidor = user?.rol === 'repartidor';
+ setCategoriesWithExpanded() {
+       const permissions = this.userPermissions();
+       const user = this.authService.user();
+       const isRoot = user?.rol === 'root' || user?.rol === 'admin';
+       const isRepartidor = user?.rol === 'repartidor';
 
-     const categories = DEFAULT_CATEGORIAS
-       .filter(cat => !isRepartidor || cat.name === 'Repartidor')
-       .map(cat => {
-         const hasVisibleItems = cat.items.some(item => {
-           if (!item.permiso) return true;
-           if (isRoot) return true;
-           return permissions.includes(item.permiso);
-         });
-         return { ...cat, expanded: false };
-       });
-     this.categorias.set(categories);
-   }
+      const categories = DEFAULT_CATEGORIAS
+        .filter(cat => !isRepartidor || cat.name === 'Repartidor')
+        .map(cat => {
+          const hasVisibleItems = cat.items.some(item => {
+            if (item.soloRoot && !isRoot) return false;
+            if (!item.permiso) return true;
+            if (isRoot) return true;
+            return permissions.includes(item.permiso);
+          });
+          return { ...cat };
+        });
+      this.categorias.set(categories);
+    }
+
+  toggleQuickAccess() {
+    this.quickAccessOpen.update(v => !v);
+  }
+
+  closeQuickAccess() {
+    this.quickAccessOpen.set(false);
+  }
+
+  toggleCategoria(nombre: string) {
+    this.categoriaExpandida.update(v => v === nombre ? null : nombre);
+  }
+
+  closeCategoriaSideboard() {
+    this.categoriaExpandida.set(null);
+  }
 
   hasPermission(permiso?: string): boolean {
     const user = this.authService.user();
@@ -225,7 +259,7 @@ setCategoriesWithExpanded() {
   }
 
   checkApiKeyStatus() {
-    this.http.get<{ apiKeyExpired?: boolean; error?: string }>('/api/tasas').subscribe({
+    this.http.get<TasaResponse>('/api/tasas').subscribe({
       next: (data) => {
         console.log('API tasas response:', data);
         if (data.apiKeyExpired) {
@@ -247,16 +281,30 @@ setCategoriesWithExpanded() {
     return this.authService.user()?.rol === 'root';
   }
 
-  public toggleCategoria(index: number) {
-    this.categorias.update(cats => {
-      const newCats = [...cats];
-      newCats[index].expanded = !newCats[index].expanded;
-      return newCats;
+  getVisibleItems(items: MenuItem[]): MenuItem[] {
+    const isRoot = this.isRoot();
+    return items.filter(item => {
+      if (item.soloRoot && !isRoot) return false;
+      if (!item.permiso) return true;
+      return this.hasPermission(item.permiso);
     });
   }
 
-  getVisibleItems(items: MenuItem[]): MenuItem[] {
-    return items.filter(item => !item.permiso || this.hasPermission(item.permiso));
+  verificarGastosProximosVencer() {
+    const user = this.authService.user();
+    if (!user || user.rol !== 'root') return;
+
+    this.http.get<ProximoGesto[]>('/api/gastos-operativos/proximos-vencer?dias=7').subscribe({
+      next: (gastos) => {
+        if (!gastos || gastos.length === 0) return;
+        const nombres = gastos.map(g => `${g.nombre} (${new Date(g.fechaProximoPago || '').toLocaleDateString('es-VE')})`).join('\n');
+        this.notificationModal.warning(
+          `Tienes ${gastos.length} gasto(s) operativo(s) próximo(s) a vencer:\n\n${nombres}`,
+          'Gastos Operativos - Próximos a Vencer'
+        );
+      },
+      error: (err) => console.error('Error verificando gastos próximos a vencer:', err),
+    });
   }
 
   logout() {

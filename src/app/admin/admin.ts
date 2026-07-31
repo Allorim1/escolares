@@ -113,7 +113,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           name: 'Empresas',
           items: [
             { label: 'Clientes', route: 'clientes' },
-            { label: 'Relación', route: 'abonos' },
+            { label: 'Relación de Cuentas', route: 'relacion-cuentas' },
           ]
         }
    ];

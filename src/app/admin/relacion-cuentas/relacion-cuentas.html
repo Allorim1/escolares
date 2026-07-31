@@ -1,8 +1,8 @@
 <div class="abonos-container">
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="abonos-header">
-    <h1>Relación</h1>
-    <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación</button>
+    <h1>Relación de Cuentas</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación de Cuentas</button>
   </div>
 
   <div class="filtros-pdf">
@@ -97,7 +97,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="15" class="empty">No hay abonos registrados</td>
+            <td colspan="15" class="empty">No hay registros</td>
           </tr>
         }
         @if (abonosFiltrados().length > 0) {
@@ -141,7 +141,7 @@
   <div class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h2>{{ editingAbono?._id ? 'Editar' : 'Nueva' }} Relación</h2>
+        <h2>{{ editingAbono?._id ? 'Editar' : 'Nueva' }} Relación de Cuentas</h2>
         <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
       </div>
       <form (ngSubmit)="guardarAbono()">
@@ -263,7 +263,7 @@
   <div class="modal-overlay">
     <div class="modal modal-wide">
       <div class="modal-header">
-        <h2>Valuación de Relación</h2>
+          <h2>Valuación de Relación de Cuentas</h2>
         <button type="button" class="btn-cerrar" (click)="cerrarValuacion()">✕</button>
       </div>
       <div class="valuacion-body">

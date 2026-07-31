@@ -30,13 +30,13 @@ interface Abono {
 }
 
 @Component({
-  selector: 'app-abonos',
+  selector: 'app-relacion-cuentas',
   standalone: true,
   imports: [CommonModule, FormsModule, EnterFocusNextDirective],
-  templateUrl: './abonos.html',
-  styleUrl: './abonos.css',
+  templateUrl: './relacion-cuentas.html',
+  styleUrl: './relacion-cuentas.css',
 })
-export class Abonos implements OnInit {
+export class RelacionCuentas implements OnInit {
   private http = inject(HttpClient);
   private empresasService = inject(EmpresasService);
   private tasasGuardadasService = inject(TasasGuardadasService);
@@ -540,7 +540,7 @@ export class Abonos implements OnInit {
     }
 
     const empresaSeleccionada = this.filtros().empresa;
-    const titulo = 'REPORTE DE PAGOS';
+    const titulo = 'RELACIÓN DE CUENTAS';
 
     doc.setFontSize(16);
     doc.setTextColor(0, 51, 111);

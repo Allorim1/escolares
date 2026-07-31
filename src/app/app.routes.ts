@@ -256,9 +256,9 @@ export const routes: Routes = [
                 path: 'clientes/:id',
                 loadComponent: () => import('./admin/clientes/clientes-detalle').then((m) => m.ClientesDetalle),
               },
-            {
-               path: 'abonos',
-               loadComponent: () => import('./admin/abonos/abonos').then((m) => m.Abonos),
+             {
+                path: 'relacion-cuentas',
+                loadComponent: () => import('./admin/relacion-cuentas/relacion-cuentas').then((m) => m.RelacionCuentas),
              },
              {
                path: 'sesiones',

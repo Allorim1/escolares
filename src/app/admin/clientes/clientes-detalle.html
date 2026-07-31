@@ -104,7 +104,7 @@
                     <td>{{ formatFecha(abono.fecha) }}</td>
                     <td>{{ abono.nombre }}</td>
                     <td><span class="planta-badge">{{ abono.planta }}</span></td>
-                    <td>{{ abono.nFact }}</td>
+                    <td>{{ abono.nFact ? (+abono.nFact) + '' : '' }}</td>
                     <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
                     <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
                     <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>

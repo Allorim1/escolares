@@ -490,6 +490,10 @@ export class ClientesDetalle implements OnInit {
         }
         if (c.key === 'cedula') return this.formatCedula((a as any)[c.key]);
         if (c.key === 'telefono') return this.formatTelefono((a as any)[c.key]);
+        if (c.key === 'nFact') {
+          const val = (a as any)[c.key];
+          return val ? String(+val) : '';
+        }
         return (a as any)[c.key] ?? '';
       });
     });
@@ -562,6 +566,7 @@ export class ClientesDetalle implements OnInit {
           if (c.key === 'divisaFactura') return a.tasa && a.montoFactura ? this.formatMonto(a.montoFactura / a.tasa) : '0,00';
           if (c.key === 'cedula') return this.formatCedula(a.cedula);
           if (c.key === 'telefono') return this.formatTelefono(a.telefono);
+          if (c.key === 'nFact') return a.nFact ? String(+a.nFact) : '';
           return (a as any)[c.key] ?? '';
         })
       );

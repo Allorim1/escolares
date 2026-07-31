@@ -82,7 +82,7 @@
             <td><span class="planta-badge">{{ abono.planta }}</span></td>
             <td>{{ formatTelefono(abono.telefono) }}</td>
             <td>{{ formatCedula(abono.cedula) }}</td>
-            <td>{{ abono.nFact }}</td>
+            <td>{{ abono.nFact ? (+abono.nFact) + '' : '' }}</td>
             <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
             <td class="monto">{{ formatMonto((abono.montoFactura && abono.tasa ? abono.montoFactura / abono.tasa : 0)) }}</td>
             <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>

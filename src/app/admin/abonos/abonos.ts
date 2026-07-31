@@ -589,6 +589,10 @@ export class Abonos implements OnInit {
         }
         if (c.key === 'cedula') return this.formatCedula((a as any)[c.key]);
         if (c.key === 'telefono') return this.formatTelefono((a as any)[c.key]);
+        if (c.key === 'nFact') {
+          const val = (a as any)[c.key];
+          return val ? String(+val) : '';
+        }
         return (a as any)[c.key] ?? '';
       });
     });
@@ -666,7 +670,7 @@ export class Abonos implements OnInit {
         a.planta,
         this.formatTelefono(a.telefono),
         this.formatCedula(a.cedula),
-        a.nFact,
+        a.nFact ? String(+a.nFact) : '',
         this.formatMonto(a.montoFactura ?? 0),
         this.formatMonto(a.montoFactura && a.tasa ? a.montoFactura / a.tasa : 0),
         this.formatMonto(a.iva ?? 0),

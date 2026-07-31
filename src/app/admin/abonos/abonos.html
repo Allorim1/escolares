@@ -37,8 +37,12 @@
       <button class="btn-secondary" (click)="abrirModalColumnas()">📄 PDF</button>
       <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
       <label class="checkbox-inline">
-        <input type="checkbox" [(ngModel)]="mostrarFiltrosPdf">
-        Mostrar filtros en PDF
+        <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
+        Mostrar Empresa en PDF
+      </label>
+      <label class="checkbox-inline">
+        <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
+        Mostrar Planta en PDF
       </label>
     </div>
   </div>

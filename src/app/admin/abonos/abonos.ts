@@ -138,7 +138,8 @@ export class Abonos implements OnInit {
     fechaHasta: '',
   });
 
-  mostrarFiltrosPdf = signal(false);
+  mostrarEmpresaPdf = signal(false);
+  mostrarPlantaPdf = signal(false);
 
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
@@ -529,32 +530,26 @@ export class Abonos implements OnInit {
 
     const plantaFiltro = this.filtros().planta;
     const infoY = offsetY + 10;
+    const showEmpresa = this.mostrarEmpresaPdf() && empresaSeleccionada;
+    const showPlanta = this.mostrarPlantaPdf() && plantaFiltro;
+    const showFiltros = showEmpresa || showPlanta;
     let headerHeight: number;
 
-    if (this.mostrarFiltrosPdf() && (empresaSeleccionada || plantaFiltro)) {
+    if (showFiltros) {
       const filtroY = offsetY + 7;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      if (empresaSeleccionada) {
+      if (showEmpresa) {
         doc.text(`Empresa: ${empresaSeleccionada}`, 18, filtroY, { align: 'left' });
       }
-      if (plantaFiltro) {
-        doc.text(`Planta: ${plantaFiltro}`, 18, filtroY + (empresaSeleccionada ? 6 : 0), { align: 'left' });
+      if (showPlanta) {
+        doc.text(`Planta: ${plantaFiltro}`, 18, filtroY + (showEmpresa ? 6 : 0), { align: 'left' });
       }
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
       doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, filtroY, { align: 'right' });
       doc.text(`Total registros: ${datos.length}`, pageWidth - 18, filtroY + 6, { align: 'right' });
       headerHeight = filtroY + 14;
-    } else if (plantaFiltro) {
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Planta: ${plantaFiltro}`, 18, infoY, { align: 'left' });
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100);
-      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
-      doc.text(`Total registros: ${datos.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
-      headerHeight = infoY + 14;
     } else {
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -572,7 +567,7 @@ export class Abonos implements OnInit {
         if (c.key === 'divisaFactura') {
           const mf = (a as any).montoFactura;
           const t = (a as any).tasa;
-          return t > 0 ? `$ ${(mf / t).toFixed(2)}` : '$ 0.00';
+          return t ? `$ ${(mf / t).toFixed(2)}` : '$ 0.00';
         }
         return (a as any)[c.key] ?? '';
       });
@@ -580,11 +575,6 @@ export class Abonos implements OnInit {
 
     const marginBottom = 18;
     const rowHeight = 7;
-    const maxRows = Math.floor((pageHeight - headerHeight - marginBottom) / rowHeight);
-
-    while (body.length < maxRows) {
-      body.push(columnas.map(() => ''));
-    }
 
     const columnWidths: any = {};
     columnas.forEach((c, i) => {
@@ -599,7 +589,7 @@ export class Abonos implements OnInit {
       headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7 },
       bodyStyles: { fontSize: 7 },
       styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
-      margin: { left: 18, right: 18 },
+      margin: { left: 18, right: 18, bottom: marginBottom },
       tableWidth: 'auto',
       columnStyles: columnWidths,
     });

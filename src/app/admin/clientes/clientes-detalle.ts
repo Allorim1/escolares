@@ -342,10 +342,28 @@ export class ClientesDetalle implements OnInit {
   }
 
   formatMonto(monto: number): string {
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'VES',
-    }).format(monto);
+    const num = Number(monto) || 0;
+    const parts = num.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${parts[0]},${parts[1]}`;
+  }
+
+  formatCedula(cedula: string): string {
+    if (!cedula) return '';
+    const digits = cedula.replace(/\D/g, '');
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  formatTelefono(telefono: string): string {
+    if (!telefono) return '';
+    const digits = telefono.replace(/\D/g, '');
+    if (digits.length === 11) {
+      return digits.replace(/(\d{4})(\d{3})(\d{3})/, '$1-$2-$3');
+    }
+    if (digits.length === 10) {
+      return digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    }
+    return telefono;
   }
 
   abrirModalColumnas() {
@@ -463,13 +481,15 @@ export class ClientesDetalle implements OnInit {
     const body = datos.map((a: Abono) => {
       return columnas.map((c) => {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
-        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return `Bs ${(a as any)[c.key].toFixed(2)}`;
-        if (c.key === 'divisa') return `$ ${(a as any)[c.key]?.toFixed(2) || '0.00'}`;
+        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return this.formatMonto((a as any)[c.key]);
+        if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
         if (c.key === 'divisaFactura') {
           const mf = (a as any).montoFactura;
           const t = (a as any).tasa;
-          return t > 0 ? `$ ${(mf / t).toFixed(2)}` : '$ 0.00';
+          return t ? `$ ${this.formatMonto(mf / t)}` : '$ 0,00';
         }
+        if (c.key === 'cedula') return this.formatCedula((a as any)[c.key]);
+        if (c.key === 'telefono') return this.formatTelefono((a as any)[c.key]);
         return (a as any)[c.key] ?? '';
       });
     });
@@ -536,10 +556,12 @@ export class ClientesDetalle implements OnInit {
       const row = worksheet.addRow(
         columnas.map((c) => {
           if (c.key === 'fecha') return this.formatFecha(a.fecha);
-          if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia') return a[c.key as keyof Abono] ?? 0;
+          if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia') return this.formatMonto(a[c.key as keyof Abono] as number);
           if (c.key === 'tasa') return a.tasa?.toFixed(2) ?? '0.00';
-          if (c.key === 'divisa') return a.divisa?.toFixed(2) ?? '0.00';
-          if (c.key === 'divisaFactura') return a.tasa && a.montoFactura ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0;
+          if (c.key === 'divisa') return this.formatMonto(a.divisa ?? 0);
+          if (c.key === 'divisaFactura') return a.tasa && a.montoFactura ? this.formatMonto(a.montoFactura / a.tasa) : '0,00';
+          if (c.key === 'cedula') return this.formatCedula(a.cedula);
+          if (c.key === 'telefono') return this.formatTelefono(a.telefono);
           return (a as any)[c.key] ?? '';
         })
       );

@@ -80,11 +80,11 @@
             <td>{{ abono.nombre }}</td>
             <td>{{ abono.empresa || '-' }}</td>
             <td><span class="planta-badge">{{ abono.planta }}</span></td>
-            <td>{{ abono.telefono }}</td>
-            <td>{{ abono.cedula }}</td>
+            <td>{{ formatTelefono(abono.telefono) }}</td>
+            <td>{{ formatCedula(abono.cedula) }}</td>
             <td>{{ abono.nFact }}</td>
             <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
-            <td>{{ (abono.montoFactura && abono.tasa ? (abono.montoFactura / abono.tasa).toFixed(2) : '0.00') }}</td>
+            <td class="monto">{{ formatMonto((abono.montoFactura && abono.tasa ? abono.montoFactura / abono.tasa : 0)) }}</td>
             <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
             <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
             <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
@@ -103,11 +103,11 @@
         @if (abonosFiltrados().length > 0) {
           <tr class="total-row">
             <td colspan="7" class="total-label">TOTALES</td>
-            <td class="monto">{{ formatTotal(totales().montoFactura, 'Bs.') }}</td>
+            <td class="monto">{{ formatMonto(totales().montoFactura) }}</td>
             <td></td>
-            <td class="monto">{{ formatTotal(totales().iva, 'Bs.') }}</td>
-            <td class="monto">{{ formatTotal(totales().diferencia, 'Bs.') }}</td>
-            <td>{{ formatTotal(totales().divisa, '$') }}</td>
+            <td class="monto">{{ formatMonto(totales().iva) }}</td>
+            <td class="monto">{{ formatMonto(totales().diferencia) }}</td>
+            <td>{{ formatMonto(totales().divisa) }}</td>
             <td></td>
             <td colspan="2"></td>
           </tr>

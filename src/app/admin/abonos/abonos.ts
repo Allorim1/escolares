@@ -461,6 +461,31 @@ export class Abonos implements OnInit {
     return `${dia}/${mes}/${anio}`;
   }
 
+  formatCedula(cedula: string): string {
+    if (!cedula) return '';
+    const digits = cedula.replace(/\D/g, '');
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  formatMonto(monto: number): string {
+    const num = Number(monto) || 0;
+    const parts = num.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${parts[0]},${parts[1]}`;
+  }
+
+  formatTelefono(telefono: string): string {
+    if (!telefono) return '';
+    const digits = telefono.replace(/\D/g, '');
+    if (digits.length === 11) {
+      return digits.replace(/(\d{4})(\d{3})(\d{3})/, '$1-$2-$3');
+    }
+    if (digits.length === 10) {
+      return digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    }
+    return telefono;
+  }
+
   private async cargarImagenLocal(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
       fetch(url)
@@ -562,13 +587,15 @@ export class Abonos implements OnInit {
     const body = datos.map((a: Abono) => {
       return columnas.map((c) => {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
-        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return `Bs ${(a as any)[c.key].toFixed(2)}`;
-        if (c.key === 'divisa') return `$ ${(a as any)[c.key]?.toFixed(2) || '0.00'}`;
+        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return this.formatMonto((a as any)[c.key]);
+        if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
         if (c.key === 'divisaFactura') {
           const mf = (a as any).montoFactura;
           const t = (a as any).tasa;
-          return t ? `$ ${(mf / t).toFixed(2)}` : '$ 0.00';
+          return t ? `$ ${this.formatMonto(mf / t)}` : '$ 0,00';
         }
+        if (c.key === 'cedula') return this.formatCedula((a as any)[c.key]);
+        if (c.key === 'telefono') return this.formatTelefono((a as any)[c.key]);
         return (a as any)[c.key] ?? '';
       });
     });
@@ -644,14 +671,14 @@ export class Abonos implements OnInit {
         a.nombre,
         a.empresa,
         a.planta,
-        a.telefono,
-        a.cedula,
+        this.formatTelefono(a.telefono),
+        this.formatCedula(a.cedula),
         a.nFact,
-        a.montoFactura,
-        a.montoFactura && a.tasa ? Number((a.montoFactura / a.tasa).toFixed(2)) : 0,
-        a.iva,
-        a.diferencia,
-        a.divisa ?? 0,
+        this.formatMonto(a.montoFactura),
+        this.formatMonto(a.montoFactura && a.tasa ? a.montoFactura / a.tasa : 0),
+        this.formatMonto(a.iva),
+        this.formatMonto(a.diferencia),
+        this.formatMonto(a.divisa),
         a.tasa?.toFixed(2) ?? '0.00',
         a.status,
       ]);

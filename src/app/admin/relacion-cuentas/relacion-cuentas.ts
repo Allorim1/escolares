@@ -103,11 +103,6 @@ export class RelacionCuentas implements OnInit {
   editingAbono: Abono | null = null;
   selectedEmpresaInModal = signal('');
 
-  showModalColumnas = signal(false);
-
-  showModalColumnasPdf = signal(false);
-  columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
-
   columnasDisponibles = [
     { key: 'fecha', label: 'Fecha' },
     { key: 'nombre', label: 'Nombre' },
@@ -126,6 +121,9 @@ export class RelacionCuentas implements OnInit {
   ];
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+
+  showModalColumnas = signal(false);
+  showModalColumnasPdf = signal(false);
 
   columnasVisibles = computed(() => {
     if (this.esRoot()) {

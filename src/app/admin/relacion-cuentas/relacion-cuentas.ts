@@ -120,7 +120,9 @@ export class RelacionCuentas implements OnInit {
     { key: 'tasa', label: 'Tasa' },
     { key: 'status', label: 'Status' },
   ];
-  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+  columnasSeleccionadas = signal<Set<string>>(() => {
+    return new Set(this.columnasDisponibles.map((c) => c.key));
+  });
 
   columnasVisibles = computed(() => {
     if (this.esRoot()) {
@@ -174,6 +176,18 @@ export class RelacionCuentas implements OnInit {
     });
     this.loadAbonos(true);
     this.loadTasaActual();
+    this.loadColumnasVisibles();
+  }
+
+  loadColumnasVisibles() {
+    this.http.get<{ columns: string[] }>('/api/settings/relacion-cuentas-columnas').subscribe({
+      next: (res) => {
+        if (res.columns && Array.isArray(res.columns) && res.columns.length > 0) {
+          this.columnasSeleccionadas.set(new Set(res.columns));
+        }
+      },
+      error: () => {},
+    });
   }
 
   loadTasaActual() {
@@ -240,6 +254,12 @@ export class RelacionCuentas implements OnInit {
   }
 
   cerrarModalColumnas() {
+    if (this.esRoot()) {
+      this.http.put('/api/settings/relacion-cuentas-columnas', { columns: [...this.columnasSeleccionadas()] }).subscribe({
+        next: () => {},
+        error: () => {},
+      });
+    }
     this.showModalColumnas.set(false);
   }
 

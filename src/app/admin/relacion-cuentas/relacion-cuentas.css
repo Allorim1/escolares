@@ -511,3 +511,56 @@
 .btn-secondary:hover {
   background: #5a6268;
 }
+
+.totales-separados {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.totales-card {
+  flex: 1;
+  min-width: 260px;
+  background: #f5f7fa;
+  border: 1px solid #e3e8ee;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.totales-card h3 {
+  margin: 0 0 10px 0;
+  color: #1d63c1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.totales-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.total-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.total-item .total-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.total-item .total-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d63c1;
+}
+
+.relaciones-table-wrapper {
+  margin-top: 16px;
+}

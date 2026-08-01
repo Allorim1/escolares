@@ -82,12 +82,11 @@ export class RelacionCuentas implements OnInit {
     const divisa = datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0);
     const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
     const tasaActual = this.tasaActual();
-    const diferenciaEnDivisa = tasaActual > 0 ? diferencia * tasaActual : 0;
+    const diferenciaEnDivisa = tasaActual > 0 ? diferencia / tasaActual : 0;
     const porcentajeCambio = diferenciaEnDivisa > 0 ? ((divisa - diferenciaEnDivisa) / diferenciaEnDivisa) * 100 : 0;
     const cambioMonto = divisa - diferenciaEnDivisa;
-    const montoFacturaEnDivisa = tasaActual > 0 ? montoFactura / tasaActual : 0;
-    const decrecimientoMonto = montoFacturaEnDivisa - divisa;
-    const decrecimientoPorcentaje = montoFacturaEnDivisa > 0 ? ((divisa - montoFacturaEnDivisa) / montoFacturaEnDivisa) * 100 : 0;
+    const decrecimientoMonto = diferenciaEnDivisa - divisa;
+    const decrecimientoPorcentaje = diferenciaEnDivisa > 0 ? (decrecimientoMonto / diferenciaEnDivisa) * 100 : 0;
     return {
       montoFactura,
       iva: datos.reduce((sum, a) => sum + (a.iva ?? 0), 0),
@@ -97,9 +96,9 @@ export class RelacionCuentas implements OnInit {
       diferenciaEnDivisa,
       cambioMonto,
       porcentajeCambio,
-      montoFacturaEnDivisa,
-      decrecimientoMonto,
-      decrecimientoPorcentaje,
+      montoFacturaEnDivisa: Number(diferenciaEnDivisa.toFixed(2)),
+      decrecimientoMonto: Number(decrecimientoMonto.toFixed(2)),
+      decrecimientoPorcentaje: Number(decrecimientoPorcentaje.toFixed(2)),
     };
   });
   loading = signal(false);
@@ -561,13 +560,13 @@ export class RelacionCuentas implements OnInit {
 
   getDecrecimiento(): { montoFacturaEnDivisa: number; decrecimientoMonto: number; decrecimientoPorcentaje: number } {
     const tasa = this.tasaActual();
-    const montoFactura = this.totales().montoFactura;
+    const diferencia = this.totales().diferencia;
     const divisa = this.totales().divisa;
-    const montoFacturaEnDivisa = tasa > 0 ? montoFactura / tasa : 0;
-    const decrecimientoMonto = montoFacturaEnDivisa - divisa;
-    const decrecimientoPorcentaje = montoFacturaEnDivisa > 0 ? (decrecimientoMonto / montoFacturaEnDivisa) * 100 : 0;
+    const diferenciaEnDivisa = tasa > 0 ? diferencia / tasa : 0;
+    const decrecimientoMonto = diferenciaEnDivisa - divisa;
+    const decrecimientoPorcentaje = diferenciaEnDivisa > 0 ? (decrecimientoMonto / diferenciaEnDivisa) * 100 : 0;
     return {
-      montoFacturaEnDivisa: Number(montoFacturaEnDivisa.toFixed(2)),
+      montoFacturaEnDivisa: Number(diferenciaEnDivisa.toFixed(2)),
       decrecimientoMonto: Number(decrecimientoMonto.toFixed(2)),
       decrecimientoPorcentaje: Number(decrecimientoPorcentaje.toFixed(2)),
     };

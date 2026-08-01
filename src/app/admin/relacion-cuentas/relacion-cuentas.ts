@@ -123,8 +123,10 @@ export class RelacionCuentas implements OnInit {
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
 
   columnasVisibles = computed(() => {
-    const base = this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
-    return this.esRoot() ? base : base;
+    if (this.esRoot()) {
+      return this.columnasDisponibles;
+    }
+    return this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
   });
 
   showModalValuacion = signal(false);

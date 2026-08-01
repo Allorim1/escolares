@@ -4,7 +4,7 @@
     <h1>Relación de Cuentas</h1>
     <div style="display:flex;gap:10px;align-items:center;">
       <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación de Cuentas</button>
-      @if (!esRoot()) {
+      @if (esRoot()) {
         <button class="btn-secondary" (click)="abrirModalColumnas()">📋 Columnas</button>
       }
     </div>

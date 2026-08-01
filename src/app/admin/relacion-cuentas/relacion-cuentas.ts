@@ -80,12 +80,16 @@ export class RelacionCuentas implements OnInit {
     const datos = this.abonosFiltrados();
     const diferencia = datos.reduce((sum, a) => sum + (a.diferencia ?? 0), 0);
     const divisa = datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0);
+    const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
     const tasaActual = this.tasaActual();
     const diferenciaEnDivisa = tasaActual > 0 ? diferencia * tasaActual : 0;
     const porcentajeCambio = diferenciaEnDivisa > 0 ? ((divisa - diferenciaEnDivisa) / diferenciaEnDivisa) * 100 : 0;
     const cambioMonto = divisa - diferenciaEnDivisa;
+    const montoFacturaEnDivisa = tasaActual > 0 ? montoFactura / tasaActual : 0;
+    const decrecimientoMonto = montoFacturaEnDivisa - divisa;
+    const decrecimientoPorcentaje = montoFacturaEnDivisa > 0 ? ((divisa - montoFacturaEnDivisa) / montoFacturaEnDivisa) * 100 : 0;
     return {
-      montoFactura: datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0),
+      montoFactura,
       iva: datos.reduce((sum, a) => sum + (a.iva ?? 0), 0),
       diferencia,
       divisa,
@@ -93,6 +97,9 @@ export class RelacionCuentas implements OnInit {
       diferenciaEnDivisa,
       cambioMonto,
       porcentajeCambio,
+      montoFacturaEnDivisa,
+      decrecimientoMonto,
+      decrecimientoPorcentaje,
     };
   });
   loading = signal(false);
@@ -539,6 +546,31 @@ export class RelacionCuentas implements OnInit {
       return digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
     }
     return telefono;
+  }
+
+  getValuacionConTasaApi(): { valor: number; porcentaje: number } {
+    if (!this.abonoValuacion) return { valor: 0, porcentaje: 0 };
+    const diferencia = Number(this.abonoValuacion.diferencia) || 0;
+    const divisaRegistrada = Number(this.abonoValuacion.divisa) || 0;
+    const tasa = this.tasaActual();
+    const valorCalculado = tasa > 0 ? diferencia * tasa : 0;
+    const diferenciaMonto = divisaRegistrada - valorCalculado;
+    const porcentaje = valorCalculado > 0 ? (diferenciaMonto / valorCalculado) * 100 : 0;
+    return { valor: Number(diferenciaMonto.toFixed(2)), porcentaje: Number(porcentaje.toFixed(2)) };
+  }
+
+  getDecrecimiento(): { montoFacturaEnDivisa: number; decrecimientoMonto: number; decrecimientoPorcentaje: number } {
+    const tasa = this.tasaActual();
+    const montoFactura = this.totales().montoFactura;
+    const divisa = this.totales().divisa;
+    const montoFacturaEnDivisa = tasa > 0 ? montoFactura / tasa : 0;
+    const decrecimientoMonto = montoFacturaEnDivisa - divisa;
+    const decrecimientoPorcentaje = montoFacturaEnDivisa > 0 ? (decrecimientoMonto / montoFacturaEnDivisa) * 100 : 0;
+    return {
+      montoFacturaEnDivisa: Number(montoFacturaEnDivisa.toFixed(2)),
+      decrecimientoMonto: Number(decrecimientoMonto.toFixed(2)),
+      decrecimientoPorcentaje: Number(decrecimientoPorcentaje.toFixed(2)),
+    };
   }
 
   private async cargarImagenLocal(url: string): Promise<string> {

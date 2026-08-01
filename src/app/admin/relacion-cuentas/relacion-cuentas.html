@@ -141,19 +141,23 @@
           </div>
         </div>
         <div class="totales-card">
-          <h3>Con Tasa API</h3>
+          <h3>Decrecimiento</h3>
           <div class="totales-grid">
             <div class="total-item">
               <span class="total-label">Diferencia $</span>
-              <span class="total-value">{{ formatMonto(totales().diferenciaEnDivisa) }}</span>
+              <span class="total-value">{{ formatMonto(totales().divisa) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">% Cambio</span>
-              <span class="total-value">{{ totales().porcentajeCambio.toFixed(2) }}%</span>
+              <span class="total-label">Monto Fact. Bs / Tasa</span>
+              <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Cambio Monto $</span>
-              <span class="total-value">{{ formatMonto(totales().cambioMonto) }}</span>
+              <span class="total-label">Diferencia Monto $</span>
+              <span class="total-value">{{ formatMonto(totales().decrecimientoMonto) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Diferencia %</span>
+              <span class="total-value">{{ totales().decrecimientoPorcentaje.toFixed(2) }}%</span>
             </div>
           </div>
         </div>
@@ -329,7 +333,17 @@
           <p><strong>Fecha:</strong> {{ formatFecha(abonoValuacion.fecha) }}</p>
           <p><strong>Monto Diferencia:</strong> {{ formatTotal(abonoValuacion.diferencia ?? 0, 'Bs.') }}</p>
           <p><strong>Tasa registrada:</strong> {{ abonoValuacion.tasa?.toFixed(2) ?? '0.00' }}</p>
-          <p><strong>Divisa registrada:</strong> {{ abonoValuacion.divisa?.toFixed(2) ?? '0.00' }}</p>
+          <p><strong>Divisa registrada:</strong> {{ formatMonto(abonoValuacion.divisa ?? 0) }}</p>
+        </div>
+
+        <div class="valuacion-section">
+          <h3>Valuación con Tasa de Hoy</h3>
+          <div class="diferencial">
+            <p><strong>Diferencia Bs x Tasa API:</strong> {{ formatMonto((abonoValuacion.diferencia ?? 0) * tasaActual()) }}</p>
+            <p><strong>Divisa Registrada:</strong> {{ formatMonto(abonoValuacion.divisa ?? 0) }}</p>
+            <p><strong>Diferencia:</strong> {{ formatMonto(getValuacionConTasaApi().valor) }}</p>
+            <p><strong>Porcentaje:</strong> {{ getValuacionConTasaApi().porcentaje.toFixed(2) }}%</p>
+          </div>
         </div>
 
         <div class="valuacion-section">

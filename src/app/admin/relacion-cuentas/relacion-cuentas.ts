@@ -525,11 +525,7 @@ export class RelacionCuentas implements OnInit {
       return;
     }
 
-    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
-    if (columnas.length === 0) {
-      alert('Seleccione al menos una columna');
-      return;
-    }
+    const columnas = this.columnasDisponibles;
 
     const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();

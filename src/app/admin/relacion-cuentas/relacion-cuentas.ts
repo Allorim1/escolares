@@ -104,6 +104,10 @@ export class RelacionCuentas implements OnInit {
   selectedEmpresaInModal = signal('');
 
   showModalColumnas = signal(false);
+
+  showModalColumnasPdf = signal(false);
+  columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+
   columnasDisponibles = [
     { key: 'fecha', label: 'Fecha' },
     { key: 'nombre', label: 'Nombre' },
@@ -121,6 +125,7 @@ export class RelacionCuentas implements OnInit {
     { key: 'status', label: 'Status' },
   ];
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+  columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
 
   columnasVisibles = computed(() => {
     if (this.esRoot()) {
@@ -259,6 +264,30 @@ export class RelacionCuentas implements OnInit {
       });
     }
     this.showModalColumnas.set(false);
+  }
+
+  abrirModalColumnasPdf() {
+    this.showModalColumnasPdf.set(true);
+  }
+
+  cerrarModalColumnasPdf() {
+    this.showModalColumnasPdf.set(false);
+  }
+
+  toggleColumnaPdf(key: string) {
+    this.columnasSeleccionadasPdf.update((actual) => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(key)) {
+        nuevo.delete(key);
+      } else {
+        nuevo.add(key);
+      }
+      return nuevo;
+    });
+  }
+
+  isColumnaSeleccionadaPdf(key: string): boolean {
+    return this.columnasSeleccionadasPdf().has(key);
   }
 
   esRoot(): boolean {
@@ -543,7 +572,7 @@ export class RelacionCuentas implements OnInit {
       return;
     }
 
-    const columnas = this.columnasDisponibles;
+    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadasPdf().has(c.key));
 
     const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();

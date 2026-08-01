@@ -33,7 +33,7 @@ interface Abono {
 @Component({
   selector: 'app-relacion-cuentas',
   standalone: true,
-  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
+  imports: [CommonModule, FormsModule],
   templateUrl: './relacion-cuentas.html',
   styleUrl: './relacion-cuentas.css',
 })

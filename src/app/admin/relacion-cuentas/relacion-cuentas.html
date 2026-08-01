@@ -356,7 +356,6 @@
           <p><strong>Tasa registrada:</strong> {{ abonoValuacion.tasa?.toFixed(2) ?? '0.00' }}</p>
           <p><strong>Divisa registrada:</strong> {{ formatMonto(abonoValuacion.divisa ?? 0) }}</p>
         </div>
-
         <div class="valuacion-section">
           <h3>Valuación con Tasa de Hoy</h3>
           <div class="diferencial">
@@ -365,7 +364,6 @@
             <p><strong>Diferencia:</strong> {{ formatMonto(getValuacionConTasaApi().valor) }}</p>
             <p><strong>Porcentaje:</strong> {{ getValuacionConTasaApi().porcentaje.toFixed(2) }}%</p>
           </div>
-        </div>
         </div>
       </div>
     </div>

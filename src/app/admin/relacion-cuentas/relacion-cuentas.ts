@@ -553,8 +553,8 @@ export class RelacionCuentas implements OnInit {
     const diferencia = Number(this.abonoValuacion.diferencia) || 0;
     const divisaRegistrada = Number(this.abonoValuacion.divisa) || 0;
     const tasa = this.tasaActual();
-    const valorCalculado = tasa > 0 ? diferencia * tasa : 0;
-    const diferenciaMonto = divisaRegistrada - valorCalculado;
+    const valorCalculado = tasa > 0 ? diferencia / tasa : 0;
+    const diferenciaMonto = valorCalculado - divisaRegistrada;
     const porcentaje = valorCalculado > 0 ? (diferenciaMonto / valorCalculado) * 100 : 0;
     return { valor: Number(diferenciaMonto.toFixed(2)), porcentaje: Number(porcentaje.toFixed(2)) };
   }

@@ -339,73 +339,10 @@
         <div class="valuacion-section">
           <h3>Valuación con Tasa de Hoy</h3>
           <div class="diferencial">
-            <p><strong>Diferencia Bs x Tasa API:</strong> {{ formatMonto((abonoValuacion.diferencia ?? 0) * tasaActual()) }}</p>
+            <p><strong>Diferencia Bs / Tasa API:</strong> {{ formatMonto((abonoValuacion.diferencia ?? 0) / tasaActual()) }}</p>
             <p><strong>Divisa Registrada:</strong> {{ formatMonto(abonoValuacion.divisa ?? 0) }}</p>
             <p><strong>Diferencia:</strong> {{ formatMonto(getValuacionConTasaApi().valor) }}</p>
             <p><strong>Porcentaje:</strong> {{ getValuacionConTasaApi().porcentaje.toFixed(2) }}%</p>
-          </div>
-        </div>
-
-        <div class="valuacion-section">
-          <h3>Historial de Tasas</h3>
-          @if (loadingTasas()) {
-            <div class="loading">Cargando tasas...</div>
-          } @else {
-            <table class="tasas-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Valor</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (tasa of getTasasOrdenadas(); track $index) {
-                  <tr>
-                    <td>{{ formatFecha(tasa.fecha) }}</td>
-                    <td>{{ tasa.valor.toFixed(2) }}</td>
-                    <td class="actions">
-                      <button class="btn-edit" (click)="editarTasa(tasa)">Editar</button>
-                      <button class="btn-delete" (click)="eliminarTasa(tasa)">Eliminar</button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-            <div class="diferencial">
-              <p><strong>Tasa registrada en relación:</strong> {{ (abonoValuacion.tasa ?? 0).toFixed(2) }}</p>
-              <p><strong>Diferencial vs última tasa guardada:</strong> {{ getDiferencialConTasaRegistrada().valor.toFixed(2) }}</p>
-              <p><strong>Porcentaje:</strong> {{ getDiferencialConTasaRegistrada().porcentaje.toFixed(2) }}%</p>
-            </div>
-          }
-        </div>
-
-        <div class="valuacion-section">
-          <h3>Agregar Tasa</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Fecha</label>
-              <input type="date" [(ngModel)]="nuevaTasaFecha" name="nueva-tasa-fecha">
-            </div>
-            <div class="form-group">
-              <label>Valor</label>
-              <input type="text" [value]="formatearMontoInput(nuevaTasaValor())" (input)="nuevaTasaValor.set(parsearMontoInput($event.target.value))" name="nueva-tasa-valor">
-            </div>
-          </div>
-          <button type="button" class="btn-save" (click)="guardarNuevaTasa()">Guardar Tasa</button>
-        </div>
-
-        <div class="valuacion-section">
-          <h3>Calculadora Manual</h3>
-          <div class="form-row">
-              <div class="form-group">
-                <label>Tasa manual</label>
-                <input type="text" [value]="formatearMontoInput(tasaManual())" (input)="tasaManual.set(parsearMontoInput($event.target.value))" name="tasa-manual">
-              </div>
-              <div class="form-group">
-                <label>Valuación resultante</label>
-                <input type="text" [value]="formatearMontoInput(getValuacionConTasa(tasaManual()))" readonly>
-              </div>
           </div>
         </div>
       </div>

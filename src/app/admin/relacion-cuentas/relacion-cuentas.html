@@ -2,7 +2,12 @@
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="abonos-header">
     <h1>Relación de Cuentas</h1>
-    <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación de Cuentas</button>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación de Cuentas</button>
+      @if (!esRoot()) {
+        <button class="btn-secondary" (click)="abrirModalColumnas()">📋 Columnas</button>
+      }
+    </div>
   </div>
 
   <div class="filtros-pdf">
@@ -56,40 +61,48 @@
     <table class="abonos-table">
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Nombre</th>
-          <th>Empresa</th>
-          <th>Planta</th>
-          <th>Teléfono</th>
-          <th>Cédula</th>
-          <th>N. Fact</th>
-          <th>Monto Fact. Bs</th>
-          <th>Monto Fact. $</th>
-          <th>Iva</th>
-          <th>Diferencia Bs</th>
-          <th>Diferencia $</th>
-          <th>Tasa</th>
-          <th>Status</th>
+          @for (col of columnasVisibles(); track col.key) {
+            <th>{{ col.label }}</th>
+          }
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
         @for (abono of abonosPaginados(); track abono._id) {
           <tr (click)="abrirValuacion(abono)" style="cursor: pointer;">
-            <td>{{ formatFecha(abono.fecha) }}</td>
-            <td>{{ abono.nombre }}</td>
-            <td>{{ abono.empresa || '-' }}</td>
-            <td><span class="planta-badge">{{ abono.planta }}</span></td>
-            <td>{{ formatTelefono(abono.telefono) }}</td>
-            <td>{{ formatCedula(abono.cedula) }}</td>
-            <td>{{ abono.nFact ? (+abono.nFact) + '' : '' }}</td>
-            <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
-            <td class="monto">{{ formatMonto((abono.montoFactura && abono.tasa ? abono.montoFactura / abono.tasa : 0)) }}</td>
-            <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
-            <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
-            <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
-            <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
-            <td>{{ abono.status }}</td>
+            @for (col of columnasVisibles(); track col.key) {
+              @if (col.key === 'fecha') {
+                <td>{{ formatFecha(abono.fecha) }}</td>
+              } @else if (col.key === 'nombre') {
+                <td>{{ abono.nombre }}</td>
+              } @else if (col.key === 'empresa') {
+                <td>{{ abono.empresa || '-' }}</td>
+              } @else if (col.key === 'planta') {
+                <td><span class="planta-badge">{{ abono.planta }}</span></td>
+              } @else if (col.key === 'telefono') {
+                <td>{{ formatTelefono(abono.telefono) }}</td>
+              } @else if (col.key === 'cedula') {
+                <td>{{ formatCedula(abono.cedula) }}</td>
+              } @else if (col.key === 'nFact') {
+                <td>{{ abono.nFact ? (+abono.nFact) + '' : '' }}</td>
+              } @else if (col.key === 'montoFactura') {
+                <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+              } @else if (col.key === 'divisaFactura') {
+                <td class="monto">{{ formatMonto((abono.montoFactura && abono.tasa ? abono.montoFactura / abono.tasa : 0)) }}</td>
+              } @else if (col.key === 'iva') {
+                <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
+              } @else if (col.key === 'diferencia') {
+                <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
+              } @else if (col.key === 'divisa') {
+                <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
+              } @else if (col.key === 'tasa') {
+                <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
+              } @else if (col.key === 'status') {
+                <td>{{ abono.status }}</td>
+              } @else {
+                <td>{{ getValorAbono(abono, col.key) }}</td>
+              }
+            }
             <td class="actions">
               <button class="btn-edit" (click)="$event.stopPropagation(); abrirModal(abono)">Editar</button>
               <button class="btn-delete" (click)="$event.stopPropagation(); eliminarAbono(abono._id || '')">Eliminar</button>
@@ -97,30 +110,41 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="15" class="empty">No hay registros</td>
+            <td [attr.colspan]="columnasVisibles().length + 1" class="empty">No hay registros</td>
           </tr>
         }
         @if (abonosFiltrados().length > 0) {
           <tr class="total-row">
-            <td colspan="7" class="total-label">TOTALES</td>
-            <td class="monto">{{ formatMonto(totales().montoFactura) }}</td>
-            <td></td>
-            <td class="monto">{{ formatMonto(totales().iva) }}</td>
-            <td class="monto">{{ formatMonto(totales().diferencia) }}</td>
-            <td>{{ formatMonto(totales().divisa) }}</td>
-            <td></td>
-            <td colspan="2"></td>
+            <td class="total-label">TOTALES</td>
+            @for (col of columnasVisibles(); track col.key) {
+              @if (col.key === 'montoFactura') {
+                <td class="monto">{{ formatMonto(totales().montoFactura) }}</td>
+              } @else if (col.key === 'iva') {
+                <td class="monto">{{ formatMonto(totales().iva) }}</td>
+              } @else if (col.key === 'diferencia') {
+                <td class="monto">{{ formatMonto(totales().diferencia) }}</td>
+              } @else if (col.key === 'divisa') {
+                <td>{{ formatMonto(totales().divisa) }}</td>
+              } @else {
+                <td></td>
+              }
+            }
+            <td class="actions"></td>
           </tr>
           <tr class="total-row">
-            <td colspan="7" class="total-label">CON TASA API</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>{{ formatTotal(totales().diferenciaEnDivisa, '$') }}</td>
-            <td>{{ totales().porcentajeCambio.toFixed(2) }}%</td>
-            <td>{{ formatTotal(totales().cambioMonto, '$') }}</td>
-            <td></td>
-            <td colspan="2"></td>
+            <td class="total-label">CON TASA API</td>
+            @for (col of columnasVisibles(); track col.key) {
+              @if (col.key === 'divisa') {
+                <td>{{ formatMonto(totales().diferenciaEnDivisa) }}</td>
+              } @else if (col.key === 'tasa') {
+                <td>{{ totales().porcentajeCambio.toFixed(2) }}%</td>
+              } @else if (col.key === 'divisaFactura') {
+                <td>{{ formatMonto(totales().cambioMonto) }}</td>
+              } @else {
+                <td></td>
+              }
+            }
+            <td class="actions"></td>
           </tr>
         }
       </tbody>

@@ -6,6 +6,7 @@ import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.direct
 import { EmpresasService, Empresa } from '../../shared/data-access/empresas.service';
 import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
 import { TasaResponse } from '../../shared/data-access/currency.service';
+import { AuthService } from '../../shared/data-access/auth.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
@@ -41,6 +42,7 @@ export class RelacionCuentas implements OnInit {
   private empresasService = inject(EmpresasService);
   private tasasGuardadasService = inject(TasasGuardadasService);
   private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
 
   private readonly API = '/api/abonos-polar';
   private readonly API_EMPRESAS = '/api/empresas';
@@ -119,6 +121,11 @@ export class RelacionCuentas implements OnInit {
     { key: 'status', label: 'Status' },
   ];
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+
+  columnasVisibles = computed(() => {
+    const base = this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
+    return this.esRoot() ? base : base;
+  });
 
   showModalValuacion = signal(false);
   abonoValuacion: Abono | null = null;
@@ -232,6 +239,14 @@ export class RelacionCuentas implements OnInit {
 
   cerrarModalColumnas() {
     this.showModalColumnas.set(false);
+  }
+
+  esRoot(): boolean {
+    return this.authService.user()?.rol === 'root';
+  }
+
+  getValorAbono(abono: Abono, key: string): string {
+    return (abono as any)[key] ?? '';
   }
 
   toggleColumna(key: string) {

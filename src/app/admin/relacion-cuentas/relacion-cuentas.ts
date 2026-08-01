@@ -120,9 +120,7 @@ export class RelacionCuentas implements OnInit {
     { key: 'tasa', label: 'Tasa' },
     { key: 'status', label: 'Status' },
   ];
-  columnasSeleccionadas = signal<Set<string>>(() => {
-    return new Set(this.columnasDisponibles.map((c) => c.key));
-  });
+  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
 
   columnasVisibles = computed(() => {
     if (this.esRoot()) {

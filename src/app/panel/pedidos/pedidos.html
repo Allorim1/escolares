@@ -42,6 +42,12 @@
             <div class="order-total">
               {{ order.total | currency }}
             </div>
+            @if (hasUnreadMessages(order)) {
+              <div class="unread-messages-indicator">
+                <span class="unread-dot"></span>
+                <span class="unread-text">Mensajes nuevos</span>
+              </div>
+            }
           </div>
         </div>
       }
@@ -140,6 +146,12 @@
             }
           </div>
         </div>
+
+        <div class="detail-section">
+          <button class="btn-mensajes" (click)="openMessagesModal()">
+            💬 Mensajes del Pedido
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -193,6 +205,68 @@
             }
           </div>
         }
+      </div>
+    </div>
+  </div>
+}
+
+@if (showMessagesModal()) {
+  <div class="modal-overlay messages-modal-overlay" (click)="closeMessagesModal()">
+    <div class="modal-content messages-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>💬 Mensajes del Pedido #{{ selectedOrder()?.id.slice(-8) }}</h3>
+        <button class="close-btn" (click)="closeMessagesModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body messages-body">
+        @if (isLoadingMessages()) {
+          <div class="messages-loading">Cargando mensajes...</div>
+        } @else if (messagesError()) {
+          <div class="error-message">{{ messagesError() }}</div>
+        } @else if (messages().length === 0) {
+          <div class="messages-empty">
+            <div class="empty-icon">💬</div>
+            <p>No hay mensajes aún</p>
+            <p class="empty-hint">Inicia la conversación enviando un mensaje</p>
+          </div>
+        } @else {
+          <div class="messages-list">
+            @for (msg of messages(); track msg._id) {
+              <div class="message-item" [class.own-message]="msg.emisorId === (authService.user()?.id || '')">
+                <div class="message-header">
+                  <span class="message-author">{{ msg.emisorNombre }}</span>
+                  <span class="message-role">{{ msg.emisorRol === 'root' || msg.emisorRol === 'admin' ? 'Admin' : 'Cliente' }}</span>
+                  <span class="message-time">{{ formatMessageTime(msg.fecha) }}</span>
+                </div>
+                <div class="message-content">{{ msg.mensaje }}</div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+      
+      <div class="modal-footer messages-footer">
+        @if (messagesError()) {
+          <div class="error-message">{{ messagesError() }}</div>
+        }
+        <div class="message-input-container">
+          <input
+            type="text"
+            [value]="newMessage()"
+            (input)="newMessage.set($any($event.target).value || '')"
+            (keydown.enter)="sendMessage()"
+            placeholder="Escribe un mensaje..."
+            class="message-input"
+            [disabled]="isSendingMessage()"
+          />
+          <button 
+            class="btn-send-message" 
+            (click)="sendMessage()" 
+            [disabled]="isSendingMessage() || !newMessage().trim()"
+          >
+            {{ isSendingMessage() ? 'Enviando...' : 'Enviar' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>

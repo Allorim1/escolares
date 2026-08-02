@@ -316,7 +316,7 @@ export class RelacionCuentas implements OnInit {
       return;
     }
 
-    this.http.post('/api/sms/recordatorio-masivo', { destinatarios }).subscribe({
+    this.http.post('/api/recordatorios/recordatorio-masivo', { destinatarios }).subscribe({
       next: () => {
         alert('Recordatorios enviados correctamente');
         this.cerrarModalRecordatorio();

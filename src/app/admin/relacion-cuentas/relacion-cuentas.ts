@@ -146,6 +146,9 @@ export class RelacionCuentas implements OnInit {
   nuevaTasaFecha = signal(new Date().toISOString().split('T')[0]);
   nuevaTasaValor = signal(0);
 
+  showModalRecordatorio = signal(false);
+  recordatorioDestinatarios = signal<{ nombre: string; telefono: string }[]>([]);
+
   tasaActual = signal<number>(0);
   loadingTasaActual = signal(false);
 
@@ -292,6 +295,37 @@ export class RelacionCuentas implements OnInit {
 
   isColumnaSeleccionadaPdf(key: string): boolean {
     return this.columnasSeleccionadasPdf().has(key);
+  }
+
+  abrirModalRecordatorio() {
+    const destinatarios = this.abonosFiltrados()
+      .filter((a) => a.telefono && a.nombre)
+      .map((a) => ({ nombre: a.nombre, telefono: a.telefono }));
+    this.recordatorioDestinatarios.set(destinatarios);
+    this.showModalRecordatorio.set(true);
+  }
+
+  cerrarModalRecordatorio() {
+    this.showModalRecordatorio.set(false);
+  }
+
+  enviarRecordatorios() {
+    const destinatarios = this.recordatorioDestinatarios();
+    if (destinatarios.length === 0) {
+      alert('No hay destinatarios para enviar recordatorios');
+      return;
+    }
+
+    this.http.post('/api/sms/recordatorio-masivo', { destinatarios }).subscribe({
+      next: () => {
+        alert('Recordatorios enviados correctamente');
+        this.cerrarModalRecordatorio();
+      },
+      error: (err) => {
+        console.error('Error enviando recordatorios:', err);
+        alert('Error al enviar recordatorios');
+      },
+    });
   }
 
   esRoot(): boolean {

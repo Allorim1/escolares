@@ -7,6 +7,7 @@
       @if (esRoot()) {
         <button class="btn-secondary" (click)="abrirModalColumnas()">📋 Columnas</button>
       }
+      <button class="btn-secondary" (click)="abrirModalRecordatorio()">📱 Recordatorio</button>
     </div>
   </div>
 
@@ -341,6 +342,32 @@
             <p><strong>Diferencia:</strong> {{ formatMonto(getValuacionConTasaApi().valor) }}</p>
             <p><strong>Porcentaje:</strong> {{ getValuacionConTasaApi().porcentaje.toFixed(2) }}%</p>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showModalRecordatorio()) {
+  <div class="modal-overlay">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Enviar Recordatorio Masivo</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalRecordatorio()">✕</button>
+      </div>
+      <div class="valuacion-body">
+        <p class="modal-subtitle">Se enviará un recordatorio a los siguientes números:</p>
+        <div class="recordatorio-list">
+          @for (item of recordatorioDestinatarios(); track item.telefono) {
+            <div class="recordatorio-item">
+              <span class="recordatorio-nombre">{{ item.nombre }}</span>
+              <span class="recordatorio-telefono">{{ formatTelefono(item.telefono) }}</span>
+            </div>
+          }
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalRecordatorio()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="enviarRecordatorios()">Confirmar Envío</button>
         </div>
       </div>
     </div>

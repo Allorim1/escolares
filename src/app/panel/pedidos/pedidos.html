@@ -214,7 +214,7 @@
   <div class="modal-overlay messages-modal-overlay" (click)="closeMessagesModal()">
     <div class="modal-content messages-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>💬 Mensajes del Pedido #{{ selectedOrder()?.id.slice(-8) }}</h3>
+        <h3>💬 Mensajes del Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
         <button class="close-btn" (click)="closeMessagesModal()">&times;</button>
       </div>
       

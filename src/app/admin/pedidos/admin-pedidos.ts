@@ -4,7 +4,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { OrdersBackend, Order } from '../../backend/data-access/orders.backend';
+import { OrdersBackend, Order, OrderMessage } from '../../backend/data-access/orders.backend';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
 
 interface DeliveryPerson {
@@ -54,7 +54,7 @@ interface CompraNotificacion {
 export class AdminPedidos implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private notificationService = inject(NotificationService);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
   private mapsService = inject(GoogleMapsService);
   private intervalId: any;

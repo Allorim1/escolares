@@ -149,6 +149,10 @@ export class RelacionCuentas implements OnInit {
   showModalRecordatorio = signal(false);
   recordatorioDestinatarios = signal<{ nombre: string; telefono: string }[]>([]);
 
+  showModalTestWhatsapp = signal(false);
+  testWhatsappTelefono = signal('');
+  testWhatsappMensaje = signal('Hola, te escribimos por tu relación de cuentas. Por favor, comunícate con nosotros.');
+
   tasaActual = signal<number>(0);
   loadingTasaActual = signal(false);
 
@@ -324,6 +328,34 @@ export class RelacionCuentas implements OnInit {
       error: (err) => {
         console.error('Error enviando recordatorios:', err);
         alert('Error al enviar recordatorios');
+      },
+    });
+  }
+
+  abrirModalTestWhatsapp() {
+    this.showModalTestWhatsapp.set(true);
+  }
+
+  cerrarModalTestWhatsapp() {
+    this.showModalTestWhatsapp.set(false);
+  }
+
+  enviarTestWhatsapp() {
+    const telefono = this.testWhatsappTelefono().trim();
+    const mensaje = this.testWhatsappMensaje().trim();
+    if (!telefono) {
+      alert('Ingrese un número de teléfono');
+      return;
+    }
+
+    this.http.post('/api/recordatorios/test-whatsapp', { telefono, mensaje }).subscribe({
+      next: () => {
+        alert('Mensaje de prueba enviado correctamente');
+        this.cerrarModalTestWhatsapp();
+      },
+      error: (err) => {
+        console.error('Error enviando test WhatsApp:', err);
+        alert('Error al enviar mensaje de prueba');
       },
     });
   }

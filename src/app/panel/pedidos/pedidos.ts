@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe, CommonModule } from '@angular/common';
@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { OrdersBackend, Order, OrderStatus } from '../../backend/data-access/orders.backend';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { io, Socket } from 'socket.io-client';
 
 interface DeliveryPerson {
   _id?: string;
@@ -61,6 +62,9 @@ export default class Pedidos implements OnInit {
   isLoadingMessages = signal(false);
   isSendingMessage = signal(false);
   messagesError = signal('');
+  private socket: Socket | null = null;
+  private socketSetupDone = false;
+  private currentMessagesRoomId: string | null = null;
 
   statusSteps: { status: OrderStatus; label: string; icon: string }[] = [
     { status: 'pendiente', label: 'Pedido recibido', icon: '📋' },
@@ -71,6 +75,63 @@ export default class Pedidos implements OnInit {
 
   ngOnInit() {
     this.loadOrders();
+    this.conectarSocket();
+  }
+
+  ngOnDestroy() {
+    this.desconectarSocket();
+  }
+
+  private conectarSocket() {
+    const socketUrl = window.location.origin;
+
+    try {
+      this.socket = io(socketUrl);
+
+      if (!this.socketSetupDone) {
+        this.socketSetupDone = true;
+
+        this.socket.on('connect', () => {
+          console.log('WebSocket conectado');
+          if (this.currentMessagesRoomId) {
+            this.socket?.emit('join-order-messages-room', this.currentMessagesRoomId);
+          }
+        });
+
+        this.socket.on('nuevo-mensaje-pedido', (data: any) => {
+          this.handleNewOrderMessage(data);
+        });
+
+        this.socket.on('disconnect', () => {
+          console.log('WebSocket desconectado');
+        });
+
+        this.socket.on('connect_error', (error: any) => {
+          console.error('Error en WebSocket:', error);
+        });
+      }
+    } catch (error) {
+      console.error('Error al conectar WebSocket:', error);
+    }
+  }
+
+  private desconectarSocket() {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+      this.socketSetupDone = false;
+      this.currentMessagesRoomId = null;
+    }
+  }
+
+  private handleNewOrderMessage(data: any) {
+    const currentOrder = this.selectedOrder();
+    if (currentOrder && currentOrder.id === data.orderId) {
+      const currentMessages = this.messages();
+      if (!currentMessages.some(m => m._id === data._id)) {
+        this.messages.set([...currentMessages, data]);
+      }
+    }
   }
 
   loadOrders() {
@@ -161,13 +222,23 @@ export default class Pedidos implements OnInit {
   openMessagesModal() {
     const order = this.selectedOrder();
     if (!order) return;
+    this.currentMessagesRoomId = order.id;
     this.showMessagesModal.set(true);
     this.messagesError.set('');
     this.newMessage.set('');
     this.loadMessages(order.id);
+
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('join-order-messages-room', order.id);
+    }
   }
 
   closeMessagesModal() {
+    const order = this.selectedOrder();
+    if (order && this.socket && this.socket.connected) {
+      this.socket.emit('leave-order-messages-room', order.id);
+    }
+    this.currentMessagesRoomId = null;
     this.showMessagesModal.set(false);
     this.messages.set([]);
     this.newMessage.set('');
@@ -180,7 +251,8 @@ export default class Pedidos implements OnInit {
     
     this.http.get<OrderMessage[]>(`/api/order-messages/order/${orderId}`).subscribe({
       next: (messages) => {
-        this.messages.set(messages);
+        const normalized = messages.map(m => ({ ...m, _id: typeof m._id === 'string' ? m._id : String(m._id || '') }));
+        this.messages.set(normalized);
         this.isLoadingMessages.set(false);
       },
       error: (err) => {

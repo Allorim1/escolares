@@ -966,7 +966,8 @@ closeDeliveryPersonModal() {
     
     this.http.get<any[]>(`/api/order-messages/order/${orderId}`).subscribe({
       next: (messages) => {
-        this.messages.set(messages);
+        const normalized = messages.map(m => ({ ...m, _id: typeof m._id === 'string' ? m._id : String(m._id || '') }));
+        this.messages.set(normalized);
         this.isLoadingMessages.set(false);
         
         if (messages.length > 0) {

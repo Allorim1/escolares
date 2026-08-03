@@ -12,5 +12,13 @@
     "changeOrigin": true,
     "logLevel": "debug",
     "buffer": false
+  },
+  "/socket.io": {
+    "target": "http://localhost:3000/",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "buffer": false,
+    "ws": true
   }
 }

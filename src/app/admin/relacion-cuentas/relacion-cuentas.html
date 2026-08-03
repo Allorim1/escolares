@@ -51,6 +51,14 @@
       <input type="date" [ngModel]="filtros().fechaHasta" (ngModelChange)="onFechaHastaChange($event)">
     </div>
     <div class="filtro-group">
+      <label>Status:</label>
+      <select [ngModel]="filtros().status" (ngModelChange)="onStatusFilterChange($event)">
+        <option value="">Todos</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="Pagado">Pagado</option>
+      </select>
+    </div>
+    <div class="filtro-group">
       <label>Reporte:</label>
       <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
       <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>

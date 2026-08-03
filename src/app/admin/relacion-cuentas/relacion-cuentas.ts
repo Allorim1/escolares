@@ -72,6 +72,9 @@ export class RelacionCuentas implements OnInit {
       if (f.fechaHasta) {
         passes = passes && new Date(a.fecha) <= new Date(f.fechaHasta + 'T23:59:59');
       }
+      if (f.status) {
+        passes = passes && a.status === f.status;
+      }
       return passes;
     });
   });
@@ -161,6 +164,7 @@ export class RelacionCuentas implements OnInit {
     planta: '',
     fechaDesde: '',
     fechaHasta: '',
+    status: '',
   });
 
   mostrarEmpresaPdf = signal(false);
@@ -256,6 +260,11 @@ export class RelacionCuentas implements OnInit {
 
   onFechaHastaChange(fecha: string) {
     this.filtros.update((f) => ({ ...f, fechaHasta: fecha }));
+    this.paginaActual.set(1);
+  }
+
+  onStatusFilterChange(status: string) {
+    this.filtros.update((f) => ({ ...f, status }));
     this.paginaActual.set(1);
   }
 

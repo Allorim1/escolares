@@ -289,7 +289,7 @@ private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
       _id: tempId,
       orderId,
       emisorId: user?.id || '',
-      emisorNombre: user?.username || user?.nombre || 'Tú',
+      emisorNombre: user?.nombreCompleto || user?.username || 'Tú',
       emisorRol: user?.rol || 'admin',
       mensaje,
       leido: false,

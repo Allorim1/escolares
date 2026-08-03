@@ -141,7 +141,7 @@ export default class Pedidos implements OnInit {
       _id: tempId,
       orderId,
       emisorId: user?.id || '',
-      emisorNombre: user?.username || user?.nombre || 'Tú',
+      emisorNombre: user?.nombreCompleto || user?.username || 'Tú',
       emisorRol: user?.rol || 'cliente',
       mensaje,
       leido: false,

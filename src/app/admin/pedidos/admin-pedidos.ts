@@ -60,6 +60,8 @@ export class AdminPedidos implements OnInit, OnDestroy {
   private mapsService = inject(GoogleMapsService);
   private intervalId: any;
   private socket: Socket | null = null;
+  private socketSetupDone = false;
+  private currentMessagesRoomId: string | null = null;
 
   orders = signal<Order[]>([]);
   loading = signal(true);
@@ -184,38 +186,44 @@ private tienePermisosAdmin(user: any): boolean {
     try {
       this.socket = io(socketUrl);
       
-      this.socket.on('connect', () => {
-        console.log('WebSocket conectado');
-        const userId = this.authService.user()?.id;
-        if (userId) {
-          this.socket?.emit('join-orders-room', userId);
-        }
-      });
-      
-      this.socket.on('notificacion-compra', (data: CompraNotificacion) => {
-        this.mostrarNotificacionCompra(data);
-      });
-      
-      this.socket.on('actualizacion_pedido', () => {
-        this.loadOrders();
-      });
-      
-      this.socket.on('ubicacion_repartidor', (data: { deliveryPersonId: string; lat: number; lng: number }) => {
-        this.handleDeliveryLocationUpdate(data);
-      });
-      
-      this.socket.on('nuevo-mensaje-pedido', (data: any) => {
-        this.handleNewOrderMessage(data);
-      });
-      
-      this.socket.on('disconnect', () => {
-        console.log('WebSocket desconectado');
-        setTimeout(() => this.conectarSocket(), 3000);
-      });
-      
-      this.socket.on('connect_error', (error: any) => {
-        console.error('Error en WebSocket:', error);
-      });
+      if (!this.socketSetupDone) {
+        this.socketSetupDone = true;
+        
+        this.socket.on('connect', () => {
+          console.log('WebSocket conectado');
+          const userId = this.authService.user()?.id;
+          if (userId) {
+            this.socket?.emit('join-orders-room', userId);
+          }
+          if (this.currentMessagesRoomId) {
+            this.socket?.emit('join-order-messages-room', this.currentMessagesRoomId);
+          }
+        });
+        
+        this.socket.on('notificacion-compra', (data: CompraNotificacion) => {
+          this.mostrarNotificacionCompra(data);
+        });
+        
+        this.socket.on('actualizacion_pedido', () => {
+          this.loadOrders();
+        });
+        
+        this.socket.on('ubicacion_repartidor', (data: { deliveryPersonId: string; lat: number; lng: number }) => {
+          this.handleDeliveryLocationUpdate(data);
+        });
+        
+        this.socket.on('nuevo-mensaje-pedido', (data: any) => {
+          this.handleNewOrderMessage(data);
+        });
+        
+        this.socket.on('disconnect', () => {
+          console.log('WebSocket desconectado');
+        });
+        
+        this.socket.on('connect_error', (error: any) => {
+          console.error('Error en WebSocket:', error);
+        });
+      }
     } catch (error) {
       console.error('Error al conectar WebSocket:', error);
     }
@@ -225,6 +233,8 @@ private tienePermisosAdmin(user: any): boolean {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
+      this.socketSetupDone = false;
+      this.currentMessagesRoomId = null;
     }
   }
 
@@ -927,6 +937,7 @@ closeDeliveryPersonModal() {
   openMessagesModal() {
     const order = this.selectedOrder();
     if (!order) return;
+    this.currentMessagesRoomId = order.id;
     this.showMessagesModal.set(true);
     this.messagesError.set('');
     this.newMessage.set('');
@@ -942,6 +953,7 @@ closeDeliveryPersonModal() {
     if (order && this.socket && this.socket.connected) {
       this.socket.emit('leave-order-messages-room', order.id);
     }
+    this.currentMessagesRoomId = null;
     this.showMessagesModal.set(false);
     this.messages.set([]);
     this.newMessage.set('');

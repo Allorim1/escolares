@@ -86,7 +86,7 @@ export default class Pedidos implements OnInit {
     const socketUrl = window.location.origin;
 
     try {
-      this.socket = io(socketUrl);
+      this.socket = io(socketUrl, { transports: ['websocket'] });
 
       if (!this.socketSetupDone) {
         this.socketSetupDone = true;
@@ -132,6 +132,22 @@ export default class Pedidos implements OnInit {
         this.messages.set([...currentMessages, data]);
       }
     }
+  }
+
+  private emitirMensajeOptimista(orderId: string, mensaje: string) {
+    const user = this.authService.user();
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: OrderMessage = {
+      _id: tempId,
+      orderId,
+      emisorId: user?.id || '',
+      emisorNombre: user?.username || user?.nombre || 'Tú',
+      emisorRol: user?.rol || 'cliente',
+      mensaje,
+      leido: false,
+      fecha: new Date(),
+    };
+    this.messages.set([...this.messages(), optimisticMessage]);
   }
 
   loadOrders() {
@@ -272,13 +288,12 @@ export default class Pedidos implements OnInit {
     this.isSendingMessage.set(true);
     this.messagesError.set('');
     
+    this.emitirMensajeOptimista(order.id, message);
+    this.newMessage.set('');
+    
     this.http.post(`/api/order-messages/order/${order.id}`, { mensaje: message }).subscribe({
       next: () => {
         this.isSendingMessage.set(false);
-        this.newMessage.set('');
-        if (!this.socket?.connected) {
-          this.loadMessages(order.id);
-        }
       },
       error: (err) => {
         console.error('Error enviando mensaje:', err);

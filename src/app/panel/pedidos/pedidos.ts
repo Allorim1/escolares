@@ -276,7 +276,9 @@ export default class Pedidos implements OnInit {
       next: () => {
         this.isSendingMessage.set(false);
         this.newMessage.set('');
-        this.loadMessages(order.id);
+        if (!this.socket?.connected) {
+          this.loadMessages(order.id);
+        }
       },
       error: (err) => {
         console.error('Error enviando mensaje:', err);

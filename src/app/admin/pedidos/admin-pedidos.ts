@@ -4,6 +4,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { io, Socket } from 'socket.io-client';
 import { OrdersBackend, Order, OrderMessage } from '../../backend/data-access/orders.backend';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
 
@@ -58,7 +59,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
   private ordersBackend = inject(OrdersBackend);
   private mapsService = inject(GoogleMapsService);
   private intervalId: any;
-  private socket: WebSocket | null = null;
+  private socket: Socket | null = null;
 
   orders = signal<Order[]>([]);
   loading = signal(true);
@@ -178,43 +179,43 @@ private tienePermisosAdmin(user: any): boolean {
   }
 
   private conectarSocket() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const socketUrl = `${protocol}//${host}`;
+    const socketUrl = window.location.origin;
     
     try {
-      this.socket = new WebSocket(socketUrl);
+      this.socket = io(socketUrl);
       
-      this.socket.onopen = () => {
+      this.socket.on('connect', () => {
         console.log('WebSocket conectado');
-      };
+        const userId = this.authService.user()?.id;
+        if (userId) {
+          this.socket?.emit('join-orders-room', userId);
+        }
+      });
       
-this.socket.onmessage = (event) => {
-         try {
-           const data = JSON.parse(event.data);
-           if (data.tipo === 'compra') {
-             this.mostrarNotificacionCompra(data);
-           } else if (data.tipo === 'actualizacion_pedido') {
-             this.loadOrders();
-           } else if (data.tipo === 'ubicacion_repartidor') {
-             this.handleDeliveryLocationUpdate(data);
-           } else if (data.tipo === 'nuevo-mensaje-pedido') {
-             this.handleNewOrderMessage(data);
-           }
-         } catch (error) {
-           console.error('Error procesando mensaje del socket:', error);
-         }
-       };
+      this.socket.on('notificacion-compra', (data: CompraNotificacion) => {
+        this.mostrarNotificacionCompra(data);
+      });
       
-      this.socket.onclose = () => {
+      this.socket.on('actualizacion_pedido', () => {
+        this.loadOrders();
+      });
+      
+      this.socket.on('ubicacion_repartidor', (data: { deliveryPersonId: string; lat: number; lng: number }) => {
+        this.handleDeliveryLocationUpdate(data);
+      });
+      
+      this.socket.on('nuevo-mensaje-pedido', (data: any) => {
+        this.handleNewOrderMessage(data);
+      });
+      
+      this.socket.on('disconnect', () => {
         console.log('WebSocket desconectado');
-        // Reconectar después de 3 segundos
         setTimeout(() => this.conectarSocket(), 3000);
-      };
+      });
       
-      this.socket.onerror = (error) => {
+      this.socket.on('connect_error', (error: any) => {
         console.error('Error en WebSocket:', error);
-      };
+      });
     } catch (error) {
       console.error('Error al conectar WebSocket:', error);
     }
@@ -222,7 +223,7 @@ this.socket.onmessage = (event) => {
 
   private desconectarSocket() {
     if (this.socket) {
-      this.socket.close();
+      this.socket.disconnect();
       this.socket = null;
     }
   }
@@ -931,15 +932,15 @@ closeDeliveryPersonModal() {
     this.newMessage.set('');
     this.loadMessages(order.id);
     
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({ event: 'join-order-messages-room', orderId: order.id }));
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('join-order-messages-room', order.id);
     }
   }
 
   closeMessagesModal() {
     const order = this.selectedOrder();
-    if (order && this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({ event: 'leave-order-messages-room', orderId: order.id }));
+    if (order && this.socket && this.socket.connected) {
+      this.socket.emit('leave-order-messages-room', order.id);
     }
     this.showMessagesModal.set(false);
     this.messages.set([]);

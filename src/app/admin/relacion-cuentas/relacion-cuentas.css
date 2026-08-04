@@ -601,3 +601,35 @@
   color: #666;
   font-size: 13px;
 }
+
+.autocomplete-dropdown {
+  position: absolute;
+  background: white;
+  border: 1px solid #e3e8ee;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  min-width: 250px;
+}
+
+.autocomplete-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #333;
+}
+
+.autocomplete-item:hover {
+  background: #f5f7fa;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.form-group {
+  position: relative;
+}

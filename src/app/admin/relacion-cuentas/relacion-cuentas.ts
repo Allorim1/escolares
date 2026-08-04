@@ -28,6 +28,8 @@ interface Abono {
   tasa?: number;
   divisa?: number;
   status: string;
+  supervisor?: string;
+  supervisorId?: string;
 }
 
 @Component({
@@ -131,6 +133,7 @@ export class RelacionCuentas implements OnInit {
     { key: 'divisa', label: 'Diferencia\n$' },
     { key: 'tasa', label: 'Tasa' },
     { key: 'status', label: 'Status' },
+    { key: 'supervisor', label: 'Supervisor' },
   ];
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
@@ -159,6 +162,9 @@ export class RelacionCuentas implements OnInit {
   showModalTestWhatsapp = signal(false);
   testWhatsappTelefono = signal('');
   testWhatsappMensaje = signal('Hola, te escribimos por tu relación de cuentas. Por favor, comunícate con nosotros.');
+
+  supervisorSearch = signal('');
+  supervisorSearchResults = signal<Abono[]>([]);
 
   tasaActual = signal<number>(0);
   loadingTasaActual = signal(false);
@@ -383,6 +389,31 @@ export class RelacionCuentas implements OnInit {
     return this.authService.user()?.rol === 'root';
   }
 
+  onSupervisorSearch(query: string) {
+    this.supervisorSearch.set(query);
+    if (query.length < 2) {
+      this.supervisorSearchResults.set([]);
+      return;
+    }
+
+    this.http.get<Abono[]>(`${this.API}?q=${encodeURIComponent(query)}&limit=10`).subscribe({
+      next: (results) => {
+        this.supervisorSearchResults.set(results.filter((a) => a._id !== this.editingAbono?._id));
+      },
+      error: () => {
+        this.supervisorSearchResults.set([]);
+      },
+    });
+  }
+
+  seleccionarSupervisor(persona: Abono) {
+    if (!this.editingAbono) return;
+    this.editingAbono.supervisor = persona.nombre;
+    this.editingAbono.supervisorId = persona._id;
+    this.supervisorSearch.set(persona.nombre);
+    this.supervisorSearchResults.set([]);
+  }
+
   getValorAbono(abono: Abono, key: string): string {
     return (abono as any)[key] ?? '';
   }
@@ -422,6 +453,8 @@ export class RelacionCuentas implements OnInit {
             diferencia: abonoActualizado.diferencia ?? 0,
             tasa: abonoActualizado.tasa ?? 0,
             divisa: abonoActualizado.divisa ?? 0,
+            supervisor: abonoActualizado.supervisor || '',
+            supervisorId: abonoActualizado.supervisorId || '',
           };
           if (abonoActualizado.empresa) {
             this.selectedEmpresaInModal.set(abonoActualizado.empresa);
@@ -462,8 +495,10 @@ export class RelacionCuentas implements OnInit {
         tasa: 0,
         divisa: 0,
         status: '',
-       };
-       this.showModal.set(true);
+        supervisor: '',
+        supervisorId: '',
+      };
+      this.showModal.set(true);
     }
   }
 
@@ -537,8 +572,14 @@ export class RelacionCuentas implements OnInit {
 
     this.saving.set(true);
 
+    const payload = {
+      ...this.editingAbono,
+      supervisor: this.editingAbono.supervisor || '',
+      supervisorId: this.editingAbono.supervisorId || '',
+    };
+
     if (this.editingAbono._id) {
-      this.http.put<Abono>(`${this.API}/${this.editingAbono._id}`, this.editingAbono).subscribe({
+      this.http.put<Abono>(`${this.API}/${this.editingAbono._id}`, payload).subscribe({
         next: (abonoActualizado) => {
           this.saving.set(false);
           if (abonoActualizado && abonoActualizado._id) {
@@ -563,7 +604,7 @@ export class RelacionCuentas implements OnInit {
         },
       });
     } else {
-      this.http.post<Abono>(this.API, this.editingAbono).subscribe({
+      this.http.post<Abono>(this.API, payload).subscribe({
         next: (abonoCreado) => {
           this.saving.set(false);
           if (abonoCreado && abonoCreado._id) {

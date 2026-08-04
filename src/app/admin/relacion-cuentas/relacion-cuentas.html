@@ -114,6 +114,8 @@
                 <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
               } @else if (col.key === 'status') {
                 <td>{{ abono.status }}</td>
+              } @else if (col.key === 'supervisor') {
+                <td>{{ abono.supervisor || '-' }}</td>
               } @else {
                 <td>{{ getValorAbono(abono, col.key) }}</td>
               }
@@ -273,6 +275,19 @@
               <option value="Pendiente">Pendiente</option>
               <option value="Pagado">Pagado</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label>Supervisor</label>
+            <input type="text" [value]="editingAbono!.supervisor || ''" (input)="onSupervisorSearch($event.target.value)" placeholder="Buscar supervisor..." autocomplete="off">
+            @if (supervisorSearchResults().length > 0) {
+              <div class="autocomplete-dropdown">
+                @for (persona of supervisorSearchResults(); track persona._id) {
+                  <div class="autocomplete-item" (click)="seleccionarSupervisor(persona)">
+                    {{ persona.nombre }} - {{ persona.cedula }}
+                  </div>
+                }
+              </div>
+            }
           </div>
         </div>
         <div class="modal-actions">

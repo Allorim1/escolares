@@ -602,6 +602,35 @@
   font-size: 13px;
 }
 
+.comisiones-card {
+  grid-column: span 2;
+}
+
+.comisiones-card .totales-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.comisiones-card .total-cantidad {
+  color: #666;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.total-resumen {
+  border-top: 2px solid #1d63c1;
+  padding-top: 10px;
+}
+
+.total-resumen .total-label {
+  color: #1d63c1;
+  font-weight: 600;
+}
+
+.total-resumen .total-value {
+  color: #1d63c1;
+  font-size: 16px;
+}
+
 .autocomplete-dropdown {
   position: absolute;
   background: white;

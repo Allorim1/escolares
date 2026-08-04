@@ -160,7 +160,6 @@
         <div class="totales-card">
           <h3>Totales Actuales</h3>
           <div class="totales-grid">
-
             <div class="total-item">
               <span class="total-label">Diferencia $</span>
               <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
@@ -172,6 +171,27 @@
             <div class="total-item">
               <span class="total-label">Restante %</span>
               <span class="total-value">{{ totales().decrecimientoPorcentaje.toFixed(2) }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="totales-card comisiones-card">
+          <h3>Comisiones</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Comisión No Asignada</span>
+              <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
+            </div>
+            @for (comision of comisiones().comisionesPorSupervisor; track comision.supervisorId) {
+              <div class="total-item">
+                <span class="total-label">{{ comision.supervisor }}</span>
+                <span class="total-value">{{ formatMonto(comision.monto) }}</span>
+                <span class="total-cantidad">{{ comision.cantidad }} relaciones</span>
+              </div>
+            }
+            <div class="total-item total-resumen">
+              <span class="total-label">Total Comisiones</span>
+              <span class="total-value">{{ formatMonto(comisiones().total) }}</span>
             </div>
           </div>
         </div>

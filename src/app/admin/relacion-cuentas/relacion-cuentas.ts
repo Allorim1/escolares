@@ -163,6 +163,9 @@ export class RelacionCuentas implements OnInit {
   testWhatsappTelefono = signal('');
   testWhatsappMensaje = signal('Hola, te escribimos por tu relación de cuentas. Por favor, comunícate con nosotros.');
 
+  comisiones = signal<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number; total: number }>({ comisionesPorSupervisor: [], comisionNoAsignada: 0, total: 0 });
+  loadingComisiones = signal(false);
+
   supervisorSearch = signal('');
   supervisorSearchResults = signal<Abono[]>([]);
 
@@ -206,6 +209,27 @@ export class RelacionCuentas implements OnInit {
     this.loadAbonos(true);
     this.loadTasaActual();
     this.loadColumnasVisibles();
+    this.loadComisiones();
+  }
+
+  loadComisiones() {
+    this.loadingComisiones.set(true);
+    this.http.get<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number }>('/api/abonos-polar/comisiones').subscribe({
+      next: (data) => {
+        const comisionesPorSupervisor = data.comisionesPorSupervisor || [];
+        const comisionNoAsignada = data.comisionNoAsignada || 0;
+        const total = comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + comisionNoAsignada;
+        this.comisiones.set({
+          comisionesPorSupervisor,
+          comisionNoAsignada,
+          total,
+        });
+        this.loadingComisiones.set(false);
+      },
+      error: () => {
+        this.loadingComisiones.set(false);
+      },
+    });
   }
 
   loadColumnasVisibles() {

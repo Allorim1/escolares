@@ -93,7 +93,7 @@
       </thead>
       <tbody>
         @for (abono of abonosPaginados(); track abono._id) {
-          <tr (click)="abrirValuacion(abono)" style="cursor: pointer;">
+          <tr (click)="abrirModalAbonos(abono)" style="cursor: pointer;">
             @for (col of columnasVisibles(); track col.key) {
               @if (col.key === 'fecha') {
                 <td>{{ formatFecha(abono.fecha) }}</td>
@@ -111,12 +111,8 @@
                 <td>{{ abono.nFact ? (+abono.nFact) + '' : '' }}</td>
               } @else if (col.key === 'montoFactura') {
                 <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
-              } @else if (col.key === 'deuda') {
-                <td class="monto">{{ formatMonto(abono.deuda ?? 0) }}</td>
-              } @else if (col.key === 'divisaFactura') {
-                <td class="monto">{{ formatMonto((abono.montoFactura && abono.tasa ? abono.montoFactura / abono.tasa : 0)) }}</td>
               } @else if (col.key === 'iva') {
-                <td class="monto">{{ formatMonto(abono.iva ?? 0) }}</td>
+                <td class="monto" [class.iva-pagado]="abono.ivaPagado" [class.iva-pendiente]="!abono.ivaPagado">{{ formatMonto(abono.iva ?? 0) }}</td>
               } @else if (col.key === 'diferencia') {
                 <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
               } @else if (col.key === 'divisa') {
@@ -154,12 +150,16 @@
               <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Deuda</span>
-              <span class="total-value">{{ formatMonto(totales().deuda) }}</span>
+              <span class="total-label">Abonos</span>
+              <span class="total-value">{{ formatMonto(totales().abonos) }}</span>
             </div>
             <div class="total-item">
               <span class="total-label">Iva</span>
               <span class="total-value">{{ formatMonto(totales().iva) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Pago Parcial</span>
+              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
             </div>
             <div class="total-item">
               <span class="total-label">Diferencia Bs</span>
@@ -282,8 +282,20 @@
             <input type="text" [value]="formatearMontoInput(editingAbono!.montoFactura)" (input)="actualizarMonto($event, 'montoFactura')" (focus)="onMontoFocus($event)" enterFocusNext>
           </div>
           <div class="form-group">
-            <label>Deuda</label>
-            <input type="text" [value]="formatearMontoInput(editingAbono!.deuda ?? 0)" (input)="actualizarDeuda($event)" (focus)="onMontoFocus($event)" enterFocusNext>
+            <label>Abonos</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.abonos ?? 0)" (input)="actualizarAbonos($event)" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IVA</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.iva ?? 0)" (input)="actualizarMonto($event, 'iva')" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>IVA Pagado</label>
+            <span class="switch" [class.active]="editingAbono!.ivaPagado" (click)="toggleIvaPagadoModal()">
+              <span class="switch-thumb"></span>
+            </span>
           </div>
         </div>
         <div class="form-row">
@@ -462,6 +474,44 @@
           <button type="submit" class="btn-save">Enviar Test</button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+@if (showModalAbonos() && abonoAbonos) {
+  <div class="modal-overlay" (click)="cerrarModalAbonos()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Abonos de {{ abonoAbonos.nombre }}</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalAbonos()">✕</button>
+      </div>
+      <div class="abonos-detalle">
+        <div class="abono-info">
+          <div class="info-item">
+            <span class="info-label">Monto Factura:</span>
+            <span class="info-value">{{ formatMonto(abonoAbonos.montoFactura ?? 0) }} Bs</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Abonos:</span>
+            <span class="info-value">{{ formatMonto(abonoAbonos.abonos ?? 0) }} Bs</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">IVA:</span>
+            <span class="info-value" [class.iva-pagado]="abonoAbonos.ivaPagado" [class.iva-pendiente]="!abonoAbonos.ivaPagado">{{ formatMonto(abonoAbonos.iva ?? 0) }} Bs</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Diferencia Bs:</span>
+            <span class="info-value">{{ formatMonto(abonoAbonos.diferencia ?? 0) }} Bs</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Diferencia $:</span>
+            <span class="info-value">{{ abonoAbonos.divisa?.toFixed(2) ?? '0.00' }} $</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModalAbonos()">Cerrar</button>
+      </div>
     </div>
   </div>
 }

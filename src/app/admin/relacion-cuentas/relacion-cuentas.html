@@ -25,6 +25,10 @@
 
   <div class="filtros">
     <div class="filtro-group">
+      <label>Nombre:</label>
+      <input type="text" [ngModel]="filtros().nombre" (ngModelChange)="onNombreFilterChange($event)" placeholder="Buscar por nombre">
+    </div>
+    <div class="filtro-group">
       <label>Empresa:</label>
       <select [ngModel]="filtros().empresa" (ngModelChange)="onEmpresaFilterChange($event)">
         <option value="">Todas</option>

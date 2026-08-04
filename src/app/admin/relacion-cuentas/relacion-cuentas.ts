@@ -75,6 +75,10 @@ export class RelacionCuentas implements OnInit {
       if (f.status) {
         passes = passes && a.status === f.status;
       }
+      if (f.nombre) {
+        const nombreLower = f.nombre.toLowerCase();
+        passes = passes && (a.nombre || '').toLowerCase().includes(nombreLower);
+      }
       return passes;
     });
   });
@@ -160,6 +164,7 @@ export class RelacionCuentas implements OnInit {
   loadingTasaActual = signal(false);
 
   filtros = signal({
+    nombre: '',
     empresa: '',
     planta: '',
     fechaDesde: '',
@@ -245,6 +250,11 @@ export class RelacionCuentas implements OnInit {
 
   onEmpresaChange() {
     this.filtros.update((f) => ({ ...f, planta: '' }));
+    this.paginaActual.set(1);
+  }
+
+  onNombreFilterChange(nombre: string) {
+    this.filtros.update((f) => ({ ...f, nombre }));
     this.paginaActual.set(1);
   }
 

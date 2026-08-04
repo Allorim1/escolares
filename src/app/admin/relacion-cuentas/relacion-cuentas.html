@@ -63,6 +63,15 @@
       </select>
     </div>
     <div class="filtro-group">
+      <label>Supervisor:</label>
+      <select [ngModel]="filtros().supervisor" (ngModelChange)="onSupervisorFilterChange($event)">
+        <option value="">Todos</option>
+        @for (supervisor of supervisoresUnicos(); track supervisor) {
+          <option [value]="supervisor">{{ supervisor }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
       <label>Reporte:</label>
       <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
       <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>

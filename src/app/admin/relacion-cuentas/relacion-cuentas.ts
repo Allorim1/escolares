@@ -58,6 +58,18 @@ export class RelacionCuentas implements OnInit {
     return empresa?.plantas || [];
   });
 
+  supervisoresUnicos = computed(() => {
+    const lista = this.abonos();
+    const mapa = new Map<string, string>();
+    for (const abono of lista) {
+      const nombre = (abono.supervisor || '').trim();
+      if (nombre && !mapa.has(nombre)) {
+        mapa.set(nombre, nombre);
+      }
+    }
+    return Array.from(mapa.keys()).sort();
+  });
+
   abonosFiltrados = computed(() => {
     const f = this.filtros();
     return this.abonos().filter((a) => {
@@ -80,6 +92,9 @@ export class RelacionCuentas implements OnInit {
       if (f.nombre) {
         const nombreLower = f.nombre.toLowerCase();
         passes = passes && (a.nombre || '').toLowerCase().includes(nombreLower);
+      }
+      if (f.supervisor) {
+        passes = passes && (a.supervisor || '') === f.supervisor;
       }
       return passes;
     });
@@ -179,6 +194,7 @@ export class RelacionCuentas implements OnInit {
     fechaDesde: '',
     fechaHasta: '',
     status: '',
+    supervisor: '',
   });
 
   mostrarEmpresaPdf = signal(false);
@@ -305,6 +321,11 @@ export class RelacionCuentas implements OnInit {
 
   onStatusFilterChange(status: string) {
     this.filtros.update((f) => ({ ...f, status }));
+    this.paginaActual.set(1);
+  }
+
+  onSupervisorFilterChange(supervisor: string) {
+    this.filtros.update((f) => ({ ...f, supervisor }));
     this.paginaActual.set(1);
   }
 

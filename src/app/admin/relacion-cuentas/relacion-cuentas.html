@@ -111,6 +111,8 @@
                 <td>{{ abono.nFact ? (+abono.nFact) + '' : '' }}</td>
               } @else if (col.key === 'montoFactura') {
                 <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+              } @else if (col.key === 'deuda') {
+                <td class="monto">{{ formatMonto(abono.deuda ?? 0) }}</td>
               } @else if (col.key === 'divisaFactura') {
                 <td class="monto">{{ formatMonto((abono.montoFactura && abono.tasa ? abono.montoFactura / abono.tasa : 0)) }}</td>
               } @else if (col.key === 'iva') {
@@ -150,6 +152,10 @@
             <div class="total-item">
               <span class="total-label">Monto Fact. Bs</span>
               <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Deuda</span>
+              <span class="total-value">{{ formatMonto(totales().deuda) }}</span>
             </div>
             <div class="total-item">
               <span class="total-label">Iva</span>
@@ -274,6 +280,10 @@
           <div class="form-group">
             <label>Monto Factura</label>
             <input type="text" [value]="formatearMontoInput(editingAbono!.montoFactura)" (input)="actualizarMonto($event, 'montoFactura')" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Deuda</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.deuda ?? 0)" (input)="actualizarDeuda($event)" (focus)="onMontoFocus($event)" enterFocusNext>
           </div>
         </div>
         <div class="form-row">

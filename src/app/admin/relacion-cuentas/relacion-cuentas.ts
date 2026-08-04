@@ -23,6 +23,7 @@ interface Abono {
   telefono: string;
   nFact: string;
   montoFactura?: number;
+  deuda?: number;
   iva?: number;
   diferencia?: number;
   tasa?: number;
@@ -105,6 +106,7 @@ export class RelacionCuentas implements OnInit {
     const diferencia = datos.reduce((sum, a) => sum + (a.diferencia ?? 0), 0);
     const divisa = datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0);
     const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
+    const deuda = datos.reduce((sum, a) => sum + (a.deuda ?? 0), 0);
     const tasaActual = this.tasaActual();
     const diferenciaEnDivisa = tasaActual > 0 ? diferencia / tasaActual : 0;
     const porcentajeCambio = diferenciaEnDivisa > 0 ? ((divisa - diferenciaEnDivisa) / diferenciaEnDivisa) * 100 : 0;
@@ -113,6 +115,7 @@ export class RelacionCuentas implements OnInit {
     const decrecimientoPorcentaje = diferenciaEnDivisa > 0 ? (decrecimientoMonto / diferenciaEnDivisa) * 100 : 0;
     return {
       montoFactura,
+      deuda,
       iva: datos.reduce((sum, a) => sum + (a.iva ?? 0), 0),
       diferencia,
       divisa,
@@ -142,6 +145,7 @@ export class RelacionCuentas implements OnInit {
     { key: 'cedula', label: 'Cédula' },
     { key: 'nFact', label: 'N. Fact' },
     { key: 'montoFactura', label: 'Monto Fact.\nBs' },
+    { key: 'deuda', label: 'Deuda' },
     { key: 'divisaFactura', label: 'Monto Fact.\n$' },
     { key: 'iva', label: 'Iva' },
     { key: 'diferencia', label: 'Diferencia\nBs' },
@@ -494,6 +498,7 @@ export class RelacionCuentas implements OnInit {
             fecha: abonoActualizado.fecha ? new Date(abonoActualizado.fecha).toISOString().split('T')[0] : '',
             empresa: abonoActualizado.empresa || '',
             montoFactura: abonoActualizado.montoFactura ?? 0,
+            deuda: abonoActualizado.deuda ?? abonoActualizado.montoFactura ?? 0,
             iva: abonoActualizado.iva ?? 0,
             diferencia: abonoActualizado.diferencia ?? 0,
             tasa: abonoActualizado.tasa ?? 0,
@@ -535,6 +540,7 @@ export class RelacionCuentas implements OnInit {
         telefono: '',
         nFact: '',
         montoFactura: 0,
+        deuda: 0,
         iva: 0,
         diferencia: 0,
         tasa: 0,
@@ -587,6 +593,18 @@ export class RelacionCuentas implements OnInit {
     } else if (campo === 'tasa') {
       this.calcularDivisa();
     }
+
+    if (campo === 'montoFactura' && !this.editingAbono._id) {
+      this.editingAbono.deuda = valor;
+    }
+  }
+
+  actualizarDeuda(event: Event) {
+    if (!this.editingAbono) return;
+    const input = event.target as HTMLInputElement;
+    const valor = this.parsearMontoInput(input.value);
+    this.editingAbono.deuda = valor;
+    input.value = this.formatearMontoInput(valor);
   }
 
   calcularDerivados() {
@@ -840,7 +858,7 @@ export class RelacionCuentas implements OnInit {
     const body = datos.map((a: Abono) => {
       return columnas.map((c) => {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
-        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return this.formatMonto((a as any)[c.key]);
+        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa' || c.key === 'deuda') return this.formatMonto((a as any)[c.key]);
         if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
         if (c.key === 'divisaFactura') {
           const mf = (a as any).montoFactura;
@@ -914,7 +932,7 @@ export class RelacionCuentas implements OnInit {
       { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Teléfono', 'Cédula', 'N. Fact', 'Monto Fact. Bs', 'Monto Fact. $', 'Iva', 'Diferencia Bs', 'Diferencia $', 'Tasa', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Teléfono', 'Cédula', 'N. Fact', 'Monto Fact. Bs', 'Deuda', 'Monto Fact. $', 'Iva', 'Diferencia Bs', 'Diferencia $', 'Tasa', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -932,6 +950,7 @@ export class RelacionCuentas implements OnInit {
         this.formatCedula(a.cedula),
         a.nFact ? String(+a.nFact) : '',
         this.formatMonto(a.montoFactura ?? 0),
+        this.formatMonto(a.deuda ?? 0),
         this.formatMonto(a.montoFactura && a.tasa ? a.montoFactura / a.tasa : 0),
         this.formatMonto(a.iva ?? 0),
         this.formatMonto(a.diferencia ?? 0),

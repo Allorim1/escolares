@@ -117,6 +117,8 @@
                 <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
               } @else if (col.key === 'divisa') {
                 <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
+              } @else if (col.key === 'pagoParcial') {
+                <td class="monto">{{ formatMonto((abono.montoFactura ?? 0) - (abono.abonos ?? 0) - (abono.ivaPagado ? (abono.iva ?? 0) : 0)) }}</td>
               } @else if (col.key === 'tasa') {
                 <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
               } @else if (col.key === 'status') {

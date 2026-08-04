@@ -149,9 +149,7 @@ export class RelacionCuentas implements OnInit {
     { key: 'cedula', label: 'Cédula' },
     { key: 'nFact', label: 'N. Fact' },
     { key: 'montoFactura', label: 'Monto Fact.\nBs' },
-    { key: 'abonos', label: 'Abonos' },
     { key: 'iva', label: 'Iva' },
-    { key: 'ivaPagado', label: 'IVA\nPagado' },
     { key: 'diferencia', label: 'Diferencia\nBs' },
     { key: 'divisa', label: 'Diferencia\n$' },
     { key: 'pagoParcial', label: 'Pago\nParcial' },
@@ -913,8 +911,14 @@ export class RelacionCuentas implements OnInit {
     const body = datos.map((a: Abono) => {
       return columnas.map((c) => {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
-        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa' || c.key === 'pagoParcial') return this.formatMonto((a as any)[c.key]);
-        if (c.key === 'abonos') return this.formatMonto((a as any).abonos ?? 0);
+        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return this.formatMonto((a as any)[c.key]);
+        if (c.key === 'pagoParcial') {
+          const mf = (a as any).montoFactura || 0;
+          const ab = (a as any).abonos || 0;
+          const iv = (a as any).iva || 0;
+          const ivPag = (a as any).ivaPagado ? iv : 0;
+          return this.formatMonto(mf - ab - ivPag);
+        }
         if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
         if (c.key === 'divisaFactura') {
           const mf = (a as any).montoFactura;
@@ -981,7 +985,6 @@ export class RelacionCuentas implements OnInit {
       { width: 18 },
       { width: 15 },
       { width: 20 },
-      { width: 15 },
       { width: 18 },
       { width: 15 },
       { width: 18 },
@@ -991,7 +994,7 @@ export class RelacionCuentas implements OnInit {
       { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Teléfono', 'Cédula', 'N. Fact', 'Monto Fact. Bs', 'Abonos', 'Iva', 'IVA Pagado', 'Diferencia Bs', 'Diferencia $', 'Pago Parcial', 'Tasa', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Teléfono', 'Cédula', 'N. Fact', 'Monto Fact. Bs', 'Iva', 'Diferencia Bs', 'Diferencia $', 'Pago Parcial', 'Tasa', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -1009,9 +1012,7 @@ export class RelacionCuentas implements OnInit {
         this.formatCedula(a.cedula),
         a.nFact ? String(+a.nFact) : '',
         this.formatMonto(a.montoFactura ?? 0),
-        this.formatMonto(a.abonos ?? 0),
         this.formatMonto(a.iva ?? 0),
-        a.ivaPagado ? 'Pagado' : 'Pendiente',
         this.formatMonto(a.diferencia ?? 0),
         this.formatMonto(a.divisa ?? 0),
         this.formatMonto((a.montoFactura ?? 0) - (a.abonos ?? 0) - (a.ivaPagado ? (a.iva ?? 0) : 0)),

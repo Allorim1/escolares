@@ -24,6 +24,7 @@ interface Abono {
   nFact: string;
   montoFactura?: number;
   abonos?: number;
+  abonosPagos?: AbonoPago[];
   iva?: number;
   ivaPagado?: boolean;
   diferencia?: number;
@@ -32,6 +33,11 @@ interface Abono {
   status: string;
   supervisor?: string;
   supervisorId?: string;
+}
+
+interface AbonoPago {
+  fecha: string;
+  monto: number;
 }
 
 @Component({
@@ -175,6 +181,7 @@ export class RelacionCuentas implements OnInit {
 
   showModalAbonos = signal(false);
   abonoAbonos: Abono | null = null;
+  nuevoAbonoPago = signal<AbonoPago>({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
@@ -505,6 +512,7 @@ export class RelacionCuentas implements OnInit {
             empresa: abonoActualizado.empresa || '',
             montoFactura: abonoActualizado.montoFactura ?? 0,
             abonos: abonoActualizado.abonos ?? 0,
+            abonosPagos: abonoActualizado.abonosPagos && abonoActualizado.abonosPagos.length > 0 ? abonoActualizado.abonosPagos : (abonoActualizado.abonos ? [{ fecha: abonoActualizado.fecha || new Date().toISOString().split('T')[0], monto: abonoActualizado.abonos }] : []),
             iva: abonoActualizado.iva ?? 0,
             ivaPagado: abonoActualizado.ivaPagado || false,
             diferencia: abonoActualizado.diferencia ?? 0,
@@ -516,6 +524,7 @@ export class RelacionCuentas implements OnInit {
           if (abonoActualizado.empresa) {
             this.selectedEmpresaInModal.set(abonoActualizado.empresa);
           }
+          this.actualizarTotalAbonos();
           this.calcularPagoParcial();
           this.showModal.set(true);
         },
@@ -526,6 +535,7 @@ export class RelacionCuentas implements OnInit {
             empresa: abono.empresa || '',
             montoFactura: abono.montoFactura ?? 0,
             abonos: abono.abonos ?? 0,
+            abonosPagos: abono.abonosPagos && abono.abonosPagos.length > 0 ? abono.abonosPagos : (abono.abonos ? [{ fecha: abono.fecha || new Date().toISOString().split('T')[0], monto: abono.abonos }] : []),
             iva: abono.iva ?? 0,
             ivaPagado: abono.ivaPagado || false,
             diferencia: abono.diferencia ?? 0,
@@ -537,6 +547,7 @@ export class RelacionCuentas implements OnInit {
           if (abono.empresa) {
             this.selectedEmpresaInModal.set(abono.empresa);
           }
+          this.actualizarTotalAbonos();
           this.calcularPagoParcial();
           this.showModal.set(true);
         },
@@ -552,6 +563,7 @@ export class RelacionCuentas implements OnInit {
         nFact: '',
         montoFactura: 0,
         abonos: 0,
+        abonosPagos: [],
         iva: 0,
         ivaPagado: false,
         diferencia: 0,
@@ -561,6 +573,7 @@ export class RelacionCuentas implements OnInit {
         supervisor: '',
         supervisorId: '',
       };
+      this.nuevoAbonoPago.set({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
       this.showModal.set(true);
     }
   }
@@ -624,6 +637,38 @@ export class RelacionCuentas implements OnInit {
     this.editingAbono.abonos = valor;
     input.value = this.formatearMontoInput(valor);
     this.calcularPagoParcial();
+  }
+
+  actualizarNuevoAbono(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const valor = this.parsearMontoInput(input.value);
+    this.nuevoAbonoPago.update((pago) => ({ ...pago, monto: valor }));
+    input.value = this.formatearMontoInput(valor);
+  }
+
+  agregarAbonoPago() {
+    if (!this.editingAbono || !this.nuevoAbonoPago().monto) return;
+    const nuevoPago: AbonoPago = {
+      fecha: this.nuevoAbonoPago().fecha || new Date().toISOString().split('T')[0],
+      monto: this.nuevoAbonoPago().monto,
+    };
+    this.editingAbono.abonosPagos = [...(this.editingAbono.abonosPagos || []), nuevoPago];
+    this.nuevoAbonoPago.set({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
+    this.actualizarTotalAbonos();
+    this.calcularPagoParcial();
+  }
+
+  eliminarAbonoPago(index: number) {
+    if (!this.editingAbono || !this.editingAbono.abonosPagos) return;
+    this.editingAbono.abonosPagos = this.editingAbono.abonosPagos.filter((_, i) => i !== index);
+    this.actualizarTotalAbonos();
+    this.calcularPagoParcial();
+  }
+
+  actualizarTotalAbonos() {
+    if (!this.editingAbono) return;
+    const total = (this.editingAbono.abonosPagos || []).reduce((sum, p) => sum + p.monto, 0);
+    this.editingAbono.abonos = Number(total.toFixed(2));
   }
 
   toggleIvaPagadoModal() {

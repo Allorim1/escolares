@@ -735,3 +735,117 @@
   color: #333;
   font-size: 14px;
 }
+
+.abonos-pagos-lista {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e3e8ee;
+}
+
+.abonos-pagos-lista h3 {
+  font-size: 16px;
+  color: #1d63c1;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.abonos-pagos-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.abono-pago-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #1d63c1;
+}
+
+.abono-pago-fecha {
+  font-size: 13px;
+  color: #666;
+}
+
+.abono-pago-monto {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.sin-abonos {
+  color: #999;
+  font-style: italic;
+  font-size: 13px;
+  padding: 10px 0;
+}
+
+.abono-pago-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.abono-pago-form input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+}
+
+.abono-pago-form input[type="text"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  width: 100px;
+}
+
+.btn-add-abono {
+  padding: 8px 12px;
+  background: #1d63c1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.btn-add-abono:hover {
+  background: #1551a3;
+}
+
+.btn-add-abono:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-remove {
+  background: transparent;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.btn-remove:hover {
+  color: #a71d2a;
+}
+
+.abonos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}

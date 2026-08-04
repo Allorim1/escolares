@@ -283,10 +283,6 @@
             <label>Monto Factura</label>
             <input type="text" [value]="formatearMontoInput(editingAbono!.montoFactura)" (input)="actualizarMonto($event, 'montoFactura')" (focus)="onMontoFocus($event)" enterFocusNext>
           </div>
-          <div class="form-group">
-            <label>Abonos</label>
-            <input type="text" [value]="formatearMontoInput(editingAbono!.abonos ?? 0)" (input)="actualizarAbonos($event)" (focus)="onMontoFocus($event)" enterFocusNext>
-          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -298,6 +294,27 @@
             <span class="switch" [class.active]="editingAbono!.ivaPagado" (click)="toggleIvaPagadoModal()">
               <span class="switch-thumb"></span>
             </span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Abonos pagados</label>
+            @if (editingAbono!.abonosPagos && editingAbono!.abonosPagos.length > 0) {
+              <div class="abonos-lista">
+                @for (abonoPago of editingAbono!.abonosPagos; track $index) {
+                  <div class="abono-pago-item">
+                    <span class="abono-pago-fecha">{{ abonoPago.fecha | date:'dd/MM/yyyy' }}</span>
+                    <span class="abono-pago-monto">{{ formatMonto(abonoPago.monto) }}</span>
+                    <button type="button" class="btn-remove" (click)="eliminarAbonoPago($index)">✕</button>
+                  </div>
+                }
+              </div>
+            }
+            <div class="abono-pago-form">
+              <input type="date" [(ngModel)]="nuevoAbonoPago().fecha" name="nuevoAbonoFecha" enterFocusNext>
+              <input type="text" [value]="formatearMontoInput(nuevoAbonoPago().monto)" (input)="actualizarNuevoAbono($event)" (focus)="onMontoFocus($event)" placeholder="Monto" enterFocusNext>
+              <button type="button" class="btn-add-abono" (click)="agregarAbonoPago()">Agregar abono</button>
+            </div>
           </div>
         </div>
         <div class="form-row">
@@ -329,19 +346,21 @@
               <option value="Pagado">Pagado</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Supervisor</label>
-            <input type="text" [value]="editingAbono!.supervisor || ''" (input)="onSupervisorSearch($event.target.value)" placeholder="Buscar supervisor..." autocomplete="off">
-            @if (supervisorSearchResults().length > 0) {
-              <div class="autocomplete-dropdown">
-                @for (persona of supervisorSearchResults(); track persona._id) {
-                  <div class="autocomplete-item" (click)="seleccionarSupervisor(persona)">
-                    {{ persona.nombre }} - {{ persona.cedula }}
-                  </div>
-                }
-              </div>
-            }
-          </div>
+          @if (esRoot()) {
+            <div class="form-group">
+              <label>Supervisor</label>
+              <input type="text" [value]="editingAbono!.supervisor || ''" (input)="onSupervisorSearch($event.target.value)" placeholder="Buscar supervisor..." autocomplete="off">
+              @if (supervisorSearchResults().length > 0) {
+                <div class="autocomplete-dropdown">
+                  @for (persona of supervisorSearchResults(); track persona._id) {
+                    <div class="autocomplete-item" (click)="seleccionarSupervisor(persona)">
+                      {{ persona.nombre }} - {{ persona.cedula }}
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
@@ -494,7 +513,7 @@
             <span class="info-value">{{ formatMonto(abonoAbonos.montoFactura ?? 0) }} Bs</span>
           </div>
           <div class="info-item">
-            <span class="info-label">Abonos:</span>
+            <span class="info-label">Total Abonos:</span>
             <span class="info-value">{{ formatMonto(abonoAbonos.abonos ?? 0) }} Bs</span>
           </div>
           <div class="info-item">
@@ -509,6 +528,21 @@
             <span class="info-label">Diferencia $:</span>
             <span class="info-value">{{ abonoAbonos.divisa?.toFixed(2) ?? '0.00' }} $</span>
           </div>
+        </div>
+        <div class="abonos-pagos-lista">
+          <h3>Abonos pagados</h3>
+          @if (abonoAbonos.abonosPagos && abonoAbonos.abonosPagos.length > 0) {
+            <div class="abonos-pagos-items">
+              @for (pago of abonoAbonos.abonosPagos; track $index) {
+                <div class="abono-pago-item">
+                  <span class="abono-pago-fecha">{{ pago.fecha | date:'dd/MM/yyyy' }}</span>
+                  <span class="abono-pago-monto">{{ formatMonto(pago.monto) }} Bs</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="sin-abonos">No hay abonos registrados</p>
+          }
         </div>
       </div>
       <div class="modal-actions">

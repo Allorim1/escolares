@@ -767,7 +767,10 @@ export class RelacionCuentas implements OnInit {
         return;
       }
       const base64 = previews[index];
-      this.http.post<{ imagenes: string[] }>(`${this.API}/${this.editingAbono!._id}/imagenes`, { imagen: base64 }).subscribe({
+      const blob = this.dataURLToBlob(base64);
+      const formData = new FormData();
+      formData.append('imagen', blob, `imagen-${Date.now()}.jpg`);
+      this.http.post<{ imagenes: string[] }>(`${this.API}/${this.editingAbono!._id}/imagenes`, formData).subscribe({
         next: () => {
           index++;
           subirSiguiente();
@@ -779,6 +782,18 @@ export class RelacionCuentas implements OnInit {
       });
     };
     subirSiguiente();
+  }
+
+  dataURLToBlob(dataURL: string): Blob {
+    const parts = dataURL.split(',');
+    const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bstr = atob(parts[1]);
+    const n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    for (let i = 0; i < n; i++) {
+      u8arr[i] = bstr.charCodeAt(i);
+    }
+    return new Blob([u8arr], { type: mime });
   }
 
   eliminarImagen(index: number) {

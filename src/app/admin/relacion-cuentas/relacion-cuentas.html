@@ -112,7 +112,7 @@
               } @else if (col.key === 'montoFactura') {
                 <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
               } @else if (col.key === 'iva') {
-                <td class="monto" [class.iva-pagado]="abono.ivaPagado" [class.iva-pendiente]="!abono.ivaPagado">{{ formatMonto(abono.iva ?? 0) }}</td>
+                <td class="monto iva-toggle" [class.iva-pagado]="abono.ivaPagado" [class.iva-pendiente]="!abono.ivaPagado" (click)="toggleIvaPagado(abono); $event.stopPropagation()">{{ formatMonto(abono.iva ?? 0) }}</td>
               } @else if (col.key === 'diferencia') {
                 <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
               } @else if (col.key === 'divisa') {

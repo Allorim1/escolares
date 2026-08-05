@@ -377,31 +377,44 @@
         <div class="form-row">
           <div class="form-group">
             <label>Imágenes</label>
-            <div class="imagenes-upload" (dragover)="onDragOver($event)" (drop)="onDropImagen($event)">
-              <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" hidden>
-              <button type="button" class="btn-secondary" (click)="fileInputRef.click()">📁 Seleccionar imagen</button>
-              @if (imagenesPreview().length > 0) {
-                <div class="imagenes-preview">
-                  @for (item of imagenesPreview(); track $index) {
-                    <div class="imagen-preview-item">
-                      <img [src]="item.url" alt="Preview">
-                      <button type="button" class="btn-remove-imagen" (click)="imagenesPreview.update(lista => lista.filter((_, i) => i !== $index))">✕</button>
-                    </div>
+            <div class="image-upload-section">
+              <div class="drop-zone" [class.drag-over]="false" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropImagen($event)">
+                @if (imagenesPreview().length > 0) {
+                  @for (url of imagenesPreview(); track $index) {
+                    <img [src]="url" alt="Preview" class="drop-preview-img" />
                   }
-                </div>
-              }
-            </div>
-            @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
-              <div class="imagenes-preview" style="margin-top: 10px;">
-                <label>Imágenes guardadas:</label>
-                @for (img of editingAbono!.imagenes; track $index) {
-                  <div class="imagen-preview-item">
-                    <img [src]="img" alt="Imagen">
-                    <button type="button" class="btn-remove-imagen" (click)="eliminarImagen($index)">✕</button>
+                } @else {
+                  <div class="drop-zone-content">
+                    <span class="drop-icon">🖼️</span>
+                    <span class="drop-text">Arrastra una imagen aquí</span>
+                    <span class="drop-subtext">o</span>
                   </div>
                 }
               </div>
-            }
+              <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" class="file-input" />
+              <button type="button" class="upload-btn" (click)="fileInputRef.click()" [disabled]="uploadingImagen()">
+                📁 Seleccionar imagen
+              </button>
+              @if (uploadingImagen()) {
+                <div class="upload-status">Subiendo imagen... espera un momento.</div>
+              }
+              @if (uploadErrorImagen()) {
+                <div class="upload-error">{{ uploadErrorImagen() }}</div>
+              }
+              @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
+                <div class="additional-images-section">
+                  <label>Imágenes guardadas:</label>
+                  <div class="additional-images-grid">
+                    @for (img of editingAbono!.imagenes; track $index) {
+                      <div class="additional-image-item">
+                        <img [src]="img" alt="Imagen" />
+                        <button type="button" class="remove-img-btn" (click)="eliminarImagen($index)">&times;</button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
           </div>
         </div>
         <div class="modal-actions">

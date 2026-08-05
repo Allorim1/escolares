@@ -184,7 +184,9 @@ export class RelacionCuentas implements OnInit {
   showModalAbonos = signal(false);
   abonoAbonos: Abono | null = null;
   nuevoAbonoPago = signal<AbonoPago>({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
-  imagenesPreview = signal<{ url: string; file: File }[]>([]);
+  uploadingImagen = signal(false);
+  uploadErrorImagen = signal<string | null>(null);
+  imagenesPreview = signal<string[]>([]);
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
@@ -727,52 +729,63 @@ export class RelacionCuentas implements OnInit {
     event.stopPropagation();
   }
 
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   onDropImagen(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      this.agregarPreviewYSubir(files[0]);
+    if (files && files.length > 0 && !this.uploadingImagen()) {
+      this.subirImagen(files[0]);
     }
   }
 
   onFileImagenChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    console.log('onFileImagenChange', file?.name, file?.type, file?.size);
-    if (file) {
-      this.agregarPreviewYSubir(file);
+    if (file && !this.uploadingImagen()) {
+      this.subirImagen(file);
     }
     input.value = '';
   }
 
-  agregarPreviewYSubir(file: File) {
+  subirImagen(file: File) {
     if (!this.editingAbono || !this.editingAbono._id) return;
-    console.log('agregarPreviewYSubir', file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const url = reader.result as string;
-      console.log('FileReader cargado, url length', url?.length);
-      this.imagenesPreview.update((lista) => [...lista, { url, file }]);
-      this.subirImagenDirecta(file);
-    };
-    reader.onerror = (err) => {
-      console.error('FileReader error', err);
-    };
-    reader.readAsDataURL(file);
-  }
+    if (!file.type.startsWith('image/')) {
+      this.uploadErrorImagen.set('Por favor selecciona un archivo de imagen válido.');
+      return;
+    }
+    this.uploadErrorImagen.set(null);
+    const previewUrl = URL.createObjectURL(file);
+    this.imagenesPreview.update((lista) => [...lista, previewUrl]);
+    this.uploadingImagen.set(true);
 
-  subirImagenDirecta(file: File) {
-    if (!this.editingAbono || !this.editingAbono._id) return;
     const formData = new FormData();
     formData.append('imagen', file, file.name);
+
     this.http.post<{ imagenes: string[] }>(`${this.API}/${this.editingAbono._id}/imagenes`, formData).subscribe({
       next: (res) => {
-        if (this.editingAbono) {
-          this.editingAbono.imagenes = res.imagenes || [];
+        URL.revokeObjectURL(previewUrl);
+        if (res.imagenes && res.imagenes.length > 0) {
+          const nuevaUrl = res.imagenes[res.imagenes.length - 1];
+          this.imagenesPreview.update((lista) => lista.map((url) => url === previewUrl ? nuevaUrl : url));
+          if (this.editingAbono) {
+            this.editingAbono.imagenes = res.imagenes;
+          }
+        } else {
+          this.imagenesPreview.update((lista) => lista.filter((url) => url !== previewUrl));
         }
+        this.uploadingImagen.set(false);
       },
-      error: () => {},
+      error: () => {
+        URL.revokeObjectURL(previewUrl);
+        this.imagenesPreview.update((lista) => lista.filter((url) => url !== previewUrl));
+        this.uploadingImagen.set(false);
+        this.uploadErrorImagen.set('Error al subir la imagen');
+      },
     });
   }
 

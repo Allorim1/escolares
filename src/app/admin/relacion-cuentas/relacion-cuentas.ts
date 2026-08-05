@@ -791,7 +791,10 @@ export class RelacionCuentas implements OnInit {
 
   eliminarImagen(index: number) {
     if (!this.editingAbono || !this.editingAbono._id) return;
-    this.http.delete<{ imagenes: string[] }>(`${this.API}/${this.editingAbono._id}/imagenes/${index}`).subscribe({
+    const imagenes = this.editingAbono.imagenes || [];
+    const url = imagenes[index];
+    if (!url) return;
+    this.http.delete<{ imagenes: string[] }>(`${this.API}/${this.editingAbono._id}/imagenes?url=${encodeURIComponent(url)}`).subscribe({
       next: (res) => {
         if (this.editingAbono) {
           this.editingAbono.imagenes = res.imagenes || [];

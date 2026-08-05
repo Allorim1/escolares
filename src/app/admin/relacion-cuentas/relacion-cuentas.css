@@ -849,3 +849,60 @@
   max-height: 150px;
   overflow-y: auto;
 }
+
+.imagenes-upload {
+  border: 2px dashed #1d63c1;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  background: #f8f9fa;
+  transition: background 0.2s;
+}
+
+.imagenes-upload:hover {
+  background: #eef2f7;
+}
+
+.imagenes-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.imagen-preview-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+
+.imagen-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-remove-imagen {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(220, 53, 69, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.btn-remove-imagen:hover {
+  background: #a71d2a;
+}

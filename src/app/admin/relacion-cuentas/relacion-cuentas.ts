@@ -34,6 +34,7 @@ interface Abono {
   supervisor?: string;
   supervisorId?: string;
   comisionPorcentaje?: number;
+  imagenes?: string[];
 }
 
 interface AbonoPago {
@@ -718,6 +719,58 @@ export class RelacionCuentas implements OnInit {
         return { ...a, ivaPagado: nuevoIvaPagado, diferencia: Number((monto - abonos - ivaPagado).toFixed(2)) };
       })
     );
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onDropImagen(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.subirImagen(files[0]);
+    }
+  }
+
+  onFileImagenChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.subirImagen(file);
+    }
+    input.value = '';
+  }
+
+  subirImagen(file: File) {
+    if (!this.editingAbono || !this.editingAbono._id) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.http.post<{ imagenes: string[] }>(`${this.API}/${this.editingAbono!._id}/imagenes`, { imagen: base64 }).subscribe({
+        next: (res) => {
+          if (this.editingAbono) {
+            this.editingAbono.imagenes = res.imagenes || [];
+          }
+        },
+        error: () => {},
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  eliminarImagen(index: number) {
+    if (!this.editingAbono || !this.editingAbono._id) return;
+    this.http.delete<{ imagenes: string[] }>(`${this.API}/${this.editingAbono._id}/imagenes/${index}`).subscribe({
+      next: (res) => {
+        if (this.editingAbono) {
+          this.editingAbono.imagenes = res.imagenes || [];
+        }
+      },
+      error: () => {},
+    });
   }
 
   calcularPagoParcial() {

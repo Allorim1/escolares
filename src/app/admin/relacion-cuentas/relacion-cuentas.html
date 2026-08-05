@@ -203,7 +203,7 @@
           <div class="totales-grid">
             <div class="total-item">
               <span class="total-label">Comisión No Asignada</span>
-              <span class="total-value">{{ formatMonto(comisionNoAsignadaManual() ?? comisiones().comisionNoAsignada) }}</span>
+              <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
             </div>
             @for (comision of comisiones().comisionesPorSupervisor; track comision.supervisorId) {
               <div class="total-item">
@@ -373,6 +373,25 @@
               }
             </div>
           }
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Imágenes</label>
+            <div class="imagenes-upload" (dragover)="onDragOver($event)" (drop)="onDropImagen($event)">
+              <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" hidden>
+              <button type="button" class="btn-secondary" (click)="fileInputRef.click()">📁 Subir imagen</button>
+              @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
+                <div class="imagenes-preview">
+                  @for (img of editingAbono!.imagenes; track $index) {
+                    <div class="imagen-preview-item">
+                      <img [src]="img" alt="Imagen">
+                      <button type="button" class="btn-remove-imagen" (click)="eliminarImagen($index)">✕</button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
@@ -562,6 +581,18 @@
             <p class="sin-abonos">No hay abonos registrados</p>
           }
         </div>
+        @if (abonoAbonos.imagenes && abonoAbonos.imagenes.length > 0) {
+          <div class="abonos-pagos-lista">
+            <h3>Imágenes</h3>
+            <div class="imagenes-preview">
+              @for (img of abonoAbonos.imagenes; track $index) {
+                <div class="imagen-preview-item">
+                  <img [src]="img" alt="Imagen">
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
       <div class="modal-actions">
         <button type="button" class="btn-cancel" (click)="cerrarModalAbonos()">Cerrar</button>

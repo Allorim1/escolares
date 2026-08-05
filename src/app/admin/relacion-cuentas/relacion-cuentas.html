@@ -380,7 +380,6 @@
             <div class="imagenes-upload" (dragover)="onDragOver($event)" (drop)="onDropImagen($event)">
               <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" hidden>
               <button type="button" class="btn-secondary" (click)="fileInputRef.click()">📁 Seleccionar imagen</button>
-              <button type="button" class="btn-save" (click)="subirImagenesPreview()" [disabled]="imagenesPreview().length === 0">Subir imagen</button>
               @if (imagenesPreview().length > 0) {
                 <div class="imagenes-preview">
                   @for (item of imagenesPreview(); track $index) {

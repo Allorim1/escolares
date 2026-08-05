@@ -118,7 +118,7 @@
               } @else if (col.key === 'divisa') {
                 <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
               } @else if (col.key === 'pagoParcial') {
-                <td class="monto">{{ formatMonto((abono.montoFactura ?? 0) - (abono.abonos ?? 0) - (abono.ivaPagado ? (abono.iva ?? 0) : 0)) }}</td>
+                <td class="monto">{{ formatMonto(abono.abonos ?? 0) }}</td>
               } @else if (col.key === 'tasa') {
                 <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
               } @else if (col.key === 'status') {
@@ -359,6 +359,12 @@
                   }
                 </div>
               }
+              @if (editingAbono!.supervisor) {
+                <div class="form-group" style="margin-top: 8px;">
+                  <label>Comisión (%)</label>
+                  <input type="number" [(ngModel)]="editingAbono!.comisionPorcentaje" name="comisionPorcentaje" min="0" max="100" step="0.01" enterFocusNext>
+                </div>
+              }
             </div>
           }
         </div>
@@ -520,6 +526,12 @@
             <span class="info-label">IVA:</span>
             <span class="info-value" [class.iva-pagado]="abonoAbonos.ivaPagado" [class.iva-pendiente]="!abonoAbonos.ivaPagado">{{ formatMonto(abonoAbonos.iva ?? 0) }} Bs</span>
           </div>
+          @if (abonoAbonos.supervisor) {
+            <div class="info-item">
+              <span class="info-label">Comisión:</span>
+              <span class="info-value">{{ abonoAbonos.comisionPorcentaje ?? 0 }}%</span>
+            </div>
+          }
           <div class="info-item">
             <span class="info-label">Diferencia Bs:</span>
             <span class="info-value">{{ formatMonto(abonoAbonos.diferencia ?? 0) }} Bs</span>

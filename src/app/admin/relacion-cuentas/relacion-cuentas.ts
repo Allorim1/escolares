@@ -33,6 +33,7 @@ interface Abono {
   status: string;
   supervisor?: string;
   supervisorId?: string;
+  comisionPorcentaje?: number;
 }
 
 interface AbonoPago {
@@ -110,12 +111,12 @@ export class RelacionCuentas implements OnInit {
 
   totales = computed(() => {
     const datos = this.abonosFiltrados();
-    const diferencia = datos.reduce((sum, a) => sum + (a.diferencia ?? 0), 0);
-    const divisa = datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0);
     const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
     const abonos = datos.reduce((sum, a) => sum + (a.abonos ?? 0), 0);
     const iva = datos.reduce((sum, a) => sum + (a.iva ?? 0), 0);
-    const pagoParcial = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0) - (a.abonos ?? 0) - (a.ivaPagado ? (a.iva ?? 0) : 0), 0);
+    const pagoParcial = abonos;
+    const diferencia = montoFactura - (datos.reduce((sum, a) => sum + (a.ivaPagado ? (a.iva ?? 0) : 0), 0)) - pagoParcial;
+    const divisa = datos.reduce((sum, a) => sum + (a.divisa ?? 0), 0);
     const tasaActual = this.tasaActual();
     const diferenciaEnDivisa = tasaActual > 0 ? diferencia / tasaActual : 0;
     const porcentajeCambio = diferenciaEnDivisa > 0 ? ((divisa - diferenciaEnDivisa) / diferenciaEnDivisa) * 100 : 0;
@@ -520,6 +521,7 @@ export class RelacionCuentas implements OnInit {
             divisa: abonoActualizado.divisa ?? 0,
             supervisor: abonoActualizado.supervisor || '',
             supervisorId: abonoActualizado.supervisorId || '',
+            comisionPorcentaje: abonoActualizado.comisionPorcentaje ?? 0,
           };
           if (abonoActualizado.empresa) {
             this.selectedEmpresaInModal.set(abonoActualizado.empresa);
@@ -543,6 +545,7 @@ export class RelacionCuentas implements OnInit {
             divisa: abono.divisa ?? 0,
             supervisor: abono.supervisor || '',
             supervisorId: abono.supervisorId || '',
+            comisionPorcentaje: abono.comisionPorcentaje ?? 0,
           };
           if (abono.empresa) {
             this.selectedEmpresaInModal.set(abono.empresa);
@@ -572,6 +575,7 @@ export class RelacionCuentas implements OnInit {
         status: '',
         supervisor: '',
         supervisorId: '',
+        comisionPorcentaje: 0,
       };
       this.nuevoAbonoPago.set({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
       this.showModal.set(true);
@@ -678,8 +682,17 @@ export class RelacionCuentas implements OnInit {
   }
 
   toggleIvaPagado(abono: Abono) {
-    abono.ivaPagado = !abono.ivaPagado;
-    this.calcularPagoParcialListado();
+    this.abonos.update((lista) =>
+      lista.map((a) => {
+        if (a._id !== abono._id) return a;
+        const nuevoIvaPagado = !a.ivaPagado;
+        const monto = Number(a.montoFactura) || 0;
+        const abonos = Number(a.abonos) || 0;
+        const iva = Number(a.iva) || 0;
+        const ivaPagado = nuevoIvaPagado ? iva : 0;
+        return { ...a, ivaPagado: nuevoIvaPagado, diferencia: Number((monto - abonos - ivaPagado).toFixed(2)) };
+      })
+    );
   }
 
   calcularPagoParcial() {
@@ -690,19 +703,6 @@ export class RelacionCuentas implements OnInit {
     const ivaPagado = this.editingAbono.ivaPagado ? iva : 0;
     this.editingAbono.diferencia = Number((monto - abonos - ivaPagado).toFixed(2));
     this.calcularDivisa();
-  }
-
-  calcularPagoParcialListado() {
-    this.abonos.update((lista) => {
-      return lista.map((a) => {
-        const monto = Number(a.montoFactura) || 0;
-        const abonos = Number(a.abonos) || 0;
-        const iva = Number(a.iva) || 0;
-        const ivaPagado = a.ivaPagado ? iva : 0;
-        a.diferencia = Number((monto - abonos - ivaPagado).toFixed(2));
-        return a;
-      });
-    });
   }
 
   calcularDerivados() {
@@ -958,11 +958,7 @@ export class RelacionCuentas implements OnInit {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
         if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return this.formatMonto((a as any)[c.key]);
         if (c.key === 'pagoParcial') {
-          const mf = (a as any).montoFactura || 0;
-          const ab = (a as any).abonos || 0;
-          const iv = (a as any).iva || 0;
-          const ivPag = (a as any).ivaPagado ? iv : 0;
-          return this.formatMonto(mf - ab - ivPag);
+          return this.formatMonto((a as any).abonos || 0);
         }
         if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
         if (c.key === 'divisaFactura') {
@@ -1060,7 +1056,7 @@ export class RelacionCuentas implements OnInit {
         this.formatMonto(a.iva ?? 0),
         this.formatMonto(a.diferencia ?? 0),
         this.formatMonto(a.divisa ?? 0),
-        this.formatMonto((a.montoFactura ?? 0) - (a.abonos ?? 0) - (a.ivaPagado ? (a.iva ?? 0) : 0)),
+        this.formatMonto(a.abonos ?? 0),
         a.tasa?.toFixed(2) ?? '0.00',
         a.status,
       ]);

@@ -380,27 +380,18 @@
             <div class="imagenes-upload" (dragover)="onDragOver($event)" (drop)="onDropImagen($event)">
               <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" hidden>
               <button type="button" class="btn-secondary" (click)="fileInputRef.click()">📁 Seleccionar imagen</button>
-              <button type="button" class="btn-save" (click)="subirImagenesPreview()" [disabled]="imagenesPreview().length === 0">Subir imagen</button>
-              @if (imagenesPreview().length > 0) {
-                <div class="imagenes-preview">
-                  @for (img of imagenesPreview(); track $index) {
-                    <div class="imagen-preview-item">
-                      <img [src]="img" alt="Preview">
-                      <button type="button" class="btn-remove-imagen" (click)="imagenesPreview.update(lista => lista.filter((_, i) => i !== $index))">✕</button>
-                    </div>
-                  }
-                </div>
-              }
             </div>
             @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
               <div class="imagenes-preview" style="margin-top: 10px;">
                 <label>Imágenes guardadas:</label>
-                @for (img of editingAbono!.imagenes; track $index) {
-                  <div class="imagen-preview-item">
-                    <img [src]="img" alt="Imagen">
-                    <button type="button" class="btn-remove-imagen" (click)="eliminarImagen($index)">✕</button>
-                  </div>
-                }
+                <div class="imagenes-preview">
+                  @for (img of editingAbono!.imagenes; track $index) {
+                    <div class="imagen-preview-item">
+                      <img [src]="img" alt="Imagen">
+                      <button type="button" class="btn-remove-imagen" (click)="eliminarImagen($index)">✕</button>
+                    </div>
+                  }
+                </div>
               </div>
             }
           </div>

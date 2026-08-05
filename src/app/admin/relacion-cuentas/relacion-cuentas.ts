@@ -184,6 +184,7 @@ export class RelacionCuentas implements OnInit {
   showModalAbonos = signal(false);
   abonoAbonos: Abono | null = null;
   nuevoAbonoPago = signal<AbonoPago>({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
+  imagenesPreview = signal<string[]>([]);
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
@@ -731,7 +732,7 @@ export class RelacionCuentas implements OnInit {
     event.stopPropagation();
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      this.subirImagen(files[0]);
+      this.agregarPreview(files[0]);
     }
   }
 
@@ -739,26 +740,45 @@ export class RelacionCuentas implements OnInit {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) {
-      this.subirImagen(file);
+      this.agregarPreview(file);
     }
     input.value = '';
   }
 
-  subirImagen(file: File) {
-    if (!this.editingAbono || !this.editingAbono._id) return;
+  agregarPreview(file: File) {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result as string;
-      this.http.post<{ imagenes: string[] }>(`${this.API}/${this.editingAbono!._id}/imagenes`, { imagen: base64 }).subscribe({
-        next: (res) => {
-          if (this.editingAbono) {
-            this.editingAbono.imagenes = res.imagenes || [];
-          }
-        },
-        error: () => {},
-      });
+      this.imagenesPreview.update((lista) => [...lista, base64]);
     };
     reader.readAsDataURL(file);
+  }
+
+  subirImagenesPreview() {
+    if (!this.editingAbono || !this.editingAbono._id) return;
+    const previews = this.imagenesPreview();
+    if (previews.length === 0) return;
+
+    let index = 0;
+    const subirSiguiente = () => {
+      if (index >= previews.length) {
+        this.imagenesPreview.set([]);
+        this.loadAbonos(true);
+        return;
+      }
+      const base64 = previews[index];
+      this.http.post<{ imagenes: string[] }>(`${this.API}/${this.editingAbono!._id}/imagenes`, { imagen: base64 }).subscribe({
+        next: () => {
+          index++;
+          subirSiguiente();
+        },
+        error: () => {
+          index++;
+          subirSiguiente();
+        },
+      });
+    };
+    subirSiguiente();
   }
 
   eliminarImagen(index: number) {

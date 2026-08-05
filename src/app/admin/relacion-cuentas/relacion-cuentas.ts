@@ -156,7 +156,7 @@ export class RelacionCuentas implements OnInit {
     { key: 'telefono', label: 'Teléfono' },
     { key: 'cedula', label: 'Cédula' },
     { key: 'nFact', label: 'N. Fact' },
-    { key: 'montoFactura', label: 'Monto Fact.\nBs' },
+    { key: 'montoFactura', label: 'Monto Facts.\nBs' },
     { key: 'iva', label: 'Iva' },
     { key: 'diferencia', label: 'Diferencia\nBs' },
     { key: 'divisa', label: 'Diferencia\n$' },
@@ -1144,7 +1144,7 @@ export class RelacionCuentas implements OnInit {
       { width: 18 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Teléfono', 'Cédula', 'N. Fact', 'Monto Fact. Bs', 'Iva', 'Diferencia Bs', 'Diferencia $', 'Pago Parcial', 'Tasa', 'Status']);
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'Empresa', 'Planta', 'Teléfono', 'Cédula', 'N. Fact', 'Monto Facts. Bs', 'Iva', 'Monto Total Sin Iva', 'Diferencia $', 'Pago Parcial', 'Tasa', 'Status']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };

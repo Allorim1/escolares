@@ -197,6 +197,7 @@ export class RelacionCuentas implements OnInit {
   testWhatsappMensaje = signal('Hola, te escribimos por tu relación de cuentas. Por favor, comunícate con nosotros.');
 
   comisiones = signal<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number; total: number }>({ comisionesPorSupervisor: [], comisionNoAsignada: 0, total: 0 });
+  comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
 
   supervisorSearch = signal('');
@@ -248,10 +249,14 @@ export class RelacionCuentas implements OnInit {
 
   loadComisiones() {
     this.loadingComisiones.set(true);
+    const manualStr = localStorage.getItem('comisionNoAsignadaManual');
+    if (manualStr !== null) {
+      this.comisionNoAsignadaManual.set(Number(manualStr));
+    }
     this.http.get<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number }>('/api/abonos-polar/comisiones').subscribe({
       next: (data) => {
         const comisionesPorSupervisor = data.comisionesPorSupervisor || [];
-        const comisionNoAsignada = data.comisionNoAsignada || 0;
+        const comisionNoAsignada = this.comisionNoAsignadaManual() ?? (data.comisionNoAsignada || 0);
         const total = comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + comisionNoAsignada;
         this.comisiones.set({
           comisionesPorSupervisor,
@@ -263,6 +268,18 @@ export class RelacionCuentas implements OnInit {
       error: () => {
         this.loadingComisiones.set(false);
       },
+    });
+  }
+
+  onComisionNoAsignadaChange(valor: string) {
+    const num = Number(valor) || 0;
+    this.comisionNoAsignadaManual.set(num);
+    localStorage.setItem('comisionNoAsignadaManual', String(num));
+    const comisiones = this.comisiones();
+    this.comisiones.set({
+      ...comisiones,
+      comisionNoAsignada: num,
+      total: comisiones.comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + num,
     });
   }
 

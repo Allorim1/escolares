@@ -76,6 +76,12 @@
       <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
       <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
     </div>
+    @if (esRoot()) {
+      <div class="filtro-group">
+        <label>Comisión No Asignada:</label>
+        <input type="number" [value]="comisionNoAsignadaManual() ?? comisiones().comisionNoAsignada" (input)="onComisionNoAsignadaChange($event.target.value)" step="0.01">
+      </div>
+    }
   </div>
 
   @if (loading()) {
@@ -197,7 +203,7 @@
           <div class="totales-grid">
             <div class="total-item">
               <span class="total-label">Comisión No Asignada</span>
-              <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
+              <span class="total-value">{{ formatMonto(comisionNoAsignadaManual() ?? comisiones().comisionNoAsignada) }}</span>
             </div>
             @for (comision of comisiones().comisionesPorSupervisor; track comision.supervisorId) {
               <div class="total-item">

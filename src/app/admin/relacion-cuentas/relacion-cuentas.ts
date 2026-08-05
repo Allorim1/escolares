@@ -196,7 +196,7 @@ export class RelacionCuentas implements OnInit {
   testWhatsappTelefono = signal('');
   testWhatsappMensaje = signal('Hola, te escribimos por tu relación de cuentas. Por favor, comunícate con nosotros.');
 
-  comisiones = signal<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number; total: number }>({ comisionesPorSupervisor: [], comisionNoAsignada: 0, total: 0 });
+  comisiones = signal<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number; comisionNoAsignadaPorcentaje: number; total: number }>({ comisionesPorSupervisor: [], comisionNoAsignada: 0, comisionNoAsignadaPorcentaje: 0, total: 0 });
   comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
 
@@ -249,18 +249,21 @@ export class RelacionCuentas implements OnInit {
 
   loadComisiones() {
     this.loadingComisiones.set(true);
-    const manualStr = localStorage.getItem('comisionNoAsignadaManual');
+    const manualStr = localStorage.getItem('comisionNoAsignadaManualPorcentaje');
     if (manualStr !== null) {
       this.comisionNoAsignadaManual.set(Number(manualStr));
     }
-    this.http.get<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number }>('/api/abonos-polar/comisiones').subscribe({
+    this.http.get<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number; comisionNoAsignadaPorcentaje: number }>('/api/abonos-polar/comisiones').subscribe({
       next: (data) => {
         const comisionesPorSupervisor = data.comisionesPorSupervisor || [];
-        const comisionNoAsignada = this.comisionNoAsignadaManual() ?? (data.comisionNoAsignada || 0);
-        const total = comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + comisionNoAsignada;
+        const comisionNoAsignada = data.comisionNoAsignada || 0;
+        const porcentaje = this.comisionNoAsignadaManual() ?? (data.comisionNoAsignadaPorcentaje || 0);
+        const comisionNoAsignadaRecalculada = comisionNoAsignada * (porcentaje / 100);
+        const total = comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + comisionNoAsignadaRecalculada;
         this.comisiones.set({
           comisionesPorSupervisor,
-          comisionNoAsignada,
+          comisionNoAsignada: comisionNoAsignadaRecalculada,
+          comisionNoAsignadaPorcentaje: porcentaje,
           total,
         });
         this.loadingComisiones.set(false);
@@ -274,12 +277,15 @@ export class RelacionCuentas implements OnInit {
   onComisionNoAsignadaChange(valor: string) {
     const num = Number(valor) || 0;
     this.comisionNoAsignadaManual.set(num);
-    localStorage.setItem('comisionNoAsignadaManual', String(num));
+    localStorage.setItem('comisionNoAsignadaManualPorcentaje', String(num));
     const comisiones = this.comisiones();
+    const porcentaje = num;
+    const comisionNoAsignadaRecalculada = (comisiones.comisionNoAsignada || 0) * (porcentaje / 100);
     this.comisiones.set({
       ...comisiones,
-      comisionNoAsignada: num,
-      total: comisiones.comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + num,
+      comisionNoAsignadaPorcentaje: porcentaje,
+      comisionNoAsignada: comisionNoAsignadaRecalculada,
+      total: comisiones.comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + comisionNoAsignadaRecalculada,
     });
   }
 

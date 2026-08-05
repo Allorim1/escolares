@@ -78,8 +78,8 @@
     </div>
     @if (esRoot()) {
       <div class="filtro-group">
-        <label>Comisión No Asignada:</label>
-        <input type="number" [value]="comisionNoAsignadaManual() ?? comisiones().comisionNoAsignada" (input)="onComisionNoAsignadaChange($event.target.value)" step="0.01">
+        <label>Comisión No Asignada (%):</label>
+        <input type="number" [value]="comisionNoAsignadaManual() ?? comisiones().comisionNoAsignadaPorcentaje" (input)="onComisionNoAsignadaChange($event.target.value)" min="0" max="100" step="0.01">
       </div>
     }
   </div>

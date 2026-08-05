@@ -739,6 +739,7 @@ export class RelacionCuentas implements OnInit {
   onFileImagenChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
+    console.log('onFileImagenChange', file?.name, file?.type, file?.size);
     if (file) {
       this.agregarPreviewYSubir(file);
     }
@@ -747,11 +748,16 @@ export class RelacionCuentas implements OnInit {
 
   agregarPreviewYSubir(file: File) {
     if (!this.editingAbono || !this.editingAbono._id) return;
+    console.log('agregarPreviewYSubir', file.name);
     const reader = new FileReader();
     reader.onload = () => {
       const url = reader.result as string;
+      console.log('FileReader cargado, url length', url?.length);
       this.imagenesPreview.update((lista) => [...lista, { url, file }]);
       this.subirImagenDirecta(file);
+    };
+    reader.onerror = (err) => {
+      console.error('FileReader error', err);
     };
     reader.readAsDataURL(file);
   }

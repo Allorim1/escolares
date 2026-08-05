@@ -394,14 +394,12 @@
             @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
               <div class="imagenes-preview" style="margin-top: 10px;">
                 <label>Imágenes guardadas:</label>
-                <div class="imagenes-preview">
-                  @for (img of editingAbono!.imagenes; track $index) {
-                    <div class="imagen-preview-item">
-                      <img [src]="img" alt="Imagen">
-                      <button type="button" class="btn-remove-imagen" (click)="eliminarImagen($index)">✕</button>
-                    </div>
-                  }
-                </div>
+                @for (img of editingAbono!.imagenes; track $index) {
+                  <div class="imagen-preview-item">
+                    <img [src]="img" alt="Imagen">
+                    <button type="button" class="btn-remove-imagen" (click)="eliminarImagen($index)">✕</button>
+                  </div>
+                }
               </div>
             }
           </div>

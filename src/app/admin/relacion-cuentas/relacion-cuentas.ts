@@ -959,7 +959,7 @@ export class RelacionCuentas implements OnInit {
     const diferencia = this.totales().diferencia;
     const divisa = this.totales().divisa;
     const diferenciaEnDivisa = tasa > 0 ? diferencia / tasa : 0;
-    const decrecimientoMonto = diferenciaEnDivisa - divisa;
+    const decrecimientoMonto = divisa - diferenciaEnDivisa;
     const decrecimientoPorcentaje = diferenciaEnDivisa > 0 ? (decrecimientoMonto / diferenciaEnDivisa) * 100 : 0;
     return {
       montoFacturaEnDivisa: Number(diferenciaEnDivisa.toFixed(2)),

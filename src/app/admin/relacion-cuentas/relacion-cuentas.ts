@@ -187,6 +187,8 @@ export class RelacionCuentas implements OnInit {
   nuevoAbonoPago = signal<AbonoPago>({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
   imagenesPreview = signal<string[]>([]);
   archivosPendientes: File[] = [];
+  imagenModalAbierta = signal(false);
+  imagenModalUrl = signal<string>('');
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
@@ -768,10 +770,35 @@ if (!url) return '';
   return `${this.SERVER_URL}/api/uploads/${cleanPath}`;
   }
   abrirImagen(url: string | undefined) {
-    const fullUrl = this.getImageUrl(url);
+    const fullUrl = this.getImageUrl(url ?? '');
     if (fullUrl) {
-      window.open(fullUrl, '_blank');
+      this.imagenModalUrl.set(fullUrl);
+      this.imagenModalAbierta.set(true);
     }
+  }
+
+  cerrarImagenModal() {
+    this.imagenModalAbierta.set(false);
+    this.imagenModalUrl.set('');
+  }
+
+  descargarImagen(url: string | undefined) {
+    const fullUrl = this.getImageUrl(url ?? '');
+    if (!fullUrl) return;
+    fetch(fullUrl)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        const fileName = fullUrl.split('/').pop() || 'imagen.jpg';
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+      })
+      .catch((err) => console.error('Error al descargar la imagen:', err));
   }
   procesarArchivoImagen(file: File) {
     if (!this.editingAbono) return;

@@ -212,7 +212,7 @@
               <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Diferencia $</span>
+              <span class="total-label">Monto $</span>
               <span class="total-value">{{ formatMonto(totales().divisa) }}</span>
             </div>
           </div>
@@ -222,15 +222,15 @@
           <h3>Totales Actuales</h3>
           <div class="totales-grid">
             <div class="total-item">
-              <span class="total-label">Diferencia $</span>
+              <span class="total-label">Total actual $</span>
               <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Restante $</span>
+              <span class="total-label">Diferencia $</span>
               <span class="total-value">{{ formatMonto(totales().decrecimientoMonto) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Restante %</span>
+              <span class="total-label">Diferencia %</span>
               <span class="total-value">{{ totales().decrecimientoPorcentaje.toFixed(2) }}%</span>
             </div>
           </div>

@@ -814,6 +814,17 @@ if (!url) return '';
       })
       .catch((err) => console.error('Error al descargar la imagen:', err));
   }
+
+  imprimirImagen(url: string | undefined) {
+    const fullUrl = this.getImageUrl(url ?? '');
+    if (!fullUrl) return;
+    const ventana = window.open(fullUrl, '_blank');
+    if (ventana) {
+      ventana.addEventListener('load', () => {
+        ventana.print();
+      });
+    }
+  }
   procesarArchivoImagen(file: File) {
     if (!this.editingAbono) return;
     const localPreviewUrl = URL.createObjectURL(file);

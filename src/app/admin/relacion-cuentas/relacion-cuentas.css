@@ -1012,7 +1012,7 @@
   width: 140px;
   height: 140px;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #ddd;
   cursor: pointer;
   position: relative;

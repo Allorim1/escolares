@@ -12,6 +12,32 @@
       </div>
     </div>
   }
+  @if (imagenModalAbierta()) {
+    <div class="imagen-modal-overlay" (click)="cerrarImagenModal()">
+      <div class="imagen-modal-content" (click)="$event.stopPropagation()">
+        <button type="button" class="imagen-modal-close" (click)="cerrarImagenModal()">&times;</button>
+        <img [src]="imagenModalUrl()" alt="Imagen ampliada" class="imagen-modal-img" />
+        <div class="imagen-modal-actions">
+          <button type="button" class="btn-descargar-imagen" (click)="descargarImagen(imagenModalUrl())">
+            ⬇️ Descargar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+  @if (imagenModalAbierta()) {
+    <div class="imagen-modal-overlay" (click)="cerrarImagenModal()">
+      <div class="imagen-modal-content" (click)="$event.stopPropagation()">
+        <button type="button" class="imagen-modal-close" (click)="cerrarImagenModal()">&times;</button>
+        <img [src]="imagenModalUrl()" alt="Imagen ampliada" class="imagen-modal-img" />
+        <div class="imagen-modal-actions">
+          <button type="button" class="btn-descargar-imagen" (click)="descargarImagen(imagenModalUrl())">
+            ⬇️ Descargar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="abonos-header">
     <h1>Relación de Cuentas</h1>
@@ -387,20 +413,20 @@
           <div class="form-group">
             <label>Imágenes</label>
             <div class="image-upload-section">
-              <div class="drop-zone" [class.drag-over]="false" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropImagen($event)">
+              <div class="drop-zone" [class.drag-over]="false" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropImagen($event)" (paste)="onPasteImagen($event)">
                 @if (imagenesPreview().length > 0) {
-                  <div class="imagenes-preview-container">
-                    @for (url of imagenesPreview(); track $index) {
-                      <div class="imagen-card" (click)="abrirImagen(url)" title="Clic para ampliar">
-                        <img [src]="getImageUrl(url)" alt="Preview" class="card-img" />
-                      </div>
-                    }
-                  </div>
-                } @else {
+                <div class="imagenes-preview-container">
+                  @for (url of imagenesPreview(); track $index) {
+                    <div class="imagen-card" (click)="abrirImagen(url)" title="Clic para ampliar">
+                      <img [src]="getImageUrl(url)" alt="Preview" class="card-img" />
+                    </div>
+                  }
+                </div>
+              } @else {
                   <div class="drop-placeholder">
-                    <p>🖼️ Arrastra y suelta tus imágenes aquí o presiona seleccionar</p>
+                    <p>🖼️ Arrastra y suelta, selecciona o pega (Ctrl+V) una imagen</p>
                   </div>
-                }
+              }
               </div>
               <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" class="file-input" />
               <button type="button" class="upload-btn" (click)="fileInputRef.click()">
@@ -615,8 +641,8 @@
             <h3>Imágenes</h3>
             <div class="imagenes-preview">
               @for (img of abonoAbonos.imagenes; track $index) {
-                <div class="imagen-preview-item">
-                  <img [src]="getImageUrl(img)" alt="Imagen del abono" (click)="abrirImagen(img)" style="cursor: pointer;" title="Ver en pestaña nueva">
+                <div class="imagen-card" (click)="abrirImagen(img)" title="Ver imagen">
+                  <img [src]="getImageUrl(img)" alt="Imagen del abono" class="card-img" />
                 </div>
               }
             </div>

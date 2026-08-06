@@ -753,6 +753,20 @@ export class RelacionCuentas implements OnInit {
     input.value = '';
   }
 
+  onPasteImagen(event: ClipboardEvent) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          this.procesarArchivoImagen(file);
+        }
+        break;
+      }
+    }
+  }
+
   getImageUrl(url: string | undefined): string {
 if (!url) return '';
   if (url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
@@ -803,7 +817,7 @@ if (!url) return '';
   procesarArchivoImagen(file: File) {
     if (!this.editingAbono) return;
     const localPreviewUrl = URL.createObjectURL(file);
-    this.imagenesPreview.update(prev => [...prev, localPreviewUrl]);
+    this.imagenesPreview.set([localPreviewUrl]);
 
     if (this.editingAbono._id) {
       this.subirImagenServidor(this.editingAbono._id, file);

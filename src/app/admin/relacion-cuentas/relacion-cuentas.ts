@@ -57,6 +57,7 @@ export class RelacionCuentas implements OnInit {
   private authService = inject(AuthService);
 
   private readonly API = '/api/abonos-polar';
+  private readonly SERVER_URL = window.location.origin;
   private readonly API_EMPRESAS = '/api/empresas';
 
   abonos = signal<Abono[]>([]);
@@ -184,9 +185,8 @@ export class RelacionCuentas implements OnInit {
   showModalAbonos = signal(false);
   abonoAbonos: Abono | null = null;
   nuevoAbonoPago = signal<AbonoPago>({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
-  uploadingImagen = signal(false);
-  uploadErrorImagen = signal<string | null>(null);
   imagenesPreview = signal<string[]>([]);
+  archivosPendientes: File[] = [];
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
@@ -738,54 +738,57 @@ export class RelacionCuentas implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     const files = event.dataTransfer?.files;
-    if (files && files.length > 0 && !this.uploadingImagen()) {
-      this.subirImagen(files[0]);
+    if (files && files.length > 0) {
+      this.procesarArchivoImagen(files[0]);
     }
   }
 
   onFileImagenChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file && !this.uploadingImagen()) {
-      this.subirImagen(file);
+    if (input.files && input.files.length > 0) {
+      this.procesarArchivoImagen(input.files[0]);
     }
     input.value = '';
   }
 
-  subirImagen(file: File) {
-    if (!this.editingAbono || !this.editingAbono._id) return;
-    if (!file.type.startsWith('image/')) {
-      this.uploadErrorImagen.set('Por favor selecciona un archivo de imagen válido.');
-      return;
+  getImageUrl(url: string | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
     }
-    this.uploadErrorImagen.set(null);
-    const previewUrl = URL.createObjectURL(file);
-    this.imagenesPreview.update((lista) => [...lista, previewUrl]);
-    this.uploadingImagen.set(true);
+    return `${this.SERVER_URL}/api/uploads/${url.replace(/^\//, '')}`;
+  }
 
+  abrirImagen(url: string | undefined) {
+    const fullUrl = this.getImageUrl(url ?? '');
+    if (fullUrl) {
+      window.open(fullUrl, '_blank');
+    }
+  }
+
+  procesarArchivoImagen(file: File) {
+    if (!this.editingAbono) return;
+    const localPreviewUrl = URL.createObjectURL(file);
+    this.imagenesPreview.update(prev => [...prev, localPreviewUrl]);
+
+    if (this.editingAbono._id) {
+      this.subirImagenServidor(this.editingAbono._id, file);
+    } else {
+      this.archivosPendientes.push(file);
+    }
+  }
+
+  subirImagenServidor(idAbono: string, file: File) {
     const formData = new FormData();
-    formData.append('imagen', file, file.name);
+    formData.append('imagen', file);
 
-    this.http.post<{ imagenes: string[] }>(`${this.API}/${this.editingAbono._id}/imagenes`, formData).subscribe({
+    this.http.post<{ imagenes: string[] }>(`${this.API}/${idAbono}/imagenes`, formData).subscribe({
       next: (res) => {
-        URL.revokeObjectURL(previewUrl);
-        if (res.imagenes && res.imagenes.length > 0) {
-          const nuevaUrl = res.imagenes[res.imagenes.length - 1];
-          this.imagenesPreview.update((lista) => lista.map((url) => url === previewUrl ? nuevaUrl : url));
-          if (this.editingAbono) {
-            this.editingAbono.imagenes = res.imagenes;
-          }
-        } else {
-          this.imagenesPreview.update((lista) => lista.filter((url) => url !== previewUrl));
+        if (this.editingAbono) {
+          this.editingAbono.imagenes = res.imagenes || [];
         }
-        this.uploadingImagen.set(false);
       },
-      error: () => {
-        URL.revokeObjectURL(previewUrl);
-        this.imagenesPreview.update((lista) => lista.filter((url) => url !== previewUrl));
-        this.uploadingImagen.set(false);
-        this.uploadErrorImagen.set('Error al subir la imagen');
-      },
+      error: (err) => console.error('Error al subir imagen:', err),
     });
   }
 
@@ -878,16 +881,22 @@ export class RelacionCuentas implements OnInit {
         next: (abonoCreado) => {
           this.saving.set(false);
           if (abonoCreado && abonoCreado._id) {
-            this.abonos.update((lista) => [abonoCreado, ...lista].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
-          } else {
-            this.loadAbonos(true);
+            if (this.archivosPendientes.length > 0) {
+              this.archivosPendientes.forEach((file) => {
+                this.subirImagenServidor(abonoCreado._id!, file);
+              });
+              this.archivosPendientes = [];
+            }
+            this.abonos.update((lista) => {
+              lista.unshift(abonoCreado);
+              return [...lista].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+            });
           }
           this.cerrarModal();
         },
         error: (err) => {
           console.error('Error creating abono:', err);
           this.saving.set(false);
-          this.loadAbonos(true);
         },
       });
     }

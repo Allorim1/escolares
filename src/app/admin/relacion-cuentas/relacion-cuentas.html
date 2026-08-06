@@ -376,34 +376,28 @@
             <div class="image-upload-section">
               <div class="drop-zone" [class.drag-over]="false" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropImagen($event)">
                 @if (imagenesPreview().length > 0) {
-                  @for (url of imagenesPreview(); track $index) {
-                    <img [src]="url" alt="Preview" class="drop-preview-img" />
-                  }
+                  <div class="imagenes-preview-container">
+                    @for (url of imagenesPreview(); track $index) {
+                      <img [src]="getImageUrl(url)" alt="Preview" class="drop-preview-img" (click)="abrirImagen(url)" title="Clic para ampliar" />
+                    }
+                  </div>
                 } @else {
-                  <div class="drop-zone-content">
-                    <span class="drop-icon">🖼️</span>
-                    <span class="drop-text">Arrastra una imagen aquí</span>
-                    <span class="drop-subtext">o</span>
+                  <div class="drop-placeholder">
+                    <p>🖼️ Arrastra y suelta tus imágenes aquí o presiona seleccionar</p>
                   </div>
                 }
               </div>
               <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" class="file-input" />
-              <button type="button" class="upload-btn" (click)="fileInputRef.click()" [disabled]="uploadingImagen()">
+              <button type="button" class="upload-btn" (click)="fileInputRef.click()">
                 📁 Seleccionar imagen
               </button>
-              @if (uploadingImagen()) {
-                <div class="upload-status">Subiendo imagen... espera un momento.</div>
-              }
-              @if (uploadErrorImagen()) {
-                <div class="upload-error">{{ uploadErrorImagen() }}</div>
-              }
               @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
                 <div class="additional-images-section">
                   <label>Imágenes guardadas:</label>
                   <div class="additional-images-grid">
                     @for (img of editingAbono!.imagenes; track $index) {
                       <div class="additional-image-item">
-                        <img [src]="img" alt="Imagen" />
+                        <img [src]="getImageUrl(img)" alt="Imagen" (click)="abrirImagen(img)" title="Ver en pestaña nueva" style="cursor: pointer;" />
                         <button type="button" class="remove-img-btn" (click)="eliminarImagen($index)">&times;</button>
                       </div>
                     }

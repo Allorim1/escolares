@@ -154,24 +154,20 @@
           <h3>Totales Registrados</h3>
           <div class="totales-grid">
             <div class="total-item">
-              <span class="total-label">Monto Fact. Bs</span>
+              <span class="total-label">Monto Facts. Bs</span>
               <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Abonos</span>
-              <span class="total-value">{{ formatMonto(totales().abonos) }}</span>
             </div>
             <div class="total-item">
               <span class="total-label">Iva</span>
               <span class="total-value">{{ formatMonto(totales().iva) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Pago Parcial</span>
-              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
+              <span class="total-label">Monto Total Sin Iva</span>
+              <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Diferencia Bs</span>
-              <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
+              <span class="total-label">Pago Parcial</span>
+              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
             </div>
             <div class="total-item">
               <span class="total-label">Diferencia $</span>

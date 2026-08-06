@@ -752,20 +752,27 @@ export class RelacionCuentas implements OnInit {
   }
 
   getImageUrl(url: string | undefined): string {
-    if (!url) return '';
-    if (url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    return `${this.SERVER_URL}/api/uploads/${url.replace(/^\//, '')}`;
+if (!url) return '';
+  if (url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
   }
 
+  // Elimina la barra inicial si existe
+  let cleanPath = url.replace(/^\//, '');
+
+  // Si la ruta ya incluye "api/uploads/", la remueve antes de concatenar
+  if (cleanPath.startsWith('api/uploads/')) {
+    cleanPath = cleanPath.replace(/^api\/uploads\//, '');
+  }
+
+  return `${this.SERVER_URL}/api/uploads/${cleanPath}`;
+  }
   abrirImagen(url: string | undefined) {
-    const fullUrl = this.getImageUrl(url ?? '');
+    const fullUrl = this.getImageUrl(url);
     if (fullUrl) {
       window.open(fullUrl, '_blank');
     }
   }
-
   procesarArchivoImagen(file: File) {
     if (!this.editingAbono) return;
     const localPreviewUrl = URL.createObjectURL(file);

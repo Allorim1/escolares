@@ -243,6 +243,69 @@
       </div>
     }
   }
+  @if (showModalSupervisores()) {
+    <div class="modal-overlay" (click)="cerrarModalSupervisores()">
+      <div class="modal modal-wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Supervisores</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalSupervisores()">✕</button>
+        </div>
+        <div class="supervisores-body">
+          <div class="supervisores-form">
+            <h3>@if (editingSupervisor()) { Editar } @else { Nuevo } Supervisor</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" [ngModel]="editingSupervisor()?.nombre" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, nombre: $any($event) } : null)" name="supervisorNombre" required enterFocusNext>
+              </div>
+              <div class="form-group">
+                <label>Cédula</label>
+                <input type="text" [ngModel]="editingSupervisor()?.cedula" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, cedula: $any($event) } : null)" name="supervisorCedula" enterFocusNext>
+              </div>
+              <div class="form-group">
+                <label>Teléfono</label>
+                <input type="text" [ngModel]="editingSupervisor()?.telefono" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, telefono: $any($event) } : null)" name="supervisorTelefono" enterFocusNext>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn-cancel" (click)="editingSupervisor.set(null)">Limpiar</button>
+              <button type="button" class="btn-save" (click)="guardarSupervisor()">Guardar</button>
+            </div>
+          </div>
+          <div class="supervisores-list">
+            <h3>Listado de Supervisores</h3>
+            @if (supervisores().length === 0) {
+              <p class="sin-abonos">No hay supervisores registrados</p>
+            } @else {
+              <table class="abonos-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Cédula</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (supervisor of supervisores(); track supervisor._id) {
+                    <tr>
+                      <td>{{ supervisor.nombre }}</td>
+                      <td>{{ supervisor.cedula || '-' }}</td>
+                      <td>{{ supervisor.telefono || '-' }}</td>
+                      <td class="actions">
+                        <button class="btn-edit" (click)="editarSupervisor(supervisor)">Editar</button>
+                        <button class="btn-delete" (click)="eliminarSupervisor(supervisor._id)">Eliminar</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>
 
 @if (showModal()) {
@@ -364,16 +427,12 @@
           @if (esRoot()) {
             <div class="form-group">
               <label>Supervisor</label>
-              <input type="text" [value]="editingAbono!.supervisor || ''" (input)="onSupervisorSearch($event.target.value)" placeholder="Buscar supervisor..." autocomplete="off">
-              @if (supervisorSearchResults().length > 0) {
-                <div class="autocomplete-dropdown">
-                  @for (persona of supervisorSearchResults(); track persona._id) {
-                    <div class="autocomplete-item" (click)="seleccionarSupervisor(persona)">
-                      {{ persona.nombre }} - {{ persona.cedula }}
-                    </div>
-                  }
-                </div>
-              }
+              <select [(ngModel)]="editingAbono!.supervisor" name="supervisor" enterFocusNext>
+                <option value="">Seleccionar</option>
+                @for (supervisor of supervisores(); track supervisor._id) {
+                  <option [value]="supervisor.nombre">{{ supervisor.nombre }}</option>
+                }
+              </select>
               @if (editingAbono!.supervisor) {
                 <div class="form-group" style="margin-top: 8px;">
                   <label>Comisión (%)</label>

@@ -42,6 +42,13 @@ interface AbonoPago {
   monto: number;
 }
 
+interface Supervisor {
+  _id?: string;
+  nombre: string;
+  cedula?: string;
+  telefono?: string;
+}
+
 @Component({
   selector: 'app-relacion-cuentas',
   standalone: true,
@@ -59,9 +66,13 @@ export class RelacionCuentas implements OnInit {
   private readonly API = '/api/abonos-polar';
   private readonly SERVER_URL = window.location.origin;
   private readonly API_EMPRESAS = '/api/empresas';
+  private readonly API_SUPERVISORES = '/api/supervisores';
 
   abonos = signal<Abono[]>([]);
   empresas = signal<Empresa[]>([]);
+  supervisores = signal<Supervisor[]>([]);
+  editingSupervisor = signal<Supervisor | null>(null);
+  showModalSupervisores = signal(false);
   plantasFiltradas = computed(() => {
     const empresaNombre = this.selectedEmpresaInModal() || this.filtros().empresa;
     if (!empresaNombre) return [];
@@ -70,15 +81,7 @@ export class RelacionCuentas implements OnInit {
   });
 
   supervisoresUnicos = computed(() => {
-    const lista = this.abonos();
-    const mapa = new Map<string, string>();
-    for (const abono of lista) {
-      const nombre = (abono.supervisor || '').trim();
-      if (nombre && !mapa.has(nombre)) {
-        mapa.set(nombre, nombre);
-      }
-    }
-    return Array.from(mapa.keys()).sort();
+    return this.supervisores().map(s => s.nombre).sort();
   });
 
   abonosFiltrados = computed(() => {
@@ -214,9 +217,6 @@ export class RelacionCuentas implements OnInit {
   comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
 
-  supervisorSearch = signal('');
-  supervisorSearchResults = signal<Abono[]>([]);
-
   tasaActual = signal<number>(0);
   loadingTasaActual = signal(false);
 
@@ -267,6 +267,7 @@ export class RelacionCuentas implements OnInit {
     this.loadTasaActual();
     this.loadColumnasVisibles();
     this.loadComisiones();
+    this.cargarSupervisores();
   }
 
   loadComisiones() {
@@ -497,31 +498,6 @@ export class RelacionCuentas implements OnInit {
 
   esRoot(): boolean {
     return this.authService.user()?.rol === 'root';
-  }
-
-  onSupervisorSearch(query: string) {
-    this.supervisorSearch.set(query);
-    if (query.length < 2) {
-      this.supervisorSearchResults.set([]);
-      return;
-    }
-
-    this.http.get<Abono[]>(`${this.API}?q=${encodeURIComponent(query)}&limit=10`).subscribe({
-      next: (results) => {
-        this.supervisorSearchResults.set(results.filter((a) => a._id !== this.editingAbono?._id));
-      },
-      error: () => {
-        this.supervisorSearchResults.set([]);
-      },
-    });
-  }
-
-  seleccionarSupervisor(persona: Abono) {
-    if (!this.editingAbono) return;
-    this.editingAbono.supervisor = persona.nombre;
-    this.editingAbono.supervisorId = persona._id;
-    this.supervisorSearch.set(persona.nombre);
-    this.supervisorSearchResults.set([]);
   }
 
   getValorAbono(abono: Abono, key: string): string {
@@ -1435,5 +1411,62 @@ if (!url) return '';
   parseTasaManual(valor: string | undefined | null): number {
     const num = Number(valor);
     return Number.isFinite(num) ? num : 0;
+  }
+
+  cargarSupervisores() {
+    this.http.get<Supervisor[]>(this.API_SUPERVISORES).subscribe({
+      next: (data) => this.supervisores.set(data || []),
+      error: (err) => console.error('Error cargando supervisores:', err),
+    });
+  }
+
+  abrirModalSupervisores() {
+    this.editingSupervisor.set(null);
+    this.cargarSupervisores();
+    this.showModalSupervisores.set(true);
+  }
+
+  cerrarModalSupervisores() {
+    this.showModalSupervisores.set(false);
+    this.editingSupervisor.set(null);
+  }
+
+  guardarSupervisor() {
+    const supervisor = this.editingSupervisor();
+    if (!supervisor || !supervisor.nombre.trim()) {
+      alert('El nombre del supervisor es requerido');
+      return;
+    }
+
+    if (supervisor._id) {
+      this.http.put<Supervisor>(`${this.API_SUPERVISORES}/${supervisor._id}`, supervisor).subscribe({
+        next: () => {
+          this.cargarSupervisores();
+          this.editingSupervisor.set(null);
+        },
+        error: (err) => console.error('Error actualizando supervisor:', err),
+      });
+    } else {
+      this.http.post<Supervisor>(this.API_SUPERVISORES, supervisor).subscribe({
+        next: () => {
+          this.cargarSupervisores();
+          this.editingSupervisor.set(null);
+        },
+        error: (err) => console.error('Error creando supervisor:', err),
+      });
+    }
+  }
+
+  editarSupervisor(supervisor: Supervisor) {
+    this.editingSupervisor.set({ ...supervisor });
+  }
+
+  eliminarSupervisor(id?: string) {
+    if (!id) return;
+    if (!confirm('¿Está seguro de eliminar este supervisor?')) return;
+    this.http.delete(`${this.API_SUPERVISORES}/${id}`).subscribe({
+      next: () => this.cargarSupervisores(),
+      error: (err) => console.error('Error eliminando supervisor:', err),
+    });
   }
 }

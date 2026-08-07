@@ -1115,3 +1115,34 @@
   background: #1551a3;
 }
 
+.supervisores-body {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.supervisores-form {
+  flex: 1 1 280px;
+}
+
+.supervisores-list {
+  flex: 2 1 320px;
+}
+
+.supervisores-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.supervisores-list th,
+.supervisores-list td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.supervisores-list th {
+  background: #f5f5f5;
+}
+
+

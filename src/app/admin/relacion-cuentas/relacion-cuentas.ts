@@ -192,7 +192,7 @@ export class RelacionCuentas implements OnInit {
 
   showModalAbonos = signal(false);
   abonoAbonos: Abono | null = null;
-  nuevoAbonoPago = signal<AbonoPago>({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
+  nuevoAbonoPago = signal<AbonoPago>({ fecha: this.getFechaLocal(), monto: 0 });
   imagenesPreview = signal<string[]>([]);
   archivosPendientes: File[] = [];
   imagenModalAbierta = signal(false);
@@ -200,7 +200,7 @@ export class RelacionCuentas implements OnInit {
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
-  nuevaTasaFecha = signal(new Date().toISOString().split('T')[0]);
+  nuevaTasaFecha = signal(this.getFechaLocal());
   nuevaTasaValor = signal(0);
 
   showModalRecordatorio = signal(false);
@@ -229,6 +229,14 @@ export class RelacionCuentas implements OnInit {
     status: '',
     supervisor: '',
   });
+
+  private getFechaLocal(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 
   mostrarEmpresaPdf = signal(false);
   mostrarPlantaPdf = signal(false);
@@ -548,11 +556,11 @@ export class RelacionCuentas implements OnInit {
           this.abonos.set([...data].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
           this.editingAbono = {
             ...abonoActualizado,
-            fecha: abonoActualizado.fecha ? new Date(abonoActualizado.fecha).toISOString().split('T')[0] : '',
+            fecha: abonoActualizado.fecha || '',
             empresa: abonoActualizado.empresa || '',
             montoFactura: abonoActualizado.montoFactura ?? 0,
             abonos: abonoActualizado.abonos ?? 0,
-            abonosPagos: abonoActualizado.abonosPagos && abonoActualizado.abonosPagos.length > 0 ? abonoActualizado.abonosPagos : (abonoActualizado.abonos ? [{ fecha: abonoActualizado.fecha || new Date().toISOString().split('T')[0], monto: abonoActualizado.abonos }] : []),
+            abonosPagos: abonoActualizado.abonosPagos && abonoActualizado.abonosPagos.length > 0 ? abonoActualizado.abonosPagos : (abonoActualizado.abonos ? [{ fecha: abonoActualizado.fecha || this.getFechaLocal(), monto: abonoActualizado.abonos }] : []),
             iva: abonoActualizado.iva ?? 0,
             ivaPagado: abonoActualizado.ivaPagado || false,
             diferencia: abonoActualizado.diferencia ?? 0,
@@ -572,11 +580,11 @@ export class RelacionCuentas implements OnInit {
         error: () => {
           this.editingAbono = {
             ...abono,
-            fecha: abono.fecha ? new Date(abono.fecha).toISOString().split('T')[0] : '',
+            fecha: abono.fecha || '',
             empresa: abono.empresa || '',
             montoFactura: abono.montoFactura ?? 0,
             abonos: abono.abonos ?? 0,
-            abonosPagos: abono.abonosPagos && abono.abonosPagos.length > 0 ? abono.abonosPagos : (abono.abonos ? [{ fecha: abono.fecha || new Date().toISOString().split('T')[0], monto: abono.abonos }] : []),
+            abonosPagos: abono.abonosPagos && abono.abonosPagos.length > 0 ? abono.abonosPagos : (abono.abonos ? [{ fecha: abono.fecha || this.getFechaLocal(), monto: abono.abonos }] : []),
             iva: abono.iva ?? 0,
             ivaPagado: abono.ivaPagado || false,
             diferencia: abono.diferencia ?? 0,
@@ -596,7 +604,7 @@ export class RelacionCuentas implements OnInit {
       });
     } else {
       this.editingAbono = {
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: this.getFechaLocal(),
         nombre: '',
         empresa: '',
         planta: '',
@@ -616,7 +624,7 @@ export class RelacionCuentas implements OnInit {
         supervisorId: '',
         comisionPorcentaje: 0,
       };
-      this.nuevoAbonoPago.set({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
+      this.nuevoAbonoPago.set({ fecha: this.getFechaLocal(), monto: 0 });
       this.showModal.set(true);
     }
   }
@@ -692,11 +700,11 @@ export class RelacionCuentas implements OnInit {
   agregarAbonoPago() {
     if (!this.editingAbono || !this.nuevoAbonoPago().monto) return;
     const nuevoPago: AbonoPago = {
-      fecha: this.nuevoAbonoPago().fecha || new Date().toISOString().split('T')[0],
+      fecha: this.nuevoAbonoPago().fecha || this.getFechaLocal(),
       monto: this.nuevoAbonoPago().monto,
     };
     this.editingAbono.abonosPagos = [...(this.editingAbono.abonosPagos || []), nuevoPago];
-    this.nuevoAbonoPago.set({ fecha: new Date().toISOString().split('T')[0], monto: 0 });
+    this.nuevoAbonoPago.set({ fecha: this.getFechaLocal(), monto: 0 });
     this.actualizarTotalAbonos();
     this.calcularPagoParcial();
   }
@@ -1184,8 +1192,8 @@ if (!url) return '';
     });
 
     const fileName = empresaSeleccionada
-      ? `abonos_${empresaSeleccionada.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
-      : `abonos_${new Date().toISOString().split('T')[0]}.pdf`;
+      ? `abonos_${empresaSeleccionada.replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`
+      : `abonos_${this.getFechaLocal()}.pdf`;
 
     doc.save(fileName);
   }
@@ -1253,8 +1261,8 @@ if (!url) return '';
 
     const buffer = await workbook.xlsx.writeBuffer();
     const fileName = empresaSeleccionada
-      ? `abonos_${empresaSeleccionada.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`
-      : `abonos_${new Date().toISOString().split('T')[0]}.xlsx`;
+      ? `abonos_${empresaSeleccionada.replace(/\s+/g, '_')}_${this.getFechaLocal()}.xlsx`
+      : `abonos_${this.getFechaLocal()}.xlsx`;
 
     saveAs(new Blob([buffer]), fileName);
   }
@@ -1339,7 +1347,7 @@ if (!url) return '';
         next: () => {
           this.cdr.detectChanges();
           this.abrirValuacion(this.abonoValuacion!);
-          this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
+          this.nuevaTasaFecha.set(this.getFechaLocal());
           this.nuevaTasaValor.set(0);
         },
         error: (err) => {
@@ -1352,7 +1360,7 @@ if (!url) return '';
         next: () => {
           this.cdr.detectChanges();
           this.abrirValuacion(this.abonoValuacion!);
-          this.nuevaTasaFecha.set(new Date().toISOString().split('T')[0]);
+          this.nuevaTasaFecha.set(this.getFechaLocal());
           this.nuevaTasaValor.set(0);
         },
         error: (err) => {

@@ -15,32 +15,6 @@
       </div>
     </div>
   }
-  @if (imagenModalAbierta()) {
-    <div class="imagen-modal-overlay" (click)="cerrarImagenModal()">
-      <div class="imagen-modal-content" (click)="$event.stopPropagation()">
-        <button type="button" class="imagen-modal-close" (click)="cerrarImagenModal()">&times;</button>
-        <img [src]="imagenModalUrl()" alt="Imagen ampliada" class="imagen-modal-img" />
-        <div class="imagen-modal-actions">
-          <button type="button" class="btn-descargar-imagen" (click)="descargarImagen(imagenModalUrl())">
-            ⬇️ Descargar
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-  @if (imagenModalAbierta()) {
-    <div class="imagen-modal-overlay" (click)="cerrarImagenModal()">
-      <div class="imagen-modal-content" (click)="$event.stopPropagation()">
-        <button type="button" class="imagen-modal-close" (click)="cerrarImagenModal()">&times;</button>
-        <img [src]="imagenModalUrl()" alt="Imagen ampliada" class="imagen-modal-img" />
-        <div class="imagen-modal-actions">
-          <button type="button" class="btn-descargar-imagen" (click)="descargarImagen(imagenModalUrl())">
-            ⬇️ Descargar
-          </button>
-        </div>
-      </div>
-    </div>
-  }
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
   <div class="abonos-header">
     <h1>Relación de Cuentas</h1>

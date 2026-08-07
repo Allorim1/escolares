@@ -367,10 +367,6 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>IVA</label>
-            <input type="text" [value]="formatearMontoInput(editingAbono!.iva)" (input)="actualizarMonto($event, 'iva')" (focus)="onMontoFocus($event)" enterFocusNext>
-          </div>
-          <div class="form-group">
             <label>Diferencia</label>
             <input type="text" [value]="formatearMontoInput(editingAbono!.diferencia)" (input)="actualizarMonto($event, 'diferencia')" (focus)="onMontoFocus($event)" readonly enterFocusNext>
           </div>

@@ -25,22 +25,29 @@
       }
       <button class="btn-secondary" (click)="abrirModalRecordatorio()">📱 Recordatorio</button>
       <button class="btn-secondary" (click)="abrirModalTestWhatsapp()">🧪 Test WhatsApp</button>
-      <button class="btn-secondary" (click)="abrirModalSupervisores()">👤 Supervisores</button>
     </div>
   </div>
 
-  <div class="filtros-pdf">
-    <label class="checkbox-inline">
-      <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
-      Mostrar Empresa en PDF
-    </label>
-    <label class="checkbox-inline">
-      <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
-      Mostrar Planta en PDF
-    </label>
+  <div class="tabs">
+    <button class="tab" [class.active]="pestanaActiva() === 'relaciones'" (click)="pestanaActiva.set('relaciones')">Relaciones</button>
+    @if (esRoot()) {
+      <button class="tab" [class.active]="pestanaActiva() === 'supervisores'" (click)="pestanaActiva.set('supervisores')">Supervisores</button>
+    }
   </div>
 
-  <div class="filtros">
+  @if (pestanaActiva() === 'relaciones') {
+    <div class="filtros-pdf">
+      <label class="checkbox-inline">
+        <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
+        Mostrar Empresa en PDF
+      </label>
+      <label class="checkbox-inline">
+        <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
+        Mostrar Planta en PDF
+      </label>
+    </div>
+
+    <div class="filtros">
     <div class="filtro-group">
       <label>Nombre:</label>
       <input type="text" [ngModel]="filtros().nombre" (ngModelChange)="onNombreFilterChange($event)" placeholder="Buscar por nombre">
@@ -118,39 +125,7 @@
         @for (abono of abonosPaginados(); track abono._id) {
           <tr (click)="abrirModalAbonos(abono)" style="cursor: pointer;">
             @for (col of columnasVisibles(); track col.key) {
-              @if (col.key === 'fecha') {
-                <td>{{ formatFecha(abono.fecha) }}</td>
-              } @else if (col.key === 'nombre') {
-                <td>{{ abono.nombre }}</td>
-              } @else if (col.key === 'empresa') {
-                <td>{{ abono.empresa || '-' }}</td>
-              } @else if (col.key === 'planta') {
-                <td><span class="planta-badge">{{ abono.planta }}</span></td>
-              } @else if (col.key === 'telefono') {
-                <td>{{ formatTelefono(abono.telefono) }}</td>
-              } @else if (col.key === 'cedula') {
-                <td>{{ formatCedula(abono.cedula) }}</td>
-              } @else if (col.key === 'nFact') {
-                <td>{{ abono.nFact ? (+abono.nFact) + '' : '' }}</td>
-              } @else if (col.key === 'montoFactura') {
-                <td class="monto">{{ formatMonto(abono.montoFactura ?? 0) }}</td>
-              } @else if (col.key === 'iva') {
-                <td class="monto iva-toggle" [class.iva-pagado]="abono.ivaPagado" [class.iva-pendiente]="!abono.ivaPagado" (click)="toggleIvaPagado(abono); $event.stopPropagation()">{{ formatMonto(abono.iva ?? 0) }}</td>
-              } @else if (col.key === 'diferencia') {
-                <td class="monto">{{ formatMonto(abono.diferencia ?? 0) }}</td>
-              } @else if (col.key === 'divisa') {
-                <td>{{ abono.divisa?.toFixed(2) ?? '0.00' }}</td>
-              } @else if (col.key === 'pagoParcial') {
-                <td class="monto">{{ formatMonto(abono.abonos ?? 0) }}</td>
-              } @else if (col.key === 'tasa') {
-                <td>{{ abono.tasa?.toFixed(2) ?? '0.00' }}</td>
-              } @else if (col.key === 'status') {
-                <td>{{ abono.status }}</td>
-              } @else if (col.key === 'supervisor') {
-                <td>{{ abono.supervisor || '-' }}</td>
-              } @else {
-                <td>{{ getValorAbono(abono, col.key) }}</td>
-              }
+              <td [class.iva-toggle]="col.key === 'iva'" [class.iva-pagado]="abono.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!abono.ivaPagado && col.key === 'iva'" (click)="onCeldaIvaClick(abono, $event)">{{ getValorAbono(abono, col.key) }}</td>
             }
             <td class="actions">
               <button class="btn-edit" (click)="$event.stopPropagation(); abrirModal(abono)">Editar</button>
@@ -243,67 +218,41 @@
       </div>
     }
   }
-  @if (showModalSupervisores()) {
-    <div class="modal-overlay" (click)="cerrarModalSupervisores()">
-      <div class="modal modal-wide" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h2>Supervisores</h2>
-          <button type="button" class="btn-cerrar" (click)="cerrarModalSupervisores()">✕</button>
-        </div>
-        <div class="supervisores-body">
-          <div class="supervisores-form">
-            <h3>@if (editingSupervisor()) { Editar } @else { Nuevo } Supervisor</h3>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Nombre *</label>
-                <input type="text" [ngModel]="editingSupervisor()?.nombre" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, nombre: $any($event) } : null)" name="supervisorNombre" required enterFocusNext>
-              </div>
-              <div class="form-group">
-                <label>Cédula</label>
-                <input type="text" [ngModel]="editingSupervisor()?.cedula" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, cedula: $any($event) } : null)" name="supervisorCedula" enterFocusNext>
-              </div>
-              <div class="form-group">
-                <label>Teléfono</label>
-                <input type="text" [ngModel]="editingSupervisor()?.telefono" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, telefono: $any($event) } : null)" name="supervisorTelefono" enterFocusNext>
-              </div>
-            </div>
-            <div class="modal-actions">
-              <button type="button" class="btn-cancel" (click)="editingSupervisor.set(null)">Limpiar</button>
-              <button type="button" class="btn-save" (click)="guardarSupervisor()">Guardar</button>
-            </div>
-          </div>
-          <div class="supervisores-list">
-            <h3>Listado de Supervisores</h3>
-            @if (supervisores().length === 0) {
-              <p class="sin-abonos">No hay supervisores registrados</p>
-            } @else {
-              <table class="abonos-table">
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Cédula</th>
-                    <th>Teléfono</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (supervisor of supervisores(); track supervisor._id) {
-                    <tr>
-                      <td>{{ supervisor.nombre }}</td>
-                      <td>{{ supervisor.cedula || '-' }}</td>
-                      <td>{{ supervisor.telefono || '-' }}</td>
-                      <td class="actions">
-                        <button class="btn-edit" (click)="editarSupervisor(supervisor)">Editar</button>
-                        <button class="btn-delete" (click)="eliminarSupervisor(supervisor._id)">Eliminar</button>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            }
-          </div>
-        </div>
+  }
+
+  @if (pestanaActiva() === 'supervisores' && esRoot()) {
+    <div class="supervisores-section">
+      <div class="supervisores-header">
+        <h2>Supervisores</h2>
+        <button class="btn-primary" (click)="abrirModalSupervisores()">+ Nuevo Supervisor</button>
       </div>
+      @if (supervisores().length === 0) {
+        <p class="sin-abonos">No hay supervisores registrados</p>
+      } @else {
+        <table class="abonos-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cédula</th>
+              <th>Teléfono</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (supervisor of supervisores(); track supervisor._id) {
+              <tr>
+                <td>{{ supervisor.nombre }}</td>
+                <td>{{ supervisor.cedula || '-' }}</td>
+                <td>{{ supervisor.telefono || '-' }}</td>
+                <td class="actions">
+                  <button class="btn-edit" (click)="editarSupervisor(supervisor)">Editar</button>
+                  <button class="btn-delete" (click)="eliminarSupervisor(supervisor._id)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
   }
 </div>

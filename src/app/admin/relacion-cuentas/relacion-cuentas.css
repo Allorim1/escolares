@@ -1145,4 +1145,42 @@
   background: #f5f5f5;
 }
 
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 16px;
+}
+
+.tab {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab.active {
+  border-bottom-color: #1d63c1;
+  color: #1d63c1;
+  font-weight: 600;
+}
+
+.supervisores-section {
+  padding: 0;
+}
+
+.supervisores-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.supervisores-header h2 {
+  margin: 0;
+}
+
 

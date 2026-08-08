@@ -71,8 +71,6 @@ export class RelacionCuentas implements OnInit {
   abonos = signal<Abono[]>([]);
   empresas = signal<Empresa[]>([]);
   supervisores = signal<Supervisor[]>([]);
-  editingSupervisor = signal<Supervisor | null>(null);
-  showModalSupervisores = signal(false);
   plantasFiltradas = computed(() => {
     const empresaNombre = this.selectedEmpresaInModal() || this.filtros().empresa;
     if (!empresaNombre) return [];
@@ -216,6 +214,10 @@ export class RelacionCuentas implements OnInit {
   comisiones = signal<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number; comisionNoAsignadaPorcentaje: number; total: number; montoFacturaNoAsignada: number }>({ comisionesPorSupervisor: [], comisionNoAsignada: 0, comisionNoAsignadaPorcentaje: 0, total: 0, montoFacturaNoAsignada: 0 });
   comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
+
+  showModalSupervisores = signal(false);
+  editingSupervisor = signal<Supervisor | null>(null);
+  pestanaActiva = signal<'relaciones' | 'supervisores'>('relaciones');
 
   tasaActual = signal<number>(0);
   loadingTasaActual = signal(false);
@@ -501,7 +503,44 @@ export class RelacionCuentas implements OnInit {
   }
 
   getValorAbono(abono: Abono, key: string): string {
-    return (abono as any)[key] ?? '';
+    const valor = (abono as any)[key];
+    switch (key) {
+      case 'fecha':
+        return this.formatFecha(abono.fecha);
+      case 'montoFactura':
+        return this.formatMonto(abono.montoFactura ?? 0);
+      case 'iva':
+        return this.formatMonto(abono.iva ?? 0);
+      case 'diferencia':
+        return this.formatMonto(abono.diferencia ?? 0);
+      case 'divisa':
+        return (abono.divisa ?? 0).toFixed(2);
+      case 'pagoParcial':
+        return this.formatMonto(abono.abonos ?? 0);
+      case 'tasa':
+        return (abono.tasa ?? 0).toFixed(2);
+      case 'telefono':
+        return this.formatTelefono(abono.telefono);
+      case 'cedula':
+        return this.formatCedula(abono.cedula);
+      case 'nFact':
+        return abono.nFact ? (+abono.nFact) + '' : '';
+      case 'empresa':
+        return abono.empresa || '-';
+      case 'planta':
+        return abono.planta;
+      case 'status':
+        return abono.status;
+      case 'supervisor':
+        return abono.supervisor || '-';
+      default:
+        return valor ?? '';
+    }
+  }
+
+  onCeldaIvaClick(abono: Abono, event: Event) {
+    event.stopPropagation();
+    this.toggleIvaPagado(abono);
   }
 
   toggleColumna(key: string) {

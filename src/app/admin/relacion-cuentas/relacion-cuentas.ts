@@ -1516,6 +1516,7 @@ if (!url) return '';
 
   editarSupervisor(supervisor: Supervisor) {
     this.editingSupervisor.set({ ...supervisor });
+    this.showModalSupervisores.set(true);
   }
 
   eliminarSupervisor(id?: string) {

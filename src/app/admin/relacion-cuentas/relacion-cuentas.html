@@ -265,7 +265,7 @@
     <div class="modal-overlay" (click)="cerrarModalSupervisores()">
       <div class="modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>@if (editingSupervisor()) { Editar } @else { Nuevo } Supervisor</h2>
+          <h2>@if (editingSupervisor()?._id) { Editar } @else { Nuevo } Supervisor</h2>
           <button type="button" class="btn-cerrar" (click)="cerrarModalSupervisores()">✕</button>
         </div>
         <div class="supervisores-form">

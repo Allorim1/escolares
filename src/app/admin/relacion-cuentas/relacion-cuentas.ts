@@ -7,7 +7,6 @@ import { EmpresasService, Empresa } from '../../shared/data-access/empresas.serv
 import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
 import { TasaResponse } from '../../shared/data-access/currency.service';
 import { AuthService } from '../../shared/data-access/auth.service';
-import { RolesBackend } from '../backend/data-access/roles.backend';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
@@ -65,7 +64,6 @@ export class RelacionCuentas implements OnInit {
   private tasasGuardadasService = inject(TasasGuardadasService);
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
-  private rolesBackend = inject(RolesBackend);
 
   private readonly API = '/api/abonos-polar';
   private readonly SERVER_URL = window.location.origin;
@@ -516,15 +514,15 @@ export class RelacionCuentas implements OnInit {
     }
 
     if (user.rol === 'root' || user.rol === 'admin') {
-      this.rolesBackend.getPermisos().subscribe({
+      this.http.get<any[]>('/api/roles/permisos').subscribe({
         next: (permisos) => {
-          const permisosIds = permisos.map(p => p.id);
+          const permisosIds = permisos.map((p: any) => p.id);
           this.userPermissions.set(permisosIds);
         },
         error: () => this.userPermissions.set([]),
       });
     } else if (user.rolId) {
-      this.rolesBackend.getRol(user.rolId).subscribe({
+      this.http.get<any>('/api/roles/' + user.rolId).subscribe({
         next: (rol) => {
           this.userPermissions.set(rol.permisos || []);
         },
@@ -1051,7 +1049,10 @@ if (!url) return '';
   eliminarAbono(id: string) {
     if (!confirm('¿Está seguro de eliminar este abono?')) return;
     this.http.delete(`${this.API}/${id}`).subscribe({
-      next: () => this.loadAbonos(true),
+      next: () => {
+        this.loadAbonos(true);
+        this.loadComisiones();
+      },
       error: (err) => console.error('Error deleting abono:', err),
     });
   }

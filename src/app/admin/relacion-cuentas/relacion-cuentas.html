@@ -407,10 +407,10 @@
           @if (esRoot()) {
             <div class="form-group">
               <label>Supervisor</label>
-              <select [(ngModel)]="editingAbono!.supervisor" name="supervisor" enterFocusNext>
-                <option value="">Seleccionar</option>
+              <select [(ngModel)]="editingAbono!.supervisorId" (ngModelChange)="onSupervisorChange($event)" name="supervisorId" enterFocusNext>
+                <option value="">Sin supervisor</option>
                 @for (supervisor of supervisores(); track supervisor._id) {
-                  <option [value]="supervisor.nombre">{{ supervisor.nombre }}</option>
+                  <option [value]="supervisor._id">{{ supervisor.nombre }}</option>
                 }
               </select>
               @if (editingAbono!.supervisor) {

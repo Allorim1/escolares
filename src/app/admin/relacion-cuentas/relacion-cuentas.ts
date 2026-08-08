@@ -666,6 +666,20 @@ export class RelacionCuentas implements OnInit {
     this.editingAbono.planta = '';
   }
 
+  onSupervisorChange(supervisorId: string) {
+    if (!this.editingAbono) return;
+    if (!supervisorId) {
+      this.editingAbono.supervisor = '';
+      this.editingAbono.supervisorId = '';
+      return;
+    }
+    const supervisor = this.supervisores().find((s) => s._id === supervisorId);
+    if (supervisor) {
+      this.editingAbono.supervisor = supervisor.nombre;
+      this.editingAbono.supervisorId = supervisor._id;
+    }
+  }
+
   formatearMontoInput(valor: number | undefined | null): string {
     const num = Number(valor) || 0;
     return num.toFixed(2).replace('.', ',');
@@ -959,6 +973,7 @@ if (!url) return '';
             this.loadAbonos(true);
           }
           this.cerrarModal();
+          this.loadComisiones();
         },
         error: (err) => {
           console.error('Error updating abono:', err);
@@ -983,6 +998,7 @@ if (!url) return '';
             });
           }
           this.cerrarModal();
+          this.loadComisiones();
         },
         error: (err) => {
           console.error('Error creating abono:', err);

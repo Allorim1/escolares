@@ -45,8 +45,10 @@ interface AbonoPago {
 interface Supervisor {
   _id?: string;
   nombre: string;
+  apellido?: string;
   cedula?: string;
   telefono?: string;
+  planta?: string;
 }
 
 @Component({
@@ -1476,7 +1478,7 @@ if (!url) return '';
   }
 
   abrirModalSupervisores() {
-    this.editingSupervisor.set({ nombre: '', cedula: '', telefono: '' });
+    this.editingSupervisor.set({ nombre: '', apellido: '', cedula: '', telefono: '', planta: '' });
     this.cargarSupervisores();
     this.showModalSupervisores.set(true);
   }

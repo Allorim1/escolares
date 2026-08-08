@@ -1460,7 +1460,7 @@ if (!url) return '';
   }
 
   abrirModalSupervisores() {
-    this.editingSupervisor.set(null);
+    this.editingSupervisor.set({ nombre: '', cedula: '', telefono: '' });
     this.cargarSupervisores();
     this.showModalSupervisores.set(true);
   }

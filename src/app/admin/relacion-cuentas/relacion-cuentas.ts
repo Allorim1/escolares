@@ -508,6 +508,40 @@ export class RelacionCuentas implements OnInit {
     return this.authService.user()?.rol === 'root';
   }
 
+  loadUserPermissions() {
+    const user = this.authService.user();
+    if (!user) {
+      this.userPermissions.set([]);
+      return;
+    }
+
+    if (user.rol === 'root' || user.rol === 'admin') {
+      this.rolesBackend.getPermisos().subscribe({
+        next: (permisos) => {
+          const permisosIds = permisos.map(p => p.id);
+          this.userPermissions.set(permisosIds);
+        },
+        error: () => this.userPermissions.set([]),
+      });
+    } else if (user.rolId) {
+      this.rolesBackend.getRol(user.rolId).subscribe({
+        next: (rol) => {
+          this.userPermissions.set(rol.permisos || []);
+        },
+        error: () => this.userPermissions.set([]),
+      });
+    } else {
+      this.userPermissions.set([]);
+    }
+  }
+
+  puedeVerTotales(): boolean {
+    const user = this.authService.user();
+    if (!user) return false;
+    if (user.rol === 'root') return true;
+    return this.userPermissions().includes('totales_ver');
+  }
+
   getValorAbono(abono: Abono, key: string): string {
     const valor = (abono as any)[key];
     switch (key) {

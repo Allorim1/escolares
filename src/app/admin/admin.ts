@@ -80,35 +80,35 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
          { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
        ]
      },
-     {
-       name: 'Panel Web',
-       items: [
-         { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
-         { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
-         { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
-         { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
-         { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
-         { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
-         { label: 'Noticias', route: 'noticias', permiso: 'noticias_gestionar' },
-         { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
-         { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
-         { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
-         { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
-       ]
-     },
+      {
+        name: 'Panel Web',
+        items: [
+          { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
+          { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
+          { label: 'Categorías de Productos', route: 'producto-categorias', permiso: 'productos_gestionar' },
+          { label: 'Marcas', route: 'marcas', permiso: 'marcas_gestionar' },
+          { label: 'Líneas', route: 'lineas', permiso: 'lineas_gestionar' },
+          { label: 'Ofertas', route: 'ofertas', permiso: 'ofertas_ver' },
+          { label: 'Noticias', route: 'noticias', permiso: 'noticias_gestionar' },
+          { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
+          { label: 'Manuales', route: 'manuales', permiso: 'manuales_ver' },
+          { label: 'Redes Sociales', route: 'redes-sociales', permiso: 'redes_sociales_gestionar' },
+        ]
+      },
       {
         name: 'Repartidor',
         items: [
           { label: 'Mis Pedidos', route: 'repartidor' },
         ]
       },
-        {
-          name: 'Seguridad',
-          items: [
-            { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
-            { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar', soloRoot: true },
-          ]
-        },
+         {
+           name: 'Seguridad',
+           items: [
+             { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
+             { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
+             { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar', soloRoot: true },
+           ]
+         },
         {
           name: 'Empresas',
           items: [

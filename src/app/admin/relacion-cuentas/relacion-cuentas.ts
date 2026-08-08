@@ -7,6 +7,7 @@ import { EmpresasService, Empresa } from '../../shared/data-access/empresas.serv
 import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
 import { TasaResponse } from '../../shared/data-access/currency.service';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { RolesBackend } from '../backend/data-access/roles.backend';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
@@ -64,6 +65,7 @@ export class RelacionCuentas implements OnInit {
   private tasasGuardadasService = inject(TasasGuardadasService);
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
+  private rolesBackend = inject(RolesBackend);
 
   private readonly API = '/api/abonos-polar';
   private readonly SERVER_URL = window.location.origin;
@@ -155,6 +157,7 @@ export class RelacionCuentas implements OnInit {
   loading = signal(false);
   saving = signal(false);
   empresasCargadas = signal(false);
+  userPermissions = signal<string[]>([]);
 
   showModal = signal(false);
   editingAbono: Abono | null = null;
@@ -272,6 +275,7 @@ export class RelacionCuentas implements OnInit {
     this.loadColumnasVisibles();
     this.loadComisiones();
     this.cargarSupervisores();
+    this.loadUserPermissions();
   }
 
   loadComisiones() {

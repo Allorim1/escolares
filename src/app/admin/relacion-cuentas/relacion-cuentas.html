@@ -426,7 +426,7 @@
               <select [(ngModel)]="editingAbono!.supervisorId" (ngModelChange)="onSupervisorChange($event)" name="supervisorId" enterFocusNext>
                 <option value="">Sin supervisor</option>
                 @for (supervisor of supervisores(); track supervisor._id) {
-                  <option [value]="supervisor._id">{{ supervisor.nombre }}</option>
+                  <option [value]="supervisor._id">{{ supervisor.nombre }} {{ supervisor.apellido }} - {{ supervisor.planta }}</option>
                 }
               </select>
               @if (editingAbono!.supervisor) {

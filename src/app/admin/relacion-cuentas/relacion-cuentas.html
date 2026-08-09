@@ -33,7 +33,9 @@
     @if (esRoot()) {
       <button class="tab" [class.active]="pestanaActiva() === 'supervisores'" (click)="pestanaActiva.set('supervisores')">Supervisores</button>
     }
-    <button class="tab" [class.active]="pestanaActiva() === 'comisiones'" (click)="pestanaActiva.set('comisiones'); loadComisionesTab()">Comisiones</button>
+    @if (esRoot()) {
+      <button class="tab" [class.active]="pestanaActiva() === 'comisiones'" (click)="pestanaActiva.set('comisiones'); loadComisionesTab()">Comisiones</button>
+    }
   </div>
 
   @if (pestanaActiva() === 'relaciones') {
@@ -141,6 +143,53 @@
       </tbody>
     </table>
     </div>
+    @if (puedeVerTotales()) {
+      <div class="totales-separados">
+        <div class="totales-card">
+          <h3>Totales Registrados</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Monto Facts. Bs</span>
+              <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Iva</span>
+              <span class="total-value">{{ formatMonto(totales().iva) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Monto Total Sin Iva</span>
+              <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Monto $</span>
+              <span class="total-value">{{ formatMonto(totales().divisa) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Pago Parcial</span>
+              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="totales-card">
+          <h3>Totales Actuales</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Total actual $</span>
+              <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Diferencia $</span>
+              <span class="total-value">{{ formatMonto(totales().decrecimientoMonto) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Diferencia %</span>
+              <span class="total-value">{{ totales().decrecimientoPorcentaje.toFixed(2) }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
     @if (abonosFiltrados().length > 10) {
       <div class="pagination">
         <button class="btn-page" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">Anterior</button>
@@ -368,50 +417,6 @@
 
       @if (puedeVerTotales()) {
         <div class="totales-separados">
-          <div class="totales-card">
-            <h3>Totales Registrados</h3>
-            <div class="totales-grid">
-              <div class="total-item">
-                <span class="total-label">Monto Facts. Bs</span>
-                <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Iva</span>
-                <span class="total-value">{{ formatMonto(totales().iva) }}</span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Monto Total Sin Iva</span>
-                <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Monto $</span>
-                <span class="total-value">{{ formatMonto(totales().divisa) }}</span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Pago Parcial</span>
-                <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="totales-card">
-            <h3>Totales Actuales</h3>
-            <div class="totales-grid">
-              <div class="total-item">
-                <span class="total-label">Total actual $</span>
-                <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Diferencia $</span>
-                <span class="total-value">{{ formatMonto(totales().decrecimientoMonto) }}</span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Diferencia %</span>
-                <span class="total-value">{{ totales().decrecimientoPorcentaje.toFixed(2) }}%</span>
-              </div>
-            </div>
-          </div>
-
           <div class="totales-card comisiones-card">
             <h3>Comisiones</h3>
             <div class="totales-grid">

@@ -452,14 +452,20 @@ export class RelacionCuentas implements OnInit {
         supervisor: string;
         planta: string;
         cantidad: number;
-        monto: number;
+        montoFactura: number;
+        iva: number;
+        montoFacturaSinIva: number;
+        comision: number;
+        comisionPorcentaje: number;
         abonos: any[];
       }
     >();
 
     for (const abono of abonos) {
       const supervisorId = abono.supervisorId || '';
-      const montoBase = abono.montoFactura ?? 0;
+      const montoFactura = abono.montoFactura ?? 0;
+      const iva = abono.iva ?? 0;
+      const comisionPorcentaje = abono.comisionPorcentaje ?? 0;
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -468,22 +474,30 @@ export class RelacionCuentas implements OnInit {
             supervisor: abono.supervisor || '',
             planta: abono.planta || '',
             cantidad: 0,
-            monto: 0,
+            montoFactura: 0,
+            iva: 0,
+            montoFacturaSinIva: 0,
+            comision: 0,
+            comisionPorcentaje,
             abonos: [],
           });
         }
 
         const sup = porSupervisor.get(supervisorId)!;
-        sup.monto += montoBase;
+        sup.montoFactura += montoFactura;
+        sup.iva += iva;
+        sup.montoFacturaSinIva += montoFactura - iva;
+        sup.comision += montoFactura * (comisionPorcentaje / 100);
         sup.cantidad++;
         sup.abonos.push(abono);
+
+        if (comisionPorcentaje) {
+          sup.comisionPorcentaje = comisionPorcentaje;
+        }
       }
     }
 
-    return Array.from(porSupervisor.values()).map((sup) => ({
-      ...sup,
-      comisionPorcentaje: sup.abonos[0]?.comisionPorcentaje ?? 0,
-    }));
+    return Array.from(porSupervisor.values());
   });
 
   comisionesTabLoading = signal(false);
@@ -522,15 +536,26 @@ export class RelacionCuentas implements OnInit {
     const nombresAgrupados = abonos.reduce((acc: any[], abono: any) => {
       const nombre = abono.nombre || 'Sin nombre';
       const existente = acc.find(n => n.nombre === nombre);
+      const montoFactura = abono.montoFactura ?? 0;
+      const iva = abono.iva ?? 0;
+      const comisionPorcentaje = abono.comisionPorcentaje ?? supervisor.comisionPorcentaje ?? 0;
       if (existente) {
         existente.cantidad++;
-        existente.monto += abono.baseComision || 0;
+        existente.montoFactura += montoFactura;
+        existente.iva += iva;
+        existente.montoFacturaSinIva += montoFactura - iva;
+        existente.comision += montoFactura * (comisionPorcentaje / 100);
+        existente.comisionPorcentaje = comisionPorcentaje;
         existente.abonos.push(abono);
       } else {
         acc.push({
           nombre,
           cantidad: 1,
-          monto: abono.baseComision || 0,
+          montoFactura,
+          iva,
+          montoFacturaSinIva: montoFactura - iva,
+          comision: montoFactura * (comisionPorcentaje / 100),
+          comisionPorcentaje,
           abonos: [abono],
         });
       }

@@ -552,7 +552,9 @@
                     <th>Supervisor</th>
                     <th>Planta</th>
                     <th>Cantidad</th>
-                    <th>Monto Base</th>
+                    <th>Monto Factura Bs</th>
+                    <th>IVA</th>
+                    <th>Monto Factura Sin Iva</th>
                     <th>Comisión</th>
                   </tr>
                 </thead>
@@ -562,8 +564,10 @@
                       <td>{{ item.supervisor }} {{ getSupervisorApellido(item.supervisorId) }}</td>
                       <td>{{ item.planta || '-' }}</td>
                       <td>{{ item.cantidad }}</td>
-                      <td>{{ formatMonto(item.abonos?.reduce((sum, a) => sum + (a.baseComision || 0), 0) || 0) }} Bs</td>
-                      <td class="monto">{{ formatMonto(item.monto) }} Bs</td>
+                      <td>{{ formatMonto(item.montoFactura) }}</td>
+                      <td>{{ formatMonto(item.iva) }}</td>
+                      <td>{{ formatMonto(item.montoFacturaSinIva) }}</td>
+                      <td class="monto">{{ formatMonto(item.comision) }} Bs</td>
                     </tr>
                   }
                 </tbody>
@@ -583,7 +587,9 @@
                   <tr>
                     <th>Nombre</th>
                     <th>Cantidad</th>
-                    <th>Monto Base</th>
+                    <th>Monto Factura Bs</th>
+                    <th>IVA</th>
+                    <th>Monto Factura Sin Iva</th>
                     <th>Comisión</th>
                   </tr>
                 </thead>
@@ -592,8 +598,10 @@
                     <tr (click)="seleccionarNombreComisiones(nombre.nombre)" style="cursor: pointer;">
                       <td>{{ nombre.nombre }}</td>
                       <td>{{ nombre.cantidad }}</td>
-                      <td>{{ formatMonto(nombre.monto) }} Bs</td>
-                      <td class="monto">{{ formatMonto(nombre.monto * ((comisionesTabSupervisorSeleccionado().comisionPorcentaje || comisionesComisiones().comisionNoAsignadaPorcentaje) / 100)) }} Bs</td>
+                      <td>{{ formatMonto(nombre.montoFactura) }}</td>
+                      <td>{{ formatMonto(nombre.iva) }}</td>
+                      <td>{{ formatMonto(nombre.montoFacturaSinIva) }}</td>
+                      <td class="monto">{{ formatMonto(nombre.comision) }} Bs</td>
                     </tr>
                   }
                 </tbody>

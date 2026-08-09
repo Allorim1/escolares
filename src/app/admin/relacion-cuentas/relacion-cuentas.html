@@ -325,7 +325,7 @@
       <div class="filtros">
         <div class="filtro-group">
           <label>Empresa:</label>
-          <select [ngModel]="comisionesTabFiltros().empresa" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), empresa: $event, planta: '' }); onComisionesTabFiltroChange()">
+          <select [ngModel]="comisionesTabFiltros().empresa" (ngModelChange)="limpiarPlantasAlCambiarEmpresa(); actualizarFiltroComision('empresa', $event); onComisionesTabFiltroChange()">
             <option value="">Todas</option>
             @for (empresa of empresas(); track empresa._id) {
               <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
@@ -334,7 +334,7 @@
         </div>
         <div class="filtro-group">
           <label>Supervisor:</label>
-          <select [ngModel]="comisionesTabFiltros().supervisor" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), supervisor: $event }); onComisionesTabFiltroChange()">
+          <select [ngModel]="comisionesTabFiltros().supervisor" (ngModelChange)="actualizarFiltroComision('supervisor', $event); onComisionesTabFiltroChange()">
             <option value="">Todos</option>
             @for (supervisor of supervisores(); track supervisor._id) {
               <option [value]="supervisor.nombre">{{ supervisor.nombre }} {{ supervisor.apellido }}</option>
@@ -343,7 +343,7 @@
         </div>
         <div class="filtro-group">
           <label>Planta:</label>
-          <select [ngModel]="comisionesTabFiltros().planta" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), planta: $event }); onComisionesTabFiltroChange()" [disabled]="!comisionesTabFiltros().empresa">
+          <select [ngModel]="comisionesTabFiltros().planta" (ngModelChange)="actualizarFiltroComision('planta', $event); onComisionesTabFiltroChange()" [disabled]="!comisionesTabFiltros().empresa">
             <option value="">Todas</option>
             @for (planta of plantasFiltradasComisiones(); track planta) {
               <option [value]="planta">{{ planta }}</option>
@@ -352,11 +352,11 @@
         </div>
         <div class="filtro-group">
           <label>Desde:</label>
-          <input type="date" [ngModel]="comisionesTabFiltros().fechaDesde" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), fechaDesde: $event }); onComisionesTabFiltroChange()">
+          <input type="date" [ngModel]="comisionesTabFiltros().fechaDesde" (ngModelChange)="actualizarFiltroComision('fechaDesde', $event); onComisionesTabFiltroChange()">
         </div>
         <div class="filtro-group">
           <label>Hasta:</label>
-          <input type="date" [ngModel]="comisionesTabFiltros().fechaHasta" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), fechaHasta: $event }); onComisionesTabFiltroChange()">
+          <input type="date" [ngModel]="comisionesTabFiltros().fechaHasta" (ngModelChange)="actualizarFiltroComision('fechaHasta', $event); onComisionesTabFiltroChange()">
         </div>
         <div class="filtro-group">
           <button class="btn-secondary" (click)="loadComisionesTab()">Buscar</button>

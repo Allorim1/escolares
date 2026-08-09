@@ -363,6 +363,14 @@ export class RelacionCuentas implements OnInit {
     this.loadComisionesTab();
   }
 
+  actualizarFiltroComision(key: 'supervisor' | 'empresa' | 'planta' | 'fechaDesde' | 'fechaHasta', value: string) {
+    this.comisionesTabFiltros.update((filtros) => ({ ...filtros, [key]: value }));
+  }
+
+  limpiarPlantasAlCambiarEmpresa() {
+    this.comisionesTabFiltros.update((filtros) => ({ ...filtros, planta: '' }));
+  }
+
   seleccionarSupervisorComisiones(supervisor: any) {
     this.comisionesTabSupervisorSeleccionado.set(supervisor);
     this.comisionesTabAbonoSeleccionado.set(null);

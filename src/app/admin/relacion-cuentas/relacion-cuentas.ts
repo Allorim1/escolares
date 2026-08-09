@@ -126,6 +126,7 @@ export class RelacionCuentas implements OnInit {
     const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
     const abonos = datos.reduce((sum, a) => sum + (a.abonos ?? 0), 0);
     const iva = datos.reduce((sum, a) => sum + (a.iva ?? 0), 0);
+    const ivaDivisa = datos.reduce((sum, a) => sum + (a.iva ?? 0) / (a.tasa ?? 0), 0)
     const pagoParcial = abonos;
     const diferencia = montoFactura - iva;
     const divisa = datos.reduce((sum, a) => {
@@ -146,6 +147,7 @@ export class RelacionCuentas implements OnInit {
       montoFactura,
       abonos,
       iva,
+      ivaDivisa,
       pagoParcial,
       diferencia,
       divisa,

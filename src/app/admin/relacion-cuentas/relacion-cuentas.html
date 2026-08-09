@@ -153,7 +153,7 @@
               <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Iva</span>
+              <span class="total-label">Iva Bs</span>
               <span class="total-value">{{ formatMonto(totales().iva) }}</span>
             </div>
             <div class="total-item">
@@ -161,8 +161,12 @@
               <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Monto $</span>
+              <span class="total-label">Monto Facts. $</span>
               <span class="total-value">{{ formatMonto(totales().divisa) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Iva $</span>
+              <span class="total-value">{{ formatMonto(totales().ivaDivisa) }}</span>
             </div>
             <div class="total-item">
               <span class="total-label">Pago Parcial</span>

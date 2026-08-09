@@ -196,19 +196,19 @@
     }
     @if (puedeVerTotales()) {
       <div class="totales-separados">
-      <div class="totales-card">
-        <h3>Comisiones</h3>
-        <div class="totales-grid">
-          <div class="total-item">
-            <span class="total-label">Comisión Planta Bs</span>
-            <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
-          </div>
-          <div class="total-item">
-            <span class="total-label">Comisión Planta $</span>
-            <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().comisionNoAsignada / tasaActual() : 0) }}</span>
+        <div class="totales-card">
+          <h3>Comisión Planta</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Comisión Planta</span>
+              <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Comisión Planta $</span>
+              <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().comisionNoAsignada / tasaActual() : 0) }}</span>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     }
     @if (abonosFiltrados().length > 10) {
@@ -593,7 +593,7 @@
                       <td>{{ nombre.nombre }}</td>
                       <td>{{ nombre.cantidad }}</td>
                       <td>{{ formatMonto(nombre.monto) }} Bs</td>
-                      <td class="monto">{{ formatMonto(nombre.monto * ((comisionesTabSupervisorSeleccionado().comisionPorcentaje || comisiones().comisionNoAsignadaPorcentaje) / 100)) }} Bs</td>
+                      <td class="monto">{{ formatMonto(nombre.monto * ((comisionesTabSupervisorSeleccionado().comisionPorcentaje || comisionesComisiones().comisionNoAsignadaPorcentaje) / 100)) }} Bs</td>
                     </tr>
                   }
                 </tbody>
@@ -613,10 +613,11 @@
                   <tr>
                     <th>N. Fact</th>
                     <th>Fecha</th>
-                    <th>Monto Factura Sin Iva</th>
+                    <th>Monto Factura</th>
                     <th>IVA</th>
-                    <th>Status</th>
+                    <th>Monto Factura Sin Iva</th>
                     <th>Comisión</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -624,10 +625,11 @@
                     <tr (click)="abrirModalAbonos(abono)" style="cursor: pointer;">
                       <td>{{ abono.nFact }}</td>
                       <td>{{ formatFecha(abono.fecha) }}</td>
-                      <td>{{ formatMonto((abono.montoFactura ?? 0) - (abono.iva ?? 0)) }}</td>
+                      <td>{{ formatMonto(abono.montoFactura ?? 0) }}</td>
                       <td>{{ formatMonto(abono.iva ?? 0) }}</td>
+                      <td>{{ formatMonto((abono.montoFactura ?? 0) - (abono.iva ?? 0)) }}</td>
+                      <td class="monto">{{ formatMonto((abono.montoFactura ?? 0) * ((abono.comisionPorcentaje || comisionesTabSupervisorSeleccionado().comisionPorcentaje || comisionesComisiones().comisionNoAsignadaPorcentaje) / 100)) }} Bs</td>
                       <td>{{ abono.status }}</td>
-                      <td class="monto">{{ formatMonto((abono.montoFactura ?? 0) * ((abono.comisionPorcentaje || comisionesTabSupervisorSeleccionado().comisionPorcentaje || comisiones().comisionNoAsignadaPorcentaje) / 100)) }} Bs</td>
                     </tr>
                   }
                 </tbody>
@@ -646,7 +648,7 @@
         <div class="totales-grid">
           <div class="total-item">
             <span class="total-label">Total Comisiones</span>
-            <span class="total-value">{{ formatMonto(comisiones().total) }}</span>
+            <span class="total-value">{{ formatMonto(comisionesComisiones().total) }}</span>
           </div>
         </div>
       </div>

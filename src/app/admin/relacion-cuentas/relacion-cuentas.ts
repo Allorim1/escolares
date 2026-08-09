@@ -285,6 +285,69 @@ export class RelacionCuentas implements OnInit {
       montoFacturaNoAsignada,
     };
   });
+
+  comisionesComisiones = computed(() => {
+    const abonos = this.abonosFiltradosComisiones();
+    const porcentaje = this.comisionNoAsignadaManual() ?? 0;
+
+    const porSupervisor = new Map<
+      string,
+      {
+        supervisorId: string;
+        supervisor: string;
+        monto: number;
+        cantidad: number;
+        comisionPorcentaje: number;
+      }
+    >();
+
+    let comisionNoAsignada = 0;
+    let montoFacturaNoAsignada = 0;
+
+    for (const abono of abonos) {
+      const supervisorId = abono.supervisorId || '';
+      const montoBase = abono.montoFactura ?? 0;
+      const comisionPorcentaje = abono.comisionPorcentaje ?? porcentaje;
+
+      if (supervisorId) {
+        if (!porSupervisor.has(supervisorId)) {
+          porSupervisor.set(supervisorId, {
+            supervisorId,
+            supervisor: abono.supervisor || '',
+            monto: 0,
+            cantidad: 0,
+            comisionPorcentaje,
+          });
+        }
+
+        const sup = porSupervisor.get(supervisorId)!;
+        sup.monto += montoBase;
+        sup.cantidad++;
+
+        if (abono.comisionPorcentaje) {
+          sup.comisionPorcentaje = abono.comisionPorcentaje;
+        }
+      } else {
+        comisionNoAsignada += montoBase * (comisionPorcentaje / 100);
+        montoFacturaNoAsignada += montoBase;
+      }
+    }
+
+    const comisionesPorSupervisor = Array.from(porSupervisor.values()).map((sup) => ({
+      ...sup,
+      comision: sup.monto * (sup.comisionPorcentaje / 100),
+    }));
+
+    const total = comisionesPorSupervisor.reduce((sum, c) => sum + c.comision, 0) + comisionNoAsignada;
+
+    return {
+      comisionesPorSupervisor,
+      comisionNoAsignada,
+      comisionNoAsignadaPorcentaje: porcentaje,
+      total,
+      montoFacturaNoAsignada,
+    };
+  });
   comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
 

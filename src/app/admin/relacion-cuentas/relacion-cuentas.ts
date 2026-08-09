@@ -232,6 +232,8 @@ export class RelacionCuentas implements OnInit {
   comisionesTabFiltros = signal({ supervisor: '', empresa: '', planta: '', fechaDesde: '', fechaHasta: '' });
   comisionesTabSupervisorSeleccionado = signal<any | null>(null);
   comisionesTabAbonoSeleccionado = signal<any | null>(null);
+  comisionesTabNombresAgrupados = signal<any[]>([]);
+  comisionesTabNombreSeleccionado = signal<string>('');
 
   showModalSupervisores = signal(false);
   editingSupervisor = signal<Supervisor | null>(null);
@@ -376,6 +378,31 @@ export class RelacionCuentas implements OnInit {
   seleccionarSupervisorComisiones(supervisor: any) {
     this.comisionesTabSupervisorSeleccionado.set(supervisor);
     this.comisionesTabAbonoSeleccionado.set(null);
+    this.comisionesTabNombreSeleccionado.set('');
+    const abonos = supervisor.abonos || [];
+    const nombresAgrupados = abonos.reduce((acc: any[], abono: any) => {
+      const nombre = abono.nombre || 'Sin nombre';
+      const existente = acc.find(n => n.nombre === nombre);
+      if (existente) {
+        existente.cantidad++;
+        existente.monto += abono.baseComision || 0;
+        existente.abonos.push(abono);
+      } else {
+        acc.push({
+          nombre,
+          cantidad: 1,
+          monto: abono.baseComision || 0,
+          abonos: [abono],
+        });
+      }
+      return acc;
+    }, []);
+    this.comisionesTabNombresAgrupados.set(nombresAgrupados);
+  }
+
+  seleccionarNombreComisiones(nombre: string) {
+    this.comisionesTabNombreSeleccionado.set(nombre);
+    this.comisionesTabAbonoSeleccionado.set(null);
   }
 
   seleccionarAbonoComisiones(abono: any) {
@@ -386,15 +413,42 @@ export class RelacionCuentas implements OnInit {
     this.comisionesTabAbonoSeleccionado.set(null);
   }
 
-  volverAListaSupervisores() {
-    this.comisionesTabSupervisorSeleccionado.set(null);
+  getSupervisorApellido(supervisorId: string): string {
+    const supervisor = this.supervisores().find(s => s._id === supervisorId);
+    return supervisor?.apellido ? ` ${supervisor.apellido}` : '';
+  }
+
+  getAbonosPorNombreSeleccionado(): any[] {
+    const nombre = this.comisionesTabNombreSeleccionado();
+    if (!nombre) return [];
+    const grupo = this.comisionesTabNombresAgrupados().find(n => n.nombre === nombre);
+    return grupo?.abonos || [];
+  }
+
+  volverAListaNombres() {
+    this.comisionesTabNombreSeleccionado.set('');
     this.comisionesTabAbonoSeleccionado.set(null);
   }
 
-  volverAComisiones() {
+  volverAListaSupervisores() {
     this.comisionesTabSupervisorSeleccionado.set(null);
+    this.comisionesTabNombreSeleccionado.set('');
     this.comisionesTabAbonoSeleccionado.set(null);
-    this.loadComisionesTab();
+    this.comisionesTabNombresAgrupados.set([]);
+  }
+
+  volverAComisiones() {
+    if (this.comisionesTabNombreSeleccionado()) {
+      this.volverAListaNombres();
+    } else if (this.comisionesTabSupervisorSeleccionado()) {
+      this.volverAListaSupervisores();
+    } else {
+      this.comisionesTabSupervisorSeleccionado.set(null);
+      this.comisionesTabNombreSeleccionado.set('');
+      this.comisionesTabAbonoSeleccionado.set(null);
+      this.comisionesTabNombresAgrupados.set([]);
+      this.loadComisionesTab();
+    }
   }
 
   loadColumnasVisibles() {

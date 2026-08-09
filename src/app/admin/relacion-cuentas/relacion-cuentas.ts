@@ -95,10 +95,10 @@ export class RelacionCuentas implements OnInit {
         passes = passes && a.planta === f.planta;
       }
       if (f.fechaDesde) {
-        passes = passes && new Date(a.fecha) >= new Date(f.fechaDesde);
+        passes = passes && (a.fecha || '').slice(0, 10) >= f.fechaDesde;
       }
       if (f.fechaHasta) {
-        passes = passes && new Date(a.fecha) <= new Date(f.fechaHasta + 'T23:59:59');
+        passes = passes && (a.fecha || '').slice(0, 10) <= f.fechaHasta;
       }
       if (f.status) {
         passes = passes && a.status === f.status;

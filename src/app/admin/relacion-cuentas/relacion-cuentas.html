@@ -33,6 +33,7 @@
     @if (esRoot()) {
       <button class="tab" [class.active]="pestanaActiva() === 'supervisores'" (click)="pestanaActiva.set('supervisores')">Supervisores</button>
     }
+    <button class="tab" [class.active]="pestanaActiva() === 'comisiones'" (click)="pestanaActiva.set('comisiones'); loadComisionesTab()">Comisiones</button>
   </div>
 
   @if (pestanaActiva() === 'relaciones') {
@@ -140,74 +141,6 @@
       </tbody>
     </table>
     </div>
-    @if (puedeVerTotales()) {
-      <div class="totales-separados">
-        <div class="totales-card">
-          <h3>Totales Registrados</h3>
-          <div class="totales-grid">
-            <div class="total-item">
-              <span class="total-label">Monto Facts. Bs</span>
-              <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Iva</span>
-              <span class="total-value">{{ formatMonto(totales().iva) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Monto Total Sin Iva</span>
-              <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Monto $</span>
-              <span class="total-value">{{ formatMonto(totales().divisa) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Pago Parcial</span>
-              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="totales-card">
-          <h3>Totales Actuales</h3>
-          <div class="totales-grid">
-            <div class="total-item">
-              <span class="total-label">Total actual $</span>
-              <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Diferencia $</span>
-              <span class="total-value">{{ formatMonto(totales().decrecimientoMonto) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Diferencia %</span>
-              <span class="total-value">{{ totales().decrecimientoPorcentaje.toFixed(2) }}%</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="totales-card comisiones-card">
-          <h3>Comisiones</h3>
-          <div class="totales-grid">
-            <div class="total-item">
-              <span class="total-label">Comisión No Asignada</span>
-              <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
-            </div>
-            @for (comision of comisiones().comisionesPorSupervisor; track comision.supervisorId) {
-              <div class="total-item">
-                <span class="total-label">{{ comision.supervisor }}</span>
-                <span class="total-value">{{ formatMonto(comision.monto) }}</span>
-                <span class="total-cantidad">{{ comision.cantidad }} relaciones</span>
-              </div>
-            }
-            <div class="total-item">
-              <span class="total-label">Total Comisiones</span>
-              <span class="total-value">{{ formatMonto(comisiones().total) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    }
     @if (abonosFiltrados().length > 10) {
       <div class="pagination">
         <button class="btn-page" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">Anterior</button>
@@ -384,8 +317,265 @@
                     <span class="abono-pago-fecha">{{ abonoPago.fecha | date:'dd/MM/yyyy' }}</span>
                     <span class="abono-pago-monto">{{ formatMonto(abonoPago.monto) }}</span>
                     <button type="button" class="btn-remove" (click)="eliminarAbonoPago($index)">✕</button>
-                  </div>
+    </div>
+  }
+
+  @if (pestanaActiva() === 'comisiones') {
+    <div class="comisiones-tab">
+      <div class="filtros">
+        <div class="filtro-group">
+          <label>Empresa:</label>
+          <select [ngModel]="comisionesTabFiltros().empresa" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), empresa: $event, planta: '' }); onComisionesTabFiltroChange()">
+            <option value="">Todas</option>
+            @for (empresa of empresas(); track empresa._id) {
+              <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>Supervisor:</label>
+          <select [ngModel]="comisionesTabFiltros().supervisor" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), supervisor: $event }); onComisionesTabFiltroChange()">
+            <option value="">Todos</option>
+            @for (supervisor of supervisores(); track supervisor._id) {
+              <option [value]="supervisor.nombre">{{ supervisor.nombre }} {{ supervisor.apellido }}</option>
+            }
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>Planta:</label>
+          <select [ngModel]="comisionesTabFiltros().planta" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), planta: $event }); onComisionesTabFiltroChange()" [disabled]="!comisionesTabFiltros().empresa">
+            <option value="">Todas</option>
+            @for (planta of plantasFiltradasComisiones(); track planta) {
+              <option [value]="planta">{{ planta }}</option>
+            }
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>Desde:</label>
+          <input type="date" [ngModel]="comisionesTabFiltros().fechaDesde" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), fechaDesde: $event }); onComisionesTabFiltroChange()">
+        </div>
+        <div class="filtro-group">
+          <label>Hasta:</label>
+          <input type="date" [ngModel]="comisionesTabFiltros().fechaHasta" (ngModelChange)="comisionesTabFiltros.update({ ...comisionesTabFiltros(), fechaHasta: $event }); onComisionesTabFiltroChange()">
+        </div>
+        <div class="filtro-group">
+          <button class="btn-secondary" (click)="loadComisionesTab()">Buscar</button>
+          @if (comisionesTabSupervisorSeleccionado() || comisionesTabAbonoSeleccionado()) {
+            <button class="btn-secondary" (click)="volverAComisiones()">← Volver</button>
+          }
+        </div>
+      </div>
+
+      @if (puedeVerTotales()) {
+        <div class="totales-separados">
+          <div class="totales-card">
+            <h3>Totales Registrados</h3>
+            <div class="totales-grid">
+              <div class="total-item">
+                <span class="total-label">Monto Facts. Bs</span>
+                <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Iva</span>
+                <span class="total-value">{{ formatMonto(totales().iva) }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Monto Total Sin Iva</span>
+                <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Monto $</span>
+                <span class="total-value">{{ formatMonto(totales().divisa) }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Pago Parcial</span>
+                <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="totales-card">
+            <h3>Totales Actuales</h3>
+            <div class="totales-grid">
+              <div class="total-item">
+                <span class="total-label">Total actual $</span>
+                <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Diferencia $</span>
+                <span class="total-value">{{ formatMonto(totales().decrecimientoMonto) }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Diferencia %</span>
+                <span class="total-value">{{ totales().decrecimientoPorcentaje.toFixed(2) }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="totales-card comisiones-card">
+            <h3>Comisiones</h3>
+            <div class="totales-grid">
+              <div class="total-item">
+                <span class="total-label">Comisión No Asignada</span>
+                <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
+              </div>
+              @for (comision of comisiones().comisionesPorSupervisor; track comision.supervisorId) {
+                <div class="total-item">
+                  <span class="total-label">{{ comision.supervisor }}</span>
+                  <span class="total-value">{{ formatMonto(comision.monto) }}</span>
+                  <span class="total-cantidad">{{ comision.cantidad }} relaciones</span>
+                </div>
+              }
+              <div class="total-item">
+                <span class="total-label">Total Comisiones</span>
+                <span class="total-value">{{ formatMonto(comisiones().total) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (comisionesTabLoading()) {
+        <div class="loading">Cargando...</div>
+      } @else {
+        @if (!comisionesTabSupervisorSeleccionado() && !comisionesTabAbonoSeleccionado()) {
+          <div class="comisiones-supervisores-list">
+            <h3>Supervisores</h3>
+            @if (comisionesTabData().length === 0) {
+              <p class="sin-abonos">No hay comisiones registradas</p>
+            } @else {
+              <table class="abonos-table">
+                <thead>
+                  <tr>
+                    <th>Supervisor</th>
+                    <th>Planta</th>
+                    <th>Cantidad</th>
+                    <th>Monto Base</th>
+                    <th>Comisión</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of comisionesTabData(); track item.supervisorId) {
+                    <tr (click)="seleccionarSupervisorComisiones(item)" style="cursor: pointer;">
+                      <td>{{ item.supervisor }}</td>
+                      <td>{{ item.planta || '-' }}</td>
+                      <td>{{ item.cantidad }}</td>
+                      <td>{{ formatMonto(item.abonos?.reduce((sum, a) => sum + (a.baseComision || 0), 0) || 0) }} Bs</td>
+                      <td class="monto">{{ formatMonto(item.monto) }} Bs</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        }
+
+        @if (comisionesTabSupervisorSeleccionado() && !comisionesTabAbonoSeleccionado()) {
+          <div class="comisiones-abonos-list">
+            <div class="comisiones-header">
+              <h3>Abonos de {{ comisionesTabSupervisorSeleccionado()?.supervisor }}</h3>
+              <button class="btn-secondary" (click)="volverAListaSupervisores()">← Volver</button>
+            </div>
+            <table class="abonos-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Nombre</th>
+                  <th>Planta</th>
+                  <th>N. Fact</th>
+                  <th>Monto Factura</th>
+                  <th>IVA</th>
+                  <th>Base Comisión</th>
+                  <th>% Comisión</th>
+                  <th>Comisión</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (abono of comisionesTabSupervisorSeleccionado()?.abonos || []; track abono._id) {
+                  <tr (click)="seleccionarAbonoComisiones(abono)" style="cursor: pointer;">
+                    <td>{{ formatFecha(abono.fecha) }}</td>
+                    <td>{{ abono.nombre }}</td>
+                    <td>{{ abono.planta }}</td>
+                    <td>{{ abono.nFact }}</td>
+                    <td>{{ formatMonto(abono.montoFactura) }} Bs</td>
+                    <td>{{ formatMonto(abono.iva) }} Bs</td>
+                    <td>{{ formatMonto(abono.baseComision) }} Bs</td>
+                    <td>{{ abono.comisionPorcentaje }}%</td>
+                    <td class="monto">{{ formatMonto(abono.comisionMonto) }} Bs</td>
+                    <td>{{ abono.status }}</td>
+                  </tr>
                 }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (comisionesTabAbonoSeleccionado()) {
+          <div class="comisiones-abono-detalle">
+            <div class="comisiones-header">
+              <h3>Detalle de Factura</h3>
+              <button class="btn-secondary" (click)="volverAListaAbonos()">← Volver</button>
+            </div>
+            <div class="abono-detalle-card">
+              <div class="detalle-row">
+                <span class="detalle-label">Fecha:</span>
+                <span class="detalle-value">{{ formatFecha(comisionesTabAbonoSeleccionado()?.fecha) }}</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Nombre:</span>
+                <span class="detalle-value">{{ comisionesTabAbonoSeleccionado()?.nombre }}</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Empresa:</span>
+                <span class="detalle-value">{{ comisionesTabAbonoSeleccionado()?.empresa || '-' }}</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Planta:</span>
+                <span class="detalle-value">{{ comisionesTabAbonoSeleccionado()?.planta }}</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Cédula:</span>
+                <span class="detalle-value">{{ comisionesTabAbonoSeleccionado()?.cedula || '-' }}</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Teléfono:</span>
+                <span class="detalle-value">{{ comisionesTabAbonoSeleccionado()?.telefono || '-' }}</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">N. Fact:</span>
+                <span class="detalle-value">{{ comisionesTabAbonoSeleccionado()?.nFact }}</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Monto Factura:</span>
+                <span class="detalle-value">{{ formatMonto(comisionesTabAbonoSeleccionado()?.montoFactura) }} Bs</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">IVA:</span>
+                <span class="detalle-value">{{ formatMonto(comisionesTabAbonoSeleccionado()?.iva) }} Bs</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Base Comisión:</span>
+                <span class="detalle-value">{{ formatMonto(comisionesTabAbonoSeleccionado()?.baseComision) }} Bs</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">% Comisión:</span>
+                <span class="detalle-value">{{ comisionesTabAbonoSeleccionado()?.comisionPorcentaje }}%</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Comisión:</span>
+                <span class="detalle-value monto">{{ formatMonto(comisionesTabAbonoSeleccionado()?.comisionMonto) }} Bs</span>
+              </div>
+              <div class="detalle-row">
+                <span class="detalle-label">Status:</span>
+                <span class="detalle-value">{{ comisionesTabAbonoSeleccionado()?.status }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
               </div>
             }
             <div class="abono-pago-form">

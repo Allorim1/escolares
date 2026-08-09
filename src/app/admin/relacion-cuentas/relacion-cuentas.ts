@@ -80,6 +80,13 @@ export class RelacionCuentas implements OnInit {
     return empresa?.plantas || [];
   });
 
+  plantasFiltradasComisiones = computed(() => {
+    const empresaNombre = this.comisionesTabFiltros().empresa;
+    if (!empresaNombre) return [];
+    const empresa = this.empresas().find((e) => e.nombre === empresaNombre);
+    return empresa?.plantas || [];
+  });
+
   supervisoresUnicos = computed(() => {
     return this.supervisores().map(s => s.nombre).sort();
   });
@@ -218,9 +225,15 @@ export class RelacionCuentas implements OnInit {
   comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
 
+  comisionesTabLoading = signal(false);
+  comisionesTabData = signal<any[]>([]);
+  comisionesTabFiltros = signal({ supervisor: '', empresa: '', planta: '', fechaDesde: '', fechaHasta: '' });
+  comisionesTabSupervisorSeleccionado = signal<any | null>(null);
+  comisionesTabAbonoSeleccionado = signal<any | null>(null);
+
   showModalSupervisores = signal(false);
   editingSupervisor = signal<Supervisor | null>(null);
-  pestanaActiva = signal<'relaciones' | 'supervisores'>('relaciones');
+  pestanaActiva = signal<'relaciones' | 'supervisores' | 'comisiones'>('relaciones');
 
   tasaActual = signal<number>(0);
   loadingTasaActual = signal(false);
@@ -318,6 +331,60 @@ export class RelacionCuentas implements OnInit {
       comisionNoAsignada: comisionNoAsignada,
       total: comisiones.comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + comisionNoAsignada,
     });
+  }
+
+  loadComisionesTab() {
+    this.comisionesTabLoading.set(true);
+    this.comisionesTabSupervisorSeleccionado.set(null);
+    this.comisionesTabAbonoSeleccionado.set(null);
+    const { supervisor, empresa, planta, fechaDesde, fechaHasta } = this.comisionesTabFiltros();
+    const params = new URLSearchParams();
+    if (supervisor) params.set('supervisor', supervisor);
+    if (empresa) params.set('empresa', empresa);
+    if (planta) params.set('planta', planta);
+    if (fechaDesde) params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params.set('fechaHasta', fechaHasta);
+    const query = params.toString();
+    this.http.get<any>(`/api/abonos-polar/comisiones-detalle${query ? '?' + query : ''}`).subscribe({
+      next: (data) => {
+        this.comisionesTabData.set(data.comisionesPorSupervisor || []);
+        this.comisionesTabLoading.set(false);
+      },
+      error: () => {
+        this.comisionesTabData.set([]);
+        this.comisionesTabLoading.set(false);
+      },
+    });
+  }
+
+  onComisionesTabFiltroChange() {
+    this.comisionesTabSupervisorSeleccionado.set(null);
+    this.comisionesTabAbonoSeleccionado.set(null);
+    this.loadComisionesTab();
+  }
+
+  seleccionarSupervisorComisiones(supervisor: any) {
+    this.comisionesTabSupervisorSeleccionado.set(supervisor);
+    this.comisionesTabAbonoSeleccionado.set(null);
+  }
+
+  seleccionarAbonoComisiones(abono: any) {
+    this.comisionesTabAbonoSeleccionado.set(abono);
+  }
+
+  volverAListaAbonos() {
+    this.comisionesTabAbonoSeleccionado.set(null);
+  }
+
+  volverAListaSupervisores() {
+    this.comisionesTabSupervisorSeleccionado.set(null);
+    this.comisionesTabAbonoSeleccionado.set(null);
+  }
+
+  volverAComisiones() {
+    this.comisionesTabSupervisorSeleccionado.set(null);
+    this.comisionesTabAbonoSeleccionado.set(null);
+    this.loadComisionesTab();
   }
 
   loadColumnasVisibles() {

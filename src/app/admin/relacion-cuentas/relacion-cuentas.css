@@ -1183,4 +1183,62 @@
   margin: 0;
 }
 
+.comisiones-tab {
+  padding: 0;
+}
+
+.comisiones-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.comisiones-header h3 {
+  margin: 0;
+}
+
+.comisiones-supervisores-list,
+.comisiones-abonos-list,
+.comisiones-abono-detalle {
+  margin-top: 10px;
+}
+
+.abono-detalle-card {
+  background: #f5f7fa;
+  border: 1px solid #e3e8ee;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detalle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e3e8ee;
+}
+
+.detalle-row:last-child {
+  border-bottom: none;
+}
+
+.detalle-label {
+  font-weight: 500;
+  color: #666;
+  font-size: 14px;
+}
+
+.detalle-value {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.detalle-value.monto {
+  color: #1d63c1;
+}
 

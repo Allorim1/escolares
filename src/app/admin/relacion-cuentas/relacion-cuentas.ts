@@ -223,12 +223,71 @@ export class RelacionCuentas implements OnInit {
   testWhatsappTelefono = signal('');
   testWhatsappMensaje = signal('Hola, te escribimos por tu relación de cuentas. Por favor, comunícate con nosotros.');
 
-  comisiones = signal<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number; comisionNoAsignadaPorcentaje: number; total: number; montoFacturaNoAsignada: number }>({ comisionesPorSupervisor: [], comisionNoAsignada: 0, comisionNoAsignadaPorcentaje: 0, total: 0, montoFacturaNoAsignada: 0 });
+  comisiones = computed(() => {
+    const abonos = this.abonosFiltrados();
+    const porcentaje = this.comisionNoAsignadaManual() ?? 0;
+
+    const porSupervisor = new Map<
+      string,
+      {
+        supervisorId: string;
+        supervisor: string;
+        monto: number;
+        cantidad: number;
+        comisionPorcentaje: number;
+      }
+    >();
+
+    let comisionNoAsignada = 0;
+    let montoFacturaNoAsignada = 0;
+
+    for (const abono of abonos) {
+      const supervisorId = abono.supervisorId || '';
+      const montoBase = abono.montoFactura ?? 0;
+      const comisionPorcentaje = abono.comisionPorcentaje ?? porcentaje;
+
+      if (supervisorId) {
+        if (!porSupervisor.has(supervisorId)) {
+          porSupervisor.set(supervisorId, {
+            supervisorId,
+            supervisor: abono.supervisor || '',
+            monto: 0,
+            cantidad: 0,
+            comisionPorcentaje,
+          });
+        }
+
+        const sup = porSupervisor.get(supervisorId)!;
+        sup.monto += montoBase;
+        sup.cantidad++;
+
+        if (abono.comisionPorcentaje) {
+          sup.comisionPorcentaje = abono.comisionPorcentaje;
+        }
+      } else {
+        comisionNoAsignada += montoBase * (comisionPorcentaje / 100);
+        montoFacturaNoAsignada += montoBase;
+      }
+    }
+
+    const comisionesPorSupervisor = Array.from(porSupervisor.values()).map((sup) => ({
+      ...sup,
+      comision: sup.monto * (sup.comisionPorcentaje / 100),
+    }));
+
+    const total = comisionesPorSupervisor.reduce((sum, c) => sum + c.comision, 0) + comisionNoAsignada;
+
+    return {
+      comisionesPorSupervisor,
+      comisionNoAsignada,
+      comisionNoAsignadaPorcentaje: porcentaje,
+      total,
+      montoFacturaNoAsignada,
+    };
+  });
   comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
 
-  comisionesTabLoading = signal(false);
-  comisionesTabData = signal<any[]>([]);
   comisionesTabFiltros = signal({ supervisor: '', empresa: '', planta: '', fechaDesde: '', fechaHasta: '' });
   comisionesTabSupervisorSeleccionado = signal<any | null>(null);
   comisionesTabAbonoSeleccionado = signal<any | null>(null);
@@ -288,77 +347,94 @@ export class RelacionCuentas implements OnInit {
     this.loadAbonos(true);
     this.loadTasaActual();
     this.loadColumnasVisibles();
-    this.loadComisiones();
     this.cargarSupervisores();
     this.loadUserPermissions();
-  }
-
-  loadComisiones() {
-    this.loadingComisiones.set(true);
-    const manualStr = localStorage.getItem('comisionNoAsignadaManualPorcentaje');
-    if (manualStr !== null) {
-      this.comisionNoAsignadaManual.set(Number(manualStr));
-    }
-    const porcentaje = this.comisionNoAsignadaManual() ?? 0;
-    this.http.get<{ comisionesPorSupervisor: any[]; comisionNoAsignada: number; comisionNoAsignadaPorcentaje: number; montoFacturaNoAsignada: number }>(`/api/abonos-polar/comisiones?porcentaje=${porcentaje}`).subscribe({
-      next: (data) => {
-        const comisionesPorSupervisor = data.comisionesPorSupervisor || [];
-        const comisionNoAsignada = data.comisionNoAsignada || 0;
-        const comisionNoAsignadaPorcentaje = data.comisionNoAsignadaPorcentaje ?? porcentaje;
-        const montoFacturaNoAsignada = data.montoFacturaNoAsignada || 0;
-        const total = comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + comisionNoAsignada;
-        this.comisiones.set({
-          comisionesPorSupervisor,
-          comisionNoAsignada,
-          comisionNoAsignadaPorcentaje,
-          total,
-          montoFacturaNoAsignada,
-        });
-        this.loadingComisiones.set(false);
-      },
-      error: () => {
-        this.loadingComisiones.set(false);
-      },
-    });
   }
 
   onComisionNoAsignadaChange(valor: string) {
     const num = Number(valor) || 0;
     this.comisionNoAsignadaManual.set(num);
     localStorage.setItem('comisionNoAsignadaManualPorcentaje', String(num));
-    const comisiones = this.comisiones();
-    const montoBase = comisiones.montoFacturaNoAsignada || 0;
-    const comisionNoAsignada = montoBase * (num / 100);
-    this.comisiones.set({
-      ...comisiones,
-      comisionNoAsignadaPorcentaje: num,
-      comisionNoAsignada: comisionNoAsignada,
-      total: comisiones.comisionesPorSupervisor.reduce((sum, c) => sum + (c.monto || 0), 0) + comisionNoAsignada,
-    });
   }
+
+  private abonosFiltradosComisiones = computed(() => {
+    const f = this.comisionesTabFiltros();
+    return this.abonos().filter((a) => {
+      let passes = true;
+      if (f.empresa) {
+        passes = passes && a.empresa === f.empresa;
+      }
+      if (f.planta) {
+        passes = passes && a.planta === f.planta;
+      }
+      if (f.fechaDesde) {
+        passes = passes && (a.fecha || '').slice(0, 10) >= f.fechaDesde;
+      }
+      if (f.fechaHasta) {
+        passes = passes && (a.fecha || '').slice(0, 10) <= f.fechaHasta;
+      }
+      if (f.supervisor) {
+        passes = passes && (a.supervisor || '') === f.supervisor;
+      }
+      return passes;
+    });
+  });
+
+  comisionesTabData = computed(() => {
+    const abonos = this.abonosFiltradosComisiones();
+    const porSupervisor = new Map<
+      string,
+      {
+        supervisorId: string;
+        supervisor: string;
+        planta: string;
+        cantidad: number;
+        monto: number;
+        abonos: any[];
+      }
+    >();
+
+    for (const abono of abonos) {
+      const supervisorId = abono.supervisorId || '';
+      const montoBase = abono.montoFactura ?? 0;
+
+      if (supervisorId) {
+        if (!porSupervisor.has(supervisorId)) {
+          porSupervisor.set(supervisorId, {
+            supervisorId,
+            supervisor: abono.supervisor || '',
+            planta: abono.planta || '',
+            cantidad: 0,
+            monto: 0,
+            abonos: [],
+          });
+        }
+
+        const sup = porSupervisor.get(supervisorId)!;
+        sup.monto += montoBase;
+        sup.cantidad++;
+        sup.abonos.push(abono);
+      }
+    }
+
+    return Array.from(porSupervisor.values()).map((sup) => ({
+      ...sup,
+      comisionPorcentaje: sup.abonos[0]?.comisionPorcentaje ?? 0,
+    }));
+  });
+
+  comisionesTabLoading = signal(false);
 
   loadComisionesTab() {
     this.comisionesTabLoading.set(true);
     this.comisionesTabSupervisorSeleccionado.set(null);
     this.comisionesTabAbonoSeleccionado.set(null);
-    const { supervisor, empresa, planta, fechaDesde, fechaHasta } = this.comisionesTabFiltros();
-    const params = new URLSearchParams();
-    if (supervisor) params.set('supervisor', supervisor);
-    if (empresa) params.set('empresa', empresa);
-    if (planta) params.set('planta', planta);
-    if (fechaDesde) params.set('fechaDesde', fechaDesde);
-    if (fechaHasta) params.set('fechaHasta', fechaHasta);
-    const query = params.toString();
-    this.http.get<any>(`/api/abonos-polar/comisiones-detalle${query ? '?' + query : ''}`).subscribe({
-      next: (data) => {
-        this.comisionesTabData.set(data.comisionesPorSupervisor || []);
-        this.comisionesTabLoading.set(false);
-      },
-      error: () => {
-        this.comisionesTabData.set([]);
-        this.comisionesTabLoading.set(false);
-      },
-    });
+    this.comisionesTabNombreSeleccionado.set('');
+    this.comisionesTabNombresAgrupados.set([]);
+
+    setTimeout(() => {
+      this.comisionesTabLoading.set(false);
+    }, 0);
   }
 
   onComisionesTabFiltroChange() {
@@ -1142,7 +1218,6 @@ if (!url) return '';
             this.loadAbonos(true);
           }
           this.cerrarModal();
-          this.loadComisiones();
         },
         error: (err) => {
           console.error('Error updating abono:', err);
@@ -1167,7 +1242,6 @@ if (!url) return '';
             });
           }
           this.cerrarModal();
-          this.loadComisiones();
         },
         error: (err) => {
           console.error('Error creating abono:', err);
@@ -1182,7 +1256,6 @@ if (!url) return '';
     this.http.delete(`${this.API}/${id}`).subscribe({
       next: () => {
         this.loadAbonos(true);
-        this.loadComisiones();
       },
       error: (err) => console.error('Error deleting abono:', err),
     });

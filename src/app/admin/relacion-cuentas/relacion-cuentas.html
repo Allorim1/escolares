@@ -647,20 +647,19 @@
         }
       }
     </div>
-  }
-
-  @if (puedeVerTotales()) {
-    <div class="totales-separados">
-      <div class="totales-card comisiones-card">
-        <h3>Comisiones Supervisores</h3>
-        <div class="totales-grid">
-          <div class="total-item">
-            <span class="total-label">Total Comisiones</span>
-            <span class="total-value">{{ formatMonto(comisionesComisiones().total) }}</span>
+    @if (puedeVerTotales()) {
+      <div class="totales-separados">
+        <div class="totales-card comisiones-card">
+          <h3>Comisiones Supervisores</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Total Comisiones</span>
+              <span class="total-value">{{ formatMonto(comisionesComisiones().total) }}</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    }
   }
 
 

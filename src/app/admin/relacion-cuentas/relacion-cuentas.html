@@ -694,53 +694,53 @@
   }
   }
 
-
-
-@if (showModalColumnas()) {
-  <div class="modal-overlay">
-    <div class="modal modal-small">
-      <div class="modal-header">
-        <h2>Seleccionar Columnas Visibles</h2>
-        <button type="button" class="btn-cerrar" (click)="cerrarModalColumnas()">✕</button>
-      </div>
-      <div class="columnas-grid">
-        @for (col of columnasDisponibles; track col.key) {
-          <label class="checkbox-label">
-            <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionada(col.key)" (change)="toggleColumna(col.key)">
-            {{ col.label }}
-          </label>
-        }
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" (click)="cerrarModalColumnas()">Cancelar</button>
-        <button type="button" class="btn-save" (click)="cerrarModalColumnas()">Guardar</button>
-      </div>
-    </div>
-  </div>
-}
-
-@if (showModalColumnasPdf()) {
-  <div class="modal-overlay">
-    <div class="modal modal-small">
-      <div class="modal-header">
-        <h2>Seleccionar Columnas para PDF</h2>
-        <button type="button" class="btn-cerrar" (click)="cerrarModalColumnasPdf()">✕</button>
-      </div>
-      <div class="columnas-grid">
-        @for (col of columnasDisponibles; track col.key) {
-          <label class="checkbox-label">
-            <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
-            {{ col.label }}
-          </label>
-        }
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" (click)="cerrarModalColumnasPdf()">Cancelar</button>
-        <button type="button" class="btn-save" (click)="generarReportePdf(); cerrarModalColumnasPdf()">Generar PDF</button>
+  @if (showModalColumnas()) {
+    <div class="modal-overlay">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2>Seleccionar Columnas Visibles</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalColumnas()">?</button>
+        </div>
+        <div class="columnas-grid">
+          @for (col of columnasDisponibles; track col.key) {
+            <label class="checkbox-label">
+              <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionada(col.key)" (change)="toggleColumna(col.key)">
+              {{ col.label }}
+            </label>
+          }
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalColumnas()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="cerrarModalColumnas()">Guardar</button>
+        </div>
       </div>
     </div>
-  </div>
-}
+  }
+
+  @if (showModalColumnasPdf()) {
+    <div class="modal-overlay">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2>Seleccionar Columnas para PDF</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalColumnasPdf()">?</button>
+        </div>
+        <div class="columnas-grid">
+          @for (col of columnasDisponibles; track col.key) {
+            <label class="checkbox-label">
+              <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
+              {{ col.label }}
+            </label>
+          }
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalColumnasPdf()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="generarReportePdf(); cerrarModalColumnasPdf()">Generar PDF</button>
+        </div>
+      </div>
+    </div>
+  }
+
+
 
 @if (showModalValuacion() && abonoValuacion) {
   <div class="modal-overlay">

@@ -193,6 +193,7 @@ export class RelacionCuentas implements OnInit {
     { key: 'status', label: 'Status' },
     { key: 'supervisor', label: 'Supervisor' },
   ];
+
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
 
@@ -201,13 +202,21 @@ export class RelacionCuentas implements OnInit {
 
   columnasVisibles = computed(() => {
     if (this.esRoot()) {
-      return this.columnasDisponibles;
+      return this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
     }
-    return this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
+    const permisos = this.userPermissions();
+    return this.columnasDisponibles.filter((c) => permisos.includes(`columna_relaciones_${c.key}`));
   });
 
-  showModalValuacion = signal(false);
+  columnasVisiblesPdf = computed(() => {
+    if (this.esRoot()) {
+      return this.columnasDisponibles.filter((c) => this.columnasSeleccionadasPdf().has(c.key));
+    }
+    const permisos = this.userPermissions();
+    return this.columnasDisponibles.filter((c) => permisos.includes(`columna_relaciones_${c.key}`));
+  });
   abonoValuacion: Abono | null = null;
+  showModalValuacion = signal(false);
 
   showModalAbonos = signal(false);
   abonoAbonos: Abono | null = null;
@@ -418,7 +427,6 @@ export class RelacionCuentas implements OnInit {
     });
     this.loadAbonos(true);
     this.loadTasaActual();
-    this.loadColumnasVisibles();
     this.cargarSupervisores();
     this.loadUserPermissions();
   }
@@ -631,17 +639,6 @@ export class RelacionCuentas implements OnInit {
     }
   }
 
-  loadColumnasVisibles() {
-    this.http.get<{ columns: string[] }>('/api/settings/relacion-cuentas-columnas').subscribe({
-      next: (res) => {
-        if (res.columns && Array.isArray(res.columns) && res.columns.length > 0) {
-          this.columnasSeleccionadas.set(new Set(res.columns));
-        }
-      },
-      error: () => {},
-    });
-  }
-
   loadTasaActual() {
     this.loadingTasaActual.set(true);
     this.http.get<TasaResponse>('/api/tasas').subscribe({
@@ -731,6 +728,22 @@ export class RelacionCuentas implements OnInit {
       });
     }
     this.showModalColumnas.set(false);
+  }
+
+  toggleColumna(key: string) {
+    this.columnasSeleccionadas.update((actual) => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(key)) {
+        nuevo.delete(key);
+      } else {
+        nuevo.add(key);
+      }
+      return nuevo;
+    });
+  }
+
+  isColumnaSeleccionada(key: string): boolean {
+    return this.columnasSeleccionadas().has(key);
   }
 
   abrirModalColumnasPdf() {
@@ -893,22 +906,6 @@ export class RelacionCuentas implements OnInit {
   onCeldaIvaClick(abono: Abono, event: Event) {
     event.stopPropagation();
     this.toggleIvaPagado(abono);
-  }
-
-  toggleColumna(key: string) {
-    this.columnasSeleccionadas.update((actual) => {
-      const nuevo = new Set(actual);
-      if (nuevo.has(key)) {
-        nuevo.delete(key);
-      } else {
-        nuevo.add(key);
-      }
-      return nuevo;
-    });
-  }
-
-  isColumnaSeleccionada(key: string): boolean {
-    return this.columnasSeleccionadas().has(key);
   }
 
   filtrarAbonos() {

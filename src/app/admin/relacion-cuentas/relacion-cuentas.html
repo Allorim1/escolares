@@ -599,6 +599,7 @@
                 <thead>
                   <tr>
                     <th>Nombre</th>
+                    <th>Planta</th>
                     <th>Cantidad</th>
                     <th>Monto Factura Bs</th>
                     <th>IVA</th>
@@ -610,6 +611,7 @@
                   @for (nombre of comisionesTabNombresAgrupados(); track nombre.nombre) {
                     <tr (click)="seleccionarNombreComisiones(nombre.nombre)" style="cursor: pointer;">
                       <td>{{ nombre.nombre }}</td>
+                      <td>{{ nombre.planta || '-' }}</td>
                       <td>{{ nombre.cantidad }}</td>
                       <td>{{ formatMonto(nombre.montoFactura) }}</td>
                       <td>{{ formatMonto(nombre.iva) }}</td>
@@ -825,6 +827,7 @@
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>Abonos de {{ abonoAbonos.nombre }}</h2>
+        <h2>Planta: {{ abonoAbonos.planta || '-' }}</h2>
         <button type="button" class="btn-cerrar" (click)="cerrarModalAbonos()">✕</button>
       </div>
       <div class="abonos-detalle">

@@ -106,11 +106,11 @@ export class RelacionCuentas implements OnInit {
         passes = passes && a.planta === f.planta;
       }
       if (f.fechaDesde) {
-        const fechaLocal = a.fecha ? new Date(a.fecha).toLocaleDateString('en-CA') : '';
+        const fechaLocal = this.parsearFechaLocal(a.fecha || '').toLocaleDateString('en-CA');
         passes = passes && fechaLocal >= f.fechaDesde;
       }
       if (f.fechaHasta) {
-        const fechaLocal = a.fecha ? new Date(a.fecha).toLocaleDateString('en-CA') : '';
+        const fechaLocal = this.parsearFechaLocal(a.fecha || '').toLocaleDateString('en-CA');
         passes = passes && fechaLocal <= f.fechaHasta;
       }
       if (f.status) {
@@ -440,11 +440,11 @@ export class RelacionCuentas implements OnInit {
         passes = passes && a.planta === f.planta;
       }
       if (f.fechaDesde) {
-        const fechaLocal = a.fecha ? new Date(a.fecha).toLocaleDateString('en-CA') : '';
+        const fechaLocal = this.parsearFechaLocal(a.fecha || '').toLocaleDateString('en-CA');
         passes = passes && fechaLocal >= f.fechaDesde;
       }
       if (f.fechaHasta) {
-        const fechaLocal = a.fecha ? new Date(a.fecha).toLocaleDateString('en-CA') : '';
+        const fechaLocal = this.parsearFechaLocal(a.fecha || '').toLocaleDateString('en-CA');
         passes = passes && fechaLocal <= f.fechaHasta;
       }
       if (f.supervisor) {
@@ -660,7 +660,7 @@ export class RelacionCuentas implements OnInit {
     const url = force ? `${this.API}?t=${new Date().getTime()}` : this.API;
     this.http.get<Abono[]>(url).subscribe({
       next: (data) => {
-        this.abonos.set([...data].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
+        this.abonos.set([...data].sort((a, b) => this.parsearFechaLocal(b.fecha).getTime() - this.parsearFechaLocal(a.fecha).getTime()));
         this.loading.set(false);
       },
       error: (err) => {
@@ -915,7 +915,7 @@ export class RelacionCuentas implements OnInit {
       this.http.get<Abono[]>(`${this.API}?t=${new Date().getTime()}`).subscribe({
         next: (data) => {
           const abonoActualizado = data.find((a) => a._id === abono._id) || abono;
-          this.abonos.set([...data].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
+          this.abonos.set([...data].sort((a, b) => this.parsearFechaLocal(b.fecha).getTime() - this.parsearFechaLocal(a.fecha).getTime()));
           this.editingAbono = {
             ...abonoActualizado,
             fecha: abonoActualizado.fecha || '',
@@ -1314,7 +1314,7 @@ if (!url) return '';
               } else {
                 lista.unshift(abonoActualizado);
               }
-              return [...lista].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+              return [...lista].sort((a, b) => this.parsearFechaLocal(b.fecha).getTime() - this.parsearFechaLocal(a.fecha).getTime());
             });
           } else {
             this.loadAbonos(true);
@@ -1340,7 +1340,7 @@ if (!url) return '';
             }
             this.abonos.update((lista) => {
               lista.unshift(abonoCreado);
-              return [...lista].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+              return [...lista].sort((a, b) => this.parsearFechaLocal(b.fecha).getTime() - this.parsearFechaLocal(a.fecha).getTime());
             });
           }
           this.cerrarModal();
@@ -1372,8 +1372,17 @@ if (!url) return '';
     return `${prefijo} ${numero}`;
   }
 
+  private parsearFechaLocal(fecha: string): Date {
+    const match = fecha.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return new Date(fecha);
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    const day = parseInt(match[3], 10);
+    return new Date(year, month, day);
+  }
+
   formatFecha(fecha: string): string {
-    const date = new Date(fecha);
+    const date = this.parsearFechaLocal(fecha);
     const dia = String(date.getDate()).padStart(2, '0');
     const mes = String(date.getMonth() + 1).padStart(2, '0');
     const anio = date.getFullYear();
@@ -1685,7 +1694,7 @@ if (!url) return '';
         });
       }
     });
-    return todas.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+    return todas.sort((a, b) => this.parsearFechaLocal(a.fecha).getTime() - this.parsearFechaLocal(b.fecha).getTime());
   });
 
   getDiferencialTasas = computed(() => {

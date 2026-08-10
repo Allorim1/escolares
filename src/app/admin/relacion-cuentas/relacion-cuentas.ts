@@ -225,7 +225,7 @@ export class RelacionCuentas implements OnInit {
 
   comisiones = computed(() => {
     const abonos = this.abonosFiltrados();
-    const porcentaje = this.comisionNoAsignadaManual() ?? 0;
+    const porcentajeManual = this.comisionNoAsignadaManual();
 
     const porSupervisor = new Map<
       string,
@@ -244,7 +244,7 @@ export class RelacionCuentas implements OnInit {
       const supervisorId = abono.supervisorId || '';
       const montoFactura = abono.montoFactura ?? 0;
       const iva = abono.iva ?? 0;
-      const comisionPorcentaje = abono.comisionPorcentaje ?? porcentaje;
+      const comisionPorcentaje = porcentajeManual != null ? porcentajeManual : (abono.comisionPorcentaje ?? 0);
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -279,7 +279,7 @@ export class RelacionCuentas implements OnInit {
     return {
       comisionesPorSupervisor,
       comisionNoAsignada: comisionPlanta,
-      comisionNoAsignadaPorcentaje: porcentaje,
+      comisionNoAsignadaPorcentaje: porcentajeManual ?? 0,
       total,
       montoFacturaNoAsignada: 0,
     };
@@ -287,7 +287,7 @@ export class RelacionCuentas implements OnInit {
 
   comisionesComisiones = computed(() => {
     const abonos = this.abonosFiltradosComisiones();
-    const porcentaje = this.comisionNoAsignadaManual() ?? 0;
+    const porcentajeManual = this.comisionNoAsignadaManual();
 
     const porSupervisor = new Map<
       string,
@@ -300,13 +300,13 @@ export class RelacionCuentas implements OnInit {
       }
     >();
 
-    let comisionNoAsignada = 0;
-    let montoFacturaNoAsignada = 0;
+    let comisionPlanta = 0;
 
     for (const abono of abonos) {
       const supervisorId = abono.supervisorId || '';
-      const montoBase = abono.montoFactura ?? 0;
-      const comisionPorcentaje = abono.comisionPorcentaje ?? porcentaje;
+      const montoFactura = abono.montoFactura ?? 0;
+      const iva = abono.iva ?? 0;
+      const comisionPorcentaje = porcentajeManual != null ? porcentajeManual : (abono.comisionPorcentaje ?? 0);
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -320,15 +320,14 @@ export class RelacionCuentas implements OnInit {
         }
 
         const sup = porSupervisor.get(supervisorId)!;
-        sup.monto += montoBase;
+        sup.monto += montoFactura;
         sup.cantidad++;
 
-        if (abono.comisionPorcentaje) {
+        if (porcentajeManual == null && abono.comisionPorcentaje) {
           sup.comisionPorcentaje = abono.comisionPorcentaje;
         }
       } else {
-        comisionNoAsignada += montoBase * (comisionPorcentaje / 100);
-        montoFacturaNoAsignada += montoBase;
+        comisionPlanta += (montoFactura - iva) * (comisionPorcentaje / 100);
       }
     }
 
@@ -337,14 +336,14 @@ export class RelacionCuentas implements OnInit {
       comision: sup.monto * (sup.comisionPorcentaje / 100),
     }));
 
-    const total = comisionesPorSupervisor.reduce((sum, c) => sum + c.comision, 0) + comisionNoAsignada;
+    const total = comisionesPorSupervisor.reduce((sum, c) => sum + c.comision, 0);
 
     return {
       comisionesPorSupervisor,
-      comisionNoAsignada,
-      comisionNoAsignadaPorcentaje: porcentaje,
+      comisionNoAsignada: comisionPlanta,
+      comisionNoAsignadaPorcentaje: porcentajeManual ?? 0,
       total,
-      montoFacturaNoAsignada,
+      montoFacturaNoAsignada: 0,
     };
   });
   comisionNoAsignadaManual = signal<number | null>(null);
@@ -1858,3 +1857,6 @@ if (!url) return '';
     });
   }
 }
+
+
+

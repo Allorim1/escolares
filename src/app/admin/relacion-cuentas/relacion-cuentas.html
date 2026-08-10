@@ -106,7 +106,7 @@
     @if (esRoot()) {
       <div class="filtro-group">
         <label>Comisión Planta (%):</label>
-        <input type="number" [value]="comisionNoAsignadaManual() ?? comisiones().comisionNoAsignadaPorcentaje" (input)="onComisionNoAsignadaChange($event.target.value)" min="0" max="100" step="0.01">
+        <input type="number" [value]="comisionNoAsignadaManual() ?? ''" (input)="onComisionNoAsignadaChange($event.target.value)" min="0" max="100" step="0.01" placeholder="Ingrese %">
       </div>
     }
   </div>

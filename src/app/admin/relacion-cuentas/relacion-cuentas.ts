@@ -244,7 +244,6 @@ export class RelacionCuentas implements OnInit {
       const supervisorId = abono.supervisorId || '';
       const montoFactura = abono.montoFactura ?? 0;
       const iva = abono.iva ?? 0;
-      const comisionPorcentaje = porcentajeManual != null ? porcentajeManual : (abono.comisionPorcentaje ?? 0);
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -253,7 +252,7 @@ export class RelacionCuentas implements OnInit {
             supervisor: abono.supervisor || '',
             monto: 0,
             cantidad: 0,
-            comisionPorcentaje,
+            comisionPorcentaje: abono.comisionPorcentaje ?? 0,
           });
         }
 
@@ -261,11 +260,14 @@ export class RelacionCuentas implements OnInit {
         sup.monto += montoFactura;
         sup.cantidad++;
 
-        if (abono.comisionPorcentaje) {
+        if (porcentajeManual == null && abono.comisionPorcentaje) {
           sup.comisionPorcentaje = abono.comisionPorcentaje;
         }
       } else {
-        comisionPlanta += (montoFactura - iva) * (comisionPorcentaje / 100);
+        if (porcentajeManual != null) {
+          const comisionPorcentaje = porcentajeManual;
+          comisionPlanta += (montoFactura - iva) * (comisionPorcentaje / 100);
+        }
       }
     }
 
@@ -306,7 +308,6 @@ export class RelacionCuentas implements OnInit {
       const supervisorId = abono.supervisorId || '';
       const montoFactura = abono.montoFactura ?? 0;
       const iva = abono.iva ?? 0;
-      const comisionPorcentaje = porcentajeManual != null ? porcentajeManual : (abono.comisionPorcentaje ?? 0);
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -315,7 +316,7 @@ export class RelacionCuentas implements OnInit {
             supervisor: abono.supervisor || '',
             monto: 0,
             cantidad: 0,
-            comisionPorcentaje,
+            comisionPorcentaje: abono.comisionPorcentaje ?? 0,
           });
         }
 
@@ -327,7 +328,10 @@ export class RelacionCuentas implements OnInit {
           sup.comisionPorcentaje = abono.comisionPorcentaje;
         }
       } else {
-        comisionPlanta += (montoFactura - iva) * (comisionPorcentaje / 100);
+        if (porcentajeManual != null) {
+          const comisionPorcentaje = porcentajeManual;
+          comisionPlanta += (montoFactura - iva) * (comisionPorcentaje / 100);
+        }
       }
     }
 

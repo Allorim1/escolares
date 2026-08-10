@@ -550,6 +550,7 @@ export class RelacionCuentas implements OnInit {
       const montoFactura = abono.montoFactura ?? 0;
       const iva = abono.iva ?? 0;
       const comisionPorcentaje = abono.comisionPorcentaje ?? supervisor.comisionPorcentaje ?? 0;
+      const planta = abono.planta || '';
       if (existente) {
         existente.cantidad++;
         existente.montoFactura += montoFactura;
@@ -557,10 +558,14 @@ export class RelacionCuentas implements OnInit {
         existente.montoFacturaSinIva += montoFactura - iva;
         existente.comision += montoFactura * (comisionPorcentaje / 100);
         existente.comisionPorcentaje = comisionPorcentaje;
+        if (!existente.planta && planta) {
+          existente.planta = planta;
+        }
         existente.abonos.push(abono);
       } else {
         acc.push({
           nombre,
+          planta,
           cantidad: 1,
           montoFactura,
           iva,

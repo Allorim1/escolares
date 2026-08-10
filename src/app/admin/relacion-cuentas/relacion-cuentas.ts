@@ -106,10 +106,12 @@ export class RelacionCuentas implements OnInit {
         passes = passes && a.planta === f.planta;
       }
       if (f.fechaDesde) {
-        passes = passes && (a.fecha || '').slice(0, 10) >= f.fechaDesde;
+        const fechaLocal = a.fecha ? new Date(a.fecha).toLocaleDateString('en-CA') : '';
+        passes = passes && fechaLocal >= f.fechaDesde;
       }
       if (f.fechaHasta) {
-        passes = passes && (a.fecha || '').slice(0, 10) <= f.fechaHasta;
+        const fechaLocal = a.fecha ? new Date(a.fecha).toLocaleDateString('en-CA') : '';
+        passes = passes && fechaLocal <= f.fechaHasta;
       }
       if (f.status) {
         passes = passes && a.status === f.status;
@@ -438,10 +440,12 @@ export class RelacionCuentas implements OnInit {
         passes = passes && a.planta === f.planta;
       }
       if (f.fechaDesde) {
-        passes = passes && (a.fecha || '').slice(0, 10) >= f.fechaDesde;
+        const fechaLocal = a.fecha ? new Date(a.fecha).toLocaleDateString('en-CA') : '';
+        passes = passes && fechaLocal >= f.fechaDesde;
       }
       if (f.fechaHasta) {
-        passes = passes && (a.fecha || '').slice(0, 10) <= f.fechaHasta;
+        const fechaLocal = a.fecha ? new Date(a.fecha).toLocaleDateString('en-CA') : '';
+        passes = passes && fechaLocal <= f.fechaHasta;
       }
       if (f.supervisor) {
         passes = passes && (a.supervisor || '') === f.supervisor;

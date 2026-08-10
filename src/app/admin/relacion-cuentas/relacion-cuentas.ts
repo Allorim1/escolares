@@ -357,7 +357,7 @@ export class RelacionCuentas implements OnInit {
   comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
 
-  comisionesTabFiltros = signal({ supervisor: '', empresa: '', planta: '', fechaDesde: '', fechaHasta: '' });
+  comisionesTabFiltros = signal({ supervisor: '', empresa: '', planta: '', fechaDesde: this.getFechaLocal(), fechaHasta: this.getFechaLocal() });
   comisionesTabSupervisorSeleccionado = signal<any | null>(null);
   comisionesTabAbonoSeleccionado = signal<any | null>(null);
   comisionesTabNombresAgrupados = signal<any[]>([]);
@@ -375,8 +375,8 @@ export class RelacionCuentas implements OnInit {
     nombre: '',
     empresa: '',
     planta: '',
-    fechaDesde: '',
-    fechaHasta: '',
+    fechaDesde: this.getFechaLocal(),
+    fechaHasta: this.getFechaLocal(),
     status: '',
     supervisor: '',
   });

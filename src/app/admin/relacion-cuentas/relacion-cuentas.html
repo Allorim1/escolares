@@ -660,19 +660,36 @@
         }
       }
     </div>
-    @if (puedeVerTotales()) {
-      <div class="totales-separados">
-        <div class="totales-card comisiones-card">
-          <h3>Comisiones Supervisores</h3>
-          <div class="totales-grid">
-            <div class="total-item">
-              <span class="total-label">Total Comisiones</span>
-              <span class="total-value">{{ formatMonto(comisionesComisiones().total) }}</span>
-            </div>
+  @if (puedeVerTotales()) {
+    <div class="totales-separados">
+      <div class="totales-card comisiones-card">
+        <h3>Comisiones Supervisores</h3>
+        <div class="totales-grid">
+          <div class="total-item">
+            <span class="total-label">Total Comisiones Bs.</span>
+            <span class="total-value">{{ formatMonto(comisionesComisiones().total) }}</span>
+          </div>
+          <div class="total-item">
+            <span class="total-label">Total Comisiones $</span>
+            <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisionesComisiones().total / tasaActual() : 0) }}</span>
           </div>
         </div>
       </div>
-    }
+      <div class="totales-card">
+        <h3>Tasas</h3>
+        <div class="totales-grid">
+          <div class="total-item">
+            <span class="total-label">Tasa Actual</span>
+            <span class="total-value">{{ formatMonto(tasaActual()) }}</span>
+          </div>
+          <div class="total-item">
+            <span class="total-label">Tasa Euro</span>
+            <span class="total-value">{{ formatMonto(tasaEuro()) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
   }
 
 

@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 import { EmpresasService, Empresa } from '../../shared/data-access/empresas.service';
 import { TasasGuardadasService, TasaGuardada } from '../../shared/data-access/tasas-guardadas.service';
+import { CurrencyService } from '../../shared/data-access/currency.service';
 import { TasaResponse } from '../../shared/data-access/currency.service';
 import { AuthService } from '../../shared/data-access/auth.service';
 import jsPDF from 'jspdf';
@@ -12,6 +13,7 @@ import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { ChangeDetectorRef } from '@angular/core';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface Abono {
   _id?: string;
@@ -64,6 +66,8 @@ export class RelacionCuentas implements OnInit {
   private tasasGuardadasService = inject(TasasGuardadasService);
   private cdr = inject(ChangeDetectorRef);
   private authService = inject(AuthService);
+  private notificationModal = inject(NotificationModalService);
+  private currencyService = inject(CurrencyService);
 
   private readonly API = '/api/abonos-polar';
   private readonly SERVER_URL = window.location.origin;
@@ -364,6 +368,7 @@ export class RelacionCuentas implements OnInit {
   pestanaActiva = signal<'relaciones' | 'supervisores' | 'comisiones'>('relaciones');
 
   tasaActual = signal<number>(0);
+  tasaEuro = signal<number>(0);
   loadingTasaActual = signal(false);
 
   filtros = signal({
@@ -633,11 +638,14 @@ export class RelacionCuentas implements OnInit {
     this.http.get<TasaResponse>('/api/tasas').subscribe({
       next: (data) => {
         const usd = data?.current?.usd;
+        const eur = data?.current?.eur;
         this.tasaActual.set(typeof usd === 'number' ? usd : 0);
+        this.tasaEuro.set(typeof eur === 'number' ? eur : 0);
         this.loadingTasaActual.set(false);
       },
       error: () => {
         this.tasaActual.set(0);
+        this.tasaEuro.set(0);
         this.loadingTasaActual.set(false);
       },
     });
@@ -1832,17 +1840,25 @@ if (!url) return '';
       this.http.put<Supervisor>(`${this.API_SUPERVISORES}/${supervisor._id}`, supervisor).subscribe({
         next: () => {
           this.cargarSupervisores();
-          this.editingSupervisor.set(null);
+          this.cerrarModalSupervisores();
+          this.notificationModal.success('Supervisor actualizado correctamente');
         },
-        error: (err) => console.error('Error actualizando supervisor:', err),
+        error: (err) => {
+          console.error('Error actualizando supervisor:', err);
+          this.notificationModal.error(err.error?.error || 'Error al actualizar supervisor');
+        },
       });
     } else {
       this.http.post<Supervisor>(this.API_SUPERVISORES, supervisor).subscribe({
         next: () => {
           this.cargarSupervisores();
-          this.editingSupervisor.set(null);
+          this.cerrarModalSupervisores();
+          this.notificationModal.success('Supervisor creado correctamente');
         },
-        error: (err) => console.error('Error creando supervisor:', err),
+        error: (err) => {
+          console.error('Error creando supervisor:', err);
+          this.notificationModal.error(err.error?.error || 'Error al crear supervisor');
+        },
       });
     }
   }

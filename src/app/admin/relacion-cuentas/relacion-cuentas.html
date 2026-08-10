@@ -209,6 +209,19 @@
             </div>
           </div>
         </div>
+        <div class="totales-card">
+          <h3>Tasas</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Tasa Actual</span>
+              <span class="total-value">{{ formatMonto(tasaActual()) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Tasa Euro</span>
+              <span class="total-value">{{ formatMonto(tasaEuro()) }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     }
     @if (abonosFiltrados().length > 10) {

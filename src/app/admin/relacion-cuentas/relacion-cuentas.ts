@@ -123,8 +123,8 @@ export class RelacionCuentas implements OnInit {
       if (f.supervisor) {
         passes = passes && (a.supervisor || '') === f.supervisor;
       }
-      if (this.soloIvaPagado()) {
-        passes = passes && a.ivaPagado === true;
+      if (this.aplicarFiltroIva) {
+        passes = passes && a.ivaPagado === this.soloIvaPagado;
       }
       return passes;
     });
@@ -395,7 +395,8 @@ export class RelacionCuentas implements OnInit {
     supervisor: '',
   });
 
-  soloIvaPagado = signal(false);
+  soloIvaPagado = false;
+  aplicarFiltroIva = false;
 
   private getFechaLocal(): string {
     const now = new Date();

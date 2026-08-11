@@ -89,6 +89,12 @@
         <option value="Pagado">Pagado</option>
       </select>
     </div>
+    <div class="filtro-group" style="display:flex;flex-direction:column;gap:6px;">
+      <label>Solo IVA Pagado:</label>
+      <span class="switch" [class.active]="soloIvaPagado()" (click)="soloIvaPagado.set(!soloIvaPagado())">
+        <span class="switch-thumb"></span>
+      </span>
+    </div>
     <div class="filtro-group">
       <label>Supervisor:</label>
       <select [ngModel]="filtros().supervisor" (ngModelChange)="onSupervisorFilterChange($event)">

@@ -294,40 +294,40 @@
           <h5>Datos del Proveedor</h5>
           <div class="form-group">
             <label>Alias *</label>
-            <input type="text" [(ngModel)]="newProveedor.alias" placeholder="Alias o nombre corto" />
+            <input type="text" [(ngModel)]="newProveedor.alias" placeholder="Alias o nombre corto" enterFocusNext />
           </div>
           <div class="form-group">
             <label>Nombre del Proveedor</label>
-            <input type="text" [(ngModel)]="newProveedor.nombre" placeholder="Nombre o razón social" />
+            <input type="text" [(ngModel)]="newProveedor.nombre" placeholder="Nombre o razón social" enterFocusNext />
           </div>
           <div class="form-group">
             <label>RIF</label>
             <div class="rif-input-group">
-              <select [(ngModel)]="newProveedor.rifTipo" class="rif-tipo-select">
+              <select [(ngModel)]="newProveedor.rifTipo" class="rif-tipo-select" enterFocusNext>
                 @for (tipo of rifTipos; track tipo) {
                   <option [value]="tipo">{{ tipo }}</option>
                 }
               </select>
-              <input type="text" [(ngModel)]="newProveedor.rif" placeholder="XXXXXXXX-X" />
+              <input type="text" [(ngModel)]="newProveedor.rif" placeholder="XXXXXXXX-X" enterFocusNext />
             </div>
           </div>
           <div class="form-group">
             <label>Dirección</label>
-            <input type="text" [(ngModel)]="newProveedor.direccion" placeholder="Dirección fiscal" />
+            <input type="text" [(ngModel)]="newProveedor.direccion" placeholder="Dirección fiscal" enterFocusNext />
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Correo Electrónico</label>
-              <input type="email" [(ngModel)]="newProveedor.correo" placeholder="correo@ejemplo.com" />
+              <input type="email" [(ngModel)]="newProveedor.correo" placeholder="correo@ejemplo.com" enterFocusNext />
             </div>
           </div>
           <div class="form-group">
             <label>Vendedor</label>
-            <input type="text" [(ngModel)]="newProveedor.vendedor" placeholder="Nombre del vendedor" />
+            <input type="text" [(ngModel)]="newProveedor.vendedor" placeholder="Nombre del vendedor" enterFocusNext />
           </div>
           <div class="form-group">
             <label>Tasa Preferida</label>
-            <select [(ngModel)]="newProveedor.tasaPreferida">
+            <select [(ngModel)]="newProveedor.tasaPreferida" enterFocusNext>
               <option value="dolar">Dólar</option>
               <option value="euro">Euro</option>
               <option value="binance">Binance</option>
@@ -335,7 +335,7 @@
           </div>
           <div class="form-group">
               <label>Teléfono del Vendedor</label>
-              <input type="text" [(ngModel)]="newProveedor.telefono" placeholder="0000-0000000" (keydown.enter)="guardarProveedor()" />
+              <input type="text" [(ngModel)]="newProveedor.telefono" placeholder="0000-0000000" (keydown.enter)="guardarProveedor()" enterFocusNext />
             </div>
           <div class="cuenta-options">
             <label class="option-label">Bancos Afiliados:</label>
@@ -370,28 +370,28 @@
           </div>
           @if (!newCuentaBancaria.pagoMovil) {
             <div class="cuenta-inputs">
-              <select [(ngModel)]="newCuentaBancaria.tipo" class="input-tipo" (change)="onTipoCuentaChange()">
+              <select [(ngModel)]="newCuentaBancaria.tipo" class="input-tipo" (change)="onTipoCuentaChange()" enterFocusNext>
                 <option value="corriente">Corriente</option>
                 <option value="ahorro">Ahorro</option>
                 <option value="zelle">Zelle</option>
               </select>
               @if (newCuentaBancaria.tipo !== 'zelle') {
-                <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
+              <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" enterFocusNext />
               }
             </div>
           }
           @if (newCuentaBancaria.tipo === 'zelle') {
             <div class="cuenta-inputs">
-              <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Email Zelle" class="input-titular" />
+              <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Email Zelle" class="input-titular" enterFocusNext />
             </div>
           }
           <div class="cuenta-inputs">
-            <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="getBancoPlaceholder()" class="input-banco" />
-            <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="getNumeroPlaceholder()" class="input-numero" />
+                  <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="getBancoPlaceholder()" class="input-banco" enterFocusNext />
+                  <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="getNumeroPlaceholder()" class="input-numero" enterFocusNext />
           </div>
             <div class="cuenta-inputs">
-              <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" />
-              <select [(ngModel)]="newCuentaBancaria.cedulaRifTipo" class="rif-tipo-select-small">
+                  <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" enterFocusNext />
+                    <select [(ngModel)]="newCuentaBancaria.cedulaRifTipo" class="rif-tipo-select-small" enterFocusNext>
                 @for (tipo of rifTipos; track tipo) {
                   <option [value]="tipo">{{ tipo }}</option>
                 }
@@ -399,12 +399,12 @@
             </div>
           @if (newCuentaBancaria.pagoMovil) {
             <div class="cuenta-inputs">
-              <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
+                    <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" enterFocusNext />
             </div>
           }
           <div class="cuenta-inputs">
-            <input type="text" [(ngModel)]="newCuentaBancaria.alias" placeholder="Alias (opcional)" class="input-alias" />
-            <input type="text" [(ngModel)]="newCuentaBancaria.comentario" placeholder="Comentario (opcional)" class="input-comentario" />
+                  <input type="text" [(ngModel)]="newCuentaBancaria.alias" placeholder="Alias (opcional)" class="input-alias" enterFocusNext />
+                  <input type="text" [(ngModel)]="newCuentaBancaria.comentario" placeholder="Comentario (opcional)" class="input-comentario" enterFocusNext />
           </div>
           <div class="cuenta-options">
             <label class="option-label">Afiliado en:</label>
@@ -450,7 +450,7 @@
             <div class="cuenta-editar-section">
               <h6>Editando Cuenta:</h6>
               <div class="cuenta-inputs">
-                <select [(ngModel)]="newCuentaBancaria.tipo" class="input-tipo">
+                <select [(ngModel)]="newCuentaBancaria.tipo" class="input-tipo" enterFocusNext>
                   <option value="corriente">Corriente</option>
                   <option value="ahorro">Ahorro</option>
                   <option value="zelle">Zelle</option>
@@ -461,12 +461,12 @@
                 </label>
               </div>
               <div class="cuenta-inputs">
-                <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="getBancoPlaceholder()" class="input-banco" />
-                <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="getNumeroPlaceholder()" class="input-numero" />
+            <input type="text" [(ngModel)]="newCuentaBancaria.banco" [placeholder]="getBancoPlaceholder()" class="input-banco" enterFocusNext />
+            <input type="text" [(ngModel)]="newCuentaBancaria.numero" [placeholder]="getNumeroPlaceholder()" class="input-numero" enterFocusNext />
               </div>
               <div class="cuenta-inputs">
-                <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" />
-                <select [(ngModel)]="newCuentaBancaria.cedulaRifTipo" class="rif-tipo-select-small">
+              <input type="text" [(ngModel)]="newCuentaBancaria.cedulaRif" placeholder="C.I o RIF" class="input-cedula" enterFocusNext />
+                <select [(ngModel)]="newCuentaBancaria.cedulaRifTipo" class="rif-tipo-select-small" enterFocusNext>
                   @for (tipo of rifTipos; track tipo) {
                     <option [value]="tipo">{{ tipo }}</option>
                   }
@@ -474,12 +474,12 @@
               </div>
               @if (newCuentaBancaria.pagoMovil) {
                 <div class="cuenta-inputs">
-                  <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" />
+                <input type="text" [(ngModel)]="newCuentaBancaria.titular" placeholder="Titular" class="input-titular" enterFocusNext />
                 </div>
               }
               <div class="cuenta-inputs">
-                <input type="text" [(ngModel)]="newCuentaBancaria.alias" placeholder="Alias (opcional)" class="input-alias" />
-                <input type="text" [(ngModel)]="newCuentaBancaria.comentario" placeholder="Comentario (opcional)" class="input-comentario" />
+            <input type="text" [(ngModel)]="newCuentaBancaria.alias" placeholder="Alias (opcional)" class="input-alias" enterFocusNext />
+            <input type="text" [(ngModel)]="newCuentaBancaria.comentario" placeholder="Comentario (opcional)" class="input-comentario" enterFocusNext />
               </div>
               <div class="cuenta-options">
                 <label class="option-label">Afiliado en:</label>
@@ -585,7 +585,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Tipo</label>
-            <select [(ngModel)]="newFactura.tipo" class="input-tipo" (ngModelChange)="newFactura.facturaVinculadaIndex = -1; newFactura.conIva = false; newFactura.montoIva = 0">
+            <select [(ngModel)]="newFactura.tipo" class="input-tipo" (ngModelChange)="newFactura.facturaVinculadaIndex = -1; newFactura.conIva = false; newFactura.montoIva = 0" enterFocusNext>
               <option value="factura">Factura</option>
               <option value="nota">Nota</option>
               <option value="debito">Nota de Débito</option>
@@ -594,18 +594,18 @@
           </div>
           <div class="form-group">
             <label>Número</label>
-            <input type="text" [(ngModel)]="newFactura.numero" placeholder="Número" />
+            <input type="text" [(ngModel)]="newFactura.numero" placeholder="Número" enterFocusNext />
           </div>
           <div class="form-group">
             <label>Fecha</label>
-            <input type="date" [(ngModel)]="newFactura.fecha" />
+            <input type="date" [(ngModel)]="newFactura.fecha" enterFocusNext />
           </div>
         </div>
         @if (newFactura.tipo === 'factura' || (editingFactura && editingFactura.factura.tipo === 'factura')) {
           <div class="form-row">
             <div class="form-group">
               <label>Número de Control</label>
-              <input type="text" [(ngModel)]="newFactura.numeroControl" placeholder="Número de Control" />
+              <input type="text" [(ngModel)]="newFactura.numeroControl" placeholder="Número de Control" enterFocusNext />
             </div>
           </div>
         }
@@ -626,33 +626,33 @@
           <div class="form-row">
             <div class="form-group">
               <label>Monto ($)</label>
-              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" enterFocusNext />
             </div>
             <div class="form-group">
               <label>Monto (Bs)</label>
-              <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" (input)="calcularExento()" />
+              <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" (input)="calcularExento()" enterFocusNext />
             </div>
             <div class="form-group">
               <label>Base</label>
-              <input type="number" [(ngModel)]="newFactura.base" step="0.01" min="0" (input)="calcularExento()" />
+              <input type="number" [(ngModel)]="newFactura.base" step="0.01" min="0" (input)="calcularExento()" enterFocusNext />
             </div>
             <div class="form-group">
               <label>IVA (%)</label>
-              <input type="number" [(ngModel)]="newFactura.porcentajeIva" step="0.01" min="0" (input)="calcularExento()" />
+              <input type="number" [(ngModel)]="newFactura.porcentajeIva" step="0.01" min="0" (input)="calcularExento()" enterFocusNext />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Exento (Bs)</label>
-              <input type="number" [(ngModel)]="newFactura.exentoBsf" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newFactura.exentoBsf" step="0.01" min="0" enterFocusNext />
             </div>
             <div class="form-group">
               <label>Monto IVA (Bs)</label>
-              <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" enterFocusNext />
             </div>
             <div class="form-group">
               <label>Base Exenta ($)</label>
-              <input type="number" [(ngModel)]="newFactura.baseExenta" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newFactura.baseExenta" step="0.01" min="0" enterFocusNext />
             </div>
           </div>
         }
@@ -660,11 +660,11 @@
           <div class="form-row">
             <div class="form-group">
               <label>Monto ($)</label>
-              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" enterFocusNext />
             </div>
             <div class="form-group">
               <label>Monto (Bs)</label>
-              <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" enterFocusNext />
             </div>
           </div>
           <div class="iva-toggle-section">
@@ -677,7 +677,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Monto IVA (Bs)</label>
-                <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
+                <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" enterFocusNext />
               </div>
             </div>
           }
@@ -686,12 +686,12 @@
           <div class="form-row">
             <div class="form-group">
               <label>Monto ($)</label>
-              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newFactura.monto" step="0.01" min="0" enterFocusNext />
             </div>
             @if (newFactura.tipo === 'credito') {
               <div class="form-group">
                 <label>Monto (Bs)</label>
-                <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" />
+                <input type="number" [(ngModel)]="newFactura.montoBsf" step="0.01" min="0" enterFocusNext />
               </div>
             }
           </div>
@@ -705,7 +705,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Monto IVA (Bs)</label>
-                <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" />
+                <input type="number" [(ngModel)]="newFactura.montoIva" step="0.01" min="0" enterFocusNext />
               </div>
             </div>
           }
@@ -757,6 +757,7 @@
             placeholder="Agregar un comentario sobre esta factura (opcional)"
             rows="3"
             class="comentario-input"
+            enterFocusNext
           ></textarea>
         </div>
         <div class="fotos-section">
@@ -859,11 +860,11 @@
         <div class="form-row">
           <div class="form-group">
             <label>Monto ($)</label>
-            <input type="number" [(ngModel)]="newAbono.monto" step="0.01" min="0" />
+            <input type="number" [(ngModel)]="newAbono.monto" step="0.01" min="0" enterFocusNext />
           </div>
           <div class="form-group">
             <label>Fecha</label>
-            <input type="date" [(ngModel)]="newAbono.fecha" />
+            <input type="date" [(ngModel)]="newAbono.fecha" enterFocusNext />
           </div>
         </div>
       </div>
@@ -1078,6 +1079,7 @@
                   [(ngModel)]="comentarioEdit" 
                   placeholder="Editar comentario"
                   class="comentario-input-edit"
+                  enterFocusNext
                 >
                 <button class="btn-guardar-comentario" (click)="guardarComentario()">Actualizar</button>
                 <button class="btn-cancelar-comentario" (click)="cancelarEditarComentario()">Cancelar</button>
@@ -1092,8 +1094,9 @@
                 type="text" 
                 [(ngModel)]="comentarioEdit" 
                 placeholder="Agregar un comentario sobre esta factura"
-                class="comentario-input-edit"
-              >
+                 class="comentario-input-edit"
+                 enterFocusNext
+               >
               <button class="btn-guardar-comentario" (click)="guardarComentario()">Guardar</button>
             </div>
           </div>
@@ -1225,11 +1228,11 @@
           <div class="form-row">
             <div class="form-group">
               <label>Monto (Bs)</label>
-              <input type="number" [(ngModel)]="newAbono.monto" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newAbono.monto" step="0.01" min="0" enterFocusNext />
             </div>
             <div class="form-group">
               <label>Fecha</label>
-              <input type="date" [(ngModel)]="newAbono.fecha" />
+              <input type="date" [(ngModel)]="newAbono.fecha" enterFocusNext />
             </div>
             <button class="btn-primary" (click)="guardarAbonoIva()">Agregar</button>
           </div>
@@ -1327,11 +1330,11 @@
           <div class="form-row">
             <div class="form-group">
               <label>Monto (Bs)</label>
-              <input type="number" [(ngModel)]="newAbono.monto" step="0.01" min="0" />
+              <input type="number" [(ngModel)]="newAbono.monto" step="0.01" min="0" enterFocusNext />
             </div>
             <div class="form-group">
               <label>Fecha</label>
-              <input type="date" [(ngModel)]="newAbono.fecha" />
+              <input type="date" [(ngModel)]="newAbono.fecha" enterFocusNext />
             </div>
             <button class="btn-primary" (click)="guardarAbonoIva25()">Agregar</button>
           </div>

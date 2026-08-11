@@ -59,11 +59,11 @@
       <div class="form-row">
         <div class="form-group flex-2">
           <label>Título del Manual *</label>
-          <input type="text" [(ngModel)]="formTitulo" placeholder="Ej: Cómo crear un producto" />
+          <input type="text" [(ngModel)]="formTitulo" placeholder="Ej: Cómo crear un producto" enterFocusNext />
         </div>
         <div class="form-group flex-1">
           <label>Categoría</label>
-          <select [(ngModel)]="formCategoria">
+          <select [(ngModel)]="formCategoria" enterFocusNext>
             <option *ngFor="let cat of categorias" [value]="cat.value">{{ cat.label }}</option>
           </select>
         </div>
@@ -71,7 +71,7 @@
       
       <div class="form-group">
         <label>Descripción</label>
-        <textarea [(ngModel)]="formDescripcion" rows="2" placeholder="Breve descripción del manual..."></textarea>
+          <textarea [(ngModel)]="formDescripcion" rows="2" placeholder="Breve descripción del manual..." enterFocusNext></textarea>
       </div>
       
       <div class="pasos-section">
@@ -100,11 +100,11 @@
               <div class="paso-content">
                 <div class="form-group">
                   <label>Título del Paso *</label>
-                  <input type="text" [(ngModel)]="paso.titulo" placeholder="Ej: Ir a la sección de productos" />
+                  <input type="text" [(ngModel)]="paso.titulo" placeholder="Ej: Ir a la sección de productos" enterFocusNext />
                 </div>
                 <div class="form-group">
                   <label>Descripción / Comentario *</label>
-                  <textarea [(ngModel)]="paso.descripcion" rows="3" placeholder="Describe este paso en detalle..."></textarea>
+                  <textarea [(ngModel)]="paso.descripcion" rows="3" placeholder="Describe este paso en detalle..." enterFocusNext></textarea>
                 </div>
 <div class="form-group">
                    <label>Captura de Pantalla (máx. 5MB)</label>
@@ -131,7 +131,7 @@
                  
                  <div class="form-group">
                    <label>Video por enlace (YouTube, Vimeo, etc.)</label>
-                   <input type="url" [(ngModel)]="paso.videoUrl" placeholder="https://www.youtube.com/watch?v=..." (blur)="updateVideoFromUrl(i)" />
+                    <input type="url" [(ngModel)]="paso.videoUrl" placeholder="https://www.youtube.com/watch?v=..." enterFocusNext (blur)="updateVideoFromUrl(i)" />
                    <ng-container *ngIf="paso.videoUrl">
                      <div class="video-preview" [innerHTML]="getEmbedUrl(paso.videoUrl)"></div>
                      <button class="btn-quitar-video" (click)="removeVideoUrl(i)">Quitar enlace</button>

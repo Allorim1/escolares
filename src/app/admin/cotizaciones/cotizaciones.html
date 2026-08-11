@@ -115,11 +115,11 @@
           <div class="form-row">
             <div class="form-group">
               <label for="cotizacion-numero">Número de Cotización *</label>
-              <input id="cotizacion-numero" type="text" [(ngModel)]="newCotizacion.numeroCotizacion" placeholder="COT-001">
+              <input id="cotizacion-numero" type="text" [(ngModel)]="newCotizacion.numeroCotizacion" placeholder="COT-001" enterFocusNext>
             </div>
             <div class="form-group">
               <label for="cotizacion-fecha">Fecha *</label>
-              <input id="cotizacion-fecha" type="date" [(ngModel)]="newCotizacion.fecha">
+              <input id="cotizacion-fecha" type="date" [(ngModel)]="newCotizacion.fecha" enterFocusNext>
             </div>
           </div>
 
@@ -127,21 +127,21 @@
           <div class="form-row">
             <div class="form-group">
               <label for="cotizacion-cliente-nombre">Nombre/Razón Social *</label>
-              <input id="cotizacion-cliente-nombre" type="text" [(ngModel)]="newCotizacion.cliente.nombre" placeholder="Nombre del cliente">
+              <input id="cotizacion-cliente-nombre" type="text" [(ngModel)]="newCotizacion.cliente.nombre" placeholder="Nombre del cliente" enterFocusNext>
             </div>
             <div class="form-group">
               <label for="cotizacion-cliente-rif">RIF *</label>
-              <input id="cotizacion-cliente-rif" type="text" [(ngModel)]="newCotizacion.cliente.rif" placeholder="J-00000000-0">
+              <input id="cotizacion-cliente-rif" type="text" [(ngModel)]="newCotizacion.cliente.rif" placeholder="J-00000000-0" enterFocusNext>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="cotizacion-cliente-direccion">Dirección</label>
-              <input id="cotizacion-cliente-direccion" type="text" [(ngModel)]="newCotizacion.cliente.direccion" placeholder="Dirección">
+              <input id="cotizacion-cliente-direccion" type="text" [(ngModel)]="newCotizacion.cliente.direccion" placeholder="Dirección" enterFocusNext>
             </div>
             <div class="form-group">
               <label for="cotizacion-cliente-telefono">Teléfono</label>
-              <input id="cotizacion-cliente-telefono" type="text" [(ngModel)]="newCotizacion.cliente.telefono" placeholder="Teléfono">
+              <input id="cotizacion-cliente-telefono" type="text" [(ngModel)]="newCotizacion.cliente.telefono" placeholder="Teléfono" enterFocusNext>
             </div>
           </div>
         </div>
@@ -154,21 +154,21 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="cotizacion-edit-codigo">Código</label>
-                  <input id="cotizacion-edit-codigo" type="text" [(ngModel)]="editingItem.codigo" placeholder="Código">
+                  <input id="cotizacion-edit-codigo" type="text" [(ngModel)]="editingItem.codigo" placeholder="Código" enterFocusNext>
                 </div>
                 <div class="form-group">
                   <label for="cotizacion-edit-cantidad">Cantidad</label>
-                  <input id="cotizacion-edit-cantidad" type="number" [(ngModel)]="editingItem.cantidad" min="1" step="1">
+                  <input id="cotizacion-edit-cantidad" type="number" [(ngModel)]="editingItem.cantidad" min="1" step="1" enterFocusNext>
                 </div>
               </div>
                <div class="form-row">
                  <div class="form-group">
                    <label for="cotizacion-edit-descripcion">Descripción</label>
-                   <input id="cotizacion-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo">
+                    <input id="cotizacion-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo" enterFocusNext>
                  </div>
                  <div class="form-group">
                    <label for="cotizacion-edit-precio">Precio Unitario Bs.</label>
-                   <input id="cotizacion-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01">
+                    <input id="cotizacion-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01" enterFocusNext>
                  </div>
                </div>
                <div class="form-row">
@@ -180,7 +180,7 @@
                  @if (editingItem.tieneIva) {
                  <div class="form-group">
                    <label for="cotizacion-edit-iva-porcentaje">% I.V.A.</label>
-                   <input id="cotizacion-edit-iva-porcentaje" type="number" [(ngModel)]="editingItem.ivaPorcentaje" min="0" max="100" step="1">
+                    <input id="cotizacion-edit-iva-porcentaje" type="number" [(ngModel)]="editingItem.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
                  </div>
                  }
                </div>
@@ -192,21 +192,21 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="cotizacion-nuevo-codigo">Código</label>
-                  <input id="cotizacion-nuevo-codigo" type="text" [(ngModel)]="newItem.codigo" placeholder="Código">
+                  <input id="cotizacion-nuevo-codigo" type="text" [(ngModel)]="newItem.codigo" placeholder="Código" enterFocusNext>
                 </div>
                 <div class="form-group">
                   <label for="cotizacion-nuevo-cantidad">Cantidad</label>
-                  <input id="cotizacion-nuevo-cantidad" type="number" [(ngModel)]="newItem.cantidad" min="1" step="1">
+                  <input id="cotizacion-nuevo-cantidad" type="number" [(ngModel)]="newItem.cantidad" min="1" step="1" enterFocusNext>
                 </div>
               </div>
                <div class="form-row">
                  <div class="form-group">
                    <label for="cotizacion-nuevo-descripcion">Descripción</label>
-                   <input id="cotizacion-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
+                   <input id="cotizacion-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo" enterFocusNext>
                  </div>
                  <div class="form-group">
                    <label for="cotizacion-nuevo-precio">Precio Unitario Bs.</label>
-                   <input id="cotizacion-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
+                   <input id="cotizacion-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01" enterFocusNext>
                  </div>
                </div>
                <div class="form-row">
@@ -218,7 +218,7 @@
                  @if (newItem.tieneIva) {
                  <div class="form-group">
                    <label for="cotizacion-nuevo-iva-porcentaje">% I.V.A.</label>
-                   <input id="cotizacion-nuevo-iva-porcentaje" type="number" [(ngModel)]="newItem.ivaPorcentaje" min="0" max="100" step="1">
+                    <input id="cotizacion-nuevo-iva-porcentaje" type="number" [(ngModel)]="newItem.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
                  </div>
                  }
                </div>
@@ -264,20 +264,20 @@
           <div class="form-row">
             <div class="form-group">
               <label for="cotizacion-referencia">Número de Referencia</label>
-              <input id="cotizacion-referencia" type="text" [(ngModel)]="newCotizacion.referencia.numeroReferencia" placeholder="Referencia">
+              <input id="cotizacion-referencia" type="text" [(ngModel)]="newCotizacion.referencia.numeroReferencia" placeholder="Referencia" enterFocusNext>
             </div>
             <div class="form-group">
               <label for="cotizacion-validez">Validez (días)</label>
-              <input id="cotizacion-validez" type="number" [(ngModel)]="newCotizacion.referencia.validezDias" min="1" step="1">
+              <input id="cotizacion-validez" type="number" [(ngModel)]="newCotizacion.referencia.validezDias" min="1" step="1" enterFocusNext>
             </div>
           </div>
           <div class="form-group">
             <label for="cotizacion-vendedor">Vendedor</label>
-            <input id="cotizacion-vendedor" type="text" [(ngModel)]="newCotizacion.referencia.vendedor" placeholder="Nombre del vendedor">
+              <input id="cotizacion-vendedor" type="text" [(ngModel)]="newCotizacion.referencia.vendedor" placeholder="Nombre del vendedor" enterFocusNext>
           </div>
           <div class="form-group">
             <label for="cotizacion-zona">Zona Numero</label>
-            <input id="cotizacion-zona" type="text" [(ngModel)]="newCotizacion.referencia.nroZona" placeholder="Número de la zona">
+              <input id="cotizacion-zona" type="text" [(ngModel)]="newCotizacion.referencia.nroZona" placeholder="Número de la zona" enterFocusNext>
           </div>
         </div>
 
@@ -286,11 +286,11 @@
           <div class="form-row">
             <div class="form-group">
               <label for="cotizacion-descuento">% Descuento</label>
-              <input id="cotizacion-descuento" type="number" [(ngModel)]="newCotizacion.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotals()">
+              <input id="cotizacion-descuento" type="number" [(ngModel)]="newCotizacion.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotals()" enterFocusNext>
             </div>
              <div class="form-group">
                <label for="cotizacion-iva">% IVA</label>
-               <input id="cotizacion-iva" type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1">
+                <input id="cotizacion-iva" type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
              </div>
           </div>
           <div class="totales-display">
@@ -323,11 +323,11 @@
           <div class="form-row">
             <div class="form-group">
               <label for="nota-numero">Número de Nota *</label>
-              <input id="nota-numero" type="text" [(ngModel)]="newNotaEntrega.numeroNota" placeholder="NE-001">
+              <input id="nota-numero" type="text" [(ngModel)]="newNotaEntrega.numeroNota" placeholder="NE-001" enterFocusNext>
             </div>
             <div class="form-group">
               <label for="nota-fecha">Fecha *</label>
-              <input id="nota-fecha" type="date" [(ngModel)]="newNotaEntrega.fecha">
+              <input id="nota-fecha" type="date" [(ngModel)]="newNotaEntrega.fecha" enterFocusNext>
             </div>
           </div>
 
@@ -335,21 +335,21 @@
           <div class="form-row">
             <div class="form-group">
               <label for="nota-cliente-nombre">Nombre/Razón Social *</label>
-              <input id="nota-cliente-nombre" type="text" [(ngModel)]="newNotaEntrega.cliente.nombre" placeholder="Nombre del cliente">
+              <input id="nota-cliente-nombre" type="text" [(ngModel)]="newNotaEntrega.cliente.nombre" placeholder="Nombre del cliente" enterFocusNext>
             </div>
             <div class="form-group">
               <label for="nota-cliente-rif">RIF *</label>
-              <input id="nota-cliente-rif" type="text" [(ngModel)]="newNotaEntrega.cliente.rif" placeholder="J-00000000-0">
+              <input id="nota-cliente-rif" type="text" [(ngModel)]="newNotaEntrega.cliente.rif" placeholder="J-00000000-0" enterFocusNext>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="nota-cliente-direccion">Dirección</label>
-              <input id="nota-cliente-direccion" type="text" [(ngModel)]="newNotaEntrega.cliente.direccion" placeholder="Dirección">
+              <input id="nota-cliente-direccion" type="text" [(ngModel)]="newNotaEntrega.cliente.direccion" placeholder="Dirección" enterFocusNext>
             </div>
             <div class="form-group">
               <label for="nota-cliente-telefono">Teléfono</label>
-              <input id="nota-cliente-telefono" type="text" [(ngModel)]="newNotaEntrega.cliente.telefono" placeholder="Teléfono">
+              <input id="nota-cliente-telefono" type="text" [(ngModel)]="newNotaEntrega.cliente.telefono" placeholder="Teléfono" enterFocusNext>
             </div>
           </div>
         </div>
@@ -362,21 +362,21 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="nota-edit-codigo">Código</label>
-                  <input id="nota-edit-codigo" type="text" [(ngModel)]="editingItem.codigo" placeholder="Código">
+                  <input id="nota-edit-codigo" type="text" [(ngModel)]="editingItem.codigo" placeholder="Código" enterFocusNext>
                 </div>
                 <div class="form-group">
                   <label for="nota-edit-cantidad">Cantidad</label>
-                  <input id="nota-edit-cantidad" type="number" [(ngModel)]="editingItem.cantidad" min="1" step="1">
+                  <input id="nota-edit-cantidad" type="number" [(ngModel)]="editingItem.cantidad" min="1" step="1" enterFocusNext>
                 </div>
               </div>
                <div class="form-row">
                  <div class="form-group">
                    <label for="nota-edit-descripcion">Descripción</label>
-                   <input id="nota-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo">
+                    <input id="nota-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo" enterFocusNext>
                  </div>
                  <div class="form-group">
                    <label for="nota-edit-precio">Precio Unitario Bs.</label>
-                   <input id="nota-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01">
+                    <input id="nota-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01" enterFocusNext>
                  </div>
                </div>
                <div class="form-row">
@@ -388,7 +388,7 @@
                  @if (editingItem.tieneIva) {
                  <div class="form-group">
                    <label for="nota-edit-iva-porcentaje">% I.V.A.</label>
-                   <input id="nota-edit-iva-porcentaje" type="number" [(ngModel)]="editingItem.ivaPorcentaje" min="0" max="100" step="1">
+                    <input id="nota-edit-iva-porcentaje" type="number" [(ngModel)]="editingItem.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
                  </div>
                  }
                </div>
@@ -400,21 +400,21 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="nota-nuevo-codigo">Código</label>
-                  <input id="nota-nuevo-codigo" type="text" [(ngModel)]="newItem.codigo" placeholder="Código">
+                  <input id="nota-nuevo-codigo" type="text" [(ngModel)]="newItem.codigo" placeholder="Código" enterFocusNext>
                 </div>
                 <div class="form-group">
                   <label for="nota-nuevo-cantidad">Cantidad</label>
-                  <input id="nota-nuevo-cantidad" type="number" [(ngModel)]="newItem.cantidad" min="1" step="1">
+                  <input id="nota-nuevo-cantidad" type="number" [(ngModel)]="newItem.cantidad" min="1" step="1" enterFocusNext>
                 </div>
               </div>
                <div class="form-row">
                  <div class="form-group">
                    <label for="nota-nuevo-descripcion">Descripción</label>
-                   <input id="nota-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo">
+                   <input id="nota-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo" enterFocusNext>
                  </div>
                  <div class="form-group">
                    <label for="nota-nuevo-precio">Precio Unitario Bs.</label>
-                   <input id="nota-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01">
+                   <input id="nota-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01" enterFocusNext>
                  </div>
                </div>
                <div class="form-row">
@@ -426,7 +426,7 @@
                  @if (newItem.tieneIva) {
                  <div class="form-group">
                    <label for="nota-nuevo-iva-porcentaje">% I.V.A.</label>
-                   <input id="nota-nuevo-iva-porcentaje" type="number" [(ngModel)]="newItem.ivaPorcentaje" min="0" max="100" step="1">
+                    <input id="nota-nuevo-iva-porcentaje" type="number" [(ngModel)]="newItem.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
                  </div>
                  }
                </div>
@@ -472,20 +472,20 @@
           <div class="form-row">
             <div class="form-group">
               <label for="nota-referencia">Número de Referencia</label>
-              <input id="nota-referencia" type="text" [(ngModel)]="newNotaEntrega.referencia.numeroReferencia" placeholder="Referencia">
+              <input id="nota-referencia" type="text" [(ngModel)]="newNotaEntrega.referencia.numeroReferencia" placeholder="Referencia" enterFocusNext>
             </div>
             <div class="form-group">
               <label for="nota-validez">Validez (días)</label>
-              <input id="nota-validez" type="number" [(ngModel)]="newNotaEntrega.referencia.validezDias" min="1" step="1">
+              <input id="nota-validez" type="number" [(ngModel)]="newNotaEntrega.referencia.validezDias" min="1" step="1" enterFocusNext>
             </div>
           </div>
           <div class="form-group">
             <label for="nota-vendedor">Vendedor</label>
-            <input id="nota-vendedor" type="text" [(ngModel)]="newNotaEntrega.referencia.vendedor" placeholder="Nombre del vendedor">
+              <input id="nota-vendedor" type="text" [(ngModel)]="newNotaEntrega.referencia.vendedor" placeholder="Nombre del vendedor" enterFocusNext>
           </div>
           <div class="form-group">
             <label for="nota-zona">Zona Numero</label>
-            <input id="nota-zona" type="text" [(ngModel)]="newNotaEntrega.referencia.nroZona" placeholder="Número de la zona">
+              <input id="nota-zona" type="text" [(ngModel)]="newNotaEntrega.referencia.nroZona" placeholder="Número de la zona" enterFocusNext>
           </div>
         </div>
 
@@ -494,11 +494,11 @@
           <div class="form-row">
             <div class="form-group">
               <label for="nota-descuento">% Descuento</label>
-              <input id="nota-descuento" type="number" [(ngModel)]="newNotaEntrega.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotalsNotaEntrega()">
+              <input id="nota-descuento" type="number" [(ngModel)]="newNotaEntrega.totales.porcentajeDescuento" min="0" max="100" step="1" (change)="calculateTotalsNotaEntrega()" enterFocusNext>
             </div>
              <div class="form-group">
                <label for="nota-iva">% IVA</label>
-               <input id="nota-iva" type="number" [(ngModel)]="newNotaEntrega.totales.ivaPorcentaje" min="0" max="100" step="1">
+                <input id="nota-iva" type="number" [(ngModel)]="newNotaEntrega.totales.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
              </div>
           </div>
           <div class="totales-display">

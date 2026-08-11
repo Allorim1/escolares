@@ -128,27 +128,27 @@
       <form (ngSubmit)="guardarEmpleado()">
         <div class="form-group">
           <label>Nombre *</label>
-          <input type="text" [(ngModel)]="editingEmpleado!.nombre" name="nombre" required>
+          <input type="text" [(ngModel)]="editingEmpleado!.nombre" name="nombre" required enterFocusNext>
         </div>
         <div class="form-group">
           <label>Cédula *</label>
-          <input type="text" [(ngModel)]="editingEmpleado!.cedula" name="cedula" required>
+          <input type="text" [(ngModel)]="editingEmpleado!.cedula" name="cedula" required enterFocusNext>
         </div>
         <div class="form-group">
           <label>Cargo</label>
-          <input type="text" [(ngModel)]="editingEmpleado!.cargo" name="cargo">
+          <input type="text" [(ngModel)]="editingEmpleado!.cargo" name="cargo" enterFocusNext>
         </div>
         <div class="form-group">
           <label>Salario</label>
-          <input type="number" [(ngModel)]="editingEmpleado!.salario" name="salario" min="0" step="0.01">
+          <input type="number" [(ngModel)]="editingEmpleado!.salario" name="salario" min="0" step="0.01" enterFocusNext>
         </div>
         <div class="form-group">
           <label>Fecha Ingreso</label>
-          <input type="date" [(ngModel)]="editingEmpleado!.fechaIngreso" name="fechaIngreso">
+          <input type="date" [(ngModel)]="editingEmpleado!.fechaIngreso" name="fechaIngreso" enterFocusNext>
         </div>
         <div class="form-group">
           <label>Notas</label>
-          <textarea [(ngModel)]="editingEmpleado!.notas" name="notas" rows="2"></textarea>
+          <textarea [(ngModel)]="editingEmpleado!.notas" name="notas" rows="2" enterFocusNext></textarea>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModalEmpleado()">Cancelar</button>
@@ -168,7 +168,7 @@
       <form (ngSubmit)="guardarPago()">
         <div class="form-group">
           <label>Empleado *</label>
-          <select [(ngModel)]="editingPago!.empleadoId" name="empleadoId" (ngModelChange)="onEmpleadoChange($event)" required>
+          <select [(ngModel)]="editingPago!.empleadoId" name="empleadoId" (ngModelChange)="onEmpleadoChange($event)" required enterFocusNext>
             <option value="">Seleccionar</option>
             @for (emp of empleados(); track emp._id) {
               <option [value]="emp._id">{{ emp.nombre }}</option>
@@ -177,7 +177,7 @@
         </div>
         <div class="form-group">
           <label>Tipo *</label>
-          <select [(ngModel)]="editingPago!.tipo" name="tipo" required>
+          <select [(ngModel)]="editingPago!.tipo" name="tipo" required enterFocusNext>
             @for (tipo of tiposPago; track tipo) {
               <option [value]="tipo">{{ tipo }}</option>
             }
@@ -185,15 +185,15 @@
         </div>
         <div class="form-group">
           <label>Monto *</label>
-          <input type="number" [(ngModel)]="editingPago!.monto" name="monto" min="0" step="0.01" required>
+          <input type="number" [(ngModel)]="editingPago!.monto" name="monto" min="0" step="0.01" required enterFocusNext>
         </div>
         <div class="form-group">
           <label>Fecha *</label>
-          <input type="date" [(ngModel)]="editingPago!.fecha" name="fecha" required>
+          <input type="date" [(ngModel)]="editingPago!.fecha" name="fecha" required enterFocusNext>
         </div>
         <div class="form-group">
           <label>Notas</label>
-          <textarea [(ngModel)]="editingPago!.notas" name="notas" rows="2"></textarea>
+          <textarea [(ngModel)]="editingPago!.notas" name="notas" rows="2" enterFocusNext></textarea>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModalPago()">Cancelar</button>

@@ -56,7 +56,7 @@
       <form (ngSubmit)="guardarCliente()">
         <div class="form-group">
           <label for="cliente-nombre">Nombre *</label>
-          <input id="cliente-nombre" type="text" [(ngModel)]="editingCliente!.nombre" name="nombre" required>
+          <input id="cliente-nombre" type="text" [(ngModel)]="editingCliente!.nombre" name="nombre" required enterFocusNext>
         </div>
           <div class="form-group">
             <label for="nuevaPlanta">Plantas</label>
@@ -69,7 +69,7 @@
               }
             </div>
             <div class="add-planta">
-              <input id="nuevaPlanta" type="text" [ngModel]="nuevaPlanta()" (ngModelChange)="nuevaPlanta.set($event)" name="nuevaPlanta" placeholder="Nueva planta">
+              <input id="nuevaPlanta" type="text" [ngModel]="nuevaPlanta()" (ngModelChange)="nuevaPlanta.set($event)" name="nuevaPlanta" placeholder="Nueva planta" enterFocusNext>
               <button type="button" class="btn-add" (click)="agregarPlanta()">Agregar</button>
             </div>
           </div>

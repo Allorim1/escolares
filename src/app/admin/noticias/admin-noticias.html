@@ -22,7 +22,7 @@
        <form (ngSubmit)="editingId() ? guardarEdicion() : crearNoticia()">
         <div class="form-group">
           <label for="titulo">Título *</label>
-          <input type="text" id="titulo" [(ngModel)]="nuevaNoticia.titulo" name="titulo" required 
+          <input type="text" id="titulo" [(ngModel)]="nuevaNoticia.titulo" name="titulo" required enterFocusNext
                  placeholder="Ingresa el título de la noticia">
         </div>
         
@@ -53,7 +53,7 @@
             </div>
             
             @if (!previewMode) {
-              <textarea id="contenido" [(ngModel)]="nuevaNoticia.contenido" name="contenido" rows="10" required
+              <textarea id="contenido" [(ngModel)]="nuevaNoticia.contenido" name="contenido" rows="10" required enterFocusNext
                         placeholder="Escribe el contenido de la noticia..."></textarea>
             } @else {
               <div class="preview-content">
@@ -111,7 +111,7 @@
              <div class="noticia-row" [class.editing]="editingId() === noticia.id" [class.importante]="noticia.importante">
                <div class="noticia-cell noticia-titulo">
                  @if (editingId() === noticia.id) {
-                   <input type="text" [(ngModel)]="nuevaNoticia.titulo" />
+                    <input type="text" [(ngModel)]="nuevaNoticia.titulo" enterFocusNext />
                  } @else {
                    <span>{{ noticia.titulo }}</span>
                  }

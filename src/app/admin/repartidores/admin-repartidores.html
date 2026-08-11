@@ -75,8 +75,9 @@
                  class="form-control"
                  [(ngModel)]="formData().nombre"
                  name="nombre"
-                 required
-                 placeholder="Ej: Juan Pérez"
+                  required
+                  placeholder="Ej: Juan Pérez"
+                  enterFocusNext
                />
              </div>
              <div class="form-group">
@@ -87,7 +88,8 @@
                  class="form-control"
                  [(ngModel)]="formData().telefono"
                  name="telefono"
-                 placeholder="Ej: 0412-1234567"
+                  placeholder="Ej: 0412-1234567"
+                  enterFocusNext
                />
              </div>
              <div class="form-group">
@@ -99,7 +101,8 @@
                  [(ngModel)]="formData().email"
                  name="email"
                  [required]="isAdding()"
-                 placeholder="Ej: juan@email.com"
+                  placeholder="Ej: juan@email.com"
+                  enterFocusNext
                />
              </div>
              <div class="form-group">
@@ -111,7 +114,8 @@
                  [(ngModel)]="formData().password"
                  name="password"
                  [required]="isAdding()"
-                 placeholder="Mínimo 6 caracteres"
+                  placeholder="Mínimo 6 caracteres"
+                  enterFocusNext
                />
              </div>
              <div class="form-group">

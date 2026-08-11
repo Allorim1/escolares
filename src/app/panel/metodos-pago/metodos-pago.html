@@ -55,12 +55,12 @@
       <form (ngSubmit)="guardarMetodo()">
         <div class="form-group">
           <label>Alias</label>
-          <input type="text" [ngModel]="formAlias()" (ngModelChange)="formAlias.set($event)" name="alias" placeholder="Ej: Pago móvil personal" required />
+          <input type="text" [ngModel]="formAlias()" (ngModelChange)="formAlias.set($event)" name="alias" placeholder="Ej: Pago móvil personal" required enterFocusNext />
         </div>
 
         <div class="form-group">
           <label>Tipo</label>
-          <select [ngModel]="formTipo()" (ngModelChange)="formTipo.set($event)" name="tipo">
+          <select [ngModel]="formTipo()" (ngModelChange)="formTipo.set($event)" name="tipo" enterFocusNext>
             @for (tipo of tiposDisponibles; track tipo.value) {
               <option [value]="tipo.value">{{ tipo.label }}</option>
             }
@@ -69,22 +69,22 @@
 
         <div class="form-group">
           <label>Titular</label>
-          <input type="text" [ngModel]="formTitular()" (ngModelChange)="formTitular.set($event)" name="titular" />
+          <input type="text" [ngModel]="formTitular()" (ngModelChange)="formTitular.set($event)" name="titular" enterFocusNext />
         </div>
 
         <div class="form-group">
           <label>Banco</label>
-          <input type="text" [ngModel]="formBanco()" (ngModelChange)="formBanco.set($event)" name="banco" />
+          <input type="text" [ngModel]="formBanco()" (ngModelChange)="formBanco.set($event)" name="banco" enterFocusNext />
         </div>
 
         <div class="form-group">
           <label>Teléfono</label>
-          <input type="text" [ngModel]="formTelefono()" (ngModelChange)="formTelefono.set($event)" name="telefono" />
+          <input type="text" [ngModel]="formTelefono()" (ngModelChange)="formTelefono.set($event)" name="telefono" enterFocusNext />
         </div>
 
         <div class="form-group">
           <label>Referencia habitual</label>
-          <input type="text" [ngModel]="formReferencia()" (ngModelChange)="formReferencia.set($event)" name="referencia" />
+          <input type="text" [ngModel]="formReferencia()" (ngModelChange)="formReferencia.set($event)" name="referencia" enterFocusNext />
         </div>
 
         <div class="form-group">

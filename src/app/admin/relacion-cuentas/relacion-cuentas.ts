@@ -56,7 +56,7 @@ interface Supervisor {
 @Component({
   selector: 'app-relacion-cuentas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
   templateUrl: './relacion-cuentas.html',
   styleUrl: './relacion-cuentas.css',
 })

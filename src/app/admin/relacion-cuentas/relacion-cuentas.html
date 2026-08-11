@@ -91,10 +91,10 @@
     </div>
     <div class="filtro-group" style="display:flex;flex-direction:column;gap:6px;">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;color:#333;font-size:14px;">
-        <input type="checkbox" [(ngModel)]="aplicarFiltroIva" style="width:16px;height:16px;cursor:pointer;">
+        <input type="checkbox" [ngModel]="aplicarFiltroIva()" (ngModelChange)="aplicarFiltroIva.set($event)" style="width:16px;height:16px;cursor:pointer;">
         Aplicar filtro IVA
       </label>
-      <span class="switch" [class.active]="soloIvaPagado" (click)="soloIvaPagado = !soloIvaPagado">
+      <span class="switch" [class.active]="soloIvaPagado()" (click)="soloIvaPagado.set(!soloIvaPagado())">
         <span class="switch-thumb"></span>
       </span>
     </div>

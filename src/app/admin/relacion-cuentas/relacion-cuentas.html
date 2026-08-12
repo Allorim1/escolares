@@ -220,6 +220,11 @@
               <span class="total-label">Supervisor</span>
               <span class="total-value">{{ comisiones().haySupervisores ? 'Si' : 'No' }}</span>
             </div>
+            @if (comisiones().haySupervisores) {
+              <div class="total-item" style="grid-column: span 3; justify-content: flex-end;">
+                <button class="btn-secondary" (click)="abrirModalSupervisoresRelaciones()">Ver supervisores</button>
+              </div>
+            }
           </div>
         </div>
         <div class="totales-card">

@@ -950,7 +950,7 @@
                           <td [class.iva-toggle]="col.key === 'iva'" [class.iva-pagado]="rel.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!rel.ivaPagado && col.key === 'iva'" (click)="onCeldaIvaClick(rel, $event)">{{ getValorAbono(rel, col.key) }}</td>
                         }
                         <td class="actions">
-                          <button class="btn-edit" (click="$event.stopPropagation(); abrirModal(rel)">Editar</button>
+                          <button class="btn-edit" (click="$event.stopPropagation(); abrirModalAbonos(rel)">Ver</button>
                           <button class="btn-delete" (click="$event.stopPropagation(); eliminarAbono(rel._id || '')">Eliminar</button>
                         </td>
                       </tr>

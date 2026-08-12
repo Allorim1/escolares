@@ -118,7 +118,7 @@ export class RelacionCuentas implements OnInit {
       }
       if (f.nombre) {
         const nombreLower = f.nombre.toLowerCase();
-        passes = passes && (a.nombre || '').toLowerCase().includes(nombreLower);
+        passes = passes && ((a.nombre || '').toLowerCase().includes(nombreLower) || (a.nFact || '').toLowerCase().includes(nombreLower));
       }
       if (f.supervisor) {
         passes = passes && (a.supervisor || '') === f.supervisor;

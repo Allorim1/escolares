@@ -245,16 +245,8 @@
             <h3>Totales Listas Facturadas</h3>
             <div class="totales-grid">
               <div class="total-item">
-                <span class="total-label">Monto Factura Bs</span>
-                <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">IVA Bs</span>
-                <span class="total-value">{{ formatMonto(totales().iva) }}</span>
-              </div>
-              <div class="total-item">
-                <span class="total-label">Monto Total Sin Iva</span>
-                <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
+                <span class="total-label">Cantidad de Listas</span>
+                <span class="total-value">{{ abonosFiltrados().length }}</span>
               </div>
             </div>
           </div>

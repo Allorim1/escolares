@@ -302,6 +302,7 @@ export class RelacionCuentas implements OnInit {
       comisionNoAsignadaPorcentaje: porcentajeManual ?? 0,
       total,
       montoFacturaNoAsignada: 0,
+      haySupervisores: comisionesPorSupervisor.length > 0,
     };
   });
 

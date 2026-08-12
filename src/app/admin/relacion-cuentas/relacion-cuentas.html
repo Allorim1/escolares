@@ -216,6 +216,10 @@
               <span class="total-label">Comisión Planta $</span>
               <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().comisionNoAsignada / tasaActual() : 0) }}</span>
             </div>
+            <div class="total-item">
+              <span class="total-label">Supervisor</span>
+              <span class="total-value">{{ comisiones().haySupervisores ? 'Si' : 'No' }}</span>
+            </div>
           </div>
         </div>
         <div class="totales-card">

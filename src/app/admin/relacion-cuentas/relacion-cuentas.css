@@ -561,6 +561,23 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
+.totales-card.tasas-card {
+  flex: 2;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
+.tasas-card .tasas-main {
+  flex: 1;
+}
+
+.tasas-card .tasas-extra {
+  flex: 1;
+  border-left: 1px solid #e3e8ee;
+  padding-left: 16px;
+}
+
 .totales-card h3 {
   margin: 0 0 10px 0;
   color: #1d63c1;

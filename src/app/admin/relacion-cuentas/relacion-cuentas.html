@@ -240,9 +240,15 @@
     @if (abonosFiltrados().length > 10) {
       <div class="pagination">
         <button class="btn-page" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">Anterior</button>
+        <button class="btn-page" [disabled]="!puedeIrAtrasGrupo()" (click)="irAtrasGrupo()">&laquo;</button>
         @for (pagina of numerosPaginas(); track pagina) {
-          <button class="btn-page" [class.active]="paginaActual() === pagina" (click)="cambiarPagina(pagina)">{{ pagina }}</button>
+          @if (pagina === '...') {
+            <span class="btn-page" style="cursor:default;background:transparent;color:#333;">...</span>
+          } @else {
+            <button class="btn-page" [class.active]="paginaActual() === pagina" (click)="irAPagina(pagina)">{{ pagina }}</button>
+          }
         }
+        <button class="btn-page" [disabled]="!puedeIrAdelanteGrupo()" (click)="irAdelanteGrupo()">&raquo;</button>
         <button class="btn-page" [disabled]="paginaActual() === totalPaginas()" (click)="cambiarPagina(paginaActual() + 1)">Siguiente</button>
       </div>
     }
@@ -902,6 +908,57 @@
       </div>
       <div class="modal-actions">
         <button type="button" class="btn-cancel" (click)="cerrarModalAbonos()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showModalSupervisoresRelaciones()) {
+  <div class="modal-overlay" (click)="cerrarModalSupervisoresRelaciones()">
+    <div class="modal modal-wide" (click="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Supervisores en relaciones filtradas</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalSupervisoresRelaciones()">&times;</button>
+      </div>
+      <div class="modal-subtitle">Relaciones que tienen supervisor asignado en el filtro actual</div>
+      @if (supervisoresAgrupados().length === 0) {
+        <p class="sin-abonos">No hay supervisores en las relaciones filtradas</p>
+      } @else {
+        <div style="display:flex;flex-direction:column;gap:18px;">
+          @for (grupo of supervisoresAgrupados(); track grupo.supervisorId) {
+            <div>
+              <h3 style="margin:0 0 8px 0;color:#1d63c1;">{{ grupo.supervisor }}</h3>
+              <div class="relaciones-table-wrapper">
+                <table class="abonos-table">
+                  <thead>
+                    <tr>
+                      @for (col of columnasVisibles(); track col.key) {
+                        <th>{{ col.label }}</th>
+                      }
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (rel of grupo.relaciones; track rel._id) {
+                      <tr (click)="abrirModalAbonos(rel)" style="cursor: pointer;">
+                        @for (col of columnasVisibles(); track col.key) {
+                          <td [class.iva-toggle]="col.key === 'iva'" [class.iva-pagado]="rel.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!rel.ivaPagado && col.key === 'iva'" (click)="onCeldaIvaClick(rel, $event)">{{ getValorAbono(rel, col.key) }}</td>
+                        }
+                        <td class="actions">
+                          <button class="btn-edit" (click="$event.stopPropagation(); abrirModal(rel)">Editar</button>
+                          <button class="btn-delete" (click="$event.stopPropagation(); eliminarAbono(rel._id || '')">Eliminar</button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModalSupervisoresRelaciones()">Cerrar</button>
       </div>
     </div>
   </div>

@@ -378,9 +378,12 @@ export class RelacionCuentas implements OnInit {
   comisionesTabNombresAgrupados = signal<any[]>([]);
   comisionesTabNombreSeleccionado = signal<string>('');
 
-  showModalSupervisores = signal(false);
-  editingSupervisor = signal<Supervisor | null>(null);
-  pestanaActiva = signal<'relaciones' | 'supervisores' | 'comisiones'>('relaciones');
+   showModalSupervisores = signal(false);
+   editingSupervisor = signal<Supervisor | null>(null);
+   pestanaActiva = signal<'relaciones' | 'supervisores' | 'comisiones'>('relaciones');
+
+   showModalSupervisoresRelaciones = signal(false);
+   supervisoresAgrupados = signal<any[]>([]);
 
   tasaActual = signal<number>(0);
   tasaEuro = signal<number>(0);
@@ -424,8 +427,74 @@ export class RelacionCuentas implements OnInit {
   });
 
   numerosPaginas = computed(() => {
-    return Array.from({ length: this.totalPaginas() }, (_, i) => i + 1);
+    const total = this.totalPaginas();
+    const actual = this.paginaActual();
+    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
+    const grupoFin = Math.min(grupoInicio + 9, total);
+    const paginas: (number | string)[] = [];
+
+    if (total <= 11) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    paginas.push(1);
+
+    if (grupoInicio > 2) {
+      paginas.push('...');
+    } else if (grupoInicio === 2) {
+      paginas.push(2);
+    }
+
+    for (let p = grupoInicio; p <= grupoFin; p++) {
+      if (p > 1 && p < total) {
+        paginas.push(p);
+      }
+    }
+
+    if (grupoFin < total - 1) {
+      paginas.push('...');
+    } else if (grupoFin === total - 1) {
+      paginas.push(total - 1);
+    }
+
+    if (total > 1) {
+      paginas.push(total);
+    }
+
+    return paginas;
   });
+
+  puedeIrAtrasGrupo = computed(() => {
+    const actual = this.paginaActual();
+    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
+    return grupoInicio > 1;
+  });
+
+  puedeIrAdelanteGrupo = computed(() => {
+    const actual = this.paginaActual();
+    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
+    return grupoInicio + 9 < this.totalPaginas();
+  });
+
+  irAtrasGrupo() {
+    const actual = this.paginaActual();
+    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
+    const nuevaPagina = Math.max(1, grupoInicio - 10);
+    this.paginaActual.set(nuevaPagina);
+  }
+
+  irAdelanteGrupo() {
+    const actual = this.paginaActual();
+    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
+    const nuevaPagina = Math.min(this.totalPaginas(), grupoInicio + 10);
+    this.paginaActual.set(nuevaPagina);
+  }
+
+  irAPagina(pagina: number | string) {
+    if (typeof pagina === 'number') {
+      this.cambiarPagina(pagina);
+    }
+  }
 
   ngOnInit() {
     this.empresasService.load();
@@ -720,7 +789,8 @@ export class RelacionCuentas implements OnInit {
   }
 
   cambiarPagina(pagina: number) {
-    this.paginaActual.set(pagina);
+    const total = this.totalPaginas();
+    this.paginaActual.set(Math.max(1, Math.min(total, pagina)));
   }
 
   abrirModalColumnas() {
@@ -808,15 +878,15 @@ export class RelacionCuentas implements OnInit {
     });
   }
 
-  abrirModalTestWhatsapp() {
-    this.showModalTestWhatsapp.set(true);
-  }
+   abrirModalTestWhatsapp() {
+     this.showModalTestWhatsapp.set(true);
+   }
 
-  cerrarModalTestWhatsapp() {
-    this.showModalTestWhatsapp.set(false);
-  }
+   cerrarModalTestWhatsapp() {
+     this.showModalTestWhatsapp.set(false);
+   }
 
-  enviarTestWhatsapp() {
+   enviarTestWhatsapp() {
     const telefono = this.testWhatsappTelefono().trim();
     const mensaje = this.testWhatsappMensaje().trim();
     if (!telefono) {
@@ -1849,6 +1919,34 @@ if (!url) return '';
   cerrarModalSupervisores() {
     this.showModalSupervisores.set(false);
     this.editingSupervisor.set(null);
+  }
+
+  abrirModalSupervisoresRelaciones() {
+    const abonos = this.abonosFiltrados().filter(a => a.supervisor && a.supervisorId);
+    const porSupervisor = new Map<string, any[]>();
+    for (const abono of abonos) {
+      const supervisorId = abono.supervisorId || '';
+      if (!porSupervisor.has(supervisorId)) {
+        porSupervisor.set(supervisorId, []);
+      }
+      porSupervisor.get(supervisorId)!.push(abono);
+    }
+    const agrupados = Array.from(porSupervisor.entries()).map(([supervisorId, relaciones]) => {
+      const primer = relaciones[0];
+      return {
+        supervisorId,
+        supervisor: primer.supervisor || '',
+        cantidad: relaciones.length,
+        relaciones,
+      };
+    });
+    this.supervisoresAgrupados.set(agrupados);
+    this.showModalSupervisoresRelaciones.set(true);
+  }
+
+  cerrarModalSupervisoresRelaciones() {
+    this.showModalSupervisoresRelaciones.set(false);
+    this.supervisoresAgrupados.set([]);
   }
 
   guardarSupervisor() {

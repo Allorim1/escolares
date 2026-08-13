@@ -17,13 +17,14 @@ export interface ConstanciaTrabajo {
 }
 
 export interface ConstanciaComercial {
-  nombreEmpresa: string;
-  rif: string;
-  direccion: string;
-  telefono: string;
-  email: string;
-  actividadComercial: string;
-  fechaEmision: string;
+  destino: string;
+  titular: string;
+  cedula: string;
+  desdeFecha: string;
+  diasCredito: string;
+  cifras: string;
+  tipoCifras: string;
+  fecha: string;
 }
 
 export interface ConstanciaPersonal {
@@ -558,7 +559,7 @@ tablaComercial: {
             {
               width: '28%',
               stack: [
-                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+                ...(logoBase64 ? [{ image: logoBase64, width: 180, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
               ]
             },
             {
@@ -572,80 +573,28 @@ tablaComercial: {
               width: '48%',
               alignment: 'center',
               margin: [0, -10, 0, 0]
-            },
-            {
-              stack: [
-                { text: 'CONSTANCIA', style: 'tituloDoc' },
-                { text: 'COMERCIAL', style: 'subtituloDoc', alignment: 'center' }
-              ],
-              alignment: 'right',
-              width: '24%',
-              margin: [0, 10, 0, 0]
             }
           ]
         },
-        { text: '', margin: [0, 20] },
+        { text: '', margin: [0, 25] },
+        { text: 'Señores,', style: 'saludo', margin: [0, 0, 0, 8] },
+        { text: data.destino, style: 'destino', margin: [0, 0, 0, 20] },
         {
-          text: 'Por medio de la presente, se hace constar que la empresa:',
+          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C. I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${data.desdeFecha}, con créditos de ${data.diasCredito}, y un promedio de ${data.cifras} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
           style: 'textoNormal',
-          margin: [0, 0, 0, 10]
+          alignment: 'justify',
+          margin: [0, 0, 0, 40]
         },
-        {
-          text: data.nombreEmpresa,
-          style: 'nombreDestacado',
-          alignment: 'center',
-          margin: [0, 0, 0, 10]
-        },
-        {
-          text: `identificada con R.I.F. ${data.rif || 'N/A'}, ubicada en ${data.direccion || 'N/A'}`,
-          style: 'textoNormal',
-          alignment: 'center',
-          margin: [0, 0, 0, 20]
-        },
-        {
-          table: {
-            widths: ['40%', '60%'],
-            body: [
-              [
-                { text: 'Teléfono:', style: 'labelCampo' },
-                { text: data.telefono || 'N/A', style: 'valorCampo' }
-              ],
-              [
-                { text: 'Email:', style: 'labelCampo' },
-                { text: data.email || 'N/A', style: 'valorCampo' }
-              ],
-              [
-                { text: 'Actividad:', style: 'labelCampo' },
-                { text: data.actividadComercial, style: 'valorCampo' }
-              ],
-              [
-                { text: 'Fecha de Emisión:', style: 'labelCampo' },
-                { text: this.formatFecha(data.fechaEmision), style: 'valorCampo' }
-              ]
-            ]
-          },
-          layout: 'tablaConstancia',
-          margin: [0, 0, 0, 30]
-        },
-        {
-          text: 'Se expide la presente constancia comercial a solicitud del interesado(a), para los fines que considere convenientes.',
-          style: 'textoNormal',
-          margin: [0, 0, 0, 50]
-        },
+        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia a ${this.formatFecha(data.fecha)}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
+        { text: 'Atentamente,', style: 'textoNormal', margin: [0, 0, 0, 60] },
         {
           columns: [
             {
-              width: '50%',
+              width: '40%',
               stack: [
                 { text: '_________________________', alignment: 'center' },
-                { text: 'Firma del Solicitante', alignment: 'center', style: 'labelFirma' }
-              ]
-            },
-            {
-              width: '50%',
-              stack: [
-                { text: '_________________________', alignment: 'center' },
-                { text: 'Firma y Sello de la Empresa', alignment: 'center', style: 'labelFirma' }
+                { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre' },
+                { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }
               ]
             }
           ]
@@ -654,29 +603,14 @@ tablaComercial: {
       styles: {
         datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
         webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
-        tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
-        subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
-        textoNormal: { fontSize: 11, lineHeight: 1.5 },
-        nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
-        labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
-        valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
-        labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+        textoNormal: { fontSize: 11, lineHeight: 1.6 },
+        saludo: { fontSize: 11, bold: true },
+        destino: { fontSize: 11, bold: true, margin: [0, 0, 0, 20] },
+        firmaNombre: { fontSize: 10, bold: true, margin: [0, 5, 0, 2] },
+        firmaCargo: { fontSize: 9, color: '#666' }
       },
       pageSize: 'A4',
-      pageMargins: [40, 40, 40, 40]
-    };
-
-    docDefinition.tableLayouts = {
-      tablaConstancia: {
-        hLineWidth: () => 0.5,
-        vLineWidth: () => 0.5,
-        hLineColor: () => '#ddd',
-        vLineColor: () => '#ddd',
-        paddingLeft: () => 8,
-        paddingRight: () => 8,
-        paddingTop: () => 6,
-        paddingBottom: () => 6
-      }
+      pageMargins: [40, 50, 40, 50]
     };
 
     return docDefinition;

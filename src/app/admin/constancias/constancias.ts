@@ -69,13 +69,14 @@ export class Constancias implements OnInit {
   });
 
   comercial = signal<ConstanciaComercial>({
-    nombreEmpresa: '',
-    rif: '',
-    direccion: '',
-    telefono: '',
-    email: '',
-    actividadComercial: '',
-    fechaEmision: new Date().toISOString().split('T')[0],
+    destino: '',
+    titular: '',
+    cedula: '',
+    desdeFecha: '',
+    diasCredito: '',
+    cifras: '',
+    tipoCifras: '',
+    fecha: new Date().toISOString().split('T')[0],
   });
 
   personal = signal<ConstanciaPersonal>({
@@ -146,14 +147,23 @@ export class Constancias implements OnInit {
       }
     } else if (tipo === 'comercial') {
       const datos = this.comercial();
-      if (!datos.nombreEmpresa || !datos.rif || !datos.actividadComercial) {
+      if (!datos.destino || !datos.titular || !datos.cedula || !datos.desdeFecha || !datos.diasCredito || !datos.cifras || !datos.tipoCifras || !datos.fecha) {
         this.notificationService.error('Por favor complete todos los campos requeridos');
         return;
       }
       this.generandoPdf.set(true);
       try {
-        const docDefinition = this.exportarPdfService.generarConstanciaComercialPdf(datos);
-        this.exportarPdfService.descargarPdf(docDefinition, `constancia_comercial_${datos.rif}.pdf`);
+        const docDefinition = await this.exportarPdfService.generarConstanciaComercialPdf({
+          destino: datos.destino,
+          titular: datos.titular,
+          cedula: datos.cedula,
+          desdeFecha: datos.desdeFecha,
+          diasCredito: datos.diasCredito,
+          cifras: datos.cifras,
+          tipoCifras: datos.tipoCifras,
+          fecha: datos.fecha,
+        });
+        this.exportarPdfService.descargarPdf(docDefinition, `constancia_comercial_${datos.titular.replace(/\s+/g, '_')}.pdf`);
         this.notificationService.success('Constancia comercial generada correctamente', 'Éxito');
       } catch (error) {
         console.error('Error generando PDF:', error);
@@ -214,13 +224,14 @@ export class Constancias implements OnInit {
       });
     } else if (this.tipoSeleccionado() === 'comercial') {
       this.comercial.set({
-        nombreEmpresa: '',
-        rif: '',
-        direccion: '',
-        telefono: '',
-        email: '',
-        actividadComercial: '',
-        fechaEmision: new Date().toISOString().split('T')[0],
+        destino: '',
+        titular: '',
+        cedula: '',
+        desdeFecha: '',
+        diasCredito: '',
+        cifras: '',
+        tipoCifras: '',
+        fecha: new Date().toISOString().split('T')[0],
       });
     } else if (this.tipoSeleccionado() === 'personal') {
       this.personal.set({

@@ -62,38 +62,42 @@
         <h2>Constancia Comercial</h2>
         <div class="form-row">
           <div class="form-group">
-            <label>Nombre de la Empresa *</label>
-            <input type="text" [(ngModel)]="comercial().nombreEmpresa" placeholder="Razón social" />
+            <label>Señores / Destinatario *</label>
+            <input type="text" [(ngModel)]="comercial().destino" placeholder="Nombre del destinatario o empresa" />
           </div>
           <div class="form-group">
-            <label>RIF *</label>
-            <input type="text" [(ngModel)]="comercial().rif" placeholder="J-12345678-9" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Dirección</label>
-            <input type="text" [(ngModel)]="comercial().direccion" placeholder="Dirección fiscal" />
-          </div>
-          <div class="form-group">
-            <label>Teléfono</label>
-            <input type="text" [(ngModel)]="comercial().telefono" placeholder="0241-0000000" />
+            <label>Titular *</label>
+            <input type="text" [(ngModel)]="comercial().titular" placeholder="Nombre del titular de la relación comercial" />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Email</label>
-            <input type="email" [(ngModel)]="comercial().email" placeholder="correo@empresa.com" />
+            <label>Cédula de Identidad *</label>
+            <input type="text" [(ngModel)]="comercial().cedula" placeholder="V-12345678" />
           </div>
           <div class="form-group">
-            <label>Actividad Comercial *</label>
-            <input type="text" [(ngModel)]="comercial().actividadComercial" placeholder="Actividad comercial" />
+            <label>Relación Comercial Desde *</label>
+            <input type="text" [(ngModel)]="comercial().desdeFecha" placeholder="Ej: 3 años" />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Fecha de Emisión</label>
-            <input type="date" [(ngModel)]="comercial().fechaEmision" />
+            <label>Días de Crédito *</label>
+            <input type="text" [(ngModel)]="comercial().diasCredito" placeholder="Ej: 30 días" />
+          </div>
+          <div class="form-group">
+            <label>Promedio / Cifras *</label>
+            <input type="text" [(ngModel)]="comercial().cifras" placeholder="Ej: 5000" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de Cifras *</label>
+            <input type="text" [(ngModel)]="comercial().tipoCifras" placeholder="Ej: USD mensuales" />
+          </div>
+          <div class="form-group">
+            <label>Fecha de Emisión *</label>
+            <input type="date" [(ngModel)]="comercial().fecha" />
           </div>
         </div>
       </div>

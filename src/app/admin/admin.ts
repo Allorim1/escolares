@@ -42,8 +42,9 @@ const QUICK_ITEMS: QuickItem[] = [
    { label: 'Asistencias', route: 'asistencias', icon: '📅', permiso: 'nomina_ver' },
    { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
    { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
-   { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
-   { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
+    { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
+    { label: 'Constancias', route: 'constancias', icon: '📄', permiso: 'constancias_gestionar' },
+    { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
    { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
    { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
    { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
@@ -64,8 +65,9 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
          { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
          { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
          { label: 'Control de Asistencias', route: 'asistencias', permiso: 'nomina_ver' },
-         { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
-         { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
+          { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
+          { label: 'Constancias y Recibos', route: 'constancias', permiso: 'constancias_gestionar' },
+          { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
          { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
           { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
           { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
@@ -114,6 +116,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           items: [
             { label: 'Clientes', route: 'clientes' },
             { label: 'Relación de Cuentas', route: 'relacion-cuentas' },
+            { label: 'Relación de Libros', route: 'relacion-libros' },
           ]
         }
    ];

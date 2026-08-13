@@ -25,7 +25,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (cotizacion of [...(cotizaciones || [])].reverse(); track cotizacion._id) {
+        @for (cotizacion of cotizaciones || []; track cotizacion._id) {
           <tr>
             <td>{{ formatearFecha(cotizacion.fecha) }}</td>
             <td>{{ cotizacion.numeroCotizacion || '' }}</td>
@@ -71,7 +71,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (nota of [...(notasEntrega || [])].reverse(); track nota._id) {
+          @for (nota of notasEntrega || []; track nota._id) {
           <tr>
             <td>{{ formatearFecha(nota.fecha) }}</td>
             <td>{{ nota.numeroNota || '' }}</td>

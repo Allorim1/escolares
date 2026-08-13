@@ -6,6 +6,44 @@ import { CurrencyService } from '../data-access/currency.service';
 // Declaración para window.pdfMake (cargado desde CDN en index.html)
 declare const pdfMake: any;
 
+export interface ConstanciaTrabajo {
+  nombreCompleto: string;
+  cedula: string;
+  cargo: string;
+  departamento: string;
+  fechaIngreso: string;
+  fechaEmision: string;
+  sueldoMensual: string;
+}
+
+export interface ConstanciaComercial {
+  nombreEmpresa: string;
+  rif: string;
+  direccion: string;
+  telefono: string;
+  email: string;
+  actividadComercial: string;
+  fechaEmision: string;
+}
+
+export interface ConstanciaPersonal {
+  nombreCompleto: string;
+  cedula: string;
+  direccion: string;
+  motivo: string;
+  fechaEmision: string;
+}
+
+export interface ReciboPago {
+  nombrePagador: string;
+  cedula: string;
+  concepto: string;
+  monto: number;
+  moneda: string;
+  fechaPago: string;
+  numeroRecibo: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -354,5 +392,567 @@ tablaComercial: {
     } catch (error) {
       console.error('Error generando PDF:', error);
     }
+  }
+
+   descargarPdf(docDefinition: any, fileName: string) {
+    pdfMake.createPdf(docDefinition).download(fileName);
+  }
+
+   async generarConstanciaTrabajoPdf(data: ConstanciaTrabajo) {
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    const docDefinition: any = {
+      content: [
+        {
+          columns: [
+            {
+              width: '28%',
+              stack: [
+                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+              ]
+            },
+            {
+              text: [
+                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
+                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
+                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
+                { text: 'www.escolaresonline.com', style: 'webSite' }
+              ],
+              width: '48%',
+              alignment: 'center',
+              margin: [0, -10, 0, 0]
+            },
+            {
+              stack: [
+                { text: 'CONSTANCIA', style: 'tituloDoc' },
+                { text: 'DE TRABAJO', style: 'subtituloDoc', alignment: 'center' }
+              ],
+              alignment: 'right',
+              width: '24%',
+              margin: [0, 10, 0, 0]
+            }
+          ]
+        },
+        { text: '', margin: [0, 20] },
+        {
+          text: 'Por medio de la presente, se hace constar que el(la) señor(a):',
+          style: 'textoNormal',
+          margin: [0, 0, 0, 10]
+        },
+        {
+          text: data.nombreCompleto,
+          style: 'nombreDestacado',
+          alignment: 'center',
+          margin: [0, 0, 0, 10]
+        },
+        {
+          text: 'titular de la Cédula de Identidad Nro. V-___________',
+          style: 'textoNormal',
+          alignment: 'center',
+          margin: [0, 0, 0, 20]
+        },
+        {
+          table: {
+            widths: ['40%', '60%'],
+            body: [
+              [
+                { text: 'Cargo:', style: 'labelCampo' },
+                { text: data.cargo, style: 'valorCampo' }
+              ],
+              [
+                { text: 'Departamento:', style: 'labelCampo' },
+                { text: data.departamento, style: 'valorCampo' }
+              ],
+              [
+                { text: 'Fecha de Ingreso:', style: 'labelCampo' },
+                { text: this.formatFecha(data.fechaIngreso), style: 'valorCampo' }
+              ],
+              [
+                { text: 'Fecha de Emisión:', style: 'labelCampo' },
+                { text: this.formatFecha(data.fechaEmision), style: 'valorCampo' }
+              ],
+              ...(data.sueldoMensual ? [
+                [
+                  { text: 'Sueldo Mensual (USD):', style: 'labelCampo' },
+                  { text: data.sueldoMensual, style: 'valorCampo' }
+                ]
+              ] : [])
+            ]
+          },
+          layout: 'tablaConstancia',
+          margin: [0, 0, 0, 30]
+        },
+        {
+          text: 'La presente constancia se expide a solicitud del interesado(a), a los _____ días del mes de ___________ del año ___________',
+          style: 'textoNormal',
+          margin: [0, 0, 0, 50]
+        },
+        {
+          columns: [
+            {
+              width: '50%',
+              stack: [
+                { text: '_________________________', alignment: 'center' },
+                { text: 'Firma del Empleado(a)', alignment: 'center', style: 'labelFirma' }
+              ]
+            },
+            {
+              width: '50%',
+              stack: [
+                { text: '_________________________', alignment: 'center' },
+                { text: 'Firma y Sello de la Empresa', alignment: 'center', style: 'labelFirma' }
+              ]
+            }
+          ]
+        }
+      ],
+      styles: {
+        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+        tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+        subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+        textoNormal: { fontSize: 11, lineHeight: 1.5 },
+        nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+        labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+        valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+        labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+      },
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 40]
+    };
+
+    docDefinition.tableLayouts = {
+      tablaConstancia: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => '#ddd',
+        vLineColor: () => '#ddd',
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 6,
+        paddingBottom: () => 6
+      }
+    };
+
+    return docDefinition;
+  }
+
+   async generarConstanciaComercialPdf(data: ConstanciaComercial) {
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    const docDefinition: any = {
+      content: [
+        {
+          columns: [
+            {
+              width: '28%',
+              stack: [
+                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+              ]
+            },
+            {
+              text: [
+                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
+                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
+                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
+                { text: 'www.escolaresonline.com', style: 'webSite' }
+              ],
+              width: '48%',
+              alignment: 'center',
+              margin: [0, -10, 0, 0]
+            },
+            {
+              stack: [
+                { text: 'CONSTANCIA', style: 'tituloDoc' },
+                { text: 'COMERCIAL', style: 'subtituloDoc', alignment: 'center' }
+              ],
+              alignment: 'right',
+              width: '24%',
+              margin: [0, 10, 0, 0]
+            }
+          ]
+        },
+        { text: '', margin: [0, 20] },
+        {
+          text: 'Por medio de la presente, se hace constar que la empresa:',
+          style: 'textoNormal',
+          margin: [0, 0, 0, 10]
+        },
+        {
+          text: data.nombreEmpresa,
+          style: 'nombreDestacado',
+          alignment: 'center',
+          margin: [0, 0, 0, 10]
+        },
+        {
+          text: `identificada con R.I.F. ${data.rif || 'N/A'}, ubicada en ${data.direccion || 'N/A'}`,
+          style: 'textoNormal',
+          alignment: 'center',
+          margin: [0, 0, 0, 20]
+        },
+        {
+          table: {
+            widths: ['40%', '60%'],
+            body: [
+              [
+                { text: 'Teléfono:', style: 'labelCampo' },
+                { text: data.telefono || 'N/A', style: 'valorCampo' }
+              ],
+              [
+                { text: 'Email:', style: 'labelCampo' },
+                { text: data.email || 'N/A', style: 'valorCampo' }
+              ],
+              [
+                { text: 'Actividad:', style: 'labelCampo' },
+                { text: data.actividadComercial, style: 'valorCampo' }
+              ],
+              [
+                { text: 'Fecha de Emisión:', style: 'labelCampo' },
+                { text: this.formatFecha(data.fechaEmision), style: 'valorCampo' }
+              ]
+            ]
+          },
+          layout: 'tablaConstancia',
+          margin: [0, 0, 0, 30]
+        },
+        {
+          text: 'Se expide la presente constancia comercial a solicitud del interesado(a), para los fines que considere convenientes.',
+          style: 'textoNormal',
+          margin: [0, 0, 0, 50]
+        },
+        {
+          columns: [
+            {
+              width: '50%',
+              stack: [
+                { text: '_________________________', alignment: 'center' },
+                { text: 'Firma del Solicitante', alignment: 'center', style: 'labelFirma' }
+              ]
+            },
+            {
+              width: '50%',
+              stack: [
+                { text: '_________________________', alignment: 'center' },
+                { text: 'Firma y Sello de la Empresa', alignment: 'center', style: 'labelFirma' }
+              ]
+            }
+          ]
+        }
+      ],
+      styles: {
+        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+        tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+        subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+        textoNormal: { fontSize: 11, lineHeight: 1.5 },
+        nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+        labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+        valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+        labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+      },
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 40]
+    };
+
+    docDefinition.tableLayouts = {
+      tablaConstancia: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => '#ddd',
+        vLineColor: () => '#ddd',
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 6,
+        paddingBottom: () => 6
+      }
+    };
+
+    return docDefinition;
+  }
+
+   async generarConstanciaPersonalPdf(data: ConstanciaPersonal) {
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    const docDefinition: any = {
+      content: [
+        {
+          columns: [
+            {
+              width: '28%',
+              stack: [
+                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+              ]
+            },
+            {
+              text: [
+                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
+                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
+                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
+                { text: 'www.escolaresonline.com', style: 'webSite' }
+              ],
+              width: '48%',
+              alignment: 'center',
+              margin: [0, -10, 0, 0]
+            },
+            {
+              stack: [
+                { text: 'CONSTANCIA', style: 'tituloDoc' },
+                { text: 'PERSONAL', style: 'subtituloDoc', alignment: 'center' }
+              ],
+              alignment: 'right',
+              width: '24%',
+              margin: [0, 10, 0, 0]
+            }
+          ]
+        },
+        { text: '', margin: [0, 20] },
+        {
+          text: 'Por medio de la presente, se hace constar que el(la) señor(a):',
+          style: 'textoNormal',
+          margin: [0, 0, 0, 10]
+        },
+        {
+          text: data.nombreCompleto,
+          style: 'nombreDestacado',
+          alignment: 'center',
+          margin: [0, 0, 0, 10]
+        },
+        {
+          text: `titular de la Cédula de Identidad Nro. V-___________`,
+          style: 'textoNormal',
+          alignment: 'center',
+          margin: [0, 0, 0, 20]
+        },
+        {
+          table: {
+            widths: ['40%', '60%'],
+            body: [
+              [
+                { text: 'Dirección:', style: 'labelCampo' },
+                { text: data.direccion || 'N/A', style: 'valorCampo' }
+              ],
+              [
+                { text: 'Fecha de Emisión:', style: 'labelCampo' },
+                { text: this.formatFecha(data.fechaEmision), style: 'valorCampo' }
+              ]
+            ]
+          },
+          layout: 'tablaConstancia',
+          margin: [0, 0, 0, 20]
+        },
+        {
+          text: 'Motivo:',
+          style: 'labelCampo',
+          margin: [0, 0, 0, 5]
+        },
+        {
+          text: data.motivo,
+          style: 'textoNormal',
+          margin: [0, 0, 0, 50]
+        },
+        {
+          columns: [
+            {
+              width: '50%',
+              stack: [
+                { text: '_________________________', alignment: 'center' },
+                { text: 'Firma del Solicitante', alignment: 'center', style: 'labelFirma' }
+              ]
+            },
+            {
+              width: '50%',
+              stack: [
+                { text: '_________________________', alignment: 'center' },
+                { text: 'Firma y Sello', alignment: 'center', style: 'labelFirma' }
+              ]
+            }
+          ]
+        }
+      ],
+      styles: {
+        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+        tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+        subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+        textoNormal: { fontSize: 11, lineHeight: 1.5 },
+        nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+        labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+        valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+        labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+      },
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 40]
+    };
+
+    docDefinition.tableLayouts = {
+      tablaConstancia: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => '#ddd',
+        vLineColor: () => '#ddd',
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 6,
+        paddingBottom: () => 6
+      }
+    };
+
+    return docDefinition;
+  }
+
+   async generarReciboPagoPdf(data: ReciboPago) {
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    const montoFormateado = data.monto.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const docDefinition: any = {
+      content: [
+        {
+          columns: [
+            {
+              width: '28%',
+              stack: [
+                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+              ]
+            },
+            {
+              text: [
+                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
+                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
+                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
+                { text: 'www.escolaresonline.com', style: 'webSite' }
+              ],
+              width: '48%',
+              alignment: 'center',
+              margin: [0, -10, 0, 0]
+            },
+            {
+              stack: [
+                { text: 'RECIBO', style: 'tituloDoc' },
+                { text: 'DE PAGO', style: 'subtituloDoc', alignment: 'center' }
+              ],
+              alignment: 'right',
+              width: '24%',
+              margin: [0, 10, 0, 0]
+            }
+          ]
+        },
+        { text: '', margin: [0, 20] },
+        {
+          table: {
+            widths: ['35%', '65%'],
+            body: [
+              [
+                { text: 'Nro. Recibo:', style: 'labelCampo' },
+                { text: data.numeroRecibo, style: 'valorCampo', bold: true }
+              ],
+              [
+                { text: 'Fecha de Pago:', style: 'labelCampo' },
+                { text: this.formatFecha(data.fechaPago), style: 'valorCampo' }
+              ],
+              [
+                { text: 'Pagado Por:', style: 'labelCampo' },
+                { text: data.nombrePagador, style: 'valorCampo' }
+              ],
+              [
+                { text: 'Cédula:', style: 'labelCampo' },
+                { text: data.cedula, style: 'valorCampo' }
+              ],
+              [
+                { text: 'Concepto:', style: 'labelCampo' },
+                { text: data.concepto, style: 'valorCampo' }
+              ],
+              [
+                { text: 'Monto:', style: 'labelCampo' },
+                {
+                  text: `${data.moneda} ${montoFormateado}`,
+                  style: 'valorCampo',
+                  bold: true,
+                  fontSize: 12
+                }
+              ]
+            ]
+          },
+          layout: 'tablaConstancia',
+          margin: [0, 0, 0, 40]
+        },
+        {
+          text: 'Este recibo certifica que el pago ha sido recibido satisfactoriamente.',
+          style: 'textoNormal',
+          alignment: 'center',
+          margin: [0, 0, 0, 50]
+        },
+        {
+          columns: [
+            {
+              width: '50%',
+              stack: [
+                { text: '_________________________', alignment: 'center' },
+                { text: 'Firma del Pagador', alignment: 'center', style: 'labelFirma' }
+              ]
+            },
+            {
+              width: '50%',
+              stack: [
+                { text: '_________________________', alignment: 'center' },
+                { text: 'Firma y Sello', alignment: 'center', style: 'labelFirma' }
+              ]
+            }
+          ]
+        }
+      ],
+      styles: {
+        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+        tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+        subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+        textoNormal: { fontSize: 11, lineHeight: 1.5 },
+        nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+        labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+        valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+        labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+      },
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 40]
+    };
+
+    docDefinition.tableLayouts = {
+      tablaConstancia: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => '#ddd',
+        vLineColor: () => '#ddd',
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 6,
+        paddingBottom: () => 6
+      }
+    };
+
+    return docDefinition;
   }
 }

@@ -1,0 +1,245 @@
+import { Component, signal, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ExportarPdfService } from '../../shared/services/exportar-pdf.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+
+type TipoConstancia = 'trabajo' | 'comercial' | 'personal' | 'recibo-pago';
+
+interface ConstanciaTrabajo {
+  nombreCompleto: string;
+  cedula: string;
+  cargo: string;
+  departamento: string;
+  fechaIngreso: string;
+  fechaEmision: string;
+  sueldoMensual: string;
+}
+
+interface ConstanciaComercial {
+  nombreEmpresa: string;
+  rif: string;
+  direccion: string;
+  telefono: string;
+  email: string;
+  actividadComercial: string;
+  fechaEmision: string;
+}
+
+interface ConstanciaPersonal {
+  nombreCompleto: string;
+  cedula: string;
+  direccion: string;
+  motivo: string;
+  fechaEmision: string;
+}
+
+interface ReciboPago {
+  nombrePagador: string;
+  cedula: string;
+  concepto: string;
+  monto: string;
+  moneda: string;
+  fechaPago: string;
+  numeroRecibo: string;
+}
+
+@Component({
+  selector: 'app-constancias',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './constancias.html',
+  styleUrl: './constancias.css',
+})
+export class Constancias implements OnInit {
+  private exportarPdfService = inject(ExportarPdfService);
+  private notificationService = inject(NotificationModalService);
+
+  tipoSeleccionado = signal<TipoConstancia>('trabajo');
+  generandoPdf = signal(false);
+
+  trabajo = signal<ConstanciaTrabajo>({
+    nombreCompleto: '',
+    cedula: '',
+    cargo: '',
+    departamento: '',
+    fechaIngreso: '',
+    fechaEmision: new Date().toISOString().split('T')[0],
+    sueldoMensual: '',
+  });
+
+  comercial = signal<ConstanciaComercial>({
+    nombreEmpresa: '',
+    rif: '',
+    direccion: '',
+    telefono: '',
+    email: '',
+    actividadComercial: '',
+    fechaEmision: new Date().toISOString().split('T')[0],
+  });
+
+  personal = signal<ConstanciaPersonal>({
+    nombreCompleto: '',
+    cedula: '',
+    direccion: '',
+    motivo: '',
+    fechaEmision: new Date().toISOString().split('T')[0],
+  });
+
+  reciboPago = signal<ReciboPago>({
+    nombrePagador: '',
+    cedula: '',
+    concepto: '',
+    monto: '',
+    moneda: 'USD',
+    fechaPago: new Date().toISOString().split('T')[0],
+    numeroRecibo: '',
+  });
+
+  tiposConstancia: { value: TipoConstancia; label: string; icon: string }[] = [
+    { value: 'trabajo', label: 'Constancia de Trabajo', icon: '💼' },
+    { value: 'comercial', label: 'Constancia Comercial', icon: '🏢' },
+    { value: 'personal', label: 'Constancia Personal', icon: '👤' },
+    { value: 'recibo-pago', label: 'Recibo de Pago', icon: '🧾' },
+  ];
+
+  ngOnInit() {}
+
+  seleccionarTipo(tipo: TipoConstancia) {
+    this.tipoSeleccionado.set(tipo);
+  }
+
+  formatFecha(fecha: string): string {
+    if (!fecha) return '';
+    const parts = fecha.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return fecha;
+  }
+
+  async generarPdf() {
+    const tipo = this.tipoSeleccionado();
+
+    if (tipo === 'trabajo') {
+      const datos = this.trabajo();
+      if (!datos.nombreCompleto || !datos.cedula || !datos.cargo || !datos.departamento) {
+        this.notificationService.error('Por favor complete todos los campos requeridos');
+        return;
+      }
+      this.generandoPdf.set(true);
+      try {
+        const docDefinition = this.exportarPdfService.generarConstanciaTrabajoPdf({
+          ...datos,
+          cedula: datos.cedula,
+          fechaIngreso: datos.fechaIngreso,
+          fechaEmision: datos.fechaEmision,
+          sueldoMensual: datos.sueldoMensual,
+        });
+        this.exportarPdfService.descargarPdf(docDefinition, `constancia_trabajo_${datos.cedula}.pdf`);
+        this.notificationService.success('Constancia de trabajo generada correctamente', 'Éxito');
+      } catch (error) {
+        console.error('Error generando PDF:', error);
+        this.notificationService.error('Error al generar el PDF');
+      } finally {
+        this.generandoPdf.set(false);
+      }
+    } else if (tipo === 'comercial') {
+      const datos = this.comercial();
+      if (!datos.nombreEmpresa || !datos.rif || !datos.actividadComercial) {
+        this.notificationService.error('Por favor complete todos los campos requeridos');
+        return;
+      }
+      this.generandoPdf.set(true);
+      try {
+        const docDefinition = this.exportarPdfService.generarConstanciaComercialPdf(datos);
+        this.exportarPdfService.descargarPdf(docDefinition, `constancia_comercial_${datos.rif}.pdf`);
+        this.notificationService.success('Constancia comercial generada correctamente', 'Éxito');
+      } catch (error) {
+        console.error('Error generando PDF:', error);
+        this.notificationService.error('Error al generar el PDF');
+      } finally {
+        this.generandoPdf.set(false);
+      }
+    } else if (tipo === 'personal') {
+      const datos = this.personal();
+      if (!datos.nombreCompleto || !datos.cedula || !datos.motivo) {
+        this.notificationService.error('Por favor complete todos los campos requeridos');
+        return;
+      }
+      this.generandoPdf.set(true);
+      try {
+        const docDefinition = this.exportarPdfService.generarConstanciaPersonalPdf(datos);
+        this.exportarPdfService.descargarPdf(docDefinition, `constancia_personal_${datos.cedula}.pdf`);
+        this.notificationService.success('Constancia personal generada correctamente', 'Éxito');
+      } catch (error) {
+        console.error('Error generando PDF:', error);
+        this.notificationService.error('Error al generar el PDF');
+      } finally {
+        this.generandoPdf.set(false);
+      }
+    } else if (tipo === 'recibo-pago') {
+      const datos = this.reciboPago();
+      if (!datos.nombrePagador || !datos.cedula || !datos.concepto || !datos.monto || !datos.numeroRecibo) {
+        this.notificationService.error('Por favor complete todos los campos requeridos');
+        return;
+      }
+      this.generandoPdf.set(true);
+      try {
+        const docDefinition = this.exportarPdfService.generarReciboPagoPdf({
+          ...datos,
+          monto: parseFloat(datos.monto) || 0,
+        });
+        this.exportarPdfService.descargarPdf(docDefinition, `recibo_pago_${datos.numeroRecibo}.pdf`);
+        this.notificationService.success('Recibo de pago generado correctamente', 'Éxito');
+      } catch (error) {
+        console.error('Error generando PDF:', error);
+        this.notificationService.error('Error al generar el PDF');
+      } finally {
+        this.generandoPdf.set(false);
+      }
+    }
+  }
+
+  limpiarFormulario() {
+    if (this.tipoSeleccionado() === 'trabajo') {
+      this.trabajo.set({
+        nombreCompleto: '',
+        cedula: '',
+        cargo: '',
+        departamento: '',
+        fechaIngreso: '',
+        fechaEmision: new Date().toISOString().split('T')[0],
+        sueldoMensual: '',
+      });
+    } else if (this.tipoSeleccionado() === 'comercial') {
+      this.comercial.set({
+        nombreEmpresa: '',
+        rif: '',
+        direccion: '',
+        telefono: '',
+        email: '',
+        actividadComercial: '',
+        fechaEmision: new Date().toISOString().split('T')[0],
+      });
+    } else if (this.tipoSeleccionado() === 'personal') {
+      this.personal.set({
+        nombreCompleto: '',
+        cedula: '',
+        direccion: '',
+        motivo: '',
+        fechaEmision: new Date().toISOString().split('T')[0],
+      });
+    } else if (this.tipoSeleccionado() === 'recibo-pago') {
+      this.reciboPago.set({
+        nombrePagador: '',
+        cedula: '',
+        concepto: '',
+        monto: '',
+        moneda: 'USD',
+        fechaPago: new Date().toISOString().split('T')[0],
+        numeroRecibo: '',
+      });
+    }
+  }
+}

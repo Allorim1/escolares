@@ -107,9 +107,9 @@ async generarCotizacionPdf(data: Cotizacion) {
                 // Al ser una celda de la misma fila, se estira automáticamente a la altura de la derecha.
                 {
                   stack: [
-                    { text: 'CLIENTE:', style: 'labelCliente', bold: true, margin: [2, 0, 0, 0] },
-                    { text: data.cliente.nombre, style: 'valorCliente', margin: [2, 2, 0, 4] },
-                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente', margin: [2, 0, 0, 0] }
+                    { text: 'CLIENTE:', style: 'labelCliente', bold: true, margin: [2, 2, 0, 0] },
+                    { text: data.cliente.nombre, style: 'valorCliente', margin: [2, 4, 0, 4] },
+                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente', margin: [2, 2, 0, 0] }
                   ],
                   // Usamos un margen interno inferior alto (margin: [left, top, right, bottom])
                   // para "empujar" los bordes de la celda y dejar el espacio para el RIF abajo
@@ -141,7 +141,7 @@ async generarCotizacionPdf(data: Cotizacion) {
                           [{ text: 'VALIDEZ', style: 'thControl'}, { text: 'Zona No.', style: 'thControl'}, { text: 'VENDEDOR', style: 'thControl' }],
                           [
                             { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
-                            { text: data.referencia.numeroReferencia || '', style: 'tdControl' },
+                            { text: data.referencia.nroZona || '', style: 'tdControl' },
                             { text: data.referencia.vendedor || '', style: 'tdControl' }
                           ]
                         ]
@@ -159,7 +159,7 @@ async generarCotizacionPdf(data: Cotizacion) {
                 {
                   // Esta celda se dibuja justo debajo del cuadro del cliente compartiendo paredes
                   columns: [
-                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto', margin: [2, 0, 0, 0] },
+                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto', margin: [2, 0, 0, 2] },
                     { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : '', style: 'campoCliente', alignment: 'right', width: '*' }
                   ],
                   margin: [0, -12, 0, 0], // Sube el texto ligeramente para que quede adentro del cuadro visual del cliente

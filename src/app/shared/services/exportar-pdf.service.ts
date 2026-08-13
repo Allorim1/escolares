@@ -75,7 +75,7 @@ async generarCotizacionPdf(data: Cotizacion) {
                 { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
                 { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
                 { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
-                { text: 'R.I.F.: J-30488367-6',  style: 'datosEmpresa'  },
+                { text: 'R.I.F.: J-30488367-6\n',  style: 'datosEmpresa'  },
                 { text: 'www.escolaresonline.com', style: 'webSite' }
               ],
               width: '48%',

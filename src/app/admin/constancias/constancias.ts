@@ -17,13 +17,14 @@ interface ConstanciaTrabajo {
 }
 
 interface ConstanciaComercial {
-  nombreEmpresa: string;
-  rif: string;
-  direccion: string;
-  telefono: string;
-  email: string;
-  actividadComercial: string;
-  fechaEmision: string;
+  destino: string;
+  titular: string;
+  cedula: string;
+  desdeFecha: string;
+  diasCredito: string;
+  cifras: string;
+  tipoCifras: string;
+  fecha: string;
 }
 
 interface ConstanciaPersonal {

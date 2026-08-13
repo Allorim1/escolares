@@ -552,6 +552,10 @@ tablaComercial: {
       console.warn('No se pudo cargar el logo:', e);
     }
 
+    const desdeFechaTexto = this.calcularTiempoTranscurrido(data.desdeFecha);
+    const diasCreditoTexto = data.diasCredito || '';
+    const fechaLarga = this.formatearFechaComercial(data.fecha);
+
     const docDefinition: any = {
       content: [
         {
@@ -580,12 +584,12 @@ tablaComercial: {
         { text: 'Señores,', style: 'saludo', margin: [0, 0, 0, 8] },
         { text: data.destino, style: 'destino', margin: [0, 0, 0, 20] },
         {
-          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C. I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${data.desdeFecha}, con créditos de ${data.diasCredito}, y un promedio de ${data.cifras} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
+          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C. I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${data.cifras} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
           style: 'textoNormal',
           alignment: 'justify',
           margin: [0, 0, 0, 40]
         },
-        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia a ${this.formatFecha(data.fecha)}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
+        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia a ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
         { text: 'Atentamente,', style: 'textoNormal', margin: [0, 0, 0, 60] },
         {
           columns: [
@@ -614,6 +618,115 @@ tablaComercial: {
     };
 
     return docDefinition;
+  }
+
+   calcularTiempoTranscurrido(fechaInicio: string): string {
+    if (!fechaInicio) return '';
+
+    const inicio = new Date(fechaInicio + 'T00:00:00');
+    const hoy = new Date();
+
+    let años = hoy.getFullYear() - inicio.getFullYear();
+    let meses = hoy.getMonth() - inicio.getMonth();
+    let dias = hoy.getDate() - inicio.getDate();
+
+    if (dias < 0) {
+      meses--;
+      const diasEnMes = new Date(hoy.getFullYear(), hoy.getMonth(), 0).getDate();
+      dias += diasEnMes;
+    }
+
+    if (meses < 0) {
+      años--;
+      meses += 12;
+    }
+
+    const partes: string[] = [];
+
+    if (años > 0) {
+      partes.push(`${this.numeroATexto(años)} años (${años})`);
+    }
+
+    if (meses > 0) {
+      partes.push(`${this.numeroATexto(meses)} meses (${meses})`);
+    }
+
+    if (dias > 0 || partes.length === 0) {
+      partes.push(`${this.numeroATexto(dias)} días (${dias})`);
+    }
+
+    if (partes.length === 1) {
+      return partes[0];
+    } else if (partes.length === 2) {
+      return `${partes[0]} y ${partes[1]}`;
+    } else {
+      const ultimo = partes.pop();
+      return `${partes.join(', ')} y ${ultimo}`;
+    }
+  }
+
+   formatearFechaComercial(fecha: string): string {
+    if (!fecha) return '';
+
+    const parts = fecha.split('-');
+    if (parts.length !== 3) return fecha;
+
+    const dia = parseInt(parts[2], 10);
+    const mes = parseInt(parts[1], 10) - 1;
+    const año = parseInt(parts[0], 10);
+
+    const nombresMeses = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+
+    const diaTexto = this.numeroATexto(dia);
+    const mesTexto = nombresMeses[mes];
+    const añoTexto = this.numeroATexto(año);
+
+    return `a los ${diaTexto} días del mes de ${mesTexto} del año ${añoTexto}`;
+  }
+
+   numeroATexto(numero: number): string {
+    if (numero === 0) return 'cero';
+    if (numero === 1) return 'un';
+    if (numero === 2) return 'dos';
+    if (numero === 3) return 'tres';
+    if (numero === 4) return 'cuatro';
+    if (numero === 5) return 'cinco';
+    if (numero === 6) return 'seis';
+    if (numero === 7) return 'siete';
+    if (numero === 8) return 'ocho';
+    if (numero === 9) return 'nueve';
+    if (numero === 10) return 'diez';
+    if (numero === 11) return 'once';
+    if (numero === 12) return 'doce';
+    if (numero === 13) return 'trece';
+    if (numero === 14) return 'catorce';
+    if (numero === 15) return 'quince';
+    if (numero === 16) return 'dieciséis';
+    if (numero === 17) return 'diecisiete';
+    if (numero === 18) return 'dieciocho';
+    if (numero === 19) return 'diecinueve';
+    if (numero === 20) return 'veinte';
+
+    if (numero < 30) {
+      const unidades = numero % 10;
+      return `veinti${this.numeroATexto(unidades)}`;
+    }
+
+    if (numero < 100) {
+      const decenas = Math.floor(numero / 10);
+      const unidades = numero % 10;
+      const nombresDecenas: Record<number, string> = {
+        2: 'veinte', 3: 'treinta', 4: 'cuarenta', 5: 'cincuenta',
+        6: 'sesenta', 7: 'setenta', 8: 'ochenta', 9: 'noventa'
+      };
+      if (unidades === 0) return nombresDecenas[decenas];
+      return `${nombresDecenas[decenas]} y ${this.numeroATexto(unidades)}`;
+    }
+
+    return numero.toString();
   }
 
    async generarConstanciaPersonalPdf(data: ConstanciaPersonal) {

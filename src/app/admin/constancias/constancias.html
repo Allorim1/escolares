@@ -83,17 +83,21 @@
         <div class="form-row">
           <div class="form-group">
             <label>Días de Crédito *</label>
-            <input type="text" [(ngModel)]="comercial().diasCredito" placeholder="Ej: 30 días" />
+            <input type="text" [(ngModel)]="comercial().diasCredito" placeholder="Ej: 30" />
           </div>
           <div class="form-group">
             <label>Promedio / Cifras *</label>
-            <input type="text" [(ngModel)]="comercial().cifras" placeholder="Ej: 5000" />
+            <input type="text" [(ngModel)]="comercial().cifras" placeholder="Ej: 6" />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Tipo de Cifras *</label>
-            <input type="text" [(ngModel)]="comercial().tipoCifras" placeholder="Ej: USD mensuales" />
+            <select [(ngModel)]="comercial().tipoCifras">
+              <option value="Bajas">Bajas</option>
+              <option value="Medias">Medias</option>
+              <option value="Altas">Altas</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Fecha de Emisión *</label>

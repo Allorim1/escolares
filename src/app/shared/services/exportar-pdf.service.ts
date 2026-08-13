@@ -77,6 +77,28 @@ private cargarImagenLocal(url: string): Promise<string> {
     });
   }
 
+private rotarImagen90(imageBase64: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject('No se pudo obtener el contexto del canvas');
+          return;
+        }
+        canvas.width = img.height;
+        canvas.height = img.width;
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(90 * Math.PI / 180);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => reject('Error cargando imagen para rotar');
+      img.src = imageBase64;
+    });
+  }
+
 async generarCotizacionPdf(data: Cotizacion) {
     let logoBase64 = '';
     try {
@@ -546,24 +568,42 @@ tablaComercial: {
 
    async generarConstanciaComercialPdf(data: ConstanciaComercial) {
     let logoBase64 = '';
+    let logoMarcaAgua = '';
     try {
-      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+      const logoOriginal = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+      logoBase64 = logoOriginal;
+      try {
+        logoMarcaAgua = await this.rotarImagen90(logoOriginal);
+      } catch (e) {
+        console.warn('No se pudo generar la marca de agua:', e);
+      }
     } catch (e) {
       console.warn('No se pudo cargar el logo:', e);
     }
 
     const desdeFechaTexto = this.calcularTiempoTranscurrido(data.desdeFecha);
-    const diasCreditoTexto = data.diasCredito || '';
+    const diasCreditoTexto = this.convertirNumeroATexto(data.diasCredito) + (data.diasCredito && !isNaN(parseInt(data.diasCredito, 10)) ? ' días' : '');
+    const cifrasTexto = this.convertirNumeroATexto(data.cifras) + (data.cifras && !isNaN(parseInt(data.cifras, 10)) ? ' cifras' : '');
     const fechaLarga = this.formatearFechaComercial(data.fecha);
 
+    const background: any = logoMarcaAgua ? {
+      image: logoMarcaAgua,
+      width: 600,
+      height: 400,
+      opacity: 0.08,
+      alignment: 'center',
+      verticalPosition: 'center'
+    } : undefined;
+
     const docDefinition: any = {
+      background,
       content: [
         {
           columns: [
             {
               width: '28%',
               stack: [
-                ...(logoBase64 ? [{ image: logoBase64, width: 180, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+                ...(logoBase64 ? [{ image: logoBase64, width: 140, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
               ]
             },
             {
@@ -584,7 +624,7 @@ tablaComercial: {
         { text: 'Señores,', style: 'saludo', margin: [0, 0, 0, 8] },
         { text: data.destino, style: 'destino', margin: [0, 0, 0, 20] },
         {
-          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C. I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${data.cifras} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
+          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C. I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
           style: 'textoNormal',
           alignment: 'justify',
           margin: [0, 0, 0, 40]
@@ -618,6 +658,13 @@ tablaComercial: {
     };
 
     return docDefinition;
+  }
+
+   convertirNumeroATexto(valor: string): string {
+    if (!valor) return '';
+    const numero = parseInt(valor, 10);
+    if (isNaN(numero)) return valor;
+    return this.numeroATexto(numero);
   }
 
    calcularTiempoTranscurrido(fechaInicio: string): string {

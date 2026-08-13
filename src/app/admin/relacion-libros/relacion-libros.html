@@ -1,0 +1,895 @@
+<div class="abonos-container">
+  @if (imagenModalAbierta()) {
+    <div class="imagen-modal-overlay" (click)="cerrarImagenModal()">
+      <div class="imagen-modal-content" (click)="$event.stopPropagation()">
+        <button type="button" class="imagen-modal-close" (click)="cerrarImagenModal()">&times;</button>
+        <img [src]="imagenModalUrl()" alt="Imagen ampliada" class="imagen-modal-img" />
+        <div class="imagen-modal-actions">
+          <button type="button" class="btn-imprimir-imagen" (click)="imprimirImagen(imagenModalUrl())">
+            🖨️ Imprimir
+          </button>
+          <button type="button" class="btn-descargar-imagen" (click)="descargarImagen(imagenModalUrl())">
+            ⬇️ Descargar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+  <div class="abonos-header">
+    <h1>Relación de Cuentas</h1>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación de Cuentas</button>
+      @if (esRoot()) {
+        <button class="btn-secondary" (click)="abrirModalColumnas()">📋 Columnas</button>
+      }
+      <button class="btn-secondary" (click)="abrirModalRecordatorio()">📱 Recordatorio</button>
+      <button class="btn-secondary" (click)="abrirModalTestWhatsapp()">🧪 Test WhatsApp</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="pestanaActiva() === 'relaciones'" (click)="pestanaActiva.set('relaciones')">Relaciones</button>
+    @if (esRoot()) {
+      <button class="tab" [class.active]="pestanaActiva() === 'supervisores'" (click)="pestanaActiva.set('supervisores')">Supervisores</button>
+    }
+    @if (esRoot()) {
+      <button class="tab" [class.active]="pestanaActiva() === 'comisiones'" (click)="pestanaActiva.set('comisiones'); loadComisionesTab()">Comisiones</button>
+    }
+  </div>
+
+  @if (pestanaActiva() === 'relaciones') {
+    <div class="filtros-pdf">
+      <label class="checkbox-inline">
+        <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
+        Mostrar Empresa en PDF
+      </label>
+      <label class="checkbox-inline">
+        <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
+        Mostrar Planta en PDF
+      </label>
+    </div>
+
+    <div class="filtros">
+    <div class="filtro-group">
+      <label>Nombre:</label>
+      <input type="text" [ngModel]="filtros().nombre" (ngModelChange)="onNombreFilterChange($event)" placeholder="Buscar por nombre">
+    </div>
+    <div class="filtro-group">
+      <label>Empresa:</label>
+      <select [ngModel]="filtros().empresa" (ngModelChange)="onEmpresaFilterChange($event)">
+        <option value="">Todas</option>
+        @for (empresa of empresas(); track empresa._id) {
+          <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Planta:</label>
+      <select [ngModel]="filtros().planta" (ngModelChange)="onPlantaFilterChange($event)" [disabled]="!filtros().empresa">
+        <option value="">Todas</option>
+        @for (planta of plantasFiltradas(); track planta) {
+          <option [value]="planta">{{ planta }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Desde:</label>
+      <input type="date" [ngModel]="filtros().fechaDesde" (ngModelChange)="onFechaDesdeChange($event)">
+    </div>
+    <div class="filtro-group">
+      <label>Hasta:</label>
+      <input type="date" [ngModel]="filtros().fechaHasta" (ngModelChange)="onFechaHastaChange($event)">
+    </div>
+    <div class="filtro-group">
+      <label>Status:</label>
+      <select [ngModel]="filtros().status" (ngModelChange)="onStatusFilterChange($event)">
+        <option value="">Todos</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="Pagado">Pagado</option>
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Supervisor:</label>
+      <select [ngModel]="filtros().supervisor" (ngModelChange)="onSupervisorFilterChange($event)">
+        <option value="">Todos</option>
+        @for (supervisor of supervisoresUnicos(); track supervisor) {
+          <option [value]="supervisor">{{ supervisor }}</option>
+        }
+      </select>
+    </div>
+    <div class="filtro-group">
+      <label>Reporte:</label>
+      <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
+      <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
+    </div>
+    @if (esRoot()) {
+      <div class="filtro-group">
+        <label>Comisión Planta (%):</label>
+        <input type="number" [value]="comisionNoAsignadaManual() ?? ''" (input)="onComisionNoAsignadaChange($event.target.value)" min="0" max="100" step="0.01" placeholder="Ingrese %" enterFocusNext>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <div class="relaciones-table-wrapper">
+      <table class="abonos-table">
+      <thead>
+        <tr>
+          @for (col of columnasVisibles(); track col.key) {
+            <th>{{ col.label }}</th>
+          }
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (abono of abonosPaginados(); track abono._id) {
+          <tr (click)="abrirModalAbonos(abono)" style="cursor: pointer;">
+            @for (col of columnasVisibles(); track col.key) {
+              <td [class.iva-toggle]="col.key === 'iva'" [class.iva-pagado]="abono.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!abono.ivaPagado && col.key === 'iva'" (click)="onCeldaIvaClick(abono, $event)">{{ getValorAbono(abono, col.key) }}</td>
+            }
+            <td class="actions">
+              <button class="btn-edit" (click)="$event.stopPropagation(); abrirModal(abono)">Editar</button>
+              <button class="btn-delete" (click)="$event.stopPropagation(); eliminarAbono(abono._id || '')">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="columnasVisibles().length + 1" class="empty">No hay registros</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    </div>
+    @if (puedeVerTotales()) {
+      <div class="totales-separados">
+        <div class="totales-card">
+          <h3>Totales Registrados</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Monto Facts. Bs</span>
+              <span class="total-value">{{ formatMonto(totales().montoFactura) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Iva Bs</span>
+              <span class="total-value">{{ formatMonto(totales().iva) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Monto Total Sin Iva</span>
+              <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Monto Facts. $</span>
+              <span class="total-value">{{ formatMonto(totales().divisa) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Iva $</span>
+              <span class="total-value">{{ formatMonto(totales().ivaDivisa) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Pago Parcial</span>
+              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="totales-card">
+          <h3>Totales Actuales</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Total actual $</span>
+              <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Diferencia $</span>
+              <span class="total-value">{{ formatMonto(totales().decrecimientoMonto) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Diferencia %</span>
+              <span class="total-value">{{ totales().decrecimientoPorcentaje.toFixed(2) }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+    @if (puedeVerTotales()) {
+      <div class="totales-separados">
+        <div class="totales-card">
+          <h3>Comisiones</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Comisión Planta</span>
+              <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Comisión Planta $</span>
+              <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().comisionNoAsignada / tasaActual() : 0) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="totales-card">
+          <h3>Tasas</h3>
+          <div class="totales-grid">
+            <div class="total-item">
+              <span class="total-label">Tasa Actual</span>
+              <span class="total-value">{{ formatMonto(tasaActual()) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Tasa Euro</span>
+              <span class="total-value">{{ formatMonto(tasaEuro()) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+    @if (abonosFiltrados().length > 10) {
+      <div class="pagination">
+        <button class="btn-page" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">Anterior</button>
+        @for (pagina of numerosPaginas(); track pagina) {
+          <button class="btn-page" [class.active]="paginaActual() === pagina" (click)="cambiarPagina(pagina)">{{ pagina }}</button>
+        }
+        <button class="btn-page" [disabled]="paginaActual() === totalPaginas()" (click)="cambiarPagina(paginaActual() + 1)">Siguiente</button>
+      </div>
+    }
+  }
+}
+
+  @if (pestanaActiva() === 'supervisores' && esRoot()) {
+    <div class="supervisores-section">
+      <div class="supervisores-header">
+        <h2>Supervisores</h2>
+        <button class="btn-primary" (click)="abrirModalSupervisores()">+ Nuevo Supervisor</button>
+      </div>
+      @if (supervisores().length === 0) {
+        <p class="sin-abonos">No hay supervisores registrados</p>
+      } @else {
+        <table class="abonos-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>Cédula</th>
+              <th>Teléfono</th>
+              <th>Planta</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (supervisor of supervisores(); track supervisor._id) {
+              <tr>
+                <td>{{ supervisor.nombre }}</td>
+                <td>{{ supervisor.apellido || '-' }}</td>
+                <td>{{ supervisor.cedula || '-' }}</td>
+                <td>{{ supervisor.telefono || '-' }}</td>
+                <td>{{ supervisor.planta || '-' }}</td>
+                <td class="actions">
+                  <button class="btn-edit" (click)="editarSupervisor(supervisor)">Editar</button>
+                  <button class="btn-delete" (click)="eliminarSupervisor(supervisor._id)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+  
+
+  @if (showModalSupervisores()) {
+    <div class="modal-overlay" (click)="cerrarModalSupervisores()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>@if (editingSupervisor()?._id) { Editar } @else { Nuevo } Supervisor</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalSupervisores()">✕</button>
+        </div>
+        <div class="supervisores-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre *</label>
+              <input type="text" [ngModel]="editingSupervisor()?.nombre" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, nombre: $any($event) } : null)" name="supervisorNombre" required enterFocusNext>
+            </div>
+            <div class="form-group">
+              <label>Apellido</label>
+              <input type="text" [ngModel]="editingSupervisor()?.apellido" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, apellido: $any($event) } : null)" name="supervisorApellido" enterFocusNext>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cédula</label>
+              <input type="text" [ngModel]="editingSupervisor()?.cedula" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, cedula: $any($event) } : null)" name="supervisorCedula" enterFocusNext>
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="text" [ngModel]="editingSupervisor()?.telefono" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, telefono: $any($event) } : null)" name="supervisorTelefono" enterFocusNext>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Planta</label>
+              <input type="text" [ngModel]="editingSupervisor()?.planta" (ngModelChange)="editingSupervisor.set(editingSupervisor() ? { ...editingSupervisor()!, planta: $any($event) } : null)" name="supervisorPlanta" enterFocusNext>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="cerrarModalSupervisores()">Cancelar</button>
+            <button type="button" class="btn-save" (click)="guardarSupervisor()">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showModal()) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editingAbono?._id ? 'Editar' : 'Nueva' }} Relación de Cuentas</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      </div>
+      <form (ngSubmit)="guardarAbono()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha *</label>
+            <input type="date" [(ngModel)]="editingAbono!.fecha" name="fecha" required enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="editingAbono!.nombre" name="nombre" required enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa *</label>
+            <select [(ngModel)]="editingAbono!.empresa" name="empresa" (ngModelChange)="onFormEmpresaChange()" required enterFocusNext>
+              <option value="">Seleccionar</option>
+              @for (empresa of empresas(); track empresa._id) {
+                <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Planta *</label>
+            <select [(ngModel)]="editingAbono!.planta" name="planta" [disabled]="!editingAbono?.empresa" required enterFocusNext>
+              <option value="">Seleccionar</option>
+              @for (planta of plantasFiltradas(); track planta) {
+                <option [value]="planta">{{ planta }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cédula</label>
+            <input type="text" [(ngModel)]="editingAbono!.cedula" name="cedula" enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="editingAbono!.telefono" name="telefono" enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>N. Fact *</label>
+            <input type="text" [(ngModel)]="editingAbono!.nFact" name="nFact" required enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Monto Factura</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.montoFactura)" (input)="actualizarMonto($event, 'montoFactura')" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IVA</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.iva ?? 0)" (input)="actualizarMonto($event, 'iva')" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>IVA Pagado</label>
+            <span class="switch" [class.active]="editingAbono!.ivaPagado" (click)="toggleIvaPagadoModal()">
+              <span class="switch-thumb"></span>
+            </span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Abonos pagados</label>
+            @if (editingAbono!.abonosPagos && editingAbono!.abonosPagos.length > 0) {
+              <div class="abonos-lista">
+                @for (abonoPago of editingAbono!.abonosPagos; track $index) {
+                  <div class="abono-pago-item">
+                    <span class="abono-pago-fecha">{{ abonoPago.fecha | date:'dd/MM/yyyy' }}</span>
+                    <span class="abono-pago-monto">{{ formatMonto(abonoPago.monto) }}</span>
+                    <button type="button" class="btn-remove" (click)="eliminarAbonoPago($index)">✕</button>
+                  </div>
+                }
+              </div>
+            }
+            <div class="abono-pago-form">
+              <input type="date" [(ngModel)]="nuevoAbonoPago().fecha" name="nuevoAbonoFecha" enterFocusNext>
+              <input type="text" [value]="formatearMontoInput(nuevoAbonoPago().monto)" (input)="actualizarNuevoAbono($event)" (focus)="onMontoFocus($event)" placeholder="Monto" enterFocusNext>
+              <button type="button" class="btn-add-abono" (click)="agregarAbonoPago()">Agregar abono</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Diferencia</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.diferencia)" (input)="actualizarMonto($event, 'diferencia')" (focus)="onMontoFocus($event)" readonly enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tasa</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.tasa)" (input)="actualizarMonto($event, 'tasa')" (focus)="onMontoFocus($event)" enterFocusNext>
+          </div>
+          <div class="form-group">
+            <label>Divisa</label>
+            <input type="text" [value]="formatearMontoInput(editingAbono!.divisa)" (input)="actualizarMonto($event, 'divisa')" (focus)="onMontoFocus($event)" readonly enterFocusNext>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="editingAbono!.status" name="status" required enterFocusNext>
+              <option value="">Seleccionar</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Pagado">Pagado</option>
+            </select>
+          </div>
+          @if (esRoot()) {
+            <div class="form-group">
+              <label>Supervisor</label>
+              <select [(ngModel)]="editingAbono!.supervisorId" (ngModelChange)="onSupervisorChange($event)" name="supervisorId" enterFocusNext>
+                <option value="">Sin supervisor</option>
+                @for (supervisor of supervisores(); track supervisor._id) {
+                  <option [value]="supervisor._id">{{ supervisor.nombre }} {{ supervisor.apellido }} - {{ supervisor.planta }}</option>
+                }
+              </select>
+              @if (editingAbono!.supervisor) {
+                <div class="form-group" style="margin-top: 8px;">
+                  <label>Comisión (%)</label>
+                  <input type="number" [(ngModel)]="editingAbono!.comisionPorcentaje" name="comisionPorcentaje" min="0" max="100" step="0.01" enterFocusNext>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Imágenes</label>
+            <div class="image-upload-section">
+              <div class="drop-zone" [class.drag-over]="false" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropImagen($event)" (paste)="onPasteImagen($event)">
+                @if (imagenesPreview().length > 0) {
+                <div class="imagenes-preview-container">
+                  @for (url of imagenesPreview(); track $index) {
+                    <div class="imagen-card" (click)="abrirImagen(url)" title="Clic para ampliar">
+                      <img [src]="getImageUrl(url)" alt="Preview" class="card-img" />
+                    </div>
+                  }
+                </div>
+              } @else {
+                  <div class="drop-placeholder">
+                    <p>🖼️ Arrastra y suelta, selecciona o pega (Ctrl+V) una imagen</p>
+                  </div>
+              }
+              </div>
+              <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" class="file-input" />
+              <button type="button" class="upload-btn" (click)="fileInputRef.click()">
+                📁 Seleccionar imagen
+              </button>
+              @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
+                <div class="additional-images-section">
+                  <label>Imágenes guardadas:</label>
+                  <div class="additional-images-grid">
+                    @for (img of editingAbono!.imagenes; track $index) {
+                      <div class="imagen-card" (click)="abrirImagen(img)" title="Ver imagen">
+                        <img [src]="getImageUrl(img)" alt="Imagen" class="card-img" />
+                        <button type="button" class="remove-img-btn" (click)="eliminarImagen($index); $event.stopPropagation()">&times;</button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()" enterFocusNext>
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+  @if (pestanaActiva() === 'comisiones') {
+    <div class="comisiones-tab">
+      <div class="filtros">
+        <div class="filtro-group">
+          <label>Empresa:</label>
+          <select [ngModel]="comisionesTabFiltros().empresa" (ngModelChange)="limpiarPlantasAlCambiarEmpresa(); actualizarFiltroComision('empresa', $event); onComisionesTabFiltroChange()">
+            <option value="">Todas</option>
+            @for (empresa of empresas(); track empresa._id) {
+              <option [value]="empresa.nombre">{{ empresa.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>Supervisor:</label>
+          <select [ngModel]="comisionesTabFiltros().supervisor" (ngModelChange)="actualizarFiltroComision('supervisor', $event); onComisionesTabFiltroChange()">
+            <option value="">Todos</option>
+            @for (supervisor of supervisores(); track supervisor._id) {
+              <option [value]="supervisor.nombre">{{ supervisor.nombre }} {{ supervisor.apellido }}</option>
+            }
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>Planta:</label>
+          <select [ngModel]="comisionesTabFiltros().planta" (ngModelChange)="actualizarFiltroComision('planta', $event); onComisionesTabFiltroChange()" [disabled]="!comisionesTabFiltros().empresa">
+            <option value="">Todas</option>
+            @for (planta of plantasFiltradasComisiones(); track planta) {
+              <option [value]="planta">{{ planta }}</option>
+            }
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>Desde:</label>
+          <input type="date" [ngModel]="comisionesTabFiltros().fechaDesde" (ngModelChange)="actualizarFiltroComision('fechaDesde', $event); onComisionesTabFiltroChange()">
+        </div>
+        <div class="filtro-group">
+          <label>Hasta:</label>
+          <input type="date" [ngModel]="comisionesTabFiltros().fechaHasta" (ngModelChange)="actualizarFiltroComision('fechaHasta', $event); onComisionesTabFiltroChange()">
+        </div>
+        <div class="filtro-group">
+          <button class="btn-secondary" (click)="loadComisionesTab()">Buscar</button>
+          @if (comisionesTabSupervisorSeleccionado() || comisionesTabNombreSeleccionado() || comisionesTabAbonoSeleccionado()) {
+            <button class="btn-secondary" (click)="volverAComisiones()">← Volver</button>
+          }
+        </div>
+      </div>
+
+      @if (comisionesTabLoading()) {
+        <div class="loading">Cargando...</div>
+      } @else {
+        @if (!comisionesTabSupervisorSeleccionado() && !comisionesTabNombreSeleccionado()) {
+          <div class="comisiones-supervisores-list">
+            <h3>Supervisores</h3>
+            @if (comisionesTabData().length === 0) {
+              <p class="sin-abonos">No hay comisiones registradas</p>
+            } @else {
+              <table class="abonos-table">
+                <thead>
+                  <tr>
+                    <th>Supervisor</th>
+                    <th>Planta</th>
+                    <th>Cantidad</th>
+                    <th>Monto Factura Bs</th>
+                    <th>IVA</th>
+                    <th>Monto Factura Sin Iva</th>
+                    <th>Comisión</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of comisionesTabData(); track item.supervisorId) {
+                    <tr (click)="seleccionarSupervisorComisiones(item)" style="cursor: pointer;">
+                      <td>{{ item.supervisor }} {{ getSupervisorApellido(item.supervisorId) }}</td>
+                      <td>{{ item.planta || '-' }}</td>
+                      <td>{{ item.cantidad }}</td>
+                      <td>{{ formatMonto(item.montoFactura) }}</td>
+                      <td>{{ formatMonto(item.iva) }}</td>
+                      <td>{{ formatMonto(item.montoFacturaSinIva) }}</td>
+                      <td class="monto">{{ formatMonto(item.comision) }} Bs</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        }
+        @if (comisionesTabSupervisorSeleccionado() && !comisionesTabNombreSeleccionado()) {
+          <div class="comisiones-supervisores-list">
+            <h3>Nombres de {{ comisionesTabSupervisorSeleccionado().supervisor }}</h3>
+            <button class="btn-secondary" (click)="volverAListaSupervisores()">← Volver a Supervisores</button>
+            @if (comisionesTabNombresAgrupados().length === 0) {
+              <p class="sin-abonos">No hay nombres registrados</p>
+            } @else {
+              <table class="abonos-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Planta</th>
+                    <th>Cantidad</th>
+                    <th>Monto Factura Bs</th>
+                    <th>IVA</th>
+                    <th>Monto Factura Sin Iva</th>
+                    <th>Comisión</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (nombre of comisionesTabNombresAgrupados(); track nombre.nombre) {
+                    <tr (click)="seleccionarNombreComisiones(nombre.nombre)" style="cursor: pointer;">
+                      <td>{{ nombre.nombre }}</td>
+                      <td>{{ nombre.planta || '-' }}</td>
+                      <td>{{ nombre.cantidad }}</td>
+                      <td>{{ formatMonto(nombre.montoFactura) }}</td>
+                      <td>{{ formatMonto(nombre.iva) }}</td>
+                      <td>{{ formatMonto(nombre.montoFacturaSinIva) }}</td>
+                      <td class="monto">{{ formatMonto(nombre.comision) }} Bs</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        }
+        @if (comisionesTabNombreSeleccionado()) {
+          <div class="comisiones-supervisores-list">
+            <h3>Relaciones de {{ comisionesTabNombreSeleccionado() }}</h3>
+            <button class="btn-secondary" (click)="volverAListaNombres()">← Volver a Nombres</button>
+            @if (getAbonosPorNombreSeleccionado().length === 0) {
+              <p class="sin-abonos">No hay relaciones registradas</p>
+            } @else {
+              <table class="abonos-table">
+                <thead>
+                  <tr>
+                    <th>N. Fact</th>
+                    <th>Fecha</th>
+                    <th>Monto Factura</th>
+                    <th>IVA</th>
+                    <th>Monto Factura Sin Iva</th>
+                    <th>Comisión</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (abono of getAbonosPorNombreSeleccionado(); track abono._id) {
+                    <tr (click)="abrirModalAbonos(abono)" style="cursor: pointer;">
+                      <td>{{ abono.nFact }}</td>
+                      <td>{{ formatFecha(abono.fecha) }}</td>
+                      <td>{{ formatMonto(abono.montoFactura ?? 0) }}</td>
+                      <td>{{ formatMonto(abono.iva ?? 0) }}</td>
+                      <td>{{ formatMonto((abono.montoFactura ?? 0) - (abono.iva ?? 0)) }}</td>
+                      <td class="monto">{{ formatMonto((abono.montoFactura ?? 0) * ((abono.comisionPorcentaje || comisionesTabSupervisorSeleccionado().comisionPorcentaje || comisionesComisiones().comisionNoAsignadaPorcentaje) / 100)) }} Bs</td>
+                      <td>{{ abono.status }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        }
+      }
+    </div>
+  @if (puedeVerTotales()) {
+    <div class="totales-separados">
+      <div class="totales-card comisiones-card">
+        <h3>Comisiones Supervisores</h3>
+        <div class="totales-grid">
+          <div class="total-item">
+            <span class="total-label">Total Comisiones Bs.</span>
+            <span class="total-value">{{ formatMonto(comisionesComisiones().total) }}</span>
+          </div>
+          <div class="total-item">
+            <span class="total-label">Total Comisiones $</span>
+            <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisionesComisiones().total / tasaActual() : 0) }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="totales-card">
+        <h3>Tasas</h3>
+        <div class="totales-grid">
+          <div class="total-item">
+            <span class="total-label">Tasa Actual</span>
+            <span class="total-value">{{ formatMonto(tasaActual()) }}</span>
+          </div>
+          <div class="total-item">
+            <span class="total-label">Tasa Euro</span>
+            <span class="total-value">{{ formatMonto(tasaEuro()) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  }
+
+  @if (showModalColumnas()) {
+    <div class="modal-overlay">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2>Seleccionar Columnas Visibles</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalColumnas()">?</button>
+        </div>
+        <div class="columnas-grid">
+          @for (col of columnasDisponibles; track col.key) {
+            <label class="checkbox-label">
+              <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionada(col.key)" (change)="toggleColumna(col.key)">
+              {{ col.label }}
+            </label>
+          }
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalColumnas()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="cerrarModalColumnas()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showModalColumnasPdf()) {
+    <div class="modal-overlay">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2>Seleccionar Columnas para PDF</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalColumnasPdf()">?</button>
+        </div>
+        <div class="columnas-grid">
+          @for (col of columnasDisponibles; track col.key) {
+            <label class="checkbox-label">
+              <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
+              {{ col.label }}
+            </label>
+          }
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalColumnasPdf()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="generarReportePdf(); cerrarModalColumnasPdf()">Generar PDF</button>
+        </div>
+      </div>
+    </div>
+  }
+
+
+
+@if (showModalValuacion() && abonoValuacion) {
+  <div class="modal-overlay">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+          <h2>Valuación de Relación de Cuentas</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarValuacion()">✕</button>
+      </div>
+      <div class="valuacion-body">
+        <div class="valuacion-info">
+          <p><strong>Nombre:</strong> {{ abonoValuacion.nombre }}</p>
+          <p><strong>Fecha:</strong> {{ formatFecha(abonoValuacion.fecha) }}</p>
+          <p><strong>Monto Diferencia:</strong> {{ formatTotal(abonoValuacion.diferencia ?? 0, 'Bs.') }}</p>
+          <p><strong>Tasa registrada:</strong> {{ abonoValuacion.tasa?.toFixed(2) ?? '0.00' }}</p>
+          <p><strong>Divisa registrada:</strong> {{ formatMonto(abonoValuacion.divisa ?? 0) }}</p>
+        </div>
+        <div class="valuacion-section">
+          <h3>Valuación con Tasa de Hoy</h3>
+          <div class="diferencial">
+            <p><strong>Diferencia Bs. / Tasa:</strong> {{ formatMonto((abonoValuacion.diferencia ?? 0) / tasaActual()) }}</p>
+            <p><strong>Divisa Registrada:</strong> {{ formatMonto(abonoValuacion.divisa ?? 0) }}</p>
+            <p><strong>Diferencia:</strong> {{ formatMonto(getValuacionConTasaApi().valor) }}</p>
+            <p><strong>Porcentaje:</strong> {{ getValuacionConTasaApi().porcentaje.toFixed(2) }}%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showModalRecordatorio()) {
+  <div class="modal-overlay">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Enviar Recordatorio Masivo</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalRecordatorio()">✕</button>
+      </div>
+      <div class="valuacion-body">
+        <p class="modal-subtitle">Se enviará un recordatorio a los siguientes números:</p>
+        <div class="recordatorio-list">
+          @for (item of recordatorioDestinatarios(); track item.telefono) {
+            <div class="recordatorio-item">
+              <span class="recordatorio-nombre">{{ item.nombre }}</span>
+              <span class="recordatorio-telefono">{{ formatTelefono(item.telefono) }}</span>
+            </div>
+          }
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalRecordatorio()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="enviarRecordatorios()">Confirmar Envío</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showModalTestWhatsapp()) {
+  <div class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2>Test WhatsApp</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalTestWhatsapp()">✕</button>
+      </div>
+      <form (ngSubmit)="enviarTestWhatsapp()">
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" [(ngModel)]="testWhatsappTelefono" name="telefono" placeholder="Ej: 04241234567" required enterFocusNext>
+        </div>
+        <div class="form-group">
+          <label>Mensaje</label>
+          <textarea [(ngModel)]="testWhatsappMensaje" name="mensaje" rows="3" placeholder="Mensaje de prueba"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalTestWhatsapp()">Cancelar</button>
+          <button type="submit" class="btn-save">Enviar Test</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showModalAbonos() && abonoAbonos) {
+  <div class="modal-overlay" (click)="cerrarModalAbonos()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Abonos de {{ abonoAbonos.nombre }}</h2>
+        <h2>Planta: {{ abonoAbonos.planta || '-' }}</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalAbonos()">✕</button>
+      </div>
+      <div class="abonos-detalle">
+        <div class="abono-info">
+          <div class="info-item">
+            <span class="info-label">Monto Factura:</span>
+            <span class="info-value">{{ formatMonto(abonoAbonos.montoFactura ?? 0) }} Bs</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Total Abonos:</span>
+            <span class="info-value">{{ formatMonto(abonoAbonos.abonos ?? 0) }} Bs</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">IVA:</span>
+            <span class="info-value" [class.iva-pagado]="abonoAbonos.ivaPagado" [class.iva-pendiente]="!abonoAbonos.ivaPagado">{{ formatMonto(abonoAbonos.iva ?? 0) }} Bs</span>
+          </div>
+          @if (abonoAbonos.supervisor) {
+            <div class="info-item">
+              <span class="info-label">Comisión:</span>
+              <span class="info-value">{{ abonoAbonos.comisionPorcentaje ?? 0 }}%</span>
+            </div>
+          }
+          <div class="info-item">
+            <span class="info-label">Diferencia Bs:</span>
+            <span class="info-value">{{ formatMonto(abonoAbonos.diferencia ?? 0) }} Bs</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Diferencia $:</span>
+            <span class="info-value">{{ abonoAbonos.divisa?.toFixed(2) ?? '0.00' }} $</span>
+          </div>
+        </div>
+        <div class="abonos-pagos-lista">
+          <h3>Abonos pagados</h3>
+          @if (abonoAbonos.abonosPagos && abonoAbonos.abonosPagos.length > 0) {
+            <div class="abonos-pagos-items">
+              @for (pago of abonoAbonos.abonosPagos; track $index) {
+                <div class="abono-pago-item">
+                  <span class="abono-pago-fecha">{{ pago.fecha | date:'dd/MM/yyyy' }}</span>
+                  <span class="abono-pago-monto">{{ formatMonto(pago.monto) }} Bs</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="sin-abonos">No hay abonos registrados</p>
+          }
+        </div>
+        @if (abonoAbonos.imagenes && abonoAbonos.imagenes.length > 0) {
+          <div class="abonos-pagos-lista">
+            <h3>Imágenes</h3>
+            <div class="imagenes-preview">
+              @for (img of abonoAbonos.imagenes; track $index) {
+                <div class="imagen-card" (click)="abrirImagen(img)" title="Ver imagen">
+                  <img [src]="getImageUrl(img)" alt="Imagen del abono" class="card-img" />
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModalAbonos()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

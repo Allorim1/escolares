@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Cotizacion } from '../interfaces/cotizacion.interface';
 import { HttpClient } from '@angular/common/http';
+import { CurrencyService } from '../data-access/currency.service';
 
 // Declaración para window.pdfMake (cargado desde CDN en index.html)
 declare const pdfMake: any;
@@ -10,6 +11,7 @@ declare const pdfMake: any;
 })
 export class ExportarPdfService {
   private http = inject(HttpClient);
+  private currencyService = inject(CurrencyService);
 
 
    formatFecha(fechaRaw: string | Date): string {
@@ -73,6 +75,7 @@ async generarCotizacionPdf(data: Cotizacion) {
                 { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
                 { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
                 { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'R.I.F.: J-30488367-6',  style: 'datosEmpresa'  },
                 { text: 'www.escolaresonline.com', style: 'webSite' }
               ],
               width: '48%',
@@ -104,9 +107,9 @@ async generarCotizacionPdf(data: Cotizacion) {
                 // Al ser una celda de la misma fila, se estira automáticamente a la altura de la derecha.
                 {
                   stack: [
-                    { text: 'CLIENTE:', style: 'labelCliente', bold: true },
-                    { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
-                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente' }
+                    { text: 'CLIENTE:', style: 'labelCliente', bold: true, margin: [2, 0, 0, 0] },
+                    { text: data.cliente.nombre, style: 'valorCliente', margin: [2, 2, 0, 4] },
+                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente', margin: [2, 0, 0, 0] }
                   ],
                   // Usamos un margen interno inferior alto (margin: [left, top, right, bottom])
                   // para "empujar" los bordes de la celda y dejar el espacio para el RIF abajo
@@ -156,7 +159,7 @@ async generarCotizacionPdf(data: Cotizacion) {
                 {
                   // Esta celda se dibuja justo debajo del cuadro del cliente compartiendo paredes
                   columns: [
-                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto' },
+                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto', margin: [2, 0, 0, 0] },
                     { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : '', style: 'campoCliente', alignment: 'right', width: '*' }
                   ],
                   margin: [0, -12, 0, 0], // Sube el texto ligeramente para que quede adentro del cuadro visual del cliente
@@ -268,7 +271,7 @@ async generarCotizacionPdf(data: Cotizacion) {
         {
           margin: [0, 60, 0, 0], // Reducido de 40 a 20 para ahorrar mucho espacio vertical
           columns: [
-            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]},
+            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${this.currencyService.currentTasa() > 0 ? (data.totales.totalBs / this.currencyService.currentTasa()).toFixed(2) : '0.00'}`, fontSize: 7.5}]},
             { width: '25%', text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },
             { width: '25%', text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', bold: true }
           ]

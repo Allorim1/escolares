@@ -1730,6 +1730,22 @@ if (!url) return '';
       this.formatMonto(n.comision || 0) + ' Bs',
     ]);
 
+    if (this.incluirTotalesMontos()) {
+      const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
+      const totalMontoFactura = nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0);
+      const totalIva = nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0);
+      const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
+      body.push([
+        '',
+        'Totales',
+        this.incluirTotalesListas() ? String(nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0)) : '',
+        this.formatMonto(totalMontoFactura),
+        this.formatMonto(totalIva),
+        this.formatMonto(totalMontoSinIva),
+        this.formatMonto(totalComision) + ' Bs',
+      ]);
+    }
+
     const marginBottom = 18;
     const marginSide = 35;
 
@@ -1754,33 +1770,12 @@ if (!url) return '';
       },
     });
 
-    const totalesY = (doc as any).lastAutoTable.finalY + 8;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 51, 111);
-
-    let totalesOffsetY = 0;
-    if (this.incluirTotalesMontos()) {
-      const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
-      const totalMontoFactura = nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0);
-      const totalIva = nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0);
-      const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
-      doc.text(`Total Comisión: ${this.formatMonto(totalComision)} Bs`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
-      totalesOffsetY += 6;
-      doc.text(`Total Monto Factura: ${this.formatMonto(totalMontoFactura)} Bs`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
-      totalesOffsetY += 6;
-      doc.text(`Total IVA: ${this.formatMonto(totalIva)} Bs`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
-      totalesOffsetY += 6;
-      doc.text(`Total Monto Sin Iva: ${this.formatMonto(totalMontoSinIva)} Bs`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
-      totalesOffsetY += 6;
-    }
     if (this.incluirTotalesClientes()) {
-      doc.text(`Total Clientes: ${nombres.length}`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
-      totalesOffsetY += 6;
-    }
-    if (this.incluirTotalesListas()) {
-      const totalListas = nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0);
-      doc.text(`Total Listas: ${totalListas}`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
+      const finalY = (doc as any).lastAutoTable.finalY + 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 51, 111);
+      doc.text(`Total Clientes: ${nombres.length}`, pageWidth / 2, finalY, { align: 'center' });
     }
 
     const fileName = `nombres_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;

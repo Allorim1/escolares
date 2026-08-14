@@ -580,6 +580,8 @@
           @if (comisionesTabSupervisorSeleccionado() || comisionesTabNombreSeleccionado() || comisionesTabAbonoSeleccionado()) {
             <button class="btn-secondary" (click)="volverAComisiones()">← Volver</button>
           }
+        </div>
+        <div class="filtro-group">
           @if (comisionesTabSupervisorSeleccionado() && !comisionesTabNombreSeleccionado()) {
             <button class="btn-secondary" (click)="abrirModalTotalesPdfNombres()">🖨️ PDF</button>
             <button class="btn-secondary" (click)="abrirModalTotalesPdfNombres()">📊 Excel</button>

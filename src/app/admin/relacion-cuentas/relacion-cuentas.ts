@@ -1730,19 +1730,20 @@ if (!url) return '';
       this.formatMonto(n.comision || 0) + ' Bs',
     ]);
 
-    if (this.incluirTotalesMontos()) {
+    if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
       const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
       const totalMontoFactura = nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0);
       const totalIva = nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0);
       const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
+      const totalListas = nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0);
       body.push([
-        '',
+        this.incluirTotalesClientes() ? String(nombres.length) : '',
         'Totales',
-        this.incluirTotalesListas() ? String(nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0)) : '',
-        this.formatMonto(totalMontoFactura),
-        this.formatMonto(totalIva),
-        this.formatMonto(totalMontoSinIva),
-        this.formatMonto(totalComision) + ' Bs',
+        this.incluirTotalesListas() ? String(totalListas) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalMontoFactura) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalIva) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalMontoSinIva) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalComision) + ' Bs' : '',
       ]);
     }
 
@@ -1770,13 +1771,6 @@ if (!url) return '';
       },
     });
 
-    if (this.incluirTotalesClientes()) {
-      const finalY = (doc as any).lastAutoTable.finalY + 8;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 51, 111);
-      doc.text(`Total Clientes: ${nombres.length}`, pageWidth / 2, finalY, { align: 'center' });
-    }
 
     const fileName = `nombres_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;
 

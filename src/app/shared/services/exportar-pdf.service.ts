@@ -588,8 +588,8 @@ tablaComercial: {
 
     const background: any = logoMarcaAgua ? {
       image: logoMarcaAgua,
-      width: 600,
-      height: 400,
+      width: 300,
+      height: 200,
       opacity: 0.08,
       alignment: 'center',
       verticalPosition: 'center'
@@ -618,12 +618,13 @@ tablaComercial: {
           margin: [0, 0, 0, 40]
         },
         { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
-        { text: 'Atentamente,', style: 'textoNormal', alignment: 'center' },
         {
           columns: [
+            { width: '*', text: '' },
             {
-              width: '40%',
+              width: '50%',
               stack: [
+                { text: 'Atentamente,', style: 'textoNormal', alignment: 'center' },
                 { text: '_________________________', alignment: 'center' },
                 { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre' },
                 { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }

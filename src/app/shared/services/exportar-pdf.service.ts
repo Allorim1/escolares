@@ -610,13 +610,13 @@ tablaComercial: {
         { text: 'Señores,', style: 'saludo', margin: [0, 0, 0, 8] },
         { text: data.destino, style: 'destino', margin: [0, 0, 0, 20] },
         {
-          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C.I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
+          text: `\tESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C.I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
           style: 'textoNormal',
           alignment: 'justify',
-          margin: [10, 0, 0, 40]
+          margin: [0, 0, 0, 40]
         },
         background,
-        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [10, 0, 0, 60] },
+        { text: `\tReferencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
         {
           columns: [
             { width: '*', text: '' },

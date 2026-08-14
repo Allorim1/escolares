@@ -1762,7 +1762,7 @@ if (!url) return '';
     });
 
     if (this.incluirTotalesMontos()) {
-      const finalY = doc.lastAutoTable.finalY + 8;
+      const finalY = (doc as any).lastAutoTable.finalY + 8;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 51, 111);
@@ -1771,7 +1771,7 @@ if (!url) return '';
       doc.text(`Total IVA: ${this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0))} Bs`, pageWidth / 2, finalY + 12, { align: 'center' });
       doc.text(`Total Monto Sin Iva: ${this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0))} Bs`, pageWidth / 2, finalY + 18, { align: 'center' });
     } else if (this.incluirTotalesClientes() || this.incluirTotalesListas()) {
-      const finalY = doc.lastAutoTable.finalY + 8;
+      const finalY = (doc as any).lastAutoTable.finalY + 8;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 51, 111);

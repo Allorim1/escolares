@@ -606,18 +606,6 @@ tablaComercial: {
                 ...(logoBase64 ? [{ image: logoBase64, width: 140, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
               ]
             },
-            {
-              text: [
-                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
-                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
-                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
-                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
-                { text: 'www.escolaresonline.com', style: 'webSite' }
-              ],
-              width: '48%',
-              alignment: 'center',
-              margin: [0, -10, 0, 0]
-            }
           ]
         },
         { text: '', margin: [0, 25] },
@@ -640,10 +628,27 @@ tablaComercial: {
                 { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre' },
                 { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }
               ]
-            }
+            },
+            { width: '*', text: '' }
           ]
         }
       ],
+
+      footer: (currentPage: number, pageCount: number) => {
+        return{   
+              text: [
+                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51', style: 'datosEmpresa' },
+                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
+                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
+                { text: 'www.escolaresonline.com', style: 'webSite' }
+              ],
+              alignment: 'center',
+              margin: [40, 0, 40, 20]
+            
+        }
+
+      },
       styles: {
         datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
         webSite: { fontSize: 9, bold: true, color: '#D32F2F' },

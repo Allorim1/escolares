@@ -580,6 +580,10 @@
           @if (comisionesTabSupervisorSeleccionado() || comisionesTabNombreSeleccionado() || comisionesTabAbonoSeleccionado()) {
             <button class="btn-secondary" (click)="volverAComisiones()">← Volver</button>
           }
+          @if (comisionesTabNombreSeleccionado()) {
+            <button class="btn-secondary" (click)="abrirModalTotalesPdfNombres()">🖨️ PDF</button>
+            <button class="btn-secondary" (click)="generarExcelNombresComisiones()">📊 Excel</button>
+          }
         </div>
       </div>
 
@@ -625,7 +629,6 @@
           <div class="comisiones-supervisores-list">
             <h3>Nombres de {{ comisionesTabSupervisorSeleccionado().supervisor }}</h3>
             <button class="btn-secondary" (click)="volverAListaSupervisores()">← Volver a Supervisores</button>
-            <button class="btn-secondary" (click)="generarPdfNombresComisiones()">🖨️ Imprimir Lista</button>
             @if (comisionesTabNombresAgrupados().length === 0) {
               <p class="sin-abonos">No hay nombres registrados</p>
             } @else {
@@ -653,6 +656,14 @@
                       <td class="monto">{{ formatMonto(nombre.comision) }} Bs</td>
                     </tr>
                   }
+                  <tr style="font-weight: bold; background-color: #f0f0f0;">
+                    <td colspan="2">Totales</td>
+                    <td>{{ comisionesTabNombresAgrupados().reduce((sum, n) => sum + (n.cantidad || 0), 0) }}</td>
+                    <td>{{ formatMonto(comisionesTabNombresAgrupados().reduce((sum, n) => sum + (n.montoFactura || 0), 0)) }}</td>
+                    <td>{{ formatMonto(comisionesTabNombresAgrupados().reduce((sum, n) => sum + (n.iva || 0), 0)) }}</td>
+                    <td>{{ formatMonto(comisionesTabNombresAgrupados().reduce((sum, n) => sum + (n.montoFacturaSinIva || 0), 0)) }}</td>
+                    <td class="monto">{{ formatMonto(comisionesTabNombresAgrupados().reduce((sum, n) => sum + (n.comision || 0), 0)) }} Bs</td>
+                  </tr>
                 </tbody>
               </table>
             }
@@ -774,6 +785,34 @@
     </div>
   }
 
+  @if (showModalTotalesPdfNombres()) {
+    <div class="modal-overlay">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2>Opciones de Totales para PDF</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalTotalesPdfNombres()">✕</button>
+        </div>
+        <div class="columnas-grid">
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="incluirTotalesMontos()" (change)="incluirTotalesMontos.set(!incluirTotalesMontos())">
+            Incluir totales de montos
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="incluirTotalesClientes()" (change)="incluirTotalesClientes.set(!incluirTotalesClientes())">
+            Incluir total de clientes
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="incluirTotalesListas()" (change)="incluirTotalesListas.set(!incluirTotalesListas())">
+            Incluir total de listas
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalTotalesPdfNombres()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="generarPdfNombresComisiones(); cerrarModalTotalesPdfNombres()">Generar PDF</button>
+        </div>
+      </div>
+    </div>
+  }
 
 
 @if (showModalValuacion() && abonoValuacion) {

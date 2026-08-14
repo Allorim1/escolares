@@ -413,6 +413,11 @@ export class RelacionCuentas implements OnInit {
   mostrarEmpresaPdf = signal(false);
   mostrarPlantaPdf = signal(false);
 
+  showModalTotalesPdfNombres = signal(false);
+  incluirTotalesMontos = signal(false);
+  incluirTotalesClientes = signal(false);
+  incluirTotalesListas = signal(false);
+
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
 
@@ -1675,7 +1680,6 @@ if (!url) return '';
 
     const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
 
     let logoBase64 = '';
     try {
@@ -1709,7 +1713,6 @@ if (!url) return '';
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, infoY, { align: 'center' });
-    doc.text(`Total registros: ${nombres.length}`, pageWidth / 2, infoY + 6, { align: 'center' });
 
     const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Comisión']];
     const body = nombres.map((n: any) => [
@@ -1722,10 +1725,17 @@ if (!url) return '';
       this.formatMonto(n.comision || 0) + ' Bs',
     ]);
 
-    const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
+    if (this.incluirTotalesClientes() || this.incluirTotalesListas()) {
     body.push([
-      '', '', '', '', '', 'TOTAL:', this.formatMonto(totalComision) + ' Bs'
+      '',
+      this.incluirTotalesClientes() || this.incluirTotalesListas() ? 'Totales' : '',
+      this.incluirTotalesListas() ? String(nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0)) : '',
+      '',
+      '',
+      '',
+      this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0)) + ' Bs' : '',
     ]);
+    }
 
     const marginBottom = 18;
     const marginSide = 35;
@@ -1751,9 +1761,118 @@ if (!url) return '';
       },
     });
 
+    if (this.incluirTotalesMontos()) {
+      const finalY = doc.lastAutoTable.finalY + 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 51, 111);
+      doc.text(`Total Comisión: ${this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0))} Bs`, pageWidth / 2, finalY, { align: 'center' });
+      doc.text(`Total Monto Factura: ${this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0))} Bs`, pageWidth / 2, finalY + 6, { align: 'center' });
+      doc.text(`Total IVA: ${this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0))} Bs`, pageWidth / 2, finalY + 12, { align: 'center' });
+      doc.text(`Total Monto Sin Iva: ${this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0))} Bs`, pageWidth / 2, finalY + 18, { align: 'center' });
+    } else if (this.incluirTotalesClientes() || this.incluirTotalesListas()) {
+      const finalY = doc.lastAutoTable.finalY + 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 51, 111);
+      if (this.incluirTotalesClientes()) {
+        doc.text(`Total Clientes: ${nombres.length}`, pageWidth / 2, finalY, { align: 'center' });
+      }
+      if (this.incluirTotalesListas()) {
+        doc.text(`Total Listas: ${nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0)}`, pageWidth / 2, finalY + 6, { align: 'center' });
+      }
+    }
+
     const fileName = `nombres_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;
 
     doc.save(fileName);
+  }
+
+  abrirModalTotalesPdfNombres() {
+    this.incluirTotalesMontos.set(false);
+    this.incluirTotalesClientes.set(false);
+    this.incluirTotalesListas.set(false);
+    this.showModalTotalesPdfNombres.set(true);
+  }
+
+  cerrarModalTotalesPdfNombres() {
+    this.showModalTotalesPdfNombres.set(false);
+  }
+
+  async generarExcelNombresComisiones() {
+    const nombres = this.comisionesTabNombresAgrupados();
+    const supervisor = this.comisionesTabSupervisorSeleccionado();
+
+    if (!nombres || nombres.length === 0) {
+      alert('No hay datos para generar el reporte');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const sheetName = supervisor?.supervisor ? `Nombres ${supervisor.supervisor}` : 'Nombres Comisiones';
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    worksheet.columns = [
+      { width: 30 },
+      { width: 25 },
+      { width: 15 },
+      { width: 22 },
+      { width: 18 },
+      { width: 28 },
+      { width: 22 },
+      { width: 18 },
+      { width: 18 },
+    ];
+
+    const headerRow = worksheet.addRow(['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Comisión', 'Total Clientes', 'Total Listas']);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
+      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    nombres.forEach((n: any) => {
+      const row = worksheet.addRow([
+        n.nombre || '',
+        n.planta || '-',
+        n.cantidad || 0,
+        this.formatMonto(n.montoFactura || 0),
+        this.formatMonto(n.iva || 0),
+        this.formatMonto(n.montoFacturaSinIva || 0),
+        this.formatMonto(n.comision || 0),
+        nombres.length,
+        nombres.reduce((sum: number, nombre: any) => sum + (nombre.cantidad || 0), 0),
+      ]);
+      row.eachCell((cell) => {
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    });
+
+    if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
+      const totalRow = worksheet.addRow([
+        '',
+        '',
+        '',
+        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0)) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0)) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0)) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0)) : '',
+        this.incluirTotalesClientes() ? nombres.length : '',
+        this.incluirTotalesListas() ? nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0) : '',
+      ]);
+      totalRow.eachCell((cell, colNumber) => {
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.font = { bold: true };
+      });
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const fileName = `nombres_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.xlsx`;
+
+    saveAs(new Blob([buffer]), fileName);
   }
 
   async generarReporteExcel() {

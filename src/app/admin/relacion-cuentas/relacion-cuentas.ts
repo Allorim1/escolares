@@ -1698,7 +1698,8 @@ if (!url) return '';
       doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
     }
 
-    const titulo = `NOMBRES DE ${(supervisor?.supervisor || '').toUpperCase()}`;
+    const apellido = supervisor?.supervisorId ? this.getSupervisorApellido(supervisor.supervisorId) : '';
+    const titulo = `${supervisor?.supervisor || ''} ${apellido}`.trim().toUpperCase();
 
     doc.setFontSize(16);
     doc.setTextColor(0, 51, 111);
@@ -1707,8 +1708,8 @@ if (!url) return '';
     const infoY = offsetY + 10;
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
-    doc.text(`Total registros: ${nombres.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, infoY, { align: 'center' });
+    doc.text(`Total registros: ${nombres.length}`, pageWidth / 2, infoY + 6, { align: 'center' });
 
     const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Comisión']];
     const body = nombres.map((n: any) => [
@@ -1727,6 +1728,7 @@ if (!url) return '';
     ]);
 
     const marginBottom = 18;
+    const marginSide = 35;
 
     autoTable(doc, {
       startY: infoY + 14,
@@ -1734,9 +1736,9 @@ if (!url) return '';
       body: body,
       theme: 'grid',
       headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
-      bodyStyles: { fontSize: 7, overflow: 'linebreak' },
-      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
-      margin: { left: 18, right: 18, bottom: marginBottom },
+      bodyStyles: { fontSize: 7, overflow: 'linebreak', halign: 'center' },
+      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak', halign: 'center' },
+      margin: { left: marginSide, right: marginSide, bottom: marginBottom },
       tableWidth: 'auto',
       columnStyles: {
         0: { cellWidth: 40 },

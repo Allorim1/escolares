@@ -1664,6 +1664,96 @@ if (!url) return '';
     doc.save(fileName);
   }
 
+  async generarPdfNombresComisiones() {
+    const nombres = this.comisionesTabNombresAgrupados();
+    const supervisor = this.comisionesTabSupervisorSeleccionado();
+
+    if (!nombres || nombres.length === 0) {
+      alert('No hay datos para generar el reporte');
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    const logoWidth = 70;
+    let logoHeight = 0;
+    if (logoBase64) {
+      const dims = await this.obtenerDimensionesImagen(logoBase64);
+      logoHeight = (logoWidth * dims.height) / dims.width;
+    }
+
+    const logoY = 15;
+    const offsetY = logoY + logoHeight + 8;
+
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
+    }
+
+    const titulo = `NOMBRES DE ${(supervisor?.supervisor || '').toUpperCase()}`;
+
+    doc.setFontSize(16);
+    doc.setTextColor(0, 51, 111);
+    doc.text(titulo, pageWidth / 2, offsetY, { align: 'center' });
+
+    const infoY = offsetY + 10;
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
+    doc.text(`Total registros: ${nombres.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
+
+    const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Comisión']];
+    const body = nombres.map((n: any) => [
+      n.nombre || '',
+      n.planta || '-',
+      String(n.cantidad || 0),
+      this.formatMonto(n.montoFactura || 0),
+      this.formatMonto(n.iva || 0),
+      this.formatMonto(n.montoFacturaSinIva || 0),
+      this.formatMonto(n.comision || 0) + ' Bs',
+    ]);
+
+    const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
+    body.push([
+      '', '', '', '', '', 'TOTAL:', this.formatMonto(totalComision) + ' Bs'
+    ]);
+
+    const marginBottom = 18;
+
+    autoTable(doc, {
+      startY: infoY + 14,
+      head: head,
+      body: body,
+      theme: 'grid',
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
+      bodyStyles: { fontSize: 7, overflow: 'linebreak' },
+      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
+      margin: { left: 18, right: 18, bottom: marginBottom },
+      tableWidth: 'auto',
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 28 },
+        4: { cellWidth: 22 },
+        5: { cellWidth: 32 },
+        6: { cellWidth: 28 },
+      },
+    });
+
+    const fileName = `nombres_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;
+
+    doc.save(fileName);
+  }
+
   async generarReporteExcel() {
     const datos = this.abonosFiltrados();
     if (datos.length === 0) {

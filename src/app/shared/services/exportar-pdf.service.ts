@@ -87,8 +87,8 @@ private rotarImagen90(imageBase64: string): Promise<string> {
           reject('No se pudo obtener el contexto del canvas');
           return;
         }
-        canvas.width = 300;
-        canvas.height = 200;
+        canvas.width = img.width;
+        canvas.height = img.height;
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(-60 * Math.PI / 180);
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
@@ -640,7 +640,7 @@ tablaComercial: {
       footer: (currentPage: number, pageCount: number) => {
         return{   
               text: [
-                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51', style: 'datosEmpresa' },
+                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\n', style: 'datosEmpresa' },
                 { text: 'Telf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
                 { text: 'www.escolaresonline.com - E-mail: gerencia@escolaresonline.com', style: 'webSite' }
               ],
@@ -652,7 +652,7 @@ tablaComercial: {
       },
       styles: {
         datosEmpresa: { fontSize: 8, bold: true, color: '#000000' },
-        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+        webSite: { fontSize: 9, bold: true, color: '#000000' },
         textoNormal: { fontSize: 11, lineHeight: 1.6 },
         saludo: { fontSize: 11, bold: true },
         destino: { fontSize: 11, bold: true, margin: [0, 0, 0, 20] },

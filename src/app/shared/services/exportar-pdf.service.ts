@@ -90,7 +90,7 @@ private rotarImagen90(imageBase64: string): Promise<string> {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(-60 * Math.PI / 180);
+        ctx.rotate(-10 * Math.PI / 180);
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
         resolve(canvas.toDataURL('image/png'));
       };
@@ -625,9 +625,7 @@ tablaComercial: {
               stack: [
                 { text: 'Atentamente,', style: 'textoNormal', alignment: 'center' },
                 { text: '_________________________', alignment: 'center' },
-                { text: ''},
-                { text: ''},
-                { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre' },
+                { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre', margin: [0, 20, 0, 0] },
                 { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }
               ]
             },

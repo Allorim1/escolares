@@ -87,10 +87,10 @@ private rotarImagen90(imageBase64: string): Promise<string> {
           reject('No se pudo obtener el contexto del canvas');
           return;
         }
-        canvas.width = img.height;
-        canvas.height = img.width;
+        canvas.width = 300;
+        canvas.height = 200;
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(-30 * Math.PI / 180);
+        ctx.rotate(-60 * Math.PI / 180);
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
         resolve(canvas.toDataURL('image/png'));
       };
@@ -596,7 +596,6 @@ tablaComercial: {
     } : undefined;
 
     const docDefinition: any = {
-      background,
       content: [
         {
           columns: [
@@ -615,9 +614,10 @@ tablaComercial: {
           text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C.I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
           style: 'textoNormal',
           alignment: 'justify',
-          margin: [0, 0, 0, 40]
+          margin: [10, 0, 0, 40]
         },
-        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
+        background,
+        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [10, 0, 0, 60] },
         {
           columns: [
             { width: '*', text: '' },
@@ -626,6 +626,8 @@ tablaComercial: {
               stack: [
                 { text: 'Atentamente,', style: 'textoNormal', alignment: 'center' },
                 { text: '_________________________', alignment: 'center' },
+                { text: ''},
+                { text: ''},
                 { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre' },
                 { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }
               ]
@@ -651,13 +653,13 @@ tablaComercial: {
 
       },
       styles: {
-        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+        datosEmpresa: { fontSize: 8, bold: true, color: '#000000' },
         webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
         textoNormal: { fontSize: 11, lineHeight: 1.6 },
         saludo: { fontSize: 11, bold: true },
         destino: { fontSize: 11, bold: true, margin: [0, 0, 0, 20] },
-        firmaNombre: { fontSize: 10, bold: true, margin: [0, 5, 0, 2] },
-        firmaCargo: { fontSize: 9, color: '#666' }
+        firmaNombre: { fontSize: 12, bold: true, margin: [0, 5, 0, 2] },
+        firmaCargo: { fontSize: 11, color: '#666' }
       },
       pageSize: 'A4',
       pageMargins: [40, 50, 40, 50]

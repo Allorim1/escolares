@@ -1701,7 +1701,7 @@ if (!url) return '';
     }
 
     const logoY = 15;
-    const offsetY = logoY + logoHeight + 8;
+    const nombresOffsetY = logoY + logoHeight + 8;
 
     if (logoBase64) {
       doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
@@ -1712,9 +1712,9 @@ if (!url) return '';
 
     doc.setFontSize(16);
     doc.setTextColor(0, 51, 111);
-    doc.text(titulo, pageWidth / 2, offsetY, { align: 'center' });
+    doc.text(titulo, pageWidth / 2, nombresOffsetY, { align: 'center' });
 
-    const infoY = offsetY + 10;
+    const infoY = nombresOffsetY + 10;
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, infoY, { align: 'center' });
@@ -1759,28 +1759,28 @@ if (!url) return '';
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 51, 111);
 
-    let offsetY = 0;
+    let totalesOffsetY = 0;
     if (this.incluirTotalesMontos()) {
       const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
       const totalMontoFactura = nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0);
       const totalIva = nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0);
       const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
-      doc.text(`Total Comisión: ${this.formatMonto(totalComision)} Bs`, pageWidth / 2, totalesY + offsetY, { align: 'center' });
-      offsetY += 6;
-      doc.text(`Total Monto Factura: ${this.formatMonto(totalMontoFactura)} Bs`, pageWidth / 2, totalesY + offsetY, { align: 'center' });
-      offsetY += 6;
-      doc.text(`Total IVA: ${this.formatMonto(totalIva)} Bs`, pageWidth / 2, totalesY + offsetY, { align: 'center' });
-      offsetY += 6;
-      doc.text(`Total Monto Sin Iva: ${this.formatMonto(totalMontoSinIva)} Bs`, pageWidth / 2, totalesY + offsetY, { align: 'center' });
-      offsetY += 6;
+      doc.text(`Total Comisión: ${this.formatMonto(totalComision)} Bs`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
+      totalesOffsetY += 6;
+      doc.text(`Total Monto Factura: ${this.formatMonto(totalMontoFactura)} Bs`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
+      totalesOffsetY += 6;
+      doc.text(`Total IVA: ${this.formatMonto(totalIva)} Bs`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
+      totalesOffsetY += 6;
+      doc.text(`Total Monto Sin Iva: ${this.formatMonto(totalMontoSinIva)} Bs`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
+      totalesOffsetY += 6;
     }
     if (this.incluirTotalesClientes()) {
-      doc.text(`Total Clientes: ${nombres.length}`, pageWidth / 2, totalesY + offsetY, { align: 'center' });
-      offsetY += 6;
+      doc.text(`Total Clientes: ${nombres.length}`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
+      totalesOffsetY += 6;
     }
     if (this.incluirTotalesListas()) {
       const totalListas = nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0);
-      doc.text(`Total Listas: ${totalListas}`, pageWidth / 2, totalesY + offsetY, { align: 'center' });
+      doc.text(`Total Listas: ${totalListas}`, pageWidth / 2, totalesY + totalesOffsetY, { align: 'center' });
     }
 
     const fileName = `nombres_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;
@@ -1849,10 +1849,10 @@ if (!url) return '';
         this.formatMonto(n.comision || 0),
       ];
       if (this.incluirTotalesClientes()) {
-        row.push(nombres.length);
+        row.push(String(nombres.length));
       }
       if (this.incluirTotalesListas()) {
-        row.push(totalListas);
+        row.push(String(totalListas));
       }
       worksheet.addRow(row).eachCell((cell) => {
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
@@ -1871,10 +1871,10 @@ if (!url) return '';
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0)) : '',
       ];
       if (this.incluirTotalesClientes()) {
-        totalRowData.push(nombres.length);
+        totalRowData.push(String(nombres.length));
       }
       if (this.incluirTotalesListas()) {
-        totalRowData.push(totalListas);
+        totalRowData.push(String(totalListas));
       }
       const totalRow = worksheet.addRow(totalRowData);
       totalRow.eachCell((cell) => {

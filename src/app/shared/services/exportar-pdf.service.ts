@@ -641,10 +641,8 @@ tablaComercial: {
         return{   
               text: [
                 { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51', style: 'datosEmpresa' },
-                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
-                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
-                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
-                { text: 'www.escolaresonline.com', style: 'webSite' }
+                { text: 'Telf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'www.escolaresonline.com - E-mail: gerencia@escolaresonline.com', style: 'webSite' }
               ],
               alignment: 'center',
               margin: [40, 0, 40, 20]

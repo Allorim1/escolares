@@ -90,7 +90,7 @@ private rotarImagen90(imageBase64: string): Promise<string> {
         canvas.width = img.height;
         canvas.height = img.width;
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(90 * Math.PI / 180);
+        ctx.rotate(-30 * Math.PI / 180);
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
         resolve(canvas.toDataURL('image/png'));
       };
@@ -629,7 +629,7 @@ tablaComercial: {
           alignment: 'justify',
           margin: [0, 0, 0, 40]
         },
-        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia a ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
+        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
         { text: 'Atentamente,', style: 'textoNormal', alignment: 'center' },
         {
           columns: [
@@ -773,7 +773,33 @@ tablaComercial: {
       return `${nombresDecenas[decenas]} y ${this.numeroATexto(unidades)}`;
     }
 
-    return numero.toString();
+    if (numero < 1000) {
+      if (numero === 0) return 'cero';
+      if (numero < 100) {
+        const decenas = Math.floor(numero / 10);
+        const unidades = numero % 10;
+        const nombresDecenas: Record<number, string> = {
+          2: 'veinte', 3: 'treinta', 4: 'cuarenta', 5: 'cincuenta',
+          6: 'sesenta', 7: 'setenta', 8: 'ochenta', 9: 'noventa'
+        };
+        if (unidades === 0) return nombresDecenas[decenas];
+        return `${nombresDecenas[decenas]} y ${this.numeroATexto(unidades)}`;
+      }
+
+      const centenas = Math.floor(numero / 100);
+      const resto = numero % 100;
+      if (resto === 0) {
+        const nombresCentenas: Record<number, string> = { 1: 'cien', 2: 'doscientos', 3: 'trescientos', 4: 'cuatrocientos', 5: 'quinientos', 6: 'seiscientos', 7: 'setecientos', 8: 'ochocientos', 9: 'novecientos' };
+        return nombresCentenas[centenas];
+      }
+      return `${this.numeroATexto(centenas * 100)} ${this.numeroATexto(resto)}`;
+    }
+
+    const miles = Math.floor(numero / 1000);
+    const resto = numero % 1000;
+    const milTexto = miles === 1 ? 'mil' : this.numeroATexto(miles) + ' mil';
+    if (resto === 0) return milTexto;
+    return `${milTexto} ${this.numeroATexto(resto)}`;
   }
 
    async generarConstanciaPersonalPdf(data: ConstanciaPersonal) {

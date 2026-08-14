@@ -582,7 +582,7 @@
           }
           @if (comisionesTabNombreSeleccionado()) {
             <button class="btn-secondary" (click)="abrirModalTotalesPdfNombres()">🖨️ PDF</button>
-            <button class="btn-secondary" (click)="generarExcelNombresComisiones()">📊 Excel</button>
+            <button class="btn-secondary" (click)="abrirModalTotalesPdfNombres()">📊 Excel</button>
           }
         </div>
       </div>
@@ -809,6 +809,7 @@
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModalTotalesPdfNombres()">Cancelar</button>
           <button type="button" class="btn-save" (click)="generarPdfNombresComisiones(); cerrarModalTotalesPdfNombres()">Generar PDF</button>
+          <button type="button" class="btn-save" (click)="generarExcelNombresComisiones(); cerrarModalTotalesPdfNombres()">Generar Excel</button>
         </div>
       </div>
     </div>

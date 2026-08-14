@@ -588,11 +588,10 @@ tablaComercial: {
 
     const background: any = logoMarcaAgua ? {
       image: logoMarcaAgua,
-      width: 300,
-      height: 200,
+      width: 520,
+      height: 360,
       opacity: 0.08,
-      alignment: 'center',
-      verticalPosition: 'center'
+      absolutePosition: { x: 37, y: 240 }
     } : undefined;
 
     const docDefinition: any = {

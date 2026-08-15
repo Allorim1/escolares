@@ -112,24 +112,38 @@
         <h2>Constancia Personal</h2>
         <div class="form-row">
           <div class="form-group">
-            <label>Nombre Completo *</label>
-            <input type="text" [(ngModel)]="personal().nombreCompleto" placeholder="Nombre completo" />
+            <label>De (quien firma) *</label>
+            <input type="text" [(ngModel)]="personal().de" placeholder="Nombre completo de quien firma" />
           </div>
           <div class="form-group">
-            <label>Cédula de Identidad *</label>
-            <input type="text" [(ngModel)]="personal().cedula" placeholder="V-12345678" />
+            <label>Cédula de Identidad (De) *</label>
+            <input type="text" [(ngModel)]="personal().cedulaDe" placeholder="V-12345678" />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Dirección</label>
+            <label>Dirección (De)</label>
             <input type="text" [(ngModel)]="personal().direccion" placeholder="Dirección de residencia" />
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <label>Motivo *</label>
-            <textarea [(ngModel)]="personal().motivo" rows="3" placeholder="Motivo de la constancia"></textarea>
+          <div class="form-group">
+            <label>A Quien *</label>
+            <input type="text" [(ngModel)]="personal().aQuien" placeholder="Nombre completo de la persona de la que se consta" />
+          </div>
+          <div class="form-group">
+            <label>Cédula de Identidad (A Quien) *</label>
+            <input type="text" [(ngModel)]="personal().cedulaAQuien" placeholder="V-12345678" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Desde Cuándo Lo Conoce *</label>
+            <input type="text" [(ngModel)]="personal().desde" placeholder="Ej: 5 años" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono de Contacto</label>
+            <input type="text" [(ngModel)]="personal().telefono" placeholder="Ej: 0414-1234567" />
           </div>
         </div>
         <div class="form-row">

@@ -242,10 +242,6 @@ const ivaDivisa = datos.reduce((sum, a) => {
   showModalRecordatorio = signal(false);
   recordatorioDestinatarios = signal<{ nombre: string; telefono: string }[]>([]);
 
-  showModalTestWhatsapp = signal(false);
-  testWhatsappTelefono = signal('');
-  testWhatsappMensaje = signal('Hola, te escribimos por tu relación de cuentas. Por favor, comunícate con nosotros.');
-
   comisiones = computed(() => {
     const abonos = this.abonosFiltrados();
     const porcentajeManual = this.comisionNoAsignadaManual();
@@ -857,66 +853,97 @@ const ivaDivisa = datos.reduce((sum, a) => {
     return this.columnasSeleccionadasPdf().has(key);
   }
 
-  abrirModalRecordatorio() {
-    const destinatarios = this.abonosFiltrados()
-      .filter((a) => a.telefono && a.nombre)
-      .map((a) => ({ nombre: a.nombre, telefono: a.telefono }));
-    this.recordatorioDestinatarios.set(destinatarios);
-    this.showModalRecordatorio.set(true);
-  }
-
-  cerrarModalRecordatorio() {
-    this.showModalRecordatorio.set(false);
-  }
-
-  enviarRecordatorios() {
-    const destinatarios = this.recordatorioDestinatarios();
-    if (destinatarios.length === 0) {
-      alert('No hay destinatarios para enviar recordatorios');
-      return;
+    abrirModalRecordatorio() {
+      const destinatarios = this.abonosFiltrados()
+        .filter((a) => a.telefono && a.nombre)
+        .map((a) => ({ nombre: a.nombre, telefono: a.telefono }));
+      this.recordatorioDestinatarios.set(destinatarios);
+      this.showModalRecordatorio.set(true);
     }
 
-    this.http.post('/api/recordatorios/recordatorio-masivo', { destinatarios }).subscribe({
-      next: () => {
-        alert('Recordatorios enviados correctamente');
-        this.cerrarModalRecordatorio();
-      },
-      error: (err) => {
-        console.error('Error enviando recordatorios:', err);
-        alert('Error al enviar recordatorios');
-      },
-    });
-  }
-
-   abrirModalTestWhatsapp() {
-     this.showModalTestWhatsapp.set(true);
-   }
-
-   cerrarModalTestWhatsapp() {
-     this.showModalTestWhatsapp.set(false);
-   }
-
-   enviarTestWhatsapp() {
-    const telefono = this.testWhatsappTelefono().trim();
-    const mensaje = this.testWhatsappMensaje().trim();
-    if (!telefono) {
-      alert('Ingrese un número de teléfono');
-      return;
+    cerrarModalRecordatorio() {
+      this.showModalRecordatorio.set(false);
     }
 
-    this.http.post('/api/recordatorios/test-whatsapp', { telefono, mensaje }).subscribe({
-      next: () => {
-        alert('Mensaje de prueba enviado correctamente');
-        this.cerrarModalTestWhatsapp();
-      },
-      error: (err) => {
-        console.error('Error enviando test WhatsApp:', err);
-        alert('Error al enviar mensaje de prueba');
-      },
-    });
-  }
+    enviarRecordatorios() {
+      const destinatarios = this.recordatorioDestinatarios();
+      if (destinatarios.length === 0) {
+        alert('No hay destinatarios para enviar recordatorios');
+        return;
+      }
 
-  esRoot(): boolean {
+      this.http.post('/api/recordatorios/recordatorio-masivo', { destinatarios }).subscribe({
+        next: () => {
+          alert('Recordatorios enviados correctamente');
+          this.cerrarModalRecordatorio();
+        },
+        error: (err) => {
+          console.error('Error enviando recordatorios:', err);
+          alert('Error al enviar recordatorios');
+        },
+      });
+    }
+
+    exportarSenderExcel() {
+      const datos = this.abonosFiltrados();
+      if (datos.length === 0) {
+        alert('No hay datos para exportar');
+        return;
+      }
+
+      const vistos = new Set<string>();
+      const filas: { nombre: string; telefono: string }[] = [];
+      for (const abono of datos) {
+        const clave = `${(abono.nombre || '').trim().toLowerCase()}|${(abono.telefono || '').trim()}`;
+        if (clave && !vistos.has(clave)) {
+          vistos.add(clave);
+          filas.push({ nombre: abono.nombre || '', telefono: abono.telefono || '' });
+        }
+      }
+
+      if (filas.length === 0) {
+        alert('No hay datos para exportar');
+        return;
+      }
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Sender');
+
+      worksheet.columns = [
+        { width: 40 },
+        { width: 20 },
+      ];
+
+      const headerRow = worksheet.addRow(['Nombre', 'Teléfono']);
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+
+      for (const fila of filas) {
+        const row = worksheet.addRow([fila.nombre, fila.telefono]);
+        row.eachCell((cell) => {
+          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+      }
+
+      workbook.xlsx.writeBuffer().then((buffer: ArrayBuffer) => {
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `sender_${this.getFechaLocal()}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      });
+    }
+
+    esRoot(): boolean {
     return this.authService.user()?.rol === 'root';
   }
 

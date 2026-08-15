@@ -24,7 +24,7 @@
         <button class="btn-secondary" (click)="abrirModalColumnas()">📋 Columnas</button>
       }
       <button class="btn-secondary" (click)="abrirModalRecordatorio()">📱 Recordatorio</button>
-      <button class="btn-secondary" (click)="abrirModalTestWhatsapp()">🧪 Test WhatsApp</button>
+      <button class="btn-secondary" (click)="exportarSenderExcel()">📤 Sender</button>
     </div>
   </div>
 
@@ -884,31 +884,6 @@
           <button type="button" class="btn-save" (click)="enviarRecordatorios()">Confirmar Envío</button>
         </div>
       </div>
-    </div>
-  </div>
-}
-
-@if (showModalTestWhatsapp()) {
-  <div class="modal-overlay">
-    <div class="modal modal-small">
-      <div class="modal-header">
-        <h2>Test WhatsApp</h2>
-        <button type="button" class="btn-cerrar" (click)="cerrarModalTestWhatsapp()">✕</button>
-      </div>
-      <form (ngSubmit)="enviarTestWhatsapp()">
-        <div class="form-group">
-          <label>Teléfono</label>
-          <input type="text" [(ngModel)]="testWhatsappTelefono" name="telefono" placeholder="Ej: 04241234567" required enterFocusNext>
-        </div>
-        <div class="form-group">
-          <label>Mensaje</label>
-          <textarea [(ngModel)]="testWhatsappMensaje" name="mensaje" rows="3" placeholder="Mensaje de prueba"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="cerrarModalTestWhatsapp()">Cancelar</button>
-          <button type="submit" class="btn-save">Enviar Test</button>
-        </div>
-      </form>
     </div>
   </div>
 }

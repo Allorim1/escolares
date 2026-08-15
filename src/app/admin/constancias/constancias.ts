@@ -28,10 +28,13 @@ interface ConstanciaComercial {
 }
 
 interface ConstanciaPersonal {
-  nombreCompleto: string;
-  cedula: string;
+  de: string;
+  cedulaDe: string;
   direccion: string;
-  motivo: string;
+  aQuien: string;
+  cedulaAQuien: string;
+  desde: string;
+  telefono: string;
   fechaEmision: string;
 }
 
@@ -81,10 +84,13 @@ export class Constancias implements OnInit {
   });
 
   personal = signal<ConstanciaPersonal>({
-    nombreCompleto: '',
-    cedula: '',
+    de: '',
+    cedulaDe: '',
     direccion: '',
-    motivo: '',
+    aQuien: '',
+    cedulaAQuien: '',
+    desde: '',
+    telefono: '',
     fechaEmision: new Date().toISOString().split('T')[0],
   });
 
@@ -174,14 +180,14 @@ export class Constancias implements OnInit {
       }
     } else if (tipo === 'personal') {
       const datos = this.personal();
-      if (!datos.nombreCompleto || !datos.cedula || !datos.motivo) {
+      if (!datos.de || !datos.cedulaDe || !datos.direccion || !datos.aQuien || !datos.cedulaAQuien || !datos.desde) {
         this.notificationService.error('Por favor complete todos los campos requeridos');
         return;
       }
       this.generandoPdf.set(true);
       try {
         const docDefinition = this.exportarPdfService.generarConstanciaPersonalPdf(datos);
-        this.exportarPdfService.descargarPdf(docDefinition, `constancia_personal_${datos.cedula}.pdf`);
+        this.exportarPdfService.descargarPdf(docDefinition, `constancia_personal_${datos.cedulaDe.replace(/\D/g, '')}.pdf`);
         this.notificationService.success('Constancia personal generada correctamente', 'Éxito');
       } catch (error) {
         console.error('Error generando PDF:', error);
@@ -236,10 +242,13 @@ export class Constancias implements OnInit {
       });
     } else if (this.tipoSeleccionado() === 'personal') {
       this.personal.set({
-        nombreCompleto: '',
-        cedula: '',
+        de: '',
+        cedulaDe: '',
         direccion: '',
-        motivo: '',
+        aQuien: '',
+        cedulaAQuien: '',
+        desde: '',
+        telefono: '',
         fechaEmision: new Date().toISOString().split('T')[0],
       });
     } else if (this.tipoSeleccionado() === 'recibo-pago') {

@@ -688,7 +688,7 @@ footer: (currentPage: number, pageCount: number) => {
         firmaNombre: { fontSize: 12, bold: true, margin: [0, 5, 0, 2] },
         firmaCargo: { fontSize: 11, color: '#666' }
       },
-      pageSize: 'A4',
+      pageSize: 'LETTER',
       pageMargins: [40, 50, 40, 50]
     };
 
@@ -928,8 +928,8 @@ footer: (currentPage: number, pageCount: number) => {
           labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] },
           tituloCentrado: { fontSize: 16, bold: true, color: '#1d63c1' }
         },
-        pageSize: 'A4',
-        pageMargins: [40, 40, 40, 40]
+        pageSize: 'LETTER',
+        pageMargins: [40, 50, 40, 50]
       };
 
       docDefinition.tableLayouts = {

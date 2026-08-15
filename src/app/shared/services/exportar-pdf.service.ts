@@ -78,26 +78,34 @@ private cargarImagenLocal(url: string): Promise<string> {
   }
 
 private rotarImagen90(imageBase64: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject('No se pudo obtener el contexto del canvas');
-          return;
-        }
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(-10 * Math.PI / 180);
-        ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        resolve(canvas.toDataURL('image/png'));
-      };
-      img.onerror = () => reject('Error cargando imagen para rotar');
-      img.src = imageBase64;
-    });
-  }
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject('No se pudo obtener el contexto del canvas');
+        return;
+      }
+
+      const angleRad = (-10 * Math.PI) / 180;
+      const sin = Math.abs(Math.sin(angleRad));
+      const cos = Math.abs(Math.cos(angleRad));
+
+      // Recalcula el lienzo para no recortar las esquinas al rotar
+      canvas.width = img.width * cos + img.height * sin;
+      canvas.height = img.width * sin + img.height * cos;
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(angleRad);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => reject('Error cargando imagen para rotar');
+    img.src = imageBase64;
+  });
+}
 
 async generarCotizacionPdf(data: Cotizacion) {
     let logoBase64 = '';
@@ -588,8 +596,7 @@ tablaComercial: {
 
     const background: any = logoMarcaAgua ? {
       image: logoMarcaAgua,
-      width: 520,
-      height: 360,
+      width: 500,
       opacity: 0.08,
       absolutePosition: { x: 37, y: 240 }
     } : undefined;
@@ -610,13 +617,13 @@ tablaComercial: {
         { text: 'Señores,', style: 'saludo', margin: [0, 0, 0, 8] },
         { text: data.destino, style: 'destino', margin: [0, 0, 0, 20] },
         {
-          text: `             ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C.I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
+          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C.I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
           style: 'textoNormal',
           alignment: 'justify',
           margin: [0, 0, 0, 40]
         },
         background,
-        { text: `             Referencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
+        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
         {
           columns: [
             { width: '*', text: '' },
@@ -624,7 +631,7 @@ tablaComercial: {
               width: '50%',
               stack: [
                 { text: 'Atentamente,', style: 'textoNormal', alignment: 'center' },
-                { text: '_________________________', alignment: 'center' },
+                { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
                 { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre', margin: [0, 20, 0, 0] },
                 { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }
               ]

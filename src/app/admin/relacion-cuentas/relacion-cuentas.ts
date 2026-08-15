@@ -1771,8 +1771,7 @@ if (!url) return '';
       },
     });
 
-
-    const fileName = `nombres_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;
+const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;
 
     doc.save(fileName);
   }

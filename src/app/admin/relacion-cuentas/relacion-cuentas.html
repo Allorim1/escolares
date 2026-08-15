@@ -629,7 +629,7 @@
         }
         @if (comisionesTabSupervisorSeleccionado() && !comisionesTabNombreSeleccionado()) {
           <div class="comisiones-supervisores-list">
-            <h3>Nombres de {{ comisionesTabSupervisorSeleccionado().supervisor }}</h3>
+            <h3>Clientes de {{ comisionesTabSupervisorSeleccionado().supervisor }}</h3>
             <button class="btn-secondary" (click)="volverAListaSupervisores()">← Volver a Supervisores</button>
             @if (comisionesTabNombresAgrupados().length === 0) {
               <p class="sin-abonos">No hay nombres registrados</p>

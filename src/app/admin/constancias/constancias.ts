@@ -187,7 +187,7 @@ export class Constancias implements OnInit {
       this.generandoPdf.set(true);
       try {
         const docDefinition = this.exportarPdfService.generarConstanciaPersonalPdf(datos);
-        this.exportarPdfService.descargarPdf(docDefinition, `constancia_personal_${datos.cedulaDe.replace(/\D/g, '')}.pdf`);
+        this.exportarPdfService.descargarPdfPersonalBlob(datos, `constancia_personal_${datos.cedulaDe.replace(/\D/g, '')}.pdf`);
         this.notificationService.success('Constancia personal generada correctamente', 'Éxito');
       } catch (error) {
         console.error('Error generando PDF:', error);

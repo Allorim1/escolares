@@ -837,108 +837,144 @@ footer: (currentPage: number, pageCount: number) => {
     return `${milTexto} ${this.numeroATexto(resto)}`;
   }
 
-   async generarConstanciaPersonalPdf(data: ConstanciaPersonal) {
-     let logoBase64 = '';
-     try {
-       logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-     } catch (e) {
-       console.warn('No se pudo cargar el logo:', e);
-     }
+    async generarConstanciaPersonalPdf(data: ConstanciaPersonal) {
+      let logoBase64 = '';
+      try {
+        logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+      } catch (e) {
+        console.warn('No se pudo cargar el logo:', e);
+      }
 
-     const de = data.de || '';
-     const cedulaDe = this.formatearCedula(data.cedulaDe);
-     const direccion = data.direccion || '';
-     const aQuien = data.aQuien || '';
-     const cedulaAQuien = this.formatearCedula(data.cedulaAQuien);
-     const desde = data.desde || '';
-     const telefono = data.telefono || '';
-     const fechaEmision = this.formatFecha(data.fechaEmision);
+      const de = data.de || '';
+      const cedulaDe = this.formatearCedula(data.cedulaDe);
+      const direccion = data.direccion || '';
+      const aQuien = data.aQuien || '';
+      const cedulaAQuien = this.formatearCedula(data.cedulaAQuien);
+      const desde = data.desde || '';
+      const telefono = data.telefono || '';
+      const fechaEmision = this.formatFecha(data.fechaEmision);
 
-     const cuerpo = `Yo, ${de}, mayor de edad, titular de la cédula de identidad No. ${cedulaDe}, residenciado en ${direccion}, por medio de la presente, hago constar que conozco de vista, trato y comunicación a ${aQuien}, titular de la cédula de identidad No. ${cedulaAQuien}, desde hace ${this.calcularTiempoTranscurrido(desde)} aproximadamente, de cual doy fé que es una persona de confianza, responsable y honesta.`;
+      const cuerpo = `Yo, ${de}, mayor de edad, titular de la cédula de identidad No. ${cedulaDe}, residenciado en ${direccion}, por medio de la presente, hago constar que conozco de vista, trato y comunicación a ${aQuien}, titular de la cédula de identidad No. ${cedulaAQuien}, desde hace ${this.calcularTiempoTranscurrido(desde)} aproximadamente, de cual doy fé que es una persona de confianza, responsable y honesta.`;
 
-     const docDefinition: any = {
-       content: [
-         {
-           text: 'CONSTANCIA',
-           style: 'tituloCentrado',
-           alignment: 'center',
-           margin: [0, 0, 0, 20]
-         },
-         {
-           text: cuerpo,
-           style: 'textoNormal',
-           alignment: 'justify',
-           margin: [0, 0, 0, 15]
-         },
-         {
-           text: `Constancia que se expide a petición de la parte interesada en la ciudad de Valencia a ${fechaEmision}.`,
-           style: 'textoNormal',
-           alignment: 'justify',
-           margin: [0, 0, 0, 40]
-         },
-         {
-           text: 'Atentamente',
-           style: 'textoNormal',
-           alignment: 'center',
-           margin: [0, 0, 0, 25]
-         },
-         {
-           columns: [
-             {
-               width: '50%',
-               stack: [
-                 { text: '_________________________', alignment: 'center' },
-                 { text: de, alignment: 'center', style: 'valorCampo', bold: true },
-                 { text: cedulaDe ? `C.I. ${cedulaDe}` : '', alignment: 'center', style: 'valorCampo' }
-               ]
-             },
-             {
-               width: '50%',
-               stack: [
-                 { text: '_________________________', alignment: 'center' },
-                 { text: de, alignment: 'center', style: 'labelFirma' }
-               ]
-             }
-           ]
-         },
-         {
-           text: telefono ? `Nota: Para cualquier otra información requerida pueden comunicarse por el teléfono: ${telefono}.` : '',
-           style: 'textoNormal',
-           alignment: 'center',
-           margin: [0, 30, 0, 0]
-         }
-       ],
-       styles: {
-         datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
-         webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
-         tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
-         subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
-         textoNormal: { fontSize: 11, lineHeight: 1.5 },
-         nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
-         labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
-         valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
-         labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] },
-         tituloCentrado: { fontSize: 16, bold: true, color: '#1d63c1' }
-       },
-       pageSize: 'A4',
-       pageMargins: [40, 40, 40, 40]
-     };
+      console.log('Constancia personal cuerpo:', cuerpo);
+      console.log('Constancia personal fechaEmision:', fechaEmision);
+      console.log('Constancia personal telefono:', telefono);
 
-     docDefinition.tableLayouts = {
-       tablaConstancia: {
-         hLineWidth: () => 0.5,
-         vLineWidth: () => 0.5,
-         hLineColor: () => '#ddd',
-         vLineColor: () => '#ddd',
-         paddingLeft: () => 8,
-         paddingRight: () => 8,
-         paddingTop: () => 6,
-         paddingBottom: () => 6
-       }
-     };
+      const docDefinition: any = {
+        content: [
+          {
+            text: 'CONSTANCIA',
+            style: 'tituloCentrado',
+            alignment: 'center',
+            margin: [0, 0, 0, 20]
+          },
+          {
+            text: cuerpo,
+            style: 'textoNormal',
+            alignment: 'justify',
+            margin: [0, 0, 0, 15]
+          },
+          {
+            text: `Constancia que se expide a petición de la parte interesada en la ciudad de Valencia a ${fechaEmision}.`,
+            style: 'textoNormal',
+            alignment: 'justify',
+            margin: [0, 0, 0, 40]
+          },
+          {
+            text: 'Atentamente',
+            style: 'textoNormal',
+            alignment: 'center',
+            margin: [0, 0, 0, 50]
+          },
+          {
+            columns: [
+              {
+                stack: [
+                  { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
+                  { text: de, alignment: 'center', style: 'valorCampo', bold: true },
+                  { text: cedulaDe ? `${cedulaDe}` : '', alignment: 'center', style: 'valorCampo' }
+                ]
+              }
+            ]
+          },
+          {
+            text: telefono ? `Nota: Para cualquier otra información requerida pueden comunicarse por el teléfono: ${telefono}.` : '',
+            style: 'textoNormal',
+            alignment: 'center',
+            margin: [0, 30, 0, 0]
+          }
+        ],
+        footer: (currentPage: number, pageCount: number) => {
+          return {
+            stack: [
+          {
+            text: telefono ? `Nota: Para cualquier otra información requerida pueden comunicarse por el teléfono: ${telefono}.` : '',
+            style: 'textoNormal',
+            alignment: 'center',
+          }
+    ],
+    margin: [0, 0, 0, 20]
+  }
+},
+        styles: {
+          datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+          webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+          tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+          subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+          textoNormal: { fontSize: 11, lineHeight: 1.5 },
+          nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+          labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+          valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+          labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] },
+          tituloCentrado: { fontSize: 16, bold: true, color: '#1d63c1' }
+        },
+        pageSize: 'A4',
+        pageMargins: [40, 40, 40, 40]
+      };
 
-     return docDefinition;
-   }
+      docDefinition.tableLayouts = {
+        tablaConstancia: {
+          hLineWidth: () => 0.5,
+          vLineWidth: () => 0.5,
+          hLineColor: () => '#ddd',
+          vLineColor: () => '#ddd',
+          paddingLeft: () => 8,
+          paddingRight: () => 8,
+          paddingTop: () => 6,
+          paddingBottom: () => 6
+        }
+      };
+
+      return docDefinition;
+    }
+
+    async descargarPdfPersonalBlob(data: ConstanciaPersonal, fileName: string) {
+      const docDefinition = await this.generarConstanciaPersonalPdf(data);
+      const pdfDoc = pdfMake.createPdf(docDefinition);
+      const blob = await new Promise<Blob | void>((resolve, reject) => {
+        pdfDoc.getBlob((blobResult: Blob) => {
+          if (blobResult && blobResult.size > 0) {
+            resolve(blobResult);
+          } else {
+            reject(new Error('PDF blob vacío'));
+          }
+        });
+      }).catch((err) => {
+        console.error('Error generando blob PDF:', err);
+        throw err;
+      });
+
+      if (!blob) return;
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }
 
    async generarReciboPagoPdf(data: ReciboPago) {
     let logoBase64 = '';

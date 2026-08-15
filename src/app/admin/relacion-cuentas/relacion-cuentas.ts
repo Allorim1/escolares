@@ -897,7 +897,11 @@ const ivaDivisa = datos.reduce((sum, a) => {
         const clave = `${(abono.nombre || '').trim().toLowerCase()}|${(abono.telefono || '').trim()}`;
         if (clave && !vistos.has(clave)) {
           vistos.add(clave);
-          filas.push({ nombre: abono.nombre || '', telefono: abono.telefono || '' });
+          let telefono = (abono.telefono || '').trim();
+          if (telefono.startsWith('04')) {
+            telefono = '58' + telefono.slice(2);
+          }
+          filas.push({ nombre: abono.nombre || '', telefono });
         }
       }
 

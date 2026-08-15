@@ -598,7 +598,7 @@ tablaComercial: {
       image: logoMarcaAgua,
       width: 400,
       opacity: 0.08,
-      absolutePosition: { x: 37, y: 240 }
+      absolutePosition: { x: 40, y: 240 }
     } : undefined;
 
     const docDefinition: any = {

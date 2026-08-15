@@ -604,7 +604,7 @@ tablaComercial: {
       image: logoMarcaAgua,
       width: 400,
       opacity: 0.08,
-      absolutePosition: { x: 50, y: 240 }
+      absolutePosition: { x: 97.64, y: 240 }
     } : undefined;
 
     const docDefinition: any = {
@@ -647,27 +647,35 @@ tablaComercial: {
         }
       ],
 
-      footer: (currentPage: number, pageCount: number) => {
-        return{
-          canvas: [{
+footer: (currentPage: number, pageCount: number) => {
+  return {
+    stack: [
+      {
+        canvas: [
+          {
             type: 'line',
-            x1: 0,
+            x1: 40,        // Comienza en el margen izquierdo
             y1: 0,
-            x2: 100,
+            x2: 555.28,    // Termina en el margen derecho (595.28 - 40)
             y2: 0,
-            lineWidth: 1
-          }],   
-              text: [
-                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\n', style: 'datosEmpresa', color: '#000066' },
-                { text: 'Telf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
-                { text: 'www.escolaresonline.com - E-mail: gerencia@escolaresonline.com', style: 'webSite' }
-              ],
-              alignment: 'center',
-              margin: [40, 0, 40, 20]
-            
-        }
-
+            lineWidth: 0.8,
+            lineColor: '#000000' // O el color que prefieras (ej. '#000000' o '#000066')
+          }
+        ],
+        margin: [0, 0, 0, 8] // Espaciado entre la línea y el texto del footer
       },
+      {
+        text: [
+          { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\n', style: 'datosEmpresa', color: '#000066' },
+          { text: 'Telf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+          { text: 'www.escolaresonline.com - E-mail: gerencia@escolaresonline.com', style: 'webSite' }
+        ],
+        alignment: 'center'
+      }
+    ],
+    margin: [0, 0, 0, 20]
+  };
+},
       styles: {
         datosEmpresa: { fontSize: 8, bold: true, color: '#000000' },
         webSite: { fontSize: 9, bold: true, color: '#000000' },

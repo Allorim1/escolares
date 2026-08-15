@@ -63,7 +63,13 @@ export class ExportarPdfService {
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
   }
 
-private cargarImagenLocal(url: string): Promise<string> {
+private formatearCedula(cedula: string): string {
+  if (!cedula) return '';
+  const digits = cedula.replace(/\D/g, '');
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+  private cargarImagenLocal(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
       fetch(url)
         .then(response => response.blob())
@@ -75,7 +81,7 @@ private cargarImagenLocal(url: string): Promise<string> {
         })
         .catch(() => reject('No se pudo cargar la imagen: ' + url));
     });
-  }
+}
 
 private rotarImagen90(imageBase64: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -598,7 +604,7 @@ tablaComercial: {
       image: logoMarcaAgua,
       width: 400,
       opacity: 0.08,
-      absolutePosition: { x: 40, y: 240 }
+      absolutePosition: { x: 50, y: 240 }
     } : undefined;
 
     const docDefinition: any = {
@@ -608,7 +614,7 @@ tablaComercial: {
             {
               width: '28%',
               stack: [
-                ...(logoBase64 ? [{ image: logoBase64, width: 140, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
               ]
             },
           ]
@@ -617,7 +623,7 @@ tablaComercial: {
         { text: 'Señores,', style: 'saludo', margin: [0, 0, 0, 8] },
         { text: data.destino, style: 'destino', margin: [0, 0, 0, 20] },
         {
-          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C.I. ${data.cedula}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
+          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C.I. ${this.formatearCedula(data.cedula)}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
           style: 'textoNormal',
           alignment: 'justify',
           margin: [0, 0, 0, 40]
@@ -642,9 +648,17 @@ tablaComercial: {
       ],
 
       footer: (currentPage: number, pageCount: number) => {
-        return{   
+        return{
+          canvas: [{
+            type: 'line',
+            x1: 0,
+            y1: 0,
+            x2: 100,
+            y2: 0,
+            lineWidth: 1
+          }],   
               text: [
-                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\n', style: 'datosEmpresa' },
+                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\n', style: 'datosEmpresa', color: '#000066' },
                 { text: 'Telf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
                 { text: 'www.escolaresonline.com - E-mail: gerencia@escolaresonline.com', style: 'webSite' }
               ],

@@ -596,7 +596,7 @@ tablaComercial: {
 
     const background: any = logoMarcaAgua ? {
       image: logoMarcaAgua,
-      width: 500,
+      width: 400,
       opacity: 0.08,
       absolutePosition: { x: 37, y: 240 }
     } : undefined;
@@ -630,7 +630,7 @@ tablaComercial: {
             {
               width: '50%',
               stack: [
-                { text: 'Atentamente,', style: 'textoNormal', alignment: 'center' },
+                { text: 'Atentamente,', style: 'textoNormal', alignment: 'center', margin: [0, 0, 0, 50] },
                 { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
                 { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre', margin: [0, 20, 0, 0] },
                 { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }

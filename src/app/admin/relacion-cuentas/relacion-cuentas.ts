@@ -205,7 +205,6 @@ const ivaDivisa = datos.reduce((sum, a) => {
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
 
-  showModalColumnas = signal(false);
   showModalColumnasPdf = signal(false);
 
   columnasVisibles = computed(() => {
@@ -238,9 +237,6 @@ const ivaDivisa = datos.reduce((sum, a) => {
   loadingTasas = signal(false);
   nuevaTasaFecha = signal(this.getFechaLocal());
   nuevaTasaValor = signal(0);
-
-  showModalRecordatorio = signal(false);
-  recordatorioDestinatarios = signal<{ nombre: string; telefono: string }[]>([]);
 
   comisiones = computed(() => {
     const abonos = this.abonosFiltrados();
@@ -799,36 +795,6 @@ const ivaDivisa = datos.reduce((sum, a) => {
     this.paginaActual.set(Math.max(1, Math.min(total, pagina)));
   }
 
-  abrirModalColumnas() {
-    this.showModalColumnas.set(true);
-  }
-
-  cerrarModalColumnas() {
-    if (this.esRoot()) {
-      this.http.put('/api/settings/relacion-cuentas-columnas', { columns: [...this.columnasSeleccionadas()] }).subscribe({
-        next: () => {},
-        error: () => {},
-      });
-    }
-    this.showModalColumnas.set(false);
-  }
-
-  toggleColumna(key: string) {
-    this.columnasSeleccionadas.update((actual) => {
-      const nuevo = new Set(actual);
-      if (nuevo.has(key)) {
-        nuevo.delete(key);
-      } else {
-        nuevo.add(key);
-      }
-      return nuevo;
-    });
-  }
-
-  isColumnaSeleccionada(key: string): boolean {
-    return this.columnasSeleccionadas().has(key);
-  }
-
   abrirModalColumnasPdf() {
     this.showModalColumnasPdf.set(true);
   }
@@ -853,38 +819,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
     return this.columnasSeleccionadasPdf().has(key);
   }
 
-    abrirModalRecordatorio() {
-      const destinatarios = this.abonosFiltrados()
-        .filter((a) => a.telefono && a.nombre)
-        .map((a) => ({ nombre: a.nombre, telefono: a.telefono }));
-      this.recordatorioDestinatarios.set(destinatarios);
-      this.showModalRecordatorio.set(true);
-    }
-
-    cerrarModalRecordatorio() {
-      this.showModalRecordatorio.set(false);
-    }
-
-    enviarRecordatorios() {
-      const destinatarios = this.recordatorioDestinatarios();
-      if (destinatarios.length === 0) {
-        alert('No hay destinatarios para enviar recordatorios');
-        return;
-      }
-
-      this.http.post('/api/recordatorios/recordatorio-masivo', { destinatarios }).subscribe({
-        next: () => {
-          alert('Recordatorios enviados correctamente');
-          this.cerrarModalRecordatorio();
-        },
-        error: (err) => {
-          console.error('Error enviando recordatorios:', err);
-          alert('Error al enviar recordatorios');
-        },
-      });
-    }
-
-    exportarSenderExcel() {
+  exportarSenderExcel() {
       const datos = this.abonosFiltrados();
       if (datos.length === 0) {
         alert('No hay datos para exportar');
@@ -899,7 +834,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
           vistos.add(clave);
           let telefono = (abono.telefono || '').trim();
           if (telefono.startsWith('04')) {
-            telefono = '+58' + telefono.slice(2);
+            telefono = '+58' + telefono.slice(1);
           }
           const nombreCompleto = (abono.nombre || '').trim();
           const partes = nombreCompleto.split(/\s+/).filter(Boolean);

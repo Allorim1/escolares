@@ -14,6 +14,8 @@ interface ConstanciaTrabajo {
   fechaIngreso: string;
   fechaEmision: string;
   sueldoMensual: string;
+  esEgresado: boolean;
+  fechaEgreso: string;
 }
 
 interface ConstanciaComercial {

@@ -892,16 +892,20 @@ const ivaDivisa = datos.reduce((sum, a) => {
       }
 
       const vistos = new Set<string>();
-      const filas: { nombre: string; telefono: string }[] = [];
+      const filas: { telefono: string; primerNombre: string; apellido: string }[] = [];
       for (const abono of datos) {
         const clave = `${(abono.nombre || '').trim().toLowerCase()}|${(abono.telefono || '').trim()}`;
         if (clave && !vistos.has(clave)) {
           vistos.add(clave);
           let telefono = (abono.telefono || '').trim();
           if (telefono.startsWith('04')) {
-            telefono = '58' + telefono.slice(2);
+            telefono = '+58' + telefono.slice(2);
           }
-          filas.push({ nombre: abono.nombre || '', telefono });
+          const nombreCompleto = (abono.nombre || '').trim();
+          const partes = nombreCompleto.split(/\s+/).filter(Boolean);
+          const primerNombre = partes[0] || '';
+          const apellido = partes.length >= 3 ? partes[partes.length - 1] : partes[1] || '';
+          filas.push({ telefono, primerNombre, apellido });
         }
       }
 
@@ -914,11 +918,12 @@ const ivaDivisa = datos.reduce((sum, a) => {
       const worksheet = workbook.addWorksheet('Sender');
 
       worksheet.columns = [
-        { width: 40 },
+        { width: 20 },
+        { width: 20 },
         { width: 20 },
       ];
 
-      const headerRow = worksheet.addRow(['Nombre', 'Teléfono']);
+      const headerRow = worksheet.addRow(['Teléfono', 'Nombre', 'Apellido']);
       headerRow.eachCell((cell) => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -927,7 +932,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
       });
 
       for (const fila of filas) {
-        const row = worksheet.addRow([fila.nombre, fila.telefono]);
+        const row = worksheet.addRow([fila.telefono, fila.primerNombre, fila.apellido]);
         row.eachCell((cell) => {
           cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };

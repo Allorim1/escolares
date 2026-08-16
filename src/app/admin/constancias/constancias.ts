@@ -70,6 +70,8 @@ export class Constancias implements OnInit {
     fechaIngreso: '',
     fechaEmision: new Date().toISOString().split('T')[0],
     sueldoMensual: '',
+    esEgresado: false,
+    fechaEgreso: '',
   });
 
   comercial = signal<ConstanciaComercial>({
@@ -131,8 +133,12 @@ export class Constancias implements OnInit {
 
     if (tipo === 'trabajo') {
       const datos = this.trabajo();
-      if (!datos.nombreCompleto || !datos.cedula || !datos.cargo || !datos.departamento) {
+      if (!datos.nombreCompleto || !datos.cedula || !datos.cargo || !datos.departamento || !datos.fechaIngreso) {
         this.notificationService.error('Por favor complete todos los campos requeridos');
+        return;
+      }
+      if (datos.esEgresado && !datos.fechaEgreso) {
+        this.notificationService.error('Por favor indique la fecha de egreso');
         return;
       }
       this.generandoPdf.set(true);
@@ -143,8 +149,10 @@ export class Constancias implements OnInit {
           fechaIngreso: datos.fechaIngreso,
           fechaEmision: datos.fechaEmision,
           sueldoMensual: datos.sueldoMensual,
+          esEgresado: datos.esEgresado,
+          fechaEgreso: datos.fechaEgreso,
         });
-        this.exportarPdfService.descargarPdf(docDefinition, `constancia_trabajo_${datos.cedula}.pdf`);
+        this.exportarPdfService.descargarPdf(docDefinition, `constancia_trabajo_${datos.cedula.replace(/\D/g, '')}.pdf`);
         this.notificationService.success('Constancia de trabajo generada correctamente', 'Éxito');
       } catch (error) {
         console.error('Error generando PDF:', error);
@@ -228,6 +236,8 @@ export class Constancias implements OnInit {
         fechaIngreso: '',
         fechaEmision: new Date().toISOString().split('T')[0],
         sueldoMensual: '',
+        esEgresado: false,
+        fechaEgreso: '',
       });
     } else if (this.tipoSeleccionado() === 'comercial') {
       this.comercial.set({

@@ -54,6 +54,20 @@
             <input type="text" [(ngModel)]="trabajo().sueldoMensual" placeholder="0.00" />
           </div>
         </div>
+        <div class="form-row">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;color:#333;font-size:14px;">
+            <input type="checkbox" [(ngModel)]="trabajo().esEgresado" />
+            Es egresado
+          </label>
+        </div>
+        @if (trabajo().esEgresado) {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha de Egreso *</label>
+              <input type="date" [(ngModel)]="trabajo().fechaEgreso" />
+            </div>
+          </div>
+        }
       </div>
     }
 

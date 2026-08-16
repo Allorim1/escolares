@@ -14,6 +14,8 @@ export interface ConstanciaTrabajo {
   fechaIngreso: string;
   fechaEmision: string;
   sueldoMensual: string;
+  esEgresado: boolean;
+  fechaEgreso: string;
 }
 
 export interface ConstanciaComercial {
@@ -439,149 +441,133 @@ tablaComercial: {
   }
 
    async generarConstanciaTrabajoPdf(data: ConstanciaTrabajo) {
-    let logoBase64 = '';
-    try {
-      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-    } catch (e) {
-      console.warn('No se pudo cargar el logo:', e);
-    }
+     let logoBase64 = '';
+     try {
+       logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+     } catch (e) {
+       console.warn('No se pudo cargar el logo:', e);
+     }
 
-    const docDefinition: any = {
-      content: [
-        {
-          columns: [
-            {
-              width: '28%',
-              stack: [
-                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
-              ]
-            },
-            {
-              text: [
-                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
-                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
-                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
-                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
-                { text: 'www.escolaresonline.com', style: 'webSite' }
-              ],
-              width: '48%',
-              alignment: 'center',
-              margin: [0, -10, 0, 0]
-            },
-            {
-              stack: [
-                { text: 'CONSTANCIA', style: 'tituloDoc' },
-                { text: 'DE TRABAJO', style: 'subtituloDoc', alignment: 'center' }
-              ],
-              alignment: 'right',
-              width: '24%',
-              margin: [0, 10, 0, 0]
-            }
-          ]
-        },
-        { text: '', margin: [0, 20] },
-        {
-          text: 'Por medio de la presente, se hace constar que el(la) señor(a):',
-          style: 'textoNormal',
-          margin: [0, 0, 0, 10]
-        },
-        {
-          text: data.nombreCompleto,
-          style: 'nombreDestacado',
-          alignment: 'center',
-          margin: [0, 0, 0, 10]
-        },
-        {
-          text: 'titular de la Cédula de Identidad Nro. V-___________',
-          style: 'textoNormal',
-          alignment: 'center',
-          margin: [0, 0, 0, 20]
-        },
-        {
-          table: {
-            widths: ['40%', '60%'],
-            body: [
-              [
-                { text: 'Cargo:', style: 'labelCampo' },
-                { text: data.cargo, style: 'valorCampo' }
-              ],
-              [
-                { text: 'Departamento:', style: 'labelCampo' },
-                { text: data.departamento, style: 'valorCampo' }
-              ],
-              [
-                { text: 'Fecha de Ingreso:', style: 'labelCampo' },
-                { text: this.formatFecha(data.fechaIngreso), style: 'valorCampo' }
-              ],
-              [
-                { text: 'Fecha de Emisión:', style: 'labelCampo' },
-                { text: this.formatFecha(data.fechaEmision), style: 'valorCampo' }
-              ],
-              ...(data.sueldoMensual ? [
-                [
-                  { text: 'Sueldo Mensual (USD):', style: 'labelCampo' },
-                  { text: data.sueldoMensual, style: 'valorCampo' }
-                ]
-              ] : [])
-            ]
-          },
-          layout: 'tablaConstancia',
-          margin: [0, 0, 0, 30]
-        },
-        {
-          text: 'La presente constancia se expide a solicitud del interesado(a), a los _____ días del mes de ___________ del año ___________',
-          style: 'textoNormal',
-          margin: [0, 0, 0, 50]
-        },
-        {
-          columns: [
-            {
-              width: '50%',
-              stack: [
-                { text: '_________________________', alignment: 'center' },
-                { text: 'Firma del Empleado(a)', alignment: 'center', style: 'labelFirma' }
-              ]
-            },
-            {
-              width: '50%',
-              stack: [
-                { text: '_________________________', alignment: 'center' },
-                { text: 'Firma y Sello de la Empresa', alignment: 'center', style: 'labelFirma' }
-              ]
-            }
-          ]
-        }
-      ],
-      styles: {
-        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
-        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
-        tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
-        subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
-        textoNormal: { fontSize: 11, lineHeight: 1.5 },
-        nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
-        labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
-        valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
-        labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
-      },
-      pageSize: 'A4',
-      pageMargins: [40, 40, 40, 40]
-    };
+     const cedula = this.formatearCedula(data.cedula);
+     const cargo = data.cargo || '';
+     const departamento = data.departamento || '';
+     const fechaIngreso = this.formatFecha(data.fechaIngreso);
+     const fechaEmision = this.formatFecha(data.fechaEmision);
+     const sueldo = data.sueldoMensual || '';
+     const esEgresado = !!data.esEgresado;
+     const fechaEgreso = data.fechaEgreso ? this.formatFecha(data.fechaEgreso) : '';
 
-    docDefinition.tableLayouts = {
-      tablaConstancia: {
-        hLineWidth: () => 0.5,
-        vLineWidth: () => 0.5,
-        hLineColor: () => '#ddd',
-        vLineColor: () => '#ddd',
-        paddingLeft: () => 8,
-        paddingRight: () => 8,
-        paddingTop: () => 6,
-        paddingBottom: () => 6
-      }
-    };
+     let cuerpo = '';
+     if (esEgresado) {
+       cuerpo = `A QUIEN PUEDA INTERESAR\n\nPor medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, prestó sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso} hasta el ${fechaEgreso}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+     } else {
+       cuerpo = `A QUIEN PUEDA INTERESAR\n\nPor medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, presta sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso}, devengando un sueldo mensual de ${sueldo}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+     }
 
-    return docDefinition;
-  }
+     const fechaLarga = this.formatearFechaComercial(data.fechaEmision);
+
+     const docDefinition: any = {
+       content: [
+         {
+           columns: [
+             {
+               width: '28%',
+               stack: [
+                 ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+               ]
+             },
+             {
+               text: [
+                 { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
+                 { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
+                 { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                 { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
+                 { text: 'www.escolaresonline.com', style: 'webSite' }
+               ],
+               width: '48%',
+               alignment: 'center',
+               margin: [0, -10, 0, 0]
+             },
+             {
+               stack: [
+                 { text: 'CONSTANCIA', style: 'tituloDoc' },
+                 { text: 'DE TRABAJO', style: 'subtituloDoc', alignment: 'center' }
+               ],
+               alignment: 'right',
+               width: '24%',
+               margin: [0, 10, 0, 0]
+             }
+           ]
+         },
+         { text: '', margin: [0, 20] },
+         {
+           text: cuerpo,
+           style: 'textoNormal',
+           alignment: 'justify',
+           margin: [0, 0, 0, 30]
+         },
+         {
+           text: `Constancia que se expide a petición de la parte interesada en la ciudad de Valencia a ${fechaLarga}.`,
+           style: 'textoNormal',
+           alignment: 'justify',
+           margin: [0, 0, 0, 50]
+         },
+         {
+           text: 'Atentamente,',
+           style: 'textoNormal',
+           alignment: 'center',
+           margin: [0, 0, 0, 25]
+         },
+         {
+           columns: [
+             {
+               width: '100%',
+               stack: [
+                 { text: '_________________________', alignment: 'center' },
+                 { text: 'GREGORY ALVARADO', alignment: 'center', style: 'valorCampo', bold: true },
+                 { text: 'DIRECTOR GENERAL', alignment: 'center', style: 'labelFirma' }
+               ]
+             }
+           ]
+         },
+         {
+           text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\nTelf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\nwww.escolaresonline.com - E-mail: gerencia@escolaresonline.com',
+           style: 'footerDoc',
+           alignment: 'center',
+           margin: [0, 60, 0, 0]
+         }
+       ],
+       styles: {
+         datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+         webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+         tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+         subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+         textoNormal: { fontSize: 11, lineHeight: 1.6 },
+         nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+         labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+         valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+         labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] },
+         footerDoc: { fontSize: 8, bold: true, color: '#000000' }
+       },
+       pageSize: 'LETTER',
+       pageMargins: [40, 40, 40, 40]
+     };
+
+     docDefinition.tableLayouts = {
+       tablaConstancia: {
+         hLineWidth: () => 0.5,
+         vLineWidth: () => 0.5,
+         hLineColor: () => '#ddd',
+         vLineColor: () => '#ddd',
+         paddingLeft: () => 8,
+         paddingRight: () => 8,
+         paddingTop: () => 6,
+         paddingBottom: () => 6
+       }
+     };
+
+     return docDefinition;
+   }
 
    async generarConstanciaComercialPdf(data: ConstanciaComercial) {
     let logoBase64 = '';
@@ -852,7 +838,7 @@ footer: (currentPage: number, pageCount: number) => {
       const cedulaAQuien = this.formatearCedula(data.cedulaAQuien);
       const desde = data.desde || '';
       const telefono = data.telefono || '';
-      const fechaEmision = this.formatFecha(data.fechaEmision);
+      const fechaEmision = this.formatearFechaComercial(data.fechaEmision);
 
       const cuerpo = `Yo, ${de}, mayor de edad, titular de la cédula de identidad No. ${cedulaDe}, residenciado en ${direccion}, por medio de la presente, hago constar que conozco de vista, trato y comunicación a ${aQuien}, titular de la cédula de identidad No. ${cedulaAQuien}, desde hace ${this.calcularTiempoTranscurrido(desde)} aproximadamente, de cual doy fé que es una persona de confianza, responsable y honesta.`;
 
@@ -863,10 +849,10 @@ footer: (currentPage: number, pageCount: number) => {
       const docDefinition: any = {
         content: [
           {
-            text: 'CONSTANCIA',
+            text: 'C O N S T A N C I A',
             style: 'tituloCentrado',
             alignment: 'center',
-            margin: [0, 0, 0, 20]
+            margin: [0, 50, 0, 20]
           },
           {
             text: cuerpo,
@@ -875,13 +861,13 @@ footer: (currentPage: number, pageCount: number) => {
             margin: [0, 0, 0, 15]
           },
           {
-            text: `Constancia que se expide a petición de la parte interesada en la ciudad de Valencia a ${fechaEmision}.`,
+            text: `Constancia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaEmision}.`,
             style: 'textoNormal',
             alignment: 'justify',
             margin: [0, 0, 0, 40]
           },
           {
-            text: 'Atentamente',
+            text: 'Atentamente,',
             style: 'textoNormal',
             alignment: 'center',
             margin: [0, 0, 0, 50]
@@ -897,12 +883,6 @@ footer: (currentPage: number, pageCount: number) => {
               }
             ]
           },
-          {
-            text: telefono ? `Nota: Para cualquier otra información requerida pueden comunicarse por el teléfono: ${telefono}.` : '',
-            style: 'textoNormal',
-            alignment: 'center',
-            margin: [0, 30, 0, 0]
-          }
         ],
         footer: (currentPage: number, pageCount: number) => {
           return {

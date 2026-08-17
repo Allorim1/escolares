@@ -894,11 +894,16 @@ const ivaDivisa = datos.reduce((sum, a) => {
       return;
     }
 
-    const vistos = new Set<string>();
+    const nombresVistos = new Set<string>();
+    const cedulasVistas = new Set<string>();
     const unicos = datos.filter((abono) => {
-      const clave = (abono.nombre || '').trim().toLowerCase();
-      if (!clave || vistos.has(clave)) return false;
-      vistos.add(clave);
+      const nombre = (abono.nombre || '').trim().toLowerCase();
+      const cedula = (abono.cedula || '').trim();
+      const nombreRepetido = nombre ? nombresVistos.has(nombre) : false;
+      const cedulaRepetida = cedula ? cedulasVistas.has(cedula) : false;
+      if (nombreRepetido || cedulaRepetida) return false;
+      if (nombre) nombresVistos.add(nombre);
+      if (cedula) cedulasVistas.add(cedula);
       return true;
     });
 

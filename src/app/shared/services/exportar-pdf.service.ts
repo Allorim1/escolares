@@ -48,6 +48,7 @@ export interface ReciboPago {
   moneda: string;
   fechaPago: string;
   numeroRecibo: string;
+  tipo: 'Personal' | 'Juridica';
 }
 
 @Injectable({
@@ -985,140 +986,119 @@ footer: (currentPage: number, pageCount: number) => {
     }
 
    async generarReciboPagoPdf(data: ReciboPago) {
-    let logoBase64 = '';
-    try {
-      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-    } catch (e) {
-      console.warn('No se pudo cargar el logo:', e);
-    }
+     let logoBase64 = '';
+     try {
+       logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+     } catch (e) {
+       console.warn('No se pudo cargar el logo:', e);
+     }
 
-    const montoFormateado = data.monto.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+     const montoNumero = Number(data.monto) || 0;
+     const montoFormateado = montoNumero.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+     const fechaPago = this.formatFecha(data.fechaPago);
+     const esJuridica = data.tipo === 'Juridica';
+     const nombreCabecera = esJuridica ? 'ESCOLARES, C.A.' : data.nombrePagador;
+     const montoTexto = this.numeroATexto(Math.floor(montoNumero));
+     const monedaTexto = data.moneda === 'USD' ? 'dólares' : data.moneda === 'EUR' ? 'euros' : 'bolívares';
+     const montoExactos = `${montoFormateado} ${data.moneda}`;
 
-    const docDefinition: any = {
-      content: [
-        {
-          columns: [
-            {
-              width: '28%',
-              stack: [
-                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
-              ]
-            },
-            {
-              text: [
-                { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
-                { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
-                { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
-                { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
-                { text: 'www.escolaresonline.com', style: 'webSite' }
-              ],
-              width: '48%',
-              alignment: 'center',
-              margin: [0, -10, 0, 0]
-            },
-            {
-              stack: [
-                { text: 'RECIBO', style: 'tituloDoc' },
-                { text: 'DE PAGO', style: 'subtituloDoc', alignment: 'center' }
-              ],
-              alignment: 'right',
-              width: '24%',
-              margin: [0, 10, 0, 0]
-            }
-          ]
-        },
-        { text: '', margin: [0, 20] },
-        {
-          table: {
-            widths: ['35%', '65%'],
-            body: [
-              [
-                { text: 'Nro. Recibo:', style: 'labelCampo' },
-                { text: data.numeroRecibo, style: 'valorCampo', bold: true }
-              ],
-              [
-                { text: 'Fecha de Pago:', style: 'labelCampo' },
-                { text: this.formatFecha(data.fechaPago), style: 'valorCampo' }
-              ],
-              [
-                { text: 'Pagado Por:', style: 'labelCampo' },
-                { text: data.nombrePagador, style: 'valorCampo' }
-              ],
-              [
-                { text: 'Cédula:', style: 'labelCampo' },
-                { text: data.cedula, style: 'valorCampo' }
-              ],
-              [
-                { text: 'Concepto:', style: 'labelCampo' },
-                { text: data.concepto, style: 'valorCampo' }
-              ],
-              [
-                { text: 'Monto:', style: 'labelCampo' },
-                {
-                  text: `${data.moneda} ${montoFormateado}`,
-                  style: 'valorCampo',
-                  bold: true,
-                  fontSize: 12
-                }
-              ]
-            ]
-          },
-          layout: 'tablaConstancia',
-          margin: [0, 0, 0, 40]
-        },
-        {
-          text: 'Este recibo certifica que el pago ha sido recibido satisfactoriamente.',
-          style: 'textoNormal',
-          alignment: 'center',
-          margin: [0, 0, 0, 50]
-        },
-        {
-          columns: [
-            {
-              width: '50%',
-              stack: [
-                { text: '_________________________', alignment: 'center' },
-                { text: 'Firma del Pagador', alignment: 'center', style: 'labelFirma' }
-              ]
-            },
-            {
-              width: '50%',
-              stack: [
-                { text: '_________________________', alignment: 'center' },
-                { text: 'Firma y Sello', alignment: 'center', style: 'labelFirma' }
-              ]
-            }
-          ]
-        }
-      ],
-      styles: {
-        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
-        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
-        tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
-        subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
-        textoNormal: { fontSize: 11, lineHeight: 1.5 },
-        nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
-        labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
-        valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
-        labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
-      },
-      pageSize: 'A4',
-      pageMargins: [40, 40, 40, 40]
-    };
+     const cuerpo = `HE RECIBIDO DE ${nombreCabecera} LA CANTIDAD DE ${montoTexto} ${monedaTexto.toUpperCase()} EXACTOS (${montoExactos}) POR CONCEPTO DE ${data.concepto.toUpperCase()} SIN MÁS QUE OBJETAR FIRMO CONFORME`;
 
-    docDefinition.tableLayouts = {
-      tablaConstancia: {
-        hLineWidth: () => 0.5,
-        vLineWidth: () => 0.5,
-        hLineColor: () => '#ddd',
-        vLineColor: () => '#ddd',
-        paddingLeft: () => 8,
-        paddingRight: () => 8,
-        paddingTop: () => 6,
-        paddingBottom: () => 6
-      }
-    };
+     const docDefinition: any = {
+       content: [
+         {
+           columns: [
+             {
+               width: '60%',
+               stack: [
+                 ...(logoBase64 ? [{ image: logoBase64, width: 160, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+               ]
+             },
+             {
+               width: '40%',
+               stack: [
+                 { text: 'Valencia', style: 'datosEmpresa', alignment: 'right' },
+                 { text: fechaPago, style: 'datosEmpresa', alignment: 'right' },
+                 { text: `${data.moneda} ${montoFormateado}`, style: 'datosEmpresa', alignment: 'right', bold: true }
+               ],
+               alignment: 'right'
+             }
+           ]
+         },
+         { text: '', margin: [0, 30] },
+         {
+           text: 'RECIBO DE PAGO',
+           style: 'tituloDoc',
+           alignment: 'center',
+           margin: [0, 0, 0, 30]
+         },
+         {
+           text: cuerpo,
+           style: 'textoNormal',
+           alignment: 'justify',
+           margin: [0, 0, 0, 50]
+         },
+         {
+           columns: [
+             {
+               width: '50%',
+               stack: [
+                 { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
+                 { text: 'FIRMA', alignment: 'center', style: 'labelFirma', margin: [0, 20, 0, 0] },
+                 { text: 'PAGADOR', alignment: 'center', style: 'labelFirma' }
+               ]
+             },
+             {
+               width: '50%',
+               stack: [
+                 { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
+                 { text: data.cedula, alignment: 'center', style: 'labelFirma', margin: [0, 20, 0, 0] },
+                 { text: 'CEDULA IDENTIDAD PAGADOR', alignment: 'center', style: 'labelFirma' }
+               ]
+             }
+           ]
+         },
+         {
+           text: 'PULGAR DERECHO',
+           style: 'textoNormal',
+           alignment: 'center',
+           margin: [0, 20, 0, 30]
+         },
+         {
+           text: `NOTA: ${data.concepto}`,
+           style: 'textoNormal',
+           alignment: 'left',
+           margin: [0, 0, 0, 0]
+         }
+       ],
+       styles: {
+         datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+         webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+         tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+         subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+         textoNormal: { fontSize: 11, lineHeight: 1.5 },
+         nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+         labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+         valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+         labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+       },
+       pageSize: 'A4',
+       pageMargins: [40, 40, 40, 40]
+     };
 
-    return docDefinition;
-  }
+     docDefinition.tableLayouts = {
+       tablaConstancia: {
+         hLineWidth: () => 0.5,
+         vLineWidth: () => 0.5,
+         hLineColor: () => '#ddd',
+         vLineColor: () => '#ddd',
+         paddingLeft: () => 8,
+         paddingRight: () => 8,
+         paddingTop: () => 6,
+         paddingBottom: () => 6
+       }
+     };
+
+     return docDefinition;
+   }
 }

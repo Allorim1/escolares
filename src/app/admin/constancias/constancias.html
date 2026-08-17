@@ -209,12 +209,15 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Fecha de Pago</label>
-            <input type="date" [(ngModel)]="reciboPago().fechaPago" enterFocusNext />
+            <label>Tipo *</label>
+            <select [(ngModel)]="reciboPago().tipo" enterFocusNext>
+              <option value="Personal">Personal</option>
+              <option value="Juridica">Jurídica</option>
+            </select>
           </div>
           <div class="form-group">
-            <label>Número de Recibo *</label>
-            <input type="text" [(ngModel)]="reciboPago().numeroRecibo" placeholder="REC-001" enterFocusNext />
+            <label>Fecha de Pago</label>
+            <input type="date" [(ngModel)]="reciboPago().fechaPago" enterFocusNext />
           </div>
         </div>
       </div>

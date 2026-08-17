@@ -450,18 +450,16 @@ tablaComercial: {
 
      const cedula = this.formatearCedula(data.cedula);
      const cargo = data.cargo || '';
-     const departamento = data.departamento || '';
      const fechaIngreso = this.formatFecha(data.fechaIngreso);
-     const fechaEmision = this.formatFecha(data.fechaEmision);
      const sueldo = data.sueldoMensual || '';
      const esEgresado = !!data.esEgresado;
      const fechaEgreso = data.fechaEgreso ? this.formatFecha(data.fechaEgreso) : '';
 
      let cuerpo = '';
      if (esEgresado) {
-       cuerpo = `A QUIEN PUEDA INTERESAR\n\nPor medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, prestó sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso} hasta el ${fechaEgreso}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+       cuerpo = `Por medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, prestó sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso} hasta el ${fechaEgreso}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
      } else {
-       cuerpo = `A QUIEN PUEDA INTERESAR\n\nPor medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, presta sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso}, devengando un sueldo mensual de ${sueldo}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+       cuerpo = `Por medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, presta sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso}, devengando un sueldo mensual de ${sueldo}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
      }
 
      const fechaLarga = this.formatearFechaComercial(data.fechaEmision);
@@ -476,30 +474,16 @@ tablaComercial: {
                  ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
                ]
              },
-             {
-               text: [
-                 { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
-                 { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
-                 { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
-                 { text: 'R.I.F.: J-30488367-6\n', style: 'datosEmpresa' },
-                 { text: 'www.escolaresonline.com', style: 'webSite' }
-               ],
-               width: '48%',
-               alignment: 'center',
-               margin: [0, -10, 0, 0]
-             },
-             {
-               stack: [
-                 { text: 'CONSTANCIA', style: 'tituloDoc' },
-                 { text: 'DE TRABAJO', style: 'subtituloDoc', alignment: 'center' }
-               ],
-               alignment: 'right',
-               width: '24%',
-               margin: [0, 10, 0, 0]
-             }
            ]
          },
          { text: '', margin: [0, 20] },
+         {
+          text: 'A QUIEN PUEDA INTERESAR',
+          style: 'textoNormal',
+          alignment: 'center',
+          margin: [0, 0, 0, 30],
+          bold: true
+         },
          {
            text: cuerpo,
            style: 'textoNormal',
@@ -513,30 +497,50 @@ tablaComercial: {
            margin: [0, 0, 0, 50]
          },
          {
-           text: 'Atentamente,',
-           style: 'textoNormal',
-           alignment: 'center',
-           margin: [0, 0, 0, 25]
+          columns: [
+            { width: '*', text: '' },
+            {
+              width: '50%',
+              stack: [
+                { text: 'Atentamente,', style: 'textoNormal', alignment: 'center', margin: [0, 0, 0, 50] },
+                { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
+                { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre', margin: [0, 20, 0, 0] },
+                { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }
+              ]
+            },
+            { width: '*', text: '' }
+          ]
          },
-         {
-           columns: [
-             {
-               width: '100%',
-               stack: [
-                 { text: '_________________________', alignment: 'center' },
-                 { text: 'GREGORY ALVARADO', alignment: 'center', style: 'valorCampo', bold: true },
-                 { text: 'DIRECTOR GENERAL', alignment: 'center', style: 'labelFirma' }
-               ]
-             }
-           ]
-         },
-         {
-           text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\nTelf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\nwww.escolaresonline.com - E-mail: gerencia@escolaresonline.com',
-           style: 'footerDoc',
-           alignment: 'center',
-           margin: [0, 60, 0, 0]
-         }
        ],
+       footer: (currentPage: number, pageCount: number) => {
+  return {
+    stack: [
+      {
+        canvas: [
+          {
+            type: 'line',
+            x1: 40,        // Comienza en el margen izquierdo
+            y1: 0,
+            x2: 555.28,    // Termina en el margen derecho (595.28 - 40)
+            y2: 0,
+            lineWidth: 0.8,
+            lineColor: '#000000' // O el color que prefieras (ej. '#000000' o '#000066')
+          }
+        ],
+        margin: [0, 0, 0, 8] // Espaciado entre la línea y el texto del footer
+      },
+      {
+        text: [
+          { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\n', style: 'datosEmpresa', color: '#000066' },
+          { text: 'Telf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+          { text: 'www.escolaresonline.com - E-mail: gerencia@escolaresonline.com', style: 'webSite' }
+        ],
+        alignment: 'center'
+      }
+    ],
+    margin: [0, 0, 0, 20]
+  };
+},
        styles: {
          datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
          webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
@@ -547,7 +551,9 @@ tablaComercial: {
          labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
          valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
          labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] },
-         footerDoc: { fontSize: 8, bold: true, color: '#000000' }
+         footerDoc: { fontSize: 8, bold: true, color: '#000000' },
+         firmaNombre: { fontSize: 12, bold: true, margin: [0, 5, 0, 2] },
+         firmaCargo: { fontSize: 11, color: '#666' }
        },
        pageSize: 'LETTER',
        pageMargins: [40, 40, 40, 40]

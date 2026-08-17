@@ -46,9 +46,7 @@ interface ReciboPago {
   cedula: string;
   concepto: string;
   monto: string;
-  moneda: string;
   fechaPago: string;
-  numeroRecibo: string;
   tipo: 'Personal' | 'Juridica';
   pagado: string;
 }
@@ -106,9 +104,7 @@ export class Constancias implements OnInit {
     cedula: '',
     concepto: '',
     monto: '',
-    moneda: 'USD',
     fechaPago: new Date().toISOString().split('T')[0],
-    numeroRecibo: '',
     tipo: 'Personal',
     pagado: '',
   });
@@ -213,11 +209,11 @@ export class Constancias implements OnInit {
       }
     } else if (tipo === 'recibo-pago') {
       const datos = this.reciboPago();
-      if (!datos.concepto || !datos.monto || !datos.numeroRecibo || !datos.pagado) {
+      if (!datos.concepto || !datos.monto || !datos.pagado || !datos.cedula) {
         this.notificationService.error('Por favor complete todos los campos requeridos');
         return;
       }
-      if (datos.tipo === 'Personal' && (!datos.nombrePagador || !datos.cedula)) {
+      if (datos.tipo === 'Personal' && !datos.nombrePagador) {
         this.notificationService.error('Por favor complete los datos del pagador');
         return;
       }
@@ -228,13 +224,11 @@ export class Constancias implements OnInit {
           cedula: datos.cedula,
           concepto: datos.concepto,
           monto: parseFloat(datos.monto) || 0,
-          moneda: datos.moneda,
           fechaPago: datos.fechaPago,
-          numeroRecibo: datos.numeroRecibo,
           tipo: datos.tipo,
           pagado: datos.pagado,
         });
-        this.exportarPdfService.descargarPdf(docDefinition, `recibo_pago_${datos.numeroRecibo}.pdf`);
+        this.exportarPdfService.descargarPdf(docDefinition, `recibo_pago_${datos.pagado.replace(/\s+/g, '_')}.pdf`);
         this.notificationService.success('Recibo de pago generado correctamente', 'Éxito');
       } catch (error) {
         console.error('Error generando PDF:', error);
@@ -286,9 +280,7 @@ export class Constancias implements OnInit {
         cedula: '',
         concepto: '',
         monto: '',
-        moneda: 'USD',
         fechaPago: new Date().toISOString().split('T')[0],
-        numeroRecibo: '',
         tipo: 'Personal',
         pagado: '',
       });

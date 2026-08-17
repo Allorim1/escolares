@@ -45,9 +45,7 @@ export interface ReciboPago {
   cedula: string;
   concepto: string;
   monto: number;
-  moneda: string;
   fechaPago: string;
-  numeroRecibo: string;
   tipo: 'Personal' | 'Juridica';
   pagado: string;
 }
@@ -1053,8 +1051,7 @@ footer: (currentPage: number, pageCount: number) => {
                width: '50%',
                stack: [
                  { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
-                 { text: data.cedula, alignment: 'center', style: 'labelFirma', margin: [0, 20, 0, 0] },
-                 { text: 'CEDULA IDENTIDAD PAGADOR', alignment: 'center', style: 'labelFirma' }
+                 { text: data.cedula, alignment: 'center', style: 'labelFirma', margin: [0, 20, 0, 0] }
                ]
              }
            ]

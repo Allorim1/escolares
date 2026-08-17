@@ -202,6 +202,14 @@
             </div>
           </div>
         }
+        @if (reciboPago().tipo === 'Juridica') {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cédula de Identidad *</label>
+              <input type="text" [(ngModel)]="reciboPago().cedula" placeholder="V-12345678" enterFocusNext />
+            </div>
+          </div>
+        }
         <div class="form-row">
           <div class="form-group" style="grid-column: 1 / -1;">
             <label>Concepto *</label>
@@ -213,23 +221,11 @@
             <label>Monto *</label>
             <input type="text" [(ngModel)]="reciboPago().monto" placeholder="0.00" enterFocusNext />
           </div>
-          <div class="form-group">
-            <label>Moneda</label>
-            <select [(ngModel)]="reciboPago().moneda" enterFocusNext>
-              <option value="USD">USD</option>
-              <option value="Bs.">Bs.</option>
-              <option value="EUR">EUR</option>
-            </select>
-          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Pagado *</label>
-            <input type="text" [(ngModel)]="reciboPago().pagado" placeholder="Nombre de quien paga" enterFocusNext />
-          </div>
-          <div class="form-group">
-            <label>Número de Recibo *</label>
-            <input type="text" [(ngModel)]="reciboPago().numeroRecibo" placeholder="REC-001" enterFocusNext />
+            <input type="text" [(ngModel)]="reciboPago().pagado" placeholder="Nombre de a quien le pagan" enterFocusNext />
           </div>
         </div>
       </div>

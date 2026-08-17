@@ -81,7 +81,7 @@
       <form (ngSubmit)="guardarAsistencia()">
         <div class="form-group">
           <label>Empleado *</label>
-          <select [(ngModel)]="editingAsistencia!.empleadoId" name="empleadoId" required>
+          <select [(ngModel)]="editingAsistencia!.empleadoId" name="empleadoId" required enterFocusNext>
             <option value="">Seleccionar</option>
             @for (emp of empleados(); track emp.id) {
               <option [value]="emp.id">{{ emp.nombreCompleto || emp.username }}</option>
@@ -90,7 +90,7 @@
         </div>
         <div class="form-group">
           <label>Tipo *</label>
-          <select [(ngModel)]="editingAsistencia!.tipo" name="tipo" required>
+          <select [(ngModel)]="editingAsistencia!.tipo" name="tipo" required enterFocusNext>
             @for (tipo of tiposAsistencia; track tipo) {
               <option [value]="tipo">{{ tipo }}</option>
             }
@@ -98,15 +98,15 @@
         </div>
         <div class="form-group">
           <label>Fecha *</label>
-          <input type="date" [ngModel]="formatFechaInput(editingAsistencia?.fecha)" (ngModelChange)="editingAsistencia!.fecha = $event" name="fecha" required>
+          <input type="date" [ngModel]="formatFechaInput(editingAsistencia?.fecha)" (ngModelChange)="editingAsistencia!.fecha = $event" name="fecha" required enterFocusNext>
         </div>
         <div class="form-group">
           <label>Hora</label>
-          <input type="time" [(ngModel)]="editingAsistencia!.hora" name="hora">
+          <input type="time" [(ngModel)]="editingAsistencia!.hora" name="hora" enterFocusNext>
         </div>
         <div class="form-group">
           <label>Justificación</label>
-          <textarea [(ngModel)]="editingAsistencia!.justificacion" name="justificacion" rows="2"></textarea>
+          <textarea [(ngModel)]="editingAsistencia!.justificacion" name="justificacion" rows="2" enterFocusNext></textarea>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>

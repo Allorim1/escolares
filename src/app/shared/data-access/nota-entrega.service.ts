@@ -16,7 +16,7 @@ export class NotaEntregaService {
 
   loadNotasEntrega() {
     this.http.get<NotaEntrega[]>(this.API_URL).subscribe({
-      next: (data) => this.notasEntrega.set(data),
+      next: (data) => this.notasEntrega.set(data.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))),
       error: (err) => {
         console.error('Error cargando notas de entrega:', err);
         this.notasEntrega.set([]);

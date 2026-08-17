@@ -54,13 +54,13 @@ interface Supervisor {
 }
 
 @Component({
-  selector: 'app-relacion-cuentas',
+  selector: 'app-relacion-libros',
   standalone: true,
   imports: [CommonModule, FormsModule, EnterFocusNextDirective],
-  templateUrl: './relacion-cuentas.html',
-  styleUrl: './relacion-cuentas.css',
+  templateUrl: './relacion-libros.html',
+  styleUrl: './relacion-libros.css',
 })
-export class RelacionCuentas implements OnInit {
+export class RelacionLibros implements OnInit {
   private http = inject(HttpClient);
   private empresasService = inject(EmpresasService);
   private tasasGuardadasService = inject(TasasGuardadasService);
@@ -118,13 +118,10 @@ export class RelacionCuentas implements OnInit {
       }
       if (f.nombre) {
         const nombreLower = f.nombre.toLowerCase();
-        passes = passes && ((a.nombre || '').toLowerCase().includes(nombreLower) || (a.nFact || '').toLowerCase().includes(nombreLower));
+        passes = passes && (a.nombre || '').toLowerCase().includes(nombreLower);
       }
       if (f.supervisor) {
         passes = passes && (a.supervisor || '') === f.supervisor;
-      }
-      if (this.aplicarFiltroIva()) {
-        passes = passes && a.ivaPagado === this.soloIvaPagado();
       }
       return passes;
     });
@@ -135,12 +132,7 @@ export class RelacionCuentas implements OnInit {
     const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
     const abonos = datos.reduce((sum, a) => sum + (a.abonos ?? 0), 0);
     const iva = datos.reduce((sum, a) => sum + (a.iva ?? 0), 0);
-  console.log('Analizando tasas:', datos.map(a => ({ tasa: a.tasa, tipo: typeof a.tasa })));
-  // ✅ CÓDIGO CORREGIDO:
-const ivaDivisa = datos.reduce((sum, a) => {
-  const tasa = Number(a.tasa) || 0;
-  return sum + (tasa > 0 ? (a.iva ?? 0) / tasa : 0);
-}, 0);
+    const ivaDivisa = datos.reduce((sum, a) => sum + (a.iva ?? 0) / (a.tasa ?? 0), 0)
     const pagoParcial = abonos;
     const diferencia = montoFactura - iva;
     const divisa = datos.reduce((sum, a) => {
@@ -205,6 +197,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
 
+  showModalColumnas = signal(false);
   showModalColumnasPdf = signal(false);
 
   columnasVisibles = computed(() => {
@@ -237,6 +230,13 @@ const ivaDivisa = datos.reduce((sum, a) => {
   loadingTasas = signal(false);
   nuevaTasaFecha = signal(this.getFechaLocal());
   nuevaTasaValor = signal(0);
+
+  showModalRecordatorio = signal(false);
+  recordatorioDestinatarios = signal<{ nombre: string; telefono: string }[]>([]);
+
+  showModalTestWhatsapp = signal(false);
+  testWhatsappTelefono = signal('');
+  testWhatsappMensaje = signal('Hola, te escribimos por tu relación de cuentas. Por favor, comunícate con nosotros.');
 
   comisiones = computed(() => {
     const abonos = this.abonosFiltrados();
@@ -299,7 +299,6 @@ const ivaDivisa = datos.reduce((sum, a) => {
       comisionNoAsignadaPorcentaje: porcentajeManual ?? 0,
       total,
       montoFacturaNoAsignada: 0,
-      haySupervisores: comisionesPorSupervisor.length > 0,
     };
   });
 
@@ -375,12 +374,9 @@ const ivaDivisa = datos.reduce((sum, a) => {
   comisionesTabNombresAgrupados = signal<any[]>([]);
   comisionesTabNombreSeleccionado = signal<string>('');
 
-   showModalSupervisores = signal(false);
-   editingSupervisor = signal<Supervisor | null>(null);
-   pestanaActiva = signal<'relaciones' | 'supervisores' | 'comisiones'>('relaciones');
-
-   showModalSupervisoresRelaciones = signal(false);
-   supervisoresAgrupados = signal<any[]>([]);
+  showModalSupervisores = signal(false);
+  editingSupervisor = signal<Supervisor | null>(null);
+  pestanaActiva = signal<'relaciones' | 'supervisores' | 'comisiones'>('relaciones');
 
   tasaActual = signal<number>(0);
   tasaEuro = signal<number>(0);
@@ -396,9 +392,6 @@ const ivaDivisa = datos.reduce((sum, a) => {
     supervisor: '',
   });
 
-  soloIvaPagado = signal(false);
-  aplicarFiltroIva = signal(false);
-
   private getFechaLocal(): string {
     const now = new Date();
     const year = now.getFullYear();
@@ -409,11 +402,6 @@ const ivaDivisa = datos.reduce((sum, a) => {
 
   mostrarEmpresaPdf = signal(false);
   mostrarPlantaPdf = signal(false);
-
-  showModalTotalesPdfNombres = signal(false);
-  incluirTotalesMontos = signal(false);
-  incluirTotalesClientes = signal(false);
-  incluirTotalesListas = signal(false);
 
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
@@ -429,74 +417,8 @@ const ivaDivisa = datos.reduce((sum, a) => {
   });
 
   numerosPaginas = computed(() => {
-    const total = this.totalPaginas();
-    const actual = this.paginaActual();
-    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
-    const grupoFin = Math.min(grupoInicio + 9, total);
-    const paginas: (number | string)[] = [];
-
-    if (total <= 11) {
-      return Array.from({ length: total }, (_, i) => i + 1);
-    }
-
-    paginas.push(1);
-
-    if (grupoInicio > 2) {
-      paginas.push('...');
-    } else if (grupoInicio === 2) {
-      paginas.push(2);
-    }
-
-    for (let p = grupoInicio; p <= grupoFin; p++) {
-      if (p > 1 && p < total) {
-        paginas.push(p);
-      }
-    }
-
-    if (grupoFin < total - 1) {
-      paginas.push('...');
-    } else if (grupoFin === total - 1) {
-      paginas.push(total - 1);
-    }
-
-    if (total > 1) {
-      paginas.push(total);
-    }
-
-    return paginas;
+    return Array.from({ length: this.totalPaginas() }, (_, i) => i + 1);
   });
-
-  puedeIrAtrasGrupo = computed(() => {
-    const actual = this.paginaActual();
-    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
-    return grupoInicio > 1;
-  });
-
-  puedeIrAdelanteGrupo = computed(() => {
-    const actual = this.paginaActual();
-    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
-    return grupoInicio + 9 < this.totalPaginas();
-  });
-
-  irAtrasGrupo() {
-    const actual = this.paginaActual();
-    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
-    const nuevaPagina = Math.max(1, grupoInicio - 10);
-    this.paginaActual.set(nuevaPagina);
-  }
-
-  irAdelanteGrupo() {
-    const actual = this.paginaActual();
-    const grupoInicio = Math.floor((actual - 1) / 10) * 10 + 1;
-    const nuevaPagina = Math.min(this.totalPaginas(), grupoInicio + 10);
-    this.paginaActual.set(nuevaPagina);
-  }
-
-  irAPagina(pagina: number | string) {
-    if (typeof pagina === 'number') {
-      this.cambiarPagina(pagina);
-    }
-  }
 
   ngOnInit() {
     this.empresasService.load();
@@ -791,8 +713,37 @@ const ivaDivisa = datos.reduce((sum, a) => {
   }
 
   cambiarPagina(pagina: number) {
-    const total = this.totalPaginas();
-    this.paginaActual.set(Math.max(1, Math.min(total, pagina)));
+    this.paginaActual.set(pagina);
+  }
+
+  abrirModalColumnas() {
+    this.showModalColumnas.set(true);
+  }
+
+  cerrarModalColumnas() {
+    if (this.esRoot()) {
+      this.http.put('/api/settings/relacion-cuentas-columnas', { columns: [...this.columnasSeleccionadas()] }).subscribe({
+        next: () => {},
+        error: () => {},
+      });
+    }
+    this.showModalColumnas.set(false);
+  }
+
+  toggleColumna(key: string) {
+    this.columnasSeleccionadas.update((actual) => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(key)) {
+        nuevo.delete(key);
+      } else {
+        nuevo.add(key);
+      }
+      return nuevo;
+    });
+  }
+
+  isColumnaSeleccionada(key: string): boolean {
+    return this.columnasSeleccionadas().has(key);
   }
 
   abrirModalColumnasPdf() {
@@ -819,137 +770,66 @@ const ivaDivisa = datos.reduce((sum, a) => {
     return this.columnasSeleccionadasPdf().has(key);
   }
 
-  exportarSenderExcel() {
-      const datos = this.abonosFiltrados();
-      if (datos.length === 0) {
-        alert('No hay datos para exportar');
-        return;
-      }
-
-      const vistos = new Set<string>();
-      const filas: { telefono: string; primerNombre: string; apellido: string }[] = [];
-      for (const abono of datos) {
-        const clave = `${(abono.nombre || '').trim().toLowerCase()}|${(abono.telefono || '').trim()}`;
-        if (clave && !vistos.has(clave)) {
-          vistos.add(clave);
-          let telefono = (abono.telefono || '').trim();
-          if (telefono.startsWith('04')) {
-            telefono = '+58' + telefono.slice(1);
-          }
-          const nombreCompleto = (abono.nombre || '').trim();
-          const partes = nombreCompleto.split(/\s+/).filter(Boolean);
-          const primerNombre = partes[0] || '';
-          const apellido = partes.length >= 3 ? partes[partes.length - 1] : partes[1] || '';
-          filas.push({ telefono, primerNombre, apellido });
-        }
-      }
-
-      if (filas.length === 0) {
-        alert('No hay datos para exportar');
-        return;
-      }
-
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Sender');
-
-      worksheet.columns = [
-        { width: 20 },
-        { width: 20 },
-        { width: 20 },
-      ];
-
-      const headerRow = worksheet.addRow(['Teléfono', 'Nombre', 'Apellido']);
-      headerRow.eachCell((cell) => {
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
-        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      });
-
-      for (const fila of filas) {
-        const row = worksheet.addRow([fila.telefono, fila.primerNombre, fila.apellido]);
-        row.eachCell((cell) => {
-          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        });
-      }
-
-      workbook.xlsx.writeBuffer().then((buffer: ArrayBuffer) => {
-        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `sender_${this.getFechaLocal()}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      });
-    }
-
-  exportarVCard() {
-    const datos = this.abonosFiltrados();
-    if (datos.length === 0) {
-      alert('No hay datos para exportar');
-      return;
-    }
-
-    const nombresVistos = new Set<string>();
-    const cedulasVistas = new Set<string>();
-    const unicos = datos.filter((abono) => {
-      const nombre = (abono.nombre || '').trim().toLowerCase();
-      const cedula = (abono.cedula || '').trim();
-      const nombreRepetido = nombre ? nombresVistos.has(nombre) : false;
-      const cedulaRepetida = cedula ? cedulasVistas.has(cedula) : false;
-      if (nombreRepetido || cedulaRepetida) return false;
-      if (nombre) nombresVistos.add(nombre);
-      if (cedula) cedulasVistas.add(cedula);
-      return true;
-    });
-
-    if (unicos.length === 0) {
-      alert('No hay datos para exportar');
-      return;
-    }
-
-    const vcards = unicos.map((abono) => {
-      const nombre = (abono.nombre || '').trim();
-      const empresa = (abono.empresa || '').trim();
-      const fn = [nombre, empresa].filter(Boolean).join(' ');
-      let tel = (abono.telefono || '').trim();
-      if (tel.startsWith('04')) {
-        tel = '+58' + tel.slice(1);
-      }
-      const planta = (abono.planta || '').trim();
-      const cedula = (abono.cedula || '').trim();
-      const nFact = (abono.nFact || '').trim();
-
-      const lineas = [
-        'BEGIN:VCARD',
-        'VERSION:3.0',
-        `FN:${fn}`,
-        empresa ? `ORG:${empresa}` : undefined,
-        tel ? `TEL;TYPE=CELL:${tel}` : undefined,
-        `NOTE:Planta: ${planta} | Cedula: ${cedula} | N.Fact: ${nFact}`,
-        'END:VCARD',
-      ].filter(Boolean);
-
-      return lineas.join('\r\n');
-    });
-
-    const contenido = vcards.join('\r\n');
-    const blob = new Blob([contenido], { type: 'text/vcard;charset=utf-8' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `contactos_${this.getFechaLocal()}.vcf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+  abrirModalRecordatorio() {
+    const destinatarios = this.abonosFiltrados()
+      .filter((a) => a.telefono && a.nombre)
+      .map((a) => ({ nombre: a.nombre, telefono: a.telefono }));
+    this.recordatorioDestinatarios.set(destinatarios);
+    this.showModalRecordatorio.set(true);
   }
 
-    esRoot(): boolean {
+  cerrarModalRecordatorio() {
+    this.showModalRecordatorio.set(false);
+  }
+
+  enviarRecordatorios() {
+    const destinatarios = this.recordatorioDestinatarios();
+    if (destinatarios.length === 0) {
+      alert('No hay destinatarios para enviar recordatorios');
+      return;
+    }
+
+    this.http.post('/api/recordatorios/recordatorio-masivo', { destinatarios }).subscribe({
+      next: () => {
+        alert('Recordatorios enviados correctamente');
+        this.cerrarModalRecordatorio();
+      },
+      error: (err) => {
+        console.error('Error enviando recordatorios:', err);
+        alert('Error al enviar recordatorios');
+      },
+    });
+  }
+
+  abrirModalTestWhatsapp() {
+    this.showModalTestWhatsapp.set(true);
+  }
+
+  cerrarModalTestWhatsapp() {
+    this.showModalTestWhatsapp.set(false);
+  }
+
+  enviarTestWhatsapp() {
+    const telefono = this.testWhatsappTelefono().trim();
+    const mensaje = this.testWhatsappMensaje().trim();
+    if (!telefono) {
+      alert('Ingrese un número de teléfono');
+      return;
+    }
+
+    this.http.post('/api/recordatorios/test-whatsapp', { telefono, mensaje }).subscribe({
+      next: () => {
+        alert('Mensaje de prueba enviado correctamente');
+        this.cerrarModalTestWhatsapp();
+      },
+      error: (err) => {
+        console.error('Error enviando test WhatsApp:', err);
+        alert('Error al enviar mensaje de prueba');
+      },
+    });
+  }
+
+  esRoot(): boolean {
     return this.authService.user()?.rol === 'root';
   }
 
@@ -1416,17 +1296,6 @@ if (!url) return '';
       return;
     }
 
-    const existeDuplicado = this.abonos().some((a) => {
-      const nFactIgual = (a.nFact || '').trim() === (this.editingAbono!.nFact || '').trim();
-      const esMismoRegistro = a._id && this.editingAbono!._id && a._id === this.editingAbono!._id;
-      return nFactIgual && !esMismoRegistro;
-    });
-
-    if (existeDuplicado) {
-      alert('Ya existe un registro con ese N. Fact');
-      return;
-    }
-
     this.saving.set(true);
 
     const payload = {
@@ -1718,210 +1587,6 @@ if (!url) return '';
     doc.save(fileName);
   }
 
-  async generarPdfNombresComisiones() {
-    const nombres = this.comisionesTabNombresAgrupados();
-    const supervisor = this.comisionesTabSupervisorSeleccionado();
-
-    if (!nombres || nombres.length === 0) {
-      alert('No hay datos para generar el reporte');
-      return;
-    }
-
-    const doc = new jsPDF({ orientation: 'landscape' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    let logoBase64 = '';
-    try {
-      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-    } catch (e) {
-      console.warn('No se pudo cargar el logo:', e);
-    }
-
-    const logoWidth = 70;
-    let logoHeight = 0;
-    if (logoBase64) {
-      const dims = await this.obtenerDimensionesImagen(logoBase64);
-      logoHeight = (logoWidth * dims.height) / dims.width;
-    }
-
-    const logoY = 15;
-    const nombresOffsetY = logoY + logoHeight + 8;
-
-    if (logoBase64) {
-      doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
-    }
-
-    const apellido = supervisor?.supervisorId ? this.getSupervisorApellido(supervisor.supervisorId) : '';
-    const titulo = `${supervisor?.supervisor || ''} ${apellido}`.trim().toUpperCase();
-
-    doc.setFontSize(16);
-    doc.setTextColor(0, 51, 111);
-    doc.text(titulo, pageWidth / 2, nombresOffsetY, { align: 'center' });
-
-    const infoY = nombresOffsetY + 10;
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, infoY, { align: 'center' });
-
-    const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Comisión']];
-    const body = nombres.map((n: any) => [
-      n.nombre || '',
-      n.planta || '-',
-      String(n.cantidad || 0),
-      this.formatMonto(n.montoFactura || 0),
-      this.formatMonto(n.iva || 0),
-      this.formatMonto(n.montoFacturaSinIva || 0),
-      this.formatMonto(n.comision || 0) + ' Bs',
-    ]);
-
-    if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
-      const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
-      const totalMontoFactura = nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0);
-      const totalIva = nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0);
-      const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
-      const totalListas = nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0);
-      body.push([
-        this.incluirTotalesClientes() ? String(nombres.length) : '',
-        'Totales',
-        this.incluirTotalesListas() ? String(totalListas) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(totalMontoFactura) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(totalIva) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(totalMontoSinIva) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(totalComision) + ' Bs' : '',
-      ]);
-    }
-
-    const marginBottom = 18;
-    const marginSide = 35;
-
-    autoTable(doc, {
-      startY: infoY + 14,
-      head: head,
-      body: body,
-      theme: 'grid',
-      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
-      bodyStyles: { fontSize: 7, overflow: 'linebreak', halign: 'center' },
-      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak', halign: 'center' },
-      margin: { left: marginSide, right: marginSide, bottom: marginBottom },
-      tableWidth: 'auto',
-      columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 28 },
-        4: { cellWidth: 22 },
-        5: { cellWidth: 32 },
-        6: { cellWidth: 28 },
-      },
-    });
-
-const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;
-
-    doc.save(fileName);
-  }
-
-  abrirModalTotalesPdfNombres() {
-    this.incluirTotalesMontos.set(false);
-    this.incluirTotalesClientes.set(false);
-    this.incluirTotalesListas.set(false);
-    this.showModalTotalesPdfNombres.set(true);
-  }
-
-  cerrarModalTotalesPdfNombres() {
-    this.showModalTotalesPdfNombres.set(false);
-  }
-
-  async generarExcelNombresComisiones() {
-    const nombres = this.comisionesTabNombresAgrupados();
-    const supervisor = this.comisionesTabSupervisorSeleccionado();
-
-    if (!nombres || nombres.length === 0) {
-      alert('No hay datos para generar el reporte');
-      return;
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    const sheetName = supervisor?.supervisor ? `Nombres ${supervisor.supervisor}` : 'Nombres Comisiones';
-    const worksheet = workbook.addWorksheet(sheetName);
-
-    const columnasBase = [
-      { width: 30, header: 'Nombre' },
-      { width: 25, header: 'Planta' },
-      { width: 15, header: 'Cantidad' },
-      { width: 22, header: 'Monto Factura Bs' },
-      { width: 18, header: 'IVA' },
-      { width: 28, header: 'Monto Factura Sin Iva' },
-      { width: 22, header: 'Comisión' },
-    ];
-    if (this.incluirTotalesClientes()) {
-      columnasBase.push({ width: 18, header: 'Total Clientes' });
-    }
-    if (this.incluirTotalesListas()) {
-      columnasBase.push({ width: 18, header: 'Total Listas' });
-    }
-
-    worksheet.columns = columnasBase.map(c => ({ width: c.width }));
-    const headerRow = worksheet.addRow(columnasBase.map(c => c.header));
-    headerRow.eachCell((cell) => {
-      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
-      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    });
-
-    const totalListas = nombres.reduce((sum: number, nombre: any) => sum + (nombre.cantidad || 0), 0);
-    nombres.forEach((n: any) => {
-      const row = [
-        n.nombre || '',
-        n.planta || '-',
-        n.cantidad || 0,
-        this.formatMonto(n.montoFactura || 0),
-        this.formatMonto(n.iva || 0),
-        this.formatMonto(n.montoFacturaSinIva || 0),
-        this.formatMonto(n.comision || 0),
-      ];
-      if (this.incluirTotalesClientes()) {
-        row.push(String(nombres.length));
-      }
-      if (this.incluirTotalesListas()) {
-        row.push(String(totalListas));
-      }
-      worksheet.addRow(row).eachCell((cell) => {
-        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      });
-    });
-
-    if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
-      const totalRowData = [
-        '',
-        '',
-        '',
-        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0)) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0)) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0)) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0)) : '',
-      ];
-      if (this.incluirTotalesClientes()) {
-        totalRowData.push(String(nombres.length));
-      }
-      if (this.incluirTotalesListas()) {
-        totalRowData.push(String(totalListas));
-      }
-      const totalRow = worksheet.addRow(totalRowData);
-      totalRow.eachCell((cell) => {
-        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.font = { bold: true };
-      });
-    }
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const fileName = `nombres_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.xlsx`;
-
-    saveAs(new Blob([buffer]), fileName);
-  }
-
   async generarReporteExcel() {
     const datos = this.abonosFiltrados();
     if (datos.length === 0) {
@@ -2177,34 +1842,6 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   cerrarModalSupervisores() {
     this.showModalSupervisores.set(false);
     this.editingSupervisor.set(null);
-  }
-
-  abrirModalSupervisoresRelaciones() {
-    const abonos = this.abonosFiltrados().filter(a => a.supervisor && a.supervisorId);
-    const porSupervisor = new Map<string, any[]>();
-    for (const abono of abonos) {
-      const supervisorId = abono.supervisorId || '';
-      if (!porSupervisor.has(supervisorId)) {
-        porSupervisor.set(supervisorId, []);
-      }
-      porSupervisor.get(supervisorId)!.push(abono);
-    }
-    const agrupados = Array.from(porSupervisor.entries()).map(([supervisorId, relaciones]) => {
-      const primer = relaciones[0];
-      return {
-        supervisorId,
-        supervisor: primer.supervisor || '',
-        cantidad: relaciones.length,
-        relaciones,
-      };
-    });
-    this.supervisoresAgrupados.set(agrupados);
-    this.showModalSupervisoresRelaciones.set(true);
-  }
-
-  cerrarModalSupervisoresRelaciones() {
-    this.showModalSupervisoresRelaciones.set(false);
-    this.supervisoresAgrupados.set([]);
   }
 
   guardarSupervisor() {

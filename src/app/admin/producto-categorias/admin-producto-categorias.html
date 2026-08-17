@@ -53,16 +53,16 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Nombre *</label>
-          <input type="text" [(ngModel)]="formNombre" placeholder="Nombre de la categoría" />
+          <input type="text" [(ngModel)]="formNombre" placeholder="Nombre de la categoría" enterFocusNext />
         </div>
         <div class="form-group">
           <label>Descripción</label>
-          <textarea [(ngModel)]="formDescripcion" placeholder="Descripción (opcional)"></textarea>
+          <textarea [(ngModel)]="formDescripcion" placeholder="Descripción (opcional)" enterFocusNext></textarea>
           <div class="form-hint">Breve descripción de la categoría</div>
         </div>
         <div class="form-group">
           <label>Imagen URL</label>
-          <input type="text" [(ngModel)]="formImagen" placeholder="URL de la imagen (opcional)" />
+          <input type="text" [(ngModel)]="formImagen" placeholder="URL de la imagen (opcional)" enterFocusNext />
           <div class="form-hint">Enlace a la imagen de la categoría</div>
           @if (formImagen && !imagenError()) {
             <div class="imagen-preview">
@@ -76,7 +76,7 @@
         </div>
         <div class="form-group">
           <label>Orden</label>
-          <input type="number" [(ngModel)]="formOrden" placeholder="0" />
+          <input type="number" [(ngModel)]="formOrden" placeholder="0" enterFocusNext />
           <div class="form-hint">Orden de visualización (menor aparece primero)</div>
         </div>
       </div>

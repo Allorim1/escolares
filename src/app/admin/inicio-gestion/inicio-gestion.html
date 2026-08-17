@@ -142,11 +142,11 @@
       <form (ngSubmit)="saveBanner()">
         <div class="form-group">
           <label>Título</label>
-          <input type="text" [(ngModel)]="editingBanner()!.title" name="title" />
+          <input type="text" [(ngModel)]="editingBanner()!.title" name="title" enterFocusNext />
         </div>
         <div class="form-group">
           <label>Subtítulo</label>
-          <input type="text" [(ngModel)]="editingBanner()!.subtitle" name="subtitle" />
+          <input type="text" [(ngModel)]="editingBanner()!.subtitle" name="subtitle" enterFocusNext />
         </div>
         <div class="form-group">
           <label>Imagen</label>
@@ -157,11 +157,11 @@
         </div>
         <div class="form-group">
           <label>Enlace (URL)</label>
-          <input type="text" [(ngModel)]="editingBanner()!.link" name="link" placeholder="/products" />
+          <input type="text" [(ngModel)]="editingBanner()!.link" name="link" placeholder="/products" enterFocusNext />
         </div>
         <div class="form-group">
           <label>Orden</label>
-          <input type="number" [(ngModel)]="editingBanner()!.order" name="order" />
+          <input type="number" [(ngModel)]="editingBanner()!.order" name="order" enterFocusNext />
         </div>
         <div class="form-group">
           <label class="checkbox-label">
@@ -203,15 +203,15 @@
         </div>
         <div class="form-group">
           <label>Título</label>
-          <input type="text" [(ngModel)]="editingFeature()!.title" name="title" required />
+          <input type="text" [(ngModel)]="editingFeature()!.title" name="title" required enterFocusNext />
         </div>
         <div class="form-group">
           <label>Descripción</label>
-          <textarea [(ngModel)]="editingFeature()!.description" name="description" rows="2"></textarea>
+          <textarea [(ngModel)]="editingFeature()!.description" name="description" rows="2" enterFocusNext></textarea>
         </div>
         <div class="form-group">
           <label>Orden</label>
-          <input type="number" [(ngModel)]="editingFeature()!.order" name="order" />
+          <input type="number" [(ngModel)]="editingFeature()!.order" name="order" enterFocusNext />
         </div>
         <div class="form-group">
           <label class="checkbox-label">

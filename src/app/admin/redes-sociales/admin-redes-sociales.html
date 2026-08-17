@@ -28,7 +28,7 @@
       <div class="form-row">
         <div class="form-group">
           <label for="plataforma">Plataforma</label>
-          <select id="plataforma" [ngModel]="nuevaRedPlataforma()" (ngModelChange)="nuevaRedPlataforma.set($event)">
+          <select id="plataforma" [ngModel]="nuevaRedPlataforma()" (ngModelChange)="nuevaRedPlataforma.set($event)" enterFocusNext>
             <option value="">Selecciona una plataforma</option>
             <option value="TikTok">TikTok</option>
             <option value="Instagram">Instagram</option>
@@ -39,7 +39,7 @@
         </div>
         <div class="form-group">
           <label for="usuario">Usuario / Página</label>
-          <input id="usuario" type="text" [ngModel]="nuevaRedUsuario()" (ngModelChange)="nuevaRedUsuario.set($event)" [placeholder]="nuevaRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'">
+          <input id="usuario" type="text" [ngModel]="nuevaRedUsuario()" (ngModelChange)="nuevaRedUsuario.set($event)" [placeholder]="nuevaRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'" enterFocusNext>
           @if (nuevaRedPlataforma() === 'Instagram') {
             <div class="help-text">
               <small>
@@ -51,7 +51,7 @@
         </div>
         <div class="form-group">
           <label for="token">Token / Clave API</label>
-          <input id="token" type="password" [ngModel]="nuevaRedToken()" (ngModelChange)="nuevaRedToken.set($event)" placeholder="Token de acceso">
+          <input id="token" type="password" [ngModel]="nuevaRedToken()" (ngModelChange)="nuevaRedToken.set($event)" placeholder="Token de acceso" enterFocusNext>
           @if (nuevaRedPlataforma() === 'WhatsApp') {
             <div class="help-text">
               <small>
@@ -129,7 +129,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="edit-plataforma">Plataforma</label>
-                <select id="edit-plataforma" [ngModel]="editRedPlataforma()" (ngModelChange)="editRedPlataforma.set($event)">
+                  <select id="edit-plataforma" [ngModel]="editRedPlataforma()" (ngModelChange)="editRedPlataforma.set($event)" enterFocusNext>
                   <option value="TikTok">TikTok</option>
                   <option value="Instagram">Instagram</option>
                   <option value="Telegram">Telegram</option>
@@ -141,13 +141,13 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="edit-usuario">Usuario / Página</label>
-                <input id="edit-usuario" type="text" [ngModel]="editRedUsuario()" (ngModelChange)="editRedUsuario.set($event)" [placeholder]="editRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'">
+                  <input id="edit-usuario" type="text" [ngModel]="editRedUsuario()" (ngModelChange)="editRedUsuario.set($event)" [placeholder]="editRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'" enterFocusNext>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="edit-token">Token / Clave API</label>
-                <input id="edit-token" type="password" [ngModel]="editRedToken()" (ngModelChange)="editRedToken.set($event)" placeholder="Token de acceso">
+                  <input id="edit-token" type="password" [ngModel]="editRedToken()" (ngModelChange)="editRedToken.set($event)" placeholder="Token de acceso" enterFocusNext>
               </div>
             </div>
             <div class="form-row">
@@ -392,11 +392,11 @@
       <div class="form-row">
         <div class="form-group">
           <label for="palabraClave">Palabra clave</label>
-          <input id="palabraClave" type="text" [ngModel]="nuevaRespuestaPalabraClave()" (ngModelChange)="nuevaRespuestaPalabraClave.set($event)" placeholder="Ej: hola">
+          <input id="palabraClave" type="text" [ngModel]="nuevaRespuestaPalabraClave()" (ngModelChange)="nuevaRespuestaPalabraClave.set($event)" placeholder="Ej: hola" enterFocusNext>
         </div>
         <div class="form-group">
           <label for="respuesta">Respuesta</label>
-          <input id="respuesta" type="text" [ngModel]="nuevaRespuestaRespuesta()" (ngModelChange)="nuevaRespuestaRespuesta.set($event)" placeholder="Ej: ¡Hola! ¿En qué puedo ayudarte?">
+          <input id="respuesta" type="text" [ngModel]="nuevaRespuestaRespuesta()" (ngModelChange)="nuevaRespuestaRespuesta.set($event)" placeholder="Ej: ¡Hola! ¿En qué puedo ayudarte?" enterFocusNext>
         </div>
         <div class="form-group">
           <button (click)="agregarRespuesta()" class="btn btn-primary">Agregar</button>
@@ -452,7 +452,7 @@
       <div class="form-row">
         <div class="form-group">
           <label for="tipo">Tipo de evento</label>
-          <select id="tipo" [ngModel]="nuevaNotificacionTipo()" (ngModelChange)="nuevaNotificacionTipo.set($event)">
+          <select id="tipo" [ngModel]="nuevaNotificacionTipo()" (ngModelChange)="nuevaNotificacionTipo.set($event)" enterFocusNext>
             <option value="">Selecciona un tipo</option>
             <option value="nuevo_seguidor">Nuevo seguidor</option>
             <option value="nuevo_mensaje">Nuevo mensaje</option>
@@ -462,7 +462,7 @@
         </div>
         <div class="form-group">
           <label for="canal">Canal</label>
-          <select id="canal" [ngModel]="nuevaNotificacionCanal()" (ngModelChange)="nuevaNotificacionCanal.set($event)">
+          <select id="canal" [ngModel]="nuevaNotificacionCanal()" (ngModelChange)="nuevaNotificacionCanal.set($event)" enterFocusNext>
             <option value="">Selecciona un canal</option>
             <option value="email">Email</option>
             <option value="telegram">Telegram</option>

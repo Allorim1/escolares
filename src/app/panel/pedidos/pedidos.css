@@ -547,3 +547,240 @@
 [data-theme="dark"] .order-id .label {
   color: var(--text-secondary) !important;
 }
+
+/* Mensajes del pedido */
+.btn-mensajes {
+  padding: 0.6rem 1.2rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+.btn-mensajes:hover {
+  background: #218838;
+}
+
+.messages-modal-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.messages-modal {
+  width: 100%;
+  max-width: 600px;
+  height: 80vh;
+  max-height: 700px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.messages-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #f8f9fa;
+}
+
+.messages-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.messages-empty {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.messages-empty .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.messages-empty p {
+  color: #666;
+  margin: 0.5rem 0;
+}
+
+.messages-empty .empty-hint {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.message-item {
+  max-width: 75%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  align-self: flex-start;
+}
+
+.message-item.own-message {
+  background: #007bff;
+  color: white;
+  align-self: flex-end;
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.message-author {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.message-role {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.own-message .message-role {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.message-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-left: auto;
+}
+
+.message-content {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.messages-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem;
+  background: white;
+  border-radius: 0 0 12px 12px;
+}
+
+.message-input-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.message-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.message-input:focus {
+  border-color: #007bff;
+}
+
+.btn-send-message {
+  padding: 0.75rem 1.5rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-send-message:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.btn-send-message:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .messages-modal {
+  background: var(--card-bg);
+}
+
+[data-theme="dark"] .messages-body {
+  background: var(--bg-color);
+}
+
+[data-theme="dark"] .message-item {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .message-item.own-message {
+  background: #007bff;
+  color: white;
+}
+
+[data-theme="dark"] .message-role {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+.unread-messages-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: #dc3545;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  animation: pulse 2s infinite;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.unread-text {
+  font-size: 0.8rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}

@@ -98,17 +98,17 @@
         <div class="form-row">
           <div class="form-group">
             <label>Nombre *</label>
-            <input type="text" [(ngModel)]="editingGasto!.nombre" name="nombre" required>
+            <input type="text" [(ngModel)]="editingGasto!.nombre" name="nombre" required enterFocusNext>
           </div>
           <div class="form-group">
             <label>Monto *</label>
-            <input type="number" [(ngModel)]="editingGasto!.monto" name="monto" step="0.01" min="0" required>
+            <input type="number" [(ngModel)]="editingGasto!.monto" name="monto" step="0.01" min="0" required enterFocusNext>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Frecuencia *</label>
-            <select [(ngModel)]="editingGasto!.frecuencia" name="frecuencia" required>
+            <select [(ngModel)]="editingGasto!.frecuencia" name="frecuencia" required enterFocusNext>
               <option value="semanal">Semanal</option>
               <option value="quincenal">Quincenal</option>
               <option value="mensual">Mensual</option>
@@ -117,23 +117,23 @@
           </div>
           <div class="form-group">
             <label>Categoría</label>
-            <input type="text" [(ngModel)]="editingGasto!.categoria" name="categoria" placeholder="Ej: Servicios, Alquiler">
+            <input type="text" [(ngModel)]="editingGasto!.categoria" name="categoria" placeholder="Ej: Servicios, Alquiler" enterFocusNext>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Fecha Inicio *</label>
-            <input type="date" [(ngModel)]="editingGasto!.fechaInicio" name="fechaInicio" required>
+            <input type="date" [(ngModel)]="editingGasto!.fechaInicio" name="fechaInicio" required enterFocusNext>
           </div>
           <div class="form-group">
             <label>Próximo Pago</label>
-            <input type="date" [(ngModel)]="editingGasto!.fechaProximoPago" name="fechaProximoPago">
+            <input type="date" [(ngModel)]="editingGasto!.fechaProximoPago" name="fechaProximoPago" enterFocusNext>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Descripción</label>
-            <textarea [(ngModel)]="editingGasto!.descripcion" name="descripcion" rows="3" placeholder="Detalles adicionales..."></textarea>
+            <textarea [(ngModel)]="editingGasto!.descripcion" name="descripcion" rows="3" placeholder="Detalles adicionales..." enterFocusNext></textarea>
           </div>
         </div>
         <div class="modal-actions">

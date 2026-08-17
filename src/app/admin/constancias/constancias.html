@@ -1,0 +1,243 @@
+<div class="constancias-container">
+  <h1>Generación de Constancias y Recibos</h1>
+  <p class="subtitle">Seleccione el tipo de documento a generar</p>
+
+  <div class="tipo-selector">
+    @for (tipo of tiposConstancia; track tipo.value) {
+      <button 
+        class="tipo-card" 
+        [class.active]="tipoSeleccionado() === tipo.value"
+        (click)="seleccionarTipo(tipo.value)">
+        <span class="tipo-icon">{{ tipo.icon }}</span>
+        <span class="tipo-label">{{ tipo.label }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="form-card">
+    @if (tipoSeleccionado() === 'trabajo') {
+      <div class="constancia-form">
+        <h2>Constancia de Trabajo</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre Completo *</label>
+            <input type="text" [(ngModel)]="trabajo().nombreCompleto" placeholder="Nombre completo del empleado" enterFocusNext />
+          </div>
+          <div class="form-group">
+            <label>Cédula de Identidad *</label>
+            <input type="text" [(ngModel)]="trabajo().cedula" placeholder="V-12345678" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cargo *</label>
+            <input type="text" [(ngModel)]="trabajo().cargo" placeholder="Cargo del empleado" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha de Ingreso</label>
+            <input type="date" [(ngModel)]="trabajo().fechaIngreso" enterFocusNext />
+          </div>
+          <div class="form-group">
+            <label>Fecha de Emisión</label>
+            <input type="date" [(ngModel)]="trabajo().fechaEmision" enterFocusNext />
+          </div>
+        </div>
+        @if (!trabajo().esEgresado) {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Sueldo Mensual</label>
+              <input type="text" [(ngModel)]="trabajo().sueldoMensual" placeholder="0.00" enterFocusNext />
+            </div>
+            <div class="form-group">
+              <label>Moneda</label>
+              <select [(ngModel)]="trabajo().monedaSueldo" enterFocusNext>
+                <option value="Bs.">Bs.</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+          </div>
+        }
+        <div class="form-row">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;color:#333;font-size:14px;">
+            <input type="checkbox" [(ngModel)]="trabajo().esEgresado" enterFocusNext />
+            Es egresado
+          </label>
+        </div>
+        @if (trabajo().esEgresado) {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha de Egreso *</label>
+              <input type="date" [(ngModel)]="trabajo().fechaEgreso" enterFocusNext />
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (tipoSeleccionado() === 'comercial') {
+      <div class="constancia-form">
+        <h2>Constancia Comercial</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Señores / Destinatario *</label>
+            <input type="text" [(ngModel)]="comercial().destino" placeholder="Nombre del destinatario o empresa" enterFocusNext />
+          </div>
+          <div class="form-group">
+            <label>Titular *</label>
+            <input type="text" [(ngModel)]="comercial().titular" placeholder="Nombre del titular de la relación comercial" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cédula de Identidad *</label>
+            <input type="text" [(ngModel)]="comercial().cedula" placeholder="V-12345678" enterFocusNext />
+          </div>
+          <div class="form-group">
+            <label>Relación Comercial Desde *</label>
+            <input type="date" [(ngModel)]="comercial().desdeFecha" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Días de Crédito *</label>
+            <input type="text" [(ngModel)]="comercial().diasCredito" placeholder="Ej: 30" enterFocusNext />
+          </div>
+          <div class="form-group">
+            <label>Promedio / Cifras *</label>
+            <input type="text" [(ngModel)]="comercial().cifras" placeholder="Ej: 6" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de Cifras *</label>
+            <select [(ngModel)]="comercial().tipoCifras" enterFocusNext>
+              <option value="Bajas">Bajas</option>
+              <option value="Medias">Medias</option>
+              <option value="Altas">Altas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha de Emisión *</label>
+            <input type="date" [(ngModel)]="comercial().fecha" enterFocusNext />
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (tipoSeleccionado() === 'personal') {
+      <div class="constancia-form">
+        <h2>Constancia Personal</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>De (quien firma) *</label>
+            <input type="text" [(ngModel)]="personal().de" placeholder="Nombre completo de quien firma" enterFocusNext />
+          </div>
+          <div class="form-group">
+            <label>Cédula de Identidad (De) *</label>
+            <input type="text" [(ngModel)]="personal().cedulaDe" placeholder="V-12345678" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dirección (De)</label>
+            <input type="text" [(ngModel)]="personal().direccion" placeholder="Dirección de residencia" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>A Quien *</label>
+            <input type="text" [(ngModel)]="personal().aQuien" placeholder="Nombre completo de la persona de la que se consta" enterFocusNext />
+          </div>
+          <div class="form-group">
+            <label>Cédula de Identidad (A Quien) *</label>
+            <input type="text" [(ngModel)]="personal().cedulaAQuien" placeholder="V-12345678" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Desde Cuándo Lo Conoce *</label>
+            <input type="date" [(ngModel)]="personal().desde" enterFocusNext />
+          </div>
+          <div class="form-group">
+            <label>Teléfono de Contacto</label>
+            <input type="text" [(ngModel)]="personal().telefono" placeholder="Ej: 0414-1234567" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha de Emisión</label>
+            <input type="date" [(ngModel)]="personal().fechaEmision" enterFocusNext />
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (tipoSeleccionado() === 'recibo-pago') {
+      <div class="constancia-form">
+        <h2>Recibo de Pago</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo *</label>
+            <select [(ngModel)]="reciboPago().tipo" enterFocusNext>
+              <option value="Personal">Personal</option>
+              <option value="Juridica">Jurídica</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha de Pago</label>
+            <input type="date" [(ngModel)]="reciboPago().fechaPago" enterFocusNext />
+          </div>
+        </div>
+        @if (reciboPago().tipo === 'Personal') {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre del Pagador *</label>
+              <input type="text" [(ngModel)]="reciboPago().nombrePagador" placeholder="Nombre completo" enterFocusNext />
+            </div>
+            <div class="form-group">
+              <label>Cédula de Identidad *</label>
+              <input type="text" [(ngModel)]="reciboPago().cedula" placeholder="V-12345678" enterFocusNext />
+            </div>
+          </div>
+        }
+        @if (reciboPago().tipo === 'Juridica') {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cédula de Identidad *</label>
+              <input type="text" [(ngModel)]="reciboPago().cedula" placeholder="V-12345678" enterFocusNext />
+            </div>
+          </div>
+        }
+        <div class="form-row">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Concepto *</label>
+            <textarea [(ngModel)]="reciboPago().concepto" rows="2" placeholder="Concepto del pago" enterFocusNext></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Monto *</label>
+            <input type="text" [(ngModel)]="reciboPago().monto" placeholder="0.00" enterFocusNext />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pagado *</label>
+            <input type="text" [(ngModel)]="reciboPago().pagado" placeholder="Nombre de a quien le pagan" enterFocusNext />
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="actions-bar">
+    <button class="btn-primary" (click)="generarPdf()" [disabled]="generandoPdf()">
+      {{ generandoPdf() ? 'Generando...' : '📄 Generar y Descargar PDF' }}
+    </button>
+    <button class="btn-secondary" (click)="limpiarFormulario()">
+      🧹 Limpiar Formulario
+    </button>
+  </div>
+</div>

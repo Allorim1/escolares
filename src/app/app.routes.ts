@@ -256,19 +256,27 @@ export const routes: Routes = [
                 path: 'clientes/:id',
                 loadComponent: () => import('./admin/clientes/clientes-detalle').then((m) => m.ClientesDetalle),
               },
-             {
-                path: 'relacion-cuentas',
-                loadComponent: () => import('./admin/relacion-cuentas/relacion-cuentas').then((m) => m.RelacionCuentas),
-             },
+               {
+                 path: 'relacion-cuentas',
+                 loadComponent: () => import('./admin/relacion-cuentas/relacion-cuentas').then((m) => m.RelacionCuentas),
+               },
+               {
+                 path: 'relacion-libros',
+                 loadComponent: () => import('./admin/relacion-libros/relacion-libros').then((m) => m.RelacionLibros),
+               },
              {
                path: 'sesiones',
                loadComponent: () => import('./admin/sesiones/admin-sesiones').then((m) => m.AdminSesiones),
              },
-             {
-               path: 'estadisticas',
-               loadComponent: () => import('./admin/estadisticas/estadisticas').then((m) => m.Estadisticas),
-             },
-            ],
+            {
+              path: 'estadisticas',
+              loadComponent: () => import('./admin/estadisticas/estadisticas').then((m) => m.Estadisticas),
+            },
+            {
+              path: 'constancias',
+              loadComponent: () => import('./admin/constancias/constancias').then((m) => m.Constancias),
+            },
+             ],
         },
       {
         path: 'repartidor',

@@ -4,7 +4,8 @@ import { AuthService } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { OrdersBackend, Order } from '../../backend/data-access/orders.backend';
+import { io, Socket } from 'socket.io-client';
+import { OrdersBackend, Order, OrderMessage } from '../../backend/data-access/orders.backend';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
 
 interface DeliveryPerson {
@@ -54,11 +55,13 @@ interface CompraNotificacion {
 export class AdminPedidos implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private notificationService = inject(NotificationService);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
   private mapsService = inject(GoogleMapsService);
   private intervalId: any;
-  private socket: WebSocket | null = null;
+  private socket: Socket | null = null;
+  private socketSetupDone = false;
+  private currentMessagesRoomId: string | null = null;
 
   orders = signal<Order[]>([]);
   loading = signal(true);
@@ -107,6 +110,14 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   // Modal de mapa del pedido
   openOrderMapModal = signal<{ lat: number; lng: number; repartidorLat?: number; repartidorLng?: number } | null>(null);
+
+  // Mensajería del pedido
+  showMessagesModal = signal(false);
+  messages = signal<OrderMessage[]>([]);
+  newMessage = signal('');
+  isLoadingMessages = signal(false);
+  isSendingMessage = signal(false);
+  messagesError = signal('');
 
   statusOptions = [
     { value: 'todos', label: 'Todos' },
@@ -170,41 +181,49 @@ private tienePermisosAdmin(user: any): boolean {
   }
 
   private conectarSocket() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const socketUrl = `${protocol}//${host}`;
+    const socketUrl = window.location.origin;
     
     try {
-      this.socket = new WebSocket(socketUrl);
+      this.socket = io(socketUrl, { transports: ['websocket'] });
       
-      this.socket.onopen = () => {
-        console.log('WebSocket conectado');
-      };
-      
-this.socket.onmessage = (event) => {
-         try {
-           const data = JSON.parse(event.data);
-           if (data.tipo === 'compra') {
-             this.mostrarNotificacionCompra(data);
-           } else if (data.tipo === 'actualizacion_pedido') {
-             this.loadOrders();
-           } else if (data.tipo === 'ubicacion_repartidor') {
-             this.handleDeliveryLocationUpdate(data);
-           }
-         } catch (error) {
-           console.error('Error procesando mensaje del socket:', error);
-         }
-       };
-      
-      this.socket.onclose = () => {
-        console.log('WebSocket desconectado');
-        // Reconectar después de 3 segundos
-        setTimeout(() => this.conectarSocket(), 3000);
-      };
-      
-      this.socket.onerror = (error) => {
-        console.error('Error en WebSocket:', error);
-      };
+      if (!this.socketSetupDone) {
+        this.socketSetupDone = true;
+        
+        this.socket.on('connect', () => {
+          console.log('WebSocket conectado');
+          const userId = this.authService.user()?.id;
+          if (userId) {
+            this.socket?.emit('join-orders-room', userId);
+          }
+          if (this.currentMessagesRoomId) {
+            this.socket?.emit('join-order-messages-room', this.currentMessagesRoomId);
+          }
+        });
+        
+        this.socket.on('notificacion-compra', (data: CompraNotificacion) => {
+          this.mostrarNotificacionCompra(data);
+        });
+        
+        this.socket.on('actualizacion_pedido', () => {
+          this.loadOrders();
+        });
+        
+        this.socket.on('ubicacion_repartidor', (data: { deliveryPersonId: string; lat: number; lng: number }) => {
+          this.handleDeliveryLocationUpdate(data);
+        });
+        
+        this.socket.on('nuevo-mensaje-pedido', (data: any) => {
+          this.handleNewOrderMessage(data);
+        });
+        
+        this.socket.on('disconnect', () => {
+          console.log('WebSocket desconectado');
+        });
+        
+        this.socket.on('connect_error', (error: any) => {
+          console.error('Error en WebSocket:', error);
+        });
+      }
     } catch (error) {
       console.error('Error al conectar WebSocket:', error);
     }
@@ -212,8 +231,10 @@ this.socket.onmessage = (event) => {
 
   private desconectarSocket() {
     if (this.socket) {
-      this.socket.close();
+      this.socket.disconnect();
       this.socket = null;
+      this.socketSetupDone = false;
+      this.currentMessagesRoomId = null;
     }
   }
 
@@ -230,26 +251,52 @@ private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
      this.loadOrders();
    }
 
-   private handleDeliveryLocationUpdate(data: { deliveryPersonId: string; lat: number; lng: number }) {
-     // Update the selected order's repartidorUbicacion if it matches
-     const currentOrder = this.selectedOrder();
-     if (currentOrder && currentOrder.deliveryPersonId === data.deliveryPersonId) {
-       const updatedOrder = {
-         ...currentOrder,
-         repartidorUbicacion: {
-           lat: data.lat,
-           lng: data.lng,
-           timestamp: new Date()
-         }
-       };
-       this.selectedOrder.set(updatedOrder);
-       
-       // Update map if it's open for this order
-       if (this.openOrderMapModal() && this.map) {
-         this.updateMapWithNewLocation(data.lat, data.lng);
-       }
-     }
-   }
+  private handleDeliveryLocationUpdate(data: { deliveryPersonId: string; lat: number; lng: number }) {
+      // Update the selected order's repartidorUbicacion if it matches
+      const currentOrder = this.selectedOrder();
+      if (currentOrder && currentOrder.deliveryPersonId === data.deliveryPersonId) {
+        const updatedOrder = {
+          ...currentOrder,
+          repartidorUbicacion: {
+            lat: data.lat,
+            lng: data.lng,
+            timestamp: new Date()
+          }
+        };
+        this.selectedOrder.set(updatedOrder);
+        
+        // Update map if it's open for this order
+        if (this.openOrderMapModal() && this.map) {
+          this.updateMapWithNewLocation(data.lat, data.lng);
+        }
+      }
+    }
+
+  private handleNewOrderMessage(data: any) {
+    const currentOrder = this.selectedOrder();
+    if (currentOrder && currentOrder.id === data.orderId) {
+      const currentMessages = this.messages();
+      if (!currentMessages.some(m => m._id === data._id)) {
+        this.messages.set([...currentMessages, data]);
+      }
+    }
+  }
+
+  private emitirMensajeOptimista(orderId: string, mensaje: string) {
+    const user = this.authService.user();
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: OrderMessage = {
+      _id: tempId,
+      orderId,
+      emisorId: user?.id || '',
+      emisorNombre: user?.nombreCompleto || user?.username || 'Tú',
+      emisorRol: user?.rol || 'admin',
+      mensaje,
+      leido: false,
+      fecha: new Date(),
+    };
+    this.messages.set([...this.messages(), optimisticMessage]);
+  }
 
 private async updateMapWithNewLocation(lat: number, lng: number) {
      if (!this.map || !this.orderMapContainer?.nativeElement) return;
@@ -818,88 +865,188 @@ closeDeliveryPersonModal() {
     }, 150);
   }
 
-private async initOrderMap(coords: { lat: number; lng: number; repartidorLat?: number; repartidorLng?: number }) {
-     if (!this.orderMapContainer?.nativeElement) return;
-     
-     try {
-       await this.mapsService.loadApi();
-       
-       const clientePosition = { lat: coords.lat, lng: coords.lng };
-       
-       if (!this.map) {
-         // Initialize map centered on repartidor if available, otherwise client
-         const initialCenter = coords.repartidorLat && coords.repartidorLng 
-           ? { lat: coords.repartidorLat, lng: coords.repartidorLng }
-           : clientePosition;
-           
-         this.map = this.mapsService.createMap(this.orderMapContainer.nativeElement, {
-           center: initialCenter,
-           zoom: 12,
-         });
-         this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
-           map: this.map,
-           suppressMarkers: false,
-         });
-       }
-       
-       // Si hay ubicación del repartidor, calcular ruta
-       if (coords.repartidorLat && coords.repartidorLng) {
-         const repartidorPosition = { lat: coords.repartidorLat, lng: coords.repartidorLng };
-         
-         // Limpiar marcadores anteriores
-         if (this.repartidorMarker) {
-           const m = this.repartidorMarker as any;
-           if (m.setMap) {
-             m.setMap(null);
-           }
-         }
-         
-         // Crear marcador del repartidor
-         this.repartidorMarker = this.mapsService.createMarker({
-           position: repartidorPosition,
-           map: this.map,
-           title: 'Repartidor',
-         });
-         
-         // Calcular y mostrar ruta
-         this.directionsRenderer?.setMap(null);
-         this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
-           map: this.map,
-           suppressMarkers: false,
-           polylineOptions: {
-             strokeColor: '#4285F4',
-             strokeWeight: 5,
-           },
-         });
-         
-         const directionsService = this.mapsService.createDirectionsService();
-         directionsService.route(
-           {
-             origin: repartidorPosition,
-             destination: clientePosition,
-             travelMode: (window as any).google.maps.TravelMode.DRIVING,
-           },
-           (result: any, status: any) => {
-             if (status === 'OK' && result) {
-               this.directionsRenderer?.setDirections(result);
-               
-               // Ajustar vista del mapa para mostrar ambas ubicaciones con padding
-               const bounds = this.mapsService.createLatLngBounds();
-               bounds.extend(repartidorPosition);
-               bounds.extend(clientePosition);
-               (this.map as any)?.fitBounds(bounds, 50);
-             }
-           }
-         );
-       } else {
-         // Solo mostrar ubicación del cliente
-         this.directionsRenderer?.setMap(null);
-         (this.map as any)?.setCenter(clientePosition);
-         (this.map as any)?.setZoom(16);
-       }
-     } catch (error) {
-       console.error('Error loading map:', error);
-       this.notificationService.error('Error', 'No se pudo cargar el mapa');
-     }
-   }
+  private async initOrderMap(coords: { lat: number; lng: number; repartidorLat?: number; repartidorLng?: number }) {
+      if (!this.orderMapContainer?.nativeElement) return;
+      
+      try {
+        await this.mapsService.loadApi();
+        
+        const clientePosition = { lat: coords.lat, lng: coords.lng };
+        
+        if (!this.map) {
+          // Initialize map centered on repartidor if available, otherwise client
+          const initialCenter = coords.repartidorLat && coords.repartidorLng 
+            ? { lat: coords.repartidorLat, lng: coords.repartidorLng }
+            : clientePosition;
+            
+          this.map = this.mapsService.createMap(this.orderMapContainer.nativeElement, {
+            center: initialCenter,
+            zoom: 12,
+          });
+          this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+            map: this.map,
+            suppressMarkers: false,
+          });
+        }
+        
+        // Si hay ubicación del repartidor, calcular ruta
+        if (coords.repartidorLat && coords.repartidorLng) {
+          const repartidorPosition = { lat: coords.repartidorLat, lng: coords.repartidorLng };
+          
+          // Limpiar marcadores anteriores
+          if (this.repartidorMarker) {
+            const m = this.repartidorMarker as any;
+            if (m.setMap) {
+              m.setMap(null);
+            }
+          }
+          
+          // Crear marcador del repartidor
+          this.repartidorMarker = this.mapsService.createMarker({
+            position: repartidorPosition,
+            map: this.map,
+            title: 'Repartidor',
+          });
+          
+          // Calcular y mostrar ruta
+          this.directionsRenderer?.setMap(null);
+          this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+            map: this.map,
+            suppressMarkers: false,
+            polylineOptions: {
+              strokeColor: '#4285F4',
+              strokeWeight: 5,
+            },
+          });
+          
+          const directionsService = this.mapsService.createDirectionsService();
+          directionsService.route(
+            {
+              origin: repartidorPosition,
+              destination: clientePosition,
+              travelMode: (window as any).google.maps.TravelMode.DRIVING,
+            },
+            (result: any, status: any) => {
+              if (status === 'OK' && result) {
+                this.directionsRenderer?.setDirections(result);
+                
+                // Ajustar vista del mapa para mostrar ambas ubicaciones con padding
+                const bounds = this.mapsService.createLatLngBounds();
+                bounds.extend(repartidorPosition);
+                bounds.extend(clientePosition);
+                (this.map as any)?.fitBounds(bounds, 50);
+              }
+            }
+          );
+        } else {
+          // Solo mostrar ubicación del cliente
+          this.directionsRenderer?.setMap(null);
+          (this.map as any)?.setCenter(clientePosition);
+          (this.map as any)?.setZoom(16);
+        }
+      } catch (error) {
+        console.error('Error loading map:', error);
+        this.notificationService.error('Error', 'No se pudo cargar el mapa');
+      }
+    }
+
+  openMessagesModal() {
+    const order = this.selectedOrder();
+    if (!order) return;
+    this.currentMessagesRoomId = order.id;
+    this.showMessagesModal.set(true);
+    this.messagesError.set('');
+    this.newMessage.set('');
+    this.loadMessages(order.id);
+    
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('join-order-messages-room', order.id);
+    }
+  }
+
+  closeMessagesModal() {
+    const order = this.selectedOrder();
+    if (order && this.socket && this.socket.connected) {
+      this.socket.emit('leave-order-messages-room', order.id);
+    }
+    this.currentMessagesRoomId = null;
+    this.showMessagesModal.set(false);
+    this.messages.set([]);
+    this.newMessage.set('');
+    this.messagesError.set('');
+  }
+
+  loadMessages(orderId: string) {
+    this.isLoadingMessages.set(true);
+    this.messagesError.set('');
+    
+    this.http.get<any[]>(`/api/order-messages/order/${orderId}`).subscribe({
+      next: (messages) => {
+        const normalized = messages.map(m => ({ ...m, _id: typeof m._id === 'string' ? m._id : String(m._id || '') }));
+        this.messages.set(normalized);
+        this.isLoadingMessages.set(false);
+        
+        if (messages.length > 0) {
+          this.http.put(`/api/order-messages/order/${orderId}/leer`, {}).subscribe({
+            next: () => {},
+            error: (err) => console.error('Error marcando mensajes como leídos:', err)
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error cargando mensajes:', err);
+        this.isLoadingMessages.set(false);
+        this.messagesError.set(err.error?.error || 'Error al cargar mensajes');
+      }
+    });
+  }
+
+  sendMessage() {
+    const order = this.selectedOrder();
+    const message = this.newMessage().trim();
+    
+    if (!order || !message) return;
+    
+    this.isSendingMessage.set(true);
+    this.messagesError.set('');
+    
+    this.emitirMensajeOptimista(order.id, message);
+    this.newMessage.set('');
+    
+    this.http.post(`/api/order-messages/order/${order.id}`, { mensaje: message }).subscribe({
+      next: () => {
+        this.isSendingMessage.set(false);
+      },
+      error: (err) => {
+        console.error('Error enviando mensaje:', err);
+        this.isSendingMessage.set(false);
+        this.messagesError.set(err.error?.error || 'Error al enviar mensaje');
+      }
+    });
+  }
+
+  formatMessageTime(date: Date | string): string {
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    
+    return d.toLocaleDateString('es-VE', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  getUnreadMessagesCount(order: Order): number {
+    return order.mensajes?.filter(m => !m.leido && m.emisorId !== this.authService.user()?.id).length || 0;
+  }
  }

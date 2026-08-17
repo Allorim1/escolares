@@ -16,7 +16,7 @@ export class CotizacionService {
 
   loadCotizaciones() {
     this.http.get<Cotizacion[]>(this.API_URL).subscribe({
-      next: (data) => this.cotizaciones.set(data),
+      next: (data) => this.cotizaciones.set(data.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))),
       error: (err) => {
         console.error('Error cargando cotizaciones:', err);
         this.cotizaciones.set([]);

@@ -52,8 +52,9 @@ export class NoticiasService extends BaseHttpService {
     return new Observable(observer => {
       this.http.get<UserNotificacion[]>(`${this.apiUrl}/noticias/user-notifications`).subscribe({
         next: (notificaciones) => {
-          this.userNotificaciones.set(notificaciones);
-          observer.next(notificaciones);
+          const lista = Array.isArray(notificaciones) ? notificaciones : [];
+          this.userNotificaciones.set(lista);
+          observer.next(lista);
           observer.complete();
         },
         error: (err) => {

@@ -42,6 +42,18 @@ export interface Order {
   };
   createdAt: Date;
   updatedAt: Date;
+  mensajes?: OrderMessage[];
+}
+
+export interface OrderMessage {
+  _id?: string;
+  orderId: string;
+  emisorId: string;
+  emisorNombre: string;
+  emisorRol: string;
+  mensaje: string;
+  leido: boolean;
+  fecha: Date;
 }
 
 export type OrderStatus = 'confirmar' | 'pendiente' | 'procesando' | 'enviado' | 'entregado' | 'cancelado';

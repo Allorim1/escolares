@@ -1,15 +1,61 @@
 import { Injectable, inject } from '@angular/core';
 import { Cotizacion } from '../interfaces/cotizacion.interface';
 import { HttpClient } from '@angular/common/http';
+import { CurrencyService } from '../data-access/currency.service';
 
 // Declaración para window.pdfMake (cargado desde CDN en index.html)
 declare const pdfMake: any;
+
+export interface ConstanciaTrabajo {
+  nombreCompleto: string;
+  cedula: string;
+  cargo: string;
+  fechaIngreso: string;
+  fechaEmision: string;
+  sueldoMensual: string;
+  monedaSueldo: 'Bs.' | 'USD';
+  esEgresado: boolean;
+  fechaEgreso: string;
+}
+
+export interface ConstanciaComercial {
+  destino: string;
+  titular: string;
+  cedula: string;
+  desdeFecha: string;
+  diasCredito: string;
+  cifras: string;
+  tipoCifras: string;
+  fecha: string;
+}
+
+export interface ConstanciaPersonal {
+  de: string;
+  cedulaDe: string;
+  direccion: string;
+  aQuien: string;
+  cedulaAQuien: string;
+  desde: string;
+  telefono: string;
+  fechaEmision: string;
+}
+
+export interface ReciboPago {
+  nombrePagador: string;
+  cedula: string;
+  concepto: string;
+  monto: number;
+  fechaPago: string;
+  tipo: 'Personal' | 'Juridica';
+  pagado: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExportarPdfService {
   private http = inject(HttpClient);
+  private currencyService = inject(CurrencyService);
 
 
    formatFecha(fechaRaw: string | Date): string {
@@ -22,7 +68,13 @@ export class ExportarPdfService {
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
   }
 
-private cargarImagenLocal(url: string): Promise<string> {
+private formatearCedula(cedula: string): string {
+  if (!cedula) return '';
+  const digits = cedula.replace(/\D/g, '');
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+  private cargarImagenLocal(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
       fetch(url)
         .then(response => response.blob())
@@ -34,7 +86,37 @@ private cargarImagenLocal(url: string): Promise<string> {
         })
         .catch(() => reject('No se pudo cargar la imagen: ' + url));
     });
-  }
+}
+
+private rotarImagen90(imageBase64: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject('No se pudo obtener el contexto del canvas');
+        return;
+      }
+
+      const angleRad = (-10 * Math.PI) / 180;
+      const sin = Math.abs(Math.sin(angleRad));
+      const cos = Math.abs(Math.cos(angleRad));
+
+      // Recalcula el lienzo para no recortar las esquinas al rotar
+      canvas.width = img.width * cos + img.height * sin;
+      canvas.height = img.width * sin + img.height * cos;
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(angleRad);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => reject('Error cargando imagen para rotar');
+    img.src = imageBase64;
+  });
+}
 
 async generarCotizacionPdf(data: Cotizacion) {
     let logoBase64 = '';
@@ -73,6 +155,7 @@ async generarCotizacionPdf(data: Cotizacion) {
                 { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno\n', style: 'datosEmpresa' },
                 { text: 'Telf. 0241-8580281 WhatsApp. 04144329235\n', style: 'datosEmpresa' },
                 { text: 'Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+                { text: 'R.I.F.: J-30488367-6\n',  style: 'datosEmpresa'  },
                 { text: 'www.escolaresonline.com', style: 'webSite' }
               ],
               width: '48%',
@@ -104,9 +187,9 @@ async generarCotizacionPdf(data: Cotizacion) {
                 // Al ser una celda de la misma fila, se estira automáticamente a la altura de la derecha.
                 {
                   stack: [
-                    { text: 'CLIENTE:', style: 'labelCliente', bold: true },
-                    { text: data.cliente.nombre, style: 'valorCliente', margin: [0, 2, 0, 4] },
-                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente' }
+                    { text: 'CLIENTE:', style: 'labelCliente', bold: true, margin: [2, 2, 0, 0] },
+                    { text: data.cliente.nombre, style: 'valorCliente', margin: [2, 4, 0, 4] },
+                    { text: data.cliente.direccion ? `Dirección: ${data.cliente.direccion}` : ' ', style: 'campoCliente', margin: [2, 2, 0, 0] }
                   ],
                   // Usamos un margen interno inferior alto (margin: [left, top, right, bottom])
                   // para "empujar" los bordes de la celda y dejar el espacio para el RIF abajo
@@ -138,7 +221,7 @@ async generarCotizacionPdf(data: Cotizacion) {
                           [{ text: 'VALIDEZ', style: 'thControl'}, { text: 'Zona No.', style: 'thControl'}, { text: 'VENDEDOR', style: 'thControl' }],
                           [
                             { text: `${data.referencia.validezDias} dias`, style: 'tdControl'},
-                            { text: data.referencia.numeroReferencia || '', style: 'tdControl' },
+                            { text: data.referencia.nroZona || '', style: 'tdControl' },
                             { text: data.referencia.vendedor || '', style: 'tdControl' }
                           ]
                         ]
@@ -156,7 +239,7 @@ async generarCotizacionPdf(data: Cotizacion) {
                 {
                   // Esta celda se dibuja justo debajo del cuadro del cliente compartiendo paredes
                   columns: [
-                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto' },
+                    { text: `RIF: ${data.cliente.rif}`, style: 'campoCliente', width: 'auto', margin: [2, 0, 0, 2] },
                     { text: data.cliente.telefono ? `Teléfono: ${data.cliente.telefono}` : '', style: 'campoCliente', alignment: 'right', width: '*' }
                   ],
                   margin: [0, -12, 0, 0], // Sube el texto ligeramente para que quede adentro del cuadro visual del cliente
@@ -268,7 +351,7 @@ async generarCotizacionPdf(data: Cotizacion) {
         {
           margin: [0, 60, 0, 0], // Reducido de 40 a 20 para ahorrar mucho espacio vertical
           columns: [
-            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${data.referencia.numeroReferencia}`, fontSize: 7.5}]},
+            { width: '50%', text: [{ text: 'OBSERVACIONES: ', bold: true, fontSize: 7.5}, { text: `EL TOTAL DE LA COTIZACIÓN SE REGIRA POR LA REFERENCIA ESTABLECIDA NRO: ${this.currencyService.currentTasa() > 0 ? (data.totales.totalBs / this.currencyService.currentTasa()).toFixed(2) : '0.00'}`, fontSize: 7.5}]},
             { width: '25%', text: '_______________________\nELABORADO POR', alignment: 'center', style: 'firma', margin: [0, 0, 0, 2] },
             { width: '25%', text: '_______________________\nRECIBIDO POR\nFIRMA Y SELLO', alignment: 'center', style: 'firma', bold: true }
           ]
@@ -352,4 +435,669 @@ tablaComercial: {
       console.error('Error generando PDF:', error);
     }
   }
+
+   descargarPdf(docDefinition: any, fileName: string) {
+    pdfMake.createPdf(docDefinition).download(fileName);
+  }
+
+   async generarConstanciaTrabajoPdf(data: ConstanciaTrabajo) {
+    let logoBase64 = '';
+    let logoMarcaAgua = '';
+    try {
+      const logoOriginal = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+      logoBase64 = logoOriginal;
+      try {
+        logoMarcaAgua = await this.rotarImagen90(logoOriginal);
+      } catch (e) {
+        console.warn('No se pudo generar la marca de agua:', e);
+      }
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+      const cedula = this.formatearCedula(data.cedula);
+      const cargo = data.cargo || '';
+      const fechaIngreso = this.formatFecha(data.fechaIngreso);
+      const sueldo = data.sueldoMensual || '';
+      const monedaSueldo = data.monedaSueldo || 'Bs.';
+      const esEgresado = !!data.esEgresado;
+      const fechaEgreso = data.fechaEgreso ? this.formatFecha(data.fechaEgreso) : '';
+
+      const sueldoNumero = parseFloat(sueldo) || 0;
+      const sueldoTexto = this.numeroATexto(Math.floor(sueldoNumero));
+      const monedaTexto = monedaSueldo === 'USD' ? 'dólares' : 'bolívares';
+      const sueldoFormateado = monedaSueldo === 'USD'
+        ? `${sueldoNumero.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}$`
+        : `${monedaSueldo} ${sueldoNumero.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      let cuerpo = '';
+      if (esEgresado) {
+        cuerpo = `Por medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, prestó sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso} hasta el ${fechaEgreso}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+      } else {
+        cuerpo = `Por medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, presta sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso}, devengando un sueldo mensual de ${sueldoTexto} ${monedaTexto} (${sueldoFormateado}), demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+      }
+
+     const fechaLarga = this.formatearFechaComercial(data.fechaEmision);
+         const background: any = logoMarcaAgua ? {
+      image: logoMarcaAgua,
+      width: 400,
+      opacity: 0.08,
+      absolutePosition: { x: 97.64, y: 240 }
+    } : undefined;
+
+     const docDefinition: any = {
+       content: [
+         {
+           columns: [
+             {
+               width: '28%',
+               stack: [
+                 ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+               ]
+             },
+           ]
+         },
+         { text: '', margin: [0, 20] },
+         {
+          text: 'A QUIEN PUEDA INTERESAR',
+          style: 'textoNormal',
+          alignment: 'center',
+          margin: [0, 0, 0, 30],
+          bold: true
+         },
+         {
+           text: cuerpo,
+           style: 'textoNormal',
+           alignment: 'justify',
+           margin: [0, 0, 0, 30]
+         },
+         background,
+         {
+           text: `Constancia que se expide a petición de la parte interesada en la ciudad de Valencia a ${fechaLarga}.`,
+           style: 'textoNormal',
+           alignment: 'justify',
+           margin: [0, 0, 0, 50]
+         },
+         {
+          columns: [
+            { width: '*', text: '' },
+            {
+              width: '50%',
+              stack: [
+                { text: 'Atentamente,', style: 'textoNormal', alignment: 'center', margin: [0, 0, 0, 50] },
+                { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
+                { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre', margin: [0, 20, 0, 0] },
+                { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }
+              ]
+            },
+            { width: '*', text: '' }
+          ]
+         },
+       ],
+       footer: (currentPage: number, pageCount: number) => {
+  return {
+    stack: [
+      {
+        canvas: [
+          {
+            type: 'line',
+            x1: 40,        // Comienza en el margen izquierdo
+            y1: 0,
+            x2: 555.28,    // Termina en el margen derecho (595.28 - 40)
+            y2: 0,
+            lineWidth: 0.8,
+            lineColor: '#000000' // O el color que prefieras (ej. '#000000' o '#000066')
+          }
+        ],
+        margin: [0, 0, 0, 8] // Espaciado entre la línea y el texto del footer
+      },
+      {
+        text: [
+          { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\n', style: 'datosEmpresa', color: '#000066' },
+          { text: 'Telf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+          { text: 'www.escolaresonline.com - E-mail: gerencia@escolaresonline.com', style: 'webSite' }
+        ],
+        alignment: 'center'
+      }
+    ],
+    margin: [0, 0, 0, 20]
+  };
+},
+       styles: {
+         datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+         webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+         tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+         subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+         textoNormal: { fontSize: 11, lineHeight: 1.6 },
+         nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+         labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+         valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+         labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] },
+         footerDoc: { fontSize: 8, bold: true, color: '#000000' },
+         firmaNombre: { fontSize: 12, bold: true, margin: [0, 5, 0, 2] },
+         firmaCargo: { fontSize: 11, color: '#666' }
+       },
+       pageSize: 'LETTER',
+       pageMargins: [40, 40, 40, 40]
+     };
+
+     docDefinition.tableLayouts = {
+       tablaConstancia: {
+         hLineWidth: () => 0.5,
+         vLineWidth: () => 0.5,
+         hLineColor: () => '#ddd',
+         vLineColor: () => '#ddd',
+         paddingLeft: () => 8,
+         paddingRight: () => 8,
+         paddingTop: () => 6,
+         paddingBottom: () => 6
+       }
+     };
+
+     return docDefinition;
+   }
+
+   async generarConstanciaComercialPdf(data: ConstanciaComercial) {
+    let logoBase64 = '';
+    let logoMarcaAgua = '';
+    try {
+      const logoOriginal = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+      logoBase64 = logoOriginal;
+      try {
+        logoMarcaAgua = await this.rotarImagen90(logoOriginal);
+      } catch (e) {
+        console.warn('No se pudo generar la marca de agua:', e);
+      }
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    const desdeFechaTexto = this.calcularTiempoTranscurrido(data.desdeFecha);
+    const diasCreditoTexto = this.convertirNumeroATexto(data.diasCredito) + (data.diasCredito && !isNaN(parseInt(data.diasCredito, 10)) ? ' días' : '');
+    const cifrasTexto = this.convertirNumeroATexto(data.cifras) + (data.cifras && !isNaN(parseInt(data.cifras, 10)) ? ' cifras' : '');
+    const fechaLarga = this.formatearFechaComercial(data.fecha);
+
+    const background: any = logoMarcaAgua ? {
+      image: logoMarcaAgua,
+      width: 400,
+      opacity: 0.08,
+      absolutePosition: { x: 97.64, y: 240 }
+    } : undefined;
+
+    const docDefinition: any = {
+      content: [
+        {
+          columns: [
+            {
+              width: '28%',
+              stack: [
+                ...(logoBase64 ? [{ image: logoBase64, width: 200, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+              ]
+            },
+          ]
+        },
+        { text: '', margin: [0, 25] },
+        { text: 'Señores,', style: 'saludo', margin: [0, 0, 0, 8] },
+        { text: data.destino, style: 'destino', margin: [0, 0, 0, 20] },
+        {
+          text: `ESCOLARES, C.A, por medio de la presente hace constar que ${data.titular}, titular de C.I. ${this.formatearCedula(data.cedula)}, mantiene relaciones comerciales con esta empresa desde hace aproximadamente ${desdeFechaTexto}, con créditos de ${diasCreditoTexto}, y un promedio de ${cifrasTexto} ${data.tipoCifras}, demostrando ser una empresa responsable y fiel, cumplidora en sus pagos correspondientes y por tal motivo podemos dar cualquier tipo de referencia ampliamente.`,
+          style: 'textoNormal',
+          alignment: 'justify',
+          margin: [0, 0, 0, 40]
+        },
+        background,
+        { text: `Referencia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaLarga}.`, style: 'textoNormal', margin: [0, 0, 0, 60] },
+        {
+          columns: [
+            { width: '*', text: '' },
+            {
+              width: '50%',
+              stack: [
+                { text: 'Atentamente,', style: 'textoNormal', alignment: 'center', margin: [0, 0, 0, 50] },
+                { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
+                { text: 'Gregory Alvarado', alignment: 'center', style: 'firmaNombre', margin: [0, 20, 0, 0] },
+                { text: 'Director Gerente', alignment: 'center', style: 'firmaCargo' }
+              ]
+            },
+            { width: '*', text: '' }
+          ]
+        }
+      ],
+
+footer: (currentPage: number, pageCount: number) => {
+  return {
+    stack: [
+      {
+        canvas: [
+          {
+            type: 'line',
+            x1: 40,        // Comienza en el margen izquierdo
+            y1: 0,
+            x2: 555.28,    // Termina en el margen derecho (595.28 - 40)
+            y2: 0,
+            lineWidth: 0.8,
+            lineColor: '#000000' // O el color que prefieras (ej. '#000000' o '#000066')
+          }
+        ],
+        margin: [0, 0, 0, 8] // Espaciado entre la línea y el texto del footer
+      },
+      {
+        text: [
+          { text: 'Calle Girardoth, entre Av. Constitucion y diaz Moreno y Av. Constitucion - Diagonal al Banco del Caribe, Local.: 100-51\n', style: 'datosEmpresa', color: '#000066' },
+          { text: 'Telf. 0241 - 858.02.81 Fax.: 0241 - 858-70-50. Valencia Edo. Carabobo\n', style: 'datosEmpresa' },
+          { text: 'www.escolaresonline.com - E-mail: gerencia@escolaresonline.com', style: 'webSite' }
+        ],
+        alignment: 'center'
+      }
+    ],
+    margin: [0, 0, 0, 20]
+  };
+},
+      styles: {
+        datosEmpresa: { fontSize: 8, bold: true, color: '#000000' },
+        webSite: { fontSize: 9, bold: true, color: '#000000' },
+        textoNormal: { fontSize: 11, lineHeight: 1.6 },
+        saludo: { fontSize: 11, bold: true },
+        destino: { fontSize: 11, bold: true, margin: [0, 0, 0, 20] },
+        firmaNombre: { fontSize: 12, bold: true, margin: [0, 5, 0, 2] },
+        firmaCargo: { fontSize: 11, color: '#666' }
+      },
+      pageSize: 'LETTER',
+      pageMargins: [40, 50, 40, 50]
+    };
+
+    return docDefinition;
+  }
+
+   convertirNumeroATexto(valor: string): string {
+    if (!valor) return '';
+    const numero = parseInt(valor, 10);
+    if (isNaN(numero)) return valor;
+    return this.numeroATexto(numero);
+  }
+
+   calcularTiempoTranscurrido(fechaInicio: string): string {
+    if (!fechaInicio) return '';
+
+    const inicio = new Date(fechaInicio + 'T00:00:00');
+    const hoy = new Date();
+
+    let años = hoy.getFullYear() - inicio.getFullYear();
+    let meses = hoy.getMonth() - inicio.getMonth();
+    let dias = hoy.getDate() - inicio.getDate();
+
+    if (dias < 0) {
+      meses--;
+      const diasEnMes = new Date(hoy.getFullYear(), hoy.getMonth(), 0).getDate();
+      dias += diasEnMes;
+    }
+
+    if (meses < 0) {
+      años--;
+      meses += 12;
+    }
+
+    const partes: string[] = [];
+
+    if (años > 0) {
+      partes.push(`${this.numeroATexto(años)} años (${años})`);
+    }
+
+    if (meses > 0) {
+      partes.push(`${this.numeroATexto(meses)} meses (${meses})`);
+    }
+
+    if (dias > 0 || partes.length === 0) {
+      partes.push(`${this.numeroATexto(dias)} días (${dias})`);
+    }
+
+    if (partes.length === 1) {
+      return partes[0];
+    } else if (partes.length === 2) {
+      return `${partes[0]} y ${partes[1]}`;
+    } else {
+      const ultimo = partes.pop();
+      return `${partes.join(', ')} y ${ultimo}`;
+    }
+  }
+
+   formatearFechaComercial(fecha: string): string {
+    if (!fecha) return '';
+
+    const parts = fecha.split('-');
+    if (parts.length !== 3) return fecha;
+
+    const dia = parseInt(parts[2], 10);
+    const mes = parseInt(parts[1], 10) - 1;
+    const año = parseInt(parts[0], 10);
+
+    const nombresMeses = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+
+    const diaTexto = this.numeroATexto(dia);
+    const mesTexto = nombresMeses[mes];
+    const añoTexto = this.numeroATexto(año);
+
+    return `a los ${diaTexto} días del mes de ${mesTexto} del año ${añoTexto}`;
+  }
+
+   numeroATexto(numero: number): string {
+    if (numero === 0) return 'cero';
+    if (numero === 1) return 'un';
+    if (numero === 2) return 'dos';
+    if (numero === 3) return 'tres';
+    if (numero === 4) return 'cuatro';
+    if (numero === 5) return 'cinco';
+    if (numero === 6) return 'seis';
+    if (numero === 7) return 'siete';
+    if (numero === 8) return 'ocho';
+    if (numero === 9) return 'nueve';
+    if (numero === 10) return 'diez';
+    if (numero === 11) return 'once';
+    if (numero === 12) return 'doce';
+    if (numero === 13) return 'trece';
+    if (numero === 14) return 'catorce';
+    if (numero === 15) return 'quince';
+    if (numero === 16) return 'dieciséis';
+    if (numero === 17) return 'diecisiete';
+    if (numero === 18) return 'dieciocho';
+    if (numero === 19) return 'diecinueve';
+    if (numero === 20) return 'veinte';
+
+    if (numero < 30) {
+      const unidades = numero % 10;
+      return `veinti${this.numeroATexto(unidades)}`;
+    }
+
+    if (numero < 100) {
+      const decenas = Math.floor(numero / 10);
+      const unidades = numero % 10;
+      const nombresDecenas: Record<number, string> = {
+        2: 'veinte', 3: 'treinta', 4: 'cuarenta', 5: 'cincuenta',
+        6: 'sesenta', 7: 'setenta', 8: 'ochenta', 9: 'noventa'
+      };
+      if (unidades === 0) return nombresDecenas[decenas];
+      return `${nombresDecenas[decenas]} y ${this.numeroATexto(unidades)}`;
+    }
+
+    if (numero < 1000) {
+      if (numero === 0) return 'cero';
+      if (numero < 100) {
+        const decenas = Math.floor(numero / 10);
+        const unidades = numero % 10;
+        const nombresDecenas: Record<number, string> = {
+          2: 'veinte', 3: 'treinta', 4: 'cuarenta', 5: 'cincuenta',
+          6: 'sesenta', 7: 'setenta', 8: 'ochenta', 9: 'noventa'
+        };
+        if (unidades === 0) return nombresDecenas[decenas];
+        return `${nombresDecenas[decenas]} y ${this.numeroATexto(unidades)}`;
+      }
+
+      const centenas = Math.floor(numero / 100);
+      const resto = numero % 100;
+      if (resto === 0) {
+        const nombresCentenas: Record<number, string> = { 1: 'cien', 2: 'doscientos', 3: 'trescientos', 4: 'cuatrocientos', 5: 'quinientos', 6: 'seiscientos', 7: 'setecientos', 8: 'ochocientos', 9: 'novecientos' };
+        return nombresCentenas[centenas];
+      }
+      return `${this.numeroATexto(centenas * 100)} ${this.numeroATexto(resto)}`;
+    }
+
+    const miles = Math.floor(numero / 1000);
+    const resto = numero % 1000;
+    const milTexto = miles === 1 ? 'mil' : this.numeroATexto(miles) + ' mil';
+    if (resto === 0) return milTexto;
+    return `${milTexto} ${this.numeroATexto(resto)}`;
+  }
+
+    async generarConstanciaPersonalPdf(data: ConstanciaPersonal) {
+      let logoBase64 = '';
+      try {
+        logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+      } catch (e) {
+        console.warn('No se pudo cargar el logo:', e);
+      }
+
+      const de = data.de || '';
+      const cedulaDe = this.formatearCedula(data.cedulaDe);
+      const direccion = data.direccion || '';
+      const aQuien = data.aQuien || '';
+      const cedulaAQuien = this.formatearCedula(data.cedulaAQuien);
+      const desde = data.desde || '';
+      const telefono = data.telefono || '';
+      const fechaEmision = this.formatearFechaComercial(data.fechaEmision);
+
+      const cuerpo = `Yo, ${de}, mayor de edad, titular de la cédula de identidad No. ${cedulaDe}, residenciado en ${direccion}, por medio de la presente, hago constar que conozco de vista, trato y comunicación a ${aQuien}, titular de la cédula de identidad No. ${cedulaAQuien}, desde hace ${this.calcularTiempoTranscurrido(desde)} aproximadamente, de cual doy fé que es una persona de confianza, responsable y honesta.`;
+
+      console.log('Constancia personal cuerpo:', cuerpo);
+      console.log('Constancia personal fechaEmision:', fechaEmision);
+      console.log('Constancia personal telefono:', telefono);
+
+      const docDefinition: any = {
+        content: [
+          {
+            text: 'C O N S T A N C I A',
+            style: 'tituloCentrado',
+            alignment: 'center',
+            margin: [0, 50, 0, 20]
+          },
+          {
+            text: cuerpo,
+            style: 'textoNormal',
+            alignment: 'justify',
+            margin: [0, 0, 0, 15]
+          },
+          {
+            text: `Constancia que se expide a petición de la parte interesada en la ciudad de Valencia ${fechaEmision}.`,
+            style: 'textoNormal',
+            alignment: 'justify',
+            margin: [0, 0, 0, 40]
+          },
+          {
+            text: 'Atentamente,',
+            style: 'textoNormal',
+            alignment: 'center',
+            margin: [0, 0, 0, 50]
+          },
+          {
+            columns: [
+              {
+                stack: [
+                  { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
+                  { text: de, alignment: 'center', style: 'valorCampo', bold: true },
+                  { text: cedulaDe ? `${cedulaDe}` : '', alignment: 'center', style: 'valorCampo' }
+                ]
+              }
+            ]
+          },
+        ],
+        footer: (currentPage: number, pageCount: number) => {
+          return {
+            stack: [
+          {
+            text: telefono ? `Nota: Para cualquier otra información requerida pueden comunicarse por el teléfono: ${telefono}.` : '',
+            style: 'textoNormal',
+            alignment: 'center',
+          }
+    ],
+    margin: [0, 0, 0, 20]
+  }
+},
+        styles: {
+          datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+          webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+          tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+          subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+          textoNormal: { fontSize: 11, lineHeight: 1.5 },
+          nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+          labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+          valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+          labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] },
+          tituloCentrado: { fontSize: 16, bold: true, color: '#1d63c1' }
+        },
+        pageSize: 'LETTER',
+        pageMargins: [40, 50, 40, 50]
+      };
+
+      docDefinition.tableLayouts = {
+        tablaConstancia: {
+          hLineWidth: () => 0.5,
+          vLineWidth: () => 0.5,
+          hLineColor: () => '#ddd',
+          vLineColor: () => '#ddd',
+          paddingLeft: () => 8,
+          paddingRight: () => 8,
+          paddingTop: () => 6,
+          paddingBottom: () => 6
+        }
+      };
+
+      return docDefinition;
+    }
+
+    async descargarPdfPersonalBlob(data: ConstanciaPersonal, fileName: string) {
+      const docDefinition = await this.generarConstanciaPersonalPdf(data);
+      const pdfDoc = pdfMake.createPdf(docDefinition);
+      const blob = await new Promise<Blob | void>((resolve, reject) => {
+        pdfDoc.getBlob((blobResult: Blob) => {
+          if (blobResult && blobResult.size > 0) {
+            resolve(blobResult);
+          } else {
+            reject(new Error('PDF blob vacío'));
+          }
+        });
+      }).catch((err) => {
+        console.error('Error generando blob PDF:', err);
+        throw err;
+      });
+
+      if (!blob) return;
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }
+
+async generarReciboPagoPdf(data: ReciboPago) {
+  let logoBase64 = '';
+  try {
+    logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+  } catch (e) {
+    console.warn('No se pudo cargar el logo:', e);
+  }
+
+  const montoNumero = Number(data.monto) || 0;
+  const montoFormateado = montoNumero.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fechaPago = this.formatFecha(data.fechaPago);
+  const esJuridica = data.tipo === 'Juridica';
+  const nombreCabecera = esJuridica ? 'ESCOLARES, C.A.' : data.nombrePagador;
+  const montoTexto = this.numeroATexto(Math.floor(montoNumero));
+  const montoExactos = `${montoFormateado} Bs.`;
+
+  const cuerpo = `HE RECIBIDO DE ${nombreCabecera} LA CANTIDAD DE ${montoTexto.toUpperCase()} BOLIVARES EXACTOS (${montoExactos}) POR CONCEPTO DE ${data.concepto.toUpperCase()} SIN MÁS QUE OBJETAR FIRMO CONFORME`;
+
+  const docDefinition: any = {
+    content: [
+      {
+        columns: [
+          {
+            width: '60%',
+            stack: [
+              ...(logoBase64 ? [{ image: logoBase64, width: 160, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+            ]
+          },
+          {
+            width: '40%',
+            stack: [
+              { text: 'Valencia', style: 'datosEmpresa', alignment: 'right' },
+              { text: fechaPago, style: 'datosEmpresa', alignment: 'right' },
+              { text: `Bs. ${montoFormateado}`, style: 'datosEmpresa', alignment: 'right', bold: true }
+            ],
+            alignment: 'right'
+          }
+        ]
+      },
+      { text: '', margin: [0, 30] },
+      {
+        text: 'RECIBO DE PAGO',
+        style: 'tituloDoc',
+        alignment: 'center',
+        margin: [0, 0, 0, 30]
+      },
+      {
+        text: cuerpo,
+        style: 'textoNormal',
+        alignment: 'justify',
+        margin: [0, 0, 0, 40]
+      },
+      {
+        columns: [
+          {
+            width: '50%',
+            stack: [
+              { text: '_________________________', alignment: 'center', margin: [0, 40, 0, 0] },
+              { text: 'FIRMA', alignment: 'center', style: 'labelFirma', margin: [0, 5, 0, 0] },
+              { text: data.pagado || 'PAGADO', alignment: 'center', style: 'labelFirma' }
+            ]
+          },
+          {
+            width: '50%',
+            stack: [
+              { text: '_________________________', alignment: 'center', margin: [0, 40, 0, 0] },
+              { text: data.cedula, alignment: 'center', style: 'labelFirma', margin: [0, 5, 0, 0] }
+            ]
+          }
+        ]
+      },
+      // Recuadro del pulgar integrado directamente dentro del flujo de contenido
+      {
+        margin: [0, 25, 0, 0],
+        alignment: 'center',
+        stack: [
+          {
+            table: {
+              widths: [140],
+              heights: [90],
+              body: [[{ text: '', border: [true, true, true, true] }]]
+            },
+            layout: {
+              hLineWidth: () => 1,
+              vLineWidth: () => 1,
+              hLineColor: () => '#000000',
+              vLineColor: () => '#000000'
+            }
+          },
+          { text: 'PULGAR DERECHO', style: 'textoNormal', alignment: 'center', margin: [0, 5, 0, 0] }
+        ]
+      },
+      {
+        text: `NOTA: ${data.concepto}`,
+        style: 'textoNormal',
+        alignment: 'left',
+        margin: [0, 30, 0, 0]
+      }
+    ],
+    styles: {
+      datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+      webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+      tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+      subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+      textoNormal: { fontSize: 11, lineHeight: 1.5 },
+      nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+      labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+      valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+      labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+    },
+    pageSize: 'A4',
+    pageMargins: [40, 40, 40, 40]
+  };
+
+  return docDefinition;
 }
+} // Cierre correcto de la clase ExportarPdfService

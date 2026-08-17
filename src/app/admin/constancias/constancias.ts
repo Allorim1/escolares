@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ExportarPdfService } from '../../shared/services/exportar-pdf.service';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 
 type TipoConstancia = 'trabajo' | 'comercial' | 'personal' | 'recibo-pago';
 
@@ -53,7 +54,7 @@ interface ReciboPago {
 @Component({
   selector: 'app-constancias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
   templateUrl: './constancias.html',
   styleUrl: './constancias.css',
 })

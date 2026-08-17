@@ -49,6 +49,7 @@ export interface ReciboPago {
   fechaPago: string;
   numeroRecibo: string;
   tipo: 'Personal' | 'Juridica';
+  pagado: string;
 }
 
 @Injectable({
@@ -1045,7 +1046,7 @@ footer: (currentPage: number, pageCount: number) => {
                stack: [
                  { text: '_________________________', alignment: 'center', margin: [0, 50, 0, 0] },
                  { text: 'FIRMA', alignment: 'center', style: 'labelFirma', margin: [0, 20, 0, 0] },
-                 { text: 'PAGADOR', alignment: 'center', style: 'labelFirma' }
+                  { text: data.pagado || 'PAGADO', alignment: 'center', style: 'labelFirma' }
                ]
              },
              {

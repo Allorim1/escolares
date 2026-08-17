@@ -50,6 +50,7 @@ interface ReciboPago {
   fechaPago: string;
   numeroRecibo: string;
   tipo: 'Personal' | 'Juridica';
+  pagado: string;
 }
 
 @Component({
@@ -109,6 +110,7 @@ export class Constancias implements OnInit {
     fechaPago: new Date().toISOString().split('T')[0],
     numeroRecibo: '',
     tipo: 'Personal',
+    pagado: '',
   });
 
   tiposConstancia: { value: TipoConstancia; label: string; icon: string }[] = [
@@ -211,8 +213,12 @@ export class Constancias implements OnInit {
       }
     } else if (tipo === 'recibo-pago') {
       const datos = this.reciboPago();
-      if (!datos.nombrePagador || !datos.cedula || !datos.concepto || !datos.monto || !datos.numeroRecibo) {
+      if (!datos.concepto || !datos.monto || !datos.numeroRecibo || !datos.pagado) {
         this.notificationService.error('Por favor complete todos los campos requeridos');
+        return;
+      }
+      if (datos.tipo === 'Personal' && (!datos.nombrePagador || !datos.cedula)) {
+        this.notificationService.error('Por favor complete los datos del pagador');
         return;
       }
       this.generandoPdf.set(true);
@@ -226,6 +232,7 @@ export class Constancias implements OnInit {
           fechaPago: datos.fechaPago,
           numeroRecibo: datos.numeroRecibo,
           tipo: datos.tipo,
+          pagado: datos.pagado,
         });
         this.exportarPdfService.descargarPdf(docDefinition, `recibo_pago_${datos.numeroRecibo}.pdf`);
         this.notificationService.success('Recibo de pago generado correctamente', 'Éxito');
@@ -283,6 +290,7 @@ export class Constancias implements OnInit {
         fechaPago: new Date().toISOString().split('T')[0],
         numeroRecibo: '',
         tipo: 'Personal',
+        pagado: '',
       });
     }
   }

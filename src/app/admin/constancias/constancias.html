@@ -179,14 +179,29 @@
         <h2>Recibo de Pago</h2>
         <div class="form-row">
           <div class="form-group">
-            <label>Nombre del Pagador *</label>
-            <input type="text" [(ngModel)]="reciboPago().nombrePagador" placeholder="Nombre completo" enterFocusNext />
+            <label>Tipo *</label>
+            <select [(ngModel)]="reciboPago().tipo" enterFocusNext>
+              <option value="Personal">Personal</option>
+              <option value="Juridica">Jurídica</option>
+            </select>
           </div>
           <div class="form-group">
-            <label>Cédula de Identidad *</label>
-            <input type="text" [(ngModel)]="reciboPago().cedula" placeholder="V-12345678" enterFocusNext />
+            <label>Fecha de Pago</label>
+            <input type="date" [(ngModel)]="reciboPago().fechaPago" enterFocusNext />
           </div>
         </div>
+        @if (reciboPago().tipo === 'Personal') {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre del Pagador *</label>
+              <input type="text" [(ngModel)]="reciboPago().nombrePagador" placeholder="Nombre completo" enterFocusNext />
+            </div>
+            <div class="form-group">
+              <label>Cédula de Identidad *</label>
+              <input type="text" [(ngModel)]="reciboPago().cedula" placeholder="V-12345678" enterFocusNext />
+            </div>
+          </div>
+        }
         <div class="form-row">
           <div class="form-group" style="grid-column: 1 / -1;">
             <label>Concepto *</label>
@@ -209,15 +224,12 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Tipo *</label>
-            <select [(ngModel)]="reciboPago().tipo" enterFocusNext>
-              <option value="Personal">Personal</option>
-              <option value="Juridica">Jurídica</option>
-            </select>
+            <label>Pagado *</label>
+            <input type="text" [(ngModel)]="reciboPago().pagado" placeholder="Nombre de quien paga" enterFocusNext />
           </div>
           <div class="form-group">
-            <label>Fecha de Pago</label>
-            <input type="date" [(ngModel)]="reciboPago().fechaPago" enterFocusNext />
+            <label>Número de Recibo *</label>
+            <input type="text" [(ngModel)]="reciboPago().numeroRecibo" placeholder="REC-001" enterFocusNext />
           </div>
         </div>
       </div>

@@ -15,6 +15,7 @@ interface ConstanciaTrabajo {
   fechaIngreso: string;
   fechaEmision: string;
   sueldoMensual: string;
+  monedaSueldo: 'Bs.' | 'USD';
   esEgresado: boolean;
   fechaEgreso: string;
 }
@@ -73,6 +74,7 @@ export class Constancias implements OnInit {
     fechaIngreso: '',
     fechaEmision: new Date().toISOString().split('T')[0],
     sueldoMensual: '',
+    monedaSueldo: 'Bs.',
     esEgresado: false,
     fechaEgreso: '',
   });
@@ -152,6 +154,7 @@ export class Constancias implements OnInit {
           fechaIngreso: datos.fechaIngreso,
           fechaEmision: datos.fechaEmision,
           sueldoMensual: datos.sueldoMensual,
+          monedaSueldo: datos.monedaSueldo,
           esEgresado: datos.esEgresado,
           fechaEgreso: datos.fechaEgreso,
         });

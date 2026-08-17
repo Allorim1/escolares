@@ -14,6 +14,7 @@ export interface ConstanciaTrabajo {
   fechaIngreso: string;
   fechaEmision: string;
   sueldoMensual: string;
+  monedaSueldo: 'Bs.' | 'USD';
   esEgresado: boolean;
   fechaEgreso: string;
 }
@@ -455,19 +456,27 @@ tablaComercial: {
       console.warn('No se pudo cargar el logo:', e);
     }
 
-     const cedula = this.formatearCedula(data.cedula);
-     const cargo = data.cargo || '';
-     const fechaIngreso = this.formatFecha(data.fechaIngreso);
-     const sueldo = data.sueldoMensual || '';
-     const esEgresado = !!data.esEgresado;
-     const fechaEgreso = data.fechaEgreso ? this.formatFecha(data.fechaEgreso) : '';
+      const cedula = this.formatearCedula(data.cedula);
+      const cargo = data.cargo || '';
+      const fechaIngreso = this.formatFecha(data.fechaIngreso);
+      const sueldo = data.sueldoMensual || '';
+      const monedaSueldo = data.monedaSueldo || 'Bs.';
+      const esEgresado = !!data.esEgresado;
+      const fechaEgreso = data.fechaEgreso ? this.formatFecha(data.fechaEgreso) : '';
 
-     let cuerpo = '';
-     if (esEgresado) {
-       cuerpo = `Por medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, prestó sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso} hasta el ${fechaEgreso}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
-     } else {
-       cuerpo = `Por medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, presta sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso}, devengando un sueldo mensual de ${sueldo}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
-     }
+      const sueldoNumero = parseFloat(sueldo) || 0;
+      const sueldoTexto = this.numeroATexto(Math.floor(sueldoNumero));
+      const monedaTexto = monedaSueldo === 'USD' ? 'dólares' : 'bolívares';
+      const sueldoFormateado = monedaSueldo === 'USD'
+        ? `${sueldoNumero.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}$`
+        : `${monedaSueldo} ${sueldoNumero.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      let cuerpo = '';
+      if (esEgresado) {
+        cuerpo = `A QUIEN PUEDA INTERESAR\n\nPor medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, prestó sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso} hasta el ${fechaEgreso}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+      } else {
+        cuerpo = `A QUIEN PUEDA INTERESAR\n\nPor medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, presta sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso}, devengando un sueldo mensual de ${sueldoTexto} ${monedaTexto} (${sueldoFormateado}), demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+      }
 
      const fechaLarga = this.formatearFechaComercial(data.fechaEmision);
          const background: any = logoMarcaAgua ? {

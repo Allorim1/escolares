@@ -136,7 +136,7 @@ export class Constancias implements OnInit {
 
     if (tipo === 'trabajo') {
       const datos = this.trabajo();
-      if (!datos.nombreCompleto || !datos.cedula || !datos.cargo || !datos.departamento || !datos.fechaIngreso) {
+      if (!datos.nombreCompleto || !datos.cedula || !datos.cargo || !datos.fechaIngreso) {
         this.notificationService.error('Por favor complete todos los campos requeridos');
         return;
       }

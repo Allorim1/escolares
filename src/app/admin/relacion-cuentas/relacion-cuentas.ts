@@ -1417,13 +1417,13 @@ if (!url) return '';
     }
 
     const existeDuplicado = this.abonos().some((a) => {
-      const nombreIgual = (a.nombre || '').trim().toLowerCase() === (this.editingAbono!.nombre || '').trim().toLowerCase();
+      const nFactIgual = (a.nFact || '').trim() === (this.editingAbono!.nFact || '').trim();
       const esMismoRegistro = a._id && this.editingAbono!._id && a._id === this.editingAbono!._id;
-      return nombreIgual && !esMismoRegistro;
+      return nFactIgual && !esMismoRegistro;
     });
 
     if (existeDuplicado) {
-      alert('Ya existe un registro con ese nombre');
+      alert('Ya existe un registro con ese N. Fact');
       return;
     }
 

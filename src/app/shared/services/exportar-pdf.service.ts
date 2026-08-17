@@ -441,12 +441,19 @@ tablaComercial: {
   }
 
    async generarConstanciaTrabajoPdf(data: ConstanciaTrabajo) {
-     let logoBase64 = '';
-     try {
-       logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-     } catch (e) {
-       console.warn('No se pudo cargar el logo:', e);
-     }
+    let logoBase64 = '';
+    let logoMarcaAgua = '';
+    try {
+      const logoOriginal = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+      logoBase64 = logoOriginal;
+      try {
+        logoMarcaAgua = await this.rotarImagen90(logoOriginal);
+      } catch (e) {
+        console.warn('No se pudo generar la marca de agua:', e);
+      }
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
 
      const cedula = this.formatearCedula(data.cedula);
      const cargo = data.cargo || '';
@@ -463,6 +470,12 @@ tablaComercial: {
      }
 
      const fechaLarga = this.formatearFechaComercial(data.fechaEmision);
+         const background: any = logoMarcaAgua ? {
+      image: logoMarcaAgua,
+      width: 400,
+      opacity: 0.08,
+      absolutePosition: { x: 97.64, y: 240 }
+    } : undefined;
 
      const docDefinition: any = {
        content: [
@@ -490,6 +503,7 @@ tablaComercial: {
            alignment: 'justify',
            margin: [0, 0, 0, 30]
          },
+         background,
          {
            text: `Constancia que se expide a petición de la parte interesada en la ciudad de Valencia a ${fechaLarga}.`,
            style: 'textoNormal',

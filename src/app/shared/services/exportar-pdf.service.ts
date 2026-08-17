@@ -992,38 +992,37 @@ footer: (currentPage: number, pageCount: number) => {
        console.warn('No se pudo cargar el logo:', e);
      }
 
-     const montoNumero = Number(data.monto) || 0;
-     const montoFormateado = montoNumero.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-     const fechaPago = this.formatFecha(data.fechaPago);
-     const esJuridica = data.tipo === 'Juridica';
-     const nombreCabecera = esJuridica ? 'ESCOLARES, C.A.' : data.nombrePagador;
-     const montoTexto = this.numeroATexto(Math.floor(montoNumero));
-     const monedaTexto = data.moneda === 'USD' ? 'dólares' : data.moneda === 'EUR' ? 'euros' : 'bolívares';
-     const montoExactos = `${montoFormateado} ${data.moneda}`;
+      const montoNumero = Number(data.monto) || 0;
+      const montoFormateado = montoNumero.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const fechaPago = this.formatFecha(data.fechaPago);
+      const esJuridica = data.tipo === 'Juridica';
+      const nombreCabecera = esJuridica ? 'ESCOLARES, C.A.' : data.nombrePagador;
+      const montoTexto = this.numeroATexto(Math.floor(montoNumero));
+      const montoExactos = `${montoFormateado} Bs.`;
 
-     const cuerpo = `HE RECIBIDO DE ${nombreCabecera} LA CANTIDAD DE ${montoTexto} ${monedaTexto.toUpperCase()} EXACTOS (${montoExactos}) POR CONCEPTO DE ${data.concepto.toUpperCase()} SIN MÁS QUE OBJETAR FIRMO CONFORME`;
+      const cuerpo = `HE RECIBIDO DE ${nombreCabecera} LA CANTIDAD DE ${montoTexto} BOLIVARES EXACTOS (${montoExactos}) POR CONCEPTO DE ${data.concepto.toUpperCase()} SIN MÁS QUE OBJETAR FIRMO CONFORME`;
 
-     const docDefinition: any = {
-       content: [
-         {
-           columns: [
-             {
-               width: '60%',
-               stack: [
-                 ...(logoBase64 ? [{ image: logoBase64, width: 160, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
-               ]
-             },
-             {
-               width: '40%',
-               stack: [
-                 { text: 'Valencia', style: 'datosEmpresa', alignment: 'right' },
-                 { text: fechaPago, style: 'datosEmpresa', alignment: 'right' },
-                 { text: `${data.moneda} ${montoFormateado}`, style: 'datosEmpresa', alignment: 'right', bold: true }
-               ],
-               alignment: 'right'
-             }
-           ]
-         },
+      const docDefinition: any = {
+        content: [
+          {
+            columns: [
+              {
+                width: '60%',
+                stack: [
+                  ...(logoBase64 ? [{ image: logoBase64, width: 160, margin: [0, 0, 0, 2] }] : [{ text: 'ESCOLARES', fontSize: 16, bold: true, margin: [0, 0, 0, 2] }]),
+                ]
+              },
+              {
+                width: '40%',
+                stack: [
+                  { text: 'Valencia', style: 'datosEmpresa', alignment: 'right' },
+                  { text: fechaPago, style: 'datosEmpresa', alignment: 'right' },
+                  { text: `Bs. ${montoFormateado}`, style: 'datosEmpresa', alignment: 'right', bold: true }
+                ],
+                alignment: 'right'
+              }
+            ]
+          },
          { text: '', margin: [0, 30] },
          {
            text: 'RECIBO DE PAGO',
@@ -1054,14 +1053,27 @@ footer: (currentPage: number, pageCount: number) => {
                  { text: data.cedula, alignment: 'center', style: 'labelFirma', margin: [0, 20, 0, 0] }
                ]
              }
-           ]
-         },
-         {
-           text: 'PULGAR DERECHO',
-           style: 'textoNormal',
-           alignment: 'center',
-           margin: [0, 20, 0, 30]
-         },
+            ]
+          },
+          {
+            canvas: [
+              {
+                type: 'rect',
+                x: 207,
+                y: 0,
+                w: 180,
+                h: 120,
+                lineWidth: 1,
+                lineColor: '#000000'
+              }
+            ]
+          },
+          {
+            text: 'PULGAR DERECHO',
+            style: 'textoNormal',
+            alignment: 'center',
+            margin: [0, 20, 0, 30]
+          },
          {
            text: `NOTA: ${data.concepto}`,
            style: 'textoNormal',

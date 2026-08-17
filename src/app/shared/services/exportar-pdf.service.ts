@@ -473,9 +473,9 @@ tablaComercial: {
 
       let cuerpo = '';
       if (esEgresado) {
-        cuerpo = `A QUIEN PUEDA INTERESAR\n\nPor medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, prestó sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso} hasta el ${fechaEgreso}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+        cuerpo = `Por medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, prestó sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso} hasta el ${fechaEgreso}, demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
       } else {
-        cuerpo = `A QUIEN PUEDA INTERESAR\n\nPor medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, presta sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso}, devengando un sueldo mensual de ${sueldoTexto} ${monedaTexto} (${sueldoFormateado}), demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
+        cuerpo = `Por medio de la presente se hace constar que el Sr(a). ${data.nombreCompleto}, titular de cédula de identidad No. ${cedula}, presta sus servicios en esta empresa como ${cargo}, desde el ${fechaIngreso}, devengando un sueldo mensual de ${sueldoTexto} ${monedaTexto} (${sueldoFormateado}), demostrando ser una persona seria y responsable en sus funciones a desempeñar.`;
       }
 
      const fechaLarga = this.formatearFechaComercial(data.fechaEmision);

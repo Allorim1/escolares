@@ -1053,48 +1053,50 @@ footer: (currentPage: number, pageCount: number) => {
                  { text: data.cedula, alignment: 'center', style: 'labelFirma', margin: [0, 20, 0, 0] }
                ]
              }
-            ]
-          },
-          {
-            canvas: [
-              {
-                type: 'rect',
-                x: 207,
-                y: 0,
-                w: 180,
-                h: 120,
-                lineWidth: 1,
-                lineColor: '#000000'
-              }
-            ]
-          },
-          {
-            text: 'PULGAR DERECHO',
-            style: 'textoNormal',
-            alignment: 'center',
-            margin: [0, 20, 0, 30]
-          },
+           ]
+         },
          {
-           text: `NOTA: ${data.concepto}`,
+           text: 'PULGAR DERECHO',
            style: 'textoNormal',
-           alignment: 'left',
-           margin: [0, 0, 0, 0]
-         }
-       ],
-       styles: {
-         datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
-         webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
-         tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
-         subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
-         textoNormal: { fontSize: 11, lineHeight: 1.5 },
-         nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
-         labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
-         valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
-         labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
-       },
-       pageSize: 'A4',
-       pageMargins: [40, 40, 40, 40]
-     };
+           alignment: 'center',
+           margin: [0, 20, 0, 30]
+         },
+        {
+          text: `NOTA: ${data.concepto}`,
+          style: 'textoNormal',
+          alignment: 'left',
+          margin: [0, 0, 0, 0]
+        }
+      ],
+      background: [
+        {
+          canvas: [
+            {
+              type: 'rect',
+              x: 207,
+              y: 520,
+              w: 180,
+              h: 120,
+              lineWidth: 1,
+              lineColor: '#000000'
+            }
+          ]
+        }
+      ],
+      styles: {
+        datosEmpresa: { fontSize: 10, bold: true, color: '#000000' },
+        webSite: { fontSize: 9, bold: true, color: '#D32F2F' },
+        tituloDoc: { fontSize: 18, bold: true, color: '#1d63c1' },
+        subtituloDoc: { fontSize: 14, bold: true, color: '#1d63c1', margin: [0, 5, 0, 0] },
+        textoNormal: { fontSize: 11, lineHeight: 1.5 },
+        nombreDestacado: { fontSize: 14, bold: true, color: '#333' },
+        labelCampo: { fontSize: 10, bold: true, color: '#555', margin: [0, 3, 0, 3] },
+        valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
+        labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
+      },
+      pageSize: 'A4',
+      pageMargins: [40, 40, 40, 40]
+    };
 
      docDefinition.tableLayouts = {
        tablaConstancia: {

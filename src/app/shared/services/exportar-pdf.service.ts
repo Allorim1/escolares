@@ -10,7 +10,6 @@ export interface ConstanciaTrabajo {
   nombreCompleto: string;
   cedula: string;
   cargo: string;
-  departamento: string;
   fechaIngreso: string;
   fechaEmision: string;
   sueldoMensual: string;

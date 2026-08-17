@@ -33,10 +33,6 @@
             <label>Cargo *</label>
             <input type="text" [(ngModel)]="trabajo().cargo" placeholder="Cargo del empleado" enterFocusNext />
           </div>
-          <div class="form-group">
-            <label>Departamento *</label>
-            <input type="text" [(ngModel)]="trabajo().departamento" placeholder="Departamento o área" enterFocusNext />
-          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -48,19 +44,21 @@
             <input type="date" [(ngModel)]="trabajo().fechaEmision" enterFocusNext />
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Sueldo Mensual</label>
-            <input type="text" [(ngModel)]="trabajo().sueldoMensual" placeholder="0.00" enterFocusNext />
+        @if (!trabajo().esEgresado) {
+          <div class="form-row">
+            <div class="form-group">
+              <label>Sueldo Mensual</label>
+              <input type="text" [(ngModel)]="trabajo().sueldoMensual" placeholder="0.00" enterFocusNext />
+            </div>
+            <div class="form-group">
+              <label>Moneda</label>
+              <select [(ngModel)]="trabajo().monedaSueldo" enterFocusNext>
+                <option value="Bs.">Bs.</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Moneda</label>
-            <select [(ngModel)]="trabajo().monedaSueldo" enterFocusNext>
-              <option value="Bs.">Bs.</option>
-              <option value="USD">USD</option>
-            </select>
-          </div>
-        </div>
+        }
         <div class="form-row">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;color:#333;font-size:14px;">
             <input type="checkbox" [(ngModel)]="trabajo().esEgresado" enterFocusNext />

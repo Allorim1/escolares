@@ -11,7 +11,6 @@ interface ConstanciaTrabajo {
   nombreCompleto: string;
   cedula: string;
   cargo: string;
-  departamento: string;
   fechaIngreso: string;
   fechaEmision: string;
   sueldoMensual: string;
@@ -70,7 +69,6 @@ export class Constancias implements OnInit {
     nombreCompleto: '',
     cedula: '',
     cargo: '',
-    departamento: '',
     fechaIngreso: '',
     fechaEmision: new Date().toISOString().split('T')[0],
     sueldoMensual: '',
@@ -238,10 +236,10 @@ export class Constancias implements OnInit {
         nombreCompleto: '',
         cedula: '',
         cargo: '',
-        departamento: '',
         fechaIngreso: '',
         fechaEmision: new Date().toISOString().split('T')[0],
         sueldoMensual: '',
+        monedaSueldo: 'Bs.',
         esEgresado: false,
         fechaEgreso: '',
       });

@@ -898,7 +898,10 @@ const ivaDivisa = datos.reduce((sum, a) => {
       const nombre = (abono.nombre || '').trim();
       const empresa = (abono.empresa || '').trim();
       const fn = [nombre, empresa].filter(Boolean).join(' ');
-      const tel = (abono.telefono || '').trim();
+      let tel = (abono.telefono || '').trim();
+      if (tel.startsWith('04')) {
+        tel = '+58' + tel.slice(1);
+      }
       const planta = (abono.planta || '').trim();
       const cedula = (abono.cedula || '').trim();
       const nFact = (abono.nFact || '').trim();

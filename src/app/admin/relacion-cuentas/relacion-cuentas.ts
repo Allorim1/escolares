@@ -894,7 +894,20 @@ const ivaDivisa = datos.reduce((sum, a) => {
       return;
     }
 
-    const vcards = datos.map((abono) => {
+    const vistos = new Set<string>();
+    const unicos = datos.filter((abono) => {
+      const clave = (abono.nombre || '').trim().toLowerCase();
+      if (!clave || vistos.has(clave)) return false;
+      vistos.add(clave);
+      return true;
+    });
+
+    if (unicos.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    const vcards = unicos.map((abono) => {
       const nombre = (abono.nombre || '').trim();
       const empresa = (abono.empresa || '').trim();
       const fn = [nombre, empresa].filter(Boolean).join(' ');

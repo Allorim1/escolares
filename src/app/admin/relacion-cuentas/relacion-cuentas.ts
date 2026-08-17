@@ -887,6 +887,47 @@ const ivaDivisa = datos.reduce((sum, a) => {
       });
     }
 
+  exportarVCard() {
+    const datos = this.abonosFiltrados();
+    if (datos.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    const vcards = datos.map((abono) => {
+      const nombre = (abono.nombre || '').trim();
+      const empresa = (abono.empresa || '').trim();
+      const fn = [nombre, empresa].filter(Boolean).join(' ');
+      const tel = (abono.telefono || '').trim();
+      const planta = (abono.planta || '').trim();
+      const cedula = (abono.cedula || '').trim();
+      const nFact = (abono.nFact || '').trim();
+
+      const lineas = [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        `FN:${fn}`,
+        empresa ? `ORG:${empresa}` : undefined,
+        tel ? `TEL;TYPE=CELL:${tel}` : undefined,
+        `NOTE:Planta: ${planta} | Cedula: ${cedula} | N.Fact: ${nFact}`,
+        'END:VCARD',
+      ].filter(Boolean);
+
+      return lineas.join('\r\n');
+    });
+
+    const contenido = vcards.join('\r\n');
+    const blob = new Blob([contenido], { type: 'text/vcard;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `contactos_${this.getFechaLocal()}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
     esRoot(): boolean {
     return this.authService.user()?.rol === 'root';
   }
@@ -1351,6 +1392,17 @@ if (!url) return '';
 
     if (!this.editingAbono.nombre.trim() || !this.editingAbono.empresa || !this.editingAbono.planta || !this.editingAbono.nFact) {
       alert('Por favor, complete los campos requeridos: Nombre, Empresa, Planta y N. Fact');
+      return;
+    }
+
+    const existeDuplicado = this.abonos().some((a) => {
+      const nombreIgual = (a.nombre || '').trim().toLowerCase() === (this.editingAbono!.nombre || '').trim().toLowerCase();
+      const esMismoRegistro = a._id && this.editingAbono!._id && a._id === this.editingAbono!._id;
+      return nombreIgual && !esMismoRegistro;
+    });
+
+    if (existeDuplicado) {
+      alert('Ya existe un registro con ese nombre');
       return;
     }
 

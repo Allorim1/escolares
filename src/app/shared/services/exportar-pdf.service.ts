@@ -1040,17 +1040,11 @@ footer: (currentPage: number, pageCount: number) => {
       {
         columns: [
           {
-            width: '50%',
+            width: '100%',
             stack: [
               { text: '_________________________', alignment: 'center', margin: [0, 40, 0, 0] },
               { text: 'FIRMA', alignment: 'center', style: 'labelFirma', margin: [0, 5, 0, 0] },
-              { text: data?.pagado || 'PAGADO', alignment: 'center', style: 'labelFirma' }
-            ]
-          },
-          {
-            width: '50%',
-            stack: [
-              { text: '_________________________', alignment: 'center', margin: [0, 40, 0, 0] },
+              { text: data?.pagado || 'PAGADO', alignment: 'center', style: 'labelFirma' },
               { text: data?.cedula || '', alignment: 'center', style: 'labelFirma', margin: [0, 5, 0, 0] }
             ]
           }
@@ -1062,9 +1056,9 @@ footer: (currentPage: number, pageCount: number) => {
         columns: [
           { width: '*', text: '' },
           {
-            width: 140,
+            width: 70,
             table: {
-              widths: [140],
+              widths: [70],
               heights: [80], // Altura explícita de la caja
               body: [
                 [
@@ -1086,7 +1080,7 @@ footer: (currentPage: number, pageCount: number) => {
         margin: [0, 5, 0, 20]
       },
       {
-        text: `NOTA: ${data?.concepto || ''}`,
+        text: `NOTA: ${data?.nota || ''}`,
         style: 'textoNormal',
         alignment: 'left',
         margin: [0, 0, 0, 0]
@@ -1103,7 +1097,7 @@ footer: (currentPage: number, pageCount: number) => {
       valorCampo: { fontSize: 10, color: '#333', margin: [0, 3, 0, 3] },
       labelFirma: { fontSize: 9, color: '#666', margin: [0, 5, 0, 0] }
     },
-    pageSize: 'A4',
+    pageSize: 'LETTER',
     pageMargins: [40, 40, 40, 40]
   };
 

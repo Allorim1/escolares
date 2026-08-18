@@ -206,6 +206,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
 
   showModalColumnasPdf = signal(false);
+  showModalSender = signal(false);
 
   columnasVisibles = computed(() => {
     if (this.esRoot()) {
@@ -803,6 +804,14 @@ const ivaDivisa = datos.reduce((sum, a) => {
     this.showModalColumnasPdf.set(false);
   }
 
+  abrirModalSender() {
+    this.showModalSender.set(true);
+  }
+
+  cerrarModalSender() {
+    this.showModalSender.set(false);
+  }
+
   toggleColumnaPdf(key: string) {
     this.columnasSeleccionadasPdf.update((actual) => {
       const nuevo = new Set(actual);
@@ -886,6 +895,70 @@ const ivaDivisa = datos.reduce((sum, a) => {
         window.URL.revokeObjectURL(url);
       });
     }
+
+  private obtenerFilasSender(datos: Abono[]) {
+    const vistos = new Set<string>();
+    const filas: { telefono: string; primerNombre: string; apellido: string }[] = [];
+    for (const abono of datos) {
+      const clave = `${(abono.nombre || '').trim().toLowerCase()}|${(abono.telefono || '').trim()}`;
+      if (clave && !vistos.has(clave)) {
+        vistos.add(clave);
+        let telefono = (abono.telefono || '').trim();
+        if (telefono.startsWith('04')) {
+          telefono = '+58' + telefono.slice(1);
+        }
+        const nombreCompleto = (abono.nombre || '').trim();
+        const partes = nombreCompleto.split(/\s+/).filter(Boolean);
+        const primerNombre = partes[0] || '';
+        const apellido = partes.length >= 3 ? partes[partes.length - 1] : partes[1] || '';
+        filas.push({ telefono, primerNombre, apellido });
+      }
+    }
+    return filas;
+  }
+
+  exportarSenderCsv() {
+    const datos = this.abonosFiltrados();
+    if (datos.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    const filas = this.obtenerFilasSender(datos);
+
+    if (filas.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    const csv = [
+      ['Teléfono', 'Nombre', 'Apellido'].join(','),
+      ...filas.map((fila) =>
+        [
+          fila.telefono,
+          this.formatearCsv(fila.primerNombre),
+          this.formatearCsv(fila.apellido),
+        ].join(',')
+      ),
+    ].join('\r\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sender_${this.getFechaLocal()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  private formatearCsv(valor: string): string {
+    if (/[,"\r\n]/.test(valor)) {
+      return `"${valor.replace(/"/g, '""')}"`;
+    }
+    return valor;
+  }
 
   exportarVCard() {
     const datos = this.abonosFiltrados();

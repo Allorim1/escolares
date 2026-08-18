@@ -221,7 +221,7 @@ export class Constancias implements OnInit {
       }
       this.generandoPdf.set(true);
       try {
-        const docDefinition = this.exportarPdfService.generarReciboPagoPdf({
+        const docDefinition = await this.exportarPdfService.generarReciboPagoPdf({
           nombrePagador: datos.nombrePagador,
           cedula: datos.cedula,
           concepto: datos.concepto,

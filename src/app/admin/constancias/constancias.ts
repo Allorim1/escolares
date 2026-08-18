@@ -49,6 +49,7 @@ interface ReciboPago {
   fechaPago: string;
   tipo: 'Personal' | 'Juridica';
   pagado: string;
+  nota: string;
 }
 
 @Component({
@@ -107,6 +108,7 @@ export class Constancias implements OnInit {
     fechaPago: new Date().toISOString().split('T')[0],
     tipo: 'Personal',
     pagado: '',
+    nota: '',
   });
 
   tiposConstancia: { value: TipoConstancia; label: string; icon: string }[] = [
@@ -227,6 +229,7 @@ export class Constancias implements OnInit {
           fechaPago: datos.fechaPago,
           tipo: datos.tipo,
           pagado: datos.pagado,
+          nota: datos.nota,
         });
         this.exportarPdfService.descargarPdf(docDefinition, `recibo_pago_${datos.pagado.replace(/\s+/g, '_')}.pdf`);
         this.notificationService.success('Recibo de pago generado correctamente', 'Éxito');
@@ -283,6 +286,7 @@ export class Constancias implements OnInit {
         fechaPago: new Date().toISOString().split('T')[0],
         tipo: 'Personal',
         pagado: '',
+        nota: '',
       });
     }
   }

@@ -48,6 +48,7 @@ export interface ReciboPago {
   fechaPago: string;
   tipo: 'Personal' | 'Juridica';
   pagado: string;
+  nota: string;
 }
 
 @Injectable({
@@ -984,7 +985,7 @@ footer: (currentPage: number, pageCount: number) => {
       window.URL.revokeObjectURL(url);
     }
 
-async generarReciboPagoPdf(data: ReciboPago) {
+ async generarReciboPagoPdf(data: ReciboPago) {
   let logoBase64 = '';
   try {
     logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
@@ -992,15 +993,15 @@ async generarReciboPagoPdf(data: ReciboPago) {
     console.warn('No se pudo cargar el logo:', e);
   }
 
-  const montoNumero = Number(data.monto) || 0;
+  const montoNumero = Number(data?.monto) || 0;
   const montoFormateado = montoNumero.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fechaPago = this.formatFecha(data.fechaPago);
-  const esJuridica = data.tipo === 'Juridica';
-  const nombreCabecera = esJuridica ? 'ESCOLARES, C.A.' : data.nombrePagador;
+  const fechaPago = data?.fechaPago ? this.formatFecha(data.fechaPago) : '';
+  const esJuridica = data?.tipo === 'Juridica';
+  const nombreCabecera = esJuridica ? 'ESCOLARES, C.A.' : (data?.nombrePagador || '');
   const montoTexto = this.numeroATexto(Math.floor(montoNumero));
   const montoExactos = `${montoFormateado} Bs.`;
 
-  const cuerpo = `HE RECIBIDO DE ${nombreCabecera} LA CANTIDAD DE ${montoTexto.toUpperCase()} BOLIVARES EXACTOS (${montoExactos}) POR CONCEPTO DE ${data.concepto.toUpperCase()} SIN MÁS QUE OBJETAR FIRMO CONFORME`;
+  const cuerpo = `HE RECIBIDO DE ${nombreCabecera} LA CANTIDAD DE ${(montoTexto || '').toUpperCase()} BOLIVARES EXACTOS (${montoExactos}) POR CONCEPTO DE ${(data?.concepto || '').toUpperCase()} SIN MÁS QUE OBJETAR FIRMO CONFORME`;
 
   const docDefinition: any = {
     content: [
@@ -1043,44 +1044,52 @@ async generarReciboPagoPdf(data: ReciboPago) {
             stack: [
               { text: '_________________________', alignment: 'center', margin: [0, 40, 0, 0] },
               { text: 'FIRMA', alignment: 'center', style: 'labelFirma', margin: [0, 5, 0, 0] },
-              { text: data.pagado || 'PAGADO', alignment: 'center', style: 'labelFirma' }
+              { text: data?.pagado || 'PAGADO', alignment: 'center', style: 'labelFirma' }
             ]
           },
           {
             width: '50%',
             stack: [
               { text: '_________________________', alignment: 'center', margin: [0, 40, 0, 0] },
-              { text: data.cedula, alignment: 'center', style: 'labelFirma', margin: [0, 5, 0, 0] }
+              { text: data?.cedula || '', alignment: 'center', style: 'labelFirma', margin: [0, 5, 0, 0] }
             ]
           }
         ]
       },
-      // Recuadro del pulgar integrado directamente dentro del flujo de contenido
+      // TABLA DE PULGAR CENTRADA Y CORREGIDA
       {
-        margin: [0, 25, 0, 0],
-        alignment: 'center',
-        stack: [
+        margin: [0, 20, 0, 5],
+        columns: [
+          { width: '*', text: '' },
           {
+            width: 140,
             table: {
               widths: [140],
-              heights: [90],
-              body: [[{ text: '', border: [true, true, true, true] }]]
-            },
-            layout: {
-              hLineWidth: () => 1,
-              vLineWidth: () => 1,
-              hLineColor: () => '#000000',
-              vLineColor: () => '#000000'
+              heights: [80], // Altura explícita de la caja
+              body: [
+                [
+                  {
+                    text: '',
+                    border: [true, true, true, true]
+                  }
+                ]
+              ]
             }
           },
-          { text: 'PULGAR DERECHO', style: 'textoNormal', alignment: 'center', margin: [0, 5, 0, 0] }
+          { width: '*', text: '' }
         ]
       },
       {
-        text: `NOTA: ${data.concepto}`,
+        text: 'PULGAR DERECHO',
+        style: 'textoNormal',
+        alignment: 'center',
+        margin: [0, 5, 0, 20]
+      },
+      {
+        text: `NOTA: ${data?.concepto || ''}`,
         style: 'textoNormal',
         alignment: 'left',
-        margin: [0, 30, 0, 0]
+        margin: [0, 0, 0, 0]
       }
     ],
     styles: {
@@ -1100,4 +1109,4 @@ async generarReciboPagoPdf(data: ReciboPago) {
 
   return docDefinition;
 }
-} // Cierre correcto de la clase ExportarPdfService
+  }

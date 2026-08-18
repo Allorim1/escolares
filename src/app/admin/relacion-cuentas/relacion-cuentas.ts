@@ -932,7 +932,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
     }
 
     const csv = [
-      ['Teléfono', 'Nombre', 'Apellido'].join(','),
+      ['phone', 'Nombre', 'Apellido'].join(','),
       ...filas.map((fila) =>
         [
           fila.telefono,

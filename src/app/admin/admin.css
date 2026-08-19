@@ -137,7 +137,7 @@
   visibility: visible;
 }
 
-quick-access-sidebar-menu,
+.quick-access-sidebar-menu,
 .categoria-sideboard-menu {
   position: fixed;
   left: 260px;

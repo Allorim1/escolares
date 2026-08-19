@@ -867,7 +867,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
         { width: 20 },
       ];
 
-      const headerRow = worksheet.addRow(['Teléfono', 'Nombre', 'Apellido']);
+      const headerRow = worksheet.addRow(['phone', 'Nombre', 'Apellido']);
       headerRow.eachCell((cell) => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };

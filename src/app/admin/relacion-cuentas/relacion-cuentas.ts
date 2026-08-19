@@ -1625,13 +1625,7 @@ if (!url) return '';
       }
     };
 
-    // If current user is root, allow direct deletion
-    if (usuario?.rol === 'root') {
-      proceedDelete();
-      return;
-    }
-
-    // Ask for supervisor clave
+    // Always ask for supervisor clave before deletion
     const clave = window.prompt('Ingrese la clave de supervisor para confirmar la eliminación:');
     if (!clave) return;
     proceedDelete(clave.trim());

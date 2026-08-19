@@ -576,6 +576,14 @@
   font-weight: 600;
 }
 
+.key-hint-below {
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+  margin-left: 4px;
+  font-weight: 600;
+}
+
 .totales-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

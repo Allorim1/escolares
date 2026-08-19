@@ -117,8 +117,46 @@ export class RelacionCuentas implements OnInit {
         passes = passes && a.status === f.status;
       }
       if (f.nombre) {
-        const nombreLower = f.nombre.toLowerCase();
-        passes = passes && ((a.nombre || '').toLowerCase().includes(nombreLower) || (a.nFact || '').toLowerCase().includes(nombreLower));
+        const q = f.nombre.toLowerCase();
+        const keysToSkip = new Set([
+          'montoFactura',
+          'abonos',
+          'iva',
+          'diferencia',
+          'divisa',
+          'pagoParcial',
+          'tasa',
+          'comisionPorcentaje',
+        ]);
+        let found = false;
+        for (const key in a) {
+          if (keysToSkip.has(key)) continue;
+          const val: any = (a as any)[key];
+          if (val === null || val === undefined) continue;
+          if (typeof val === 'string') {
+            if (val.toLowerCase().includes(q)) {
+              found = true;
+              break;
+            }
+          } else if (Array.isArray(val)) {
+            if (val.join(' ').toLowerCase().includes(q)) {
+              found = true;
+              break;
+            }
+          } else if (typeof val === 'object') {
+            try {
+              const str = JSON.stringify(val).toLowerCase();
+              if (str.includes(q)) {
+                found = true;
+                break;
+              }
+            } catch (e) {
+              // ignore
+            }
+          }
+          // skip numbers per requirement
+        }
+        passes = passes && found;
       }
       if (f.supervisor) {
         passes = passes && (a.supervisor || '') === f.supervisor;

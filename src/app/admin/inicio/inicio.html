@@ -246,11 +246,9 @@
             <p class="muted">Usa esta clave para autorizar acciones restringidas.</p>
             <div class="supervisor-key-row">
               @if (authService.user()?.supervisorKey) {
-                @if (mostrarSupervisorKey()) {
-                  <code class="supervisor-key">{{ authService.user()?.supervisorKey }}</code>
-                } @else {
-                  <code class="supervisor-key">{{ (authService.user()?.supervisorKey || '').slice(0,4) }}••••••{{ (authService.user()?.supervisorKey || '').slice(-4) }}</code>
-                }
+                <code class="supervisor-key">
+                  {{ mostrarSupervisorKey() ? authService.user()?.supervisorKey : ((authService.user()?.supervisorKey || '').slice(0,4) + '••••••' + (authService.user()?.supervisorKey || '').slice(-4)) }}
+                </code>
               } @else {
                 <p class="muted">No configurada</p>
               }

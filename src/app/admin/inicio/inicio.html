@@ -241,6 +241,25 @@
             <p class="muted">Countdown API: {{ countdown() }}</p>
           }
         </div>
+          <div class="card small">
+            <h3>Clave Supervisor</h3>
+            <p class="muted">Usa esta clave para autorizar acciones restringidas.</p>
+            <div class="supervisor-key-row">
+              @if (authService.user()?.supervisorKey) {
+                @if (mostrarSupervisorKey()) {
+                  <code class="supervisor-key">{{ authService.user()?.supervisorKey }}</code>
+                } @else {
+                  <code class="supervisor-key">{{ (authService.user()?.supervisorKey || '').slice(0,4) }}••••••{{ (authService.user()?.supervisorKey || '').slice(-4) }}</code>
+                }
+              } @else {
+                <p class="muted">No configurada</p>
+              }
+            </div>
+            <div class="card-actions">
+              <button class="btn-secondary" (click)="toggleMostrarSupervisorKey()">@if (mostrarSupervisorKey()) { Ocultar } @else { Ver }</button>
+              <button class="btn-primary" (click)="generarClaveSupervisor()">@if (generandoClave()) { Generando... } @else { Generar/Reemplazar }</button>
+            </div>
+          </div>
       </aside>
     </div>
   }

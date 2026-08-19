@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject, computed } from '@angular/core';
+import { Component, signal, OnInit, inject, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -436,6 +436,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
   });
 
   soloIvaPagado = signal(false);
+  mostrarComisiones = signal(false);
   aplicarFiltroIva = signal(false);
 
   private getFechaLocal(): string {
@@ -546,6 +547,15 @@ const ivaDivisa = datos.reduce((sum, a) => {
     this.loadTasaActual();
     this.cargarSupervisores();
     this.loadUserPermissions();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent) {
+    // Toggle comisiones visibility with F3
+    if (event.key === 'F2') {
+      event.preventDefault();
+      this.mostrarComisiones.update(v => !v);
+    }
   }
 
   onComisionNoAsignadaChange(valor: string) {
@@ -1599,12 +1609,32 @@ if (!url) return '';
 
   eliminarAbono(id: string) {
     if (!confirm('¿Está seguro de eliminar este abono?')) return;
-    this.http.delete(`${this.API}/${id}`).subscribe({
-      next: () => {
-        this.loadAbonos(true);
-      },
-      error: (err) => console.error('Error deleting abono:', err),
-    });
+    const usuario = this.authService.user();
+    const proceedDelete = (claveSupervisor?: string) => {
+      const url = `${this.API}/${id}`;
+      if (claveSupervisor) {
+        this.http.request('delete', url, { body: { claveSupervisor } }).subscribe({
+          next: () => this.loadAbonos(true),
+          error: (err) => this.notificationModal.error('Error', err.error?.error || 'Error al eliminar'),
+        });
+      } else {
+        this.http.delete(url).subscribe({
+          next: () => this.loadAbonos(true),
+          error: (err) => this.notificationModal.error('Error', err.error?.error || 'Error al eliminar'),
+        });
+      }
+    };
+
+    // If current user is root, allow direct deletion
+    if (usuario?.rol === 'root') {
+      proceedDelete();
+      return;
+    }
+
+    // Ask for supervisor clave
+    const clave = window.prompt('Ingrese la clave de supervisor para confirmar la eliminación:');
+    if (!clave) return;
+    proceedDelete(clave.trim());
   }
 
   formatTotal(valor: number, prefijo: string): string {

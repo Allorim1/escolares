@@ -61,6 +61,8 @@ export class AdminInicio implements OnInit, OnDestroy {
 
   loading = signal(true);
   recentActivities = signal<string[]>([]);
+  mostrarSupervisorKey = signal(false);
+  generandoClave = signal(false);
   
   countdown = signal<string>('');
   countdownInterval: any;
@@ -115,6 +117,40 @@ export class AdminInicio implements OnInit, OnDestroy {
     
     updateCountdown();
     this.countdownInterval = setInterval(updateCountdown, 60000);
+  }
+
+  private generateRandomKey(length = 12) {
+    const array = new Uint8Array(length);
+    if (typeof window !== 'undefined' && (window.crypto || (window as any).msCrypto)) {
+      (window.crypto || (window as any).msCrypto).getRandomValues(array);
+    } else {
+      for (let i = 0; i < array.length; i++) array[i] = Math.floor(Math.random() * 256);
+    }
+    return Array.from(array).map((b) => ('0' + (b % 36).toString(36)).slice(-1)).join('').toUpperCase();
+  }
+
+  toggleMostrarSupervisorKey() {
+    this.mostrarSupervisorKey.update(v => !v);
+  }
+
+  generarClaveSupervisor() {
+    const nueva = this.generateRandomKey(16);
+    this.generandoClave.set(true);
+    const req = this.authService.updateProfile({ supervisorKey: nueva });
+    if (!req) {
+      this.generandoClave.set(false);
+      return;
+    }
+    req.subscribe({
+      next: () => {
+        this.generandoClave.set(false);
+        this.notificationService.success('Clave generada', 'La clave de supervisor ha sido actualizada.');
+      },
+      error: (err) => {
+        this.generandoClave.set(false);
+        this.notificationService.error('Error', 'No se pudo generar la clave: ' + (err.error?.error || 'Error desconocido'));
+      }
+    });
   }
   
   openApiKeyModal() {

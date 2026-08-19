@@ -109,10 +109,12 @@
       <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
     </div>
     @if (esRoot()) {
-      <div class="filtro-group">
-        <label>Comisión Planta (%):</label>
-        <input type="number" [value]="comisionNoAsignadaManual() ?? ''" (input)="onComisionNoAsignadaChange($event.target.value)" min="0" max="100" step="0.01" placeholder="Ingrese %" enterFocusNext>
-      </div>
+      @if (mostrarComisiones()) {
+        <div class="filtro-group">
+          <label>Comisión Planta (%):</label>
+          <input type="number" [value]="comisionNoAsignadaManual() ?? ''" (input)="onComisionNoAsignadaChange($event.target.value)" min="0" max="100" step="0.01" placeholder="Ingrese %" enterFocusNext>
+        </div>
+      }
     }
   </div>
 
@@ -201,28 +203,30 @@
     }
     @if (puedeVerTotales()) {
       <div class="totales-separados">
-        <div class="totales-card">
-          <h3>Comisiones</h3>
-          <div class="totales-grid">
-            <div class="total-item">
-              <span class="total-label">Comisión Planta</span>
-              <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Comisión Planta $</span>
-              <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().comisionNoAsignada / tasaActual() : 0) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Supervisor</span>
-              <span class="total-value">{{ comisiones().haySupervisores ? 'Si' : 'No' }}</span>
-            </div>
-            @if (comisiones().haySupervisores) {
-              <div class="total-item" style="grid-column: span 3; justify-content: flex-end;">
-                <button class="btn-secondary" (click)="abrirModalSupervisoresRelaciones()">Ver supervisores</button>
+        @if (mostrarComisiones()) {
+          <div class="totales-card">
+            <h3>Comisiones</h3>
+            <div class="totales-grid">
+              <div class="total-item">
+                <span class="total-label">Comisión Planta</span>
+                <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
               </div>
-            }
+              <div class="total-item">
+                <span class="total-label">Comisión Planta $</span>
+                <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().comisionNoAsignada / tasaActual() : 0) }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Supervisor</span>
+                <span class="total-value">{{ comisiones().haySupervisores ? 'Si' : 'No' }}</span>
+              </div>
+              @if (comisiones().haySupervisores) {
+                <div class="total-item" style="grid-column: span 3; justify-content: flex-end;">
+                  <button class="btn-secondary" (click)="abrirModalSupervisoresRelaciones()">Ver supervisores</button>
+                </div>
+              }
+            </div>
           </div>
-        </div>
+        }
         <div class="totales-card">
           <h3>Total Facturas Emitidas</h3>
           <div class="totales-grid">

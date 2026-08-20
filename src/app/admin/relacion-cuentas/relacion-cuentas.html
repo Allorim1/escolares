@@ -9,11 +9,21 @@
           alt="Imagen ampliada"
           class="imagen-modal-img"
           (wheel)="onImagenWheel($event)"
-          [style.transform]="'scale(' + imagenModalZoom() + ')'"
+          (pointerdown)="iniciarPan($event)"
+          (pointermove)="moverPan($event)"
+          (pointerup)="terminarPan($event)"
+          (pointercancel)="terminarPan($event)"
+          (pointerleave)="terminarPan($event)"
+          [style.transform]="'translate(' + imagenModalOffset().x + 'px, ' + imagenModalOffset().y + 'px) scale(' + imagenModalZoom() + ')'"
           [style.transform-origin]="imagenModalOrigin()"
-          [style.cursor]="imagenModalZoom() > 1 ? 'grab' : 'zoom-in'"
+          [style.cursor]="imagenModalPanning() ? 'grabbing' : (imagenModalZoom() > 1 ? 'grab' : 'zoom-in')"
         />
         <div class="imagen-modal-actions">
+          <div class="imagen-zoom-controls">
+            <button type="button" class="btn-zoom" (click)="zoomOut()">➖</button>
+            <button type="button" class="btn-zoom" (click)="resetZoom()">🔄</button>
+            <button type="button" class="btn-zoom" (click)="zoomIn()">➕</button>
+          </div>
           <button type="button" class="btn-imprimir-imagen" (click)="imprimirImagen(imagenModalUrl())">
             🖨️ Imprimir
           </button>

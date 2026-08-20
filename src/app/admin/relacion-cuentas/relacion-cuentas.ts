@@ -274,6 +274,9 @@ const ivaDivisa = datos.reduce((sum, a) => {
   imagenModalZoom = signal(1);
   imagenModalOrigin = signal('50% 50%');
   @ViewChild('imagenModalImg', { static: false }) imagenModalImg!: ElementRef<HTMLImageElement>;
+  imagenModalOffset = signal({ x: 0, y: 0 });
+  imagenModalPanning = signal(false);
+  private _panStart = { x: 0, y: 0 };
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
@@ -1427,6 +1430,8 @@ if (!url) return '';
       // reset zoom and origin when opening
       this.imagenModalZoom.set(1);
       this.imagenModalOrigin.set('50% 50%');
+      this.imagenModalOffset.set({ x: 0, y: 0 });
+      this.imagenModalPanning.set(false);
       this.imagenModalUrl.set(fullUrl);
       this.imagenModalAbierta.set(true);
     }
@@ -1438,6 +1443,8 @@ if (!url) return '';
     // reset zoom state
     this.imagenModalZoom.set(1);
     this.imagenModalOrigin.set('50% 50%');
+    this.imagenModalOffset.set({ x: 0, y: 0 });
+    this.imagenModalPanning.set(false);
   }
 
   onImagenWheel(event: WheelEvent) {
@@ -1459,6 +1466,86 @@ if (!url) return '';
     let next = this.imagenModalZoom() * factor;
     next = Math.max(0.25, Math.min(6, next));
     this.imagenModalZoom.set(Number(next.toFixed(3)));
+    // clamp offset after zoom change
+    setTimeout(() => this._clampOffset(), 0);
+  }
+
+  zoomIn() {
+    const factor = 1.12;
+    let next = this.imagenModalZoom() * factor;
+    next = Math.min(6, next);
+    this.imagenModalZoom.set(Number(next.toFixed(3)));
+    this._clampOffset();
+  }
+
+  zoomOut() {
+    const factor = 0.88;
+    let next = this.imagenModalZoom() * factor;
+    next = Math.max(0.25, next);
+    this.imagenModalZoom.set(Number(next.toFixed(3)));
+    this._clampOffset();
+  }
+
+  resetZoom() {
+    this.imagenModalZoom.set(1);
+    this.imagenModalOrigin.set('50% 50%');
+    this.imagenModalOffset.set({ x: 0, y: 0 });
+    this.imagenModalPanning.set(false);
+  }
+
+  private _clampOffset() {
+    const imgEl = this.imagenModalImg?.nativeElement;
+    if (!imgEl) return;
+    const parent = imgEl.parentElement as HTMLElement;
+    if (!parent) return;
+
+    const rect = imgEl.getBoundingClientRect();
+    const zoom = this.imagenModalZoom();
+    // Calculate base (untransformed) size
+    const baseWidth = rect.width / Math.max(zoom, 0.0001);
+    const baseHeight = rect.height / Math.max(zoom, 0.0001);
+
+    const scaledWidth = baseWidth * zoom;
+    const scaledHeight = baseHeight * zoom;
+    const parentRect = parent.getBoundingClientRect();
+
+    const maxOffsetX = Math.max(0, (scaledWidth - parentRect.width) / 2);
+    const maxOffsetY = Math.max(0, (scaledHeight - parentRect.height) / 2);
+
+    const curr = this.imagenModalOffset();
+    const clampedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, curr.x || 0));
+    const clampedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, curr.y || 0));
+    this.imagenModalOffset.set({ x: clampedX, y: clampedY });
+  }
+
+  iniciarPan(event: PointerEvent) {
+    if (!this.imagenModalAbierta() || this.imagenModalZoom() <= 1) return;
+    event.preventDefault();
+    const imgEl = this.imagenModalImg?.nativeElement;
+    if (imgEl) {
+      try { imgEl.setPointerCapture(event.pointerId); } catch (e) {}
+    }
+    this._panStart = { x: event.clientX - this.imagenModalOffset().x, y: event.clientY - this.imagenModalOffset().y };
+    this.imagenModalPanning.set(true);
+  }
+
+  moverPan(event: PointerEvent) {
+    if (!this.imagenModalPanning()) return;
+    event.preventDefault();
+    const x = event.clientX - this._panStart.x;
+    const y = event.clientY - this._panStart.y;
+    this.imagenModalOffset.set({ x, y });
+  }
+
+  terminarPan(event?: PointerEvent) {
+    if (!this.imagenModalPanning()) return;
+    if (event) {
+      const imgEl = this.imagenModalImg?.nativeElement;
+      if (imgEl) {
+        try { imgEl.releasePointerCapture(event.pointerId); } catch (e) {}
+      }
+    }
+    this.imagenModalPanning.set(false);
   }
 
   descargarImagen(url: string | undefined) {

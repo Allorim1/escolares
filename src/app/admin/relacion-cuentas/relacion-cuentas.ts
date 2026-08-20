@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject, computed, HostListener } from '@angular/core';
+import { Component, signal, OnInit, inject, computed, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -271,6 +271,9 @@ const ivaDivisa = datos.reduce((sum, a) => {
   archivosPendientes: File[] = [];
   imagenModalAbierta = signal(false);
   imagenModalUrl = signal<string>('');
+  imagenModalZoom = signal(1);
+  imagenModalOrigin = signal('50% 50%');
+  @ViewChild('imagenModalImg', { static: false }) imagenModalImg!: ElementRef<HTMLImageElement>;
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
@@ -1421,6 +1424,9 @@ if (!url) return '';
   abrirImagen(url: string | undefined) {
     const fullUrl = this.getImageUrl(url ?? '');
     if (fullUrl) {
+      // reset zoom and origin when opening
+      this.imagenModalZoom.set(1);
+      this.imagenModalOrigin.set('50% 50%');
       this.imagenModalUrl.set(fullUrl);
       this.imagenModalAbierta.set(true);
     }
@@ -1429,6 +1435,30 @@ if (!url) return '';
   cerrarImagenModal() {
     this.imagenModalAbierta.set(false);
     this.imagenModalUrl.set('');
+    // reset zoom state
+    this.imagenModalZoom.set(1);
+    this.imagenModalOrigin.set('50% 50%');
+  }
+
+  onImagenWheel(event: WheelEvent) {
+    if (!this.imagenModalAbierta()) return;
+    event.preventDefault();
+    // set transform-origin to cursor position so zoom focuses where the wheel is
+    const imgEl = this.imagenModalImg?.nativeElement;
+    if (imgEl) {
+      const rect = imgEl.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const xPct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      const yPct = Math.max(0, Math.min(100, (y / rect.height) * 100));
+      this.imagenModalOrigin.set(`${xPct}% ${yPct}%`);
+    }
+
+    const delta = -Math.sign(event.deltaY || 0);
+    const factor = delta > 0 ? 1.12 : 0.88;
+    let next = this.imagenModalZoom() * factor;
+    next = Math.max(0.25, Math.min(6, next));
+    this.imagenModalZoom.set(Number(next.toFixed(3)));
   }
 
   descargarImagen(url: string | undefined) {

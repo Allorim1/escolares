@@ -94,15 +94,7 @@
         <span class="switch-thumb"></span>
       </span>
     </div>
-    <div class="filtro-group">
-      <label>Supervisor:</label>
-      <select [ngModel]="filtros().supervisor" (ngModelChange)="onSupervisorFilterChange($event)">
-        <option value="">Todos</option>
-        @for (supervisor of supervisoresUnicos(); track supervisor) {
-          <option [value]="supervisor">{{ supervisor }}</option>
-        }
-      </select>
-    </div>
+    <!-- Supervisor filter hidden in Relaciones tab -->
     <div class="filtro-group">
       <label>Reporte:</label>
       <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>

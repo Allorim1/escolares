@@ -1608,7 +1608,7 @@ if (!url) return '';
   }
 
   eliminarAbono(id: string) {
-    if (!confirm('¿Está seguro de eliminar este abono?')) return;
+    if (!confirm('¿Está seguro de eliminar esta relación?')) return;
     const usuario = this.authService.user();
     const proceedDelete = (claveSupervisor?: string) => {
       const url = `${this.API}/${id}`;
@@ -1625,7 +1625,14 @@ if (!url) return '';
       }
     };
 
-    // Always ask for supervisor clave before deletion
+    // If current user is root, only confirm (no supervisor clave)
+    if (usuario?.rol === 'root') {
+      if (!confirm('¿Está seguro de eliminar esta relación?')) return;
+      proceedDelete();
+      return;
+    }
+
+    // Ask for supervisor clave for non-root users
     const clave = window.prompt('Ingrese la clave de supervisor para confirmar la eliminación:');
     if (!clave) return;
     proceedDelete(clave.trim());

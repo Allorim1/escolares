@@ -2000,9 +2000,32 @@ if (!url) return '';
       columnStyles: columnWidths,
     });
 
-    const fileName = empresaSeleccionada
-      ? `abonos_${empresaSeleccionada.replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`
-      : `abonos_${this.getFechaLocal()}.pdf`;
+    const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
+    const plantaFiltroVal = plantaFiltro;
+    const fechaDesdeRaw = this.filtros().fechaDesde;
+    const fechaHastaRaw = this.filtros().fechaHasta;
+    const formatForName = (raw: any) => {
+      if (!raw) return '';
+      try {
+        const d = new Date(raw);
+        if (isNaN(d.getTime())) return String(raw);
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}-${mm}-${yyyy}`;
+      } catch (e) {
+        return String(raw);
+      }
+    };
+
+    let fileName: string;
+    if (plantaFiltroVal) {
+      const desde = formatForName(fechaDesdeRaw) || 'Inicio';
+      const hasta = formatForName(fechaHastaRaw) || 'Hasta';
+      fileName = `Relacion Cuentas (${sanitize(String(plantaFiltroVal))}) (${sanitize(desde)}) (${sanitize(hasta)}).pdf`;
+    } else {
+      fileName = `Relacion Cuentas ${this.getFechaLocal()}.pdf`;
+    }
 
     doc.save(fileName);
   }

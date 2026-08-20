@@ -119,14 +119,20 @@ export class AdminInicio implements OnInit, OnDestroy {
     this.countdownInterval = setInterval(updateCountdown, 60000);
   }
 
-  private generateRandomKey(length = 12) {
-    const array = new Uint8Array(length);
+  private generateRandomKey(length = 4) {
+    const digits: string[] = [];
     if (typeof window !== 'undefined' && (window.crypto || (window as any).msCrypto)) {
+      const array = new Uint8Array(length);
       (window.crypto || (window as any).msCrypto).getRandomValues(array);
+      for (let i = 0; i < length; i++) {
+        digits.push(String(array[i] % 10));
+      }
     } else {
-      for (let i = 0; i < array.length; i++) array[i] = Math.floor(Math.random() * 256);
+      for (let i = 0; i < length; i++) {
+        digits.push(String(Math.floor(Math.random() * 10)));
+      }
     }
-    return Array.from(array).map((b) => ('0' + (b % 36).toString(36)).slice(-1)).join('').toUpperCase();
+    return digits.join('');
   }
 
   toggleMostrarSupervisorKey() {
@@ -134,7 +140,7 @@ export class AdminInicio implements OnInit, OnDestroy {
   }
 
   generarClaveSupervisor() {
-    const nueva = this.generateRandomKey(16);
+    const nueva = this.generateRandomKey();
     this.generandoClave.set(true);
     const req = this.authService.updateProfile({ supervisorKey: nueva });
     if (!req) {

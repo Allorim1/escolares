@@ -1155,6 +1155,50 @@
 
 .btn-zoom:hover { filter: brightness(0.97); }
 
+/* Spinner */
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.btn-spinner.small {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Thumbnail popover preview */
+.imagen-card { position: relative; display:inline-block; }
+.imagen-popover {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -8px);
+  width: 320px;
+  max-width: 60vw;
+  background: rgba(0,0,0,0.9);
+  padding: 6px;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  z-index: 2500;
+  pointer-events: none;
+}
+.imagen-popover img { display:block; width:100%; height:auto; border-radius:4px; }
+.imagen-card:hover .imagen-popover { display: block; }
+
+/* Rotate controls layout */
+.imagen-rotate-controls { display:flex; gap:8px; margin-left:8px; align-items:center; }
+.imagen-rotate-controls .btn-zoom { padding:6px 8px; font-size:13px; }
+
 .btn-descargar-imagen:hover {
   background: #1551a3;
 }

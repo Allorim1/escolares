@@ -215,6 +215,8 @@ const ivaDivisa = datos.reduce((sum, a) => {
   });
   loading = signal(false);
   saving = signal(false);
+  savingSupervisor = signal(false);
+  imagenUploading = signal(false);
   empresasCargadas = signal(false);
   userPermissions = signal<string[]>([]);
 
@@ -273,6 +275,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
   imagenModalUrl = signal<string>('');
   imagenModalZoom = signal(1);
   imagenModalOrigin = signal('50% 50%');
+  imagenModalRotation = signal(0);
   @ViewChild('imagenModalImg', { static: false }) imagenModalImg!: ElementRef<HTMLImageElement>;
   imagenModalOffset = signal({ x: 0, y: 0 });
   imagenModalPanning = signal(false);
@@ -1429,6 +1432,7 @@ if (!url) return '';
     if (fullUrl) {
       // reset zoom and origin when opening
       this.imagenModalZoom.set(1);
+      this.imagenModalRotation.set(0);
       this.imagenModalOrigin.set('50% 50%');
       this.imagenModalOffset.set({ x: 0, y: 0 });
       this.imagenModalPanning.set(false);
@@ -1491,6 +1495,27 @@ if (!url) return '';
     this.imagenModalOrigin.set('50% 50%');
     this.imagenModalOffset.set({ x: 0, y: 0 });
     this.imagenModalPanning.set(false);
+  }
+
+  rotate90() {
+    const next = (this.imagenModalRotation() + 90) % 360;
+    this.imagenModalRotation.set(next);
+    // reset pan and zoom to avoid complex clamp when rotated
+    this.imagenModalZoom.set(1);
+    this.imagenModalOffset.set({ x: 0, y: 0 });
+    this.imagenModalOrigin.set('50% 50%');
+  }
+
+  rotate180() {
+    const next = (this.imagenModalRotation() + 180) % 360;
+    this.imagenModalRotation.set(next);
+    this.imagenModalZoom.set(1);
+    this.imagenModalOffset.set({ x: 0, y: 0 });
+    this.imagenModalOrigin.set('50% 50%');
+  }
+
+  resetRotation() {
+    this.imagenModalRotation.set(0);
   }
 
   private _clampOffset() {
@@ -1593,13 +1618,18 @@ if (!url) return '';
     const formData = new FormData();
     formData.append('imagen', file);
 
+    this.imagenUploading.set(true);
     this.http.post<{ imagenes: string[] }>(`${this.API}/${idAbono}/imagenes`, formData).subscribe({
       next: (res) => {
         if (this.editingAbono) {
           this.editingAbono.imagenes = res.imagenes || [];
         }
+        this.imagenUploading.set(false);
       },
-      error: (err) => console.error('Error al subir imagen:', err),
+      error: (err) => {
+        console.error('Error al subir imagen:', err);
+        this.imagenUploading.set(false);
+      },
     });
   }
 
@@ -2472,28 +2502,32 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       alert('El nombre del supervisor es requerido');
       return;
     }
-
+    this.savingSupervisor.set(true);
     if (supervisor._id) {
       this.http.put<Supervisor>(`${this.API_SUPERVISORES}/${supervisor._id}`, supervisor).subscribe({
         next: () => {
+          this.savingSupervisor.set(false);
           this.cargarSupervisores();
           this.cerrarModalSupervisores();
           this.notificationModal.success('Supervisor actualizado correctamente');
         },
         error: (err) => {
           console.error('Error actualizando supervisor:', err);
+          this.savingSupervisor.set(false);
           this.notificationModal.error(err.error?.error || 'Error al actualizar supervisor');
         },
       });
     } else {
       this.http.post<Supervisor>(this.API_SUPERVISORES, supervisor).subscribe({
         next: () => {
+          this.savingSupervisor.set(false);
           this.cargarSupervisores();
           this.cerrarModalSupervisores();
           this.notificationModal.success('Supervisor creado correctamente');
         },
         error: (err) => {
           console.error('Error creando supervisor:', err);
+          this.savingSupervisor.set(false);
           this.notificationModal.error(err.error?.error || 'Error al crear supervisor');
         },
       });

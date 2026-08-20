@@ -14,7 +14,7 @@
           (pointerup)="terminarPan($event)"
           (pointercancel)="terminarPan($event)"
           (pointerleave)="terminarPan($event)"
-          [style.transform]="'translate(' + imagenModalOffset().x + 'px, ' + imagenModalOffset().y + 'px) scale(' + imagenModalZoom() + ')'"
+          [style.transform]="'translate(' + imagenModalOffset().x + 'px, ' + imagenModalOffset().y + 'px) scale(' + imagenModalZoom() + ') rotate(' + imagenModalRotation() + 'deg)'"
           [style.transform-origin]="imagenModalOrigin()"
           [style.cursor]="imagenModalPanning() ? 'grabbing' : (imagenModalZoom() > 1 ? 'grab' : 'zoom-in')"
         />
@@ -23,6 +23,11 @@
             <button type="button" class="btn-zoom" (click)="zoomOut()">➖</button>
             <button type="button" class="btn-zoom" (click)="resetZoom()">🔄</button>
             <button type="button" class="btn-zoom" (click)="zoomIn()">➕</button>
+          </div>
+          <div class="imagen-rotate-controls">
+            <button type="button" class="btn-zoom" (click)="rotate90()">⤾ 90°</button>
+            <button type="button" class="btn-zoom" (click)="rotate180()">⤾ 180°</button>
+            <button type="button" class="btn-zoom" (click)="resetRotation()">↺ Reset</button>
           </div>
           <button type="button" class="btn-imprimir-imagen" (click)="imprimirImagen(imagenModalUrl())">
             🖨️ Imprimir
@@ -358,7 +363,13 @@
           </div>
           <div class="modal-actions">
             <button type="button" class="btn-cancel" (click)="cerrarModalSupervisores()">Cancelar</button>
-            <button type="button" class="btn-save" (click)="guardarSupervisor()">Guardar</button>
+            <button type="button" class="btn-save" (click)="guardarSupervisor()" [disabled]="savingSupervisor()">
+              @if (savingSupervisor()) {
+                <span class="btn-spinner"></span> Guardando...
+              } @else {
+                Guardar
+              }
+            </button>
           </div>
         </div>
       </div>
@@ -509,6 +520,9 @@
                   @for (url of imagenesPreview(); track $index) {
                     <div class="imagen-card" (click)="abrirImagen(url)" title="Clic para ampliar">
                       <img [src]="getImageUrl(url)" alt="Preview" class="card-img" />
+                      <div class="imagen-popover">
+                        <img [src]="getImageUrl(url)" alt="Vista previa" />
+                      </div>
                     </div>
                   }
                 </div>
@@ -519,8 +533,12 @@
               }
               </div>
               <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" class="file-input" />
-              <button type="button" class="upload-btn" (click)="fileInputRef.click()">
-                📁 Seleccionar imagen
+              <button type="button" class="upload-btn" (click)="fileInputRef.click()" [disabled]="imagenUploading()">
+                @if (imagenUploading()) {
+                  <span class="btn-spinner small"></span> Subiendo...
+                } @else {
+                  📁 Seleccionar imagen
+                }
               </button>
               @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
                 <div class="additional-images-section">
@@ -529,6 +547,9 @@
                     @for (img of editingAbono!.imagenes; track $index) {
                       <div class="imagen-card" (click)="abrirImagen(img)" title="Ver imagen">
                         <img [src]="getImageUrl(img)" alt="Imagen" class="card-img" />
+                        <div class="imagen-popover">
+                          <img [src]="getImageUrl(img)" alt="Vista previa" />
+                        </div>
                         <button type="button" class="remove-img-btn" (click)="eliminarImagen($index); $event.stopPropagation()">&times;</button>
                       </div>
                     }
@@ -541,7 +562,11 @@
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
           <button type="submit" class="btn-save" [disabled]="saving()" enterFocusNext>
-            {{ saving() ? 'Guardando...' : 'Guardar' }}
+            @if (saving()) {
+              <span class="btn-spinner"></span> Guardando...
+            } @else {
+              Guardar
+            }
           </button>
         </div>
       </form>
@@ -925,6 +950,9 @@
               @for (img of abonoAbonos.imagenes; track $index) {
                 <div class="imagen-card" (click)="abrirImagen(img)" title="Ver imagen">
                   <img [src]="getImageUrl(img)" alt="Imagen del abono" class="card-img" />
+                  <div class="imagen-popover">
+                    <img [src]="getImageUrl(img)" alt="Vista previa" />
+                  </div>
                 </div>
               }
             </div>

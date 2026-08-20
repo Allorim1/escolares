@@ -399,6 +399,121 @@
   font-weight: 500;
 }
 
+/* Modal layout enhancements */
+.modal-grid {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.modal-main {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.modal-side {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.side-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #f1f3f5;
+}
+
+.side-card h4, .side-card h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.status-selector.vertical { 
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+/* Button styles */
+.btn-block {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg,#2a9df4,#007bff);
+  color: white;
+}
+
+.btn-danger {
+  background: linear-gradient(180deg,#ff6b6b,#e03131);
+  color: white;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #ced4da;
+  color: #333;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px dashed #e9ecef;
+  color: #495057;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #0d6efd;
+  cursor: pointer;
+  padding: 0.15rem 0.25rem;
+  font-size: 0.95rem;
+}
+
+.btn-primary:hover { filter: brightness(0.95); }
+.btn-danger:hover { filter: brightness(0.95); }
+.btn-outline:hover { background: #f8f9fa; }
+
+.unread-badge {
+  background: #ff6b35;
+  color: white;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.summary-card .summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed #f1f3f5;
+}
+
+/* Responsive: stack modal side on small screens */
+@media (max-width: 840px) {
+  .modal-grid { flex-direction: column; }
+  .modal-side { width: 100%; }
+}
+
 .historial-date {
   font-size: 0.8rem;
   color: #666;

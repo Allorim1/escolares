@@ -129,3 +129,49 @@ html, body {
 .price-decimal {
   font-size: 0.65em;
 }
+
+/* Home carousel and banner fixes */
+.hero-container {
+  background-image: url('/banner principal.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* Ensure hero covers the area up to marcas carousel */
+  padding: 24px 0 80px 0;
+}
+.banner-carousel .main-banner { display: none; }
+
+.productos-carousel {
+  position: relative;
+}
+.productos-carousel-viewport {
+  overflow: hidden;
+}
+.productos-carousel-track {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  transition: transform 0.36s ease;
+}
+.producto-slide {
+  flex: 0 0 216px;
+  width: 216px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.producto-image {
+  width: 100%;
+  height: 216px;
+  object-fit: cover;
+  display: block;
+  background: #f6f6f6;
+}
+.producto-info { padding: 8px 6px; }
+
+/* Make sure carousel buttons are above background */
+.productos-carousel .carousel-btn,
+.marcas-carousel .carousel-btn { z-index: 20; }
+
+/* Ensure marca carousel sits below hero background area visually */
+.marcas-carousel { position: relative; z-index: 10; margin-top: -40px; }

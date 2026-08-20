@@ -132,14 +132,9 @@ html, body {
 
 /* Home carousel and banner fixes */
 .hero-container {
-  background-image: url('/banner principal.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  /* Ensure hero covers the area up to marcas carousel */
-  padding: 24px 0 80px 0;
+  /* Banner restored to use internal carousel image */
+  padding: 24px 0 40px 0;
 }
-.banner-carousel .main-banner { display: none; }
 
 .productos-carousel {
   position: relative;
@@ -174,4 +169,4 @@ html, body {
 .marcas-carousel .carousel-btn { z-index: 20; }
 
 /* Ensure marca carousel sits below hero background area visually */
-.marcas-carousel { position: relative; z-index: 10; margin-top: -40px; }
+.marcas-carousel { position: relative; z-index: 10; margin-top: 12px; }

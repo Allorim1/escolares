@@ -316,6 +316,7 @@ export class RelacionCuentas implements OnInit {
         monto: number;
         cantidad: number;
         comisionPorcentaje: number;
+        comision: number;
       }
     >();
 
@@ -325,6 +326,7 @@ export class RelacionCuentas implements OnInit {
       const supervisorId = abono.supervisorId || '';
       const montoFactura = abono.montoFactura ?? 0;
       const iva = abono.iva ?? 0;
+      const comisionPorcentaje = abono.comisionPorcentaje ?? porcentajeManual ?? 0;
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -334,12 +336,14 @@ export class RelacionCuentas implements OnInit {
             monto: 0,
             cantidad: 0,
             comisionPorcentaje: abono.comisionPorcentaje ?? 0,
+            comision: 0,
           });
         }
 
         const sup = porSupervisor.get(supervisorId)!;
-        // Usar Monto Factura sin IVA como base para montos de supervisor
-        sup.monto += Math.max(0, montoFactura - iva);
+        const montoSinIva = Math.max(0, montoFactura - iva);
+        sup.monto += montoSinIva;
+        sup.comision += montoSinIva * (comisionPorcentaje / 100);
         sup.cantidad++;
 
         if (porcentajeManual == null && abono.comisionPorcentaje) {
@@ -355,7 +359,7 @@ export class RelacionCuentas implements OnInit {
 
     const comisionesPorSupervisor = Array.from(porSupervisor.values()).map((sup) => ({
       ...sup,
-      comision: sup.monto * (sup.comisionPorcentaje / 100),
+      comision: sup.comision,
     }));
 
     const total = comisionesPorSupervisor.reduce((sum, c) => sum + c.comision, 0);
@@ -382,6 +386,7 @@ export class RelacionCuentas implements OnInit {
         monto: number;
         cantidad: number;
         comisionPorcentaje: number;
+        comision: number;
       }
     >();
 
@@ -391,6 +396,7 @@ export class RelacionCuentas implements OnInit {
       const supervisorId = abono.supervisorId || '';
       const montoFactura = abono.montoFactura ?? 0;
       const iva = abono.iva ?? 0;
+      const comisionPorcentaje = abono.comisionPorcentaje ?? porcentajeManual ?? 0;
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -400,12 +406,14 @@ export class RelacionCuentas implements OnInit {
             monto: 0,
             cantidad: 0,
             comisionPorcentaje: abono.comisionPorcentaje ?? 0,
+            comision: 0,
           });
         }
 
         const sup = porSupervisor.get(supervisorId)!;
-        // Usar Monto Factura sin IVA como base
-        sup.monto += Math.max(0, montoFactura - iva);
+        const montoSinIva = Math.max(0, montoFactura - iva);
+        sup.monto += montoSinIva;
+        sup.comision += montoSinIva * (comisionPorcentaje / 100);
         sup.cantidad++;
 
         if (porcentajeManual == null && abono.comisionPorcentaje) {
@@ -421,7 +429,7 @@ export class RelacionCuentas implements OnInit {
 
     const comisionesPorSupervisor = Array.from(porSupervisor.values()).map((sup) => ({
       ...sup,
-      comision: sup.monto * (sup.comisionPorcentaje / 100),
+      comision: sup.comision,
     }));
 
     const total = comisionesPorSupervisor.reduce((sum, c) => sum + c.comision, 0);

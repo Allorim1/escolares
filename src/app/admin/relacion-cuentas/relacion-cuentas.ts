@@ -1983,9 +1983,19 @@ if (!url) return '';
       const plantaUsd = this.tasaActual() > 0 ? plantaBs / this.tasaActual() : 0;
       doc.setFontSize(10);
       doc.setTextColor(0);
-      if (showPlantaBs) doc.text(`Planta % (Bs.): ${this.formatMonto(plantaBs)}`, 18, headerHeight);
-      if (showPlantaUsd) doc.text(`Planta % ($): ${this.formatMonto(plantaUsd)}`, pageWidth - 18, headerHeight, { align: 'right' });
-      headerHeight += 8;
+      const rightX = pageWidth - 18;
+      if (showPlantaBs && showPlantaUsd) {
+        // Ambos: apilados a la derecha
+        doc.text(`Planta % (Bs.): ${this.formatMonto(plantaBs)}`, rightX, headerHeight, { align: 'right' });
+        doc.text(`Planta % ($): ${this.formatMonto(plantaUsd)}`, rightX, headerHeight + 6, { align: 'right' });
+        headerHeight += 12;
+      } else if (showPlantaBs) {
+        doc.text(`Planta % (Bs.): ${this.formatMonto(plantaBs)}`, rightX, headerHeight, { align: 'right' });
+        headerHeight += 8;
+      } else {
+        doc.text(`Planta % ($): ${this.formatMonto(plantaUsd)}`, rightX, headerHeight, { align: 'right' });
+        headerHeight += 8;
+      }
     }
 
     const head = columnas.map((c) => c.label);

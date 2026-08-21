@@ -338,7 +338,6 @@ export class RelacionCuentas implements OnInit {
         }
 
         const sup = porSupervisor.get(supervisorId)!;
-        sup.monto += montoFactura;
         sup.cantidad++;
 
         if (porcentajeManual == null && abono.comisionPorcentaje) {
@@ -403,7 +402,6 @@ export class RelacionCuentas implements OnInit {
         }
 
         const sup = porSupervisor.get(supervisorId)!;
-        sup.monto += montoFactura;
         sup.cantidad++;
 
         if (porcentajeManual == null && abono.comisionPorcentaje) {

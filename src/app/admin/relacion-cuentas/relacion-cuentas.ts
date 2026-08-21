@@ -338,6 +338,8 @@ export class RelacionCuentas implements OnInit {
         }
 
         const sup = porSupervisor.get(supervisorId)!;
+        // Usar Monto Factura sin IVA como base para montos de supervisor
+        sup.monto += Math.max(0, montoFactura - iva);
         sup.cantidad++;
 
         if (porcentajeManual == null && abono.comisionPorcentaje) {
@@ -402,6 +404,8 @@ export class RelacionCuentas implements OnInit {
         }
 
         const sup = porSupervisor.get(supervisorId)!;
+        // Usar Monto Factura sin IVA como base
+        sup.monto += Math.max(0, montoFactura - iva);
         sup.cantidad++;
 
         if (porcentajeManual == null && abono.comisionPorcentaje) {

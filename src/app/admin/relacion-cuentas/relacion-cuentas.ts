@@ -173,12 +173,12 @@ export class RelacionCuentas implements OnInit {
     const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
     const abonos = datos.reduce((sum, a) => sum + (a.abonos ?? 0), 0);
     const iva = datos.reduce((sum, a) => sum + (a.iva ?? 0), 0);
-  console.log('Analizando tasas:', datos.map(a => ({ tasa: a.tasa, tipo: typeof a.tasa })));
-  // ✅ CÓDIGO CORREGIDO:
-const ivaDivisa = datos.reduce((sum, a) => {
-  const tasa = Number(a.tasa) || 0;
-  return sum + (tasa > 0 ? (a.iva ?? 0) / tasa : 0);
-}, 0);
+    console.log('Analizando tasas:', datos.map(a => ({ tasa: a.tasa, tipo: typeof a.tasa })));
+    // ✅ CÓDIGO CORREGIDO:
+    const ivaDivisa = datos.reduce((sum, a) => {
+      const tasa = Number(a.tasa) || 0;
+      return sum + (tasa > 0 ? (a.iva ?? 0) / tasa : 0);
+    }, 0);
     const pagoParcial = abonos;
     const diferencia = montoFactura - iva;
     const divisa = datos.reduce((sum, a) => {
@@ -195,6 +195,17 @@ const ivaDivisa = datos.reduce((sum, a) => {
       const tasa = Number(a.tasa) || 0;
       return sum + (tasa > 0 ? (a.iva ?? 0) / tasa : 0);
     }, 0);
+    // Cantidad de facturas y total clientes únicos
+    const cantidadFacturas = datos.length;
+    const clientesSet = new Set<string>();
+    for (const a of datos) {
+      const ced = (a.cedula || '').toString().trim();
+      const tel = (a.telefono || '').toString().trim();
+      const nombre = (a.nombre || '').toString().trim().toLowerCase();
+      const key = ced || tel || nombre;
+      if (key) clientesSet.add(key);
+    }
+    const totalClientes = clientesSet.size;
     return {
       montoFactura,
       abonos,
@@ -211,6 +222,8 @@ const ivaDivisa = datos.reduce((sum, a) => {
       decrecimientoMonto: Number(decrecimientoMonto.toFixed(2)),
       decrecimientoPorcentaje: Number(decrecimientoPorcentaje.toFixed(2)),
       ivaDolares: Number(ivaDolares.toFixed(2)),
+      cantidadFacturas,
+      totalClientes,
     };
   });
   loading = signal(false);
@@ -240,6 +253,8 @@ const ivaDivisa = datos.reduce((sum, a) => {
     { key: 'tasa', label: 'Tasa' },
     { key: 'status', label: 'Status' },
     { key: 'supervisor', label: 'Supervisor' },
+    { key: 'comisionPlantaBs', label: 'Planta % (Bs.)' },
+    { key: 'comisionPlantaUsd', label: 'Planta % ($)' },
   ];
 
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
@@ -1148,6 +1163,23 @@ const ivaDivisa = datos.reduce((sum, a) => {
         return abono.status;
       case 'supervisor':
         return abono.supervisor || '-';
+      case 'comisionPlantaBs': {
+        const porcentaje = (abono.comisionPorcentaje ?? this.comisionNoAsignadaManual()) || 0;
+        const montoFactura = abono.montoFactura ?? 0;
+        const iva = abono.iva ?? 0;
+        const base = abono.comisionPorcentaje != null ? montoFactura : (montoFactura - iva);
+        const comBs = base * (porcentaje / 100);
+        return this.formatMonto(comBs);
+      }
+      case 'comisionPlantaUsd': {
+        const porcentaje = (abono.comisionPorcentaje ?? this.comisionNoAsignadaManual()) || 0;
+        const montoFactura = abono.montoFactura ?? 0;
+        const iva = abono.iva ?? 0;
+        const base = abono.comisionPorcentaje != null ? montoFactura : (montoFactura - iva);
+        const comBs = base * (porcentaje / 100);
+        const usd = this.tasaActual() > 0 ? comBs / this.tasaActual() : 0;
+        return this.formatMonto(usd);
+      }
       default:
         return valor ?? '';
     }
@@ -1962,6 +1994,21 @@ if (!url) return '';
         if (c.key === 'pagoParcial') {
           return this.formatMonto((a as any).abonos || 0);
         }
+        if (c.key === 'comisionPlantaBs') {
+          const porcentaje = (a.comisionPorcentaje ?? this.comisionNoAsignadaManual()) || 0;
+          const montoFactura = a.montoFactura ?? 0;
+          const iva = a.iva ?? 0;
+          const base = a.comisionPorcentaje != null ? montoFactura : (montoFactura - iva);
+          return this.formatMonto(base * (porcentaje / 100));
+        }
+        if (c.key === 'comisionPlantaUsd') {
+          const porcentaje = (a.comisionPorcentaje ?? this.comisionNoAsignadaManual()) || 0;
+          const montoFactura = a.montoFactura ?? 0;
+          const iva = a.iva ?? 0;
+          const base = a.comisionPorcentaje != null ? montoFactura : (montoFactura - iva);
+          const comBs = base * (porcentaje / 100);
+          return this.tasaActual() > 0 ? `$ ${this.formatMonto(comBs / this.tasaActual())}` : '$ 0,00';
+        }
         if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
         if (c.key === 'divisaFactura') {
           const mf = (a as any).montoFactura;
@@ -2075,19 +2122,25 @@ if (!url) return '';
     doc.setTextColor(100);
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, infoY, { align: 'center' });
 
-    const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Comisión']];
-    const body = nombres.map((n: any) => [
-      n.nombre || '',
-      n.planta || '-',
-      String(n.cantidad || 0),
-      this.formatMonto(n.montoFactura || 0),
-      this.formatMonto(n.iva || 0),
-      this.formatMonto(n.montoFacturaSinIva || 0),
-      this.formatMonto(n.comision || 0) + ' Bs',
-    ]);
+    const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Planta % (Bs.)', 'Planta % ($)']];
+    const body = nombres.map((n: any) => {
+      const comBs = n.comision || 0;
+      const comUsd = this.tasaActual() > 0 ? comBs / this.tasaActual() : 0;
+      return [
+        n.nombre || '',
+        n.planta || '-',
+        String(n.cantidad || 0),
+        this.formatMonto(n.montoFactura || 0),
+        this.formatMonto(n.iva || 0),
+        this.formatMonto(n.montoFacturaSinIva || 0),
+        this.formatMonto(comBs) + ' Bs',
+        this.formatMonto(comUsd) + ' $',
+      ];
+    });
 
     if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
       const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
+      const totalComisionUsd = this.tasaActual() > 0 ? totalComision / this.tasaActual() : 0;
       const totalMontoFactura = nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0);
       const totalIva = nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0);
       const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
@@ -2100,6 +2153,7 @@ if (!url) return '';
         this.incluirTotalesMontos() ? this.formatMonto(totalIva) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoSinIva) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalComision) + ' Bs' : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) + ' $' : '',
       ]);
     }
 
@@ -2124,6 +2178,7 @@ if (!url) return '';
         4: { cellWidth: 22 },
         5: { cellWidth: 32 },
         6: { cellWidth: 28 },
+        7: { cellWidth: 28 },
       },
     });
 
@@ -2163,13 +2218,14 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       { width: 22, header: 'Monto Factura Bs' },
       { width: 18, header: 'IVA' },
       { width: 28, header: 'Monto Factura Sin Iva' },
-      { width: 22, header: 'Comisión' },
+      { width: 22, header: 'Planta % (Bs.)' },
+      { width: 22, header: 'Planta % ($)' },
     ];
     if (this.incluirTotalesClientes()) {
       columnasBase.push({ width: 18, header: 'Total Clientes' });
     }
     if (this.incluirTotalesListas()) {
-      columnasBase.push({ width: 18, header: 'Total Listas' });
+      columnasBase.push({ width: 18, header: 'Total Facturas' });
     }
 
     worksheet.columns = columnasBase.map(c => ({ width: c.width }));
@@ -2183,6 +2239,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
     const totalListas = nombres.reduce((sum: number, nombre: any) => sum + (nombre.cantidad || 0), 0);
     nombres.forEach((n: any) => {
+      const comBs = n.comision || 0;
+      const comUsd = this.tasaActual() > 0 ? comBs / this.tasaActual() : 0;
       const row = [
         n.nombre || '',
         n.planta || '-',
@@ -2190,7 +2248,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         this.formatMonto(n.montoFactura || 0),
         this.formatMonto(n.iva || 0),
         this.formatMonto(n.montoFacturaSinIva || 0),
-        this.formatMonto(n.comision || 0),
+        this.formatMonto(comBs),
+        this.formatMonto(comUsd),
       ];
       if (this.incluirTotalesClientes()) {
         row.push(String(nombres.length));
@@ -2205,6 +2264,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
 
     if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
+      const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
+      const totalComisionUsd = this.tasaActual() > 0 ? totalComision / this.tasaActual() : 0;
       const totalRowData = [
         '',
         '',
@@ -2212,7 +2273,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0)) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0)) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalComision) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) : '',
       ];
       if (this.incluirTotalesClientes()) {
         totalRowData.push(String(nombres.length));

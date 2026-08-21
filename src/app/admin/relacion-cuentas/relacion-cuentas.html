@@ -124,7 +124,7 @@
       <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
       <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
     </div>
-    @if (esRoot()) {
+      @if (esRoot()) {
       @if (mostrarComisiones()) {
         <div class="filtro-group">
           <label>Comisión Planta (%):</label>
@@ -224,7 +224,7 @@
             <h3>Comisiones</h3>
             <div class="totales-grid">
               <div class="total-item">
-                <span class="total-label">Comisión Planta</span>
+                <span class="total-label">Comisión Planta Bs.</span>
                 <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
               </div>
               <div class="total-item">
@@ -247,8 +247,12 @@
           <h3>Total Facturas Emitidas</h3>
           <div class="totales-grid">
             <div class="total-item">
-              <span class="total-label">Cantidad de Listas</span>
+              <span class="total-label">Cantidad Facturas</span>
               <span class="total-value">{{ abonosFiltrados().length }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Total Clientes</span>
+              <span class="total-value">{{ totales().totalClientes }}</span>
             </div>
           </div>
         </div>
@@ -770,7 +774,7 @@
               <span class="total-value">{{ comisionesTabNombresAgrupados().length }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Total Listas</span>
+              <span class="total-label">Total Facturas</span>
               <span class="total-value">{{ comisionesTabNombresAgrupados().reduce((sum, n) => sum + (n.cantidad || 0), 0) }}</span>
             </div>
           </div>
@@ -849,7 +853,7 @@
           </label>
           <label class="checkbox-label">
             <input type="checkbox" [checked]="incluirTotalesListas()" (change)="incluirTotalesListas.set(!incluirTotalesListas())">
-            Incluir total de listas
+            Incluir total de facturas
           </label>
         </div>
         <div class="modal-actions">

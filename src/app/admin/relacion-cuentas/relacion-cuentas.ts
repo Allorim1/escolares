@@ -660,7 +660,8 @@ export class RelacionCuentas implements OnInit {
         sup.montoFactura += montoFactura;
         sup.iva += iva;
         sup.montoFacturaSinIva += montoFactura - iva;
-        sup.comision += montoFactura * (comisionPorcentaje / 100);
+        // Comisiones deben calcularse sobre monto sin IVA
+        sup.comision += Math.max(0, montoFactura - iva) * (comisionPorcentaje / 100);
         sup.cantidad++;
         sup.abonos.push(abono);
 
@@ -718,7 +719,7 @@ export class RelacionCuentas implements OnInit {
         existente.montoFactura += montoFactura;
         existente.iva += iva;
         existente.montoFacturaSinIva += montoFactura - iva;
-        existente.comision += montoFactura * (comisionPorcentaje / 100);
+        existente.comision += Math.max(0, montoFactura - iva) * (comisionPorcentaje / 100);
         existente.comisionPorcentaje = comisionPorcentaje;
         if (!existente.planta && planta) {
           existente.planta = planta;
@@ -732,7 +733,7 @@ export class RelacionCuentas implements OnInit {
           montoFactura,
           iva,
           montoFacturaSinIva: montoFactura - iva,
-          comision: montoFactura * (comisionPorcentaje / 100),
+          comision: Math.max(0, montoFactura - iva) * (comisionPorcentaje / 100),
           comisionPorcentaje,
           abonos: [abono],
         });

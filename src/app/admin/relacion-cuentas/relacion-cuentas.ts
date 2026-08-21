@@ -253,8 +253,6 @@ export class RelacionCuentas implements OnInit {
     { key: 'tasa', label: 'Tasa' },
     { key: 'status', label: 'Status' },
     { key: 'supervisor', label: 'Supervisor' },
-    { key: 'comisionPlantaBs', label: 'Planta % (Bs.)' },
-    { key: 'comisionPlantaUsd', label: 'Planta % ($)' },
   ];
 
   columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
@@ -1163,23 +1161,7 @@ export class RelacionCuentas implements OnInit {
         return abono.status;
       case 'supervisor':
         return abono.supervisor || '-';
-      case 'comisionPlantaBs': {
-        const porcentaje = (abono.comisionPorcentaje ?? this.comisionNoAsignadaManual()) || 0;
-        const montoFactura = abono.montoFactura ?? 0;
-        const iva = abono.iva ?? 0;
-        const base = abono.comisionPorcentaje != null ? montoFactura : (montoFactura - iva);
-        const comBs = base * (porcentaje / 100);
-        return this.formatMonto(comBs);
-      }
-      case 'comisionPlantaUsd': {
-        const porcentaje = (abono.comisionPorcentaje ?? this.comisionNoAsignadaManual()) || 0;
-        const montoFactura = abono.montoFactura ?? 0;
-        const iva = abono.iva ?? 0;
-        const base = abono.comisionPorcentaje != null ? montoFactura : (montoFactura - iva);
-        const comBs = base * (porcentaje / 100);
-        const usd = this.tasaActual() > 0 ? comBs / this.tasaActual() : 0;
-        return this.formatMonto(usd);
-      }
+      
       default:
         return valor ?? '';
     }
@@ -1986,6 +1968,19 @@ if (!url) return '';
       headerHeight = infoY + 14;
     }
 
+    // Incluir valores de Comisión Planta (tomados de la tarjeta de Comisiones)
+    try {
+      const plantaBs = this.comisiones().comisionNoAsignada ?? 0;
+      const plantaUsd = this.tasaActual() > 0 ? plantaBs / this.tasaActual() : 0;
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+      doc.text(`Planta % (Bs.): ${this.formatMonto(plantaBs)}`, 18, headerHeight);
+      doc.text(`Planta % ($): ${this.formatMonto(plantaUsd)}`, pageWidth - 18, headerHeight, { align: 'right' });
+      headerHeight += 8;
+    } catch (e) {
+      // ignore
+    }
+
     const head = columnas.map((c) => c.label);
     const body = datos.map((a: Abono) => {
       return columnas.map((c) => {
@@ -1994,21 +1989,7 @@ if (!url) return '';
         if (c.key === 'pagoParcial') {
           return this.formatMonto((a as any).abonos || 0);
         }
-        if (c.key === 'comisionPlantaBs') {
-          const porcentaje = (a.comisionPorcentaje ?? this.comisionNoAsignadaManual()) || 0;
-          const montoFactura = a.montoFactura ?? 0;
-          const iva = a.iva ?? 0;
-          const base = a.comisionPorcentaje != null ? montoFactura : (montoFactura - iva);
-          return this.formatMonto(base * (porcentaje / 100));
-        }
-        if (c.key === 'comisionPlantaUsd') {
-          const porcentaje = (a.comisionPorcentaje ?? this.comisionNoAsignadaManual()) || 0;
-          const montoFactura = a.montoFactura ?? 0;
-          const iva = a.iva ?? 0;
-          const base = a.comisionPorcentaje != null ? montoFactura : (montoFactura - iva);
-          const comBs = base * (porcentaje / 100);
-          return this.tasaActual() > 0 ? `$ ${this.formatMonto(comBs / this.tasaActual())}` : '$ 0,00';
-        }
+        
         if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
         if (c.key === 'divisaFactura') {
           const mf = (a as any).montoFactura;

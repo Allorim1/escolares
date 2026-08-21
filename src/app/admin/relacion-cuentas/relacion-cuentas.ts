@@ -253,10 +253,15 @@ export class RelacionCuentas implements OnInit {
     { key: 'tasa', label: 'Tasa' },
     { key: 'status', label: 'Status' },
     { key: 'supervisor', label: 'Supervisor' },
+    // Opciones exclusivas para PDF: muestran montos de Comisión Planta en el header del PDF
+    { key: 'comisionPlantaBs', label: 'Planta % (Bs.)' },
+    { key: 'comisionPlantaUsd', label: 'Planta % ($)' },
   ];
 
-  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
-  columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+  // Por defecto no marcar las columnas exclusivas de PDF para evitar que aparezcan en la tabla
+  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.filter(c => c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd').map((c) => c.key)));
+  // Para PDF dejamos las opciones de Planta sin seleccionar por defecto
+  columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.filter(c => c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd').map((c) => c.key)));
 
   showModalColumnasPdf = signal(false);
   showModalSender = signal(false);
@@ -1904,7 +1909,8 @@ if (!url) return '';
       return;
     }
 
-    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadasPdf().has(c.key));
+    // Para la tabla en el PDF excluimos las opciones de Planta (se mostrarán en el header si están marcadas)
+    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadasPdf().has(c.key) && c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd');
 
     const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -1968,17 +1974,18 @@ if (!url) return '';
       headerHeight = infoY + 14;
     }
 
-    // Incluir valores de Comisión Planta (tomados de la tarjeta de Comisiones)
-    try {
+    // Mostrar Planta % en header solo si está marcada en las columnas PDF
+    const pdfSelected = this.columnasSeleccionadasPdf();
+    const showPlantaBs = pdfSelected.has('comisionPlantaBs');
+    const showPlantaUsd = pdfSelected.has('comisionPlantaUsd');
+    if (showPlantaBs || showPlantaUsd) {
       const plantaBs = this.comisiones().comisionNoAsignada ?? 0;
       const plantaUsd = this.tasaActual() > 0 ? plantaBs / this.tasaActual() : 0;
       doc.setFontSize(10);
       doc.setTextColor(0);
-      doc.text(`Planta % (Bs.): ${this.formatMonto(plantaBs)}`, 18, headerHeight);
-      doc.text(`Planta % ($): ${this.formatMonto(plantaUsd)}`, pageWidth - 18, headerHeight, { align: 'right' });
+      if (showPlantaBs) doc.text(`Planta % (Bs.): ${this.formatMonto(plantaBs)}`, 18, headerHeight);
+      if (showPlantaUsd) doc.text(`Planta % ($): ${this.formatMonto(plantaUsd)}`, pageWidth - 18, headerHeight, { align: 'right' });
       headerHeight += 8;
-    } catch (e) {
-      // ignore
     }
 
     const head = columnas.map((c) => c.label);

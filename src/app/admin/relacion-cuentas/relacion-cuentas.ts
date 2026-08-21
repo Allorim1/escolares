@@ -2137,8 +2137,8 @@ if (!url) return '';
       const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
       const totalListas = nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0);
       body.push([
-        this.incluirTotalesClientes() ? String(nombres.length) : '',
-        'Totales',
+        this.incluirTotalesClientes() ? `Totales: ${String(nombres.length)}` : 'Totales:',
+        '',
         this.incluirTotalesListas() ? String(totalListas) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoFactura) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalIva) : '',
@@ -2156,7 +2156,16 @@ if (!url) return '';
       head: head,
       body: body,
       theme: 'grid',
-      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
+      didParseCell: (data: any) => {
+        if (data.section === 'body' && data.row.index === body.length - 1) {
+          data.cell.styles.fontSize = 9;
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [232, 232, 232];
+          data.cell.styles.textColor = [0, 0, 0];
+          data.cell.styles.halign = 'center';
+        }
+      },
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 9, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
       bodyStyles: { fontSize: 7, overflow: 'linebreak', halign: 'center' },
       styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak', halign: 'center' },
       margin: { left: marginSide, right: marginSide, bottom: marginBottom },

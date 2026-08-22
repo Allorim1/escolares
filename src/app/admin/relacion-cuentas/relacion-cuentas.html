@@ -180,7 +180,7 @@
               <span class="total-value">{{ formatMonto(totales().iva) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Monto Total Sin Iva</span>
+              <span class="total-label">Monto Total Sin Iva Bs</span>
               <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
             </div>
             <div class="total-item">
@@ -192,8 +192,8 @@
               <span class="total-value">{{ formatMonto(totales().ivaDivisa) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Pago Parcial</span>
-              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
+              <span class="total-label">Monto Total Sin Iva $</span>
+              <span class="total-value">{{ formatMonto(totales().diferenciaDivisa) }}</span>
             </div>
           </div>
         </div>
@@ -253,6 +253,10 @@
             <div class="total-item">
               <span class="total-label">Total Clientes</span>
               <span class="total-value">{{ totales().totalClientes }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Pago Parcial</span>
+              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
             </div>
           </div>
         </div>

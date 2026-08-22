@@ -179,6 +179,13 @@ export class RelacionCuentas implements OnInit {
       const tasa = Number(a.tasa) || 0;
       return sum + (tasa > 0 ? (a.iva ?? 0) / tasa : 0);
     }, 0);
+    const diferenciaDivisa = datos.reduce((sum, a) => {
+      const tasa = Number(a.tasa) || 0;
+      const montoFactura = a.montoFactura ?? 0;
+      const iva = a.iva ?? 0;
+      const diferencia = montoFactura - iva;
+      return sum + (tasa > 0 ? diferencia / tasa : 0);
+    }, 0);
     const pagoParcial = abonos;
     const diferencia = montoFactura - iva;
     const divisa = datos.reduce((sum, a) => {
@@ -211,6 +218,7 @@ export class RelacionCuentas implements OnInit {
       abonos,
       iva,
       ivaDivisa,
+      diferenciaDivisa: Number(diferenciaDivisa.toFixed(2)),
       pagoParcial,
       diferencia,
       divisa,

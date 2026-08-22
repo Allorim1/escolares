@@ -202,8 +202,12 @@
           <h3>Totales Actuales</h3>
           <div class="totales-grid">
             <div class="total-item">
-              <span class="total-label">Total actual $</span>
+              <span class="total-label">Monto Facts. Actual $</span>
               <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Monto Total Sin Iva $</span>
+              <span class="total-value">{{ formatMonto(totales().montoTotalSinIvaDivisa) }}</span>
             </div>
             <div class="total-item">
               <span class="total-label">Diferencia $</span>

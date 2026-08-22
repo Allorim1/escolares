@@ -230,6 +230,7 @@ export class RelacionCuentas implements OnInit {
       decrecimientoMonto: Number(decrecimientoMonto.toFixed(2)),
       decrecimientoPorcentaje: Number(decrecimientoPorcentaje.toFixed(2)),
       ivaDolares: Number(ivaDolares.toFixed(2)),
+      montoTotalSinIvaDivisa: Number((diferencia / tasaActual).toFixed(2)),
       cantidadFacturas,
       totalClientes,
     };

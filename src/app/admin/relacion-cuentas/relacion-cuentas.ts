@@ -196,6 +196,7 @@ export class RelacionCuentas implements OnInit {
     const diferenciaEnDivisa = tasaActual > 0 ? montoFactura / tasaActual : 0;
     const porcentajeCambio = diferenciaEnDivisa > 0 ? ((divisa - diferenciaEnDivisa) / diferenciaEnDivisa) * 100 : 0;
     const cambioMonto = divisa - diferenciaEnDivisa;
+    const montoTotalSinIvaDivisa = Number((diferencia / tasaActual).toFixed(2));
     const decrecimientoMonto = diferenciaDivisa - montoTotalSinIvaDivisa;
     const decrecimientoPorcentaje = diferenciaDivisa > 0 ? (decrecimientoMonto / diferenciaDivisa) * 100 : 0;
     const ivaDolares = datos.reduce((sum, a) => {
@@ -230,7 +231,7 @@ export class RelacionCuentas implements OnInit {
       decrecimientoMonto: Number(decrecimientoMonto.toFixed(2)),
       decrecimientoPorcentaje: Number(decrecimientoPorcentaje.toFixed(2)),
       ivaDolares: Number(ivaDolares.toFixed(2)),
-      montoTotalSinIvaDivisa: Number((diferencia / tasaActual).toFixed(2)),
+      montoTotalSinIvaDivisa,
       cantidadFacturas,
       totalClientes,
     };

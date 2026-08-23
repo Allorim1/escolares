@@ -228,6 +228,12 @@
             <input type="text" [(ngModel)]="reciboPago().pagado" placeholder="Nombre de a quien le pagan" enterFocusNext />
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Nota</label>
+            <textarea [(ngModel)]="reciboPago().nota" rows="2" placeholder="Nota" enterFocusNext></textarea>
+          </div>
+        </div>
       </div>
     }
   </div>

@@ -97,235 +97,153 @@
       }
     </div>
   }
-</section>
 
-@if (selectedOrder()) {
-  <div class="modal-overlay" (click)="closeDetail()">
-    <div class="order-detail-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
-        <button class="close-btn" (click)="closeDetail()">✕</button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="detail-section">
-          <h4>Estado del Pedido</h4>
-          <div class="status-selector">
-            @for (status of statusOptions; track status.value) {
-              @if (status.value !== 'todos') {
-                <button 
-                  class="status-btn"
-                  [class.active]="selectedOrder()!.status === status.value"
-                  [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''"
-                  (click)="onStatusClick(status.value)"
-                  [disabled]="isStatusDisabled(status.value)"
-                >
-                  {{ status.label }}
-                </button>
-              }
-            }
-          </div>
+  <!-- Detalle del pedido (modal) -->
+  @if (selectedOrder()) {
+    <div class="modal-overlay" (click)="closeDetail()">
+      <div class="order-detail-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
+          <button class="close-btn" (click)="closeDetail()">✕</button>
         </div>
-       
-        @if (selectedOrder()!.status !== 'entregado' && selectedOrder()!.status !== 'cancelado') {
-          <div class="detail-section danger-zone">
-            <h4>Acciones</h4>
-            <button class="btn-cancel-order" (click)="openCancelModal()">
-              🗑️ Cancelar Pedido
-            </button>
-            @if (!selectedOrder()!.facturaImage) {
-              <button class="btn-subir-factura" (click)="openFacturaModal()">
-                📤 Subir Factura
-              </button>
-              <p class="factura-hint">Requerido para marcar como entregado</p>
-            }
-            <button class="btn-asignar-repartidor" (click)="openAssignDeliveryModal()">
-              🚚 Asignar Repartidor
-            </button>
-            <button class="btn-mensajes" (click)="openMessagesModal()">
-              💬 Mensajes
-              @if (getUnreadMessagesCount(selectedOrder()!) > 0) {
-                <span class="unread-badge">{{ getUnreadMessagesCount(selectedOrder()!) }}</span>
-              }
-            </button>
-          </div>
-        } @else {
-          <div class="detail-section danger-zone">
-            <h4>Acciones</h4>
-            <button class="btn-mensajes" (click)="openMessagesModal()">
-              💬 Mensajes
-              @if (getUnreadMessagesCount(selectedOrder()!) > 0) {
-                <span class="unread-badge">{{ getUnreadMessagesCount(selectedOrder()!) }}</span>
-              }
-            </button>
-          </div>
-        }
-        
-        @if (selectedOrder()!.autorizadoNombre) {
-          <div class="detail-section autorizacion-section">
-            <h4>Autorización</h4>
-            <div class="autorizacion-info">
-              <span class="label">Cancelado por:</span>
-              <span class="value">{{ selectedOrder()!.autorizadoNombre }}</span>
-            </div>
-          </div>
-        }
-        
-        <div class="detail-section">
-          <h4>Datos del Cliente</h4>
-          <div class="detail-grid">
-            <div class="detail-item">
-              <span class="label">Nombre:</span>
-              <span class="value">{{ selectedOrder()!.nombre }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Cédula:</span>
-              <span class="value">{{ selectedOrder()!.cedula }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Teléfono:</span>
-              <span class="value">{{ selectedOrder()!.telefono }}</span>
-            </div>
-            <div class="detail-item full">
-              <span class="label">Dirección:</span>
-              <span class="value">
-                {{ selectedOrder()!.direccion }}
-                @if (selectedOrder()!.latitud && selectedOrder()!.longitud) {
-                  <button class="btn-view-map" (click)="openOrderMap(selectedOrder()!.latitud!, selectedOrder()!.longitud!, selectedOrder()!.repartidorUbicacion?.lat, selectedOrder()!.repartidorUbicacion?.lng)">
-                    🗺️ Ver ruta
-                  </button>
-                }
-              </span>
-            </div>
-@if (selectedOrder()!.deliveryPersonName) {
-               <div class="detail-item full">
-                 <span class="label">Repartidor asignado:</span>
-                 <span class="value delivery-person">
-                   {{ selectedOrder()!.deliveryPersonName }}
-                   <button class="btn-view-delivery-profile" (click)="openDeliveryPersonModal(selectedOrder()!.deliveryPersonId!)">
-                     📋 Ver ficha
-                   </button>
-                 </span>
-               </div>
-             }
-          </div>
-        </div>
-        
-        <div class="detail-section">
-          <h4>Información de Pago</h4>
-          <div class="detail-grid">
-            <div class="detail-item">
-              <span class="label">Método:</span>
-              <span class="value">{{ getPaymentMethodLabel(selectedOrder()!.metodoPago) }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Referencia:</span>
-              <span class="value">{{ selectedOrder()!.referencia || 'Sin referencia' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Total:</span>
-              <span class="value total">${{ selectedOrder()!.total | number:'1.2-2' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Fecha:</span>
-              <span class="value">{{ formatDate(selectedOrder()!.createdAt) }}</span>
-            </div>
-            @if (selectedOrder()!.bancoEmisor) {
-              <div class="detail-item">
-                <span class="label">Banco emisor:</span>
-                <span class="value">{{ selectedOrder()!.bancoEmisor }}</span>
-              </div>
-            }
-            @if (selectedOrder()!.cedulaTitular) {
-              <div class="detail-item">
-                <span class="label">Cédula titular:</span>
-                <span class="value">{{ selectedOrder()!.cedulaTitular }}</span>
-              </div>
-            }
-            @if (selectedOrder()!.telefono) {
-              <div class="detail-item">
-                <span class="label">Teléfono:</span>
-                <span class="value">{{ selectedOrder()!.telefono }}</span>
-              </div>
-            }
-            @if (selectedOrder()!.correo) {
-              <div class="detail-item">
-                <span class="label">Correo:</span>
-                <span class="value">{{ selectedOrder()!.correo }}</span>
-              </div>
-            }
-          </div>
-          
-          @if (selectedOrder()!.referencia || selectedOrder()!.fotoComprobante) {
-            <div class="comprobante-section">
-              <h5>Comprobante de Pago</h5>
-              @if (selectedOrder()!.referencia) {
-                <div class="referencia-box">
-                  <span class="label">Referencia:</span>
-                  <span class="value ref">{{ selectedOrder()!.referencia }}</span>
-                </div>
-              }
-              @if (selectedOrder()!.fotoComprobante) {
-                <div class="comprobante-image">
-                  <span class="label">Foto:</span>
-                  <button class="btn-ver-foto" (click)="openImageModal(selectedOrder()!.fotoComprobante!)">
-                    📷 Ver Comprobante
-                  </button>
-                </div>
-              }
-            </div>
-          }
-        </div>
-        
-        <div class="detail-section">
-          <h4>Productos</h4>
-          <div class="order-items">
-            @for (item of selectedOrder()!.items; track item.productId) {
-              <div class="order-item">
-                <img [src]="item.image" [alt]="item.title" class="item-image" />
-                <div class="item-info">
-                  <span class="item-title">{{ item.title }}</span>
-                  <span class="item-qty">x{{ item.quantity }}</span>
-                </div>
-                <span class="item-price">${{ (item.price * item.quantity) | number:'1.2-2' }}</span>
-              </div>
-            }
-          </div>
-        </div>
-        
-        @if (selectedOrder()!.historial.length > 0) {
-          <div class="detail-section">
-            <h4>Historial</h4>
-            <div class="historial-list">
-              @for (h of selectedOrder()!.historial; track h.fecha) {
-                <div class="historial-item">
-                  <span class="historial-status" [style.background-color]="statusColors[h.status] || '#6c757d'">
-                    {{ getStatusLabel(h.status) }}
-                  </span>
-                  <span class="historial-date">{{ formatDate(h.fecha) }}</span>
-                  @if (h.observaciones) {
-                    <span class="historial-obs">{{ h.observaciones }}</span>
+
+        <div class="modal-body">
+          <div class="modal-grid">
+            <div class="modal-main">
+              <!-- Cliente, pago, productos, historial y factura -->
+              <div class="detail-section client-section">
+                <h4>Datos del Cliente</h4>
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <span class="label">Nombre:</span>
+                    <span class="value">{{ selectedOrder()!.nombre }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Cédula:</span>
+                    <span class="value">{{ selectedOrder()!.cedula }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Teléfono:</span>
+                    <span class="value">{{ selectedOrder()!.telefono }}</span>
+                  </div>
+                  <div class="detail-item full">
+                    <span class="label">Dirección:</span>
+                    <span class="value">
+                      {{ selectedOrder()!.direccion }}
+                      @if (selectedOrder()!.latitud && selectedOrder()!.longitud) {
+                        <button class="btn-link" (click)="openOrderMap(selectedOrder()!.latitud!, selectedOrder()!.longitud!, selectedOrder()!.repartidorUbicacion?.lat, selectedOrder()!.repartidorUbicacion?.lng)">🗺️ Ver ruta</button>
+                      }
+                    </span>
+                  </div>
+                  @if (selectedOrder()!.deliveryPersonName) {
+                    <div class="detail-item full">
+                      <span class="label">Repartidor asignado:</span>
+                      <span class="value delivery-person">{{ selectedOrder()!.deliveryPersonName }} <button class="btn-link" (click)="openDeliveryPersonModal(selectedOrder()!.deliveryPersonId!)">📋 Ver ficha</button></span>
+                    </div>
                   }
                 </div>
+              </div>
+
+              <div class="detail-section">
+                <h4>Información de Pago</h4>
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <span class="label">Método:</span>
+                    <span class="value">{{ getPaymentMethodLabel(selectedOrder()!.metodoPago) }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Referencia:</span>
+                    <span class="value">{{ selectedOrder()!.referencia || 'Sin referencia' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Total:</span>
+                    <span class="value total">${{ selectedOrder()!.total | number:'1.2-2' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Fecha:</span>
+                    <span class="value">{{ formatDate(selectedOrder()!.createdAt) }}</span>
+                  </div>
+                </div>
+
+                @if (selectedOrder()!.referencia || selectedOrder()!.fotoComprobante) {
+                  <div class="comprobante-section">
+                    <h5>Comprobante de Pago</h5>
+                    @if (selectedOrder()!.referencia) {
+                      <div class="referencia-box"><span class="label">Referencia:</span> <span class="value ref">{{ selectedOrder()!.referencia }}</span></div>
+                    }
+                    @if (selectedOrder()!.fotoComprobante) {
+                      <div class="comprobante-image"><span class="label">Foto:</span> <button class="btn-outline" (click)="openImageModal(selectedOrder()!.fotoComprobante!)">📷 Ver Comprobante</button></div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="detail-section">
+                <h4>Productos</h4>
+                <div class="order-items">
+                  @for (item of selectedOrder()!.items; track item.productId) {
+                    <div class="order-item">
+                      <img [src]="item.image" [alt]="item.title" class="item-image" />
+                      <div class="item-info"><span class="item-title">{{ item.title }}</span><span class="item-qty">x{{ item.quantity }}</span></div>
+                      <span class="item-price">${{ (item.price * item.quantity) | number:'1.2-2' }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              @if (selectedOrder()!.historial.length > 0) {
+                <div class="detail-section">
+                  <h4>Historial</h4>
+                  <div class="historial-list">
+                    @for (h of selectedOrder()!.historial; track h.fecha) {
+                      <div class="historial-item">
+                        <span class="historial-status" [style.background-color]="statusColors[h.status] || '#6c757d'">{{ getStatusLabel(h.status) }}</span>
+                        <span class="historial-date">{{ formatDate(h.fecha) }}</span>
+                        @if (h.observaciones) { <span class="historial-obs">{{ h.observaciones }}</span> }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (selectedOrder()!.facturaImage) {
+                <div class="factura-section"><h5>Factura</h5><div class="factura-image"><button class="btn-outline" (click)="openImageModal(selectedOrder()!.facturaImage!)">📄 Ver Factura</button></div></div>
               }
             </div>
+
+            <aside class="modal-side">
+              <div class="side-card status-card">
+                <h4>Estado</h4>
+                <div class="status-selector vertical">
+                  @for (status of statusOptions; track status.value) {
+                    @if (status.value !== 'todos') {
+                      <button class="status-btn" [class.active]="selectedOrder()!.status === status.value" [style.background-color]="status.value === selectedOrder()!.status ? statusColors[status.value] : ''" (click)="onStatusClick(status.value)" [disabled]="isStatusDisabled(status.value)">{{ status.label }}</button>
+                    }
+                  }
+                </div>
+              </div>
+
+              <div class="side-card actions-card">
+                <h4>Acciones</h4>
+                @if (selectedOrder()!.status !== 'entregado' && selectedOrder()!.status !== 'cancelado') {
+                  <button class="btn-danger btn-block" (click)="openCancelModal()">🗑️ Cancelar Pedido</button>
+                  @if (!selectedOrder()!.facturaImage) { <button class="btn-primary btn-block" (click)="openFacturaModal()">📤 Subir Factura</button> }
+                  <button class="btn-ghost btn-block" (click)="openAssignDeliveryModal()">🚚 Asignar Repartidor</button>
+                  <button class="btn-outline btn-block" (click)="openMessagesModal()">💬 Mensajes @if (getUnreadMessagesCount(selectedOrder()!) > 0) { <span class="unread-badge">{{ getUnreadMessagesCount(selectedOrder()!) }}</span> }</button>
+                } @else {
+                  <button class="btn-outline btn-block" (click)="openMessagesModal()">💬 Mensajes @if (getUnreadMessagesCount(selectedOrder()!) > 0) { <span class="unread-badge">{{ getUnreadMessagesCount(selectedOrder()!) }}</span> }</button>
+                }
+              </div>
+
+              @if (selectedOrder()!.autorizadoNombre) { <div class="side-card small-card"><h5>Autorización</h5><div class="autorizacion-info"><span class="label">Cancelado por:</span> <span class="value">{{ selectedOrder()!.autorizadoNombre }}</span></div></div> }
+
+              <div class="side-card small-card summary-card"><div class="summary-row"><span>Total</span><strong>${{ selectedOrder()!.total | number:'1.2-2' }}</strong></div><div class="summary-row"><span>Fecha</span><span>{{ formatDate(selectedOrder()!.createdAt) }}</span></div></div>
+            </aside>
           </div>
-        }
-        
-        @if (selectedOrder()!.facturaImage) {
-          <div class="factura-section">
-            <h5>Factura</h5>
-            <div class="factura-image">
-              <button class="btn-ver-factura" (click)="openImageModal(selectedOrder()!.facturaImage!)">
-                📄 Ver Factura
-              </button>
-            </div>
-          </div>
-        }
+        </div>
       </div>
     </div>
-  </div>
-}
+  }
 
 @if (showAssignDeliveryModal()) {
    <div class="modal-overlay" (click)="closeAssignDeliveryModal()">

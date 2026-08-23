@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject, computed } from '@angular/core';
+import { Component, signal, OnInit, inject, computed, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -117,8 +117,46 @@ export class RelacionCuentas implements OnInit {
         passes = passes && a.status === f.status;
       }
       if (f.nombre) {
-        const nombreLower = f.nombre.toLowerCase();
-        passes = passes && ((a.nombre || '').toLowerCase().includes(nombreLower) || (a.nFact || '').toLowerCase().includes(nombreLower));
+        const q = f.nombre.toLowerCase();
+        const keysToSkip = new Set([
+          'montoFactura',
+          'abonos',
+          'iva',
+          'diferencia',
+          'divisa',
+          'pagoParcial',
+          'tasa',
+          'comisionPorcentaje',
+        ]);
+        let found = false;
+        for (const key in a) {
+          if (keysToSkip.has(key)) continue;
+          const val: any = (a as any)[key];
+          if (val === null || val === undefined) continue;
+          if (typeof val === 'string') {
+            if (val.toLowerCase().includes(q)) {
+              found = true;
+              break;
+            }
+          } else if (Array.isArray(val)) {
+            if (val.join(' ').toLowerCase().includes(q)) {
+              found = true;
+              break;
+            }
+          } else if (typeof val === 'object') {
+            try {
+              const str = JSON.stringify(val).toLowerCase();
+              if (str.includes(q)) {
+                found = true;
+                break;
+              }
+            } catch (e) {
+              // ignore
+            }
+          }
+          // skip numbers per requirement
+        }
+        passes = passes && found;
       }
       if (f.supervisor) {
         passes = passes && (a.supervisor || '') === f.supervisor;
@@ -135,12 +173,19 @@ export class RelacionCuentas implements OnInit {
     const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
     const abonos = datos.reduce((sum, a) => sum + (a.abonos ?? 0), 0);
     const iva = datos.reduce((sum, a) => sum + (a.iva ?? 0), 0);
-  console.log('Analizando tasas:', datos.map(a => ({ tasa: a.tasa, tipo: typeof a.tasa })));
-  // ✅ CÓDIGO CORREGIDO:
-const ivaDivisa = datos.reduce((sum, a) => {
-  const tasa = Number(a.tasa) || 0;
-  return sum + (tasa > 0 ? (a.iva ?? 0) / tasa : 0);
-}, 0);
+    console.log('Analizando tasas:', datos.map(a => ({ tasa: a.tasa, tipo: typeof a.tasa })));
+    // ✅ CÓDIGO CORREGIDO:
+    const ivaDivisa = datos.reduce((sum, a) => {
+      const tasa = Number(a.tasa) || 0;
+      return sum + (tasa > 0 ? (a.iva ?? 0) / tasa : 0);
+    }, 0);
+    const diferenciaDivisa = datos.reduce((sum, a) => {
+      const tasa = Number(a.tasa) || 0;
+      const montoFactura = a.montoFactura ?? 0;
+      const iva = a.iva ?? 0;
+      const diferencia = montoFactura - iva;
+      return sum + (tasa > 0 ? diferencia / tasa : 0);
+    }, 0);
     const pagoParcial = abonos;
     const diferencia = montoFactura - iva;
     const divisa = datos.reduce((sum, a) => {
@@ -151,17 +196,30 @@ const ivaDivisa = datos.reduce((sum, a) => {
     const diferenciaEnDivisa = tasaActual > 0 ? montoFactura / tasaActual : 0;
     const porcentajeCambio = diferenciaEnDivisa > 0 ? ((divisa - diferenciaEnDivisa) / diferenciaEnDivisa) * 100 : 0;
     const cambioMonto = divisa - diferenciaEnDivisa;
-    const decrecimientoMonto = diferenciaEnDivisa - divisa;
-    const decrecimientoPorcentaje = diferenciaEnDivisa > 0 ? (decrecimientoMonto / diferenciaEnDivisa) * 100 : 0;
+    const montoTotalSinIvaDivisa = Number((diferencia / tasaActual).toFixed(2));
+    const decrecimientoMonto = diferenciaDivisa - montoTotalSinIvaDivisa;
+    const decrecimientoPorcentaje = diferenciaDivisa > 0 ? (decrecimientoMonto / diferenciaDivisa) * 100 : 0;
     const ivaDolares = datos.reduce((sum, a) => {
       const tasa = Number(a.tasa) || 0;
       return sum + (tasa > 0 ? (a.iva ?? 0) / tasa : 0);
     }, 0);
+    // Cantidad de facturas y total clientes únicos
+    const cantidadFacturas = datos.length;
+    const clientesSet = new Set<string>();
+    for (const a of datos) {
+      const ced = (a.cedula || '').toString().trim();
+      const tel = (a.telefono || '').toString().trim();
+      const nombre = (a.nombre || '').toString().trim().toLowerCase();
+      const key = ced || tel || nombre;
+      if (key) clientesSet.add(key);
+    }
+    const totalClientes = clientesSet.size;
     return {
       montoFactura,
       abonos,
       iva,
       ivaDivisa,
+      diferenciaDivisa: Number(diferenciaDivisa.toFixed(2)),
       pagoParcial,
       diferencia,
       divisa,
@@ -173,10 +231,15 @@ const ivaDivisa = datos.reduce((sum, a) => {
       decrecimientoMonto: Number(decrecimientoMonto.toFixed(2)),
       decrecimientoPorcentaje: Number(decrecimientoPorcentaje.toFixed(2)),
       ivaDolares: Number(ivaDolares.toFixed(2)),
+      montoTotalSinIvaDivisa,
+      cantidadFacturas,
+      totalClientes,
     };
   });
   loading = signal(false);
   saving = signal(false);
+  savingSupervisor = signal(false);
+  imagenUploading = signal(false);
   empresasCargadas = signal(false);
   userPermissions = signal<string[]>([]);
 
@@ -200,12 +263,18 @@ const ivaDivisa = datos.reduce((sum, a) => {
     { key: 'tasa', label: 'Tasa' },
     { key: 'status', label: 'Status' },
     { key: 'supervisor', label: 'Supervisor' },
+    // Opciones exclusivas para PDF: muestran montos de Comisión Planta en el header del PDF
+    { key: 'comisionPlantaBs', label: 'Planta % (Bs.)' },
+    { key: 'comisionPlantaUsd', label: 'Planta % ($)' },
   ];
 
-  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
-  columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.map((c) => c.key)));
+  // Por defecto no marcar las columnas exclusivas de PDF para evitar que aparezcan en la tabla
+  columnasSeleccionadas = signal<Set<string>>(new Set(this.columnasDisponibles.filter(c => c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd').map((c) => c.key)));
+  // Para PDF dejamos las opciones de Planta sin seleccionar por defecto
+  columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.filter(c => c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd').map((c) => c.key)));
 
   showModalColumnasPdf = signal(false);
+  showModalSender = signal(false);
 
   columnasVisibles = computed(() => {
     if (this.esRoot()) {
@@ -232,6 +301,13 @@ const ivaDivisa = datos.reduce((sum, a) => {
   archivosPendientes: File[] = [];
   imagenModalAbierta = signal(false);
   imagenModalUrl = signal<string>('');
+  imagenModalZoom = signal(1);
+  imagenModalOrigin = signal('50% 50%');
+  imagenModalRotation = signal(0);
+  @ViewChild('imagenModalImg', { static: false }) imagenModalImg!: ElementRef<HTMLImageElement>;
+  imagenModalOffset = signal({ x: 0, y: 0 });
+  imagenModalPanning = signal(false);
+  private _panStart = { x: 0, y: 0 };
   tasasGuardadas = signal<TasaGuardada[]>([]);
   tasaManual = signal(0);
   loadingTasas = signal(false);
@@ -250,6 +326,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
         monto: number;
         cantidad: number;
         comisionPorcentaje: number;
+        comision: number;
       }
     >();
 
@@ -259,6 +336,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
       const supervisorId = abono.supervisorId || '';
       const montoFactura = abono.montoFactura ?? 0;
       const iva = abono.iva ?? 0;
+      const comisionPorcentaje = abono.comisionPorcentaje ?? porcentajeManual ?? 0;
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -268,11 +346,14 @@ const ivaDivisa = datos.reduce((sum, a) => {
             monto: 0,
             cantidad: 0,
             comisionPorcentaje: abono.comisionPorcentaje ?? 0,
+            comision: 0,
           });
         }
 
         const sup = porSupervisor.get(supervisorId)!;
-        sup.monto += montoFactura;
+        const montoSinIva = Math.max(0, montoFactura - iva);
+        sup.monto += montoSinIva;
+        sup.comision += montoSinIva * (comisionPorcentaje / 100);
         sup.cantidad++;
 
         if (porcentajeManual == null && abono.comisionPorcentaje) {
@@ -288,7 +369,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
 
     const comisionesPorSupervisor = Array.from(porSupervisor.values()).map((sup) => ({
       ...sup,
-      comision: sup.monto * (sup.comisionPorcentaje / 100),
+      comision: sup.comision,
     }));
 
     const total = comisionesPorSupervisor.reduce((sum, c) => sum + c.comision, 0);
@@ -315,6 +396,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
         monto: number;
         cantidad: number;
         comisionPorcentaje: number;
+        comision: number;
       }
     >();
 
@@ -324,6 +406,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
       const supervisorId = abono.supervisorId || '';
       const montoFactura = abono.montoFactura ?? 0;
       const iva = abono.iva ?? 0;
+      const comisionPorcentaje = abono.comisionPorcentaje ?? porcentajeManual ?? 0;
 
       if (supervisorId) {
         if (!porSupervisor.has(supervisorId)) {
@@ -333,11 +416,14 @@ const ivaDivisa = datos.reduce((sum, a) => {
             monto: 0,
             cantidad: 0,
             comisionPorcentaje: abono.comisionPorcentaje ?? 0,
+            comision: 0,
           });
         }
 
         const sup = porSupervisor.get(supervisorId)!;
-        sup.monto += montoFactura;
+        const montoSinIva = Math.max(0, montoFactura - iva);
+        sup.monto += montoSinIva;
+        sup.comision += montoSinIva * (comisionPorcentaje / 100);
         sup.cantidad++;
 
         if (porcentajeManual == null && abono.comisionPorcentaje) {
@@ -353,7 +439,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
 
     const comisionesPorSupervisor = Array.from(porSupervisor.values()).map((sup) => ({
       ...sup,
-      comision: sup.monto * (sup.comisionPorcentaje / 100),
+      comision: sup.comision,
     }));
 
     const total = comisionesPorSupervisor.reduce((sum, c) => sum + c.comision, 0);
@@ -397,6 +483,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
   });
 
   soloIvaPagado = signal(false);
+  mostrarComisiones = signal(false);
   aplicarFiltroIva = signal(false);
 
   private getFechaLocal(): string {
@@ -509,6 +596,15 @@ const ivaDivisa = datos.reduce((sum, a) => {
     this.loadUserPermissions();
   }
 
+  @HostListener('window:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent) {
+    // Toggle comisiones visibility with F3
+    if (event.key === 'F2') {
+      event.preventDefault();
+      this.mostrarComisiones.update(v => !v);
+    }
+  }
+
   onComisionNoAsignadaChange(valor: string) {
     const num = Number(valor) || 0;
     this.comisionNoAsignadaManual.set(num);
@@ -584,7 +680,8 @@ const ivaDivisa = datos.reduce((sum, a) => {
         sup.montoFactura += montoFactura;
         sup.iva += iva;
         sup.montoFacturaSinIva += montoFactura - iva;
-        sup.comision += montoFactura * (comisionPorcentaje / 100);
+        // Comisiones deben calcularse sobre monto sin IVA
+        sup.comision += Math.max(0, montoFactura - iva) * (comisionPorcentaje / 100);
         sup.cantidad++;
         sup.abonos.push(abono);
 
@@ -642,7 +739,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
         existente.montoFactura += montoFactura;
         existente.iva += iva;
         existente.montoFacturaSinIva += montoFactura - iva;
-        existente.comision += montoFactura * (comisionPorcentaje / 100);
+        existente.comision += Math.max(0, montoFactura - iva) * (comisionPorcentaje / 100);
         existente.comisionPorcentaje = comisionPorcentaje;
         if (!existente.planta && planta) {
           existente.planta = planta;
@@ -656,7 +753,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
           montoFactura,
           iva,
           montoFacturaSinIva: montoFactura - iva,
-          comision: montoFactura * (comisionPorcentaje / 100),
+          comision: Math.max(0, montoFactura - iva) * (comisionPorcentaje / 100),
           comisionPorcentaje,
           abonos: [abono],
         });
@@ -803,6 +900,14 @@ const ivaDivisa = datos.reduce((sum, a) => {
     this.showModalColumnasPdf.set(false);
   }
 
+  abrirModalSender() {
+    this.showModalSender.set(true);
+  }
+
+  cerrarModalSender() {
+    this.showModalSender.set(false);
+  }
+
   toggleColumnaPdf(key: string) {
     this.columnasSeleccionadasPdf.update((actual) => {
       const nuevo = new Set(actual);
@@ -858,7 +963,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
         { width: 20 },
       ];
 
-      const headerRow = worksheet.addRow(['Teléfono', 'Nombre', 'Apellido']);
+      const headerRow = worksheet.addRow(['phone', 'Nombre', 'Apellido']);
       headerRow.eachCell((cell) => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -886,6 +991,70 @@ const ivaDivisa = datos.reduce((sum, a) => {
         window.URL.revokeObjectURL(url);
       });
     }
+
+  private obtenerFilasSender(datos: Abono[]) {
+    const vistos = new Set<string>();
+    const filas: { telefono: string; primerNombre: string; apellido: string }[] = [];
+    for (const abono of datos) {
+      const clave = `${(abono.nombre || '').trim().toLowerCase()}|${(abono.telefono || '').trim()}`;
+      if (clave && !vistos.has(clave)) {
+        vistos.add(clave);
+        let telefono = (abono.telefono || '').trim();
+        if (telefono.startsWith('04')) {
+          telefono = '+58' + telefono.slice(1);
+        }
+        const nombreCompleto = (abono.nombre || '').trim();
+        const partes = nombreCompleto.split(/\s+/).filter(Boolean);
+        const primerNombre = partes[0] || '';
+        const apellido = partes.length >= 3 ? partes[partes.length - 1] : partes[1] || '';
+        filas.push({ telefono, primerNombre, apellido });
+      }
+    }
+    return filas;
+  }
+
+  exportarSenderCsv() {
+    const datos = this.abonosFiltrados();
+    if (datos.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    const filas = this.obtenerFilasSender(datos);
+
+    if (filas.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    const csv = [
+      ['phone', 'Nombre', 'Apellido'].join(','),
+      ...filas.map((fila) =>
+        [
+          fila.telefono,
+          this.formatearCsv(fila.primerNombre),
+          this.formatearCsv(fila.apellido),
+        ].join(',')
+      ),
+    ].join('\r\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sender_${this.getFechaLocal()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  private formatearCsv(valor: string): string {
+    if (/[,"\r\n]/.test(valor)) {
+      return `"${valor.replace(/"/g, '""')}"`;
+    }
+    return valor;
+  }
 
   exportarVCard() {
     const datos = this.abonosFiltrados();
@@ -1018,6 +1187,7 @@ const ivaDivisa = datos.reduce((sum, a) => {
         return abono.status;
       case 'supervisor':
         return abono.supervisor || '-';
+      
       default:
         return valor ?? '';
     }
@@ -1300,6 +1470,12 @@ if (!url) return '';
   abrirImagen(url: string | undefined) {
     const fullUrl = this.getImageUrl(url ?? '');
     if (fullUrl) {
+      // reset zoom and origin when opening
+      this.imagenModalZoom.set(1);
+      this.imagenModalRotation.set(0);
+      this.imagenModalOrigin.set('50% 50%');
+      this.imagenModalOffset.set({ x: 0, y: 0 });
+      this.imagenModalPanning.set(false);
       this.imagenModalUrl.set(fullUrl);
       this.imagenModalAbierta.set(true);
     }
@@ -1308,6 +1484,133 @@ if (!url) return '';
   cerrarImagenModal() {
     this.imagenModalAbierta.set(false);
     this.imagenModalUrl.set('');
+    // reset zoom state
+    this.imagenModalZoom.set(1);
+    this.imagenModalOrigin.set('50% 50%');
+    this.imagenModalOffset.set({ x: 0, y: 0 });
+    this.imagenModalPanning.set(false);
+  }
+
+  onImagenWheel(event: WheelEvent) {
+    if (!this.imagenModalAbierta()) return;
+    event.preventDefault();
+    // set transform-origin to cursor position so zoom focuses where the wheel is
+    const imgEl = this.imagenModalImg?.nativeElement;
+    if (imgEl) {
+      const rect = imgEl.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const xPct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      const yPct = Math.max(0, Math.min(100, (y / rect.height) * 100));
+      this.imagenModalOrigin.set(`${xPct}% ${yPct}%`);
+    }
+
+    const delta = -Math.sign(event.deltaY || 0);
+    const factor = delta > 0 ? 1.12 : 0.88;
+    let next = this.imagenModalZoom() * factor;
+    next = Math.max(0.25, Math.min(6, next));
+    this.imagenModalZoom.set(Number(next.toFixed(3)));
+    // clamp offset after zoom change
+    setTimeout(() => this._clampOffset(), 0);
+  }
+
+  zoomIn() {
+    const factor = 1.12;
+    let next = this.imagenModalZoom() * factor;
+    next = Math.min(6, next);
+    this.imagenModalZoom.set(Number(next.toFixed(3)));
+    this._clampOffset();
+  }
+
+  zoomOut() {
+    const factor = 0.88;
+    let next = this.imagenModalZoom() * factor;
+    next = Math.max(0.25, next);
+    this.imagenModalZoom.set(Number(next.toFixed(3)));
+    this._clampOffset();
+  }
+
+  resetZoom() {
+    this.imagenModalZoom.set(1);
+    this.imagenModalOrigin.set('50% 50%');
+    this.imagenModalOffset.set({ x: 0, y: 0 });
+    this.imagenModalPanning.set(false);
+  }
+
+  rotate90() {
+    const next = (this.imagenModalRotation() + 90) % 360;
+    this.imagenModalRotation.set(next);
+    // reset pan and zoom to avoid complex clamp when rotated
+    this.imagenModalZoom.set(1);
+    this.imagenModalOffset.set({ x: 0, y: 0 });
+    this.imagenModalOrigin.set('50% 50%');
+  }
+
+  rotate180() {
+    const next = (this.imagenModalRotation() + 180) % 360;
+    this.imagenModalRotation.set(next);
+    this.imagenModalZoom.set(1);
+    this.imagenModalOffset.set({ x: 0, y: 0 });
+    this.imagenModalOrigin.set('50% 50%');
+  }
+
+  resetRotation() {
+    this.imagenModalRotation.set(0);
+  }
+
+  private _clampOffset() {
+    const imgEl = this.imagenModalImg?.nativeElement;
+    if (!imgEl) return;
+    const parent = imgEl.parentElement as HTMLElement;
+    if (!parent) return;
+
+    const rect = imgEl.getBoundingClientRect();
+    const zoom = this.imagenModalZoom();
+    // Calculate base (untransformed) size
+    const baseWidth = rect.width / Math.max(zoom, 0.0001);
+    const baseHeight = rect.height / Math.max(zoom, 0.0001);
+
+    const scaledWidth = baseWidth * zoom;
+    const scaledHeight = baseHeight * zoom;
+    const parentRect = parent.getBoundingClientRect();
+
+    const maxOffsetX = Math.max(0, (scaledWidth - parentRect.width) / 2);
+    const maxOffsetY = Math.max(0, (scaledHeight - parentRect.height) / 2);
+
+    const curr = this.imagenModalOffset();
+    const clampedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, curr.x || 0));
+    const clampedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, curr.y || 0));
+    this.imagenModalOffset.set({ x: clampedX, y: clampedY });
+  }
+
+  iniciarPan(event: PointerEvent) {
+    if (!this.imagenModalAbierta() || this.imagenModalZoom() <= 1) return;
+    event.preventDefault();
+    const imgEl = this.imagenModalImg?.nativeElement;
+    if (imgEl) {
+      try { imgEl.setPointerCapture(event.pointerId); } catch (e) {}
+    }
+    this._panStart = { x: event.clientX - this.imagenModalOffset().x, y: event.clientY - this.imagenModalOffset().y };
+    this.imagenModalPanning.set(true);
+  }
+
+  moverPan(event: PointerEvent) {
+    if (!this.imagenModalPanning()) return;
+    event.preventDefault();
+    const x = event.clientX - this._panStart.x;
+    const y = event.clientY - this._panStart.y;
+    this.imagenModalOffset.set({ x, y });
+  }
+
+  terminarPan(event?: PointerEvent) {
+    if (!this.imagenModalPanning()) return;
+    if (event) {
+      const imgEl = this.imagenModalImg?.nativeElement;
+      if (imgEl) {
+        try { imgEl.releasePointerCapture(event.pointerId); } catch (e) {}
+      }
+    }
+    this.imagenModalPanning.set(false);
   }
 
   descargarImagen(url: string | undefined) {
@@ -1355,13 +1658,18 @@ if (!url) return '';
     const formData = new FormData();
     formData.append('imagen', file);
 
+    this.imagenUploading.set(true);
     this.http.post<{ imagenes: string[] }>(`${this.API}/${idAbono}/imagenes`, formData).subscribe({
       next: (res) => {
         if (this.editingAbono) {
           this.editingAbono.imagenes = res.imagenes || [];
         }
+        this.imagenUploading.set(false);
       },
-      error: (err) => console.error('Error al subir imagen:', err),
+      error: (err) => {
+        console.error('Error al subir imagen:', err);
+        this.imagenUploading.set(false);
+      },
     });
   }
 
@@ -1487,13 +1795,34 @@ if (!url) return '';
   }
 
   eliminarAbono(id: string) {
-    if (!confirm('¿Está seguro de eliminar este abono?')) return;
-    this.http.delete(`${this.API}/${id}`).subscribe({
-      next: () => {
-        this.loadAbonos(true);
-      },
-      error: (err) => console.error('Error deleting abono:', err),
-    });
+    if (!confirm('¿Está seguro de eliminar esta relación?')) return;
+    const usuario = this.authService.user();
+    const proceedDelete = (claveSupervisor?: string) => {
+      const url = `${this.API}/${id}`;
+      if (claveSupervisor) {
+        this.http.request('delete', url, { body: { claveSupervisor } }).subscribe({
+          next: () => this.loadAbonos(true),
+          error: (err) => this.notificationModal.error('Error', err.error?.error || 'Error al eliminar'),
+        });
+      } else {
+        this.http.delete(url).subscribe({
+          next: () => this.loadAbonos(true),
+          error: (err) => this.notificationModal.error('Error', err.error?.error || 'Error al eliminar'),
+        });
+      }
+    };
+
+    // If current user is root, only confirm (no supervisor clave)
+    if (usuario?.rol === 'root') {
+      if (!confirm('¿Está seguro de eliminar esta relación?')) return;
+      proceedDelete();
+      return;
+    }
+
+    // Ask for supervisor clave for non-root users
+    const clave = window.prompt('Ingrese la clave de supervisor para confirmar la eliminación:');
+    if (!clave) return;
+    proceedDelete(clave.trim());
   }
 
   formatTotal(valor: number, prefijo: string): string {
@@ -1601,7 +1930,8 @@ if (!url) return '';
       return;
     }
 
-    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadasPdf().has(c.key));
+    // Para la tabla en el PDF excluimos las opciones de Planta (se mostrarán en el header si están marcadas)
+    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadasPdf().has(c.key) && c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd');
 
     const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -1665,6 +1995,20 @@ if (!url) return '';
       headerHeight = infoY + 14;
     }
 
+    // Mostrar Planta % en header solo si está marcada en las columnas PDF
+    const pdfSelected = this.columnasSeleccionadasPdf();
+    const showPlantaBs = pdfSelected.has('comisionPlantaBs');
+    const showPlantaUsd = pdfSelected.has('comisionPlantaUsd');
+    if (showPlantaBs || showPlantaUsd) {
+      const plantaBs = this.comisiones().comisionNoAsignada ?? 0;
+      const plantaUsd = this.tasaActual() > 0 ? plantaBs / this.tasaActual() : 0;
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+      if (showPlantaBs) doc.text(`Planta % (Bs.): ${this.formatMonto(plantaBs)}`, 18, headerHeight);
+      if (showPlantaUsd) doc.text(`Planta % ($): ${this.formatMonto(plantaUsd)}`, pageWidth - 18, headerHeight, { align: 'right' });
+      headerHeight += 8;
+    }
+
     const head = columnas.map((c) => c.label);
     const body = datos.map((a: Abono) => {
       return columnas.map((c) => {
@@ -1673,6 +2017,7 @@ if (!url) return '';
         if (c.key === 'pagoParcial') {
           return this.formatMonto((a as any).abonos || 0);
         }
+        
         if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
         if (c.key === 'divisaFactura') {
           const mf = (a as any).montoFactura;
@@ -1711,9 +2056,32 @@ if (!url) return '';
       columnStyles: columnWidths,
     });
 
-    const fileName = empresaSeleccionada
-      ? `abonos_${empresaSeleccionada.replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`
-      : `abonos_${this.getFechaLocal()}.pdf`;
+    const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
+    const plantaFiltroVal = plantaFiltro;
+    const fechaDesdeRaw = this.filtros().fechaDesde;
+    const fechaHastaRaw = this.filtros().fechaHasta;
+    const formatForName = (raw: any) => {
+      if (!raw) return '';
+      try {
+        const d = new Date(raw);
+        if (isNaN(d.getTime())) return String(raw);
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}-${mm}-${yyyy}`;
+      } catch (e) {
+        return String(raw);
+      }
+    };
+
+    let fileName: string;
+    if (plantaFiltroVal) {
+      const desde = formatForName(fechaDesdeRaw) || 'Inicio';
+      const hasta = formatForName(fechaHastaRaw) || 'Hasta';
+      fileName = `Relacion Cuentas (${sanitize(String(plantaFiltroVal))}) (${sanitize(desde)}) (${sanitize(hasta)}).pdf`;
+    } else {
+      fileName = `Relacion Cuentas ${this.getFechaLocal()}.pdf`;
+    }
 
     doc.save(fileName);
   }
@@ -1763,31 +2131,38 @@ if (!url) return '';
     doc.setTextColor(100);
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, infoY, { align: 'center' });
 
-    const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Comisión']];
-    const body = nombres.map((n: any) => [
-      n.nombre || '',
-      n.planta || '-',
-      String(n.cantidad || 0),
-      this.formatMonto(n.montoFactura || 0),
-      this.formatMonto(n.iva || 0),
-      this.formatMonto(n.montoFacturaSinIva || 0),
-      this.formatMonto(n.comision || 0) + ' Bs',
-    ]);
+    const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Planta % (Bs.)', 'Planta % ($)']];
+    const body = nombres.map((n: any) => {
+      const comBs = n.comision || 0;
+      const comUsd = this.tasaActual() > 0 ? comBs / this.tasaActual() : 0;
+      return [
+        n.nombre || '',
+        n.planta || '-',
+        String(n.cantidad || 0),
+        this.formatMonto(n.montoFactura || 0),
+        this.formatMonto(n.iva || 0),
+        this.formatMonto(n.montoFacturaSinIva || 0),
+        this.formatMonto(comBs) + ' Bs',
+        this.formatMonto(comUsd) + ' $',
+      ];
+    });
 
     if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
       const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
+      const totalComisionUsd = this.tasaActual() > 0 ? totalComision / this.tasaActual() : 0;
       const totalMontoFactura = nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0);
       const totalIva = nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0);
       const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
       const totalListas = nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0);
       body.push([
-        this.incluirTotalesClientes() ? String(nombres.length) : '',
-        'Totales',
+        this.incluirTotalesClientes() ? `Totales: ${String(nombres.length)}` : 'Totales:',
+        '',
         this.incluirTotalesListas() ? String(totalListas) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoFactura) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalIva) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoSinIva) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalComision) + ' Bs' : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) + ' $' : '',
       ]);
     }
 
@@ -1799,7 +2174,16 @@ if (!url) return '';
       head: head,
       body: body,
       theme: 'grid',
-      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
+      didParseCell: (data: any) => {
+        if (data.section === 'body' && data.row.index === body.length - 1) {
+          data.cell.styles.fontSize = 9;
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [232, 232, 232];
+          data.cell.styles.textColor = [0, 0, 0];
+          data.cell.styles.halign = 'center';
+        }
+      },
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 9, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
       bodyStyles: { fontSize: 7, overflow: 'linebreak', halign: 'center' },
       styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak', halign: 'center' },
       margin: { left: marginSide, right: marginSide, bottom: marginBottom },
@@ -1812,6 +2196,7 @@ if (!url) return '';
         4: { cellWidth: 22 },
         5: { cellWidth: 32 },
         6: { cellWidth: 28 },
+        7: { cellWidth: 28 },
       },
     });
 
@@ -1851,13 +2236,14 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       { width: 22, header: 'Monto Factura Bs' },
       { width: 18, header: 'IVA' },
       { width: 28, header: 'Monto Factura Sin Iva' },
-      { width: 22, header: 'Comisión' },
+      { width: 22, header: 'Planta % (Bs.)' },
+      { width: 22, header: 'Planta % ($)' },
     ];
     if (this.incluirTotalesClientes()) {
       columnasBase.push({ width: 18, header: 'Total Clientes' });
     }
     if (this.incluirTotalesListas()) {
-      columnasBase.push({ width: 18, header: 'Total Listas' });
+      columnasBase.push({ width: 18, header: 'Total Facturas' });
     }
 
     worksheet.columns = columnasBase.map(c => ({ width: c.width }));
@@ -1871,6 +2257,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
     const totalListas = nombres.reduce((sum: number, nombre: any) => sum + (nombre.cantidad || 0), 0);
     nombres.forEach((n: any) => {
+      const comBs = n.comision || 0;
+      const comUsd = this.tasaActual() > 0 ? comBs / this.tasaActual() : 0;
       const row = [
         n.nombre || '',
         n.planta || '-',
@@ -1878,7 +2266,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         this.formatMonto(n.montoFactura || 0),
         this.formatMonto(n.iva || 0),
         this.formatMonto(n.montoFacturaSinIva || 0),
-        this.formatMonto(n.comision || 0),
+        this.formatMonto(comBs),
+        this.formatMonto(comUsd),
       ];
       if (this.incluirTotalesClientes()) {
         row.push(String(nombres.length));
@@ -1893,6 +2282,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
 
     if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
+      const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
+      const totalComisionUsd = this.tasaActual() > 0 ? totalComision / this.tasaActual() : 0;
       const totalRowData = [
         '',
         '',
@@ -1900,7 +2291,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0)) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0)) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalComision) : '',
+        this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) : '',
       ];
       if (this.incluirTotalesClientes()) {
         totalRowData.push(String(nombres.length));
@@ -2213,28 +2605,32 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       alert('El nombre del supervisor es requerido');
       return;
     }
-
+    this.savingSupervisor.set(true);
     if (supervisor._id) {
       this.http.put<Supervisor>(`${this.API_SUPERVISORES}/${supervisor._id}`, supervisor).subscribe({
         next: () => {
+          this.savingSupervisor.set(false);
           this.cargarSupervisores();
           this.cerrarModalSupervisores();
           this.notificationModal.success('Supervisor actualizado correctamente');
         },
         error: (err) => {
           console.error('Error actualizando supervisor:', err);
+          this.savingSupervisor.set(false);
           this.notificationModal.error(err.error?.error || 'Error al actualizar supervisor');
         },
       });
     } else {
       this.http.post<Supervisor>(this.API_SUPERVISORES, supervisor).subscribe({
         next: () => {
+          this.savingSupervisor.set(false);
           this.cargarSupervisores();
           this.cerrarModalSupervisores();
           this.notificationModal.success('Supervisor creado correctamente');
         },
         error: (err) => {
           console.error('Error creando supervisor:', err);
+          this.savingSupervisor.set(false);
           this.notificationModal.error(err.error?.error || 'Error al crear supervisor');
         },
       });

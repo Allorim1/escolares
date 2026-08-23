@@ -3,8 +3,32 @@
     <div class="imagen-modal-overlay" (click)="cerrarImagenModal()">
       <div class="imagen-modal-content" (click)="$event.stopPropagation()">
         <button type="button" class="imagen-modal-close" (click)="cerrarImagenModal()">&times;</button>
-        <img [src]="imagenModalUrl()" alt="Imagen ampliada" class="imagen-modal-img" />
+        <img
+          #imagenModalImg
+          [src]="imagenModalUrl()"
+          alt="Imagen ampliada"
+          class="imagen-modal-img"
+          (wheel)="onImagenWheel($event)"
+          (pointerdown)="iniciarPan($event)"
+          (pointermove)="moverPan($event)"
+          (pointerup)="terminarPan($event)"
+          (pointercancel)="terminarPan($event)"
+          (pointerleave)="terminarPan($event)"
+          [style.transform]="'translate(' + imagenModalOffset().x + 'px, ' + imagenModalOffset().y + 'px) scale(' + imagenModalZoom() + ') rotate(' + imagenModalRotation() + 'deg)'"
+          [style.transform-origin]="imagenModalOrigin()"
+          [style.cursor]="imagenModalPanning() ? 'grabbing' : (imagenModalZoom() > 1 ? 'grab' : 'zoom-in')"
+        />
         <div class="imagen-modal-actions">
+          <div class="imagen-zoom-controls">
+            <button type="button" class="btn-zoom" (click)="zoomOut()">➖</button>
+            <button type="button" class="btn-zoom" (click)="resetZoom()">🔄</button>
+            <button type="button" class="btn-zoom" (click)="zoomIn()">➕</button>
+          </div>
+          <div class="imagen-rotate-controls">
+            <button type="button" class="btn-zoom" (click)="rotate90()">⤾ 90°</button>
+            <button type="button" class="btn-zoom" (click)="rotate180()">⤾ 180°</button>
+            <button type="button" class="btn-zoom" (click)="resetRotation()">↺ Reset</button>
+          </div>
           <button type="button" class="btn-imprimir-imagen" (click)="imprimirImagen(imagenModalUrl())">
             🖨️ Imprimir
           </button>
@@ -20,8 +44,7 @@
     <h1>Relación de Cuentas</h1>
     <div style="display:flex;gap:10px;align-items:center;">
       <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación de Cuentas</button>
-      <button class="btn-secondary" (click)="exportarSenderExcel()">📤 Sender</button>
-      <button class="btn-secondary" (click)="exportarVCard()">📇 vCard</button>
+      <button class="btn-secondary" (click)="abrirModalSender()">📤 Sender</button>
     </div>
   </div>
 
@@ -95,25 +118,19 @@
         <span class="switch-thumb"></span>
       </span>
     </div>
-    <div class="filtro-group">
-      <label>Supervisor:</label>
-      <select [ngModel]="filtros().supervisor" (ngModelChange)="onSupervisorFilterChange($event)">
-        <option value="">Todos</option>
-        @for (supervisor of supervisoresUnicos(); track supervisor) {
-          <option [value]="supervisor">{{ supervisor }}</option>
-        }
-      </select>
-    </div>
+    <!-- Supervisor filter hidden in Relaciones tab -->
     <div class="filtro-group">
       <label>Reporte:</label>
       <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
       <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
     </div>
-    @if (esRoot()) {
-      <div class="filtro-group">
-        <label>Comisión Planta (%):</label>
-        <input type="number" [value]="comisionNoAsignadaManual() ?? ''" (input)="onComisionNoAsignadaChange($event.target.value)" min="0" max="100" step="0.01" placeholder="Ingrese %" enterFocusNext>
-      </div>
+      @if (esRoot()) {
+      @if (mostrarComisiones()) {
+        <div class="filtro-group">
+          <label>Comisión Planta (%):</label>
+          <input type="number" [value]="comisionNoAsignadaManual() ?? ''" (input)="onComisionNoAsignadaChange($event.target.value)" min="0" max="100" step="0.01" placeholder="Ingrese %" enterFocusNext>
+        </div>
+      }
     }
   </div>
 
@@ -163,7 +180,7 @@
               <span class="total-value">{{ formatMonto(totales().iva) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Monto Total Sin Iva</span>
+              <span class="total-label">Monto Total Sin Iva Bs</span>
               <span class="total-value">{{ formatMonto(totales().diferencia) }}</span>
             </div>
             <div class="total-item">
@@ -175,8 +192,8 @@
               <span class="total-value">{{ formatMonto(totales().ivaDivisa) }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Pago Parcial</span>
-              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
+              <span class="total-label">Monto Total Sin Iva $</span>
+              <span class="total-value">{{ formatMonto(totales().diferenciaDivisa) }}</span>
             </div>
           </div>
         </div>
@@ -185,8 +202,12 @@
           <h3>Totales Actuales</h3>
           <div class="totales-grid">
             <div class="total-item">
-              <span class="total-label">Total actual $</span>
+              <span class="total-label">Monto Facts. Actual $</span>
               <span class="total-value">{{ formatMonto(totales().montoFacturaEnDivisa) }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Monto Total Sin Iva $</span>
+              <span class="total-value">{{ formatMonto(totales().montoTotalSinIvaDivisa) }}</span>
             </div>
             <div class="total-item">
               <span class="total-label">Diferencia $</span>
@@ -202,37 +223,48 @@
     }
     @if (puedeVerTotales()) {
       <div class="totales-separados">
-        <div class="totales-card">
-          <h3>Comisiones</h3>
-          <div class="totales-grid">
-            <div class="total-item">
-              <span class="total-label">Comisión Planta</span>
-              <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Comisión Planta $</span>
-              <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().comisionNoAsignada / tasaActual() : 0) }}</span>
-            </div>
-            <div class="total-item">
-              <span class="total-label">Supervisor</span>
-              <span class="total-value">{{ comisiones().haySupervisores ? 'Si' : 'No' }}</span>
-            </div>
-            @if (comisiones().haySupervisores) {
-              <div class="total-item" style="grid-column: span 3; justify-content: flex-end;">
-                <button class="btn-secondary" (click)="abrirModalSupervisoresRelaciones()">Ver supervisores</button>
+        @if (mostrarComisiones()) {
+          <div class="totales-card">
+            <h3>Comisiones</h3>
+            <div class="totales-grid">
+              <div class="total-item">
+                <span class="total-label">Comisión Planta Bs.</span>
+                <span class="total-value">{{ formatMonto(comisiones().comisionNoAsignada) }}</span>
               </div>
-            }
+              <div class="total-item">
+                <span class="total-label">Comisión Planta $</span>
+                <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().comisionNoAsignada / tasaActual() : 0) }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Supervisor</span>
+                <span class="total-value">{{ comisiones().haySupervisores ? 'Si' : 'No' }}</span>
+              </div>
+              @if (comisiones().haySupervisores) {
+                <div class="total-item" style="grid-column: span 3; justify-content: flex-end;">
+                  <button class="btn-secondary" (click)="abrirModalSupervisoresRelaciones()">Ver supervisores</button>
+                </div>
+              }
+            </div>
           </div>
-        </div>
-        <div class="totales-card">
+        }
+        <div class="totales-card" id="total-facturas-card">
           <h3>Total Facturas Emitidas</h3>
           <div class="totales-grid">
             <div class="total-item">
-              <span class="total-label">Cantidad de Listas</span>
+              <span class="total-label">Cantidad Facturas</span>
               <span class="total-value">{{ abonosFiltrados().length }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Total Clientes</span>
+              <span class="total-value">{{ totales().totalClientes }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Pago Parcial</span>
+              <span class="total-value">{{ formatMonto(totales().pagoParcial) }}</span>
             </div>
           </div>
         </div>
+        <div class="key-hint-below">F2</div>
         <div class="totales-card">
           <h3>Tasas</h3>
           <div class="totales-grid">
@@ -343,7 +375,13 @@
           </div>
           <div class="modal-actions">
             <button type="button" class="btn-cancel" (click)="cerrarModalSupervisores()">Cancelar</button>
-            <button type="button" class="btn-save" (click)="guardarSupervisor()">Guardar</button>
+            <button type="button" class="btn-save" (click)="guardarSupervisor()" [disabled]="savingSupervisor()">
+              @if (savingSupervisor()) {
+                <span class="btn-spinner"></span> Guardando...
+              } @else {
+                Guardar
+              }
+            </button>
           </div>
         </div>
       </div>
@@ -494,6 +532,9 @@
                   @for (url of imagenesPreview(); track $index) {
                     <div class="imagen-card" (click)="abrirImagen(url)" title="Clic para ampliar">
                       <img [src]="getImageUrl(url)" alt="Preview" class="card-img" />
+                      <div class="imagen-popover">
+                        <img [src]="getImageUrl(url)" alt="Vista previa" />
+                      </div>
                     </div>
                   }
                 </div>
@@ -504,8 +545,12 @@
               }
               </div>
               <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" class="file-input" />
-              <button type="button" class="upload-btn" (click)="fileInputRef.click()">
-                📁 Seleccionar imagen
+              <button type="button" class="upload-btn" (click)="fileInputRef.click()" [disabled]="imagenUploading()">
+                @if (imagenUploading()) {
+                  <span class="btn-spinner small"></span> Subiendo...
+                } @else {
+                  📁 Seleccionar imagen
+                }
               </button>
               @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
                 <div class="additional-images-section">
@@ -514,6 +559,9 @@
                     @for (img of editingAbono!.imagenes; track $index) {
                       <div class="imagen-card" (click)="abrirImagen(img)" title="Ver imagen">
                         <img [src]="getImageUrl(img)" alt="Imagen" class="card-img" />
+                        <div class="imagen-popover">
+                          <img [src]="getImageUrl(img)" alt="Vista previa" />
+                        </div>
                         <button type="button" class="remove-img-btn" (click)="eliminarImagen($index); $event.stopPropagation()">&times;</button>
                       </div>
                     }
@@ -526,7 +574,11 @@
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
           <button type="submit" class="btn-save" [disabled]="saving()" enterFocusNext>
-            {{ saving() ? 'Guardando...' : 'Guardar' }}
+            @if (saving()) {
+              <span class="btn-spinner"></span> Guardando...
+            } @else {
+              Guardar
+            }
           </button>
         </div>
       </form>
@@ -730,7 +782,7 @@
               <span class="total-value">{{ comisionesTabNombresAgrupados().length }}</span>
             </div>
             <div class="total-item">
-              <span class="total-label">Total Listas</span>
+              <span class="total-label">Total Facturas</span>
               <span class="total-value">{{ comisionesTabNombresAgrupados().reduce((sum, n) => sum + (n.cantidad || 0), 0) }}</span>
             </div>
           </div>
@@ -776,6 +828,21 @@
     </div>
   }
 
+  @if (showModalSender()) {
+    <div class="modal-overlay">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2>Exportar Sender</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalSender()">✕</button>
+        </div>
+        <div class="columnas-grid">
+          <button type="button" class="btn-save" (click)="exportarSenderExcel(); cerrarModalSender()">📊 Excel (.xlsx)</button>
+          <button type="button" class="btn-save" (click)="exportarSenderCsv(); cerrarModalSender()">📄 CSV (.csv)</button>
+        </div>
+      </div>
+    </div>
+  }
+
   @if (showModalTotalesPdfNombres()) {
     <div class="modal-overlay">
       <div class="modal modal-small">
@@ -794,7 +861,7 @@
           </label>
           <label class="checkbox-label">
             <input type="checkbox" [checked]="incluirTotalesListas()" (change)="incluirTotalesListas.set(!incluirTotalesListas())">
-            Incluir total de listas
+            Incluir total de facturas
           </label>
         </div>
         <div class="modal-actions">
@@ -895,6 +962,9 @@
               @for (img of abonoAbonos.imagenes; track $index) {
                 <div class="imagen-card" (click)="abrirImagen(img)" title="Ver imagen">
                   <img [src]="getImageUrl(img)" alt="Imagen del abono" class="card-img" />
+                  <div class="imagen-popover">
+                    <img [src]="getImageUrl(img)" alt="Vista previa" />
+                  </div>
                 </div>
               }
             </div>

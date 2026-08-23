@@ -568,6 +568,22 @@
   font-weight: 600;
 }
 
+.key-hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.key-hint-below {
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+  margin-left: 4px;
+  font-weight: 600;
+}
+
 .totales-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1075,6 +1091,17 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
+.imagen-modal-img {
+  transition: transform 0.12s ease-out;
+}
+
+.imagen-modal-img[style*="cursor: grab"] {
+  cursor: grab;
+}
+.imagen-modal-img[style*="cursor: grabbing"] {
+  cursor: grabbing;
+}
+
 .imagen-modal-close {
   position: absolute;
   top: -10px;
@@ -1110,6 +1137,67 @@
   align-items: center;
   gap: 6px;
 }
+
+.imagen-zoom-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-zoom {
+  background: #f1f3f5;
+  border: 1px solid #dfe3e6;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-zoom:hover { filter: brightness(0.97); }
+
+/* Spinner */
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.btn-spinner.small {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Thumbnail popover preview */
+.imagen-card { position: relative; display:inline-block; }
+.imagen-popover {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -8px);
+  width: 320px;
+  max-width: 60vw;
+  background: rgba(0,0,0,0.9);
+  padding: 6px;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  z-index: 2500;
+  pointer-events: none;
+}
+.imagen-popover img { display:block; width:100%; height:auto; border-radius:4px; }
+.imagen-card:hover .imagen-popover { display: block; }
+
+/* Rotate controls layout */
+.imagen-rotate-controls { display:flex; gap:8px; margin-left:8px; align-items:center; }
+.imagen-rotate-controls .btn-zoom { padding:6px 8px; font-size:13px; }
 
 .btn-descargar-imagen:hover {
   background: #1551a3;

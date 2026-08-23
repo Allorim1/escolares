@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -31,6 +32,7 @@ export class AdminInicio implements OnInit, OnDestroy {
   storeSettings = inject(StoreSettingsService);
   apiKeyStatusService = inject(ApiKeyStatusService);
   notificationService = inject(NotificationService);
+  private router = inject(Router);
   
   get userName(): string {
     const user = this.authService.user();
@@ -58,6 +60,9 @@ export class AdminInicio implements OnInit, OnDestroy {
   });
 
   loading = signal(true);
+  recentActivities = signal<string[]>([]);
+  mostrarSupervisorKey = signal(false);
+  generandoClave = signal(false);
   
   countdown = signal<string>('');
   countdownInterval: any;
@@ -67,6 +72,14 @@ export class AdminInicio implements OnInit, OnDestroy {
     if (this.isRoot) {
       this.apiKeyStatusService.loadApiKeyRenewalInfo();
       this.startCountdown();
+    }
+  }
+
+  goTo(path: string) {
+    try {
+      this.router.navigate([path]);
+    } catch (e) {
+      console.error('Navigation error', e);
     }
   }
   
@@ -91,7 +104,7 @@ export class AdminInicio implements OnInit, OnDestroy {
       const diff = nextRenewal.getTime() - now.getTime();
       
       if (diff <= 0) {
-        this.countdown.set('¡Puedes renovar la API key!');
+        this.countdown.set('ï¿½Puedes renovar la API key!');
         return;
       }
       
@@ -104,6 +117,46 @@ export class AdminInicio implements OnInit, OnDestroy {
     
     updateCountdown();
     this.countdownInterval = setInterval(updateCountdown, 60000);
+  }
+
+  private generateRandomKey(length = 4) {
+    const digits: string[] = [];
+    if (typeof window !== 'undefined' && (window.crypto || (window as any).msCrypto)) {
+      const array = new Uint8Array(length);
+      (window.crypto || (window as any).msCrypto).getRandomValues(array);
+      for (let i = 0; i < length; i++) {
+        digits.push(String(array[i] % 10));
+      }
+    } else {
+      for (let i = 0; i < length; i++) {
+        digits.push(String(Math.floor(Math.random() * 10)));
+      }
+    }
+    return digits.join('');
+  }
+
+  toggleMostrarSupervisorKey() {
+    this.mostrarSupervisorKey.update(v => !v);
+  }
+
+  generarClaveSupervisor() {
+    const nueva = this.generateRandomKey();
+    this.generandoClave.set(true);
+    const req = this.authService.updateProfile({ supervisorKey: nueva });
+    if (!req) {
+      this.generandoClave.set(false);
+      return;
+    }
+    req.subscribe({
+      next: () => {
+        this.generandoClave.set(false);
+        this.notificationService.success('Clave generada', 'La clave de supervisor ha sido actualizada.');
+      },
+      error: (err) => {
+        this.generandoClave.set(false);
+        this.notificationService.error('Error', 'No se pudo generar la clave: ' + (err.error?.error || 'Error desconocido'));
+      }
+    });
   }
   
   openApiKeyModal() {
@@ -118,7 +171,7 @@ export class AdminInicio implements OnInit, OnDestroy {
   
   guardarApiKey() {
     if (!this.dolarApiKey.trim()) {
-      this.notificationService.warning('API Key vacía', 'Ingresa una API key válida.');
+      this.notificationService.warning('API Key vacï¿½a', 'Ingresa una API key vï¿½lida.');
       return;
     }
     
@@ -177,6 +230,16 @@ export class AdminInicio implements OnInit, OnDestroy {
           productos: 0,
           usuarios: 0,
         });
+        // Populate recent activities with some meaningful items
+        const activities: string[] = [];
+        if (facturasPendientes > 0) {
+          activities.push(`${facturasPendientes} factura(s) pendientes por pagar`);
+        }
+        if (totalDeuda > 0) {
+          activities.push(`Deuda total: $ ${this.formatMoneda(totalDeuda)}`);
+        }
+        activities.push(`${proveedores.length} proveedor(es) registrados`);
+        this.recentActivities.set(activities);
         this.loading.set(false);
       },
       error: () => {

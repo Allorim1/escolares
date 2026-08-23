@@ -41,7 +41,7 @@
              <div class="productos-carousel-track" [style.transform]="'translateX(-' + productosDestacadosIndex * 216 + 'px)'">
                @for (product of productosDestacadosDuplicados; track product.id + '-destacado-' + $index) {
                  <div class="producto-slide" [routerLink]="['/products', product.id]">
-                   <img [src]="product.image" [alt]="product.title" class="producto-image" loading="lazy" />
+                   <img [src]="product.image" [alt]="product.title" class="producto-image" loading="lazy" onerror="this.src='/placeholder.png'" />
                    <div class="producto-info">
                      <h3 class="producto-title">{{ product.title }}</h3>
                      @if (product.enOferta) {
@@ -71,7 +71,7 @@
              <div class="productos-carousel-track" [style.transform]="'translateX(-' + productosRecomendadosIndex * 216 + 'px)'">
                @for (product of productosRecomendadosDuplicados; track product.id + '-recomendado-' + $index) {
                  <div class="producto-slide" [routerLink]="['/products', product.id]">
-                   <img [src]="product.image" [alt]="product.title" class="producto-image" loading="lazy" />
+                   <img [src]="product.image" [alt]="product.title" class="producto-image" loading="lazy" onerror="this.src='/placeholder.png'" />
                    <div class="producto-info">
                      <h3 class="producto-title">{{ product.title }}</h3>
                      @if (product.enOferta) {

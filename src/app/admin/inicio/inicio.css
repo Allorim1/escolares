@@ -39,6 +39,48 @@
   margin-bottom: 40px;
 }
 
+.dashboard-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+}
+
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-col .card.small {
+  padding: 12px;
+}
+
+.recent-activity h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.recent-activity ul {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+}
+
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+
 .stat-card {
   background: white;
   border-radius: 12px;

@@ -1,7 +1,7 @@
 <div class="inicio-container">
   <div class="inicio-header">
     <h1>Hola, bienvenido <span>{{ userName }}</span></h1>
-    <p>Panel de administración</p>
+    <p>Panel de administración — resumen y accesos rápidos</p>
   </div>
 
   @if (isRoot) {
@@ -130,7 +130,7 @@
     <div class="loading">Cargando estadísticas...</div>
   } @else {
     <div class="stats-grid">
-      <div class="stat-card stat-primary">
+      <div class="stat-card stat-primary" (click)="goTo('/admin/cuentas-por-pagar')" title="Ver Cuentas por pagar">
         <div class="stat-icon">🏢</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats().totalProveedores }}</div>
@@ -138,7 +138,7 @@
         </div>
       </div>
 
-      <div class="stat-card stat-info">
+      <div class="stat-card stat-info" (click)="goTo('/admin/facturacion')" title="Ir a facturación">
         <div class="stat-icon">📄</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats().totalFacturas }}</div>
@@ -146,7 +146,7 @@
         </div>
       </div>
 
-      <div class="stat-card stat-warning">
+      <div class="stat-card stat-warning" (click)="goTo('/admin/facturacion')" title="Ver pendientes">
         <div class="stat-icon">⏳</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats().facturasPendientes }}</div>
@@ -154,7 +154,7 @@
         </div>
       </div>
 
-      <div class="stat-card stat-success">
+      <div class="stat-card stat-success" (click)="goTo('/admin/facturacion')" title="Facturas pagadas">
         <div class="stat-icon">✓</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats().facturasPagadas }}</div>
@@ -179,7 +179,9 @@
       </div>
     </div>
 
-    <div class="quick-actions">
+    <div class="dashboard-body">
+      <div class="left-col">
+        <div class="quick-actions">
       <h2>Accesos Rápidos</h2>
       <div class="actions-grid">
         <a href="/admin/cuentas-por-pagar" class="action-card">
@@ -207,6 +209,58 @@
           <span class="action-label">Retenciones</span>
         </a>
       </div>
+        </div>
+
+        <div class="recent-activity">
+          <h3>Actividad reciente</h3>
+          @if (recentActivities().length > 0) {
+            <ul>
+              @for (act of recentActivities(); track $index; let i = $index) {
+                <li>{{ act }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="muted">Sin actividad reciente.</p>
+          }
+        </div>
+      </div>
+
+      <aside class="right-col">
+        <div class="card small">
+          <h3>Acciones</h3>
+          <div class="actions-list">
+            <button class="action-btn" (click)="goTo('/admin/productos')">➕ Nuevo producto</button>
+            <button class="action-btn" (click)="goTo('/admin/producto-categorias')">📂 Categorías</button>
+            <button class="action-btn" (click)="goTo('/admin/usuarios')">👥 Usuarios</button>
+          </div>
+        </div>
+        <div class="card small">
+          <h3>Información</h3>
+          <p class="muted">Última actualización: ahora</p>
+          @if (isRoot) {
+            <p class="muted">Countdown API: {{ countdown() }}</p>
+          }
+        </div>
+          <div class="card small">
+            <h3>Clave Supervisor</h3>
+            <p class="muted">Usa esta clave para autorizar acciones restringidas.</p>
+            <div class="supervisor-key-row">
+              @if (authService.user()?.supervisorKey) {
+                @if (mostrarSupervisorKey()) {
+                  <code class="supervisor-key">{{ authService.user()?.supervisorKey }}</code>
+                } @else {
+                  <p class="muted">Clave oculta</p>
+                }
+              } @else {
+                <p class="muted">No configurada</p>
+              }
+            </div>
+            <div class="card-actions">
+              <button class="btn-secondary" (click)="toggleMostrarSupervisorKey()">@if (mostrarSupervisorKey()) { Ocultar } @else { Ver }</button>
+              <button class="btn-primary" (click)="generarClaveSupervisor()">@if (generandoClave()) { Generando... } @else { Generar/Reemplazar }</button>
+            </div>
+          </div>
+      </aside>
     </div>
   }
 </div>

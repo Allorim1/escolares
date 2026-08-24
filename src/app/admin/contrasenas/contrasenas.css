@@ -1,0 +1,61 @@
+.contrasenas-container {
+  padding: 20px;
+}
+
+.no-access {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  padding: 15px;
+  border-radius: 8px;
+  color: #856404;
+}
+
+.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 15px;
+  border-radius: 8px;
+  color: #721c24;
+}
+
+.cargando {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}
+
+.contrasenas-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.contrasenas-table th,
+.contrasenas-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.contrasenas-table th {
+  background: #1d63c1;
+  color: white;
+  font-weight: bold;
+}
+
+.contrasenas-table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.contrasena-cell {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.sin-registros {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-style: italic;
+}

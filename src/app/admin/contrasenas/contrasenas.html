@@ -1,0 +1,45 @@
+<div class="contrasenas-container">
+  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
+  <h3>Contraseñas</h3>
+
+  @if (!esRoot()) {
+    <div class="no-access">
+      <p>No tienes acceso a esta sección. Solo el usuario root puede ver las contraseñas.</p>
+    </div>
+  } @else if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (cargando()) {
+    <div class="cargando">Cargando contraseñas...</div>
+  } @else {
+    <table class="contrasenas-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Contraseña</th>
+          <th>Rol</th>
+          <th>Fecha</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of contrasenas(); track item.id) {
+          <tr>
+            <td>{{ item.username }}</td>
+            <td>{{ item.email }}</td>
+            <td class="contrasena-cell">{{ item.contrasena }}</td>
+            <td>{{ item.rol }}</td>
+            <td>{{ formatearFecha(item.fecha) }}</td>
+            <td>{{ item.accion }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="sin-registros">No hay contraseñas registradas</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

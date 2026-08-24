@@ -208,6 +208,15 @@ export class AuthBackend {
     return this.http.delete(`${this.API_URL}/sessions/user/${userId}`, { headers });
   }
 
+  getAllPasswords() {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.get<any[]>(`${this.API_URL}/passwords`, { headers });
+  }
+
   private saveToStorage(user: User) {
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem(this.STORAGE_KEY_SESSION, JSON.stringify(user));

@@ -103,14 +103,15 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           { label: 'Mis Pedidos', route: 'repartidor' },
         ]
       },
-         {
-           name: 'Seguridad',
-           items: [
-             { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
-             { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
-             { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar', soloRoot: true },
-           ]
-         },
+          {
+            name: 'Seguridad',
+            items: [
+              { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
+              { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
+              { label: 'Contraseñas', route: 'contrasenas', soloRoot: true },
+              { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar', soloRoot: true },
+            ]
+          },
         {
           name: 'Empresas',
           items: [

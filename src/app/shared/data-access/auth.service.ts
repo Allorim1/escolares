@@ -66,6 +66,10 @@ export class AuthService {
     return this.backend.terminateAllUserSessions(userId);
   }
 
+  getAllPasswords() {
+    return this.backend.getAllPasswords();
+  }
+
   updateUserRol(targetUserId: string, rol: 'usuario' | 'repartidor', rolId?: string) {
     return this.backend.updateUserRol(targetUserId, rol, rolId);
   }

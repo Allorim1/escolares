@@ -272,10 +272,14 @@ export const routes: Routes = [
               path: 'estadisticas',
               loadComponent: () => import('./admin/estadisticas/estadisticas').then((m) => m.Estadisticas),
             },
-            {
-              path: 'constancias',
-              loadComponent: () => import('./admin/constancias/constancias').then((m) => m.Constancias),
-            },
+          {
+            path: 'constancias',
+            loadComponent: () => import('./admin/constancias/constancias').then((m) => m.Constancias),
+          },
+          {
+            path: 'contrasenas',
+            loadComponent: () => import('./admin/contrasenas/contrasenas').then((m) => m.AdminContrasenas),
+          },
              ],
         },
       {

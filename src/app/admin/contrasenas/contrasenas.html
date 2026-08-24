@@ -64,7 +64,7 @@
           @if (pagina === '...') {
             <span class="btn-page" style="cursor:default;background:transparent;color:#333;">...</span>
           } @else {
-            <button class="btn-page" [class.active]="paginaActual() === pagina" (click)="cambiarPagina(pagina)">{{ pagina }}</button>
+            <button class="btn-page" [class.active]="paginaActual() === pagina" (click)="cambiarPagina(pagina as number)">{{ pagina }}</button>
           }
         }
         <button class="btn-page" [disabled]="!puedeIrAdelanteGrupo()" (click)="irAdelanteGrupo()">&raquo;</button>

@@ -217,6 +217,36 @@ export class AuthBackend {
     return this.http.get<any[]>(`${this.API_URL}/passwords`, { headers });
   }
 
+  searchPasswords(term: string) {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.get<any[]>(`${this.API_URL}/passwords`, {
+      headers,
+      params: { q: term },
+    });
+  }
+
+  updatePasswordFromAudit(data: { userId: string; contrasena: string }) {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.put(`${this.API_URL}/passwords`, data, { headers });
+  }
+
+  deletePassword(id: string) {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return this.http.delete(`${this.API_URL}/passwords/${encodeURIComponent(id)}`, { headers });
+  }
+
   private saveToStorage(user: User) {
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem(this.STORAGE_KEY_SESSION, JSON.stringify(user));

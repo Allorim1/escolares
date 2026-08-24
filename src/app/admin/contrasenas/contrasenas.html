@@ -16,6 +16,13 @@
   @if (cargando()) {
     <div class="cargando">Cargando contraseñas...</div>
   } @else {
+    <div class="filtros">
+      <div class="filtro-group">
+        <label>Buscar:</label>
+        <input type="text" [ngModel]="busqueda()" (ngModelChange)="onBusquedaChange($event)" placeholder="Usuario o email...">
+      </div>
+    </div>
+
     <table class="contrasenas-table">
       <thead>
         <tr>
@@ -25,10 +32,11 @@
           <th>Rol</th>
           <th>Fecha</th>
           <th>Acción</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
-        @for (item of contrasenas(); track item.id) {
+        @for (item of contrasenasPaginadas(); track item.id) {
           <tr>
             <td>{{ item.username }}</td>
             <td>{{ item.email }}</td>
@@ -36,13 +44,32 @@
             <td>{{ item.rol }}</td>
             <td>{{ formatearFecha(item.fecha) }}</td>
             <td>{{ item.accion }}</td>
+            <td>
+              <button class="btn-delete" (click)="eliminarContrasena(item)">Eliminar</button>
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="6" class="sin-registros">No hay contraseñas registradas</td>
+            <td colspan="7" class="sin-registros">No hay contraseñas registradas</td>
           </tr>
         }
       </tbody>
     </table>
+
+    @if (totalPaginas() > 1) {
+      <div class="pagination">
+        <button class="btn-page" [disabled]="paginaActual() === 1" (click)="cambiarPagina(paginaActual() - 1)">Anterior</button>
+        <button class="btn-page" [disabled]="!puedeIrAtrasGrupo()" (click)="irAtrasGrupo()">&laquo;</button>
+        @for (pagina of numerosPaginas(); track pagina) {
+          @if (pagina === '...') {
+            <span class="btn-page" style="cursor:default;background:transparent;color:#333;">...</span>
+          } @else {
+            <button class="btn-page" [class.active]="paginaActual() === pagina" (click)="cambiarPagina(pagina)">{{ pagina }}</button>
+          }
+        }
+        <button class="btn-page" [disabled]="!puedeIrAdelanteGrupo()" (click)="irAdelanteGrupo()">&raquo;</button>
+        <button class="btn-page" [disabled]="paginaActual() === totalPaginas()" (click)="cambiarPagina(paginaActual() + 1)">Siguiente</button>
+      </div>
+    }
   }
 </div>

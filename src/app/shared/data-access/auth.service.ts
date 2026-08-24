@@ -70,6 +70,18 @@ export class AuthService {
     return this.backend.getAllPasswords();
   }
 
+  searchPasswords(term: string) {
+    return this.backend.searchPasswords(term);
+  }
+
+  updatePasswordFromAudit(data: { userId: string; contrasena: string }) {
+    return this.backend.updatePasswordFromAudit(data);
+  }
+
+  deletePassword(id: string) {
+    return this.backend.deletePassword(id);
+  }
+
   updateUserRol(targetUserId: string, rol: 'usuario' | 'repartidor', rolId?: string) {
     return this.backend.updateUserRol(targetUserId, rol, rolId);
   }

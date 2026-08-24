@@ -59,17 +59,6 @@
   </div>
 
   @if (pestanaActiva() === 'relaciones') {
-    <div class="filtros-pdf">
-      <label class="checkbox-inline">
-        <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
-        Mostrar Empresa en PDF
-      </label>
-      <label class="checkbox-inline">
-        <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
-        Mostrar Planta en PDF
-      </label>
-    </div>
-
     <div class="filtros">
     <div class="filtro-group">
       <label>Nombre:</label>
@@ -123,6 +112,14 @@
       <label>Reporte:</label>
       <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
       <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
+      <label class="checkbox-inline" style="margin-left:8px;">
+        <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
+        Mostrar Empresa en PDF
+      </label>
+      <label class="checkbox-inline" style="margin-left:8px;">
+        <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
+        Mostrar Planta en PDF
+      </label>
     </div>
       @if (esRoot()) {
       @if (mostrarComisiones()) {

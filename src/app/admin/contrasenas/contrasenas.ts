@@ -92,8 +92,9 @@ export class AdminContrasenas implements OnInit {
 
   cambiarPagina(pagina: number | string) {
     const total = this.totalPaginas();
-    const nueva = typeof pagina === 'number' ? pagina : this.paginaActual();
-    this.paginaActual.set(Math.max(1, Math.min(total, nueva)));
+    const num = typeof pagina === 'number' ? pagina : Number(pagina);
+    if (isNaN(num)) return;
+    this.paginaActual.set(Math.max(1, Math.min(total, num)));
     this.aplicarPaginado();
   }
 

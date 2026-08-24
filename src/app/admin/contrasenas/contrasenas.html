@@ -1,6 +1,9 @@
 <div class="contrasenas-container">
   <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 60px; margin-bottom: 10px;">
-  <h3>Contraseñas</h3>
+  <div class="contrasenas-header">
+    <h3>Contraseñas</h3>
+    <button class="btn-refresh" (click)="cargarContrasenas()">🔄 Refrescar</button>
+  </div>
 
   @if (!esRoot()) {
     <div class="no-access">

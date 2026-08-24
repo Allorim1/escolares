@@ -2,6 +2,27 @@
   padding: 20px;
 }
 
+.contrasenas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.btn-refresh {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #1d63c1;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-refresh:hover {
+  background: #144da0;
+}
+
 .no-access {
   background: #fff3cd;
   border: 1px solid #ffc107;

@@ -1,18 +1,9 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { AuthService } from '../../shared/data-access/auth.service';
-
-interface ContrasenaAuditoria {
-  id: string;
-  userId: string;
-  username: string;
-  email: string;
-  contrasena: string;
-  rol: string;
-  fecha: string;
-  accion: string;
-}
 
 @Component({
   selector: 'app-admin-contrasenas',
@@ -24,6 +15,7 @@ interface ContrasenaAuditoria {
 export class AdminContrasenas implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   contrasenas = signal<ContrasenaAuditoria[]>([]);
   cargando = signal(true);
@@ -36,6 +28,12 @@ export class AdminContrasenas implements OnInit {
       return;
     }
     this.cargarContrasenas();
+
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
+      if (this.router.url.includes('/admin/contrasenas')) {
+        this.cargarContrasenas();
+      }
+    });
   }
 
   cargarContrasenas() {
@@ -66,4 +64,15 @@ export class AdminContrasenas implements OnInit {
       minute: '2-digit',
     });
   }
+}
+
+interface ContrasenaAuditoria {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  contrasena: string;
+  rol: string;
+  fecha: string;
+  accion: string;
 }

@@ -16,7 +16,7 @@
           (pointerleave)="terminarPan($event)"
           [style.transform]="'translate(' + imagenModalOffset().x + 'px, ' + imagenModalOffset().y + 'px) scale(' + imagenModalZoom() + ') rotate(' + imagenModalRotation() + 'deg)'"
           [style.transform-origin]="imagenModalOrigin()"
-          [style.cursor]="imagenModalPanning() ? 'grabbing' : (imagenModalZoom() > 1 ? 'grab' : 'zoom-in')"
+          [style.cursor]="imagenModalPanning() ? 'ns-resize' : (imagenModalZoom() > 1 ? 'ns-resize' : 'zoom-in')"
         />
         <div class="imagen-modal-actions">
           <div class="imagen-zoom-controls">

@@ -1071,6 +1071,7 @@
   justify-content: center;
   z-index: 2000;
   padding: 20px;
+  overflow: hidden;
 }
 
 .imagen-modal-content {
@@ -1095,11 +1096,11 @@
   transition: transform 0.12s ease-out;
 }
 
-.imagen-modal-img[style*="cursor: grab"] {
-  cursor: grab;
+.imagen-modal-img[style*="cursor: ns-resize"] {
+  cursor: ns-resize;
 }
 .imagen-modal-img[style*="cursor: grabbing"] {
-  cursor: grabbing;
+  cursor: ns-resize;
 }
 
 .imagen-modal-close {

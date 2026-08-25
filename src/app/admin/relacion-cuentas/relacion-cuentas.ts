@@ -1494,23 +1494,11 @@ if (!url) return '';
   onImagenWheel(event: WheelEvent) {
     if (!this.imagenModalAbierta()) return;
     event.preventDefault();
-    // set transform-origin to cursor position so zoom focuses where the wheel is
-    const imgEl = this.imagenModalImg?.nativeElement;
-    if (imgEl) {
-      const rect = imgEl.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      const xPct = Math.max(0, Math.min(100, (x / rect.width) * 100));
-      const yPct = Math.max(0, Math.min(100, (y / rect.height) * 100));
-      this.imagenModalOrigin.set(`${xPct}% ${yPct}%`);
-    }
-
     const delta = -Math.sign(event.deltaY || 0);
     const factor = delta > 0 ? 1.12 : 0.88;
     let next = this.imagenModalZoom() * factor;
     next = Math.max(0.25, Math.min(6, next));
     this.imagenModalZoom.set(Number(next.toFixed(3)));
-    // clamp offset after zoom change
     setTimeout(() => this._clampOffset(), 0);
   }
 
@@ -1566,21 +1554,16 @@ if (!url) return '';
 
     const rect = imgEl.getBoundingClientRect();
     const zoom = this.imagenModalZoom();
-    // Calculate base (untransformed) size
-    const baseWidth = rect.width / Math.max(zoom, 0.0001);
     const baseHeight = rect.height / Math.max(zoom, 0.0001);
 
-    const scaledWidth = baseWidth * zoom;
     const scaledHeight = baseHeight * zoom;
     const parentRect = parent.getBoundingClientRect();
 
-    const maxOffsetX = Math.max(0, (scaledWidth - parentRect.width) / 2);
     const maxOffsetY = Math.max(0, (scaledHeight - parentRect.height) / 2);
 
     const curr = this.imagenModalOffset();
-    const clampedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, curr.x || 0));
     const clampedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, curr.y || 0));
-    this.imagenModalOffset.set({ x: clampedX, y: clampedY });
+    this.imagenModalOffset.set({ x: curr.x || 0, y: clampedY });
   }
 
   iniciarPan(event: PointerEvent) {
@@ -1597,8 +1580,8 @@ if (!url) return '';
   moverPan(event: PointerEvent) {
     if (!this.imagenModalPanning()) return;
     event.preventDefault();
-    const x = event.clientX - this._panStart.x;
     const y = event.clientY - this._panStart.y;
+    const x = this.imagenModalOffset().x;
     this.imagenModalOffset.set({ x, y });
   }
 

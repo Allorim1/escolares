@@ -516,37 +516,38 @@
                   <label>Comisión (%)</label>
                   <input type="number" [(ngModel)]="editingAbono!.comisionPorcentaje" name="comisionPorcentaje" min="0" max="100" step="0.01" enterFocusNext>
                 </div>
-              }
-            </div>
-          </div>
+               }
+             </div>
+          }
         </div>
         <div class="form-row">
           <div class="form-group">
             <button type="button" class="btn-secondary" (click)="abrirModalProductosPendientes(editingAbono)" [disabled]="!editingAbono?._id">📦 Productos Pendientes</button>
           </div>
         </div>
-        <div class="form-row">
+<div class="form-row">
           <div class="form-group">
             <label>Imágenes</label>
             <div class="image-upload-section">
               <div class="drop-zone" [class.drag-over]="false" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDropImagen($event)" (paste)="onPasteImagen($event)">
                 @if (imagenesPreview().length > 0) {
-                <div class="imagenes-preview-container">
-                  @for (url of imagenesPreview(); track $index) {
-                    <div class="imagen-card" (click)="abrirImagen(url)" title="Clic para ampliar">
-                      <img [src]="getImageUrl(url)" alt="Preview" class="card-img" />
-                      <div class="imagen-popover">
-                        <img [src]="getImageUrl(url)" alt="Vista previa" />
+                  <div class="imagenes-preview-container">
+                    @for (url of imagenesPreview(); track $index) {
+                      <div class="imagen-card" (click)="abrirImagen(url)" title="Clic para ampliar">
+                        <img [src]="getImageUrl(url)" alt="Preview" class="card-img" />
+                        <div class="imagen-popover">
+                          <img [src]="getImageUrl(url)" alt="Vista previa" />
+                        </div>
                       </div>
-                    </div>
-                  }
-                </div>
-              } @else {
+                    }
+                  </div>
+                } @else {
                   <div class="drop-placeholder">
                     <p>🖼️ Arrastra y suelta, selecciona o pega (Ctrl+V) una imagen</p>
                   </div>
-              }
+                }
               </div>
+              
               <input type="file" #fileInputRef accept="image/*" (change)="onFileImagenChange($event)" class="file-input" />
               <button type="button" class="upload-btn" (click)="fileInputRef.click()" [disabled]="imagenUploading()">
                 @if (imagenUploading()) {
@@ -555,6 +556,7 @@
                   📁 Seleccionar imagen
                 }
               </button>
+
               @if (editingAbono!.imagenes && editingAbono!.imagenes.length > 0) {
                 <div class="additional-images-section">
                   <label>Imágenes guardadas:</label>
@@ -1099,14 +1101,14 @@
                     </tr>
                   }
                 </tbody>
-              </table>
-              }
-            </div>
-          }
-        </div>
-      <div class="modal-actions">
+               </table>
+             }
+           </div>
+         </div>
+       <div class="modal-actions">
         <button type="button" class="btn-cancel" (click)="cerrarModalProductosPendientes()">Cerrar</button>
       </div>
     </div>
+  </div>
   </div>
 }

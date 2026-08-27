@@ -1331,3 +1331,93 @@
   color: #1d63c1;
 }
 
+.productos-pendientes-layout {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.productos-pendientes-busqueda {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.productos-pendientes-busqueda label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.productos-pendientes-busqueda input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.productos-pendientes-lista {
+  border: 1px solid #e3e8ee;
+  border-radius: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #fafafa;
+}
+
+.producto-pendiente-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.producto-pendiente-item:last-child {
+  border-bottom: none;
+}
+
+.producto-pendiente-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.producto-pendiente-info strong {
+  color: #1d63c1;
+  font-size: 13px;
+}
+
+.producto-pendiente-info span {
+  color: #333;
+  font-size: 14px;
+}
+
+.productos-pendientes-seleccion {
+  flex: 1 1 320px;
+}
+
+.productos-pendientes-seleccion h4 {
+  margin: 0 0 10px 0;
+  color: #1d63c1;
+  font-size: 14px;
+}
+
+.productos-pendientes-seleccion .abonos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.productos-pendientes-seleccion .abonos-table th,
+.productos-pendientes-seleccion .abonos-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.productos-pendientes-seleccion .abonos-table th {
+  background: #f5f5f5;
+  font-weight: 500;
+}
+

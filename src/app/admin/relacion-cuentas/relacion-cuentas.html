@@ -45,6 +45,7 @@
     <div style="display:flex;gap:10px;align-items:center;">
       <button class="btn-primary" (click)="abrirModal()">+ Nueva Relación de Cuentas</button>
       <button class="btn-secondary" (click)="abrirModalSender()">📤 Sender</button>
+      <button class="btn-secondary" (click)="abrirModalProductosPendientes()">📦 Productos Pendientes</button>
     </div>
   </div>
 
@@ -1021,6 +1022,72 @@
       }
       <div class="modal-actions">
         <button type="button" class="btn-cancel" (click)="cerrarModalSupervisoresRelaciones()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showModalProductosPendientes()) {
+  <div class="modal-overlay" (click)="cerrarModalProductosPendientes()">
+    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Productos Pendientes</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalProductosPendientes()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="productos-pendientes-layout">
+          <div class="productos-pendientes-busqueda">
+            <label>Buscar producto</label>
+            <input type="text" [ngModel]="productosPendientesBusqueda()" (ngModelChange)="onBusquedaProductosPendientes($event)" placeholder="Código o nombre..." autocomplete="off">
+            @if (cargandoProductosPendientes()) {
+              <div class="cargando">Buscando...</div>
+            } @else {
+              <div class="productos-pendientes-lista">
+                @for (producto of productosPendientesLista(); track producto._id || producto.codigo) {
+                  <div class="producto-pendiente-item">
+                    <div class="producto-pendiente-info">
+                      <strong>{{ producto.codigo }}</strong>
+                      <span>{{ producto.nombre }}</span>
+                    </div>
+                    <button type="button" class="btn-add-abono" (click)="agregarProductoPendiente(producto)">Agregar</button>
+                  </div>
+                } @empty {
+                  <div class="sin-abonos">No se encontraron productos</div>
+                }
+              </div>
+            }
+          </div>
+          <div class="productos-pendientes-seleccion">
+            <h4>Productos agregados</h4>
+            @if (productosPendientesSeleccionados().length === 0) {
+              <div class="sin-abonos">No hay productos agregados</div>
+            } @else {
+              <table class="abonos-table">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (producto of productosPendientesSeleccionados(); track producto._id || producto.codigo) {
+                    <tr>
+                      <td>{{ producto.codigo }}</td>
+                      <td>{{ producto.nombre }}</td>
+                      <td>
+                        <button type="button" class="btn-delete" (click)="quitarProductoPendiente(producto)">Quitar</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModalProductosPendientes()">Cerrar</button>
       </div>
     </div>
   </div>

@@ -53,6 +53,17 @@ interface Supervisor {
   planta?: string;
 }
 
+interface InvProducto {
+  _id?: string;
+  codigo: string;
+  nombre: string;
+  descrip?: string;
+  costo?: number;
+  precio?: number;
+  iva?: number;
+  stock?: number;
+}
+
 @Component({
   selector: 'app-relacion-cuentas',
   standalone: true,
@@ -2632,6 +2643,54 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       next: () => this.cargarSupervisores(),
       error: (err) => console.error('Error eliminando supervisor:', err),
     });
+  }
+
+  showModalProductosPendientes = signal(false);
+  productosPendientesBusqueda = signal('');
+  productosPendientesLista = signal<InvProducto[]>([]);
+  productosPendientesSeleccionados = signal<InvProducto[]>([]);
+  cargandoProductosPendientes = signal(false);
+
+  abrirModalProductosPendientes() {
+    this.productosPendientesSeleccionados.set([]);
+    this.productosPendientesBusqueda.set('');
+    this.productosPendientesLista.set([]);
+    this.showModalProductosPendientes.set(true);
+  }
+
+  cerrarModalProductosPendientes() {
+    this.showModalProductosPendientes.set(false);
+  }
+
+  onBusquedaProductosPendientes(termino: string) {
+    this.productosPendientesBusqueda.set(termino);
+    this.cargandoProductosPendientes.set(true);
+    const url = termino.trim()
+      ? `/api/inv-productos?q=${encodeURIComponent(termino.trim())}`
+      : '/api/inv-productos';
+    this.http.get<InvProducto[]>(url).subscribe({
+      next: (data) => {
+        this.productosPendientesLista.set(data || []);
+        this.cargandoProductosPendientes.set(false);
+      },
+      error: () => {
+        this.productosPendientesLista.set([]);
+        this.cargandoProductosPendientes.set(false);
+      },
+    });
+  }
+
+  agregarProductoPendiente(producto: InvProducto) {
+    const seleccionados = this.productosPendientesSeleccionados();
+    if (!seleccionados.some(p => (p._id || p.codigo) === (producto._id || producto.codigo))) {
+      this.productosPendientesSeleccionados.set([...seleccionados, producto]);
+    }
+  }
+
+  quitarProductoPendiente(producto: InvProducto) {
+    this.productosPendientesSeleccionados.set(
+      this.productosPendientesSeleccionados().filter(p => (p._id || p.codigo) !== (producto._id || producto.codigo))
+    );
   }
 }
 

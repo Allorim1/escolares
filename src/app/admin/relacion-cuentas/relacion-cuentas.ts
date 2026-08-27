@@ -37,6 +37,7 @@ interface Abono {
   supervisorId?: string;
   comisionPorcentaje?: number;
   imagenes?: string[];
+  productosPendientes?: InvProducto[];
 }
 
 interface AbonoPago {
@@ -324,6 +325,14 @@ export class RelacionCuentas implements OnInit {
   loadingTasas = signal(false);
   nuevaTasaFecha = signal(this.getFechaLocal());
   nuevaTasaValor = signal(0);
+
+  showModalProductosPendientes = signal(false);
+  productosPendientesBusqueda = signal('');
+  productosPendientesLista = signal<InvProducto[]>([]);
+  productosPendientesSeleccionados = signal<InvProducto[]>([]);
+  cargandoProductosPendientes = signal(false);
+  productosPendientesAbonoId = signal<string | null>(null);
+  private _productosPendientesTimer: any = null;
 
   comisiones = computed(() => {
     const abonos = this.abonosFiltrados();
@@ -1234,6 +1243,7 @@ export class RelacionCuentas implements OnInit {
             supervisor: abonoActualizado.supervisor || '',
             supervisorId: abonoActualizado.supervisorId || '',
             comisionPorcentaje: abonoActualizado.comisionPorcentaje ?? 0,
+            productosPendientes: abonoActualizado.productosPendientes || [],
           };
           if (abonoActualizado.empresa) {
             this.selectedEmpresaInModal.set(abonoActualizado.empresa);
@@ -1258,6 +1268,7 @@ export class RelacionCuentas implements OnInit {
             supervisor: abono.supervisor || '',
             supervisorId: abono.supervisorId || '',
             comisionPorcentaje: abono.comisionPorcentaje ?? 0,
+            productosPendientes: abono.productosPendientes || [],
           };
           if (abono.empresa) {
             this.selectedEmpresaInModal.set(abono.empresa);
@@ -1288,6 +1299,7 @@ export class RelacionCuentas implements OnInit {
         supervisor: '',
         supervisorId: '',
         comisionPorcentaje: 0,
+        productosPendientes: [],
       };
       this.nuevoAbonoPago.set({ fecha: this.getFechaLocal(), monto: 0 });
       this.showModal.set(true);
@@ -1735,6 +1747,7 @@ if (!url) return '';
       ...this.editingAbono,
       supervisor: this.editingAbono.supervisor || '',
       supervisorId: this.editingAbono.supervisorId || '',
+      productosPendientes: this.editingAbono.productosPendientes || [],
     };
 
     if (this.editingAbono._id) {
@@ -2645,39 +2658,41 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
   }
 
-  showModalProductosPendientes = signal(false);
-  productosPendientesBusqueda = signal('');
-  productosPendientesLista = signal<InvProducto[]>([]);
-  productosPendientesSeleccionados = signal<InvProducto[]>([]);
-  cargandoProductosPendientes = signal(false);
-
-  abrirModalProductosPendientes() {
-    this.productosPendientesSeleccionados.set([]);
+  abrirModalProductosPendientes(abono?: Abono | null) {
+    this.productosPendientesSeleccionados.set(abono?.productosPendientes || []);
     this.productosPendientesBusqueda.set('');
     this.productosPendientesLista.set([]);
+    this.productosPendientesAbonoId.set(abono?._id || null);
     this.showModalProductosPendientes.set(true);
   }
 
   cerrarModalProductosPendientes() {
     this.showModalProductosPendientes.set(false);
+    if (this.productosPendientesAbonoId() && this.editingAbono && this.editingAbono._id === this.productosPendientesAbonoId()) {
+      this.editingAbono.productosPendientes = this.productosPendientesSeleccionados();
+    }
+    this.productosPendientesAbonoId.set(null);
   }
 
   onBusquedaProductosPendientes(termino: string) {
     this.productosPendientesBusqueda.set(termino);
-    this.cargandoProductosPendientes.set(true);
-    const url = termino.trim()
-      ? `/api/inv-productos?q=${encodeURIComponent(termino.trim())}`
-      : '/api/inv-productos';
-    this.http.get<InvProducto[]>(url).subscribe({
-      next: (data) => {
-        this.productosPendientesLista.set(data || []);
-        this.cargandoProductosPendientes.set(false);
-      },
-      error: () => {
-        this.productosPendientesLista.set([]);
-        this.cargandoProductosPendientes.set(false);
-      },
-    });
+    if (this._productosPendientesTimer) clearTimeout(this._productosPendientesTimer);
+    this._productosPendientesTimer = setTimeout(() => {
+      this.cargandoProductosPendientes.set(true);
+      const url = termino.trim()
+        ? `/api/inv-productos?q=${encodeURIComponent(termino.trim())}`
+        : '/api/inv-productos';
+      this.http.get<InvProducto[]>(url).subscribe({
+        next: (data) => {
+          this.productosPendientesLista.set(data || []);
+          this.cargandoProductosPendientes.set(false);
+        },
+        error: () => {
+          this.productosPendientesLista.set([]);
+          this.cargandoProductosPendientes.set(false);
+        },
+      });
+    }, 300);
   }
 
   agregarProductoPendiente(producto: InvProducto) {

@@ -1331,14 +1331,13 @@
   color: #1d63c1;
 }
 
-.productos-pendientes-layout {
+.productos-pendientes-layout-vertical {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .productos-pendientes-busqueda {
-  flex: 1 1 320px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1360,7 +1359,7 @@
 .productos-pendientes-lista {
   border: 1px solid #e3e8ee;
   border-radius: 8px;
-  max-height: 400px;
+  max-height: 320px;
   overflow-y: auto;
   background: #fafafa;
 }
@@ -1394,11 +1393,13 @@
 }
 
 .productos-pendientes-seleccion {
-  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .productos-pendientes-seleccion h4 {
-  margin: 0 0 10px 0;
+  margin: 0;
   color: #1d63c1;
   font-size: 14px;
 }

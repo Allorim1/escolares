@@ -218,6 +218,7 @@
         </div>
       </div>
     }
+
     @if (puedeVerTotales()) {
       <div class="totales-separados">
         @if (mostrarComisiones()) {
@@ -517,7 +518,12 @@
                 </div>
               }
             </div>
-          }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <button type="button" class="btn-secondary" (click)="abrirModalProductosPendientes(editingAbono)" [disabled]="!editingAbono?._id">📦 Productos Pendientes</button>
+          </div>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -570,7 +576,6 @@
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
-          <button type="button" class="btn-secondary" (click)="abrirModalProductosPendientes(editingAbono)" [disabled]="!editingAbono?._id">📦 Productos Pendientes</button>
           <button type="submit" class="btn-save" [disabled]="saving()" enterFocusNext>
             @if (saving()) {
               <span class="btn-spinner"></span> Guardando...
@@ -1029,7 +1034,7 @@
 
 @if (showModalProductosPendientes()) {
   <div class="modal-overlay" (click)="cerrarModalProductosPendientes()">
-    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+    <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>Productos Pendientes</h2>
         <button type="button" class="btn-cerrar" (click)="cerrarModalProductosPendientes()">&times;</button>
@@ -1042,18 +1047,31 @@
             @if (cargandoProductosPendientes()) {
               <div class="cargando">Buscando...</div>
             } @else {
-              <div class="productos-pendientes-lista">
-                @for (producto of productosPendientesLista(); track producto._id || producto.codigo) {
-                  <div class="producto-pendiente-item">
-                    <div class="producto-pendiente-info">
-                      <strong>{{ producto.codigo }}</strong>
-                      <span>{{ producto.nombre }}</span>
-                    </div>
-                    <button type="button" class="btn-add-abono" (click)="agregarProductoPendiente(producto)">Agregar</button>
-                  </div>
-                } @empty {
-                  <div class="sin-abonos">No se encontraron productos</div>
-                }
+              <div class="productos-pendientes-tabla-wrapper">
+                <table class="abonos-table productos-pendientes-tabla">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Nombre</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (producto of productosPendientesLista(); track producto._id || producto.codigo) {
+                      <tr>
+                        <td>{{ producto.codigo }}</td>
+                        <td>{{ producto.nombre }}</td>
+                        <td>
+                          <button type="button" class="btn-add-abono" (click)="agregarProductoPendiente(producto)">Agregar</button>
+                        </td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="3" class="empty">No se encontraron productos</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
               </div>
             }
           </div>

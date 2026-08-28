@@ -1065,24 +1065,25 @@
               <div class="cargando">Buscando...</div>
             } @else {
               <div class="productos-pendientes-tabla-wrapper">
-                <table class="abonos-table productos-pendientes-tabla">
-                  <thead>
-                    <tr>
-                      <th><strong style="color: black;">Código</strong></th>
-                      <th><strong style="color: black;">Nombre</strong></th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (producto of productosPendientesLista(); track producto._id || producto.codigo) {
-                      <tr>
-                        <td>{{ producto.codigo }}</td>
-                        <td>{{ producto.nombre }}</td>
-                        <td>
-                          <button type="button" class="btn-add-abono" (click)="agregarProductoPendiente(producto)">Agregar</button>
-                        </td>
-                      </tr>
-                    } @empty {
+                 <table class="abonos-table productos-pendientes-tabla">
+                   <thead>
+                     <tr>
+                       <th><strong style="color: black;">Código</strong></th>
+                       <th><strong style="color: black;">Nombre</strong></th>
+                       <th>Estado</th>
+                       <th></th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     @for (producto of productosPendientesLista(); track producto._id || producto.codigo) {
+                       <tr>
+                         <td>{{ producto.codigo }}</td>
+                         <td>{{ producto.nombre }}</td>
+                         <td>
+                           <button type="button" class="btn-add-abono" (click)="agregarProductoPendiente(producto)">Agregar</button>
+                         </td>
+                       </tr>
+                     } @empty {
                       <tr>
                         <td colspan="3" class="empty">No se encontraron productos</td>
                       </tr>
@@ -1097,11 +1098,12 @@
             @if (productosPendientesSeleccionados().length === 0) {
               <div class="sin-abonos">No hay productos agregados</div>
             } @else {
-              <table class="abonos-table">
+                <table class="abonos-table">
                 <thead>
                   <tr>
                     <th>Código</th>
                     <th>Nombre</th>
+                    <th>Estado</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -1110,6 +1112,11 @@
                     <tr>
                       <td>{{ producto.codigo }}</td>
                       <td>{{ producto.nombre }}</td>
+                      <td>
+                        <button type="button" class="btn-secondary" (click)="cambiarEstadoProductoPendiente(producto)">
+                          {{ producto.pendienteStatus === 'entregado' ? 'Entregado' : 'Pendiente' }}
+                        </button>
+                      </td>
                       <td>
                         <button type="button" class="btn-delete" (click)="quitarProductoPendiente(producto)">Quitar</button>
                       </td>

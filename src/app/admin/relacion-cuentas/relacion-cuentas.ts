@@ -37,7 +37,7 @@ interface Abono {
   supervisorId?: string;
   comisionPorcentaje?: number;
   imagenes?: string[];
-  productosPendientes?: InvProducto[];
+  productosPendientes?: ProductoPendiente[];
 }
 
 interface AbonoPago {
@@ -63,6 +63,10 @@ interface InvProducto {
   precio?: number;
   iva?: number;
   stock?: number;
+}
+
+interface ProductoPendiente extends InvProducto {
+  pendienteStatus?: 'pendiente' | 'entregado';
 }
 
 @Component({
@@ -329,7 +333,7 @@ export class RelacionCuentas implements OnInit {
   showModalProductosPendientes = signal(false);
   productosPendientesBusqueda = signal('');
   productosPendientesLista = signal<InvProducto[]>([]);
-  productosPendientesSeleccionados = signal<InvProducto[]>([]);
+  productosPendientesSeleccionados = signal<ProductoPendiente[]>([]);
   cargandoProductosPendientes = signal(false);
   productosPendientesAbonoId = signal<string | null>(null);
   private _productosPendientesTimer: any = null;
@@ -2796,7 +2800,11 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   }
 
   abrirModalProductosPendientes(abono?: Abono | null) {
-    this.productosPendientesSeleccionados.set(abono?.productosPendientes || []);
+    const inicial = (abono?.productosPendientes || []).map(p => ({
+      ...p,
+      pendienteStatus: p.pendienteStatus || 'pendiente',
+    }));
+    this.productosPendientesSeleccionados.set(inicial);
     this.productosPendientesBusqueda.set('');
     this.productosPendientesLista.set([]);
     this.productosPendientesAbonoId.set(abono?._id || null);
@@ -2834,14 +2842,28 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
   agregarProductoPendiente(producto: InvProducto) {
     const seleccionados = this.productosPendientesSeleccionados();
-    if (!seleccionados.some(p => (p._id || p.codigo) === (producto._id || producto.codigo))) {
-      this.productosPendientesSeleccionados.set([...seleccionados, producto]);
+    const existe = seleccionados.some(p => (p._id || p.codigo) === (producto._id || producto.codigo));
+    if (!existe) {
+      const nuevo: ProductoPendiente = { ...producto, pendienteStatus: 'pendiente' };
+      this.productosPendientesSeleccionados.set([...seleccionados, nuevo]);
     }
   }
 
   quitarProductoPendiente(producto: InvProducto) {
     this.productosPendientesSeleccionados.set(
       this.productosPendientesSeleccionados().filter(p => (p._id || p.codigo) !== (producto._id || producto.codigo))
+    );
+  }
+
+  cambiarEstadoProductoPendiente(producto: ProductoPendiente) {
+    this.productosPendientesSeleccionados.set(
+      this.productosPendientesSeleccionados().map(p => {
+        if ((p._id || p.codigo) === (producto._id || producto.codigo)) {
+          const nuevoEstado = p.pendienteStatus === 'pendiente' ? 'entregado' : 'pendiente';
+          return { ...p, pendienteStatus: nuevoEstado };
+        }
+        return p;
+      })
     );
   }
 }

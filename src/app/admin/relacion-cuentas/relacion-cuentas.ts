@@ -291,6 +291,12 @@ export class RelacionCuentas implements OnInit {
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.filter(c => c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd').map((c) => c.key)));
 
   showModalReportes = signal(false);
+  reporteRelacionesPdf = signal(false);
+  reporteProductosPendientesPdf = signal(false);
+  reporteSolicitudPendientesPdf = signal(false);
+  reporteRelacionesExcel = signal(false);
+  reporteProductosPendientesExcel = signal(false);
+  reporteSolicitudPendientesExcel = signal(false);
   showModalSender = signal(false);
 
   columnasVisibles = computed(() => {
@@ -2746,42 +2752,69 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
 
     const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
-    const fileName1 = `productos_pendientes_${this.getFechaLocal()}.pdf`;
-    doc.save(fileName1);
+    const fileName = `productos_pendientes_${this.getFechaLocal()}.pdf`;
+    doc.save(fileName);
+  }
 
-    const doc2 = new jsPDF({ orientation: 'landscape' });
-    const pageWidth2 = doc2.internal.pageSize.getWidth();
+  async generarReporteSolicitudPendientesPdf() {
+    const abonos = this.abonosFiltrados();
+    const filas: { codigo: string; producto: string; cantidad: number }[] = [];
+    for (const abono of abonos) {
+      const lista = abono.productosPendientes || [];
+      for (const prod of lista) {
+        filas.push({
+          codigo: prod.codigo || '',
+          producto: prod.nombre || '',
+          cantidad: prod.cantidad ?? 1,
+        });
+      }
+    }
+    if (filas.length === 0) {
+      alert('No hay productos pendientes para generar el reporte');
+      return;
+    }
 
-    let logoBase64_2 = '';
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    let logoBase64 = '';
     try {
-      logoBase64_2 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
     } catch (e) {
       console.warn('No se pudo cargar el logo:', e);
     }
 
-    if (logoBase64_2) {
-      const dims2 = await this.obtenerDimensionesImagen(logoBase64_2);
-      const logoHeight2 = (logoWidth * dims2.height) / dims2.width;
-      doc2.addImage(logoBase64_2, 'PNG', 18, logoY, logoWidth, logoHeight2);
+    const logoWidth = 70;
+    let logoHeight = 0;
+    if (logoBase64) {
+      const dims = await this.obtenerDimensionesImagen(logoBase64);
+      logoHeight = (logoWidth * dims.height) / dims.width;
     }
 
-    doc2.setFontSize(16);
-    doc2.setTextColor(0, 51, 111);
-    doc2.text('Solicitud de Pendientes', pageWidth2 / 2, offsetY, { align: 'center' });
+    const logoY = 15;
+    const offsetY = logoY + logoHeight + 8;
 
-    const infoY2 = offsetY + 10;
-    doc2.setFontSize(10);
-    doc2.setTextColor(100);
-    doc2.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth2 - 18, infoY2, { align: 'right' });
-    doc2.text(`Total productos: ${filas.length}`, pageWidth2 - 18, infoY2 + 6, { align: 'right' });
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
+    }
 
-    const head2 = [['Código', 'Producto', 'Cantidad']];
-    const body2 = filas.map(f => [f.codigo, f.producto, String(f.cantidad)]);
+    doc.setFontSize(16);
+    doc.setTextColor(0, 51, 111);
+    doc.text('SOLICITUD DE PENDIENTES', pageWidth / 2, offsetY, { align: 'center' });
 
-    autoTable(doc2, {
-      startY: infoY2 + 14,
-      head: head2,
-      body: body2,
+    const infoY = offsetY + 10;
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
+    doc.text(`Total productos: ${filas.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
+
+    const head = [['Código', 'Producto', 'Cantidad']];
+    const body = filas.map(f => [f.codigo, f.producto, String(f.cantidad)]);
+
+    autoTable(doc, {
+      startY: infoY + 14,
+      head: head,
+      body: body,
       theme: 'grid',
       headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 9, halign: 'center', overflow: 'linebreak', cellPadding: 2 },
       bodyStyles: { fontSize: 8, overflow: 'linebreak', halign: 'center' },
@@ -2795,8 +2828,9 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       },
     });
 
-    const fileName2 = `solicitud_pendientes_${this.getFechaLocal()}.pdf`;
-    doc2.save(fileName2);
+    const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
+    const fileName = `solicitud_pendientes_${this.getFechaLocal()}.pdf`;
+    doc.save(fileName);
   }
 
   async generarReporteProductosPendientesExcel() {
@@ -2855,6 +2889,73 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const buffer = await workbook.xlsx.writeBuffer();
     const fileName = `productos_pendientes_${this.getFechaLocal()}.xlsx`;
     saveAs(new Blob([buffer]), fileName);
+  }
+
+  async generarReporteSolicitudPendientesExcel() {
+    const abonos = this.abonosFiltrados();
+    const filas: { codigo: string; producto: string; cantidad: number }[] = [];
+    for (const abono of abonos) {
+      const lista = abono.productosPendientes || [];
+      for (const prod of lista) {
+        filas.push({
+          codigo: prod.codigo || '',
+          producto: prod.nombre || '',
+          cantidad: prod.cantidad ?? 1,
+        });
+      }
+    }
+    if (filas.length === 0) {
+      alert('No hay productos pendientes para generar el reporte');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Solicitud de Pendientes');
+
+    worksheet.columns = [
+      { width: 20 },
+      { width: 60 },
+      { width: 15 },
+    ];
+
+    const headerRow = worksheet.addRow(['Código', 'Producto', 'Cantidad']);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
+      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    filas.forEach(f => {
+      const row = worksheet.addRow([f.codigo, f.producto, f.cantidad]);
+      row.eachCell((cell) => {
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const fileName = `solicitud_pendientes_${this.getFechaLocal()}.xlsx`;
+    saveAs(new Blob([buffer]), fileName);
+  }
+
+  async generarReportesSeleccionados() {
+    const tareas: Promise<void>[] = [];
+
+    if (this.reporteRelacionesPdf()) tareas.push(this.generarReportePdf());
+    if (this.reporteProductosPendientesPdf()) tareas.push(this.generarReporteProductosPendientesPdf());
+    if (this.reporteSolicitudPendientesPdf()) tareas.push(this.generarReporteSolicitudPendientesPdf());
+    if (this.reporteRelacionesExcel()) tareas.push(this.generarReporteExcel());
+    if (this.reporteProductosPendientesExcel()) tareas.push(this.generarReporteProductosPendientesExcel());
+    if (this.reporteSolicitudPendientesExcel()) tareas.push(this.generarReporteSolicitudPendientesExcel());
+
+    if (tareas.length === 0) {
+      alert('Selecciona al menos un reporte');
+      return;
+    }
+
+    await Promise.all(tareas);
+    this.cerrarModalReportes();
   }
 
   abrirModalProductosPendientes(abono?: Abono | null) {

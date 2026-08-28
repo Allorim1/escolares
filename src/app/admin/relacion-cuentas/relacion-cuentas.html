@@ -836,8 +836,18 @@
           <div class="reportes-col">
             <h3>PDF</h3>
             <div class="reportes-actions">
-              <button type="button" class="btn-secondary" (click)="generarReportePdf(); cerrarModalReportes()">Relaciones</button>
-              <button type="button" class="btn-secondary" (click)="generarReporteProductosPendientesPdf(); cerrarModalReportes()">Productos Pendientes</button>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="reporteRelacionesPdf">
+                Relaciones
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="reporteProductosPendientesPdf">
+                Productos Pendientes
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesPdf">
+                Solicitud de Pendientes
+              </label>
             </div>
             <div class="reportes-opciones">
               <label class="checkbox-label">
@@ -863,10 +873,24 @@
           <div class="reportes-col">
             <h3>Excel</h3>
             <div class="reportes-actions">
-              <button type="button" class="btn-secondary" (click)="generarReporteExcel(); cerrarModalReportes()">Relaciones</button>
-              <button type="button" class="btn-secondary" (click)="generarReporteProductosPendientesExcel(); cerrarModalReportes()">Productos Pendientes</button>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="reporteRelacionesExcel">
+                Relaciones
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="reporteProductosPendientesExcel">
+                Productos Pendientes
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesExcel">
+                Solicitud de Pendientes
+              </label>
             </div>
           </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalReportes()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="generarReportesSeleccionados()">Generar</button>
         </div>
       </div>
     </div>

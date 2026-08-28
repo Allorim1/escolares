@@ -1050,7 +1050,7 @@
 }
 
 @if (showModalProductosPendientes()) {
-  <div class="modal-overlay" (click)="cerrarModalProductosPendientes()">
+  <div class="modal-overlay">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>Productos Pendientes</h2>
@@ -1070,7 +1070,7 @@
                      <tr>
                        <th><strong style="color: black;">Código</strong></th>
                        <th><strong style="color: black;">Nombre</strong></th>
-                       <th>Estado</th>
+                       <th><strong style="color: black;">Estado</strong></th>
                        <th></th>
                      </tr>
                    </thead>
@@ -1101,9 +1101,9 @@
                 <table class="abonos-table">
                 <thead>
                   <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Estado</th>
+                    <th><strong>Código</strong></th>
+                    <th><strong>Nombre</strong></th>
+                    <th><strong>Estado</strong></th>
                     <th></th>
                   </tr>
                 </thead>

@@ -291,6 +291,7 @@ export class RelacionCuentas implements OnInit {
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.filter(c => c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd').map((c) => c.key)));
 
   showModalReportes = signal(false);
+  showModalPendientes = signal(false);
   reporteRelacionesPdf = signal(false);
   reporteProductosPendientesPdf = signal(false);
   reporteSolicitudPendientesPdf = signal(false);
@@ -924,11 +925,29 @@ export class RelacionCuentas implements OnInit {
   }
 
   abrirModalReportes() {
+    this.reporteRelacionesPdf.set(false);
+    this.reporteRelacionesExcel.set(false);
+    this.reporteProductosPendientesPdf.set(false);
+    this.reporteSolicitudPendientesPdf.set(false);
+    this.reporteProductosPendientesExcel.set(false);
+    this.reporteSolicitudPendientesExcel.set(false);
     this.showModalReportes.set(true);
   }
 
   cerrarModalReportes() {
     this.showModalReportes.set(false);
+  }
+
+  abrirModalPendientes() {
+    this.reporteProductosPendientesPdf.set(false);
+    this.reporteSolicitudPendientesPdf.set(false);
+    this.reporteProductosPendientesExcel.set(false);
+    this.reporteSolicitudPendientesExcel.set(false);
+    this.showModalPendientes.set(true);
+  }
+
+  cerrarModalPendientes() {
+    this.showModalPendientes.set(false);
   }
 
   abrirModalSender() {
@@ -2939,23 +2958,36 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     saveAs(new Blob([buffer]), fileName);
   }
 
-  async generarReportesSeleccionados() {
+  async generarReportesRelacionesSeleccionados() {
     const tareas: Promise<void>[] = [];
 
     if (this.reporteRelacionesPdf()) tareas.push(this.generarReportePdf());
-    if (this.reporteProductosPendientesPdf()) tareas.push(this.generarReporteProductosPendientesPdf());
-    if (this.reporteSolicitudPendientesPdf()) tareas.push(this.generarReporteSolicitudPendientesPdf());
     if (this.reporteRelacionesExcel()) tareas.push(this.generarReporteExcel());
-    if (this.reporteProductosPendientesExcel()) tareas.push(this.generarReporteProductosPendientesExcel());
-    if (this.reporteSolicitudPendientesExcel()) tareas.push(this.generarReporteSolicitudPendientesExcel());
 
     if (tareas.length === 0) {
-      alert('Selecciona al menos un reporte');
+      alert('Selecciona al menos un reporte de relaciones');
       return;
     }
 
     await Promise.all(tareas);
     this.cerrarModalReportes();
+  }
+
+  async generarReportesPendientesSeleccionados() {
+    const tareas: Promise<void>[] = [];
+
+    if (this.reporteProductosPendientesPdf()) tareas.push(this.generarReporteProductosPendientesPdf());
+    if (this.reporteSolicitudPendientesPdf()) tareas.push(this.generarReporteSolicitudPendientesPdf());
+    if (this.reporteProductosPendientesExcel()) tareas.push(this.generarReporteProductosPendientesExcel());
+    if (this.reporteSolicitudPendientesExcel()) tareas.push(this.generarReporteSolicitudPendientesExcel());
+
+    if (tareas.length === 0) {
+      alert('Selecciona al menos un reporte de pendientes');
+      return;
+    }
+
+    await Promise.all(tareas);
+    this.cerrarModalPendientes();
   }
 
   abrirModalProductosPendientes(abono?: Abono | null) {

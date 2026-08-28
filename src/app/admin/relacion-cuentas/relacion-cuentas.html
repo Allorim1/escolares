@@ -110,7 +110,10 @@
     <!-- Supervisor filter hidden in Relaciones tab -->
       <div class="filtro-group">
         <label>Reporte:</label>
-        <button class="btn-secondary" (click)="abrirModalReportes()">Generar Reporte</button>
+        <button class="btn-secondary" (click)="abrirModalReportes()">Relaciones</button>
+        @if (esRoot()) {
+          <button class="btn-secondary" (click)="abrirModalPendientes()">Pendientes</button>
+        }
       </div>
       @if (esRoot()) {
       @if (mostrarComisiones()) {
@@ -829,12 +832,11 @@
     <div class="modal-overlay" (click)="cerrarModalReportes()">
       <div class="modal modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>Generar Reporte</h2>
+          <h2>Generar Reporte - Relaciones</h2>
           <button type="button" class="btn-cerrar" (click)="cerrarModalReportes()">✕</button>
         </div>
         <div class="reportes-layout">
           <div class="reportes-col">
-            <h3>PDF</h3>
             <div class="reportes-opciones">
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
@@ -863,19 +865,45 @@
                 <div class="reportes-actions">
                   <label class="reportes-checkbox">
                     <input type="checkbox" [(ngModel)]="reporteRelacionesPdf">
-                    Relaciones
-                  </label>
-                  <label class="reportes-checkbox">
-                    <input type="checkbox" [(ngModel)]="reporteProductosPendientesPdf">
-                    Productos Pendientes
-                  </label>
-                  <label class="reportes-checkbox">
-                    <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesPdf">
-                    Solicitud de Pendientes
+                    Relaciones PDF
                   </label>
                   <label class="reportes-checkbox">
                     <input type="checkbox" [(ngModel)]="reporteRelacionesExcel">
                     Relaciones Excel
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalReportes()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="generarReportesRelacionesSeleccionados()">Generar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showModalPendientes()) {
+    <div class="modal-overlay" (click)="cerrarModalPendientes()">
+      <div class="modal modal-wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Generar Reporte - Pendientes</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalPendientes()">✕</button>
+        </div>
+        <div class="reportes-layout">
+          <div class="reportes-col">
+            <div class="reportes-columns-row">
+              <div class="reportes-columns-right">
+                <h4>Generar reportes</h4>
+                <div class="reportes-actions">
+                  <label class="reportes-checkbox">
+                    <input type="checkbox" [(ngModel)]="reporteProductosPendientesPdf">
+                    Productos Pendientes PDF
+                  </label>
+                  <label class="reportes-checkbox">
+                    <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesPdf">
+                    Solicitud de Pendientes PDF
                   </label>
                   <label class="reportes-checkbox">
                     <input type="checkbox" [(ngModel)]="reporteProductosPendientesExcel">
@@ -891,8 +919,8 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="cerrarModalReportes()">Cancelar</button>
-          <button type="button" class="btn-save" (click)="generarReportesSeleccionados()">Generar</button>
+          <button type="button" class="btn-cancel" (click)="cerrarModalPendientes()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="generarReportesPendientesSeleccionados()">Generar</button>
         </div>
       </div>
     </div>

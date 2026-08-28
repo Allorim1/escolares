@@ -1411,3 +1411,41 @@
   font-weight: 500;
 }
 
+.reportes-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.reportes-col h3 {
+  margin: 0 0 10px 0;
+  color: #1d63c1;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.reportes-col h4 {
+  margin: 10px 0 8px 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.reportes-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reportes-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.reportes-divider {
+  border-top: 1px solid #e3e8ee;
+  margin: 14px 0;
+}
+

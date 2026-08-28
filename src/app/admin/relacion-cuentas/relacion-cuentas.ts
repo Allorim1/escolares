@@ -285,7 +285,7 @@ export class RelacionCuentas implements OnInit {
   // Para PDF dejamos las opciones de Planta sin seleccionar por defecto
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.filter(c => c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd').map((c) => c.key)));
 
-  showModalColumnasPdf = signal(false);
+  showModalReportes = signal(false);
   showModalSender = signal(false);
 
   columnasVisibles = computed(() => {
@@ -912,12 +912,12 @@ export class RelacionCuentas implements OnInit {
     this.paginaActual.set(Math.max(1, Math.min(total, pagina)));
   }
 
-  abrirModalColumnasPdf() {
-    this.showModalColumnasPdf.set(true);
+  abrirModalReportes() {
+    this.showModalReportes.set(true);
   }
 
-  cerrarModalColumnasPdf() {
-    this.showModalColumnasPdf.set(false);
+  cerrarModalReportes() {
+    this.showModalReportes.set(false);
   }
 
   abrirModalSender() {

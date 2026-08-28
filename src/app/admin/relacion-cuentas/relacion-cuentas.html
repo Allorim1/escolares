@@ -110,20 +110,7 @@
     <!-- Supervisor filter hidden in Relaciones tab -->
       <div class="filtro-group">
         <label>Reporte:</label>
-        <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
-        <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
-        @if (esRoot()) {
-          <button class="btn-secondary" (click)="generarReporteProductosPendientesPdf()">📄 Productos Pendientes</button>
-          <button class="btn-secondary" (click)="generarReporteProductosPendientesExcel()">📊 Productos Pendientes</button>
-        }
-        <label class="checkbox-inline" style="margin-left:8px;">
-          <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
-          Mostrar Empresa en PDF
-        </label>
-        <label class="checkbox-inline" style="margin-left:8px;">
-          <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
-          Mostrar Planta en PDF
-        </label>
+        <button class="btn-secondary" (click)="abrirModalReportes()">Generar Reporte</button>
       </div>
       @if (esRoot()) {
       @if (mostrarComisiones()) {
@@ -814,24 +801,48 @@
   }
   }
 
-  @if (showModalColumnasPdf()) {
-    <div class="modal-overlay">
-      <div class="modal modal-small">
+  @if (showModalReportes()) {
+    <div class="modal-overlay" (click)="cerrarModalReportes()">
+      <div class="modal modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>Seleccionar Columnas para PDF</h2>
-          <button type="button" class="btn-cerrar" (click)="cerrarModalColumnasPdf()">?</button>
+          <h2>Generar Reporte</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalReportes()">✕</button>
         </div>
-        <div class="columnas-grid">
-          @for (col of columnasDisponibles; track col.key) {
-            <label class="checkbox-label">
-              <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
-              {{ col.label }}
-            </label>
-          }
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="cerrarModalColumnasPdf()">Cancelar</button>
-          <button type="button" class="btn-save" (click)="generarReportePdf(); cerrarModalColumnasPdf()">Generar PDF</button>
+        <div class="reportes-layout">
+          <div class="reportes-col">
+            <h3>PDF</h3>
+            <div class="reportes-actions">
+              <button type="button" class="btn-secondary" (click)="generarReportePdf(); cerrarModalReportes()">Relaciones</button>
+              <button type="button" class="btn-secondary" (click)="generarReporteProductosPendientesPdf(); cerrarModalReportes()">Productos Pendientes</button>
+            </div>
+            <div class="reportes-opciones">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
+                Mostrar Empresa en PDF
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
+                Mostrar Planta en PDF
+              </label>
+            </div>
+            <div class="reportes-divider"></div>
+            <h4>Columnas PDF</h4>
+            <div class="columnas-grid">
+              @for (col of columnasDisponibles; track col.key) {
+                <label class="checkbox-label">
+                  <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
+                  {{ col.label }}
+                </label>
+              }
+            </div>
+          </div>
+          <div class="reportes-col">
+            <h3>Excel</h3>
+            <div class="reportes-actions">
+              <button type="button" class="btn-secondary" (click)="generarReporteExcel(); cerrarModalReportes()">Relaciones</button>
+              <button type="button" class="btn-secondary" (click)="generarReporteProductosPendientesExcel(); cerrarModalReportes()">Productos Pendientes</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

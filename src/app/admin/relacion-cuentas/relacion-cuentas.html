@@ -835,20 +835,6 @@
         <div class="reportes-layout">
           <div class="reportes-col">
             <h3>PDF</h3>
-            <div class="reportes-actions">
-              <label class="reportes-checkbox">
-                <input type="checkbox" [(ngModel)]="reporteRelacionesPdf">
-                Relaciones
-              </label>
-              <label class="reportes-checkbox">
-                <input type="checkbox" [(ngModel)]="reporteProductosPendientesPdf">
-                Productos Pendientes
-              </label>
-              <label class="reportes-checkbox">
-                <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesPdf">
-                Solicitud de Pendientes
-              </label>
-            </div>
             <div class="reportes-opciones">
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
@@ -860,31 +846,47 @@
               </label>
             </div>
             <div class="reportes-divider"></div>
-            <h4>Columnas PDF</h4>
-            <div class="columnas-grid">
-              @for (col of columnasDisponibles; track col.key) {
-                <label class="checkbox-label">
-                  <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
-                  {{ col.label }}
-                </label>
-              }
-            </div>
-          </div>
-          <div class="reportes-col reportes-col-selection">
-            <h3>Excel</h3>
-            <div class="reportes-actions">
-              <label class="reportes-checkbox">
-                <input type="checkbox" [(ngModel)]="reporteRelacionesExcel">
-                Relaciones
-              </label>
-              <label class="reportes-checkbox">
-                <input type="checkbox" [(ngModel)]="reporteProductosPendientesExcel">
-                Productos Pendientes
-              </label>
-              <label class="reportes-checkbox">
-                <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesExcel">
-                Solicitud de Pendientes
-              </label>
+            <div class="reportes-columns-row">
+              <div class="reportes-columns-left">
+                <h4>Columnas PDF</h4>
+                <div class="columnas-grid">
+                  @for (col of columnasDisponibles; track col.key) {
+                    <label class="checkbox-label">
+                      <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
+                      {{ col.label }}
+                    </label>
+                  }
+                </div>
+              </div>
+              <div class="reportes-columns-right">
+                <h4>Generar reportes</h4>
+                <div class="reportes-actions">
+                  <label class="reportes-checkbox">
+                    <input type="checkbox" [(ngModel)]="reporteRelacionesPdf">
+                    Relaciones
+                  </label>
+                  <label class="reportes-checkbox">
+                    <input type="checkbox" [(ngModel)]="reporteProductosPendientesPdf">
+                    Productos Pendientes
+                  </label>
+                  <label class="reportes-checkbox">
+                    <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesPdf">
+                    Solicitud de Pendientes
+                  </label>
+                  <label class="reportes-checkbox">
+                    <input type="checkbox" [(ngModel)]="reporteRelacionesExcel">
+                    Relaciones Excel
+                  </label>
+                  <label class="reportes-checkbox">
+                    <input type="checkbox" [(ngModel)]="reporteProductosPendientesExcel">
+                    Productos Pendientes Excel
+                  </label>
+                  <label class="reportes-checkbox">
+                    <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesExcel">
+                    Solicitud de Pendientes Excel
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </div>

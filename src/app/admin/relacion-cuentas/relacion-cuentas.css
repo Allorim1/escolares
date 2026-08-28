@@ -1443,14 +1443,24 @@
 }
 
 .reportes-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
-.reportes-col-selection {
-  border-left: 1px solid #e3e8ee;
-  padding-left: 20px;
+.reportes-columns-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.reportes-columns-left {
+  min-width: 0;
+}
+
+.reportes-columns-right {
+  min-width: 0;
 }
 
 .reportes-col h3 {

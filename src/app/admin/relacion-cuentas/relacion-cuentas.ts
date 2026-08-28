@@ -67,6 +67,7 @@ interface InvProducto {
 
 interface ProductoPendiente extends InvProducto {
   pendienteStatus?: 'pendiente' | 'entregado';
+  cantidad: number;
 }
 
 @Component({
@@ -2674,7 +2675,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           nFact: abono.nFact || '',
           codigo: prod.codigo || '',
           producto: prod.nombre || '',
-          cantidad: Number(prod.stock ?? 1),
+          cantidad: prod.cantidad ?? 1,
         });
       }
     }
@@ -2757,7 +2758,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           nFact: abono.nFact || '',
           codigo: prod.codigo || '',
           producto: prod.nombre || '',
-          cantidad: Number(prod.stock ?? 1),
+          cantidad: prod.cantidad ?? 1,
         });
       }
     }
@@ -2803,6 +2804,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const inicial = (abono?.productosPendientes || []).map(p => ({
       ...p,
       pendienteStatus: p.pendienteStatus || 'pendiente',
+      cantidad: p.cantidad ?? 1,
     }));
     this.productosPendientesSeleccionados.set(inicial);
     this.productosPendientesBusqueda.set('');
@@ -2822,11 +2824,14 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   onBusquedaProductosPendientes(termino: string) {
     this.productosPendientesBusqueda.set(termino);
     if (this._productosPendientesTimer) clearTimeout(this._productosPendientesTimer);
+    if (!termino.trim()) {
+      this.productosPendientesLista.set([]);
+      this.cargandoProductosPendientes.set(false);
+      return;
+    }
     this._productosPendientesTimer = setTimeout(() => {
       this.cargandoProductosPendientes.set(true);
-      const url = termino.trim()
-        ? `/api/inv-productos?q=${encodeURIComponent(termino.trim())}`
-        : '/api/inv-productos';
+      const url = `/api/inv-productos?q=${encodeURIComponent(termino.trim())}`;
       this.http.get<InvProducto[]>(url).subscribe({
         next: (data) => {
           this.productosPendientesLista.set(data || []);
@@ -2840,11 +2845,16 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     }, 300);
   }
 
+  seleccionarTextoBusqueda(event: Event) {
+    const input = event.target as HTMLInputElement;
+    input.select();
+  }
+
   agregarProductoPendiente(producto: InvProducto) {
     const seleccionados = this.productosPendientesSeleccionados();
     const existe = seleccionados.some(p => (p._id || p.codigo) === (producto._id || producto.codigo));
     if (!existe) {
-      const nuevo: ProductoPendiente = { ...producto, pendienteStatus: 'pendiente' };
+      const nuevo: ProductoPendiente = { ...producto, pendienteStatus: 'pendiente', cantidad: 1 };
       this.productosPendientesSeleccionados.set([...seleccionados, nuevo]);
     }
   }
@@ -2861,6 +2871,19 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         if ((p._id || p.codigo) === (producto._id || producto.codigo)) {
           const nuevoEstado = p.pendienteStatus === 'pendiente' ? 'entregado' : 'pendiente';
           return { ...p, pendienteStatus: nuevoEstado };
+        }
+        return p;
+      })
+    );
+  }
+
+  actualizarCantidadProductoPendiente(producto: ProductoPendiente, valor: string) {
+    const numero = Number(valor);
+    const cantidad = Number.isFinite(numero) && numero > 0 ? Math.floor(numero) : 1;
+    this.productosPendientesSeleccionados.set(
+      this.productosPendientesSeleccionados().map(p => {
+        if ((p._id || p.codigo) === (producto._id || producto.codigo)) {
+          return { ...p, cantidad };
         }
         return p;
       })

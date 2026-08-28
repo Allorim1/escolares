@@ -1060,7 +1060,7 @@
         <div class="productos-pendientes-layout-vertical">
           <div class="productos-pendientes-busqueda">
             <label>Buscar producto</label>
-            <input type="text" [value]="productosPendientesBusqueda()" (input)="onBusquedaProductosPendientes($event.target.value)" placeholder="Código o nombre..." autocomplete="off">
+            <input type="text" [value]="productosPendientesBusqueda()" (input)="onBusquedaProductosPendientes($event.target.value)" (click)="seleccionarTextoBusqueda($event)" (focus)="seleccionarTextoBusqueda($event)" placeholder="Código o nombre..." autocomplete="off">
             @if (cargandoProductosPendientes()) {
               <div class="cargando">Buscando...</div>
             } @else {
@@ -1070,6 +1070,7 @@
                      <tr>
                        <th><strong style="color: black;">Código</strong></th>
                        <th><strong style="color: black;">Nombre</strong></th>
+                       <th><strong style="color: black;">Cantidad</strong></th>
                        <th><strong style="color: black;">Estado</strong></th>
                        <th></th>
                      </tr>
@@ -1103,6 +1104,7 @@
                   <tr>
                     <th><strong style="color: black;">Código</strong></th>
                     <th><strong style="color: black;">Nombre</strong></th>
+                    <th><strong style="color: black;">Cantidad</strong></th>
                     <th><strong style="color: black;">Estado</strong></th>
                     <th></th>
                   </tr>
@@ -1112,6 +1114,9 @@
                     <tr>
                       <td>{{ producto.codigo }}</td>
                       <td>{{ producto.nombre }}</td>
+                      <td>
+                        <input type="number" class="cantidad-input" [value]="producto.cantidad" (input)="actualizarCantidadProductoPendiente(producto, $any($event.target).value)">
+                      </td>
                       <td>
                         <button type="button" class="btn-secondary" (click)="cambiarEstadoProductoPendiente(producto)">
                           {{ producto.pendienteStatus === 'entregado' ? 'Entregado' : 'Pendiente' }}

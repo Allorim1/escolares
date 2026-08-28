@@ -516,7 +516,7 @@
             <button type="button" class="btn-secondary" (click)="abrirModalProductosPendientes(editingAbono)" [disabled]="!editingAbono?._id">📦 Productos Pendientes</button>
           </div>
         </div>
-        @if (editingAbono?.productosPendientes?.length) {
+        @if (editingAbono && editingAbono.productosPendientes && editingAbono.productosPendientes.length) {
           <div class="productos-pendientes-mini">
             <table class="abonos-table productos-pendientes-mini-table">
               <thead>

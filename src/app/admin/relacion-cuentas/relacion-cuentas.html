@@ -516,7 +516,31 @@
             <button type="button" class="btn-secondary" (click)="abrirModalProductosPendientes(editingAbono)" [disabled]="!editingAbono?._id">📦 Productos Pendientes</button>
           </div>
         </div>
-<div class="form-row">
+        @if (editingAbono?.productosPendientes?.length) {
+          <div class="productos-pendientes-mini">
+            <table class="abonos-table productos-pendientes-mini-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Cantidad</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (prod of editingAbono.productosPendientes; track prod._id || prod.codigo) {
+                  <tr>
+                    <td>{{ prod.codigo }}</td>
+                    <td>{{ prod.nombre }}</td>
+                    <td>{{ prod.cantidad }}</td>
+                    <td>{{ prod.pendienteStatus === 'entregado' ? 'Entregado' : 'Pendiente' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        <div class="form-row">
           <div class="form-group">
             <label>Imágenes</label>
             <div class="image-upload-section">

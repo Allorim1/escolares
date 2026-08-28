@@ -2665,14 +2665,13 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
   async generarReporteProductosPendientesPdf() {
     const abonos = this.abonosFiltrados();
-    const filas: { fecha: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
+    const filas: { empresa: string; planta: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
         filas.push({
-          fecha: this.formatFecha(abono.fecha),
-          nombre: abono.nombre,
-          nFact: abono.nFact || '',
+          empresa: abono.empresa || '-',
+          planta: abono.planta || '-',
           codigo: prod.codigo || '',
           producto: prod.nombre || '',
           cantidad: prod.cantidad ?? 1,
@@ -2718,8 +2717,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
     doc.text(`Total productos: ${filas.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
 
-    const head = [['Fecha', 'Nombre', 'N. Fact', 'Código', 'Producto', 'Cantidad']];
-    const body = filas.map(f => [f.fecha, f.nombre, f.nFact, f.codigo, f.producto, String(f.cantidad)]);
+    const head = [['Empresa', 'Planta', 'Código', 'Producto', 'Cantidad']];
+    const body = filas.map(f => [f.empresa, f.planta, f.codigo, f.producto, String(f.cantidad)]);
 
     autoTable(doc, {
       startY: infoY + 14,
@@ -2732,30 +2731,77 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       margin: { left: 18, right: 18, bottom: 18 },
       tableWidth: 'auto',
       columnStyles: {
-        0: { cellWidth: 28 },
-        1: { cellWidth: 45 },
-        2: { cellWidth: 22 },
-        3: { cellWidth: 28 },
-        4: { cellWidth: 55 },
-        5: { cellWidth: 20 },
+        0: { cellWidth: 45 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 70 },
+        4: { cellWidth: 25 },
       },
     });
 
     const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
-    const fileName = `productos_pendientes_${this.getFechaLocal()}.pdf`;
-    doc.save(fileName);
+    const fileName1 = `productos_pendientes_${this.getFechaLocal()}.pdf`;
+    doc.save(fileName1);
+
+    const doc2 = new jsPDF({ orientation: 'landscape' });
+    const pageWidth2 = doc2.internal.pageSize.getWidth();
+
+    let logoBase64_2 = '';
+    try {
+      logoBase64_2 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    if (logoBase64_2) {
+      const dims2 = await this.obtenerDimensionesImagen(logoBase64_2);
+      const logoHeight2 = (logoWidth * dims2.height) / dims2.width;
+      doc2.addImage(logoBase64_2, 'PNG', 18, logoY, logoWidth, logoHeight2);
+    }
+
+    doc2.setFontSize(16);
+    doc2.setTextColor(0, 51, 111);
+    doc2.text('Solicitud de pendientes', pageWidth2 / 2, offsetY, { align: 'center' });
+
+    const infoY2 = offsetY + 10;
+    doc2.setFontSize(10);
+    doc2.setTextColor(100);
+    doc2.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth2 - 18, infoY2, { align: 'right' });
+    doc2.text(`Total productos: ${filas.length}`, pageWidth2 - 18, infoY2 + 6, { align: 'right' });
+
+    const head2 = [['Código', 'Producto', 'Cantidad']];
+    const body2 = filas.map(f => [f.codigo, f.producto, String(f.cantidad)]);
+
+    autoTable(doc2, {
+      startY: infoY2 + 14,
+      head: head2,
+      body: body2,
+      theme: 'grid',
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 9, halign: 'center', overflow: 'linebreak', cellPadding: 2 },
+      bodyStyles: { fontSize: 8, overflow: 'linebreak', halign: 'center' },
+      styles: { cellPadding: 2, fontSize: 8, overflow: 'linebreak', halign: 'center' },
+      margin: { left: 18, right: 18, bottom: 18 },
+      tableWidth: 'auto',
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 100 },
+        2: { cellWidth: 30 },
+      },
+    });
+
+    const fileName2 = `solicitud_pendientes_${this.getFechaLocal()}.pdf`;
+    doc2.save(fileName2);
   }
 
   async generarReporteProductosPendientesExcel() {
     const abonos = this.abonosFiltrados();
-    const filas: { fecha: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
+    const filas: { empresa: string; planta: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
         filas.push({
-          fecha: this.formatFecha(abono.fecha),
-          nombre: abono.nombre,
-          nFact: abono.nFact || '',
+          empresa: abono.empresa || '-',
+          planta: abono.planta || '-',
           codigo: prod.codigo || '',
           producto: prod.nombre || '',
           cantidad: prod.cantidad ?? 1,
@@ -2771,15 +2817,14 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const worksheet = workbook.addWorksheet('Productos Pendientes');
 
     worksheet.columns = [
-      { width: 18 },
-      { width: 30 },
-      { width: 15 },
+      { width: 25 },
+      { width: 25 },
       { width: 20 },
       { width: 40 },
       { width: 15 },
     ];
 
-    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'N. Fact', 'Código', 'Producto', 'Cantidad']);
+    const headerRow = worksheet.addRow(['Empresa', 'Planta', 'Código', 'Producto', 'Cantidad']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -2788,7 +2833,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
 
     filas.forEach(f => {
-      const row = worksheet.addRow([f.fecha, f.nombre, f.nFact, f.codigo, f.producto, f.cantidad]);
+      const row = worksheet.addRow([f.empresa, f.planta, f.codigo, f.producto, f.cantidad]);
       row.eachCell((cell) => {
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -2816,7 +2861,10 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   cerrarModalProductosPendientes() {
     this.showModalProductosPendientes.set(false);
     if (this.productosPendientesAbonoId() && this.editingAbono && this.editingAbono._id === this.productosPendientesAbonoId()) {
-      this.editingAbono.productosPendientes = this.productosPendientesSeleccionados();
+      this.editingAbono = { 
+        ...this.editingAbono, 
+        productosPendientes: this.productosPendientesSeleccionados() 
+      };
     }
     this.productosPendientesAbonoId.set(null);
   }

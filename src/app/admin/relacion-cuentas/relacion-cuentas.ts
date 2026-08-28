@@ -2658,6 +2658,143 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
   }
 
+  async generarReporteProductosPendientesPdf() {
+    const abonos = this.abonosFiltrados();
+    const filas: { fecha: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
+    for (const abono of abonos) {
+      const lista = abono.productosPendientes || [];
+      for (const prod of lista) {
+        filas.push({
+          fecha: this.formatFecha(abono.fecha),
+          nombre: abono.nombre,
+          nFact: abono.nFact || '',
+          codigo: prod.codigo || '',
+          producto: prod.nombre || '',
+          cantidad: Number(prod.stock ?? 1),
+        });
+      }
+    }
+    if (filas.length === 0) {
+      alert('No hay productos pendientes para generar el reporte');
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+
+    const logoWidth = 70;
+    let logoHeight = 0;
+    if (logoBase64) {
+      const dims = await this.obtenerDimensionesImagen(logoBase64);
+      logoHeight = (logoWidth * dims.height) / dims.width;
+    }
+
+    const logoY = 15;
+    const offsetY = logoY + logoHeight + 8;
+
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
+    }
+
+    doc.setFontSize(16);
+    doc.setTextColor(0, 51, 111);
+    doc.text('PRODUCTOS PENDIENTES', pageWidth / 2, offsetY, { align: 'center' });
+
+    const infoY = offsetY + 10;
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
+    doc.text(`Total productos: ${filas.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
+
+    const head = [['Fecha', 'Nombre', 'N. Fact', 'Código', 'Producto', 'Cantidad']];
+    const body = filas.map(f => [f.fecha, f.nombre, f.nFact, f.codigo, f.producto, String(f.cantidad)]);
+
+    autoTable(doc, {
+      startY: infoY + 14,
+      head: head,
+      body: body,
+      theme: 'grid',
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 9, halign: 'center', overflow: 'linebreak', cellPadding: 2 },
+      bodyStyles: { fontSize: 8, overflow: 'linebreak', halign: 'center' },
+      styles: { cellPadding: 2, fontSize: 8, overflow: 'linebreak', halign: 'center' },
+      margin: { left: 18, right: 18, bottom: 18 },
+      tableWidth: 'auto',
+      columnStyles: {
+        0: { cellWidth: 28 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 28 },
+        4: { cellWidth: 55 },
+        5: { cellWidth: 20 },
+      },
+    });
+
+    const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
+    const fileName = `productos_pendientes_${this.getFechaLocal()}.pdf`;
+    doc.save(fileName);
+  }
+
+  async generarReporteProductosPendientesExcel() {
+    const abonos = this.abonosFiltrados();
+    const filas: { fecha: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
+    for (const abono of abonos) {
+      const lista = abono.productosPendientes || [];
+      for (const prod of lista) {
+        filas.push({
+          fecha: this.formatFecha(abono.fecha),
+          nombre: abono.nombre,
+          nFact: abono.nFact || '',
+          codigo: prod.codigo || '',
+          producto: prod.nombre || '',
+          cantidad: Number(prod.stock ?? 1),
+        });
+      }
+    }
+    if (filas.length === 0) {
+      alert('No hay productos pendientes para generar el reporte');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Productos Pendientes');
+
+    worksheet.columns = [
+      { width: 18 },
+      { width: 30 },
+      { width: 15 },
+      { width: 20 },
+      { width: 40 },
+      { width: 15 },
+    ];
+
+    const headerRow = worksheet.addRow(['Fecha', 'Nombre', 'N. Fact', 'Código', 'Producto', 'Cantidad']);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
+      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    filas.forEach(f => {
+      const row = worksheet.addRow([f.fecha, f.nombre, f.nFact, f.codigo, f.producto, f.cantidad]);
+      row.eachCell((cell) => {
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const fileName = `productos_pendientes_${this.getFechaLocal()}.xlsx`;
+    saveAs(new Blob([buffer]), fileName);
+  }
+
   abrirModalProductosPendientes(abono?: Abono | null) {
     this.productosPendientesSeleccionados.set(abono?.productosPendientes || []);
     this.productosPendientesBusqueda.set('');

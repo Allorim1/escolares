@@ -108,19 +108,23 @@
       </span>
     </div>
     <!-- Supervisor filter hidden in Relaciones tab -->
-    <div class="filtro-group">
-      <label>Reporte:</label>
-      <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
-      <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
-      <label class="checkbox-inline" style="margin-left:8px;">
-        <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
-        Mostrar Empresa en PDF
-      </label>
-      <label class="checkbox-inline" style="margin-left:8px;">
-        <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
-        Mostrar Planta en PDF
-      </label>
-    </div>
+      <div class="filtro-group">
+        <label>Reporte:</label>
+        <button class="btn-secondary" (click)="abrirModalColumnasPdf()">📄 PDF</button>
+        <button class="btn-secondary" (click)="generarReporteExcel()">📊 Excel</button>
+        @if (esRoot()) {
+          <button class="btn-secondary" (click)="generarReporteProductosPendientesPdf()">📄 Productos Pendientes</button>
+          <button class="btn-secondary" (click)="generarReporteProductosPendientesExcel()">📊 Productos Pendientes</button>
+        }
+        <label class="checkbox-inline" style="margin-left:8px;">
+          <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
+          Mostrar Empresa en PDF
+        </label>
+        <label class="checkbox-inline" style="margin-left:8px;">
+          <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
+          Mostrar Planta en PDF
+        </label>
+      </div>
       @if (esRoot()) {
       @if (mostrarComisiones()) {
         <div class="filtro-group">
@@ -1053,8 +1057,8 @@
                 <table class="abonos-table productos-pendientes-tabla">
                   <thead>
                     <tr>
-                      <th><strong>Código</strong></th>
-                      <th><strong>Nombre</strong></th>
+                      <th><strong style="color: black;">Código</strong></th>
+                      <th><strong style="color: black;">Nombre</strong></th>
                       <th></th>
                     </tr>
                   </thead>

@@ -2665,13 +2665,16 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
   async generarReporteProductosPendientesPdf() {
     const abonos = this.abonosFiltrados();
-    const filas: { empresa: string; planta: string; codigo: string; producto: string; cantidad: number }[] = [];
+    const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
         filas.push({
+          fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
           planta: abono.planta || '-',
+          nombre: abono.nombre || '-',
+          nFact: abono.nFact || '-',
           codigo: prod.codigo || '',
           producto: prod.nombre || '',
           cantidad: prod.cantidad ?? 1,
@@ -2717,25 +2720,28 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
     doc.text(`Total productos: ${filas.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
 
-    const head = [['Empresa', 'Planta', 'Código', 'Producto', 'Cantidad']];
-    const body = filas.map(f => [f.empresa, f.planta, f.codigo, f.producto, String(f.cantidad)]);
+    const head = [['Fecha', 'Empresa', 'Planta', 'Nombre', 'N. Fact', 'Código', 'Producto', 'Cantidad']];
+    const body = filas.map(f => [f.fecha, f.empresa, f.planta, f.nombre, f.nFact, f.codigo, f.producto, String(f.cantidad)]);
 
     autoTable(doc, {
       startY: infoY + 14,
       head: head,
       body: body,
       theme: 'grid',
-      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 9, halign: 'center', overflow: 'linebreak', cellPadding: 2 },
-      bodyStyles: { fontSize: 8, overflow: 'linebreak', halign: 'center' },
-      styles: { cellPadding: 2, fontSize: 8, overflow: 'linebreak', halign: 'center' },
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 8, halign: 'center', overflow: 'linebreak', cellPadding: 2 },
+      bodyStyles: { fontSize: 7, overflow: 'linebreak', halign: 'center' },
+      styles: { cellPadding: 2, fontSize: 7, overflow: 'linebreak', halign: 'center' },
       margin: { left: 18, right: 18, bottom: 18 },
       tableWidth: 'auto',
       columnStyles: {
-        0: { cellWidth: 45 },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 70 },
-        4: { cellWidth: 25 },
+        0: { cellWidth: 24 },
+        1: { cellWidth: 38 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 40 },
+        4: { cellWidth: 22 },
+        5: { cellWidth: 26 },
+        6: { cellWidth: 60 },
+        7: { cellWidth: 20 },
       },
     });
 
@@ -2761,7 +2767,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
     doc2.setFontSize(16);
     doc2.setTextColor(0, 51, 111);
-    doc2.text('Solicitud de pendientes', pageWidth2 / 2, offsetY, { align: 'center' });
+    doc2.text('Solicitud de Pendientes', pageWidth2 / 2, offsetY, { align: 'center' });
 
     const infoY2 = offsetY + 10;
     doc2.setFontSize(10);
@@ -2795,13 +2801,16 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
   async generarReporteProductosPendientesExcel() {
     const abonos = this.abonosFiltrados();
-    const filas: { empresa: string; planta: string; codigo: string; producto: string; cantidad: number }[] = [];
+    const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
         filas.push({
+          fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
           planta: abono.planta || '-',
+          nombre: abono.nombre || '-',
+          nFact: abono.nFact || '-',
           codigo: prod.codigo || '',
           producto: prod.nombre || '',
           cantidad: prod.cantidad ?? 1,
@@ -2817,14 +2826,17 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const worksheet = workbook.addWorksheet('Productos Pendientes');
 
     worksheet.columns = [
+      { width: 18 },
       { width: 25 },
       { width: 25 },
+      { width: 30 },
+      { width: 15 },
       { width: 20 },
       { width: 40 },
       { width: 15 },
     ];
 
-    const headerRow = worksheet.addRow(['Empresa', 'Planta', 'Código', 'Producto', 'Cantidad']);
+    const headerRow = worksheet.addRow(['Fecha', 'Empresa', 'Planta', 'Nombre', 'N. Fact', 'Código', 'Producto', 'Cantidad']);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
@@ -2833,7 +2845,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
 
     filas.forEach(f => {
-      const row = worksheet.addRow([f.empresa, f.planta, f.codigo, f.producto, f.cantidad]);
+      const row = worksheet.addRow([f.fecha, f.empresa, f.planta, f.nombre, f.nFact, f.codigo, f.producto, f.cantidad]);
       row.eachCell((cell) => {
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };

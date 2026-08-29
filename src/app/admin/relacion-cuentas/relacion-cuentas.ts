@@ -3025,7 +3025,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
     doc.setFontSize(16);
     doc.setTextColor(29, 99, 193);
-    doc.text('TICKET DE RELACIÓN', pageWidth / 2, y, { align: 'center' });
+    doc.text(this.editingAbono.nFact, pageWidth / 2, y, { align: 'center' });
     y += 10;
 
     doc.setDrawColor(29, 99, 193);
@@ -3045,13 +3045,13 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     if (productos.length > 0) {
       doc.setFontSize(12);
       doc.setTextColor(29, 99, 193);
-      doc.text('Productos Pendientes', margin, y);
+      doc.text('Productos', margin, y);
       y += 6;
 
       doc.setFontSize(10);
       doc.setTextColor(33, 33, 33);
       for (const prod of productos) {
-        doc.text(`- ${prod.nombre || 'Sin nombre'} (Cantidad: ${prod.cantidad ?? 1})`, margin + 5, y);
+        doc.text(`- ${prod.nombre || 'Sin nombre'} (${prod.cantidad ?? 1})`, margin + 5, y);
         y += 6;
       }
     } else {
@@ -3061,10 +3061,10 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       y += 7;
     }
 
-    const fecha = new Date().toLocaleString('es-VE');
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.text(`Generado: ${fecha}`, pageWidth - margin, y + 10, { align: 'right' });
+   // const fecha = new Date().toLocaleString('es-VE');
+   // doc.setFontSize(9);
+   // doc.setTextColor(120);
+   // doc.text(`Generado: ${fecha}`, pageWidth - margin, y + 10, { align: 'right' });
 
     const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
     const fileName = `ticket_${sanitize(nombre || 'relacion')}_${this.getFechaLocal()}.pdf`;

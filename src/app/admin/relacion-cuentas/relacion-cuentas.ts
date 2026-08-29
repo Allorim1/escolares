@@ -3014,70 +3014,110 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.cerrarModalPendientes();
   }
 
-  async generarTicketRelacion() {
+ async generarTicketRelacion() {
+
     if (!this.editingAbono) return;
+    const abono = this.editingAbono;
 
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    let y = margin;
+    const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4'
+  });
 
-    const nombre = this.editingAbono.nombre || '';
-    const cedula = this.editingAbono.cedula || '';
-    const planta = this.editingAbono.planta || '';
-    const productos = this.editingAbono.productosPendientes || [];
-    const genero = this.ticketGenero;
-    const ciclo = this.ticketCiclo;
-    const nivel = this.ticketNivel;
+  const pageWidth = doc.internal.pageSize.getWidth();  // 297 mm
+  const pageHeight = doc.internal.pageSize.getHeight(); // 210 mm
 
-    doc.setFontSize(16);
-    doc.setTextColor(29, 99, 193);
-    doc.text(this.editingAbono.nFact, pageWidth / 2, y, { align: 'center' });
-    y += 10;
+  // Borde externo contenedor
+  const margin = 10;
+  doc.setLineWidth(0.8);
+  doc.rect(margin, margin, pageWidth - (margin * 2), pageHeight - (margin * 2));
 
-    doc.setDrawColor(29, 99, 193);
-    doc.setLineWidth(0.5);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 8;
+  let currentY = margin + 12;
+const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+  // --- CABECERA ---
+  // Si tienes la imagen del logo en base64:
+  if (logoBase64) {
+    doc.addImage(logoBase64, 'PNG', margin + 5, currentY - 5, 65, 20);
+  } else {
+    // Texto de reemplazo si no hay logo cargado
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(13, 59, 130);
+    doc.text('Librería y Papelería', margin + 25, currentY - 2);
+    
+    doc.setFontSize(22);
+    doc.text('ESCOLARES C.A.', margin + 8, currentY + 6);
+    
+    doc.setFontSize(9);
+    doc.text('Mayor y Detal', margin + 28, currentY + 11);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text('R.I.F. J-30488367-6', margin + 24, currentY + 15);
+  }
 
-    doc.setFontSize(11);
-    doc.setTextColor(33, 33, 33);
-    doc.text(`Nombre: ${nombre}`, margin, y);
-    y += 7;
-    doc.text(`Cédula: ${cedula}`, margin, y);
-    y += 7;
-    doc.text(`Planta: ${planta}`, margin, y);
-    y += 7;
-    const detalle = [genero, ciclo, nivel].filter(Boolean).join(' ');
-    if (detalle) {
-      doc.text(`${detalle}`, margin, y);
-      y += 7;
-    }
-    y += 3;
+  // Teléfonos y Email (Izquierda)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(0, 0, 0);
+  doc.text('Telf: 0241-858.02.81 / 858.70.50', margin + 5, currentY + 22);
+  doc.text('Email: contactanos@escolaresonline.com', margin + 5, currentY + 26);
 
-    if (productos.length > 0) {
-      doc.setFontSize(12);
-      doc.setTextColor(29, 99, 193);
-      doc.text('Productos', margin, y);
-      y += 6;
+  // NOTA DE PEDIDO (Derecha)
+  doc.setFont('times', 'bold');
+  doc.setFontSize(18);
+  doc.text(`NRO FACT: ${abono.nFact}`, pageWidth - margin - 10, currentY + 15, { align: 'right' });
 
-      doc.setFontSize(10);
-      doc.setTextColor(33, 33, 33);
-      for (const prod of productos) {
-        doc.text(`- ${prod.nombre || 'Sin nombre'} (${prod.cantidad ?? 1})`, margin + 5, y);
-        y += 6;
-      }
-    } else {
-      doc.setFontSize(10);
-      doc.setTextColor(120);
-      doc.text('Sin productos pendientes', margin, y);
-      y += 7;
-    }
+  // Línea divisoria cabecera
+  currentY += 32;
+  doc.setLineWidth(0.5);
+  doc.line(margin, currentY, pageWidth - margin, currentY);
 
-    const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
-    const fileName = `ticket_${sanitize(nombre || 'relacion')}_${this.getFechaLocal()}.pdf`;
-    doc.save(fileName);
-    this.cerrarModalTicket();
+  // --- SECCIÓN EMPRESA ---
+  currentY += 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(13);
+  doc.setTextColor(50, 50, 50);
+  doc.text('EMPRESA:', margin + 5, currentY);
+
+  currentY += 12;
+  doc.setFont('times', 'bold');
+  doc.setFontSize(28);
+  doc.setTextColor(0, 0, 0);
+  doc.text((abono.empresa || '').toUpperCase(), margin + 5, currentY);
+
+  // --- SECCIÓN CLIENTE Y CEDULA/RIF ---
+  currentY += 18;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(13);
+  doc.setTextColor(50, 50, 50);
+  doc.text('CLIENTE:', margin + 5, currentY);
+
+  currentY += 12;
+  doc.setFont('times', 'bold');
+  doc.setFontSize(28);
+  doc.setTextColor(0, 0, 0);
+  doc.text(abono.nombre.toUpperCase(), margin + 5, currentY);
+
+  // Cédula / RIF (Alineado a la derecha)
+  doc.setFontSize(26);
+  doc.text(this.editingAbono.cedula, pageWidth - margin - 10, currentY, { align: 'right' });
+
+  // Línea divisoria para destacar NIÑO / GRADO
+  currentY += 10;
+  doc.setLineWidth(0.5);
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+
+  currentY += 22;
+  doc.setFont('times', 'bold');
+  doc.setFontSize(48);
+  doc.text(this.ticketGenero.toUpperCase(), margin + 5, currentY);
+
+  doc.setFontSize(42);
+  doc.text(this.ticketCiclo + '  ' + this.ticketNivel, margin + 110, currentY);
+
+  doc.save(`Ticket ${abono.nFact}.pdf`);
+
   }
 
   abrirModalProductosPendientes(abono?: Abono | null) {

@@ -3127,9 +3127,13 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
   doc.setFontSize(42);
   doc.text(this.ticketCiclo + '  ' + this.ticketNivel, margin + 110, currentY);
 
-  doc.save(`Ticket ${abono.nFact}.pdf`);
+   doc.save(`Ticket ${abono.nFact}.pdf`);
 
-  }
+   const imprimir = confirm('¿Desea imprimir el comprobante?');
+   if (imprimir) {
+     this.abrirTicketImpresion(abono);
+   }
+ }
 
   abrirModalProductosPendientes(abono?: Abono | null) {
     const inicial = (abono?.productosPendientes || []).map(p => ({
@@ -3233,6 +3237,66 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
         return p;
       })
     );
+  }
+
+  abrirTicketImpresion(abono: any) {
+    const productos = (abono.productosPendientes || []).map((p: any, index: number) => {
+      const top = 55 + index * 14;
+      return `
+        <tr>
+          <td style="padding: 4px 8px; border-bottom: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 13px; color: #0d1b2a;">${p.codigo || ''}</td>
+          <td style="padding: 4px 8px; border-bottom: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 13px; color: #0d1b2a;">${p.nombre || ''}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const html = `
+      <html>
+        <head>
+          <title>Ticket</title>
+          <style>
+            body { margin: 0; padding: 0; }
+            .ticket-preview { position: relative; width: 380px; margin: 0 auto; }
+            .ticket-header { text-align: center; margin-bottom: 10px; }
+            .ticket-header img { max-width: 120px; }
+            .ticket-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            .ticket-table th { text-align: left; padding: 4px 8px; border-bottom: 1px solid #000; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 13px; color: #0d1b2a; }
+            .ticket-footer { margin-top: 15px; text-align: center; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 12px; color: #0d1b2a; }
+          </style>
+        </head>
+        <body>
+          <div class="ticket-preview">
+            <div class="ticket-header">
+              <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Escolares" style="max-width: 120px;" />
+            </div>
+            <table class="ticket-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Producto</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${productos}
+              </tbody>
+            </table>
+            <div class="ticket-footer">
+              NRO FACT: ${abono.nFact}<br>
+              CLIENTE: ${abono.nombre}<br>
+              CEDULA: ${abono.cedula}
+            </div>
+          </div>
+          <script>
+            window.onload = function() { window.print(); }
+          <\/script>
+        </body>
+      </html>
+    `;
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
   }
 }
 

@@ -3257,8 +3257,8 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
             body { margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
             .ticket-preview { width: 320px; margin: 0 auto; padding: 4px; }
             .ticket-header { text-align: center; margin-bottom: 4px; }
-            .ticket-header img { max-width: 140px; height: auto; }
-            .ticket-contacto { text-align: center; font-weight: bold; font-size: 11px; color: #0d1b2a; margin-bottom: 2px; }
+            .ticket-header img { max-width: 320px; height: auto; }
+            .ticket-contacto { text-align: center; font-weight: bold; font-size: 11px; color: #0d1b2a; margin-bottom: 12px; }
             .ticket-datos { text-align: left; font-weight: bold; font-size: 11px; color: #0d1b2a; margin-bottom: 4px; line-height: 1.4; }
             .ticket-divider { border-top: 1px solid #0d1b2a; margin: 4px 0; }
             .ticket-table { width: 100%; border-collapse: collapse; margin-top: 4px; }

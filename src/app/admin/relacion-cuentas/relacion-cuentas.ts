@@ -3240,12 +3240,11 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
   }
 
   abrirTicketImpresion(abono: any) {
-    const productos = (abono.productosPendientes || []).map((p: any, index: number) => {
-      const top = 55 + index * 14;
+    const productos = (abono.productosPendientes || []).map((p: any) => {
       return `
         <tr>
-          <td style="padding: 4px 8px; border-bottom: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 13px; color: #0d1b2a;">${p.codigo || ''}</td>
-          <td style="padding: 4px 8px; border-bottom: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 13px; color: #0d1b2a;">${p.nombre || ''}</td>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 16px; color: #0d1b2a;">${p.nombre || ''}</td>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 16px; color: #0d1b2a; text-align: center;">${p.cantidad ?? 1}</td>
         </tr>
       `;
     }).join('');
@@ -3256,24 +3255,29 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
           <title>Ticket</title>
           <style>
             body { margin: 0; padding: 0; }
-            .ticket-preview { position: relative; width: 380px; margin: 0 auto; }
-            .ticket-header { text-align: center; margin-bottom: 10px; }
-            .ticket-header img { max-width: 120px; }
+            .ticket-preview { position: relative; width: 420px; margin: 0 auto; font-family: 'Courier New', Courier, monospace; }
+            .ticket-header { text-align: center; margin-bottom: 12px; }
+            .ticket-header img { max-width: 180px; }
+            .ticket-contacto { text-align: center; font-weight: bold; font-size: 14px; color: #0d1b2a; margin-bottom: 6px; }
             .ticket-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            .ticket-table th { text-align: left; padding: 4px 8px; border-bottom: 1px solid #000; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 13px; color: #0d1b2a; }
-            .ticket-footer { margin-top: 15px; text-align: center; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 12px; color: #0d1b2a; }
+            .ticket-table th { text-align: left; padding: 6px 10px; border-bottom: 1px solid #000; font-weight: bold; font-size: 15px; color: #0d1b2a; }
+            .ticket-footer { margin-top: 15px; text-align: left; font-weight: bold; font-size: 14px; color: #0d1b2a; line-height: 1.6; }
           </style>
         </head>
         <body>
           <div class="ticket-preview">
             <div class="ticket-header">
-              <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Escolares" style="max-width: 120px;" />
+              <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Escolares" style="max-width: 180px;" />
+            </div>
+            <div class="ticket-contacto">
+              Telf: 0241-858.02.81 / 858.70.50<br>
+              Email: contactanos@escolaresonline.com
             </div>
             <table class="ticket-table">
               <thead>
                 <tr>
-                  <th>Código</th>
-                  <th>Producto</th>
+                  <th>Descripción</th>
+                  <th>Cantidad</th>
                 </tr>
               </thead>
               <tbody>

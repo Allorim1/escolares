@@ -2808,20 +2808,9 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     return;
   }
 
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  const pageWidth = doc.internal.pageSize.getWidth();   // 297 mm
-  const pageHeight = doc.internal.pageSize.getHeight(); // 210 mm
-
-  // 1. APLICAR ROTACIÓN DE 90 GRADOS A LA PÁGINA COMPLETA
-  // Al rotar 90° sobre (0,0), el eje X se desplaza hacia la derecha visual (eje Y original)
-  // y el eje Y apunta hacia la izquierda visual. Trasladamos el origen para corregir el lienzo.
-  doc.setCurrentTransformationMatrix(
-    doc.Matrix(0, 1, -1, 0, pageWidth, 0)
-  );
-
-  // NOTA: Tras la rotación 90°, el ancho útil visual pasa a ser pageHeight (210 mm)
-  // y el alto útil visual pasa a ser pageWidth (297 mm).
-  const visualWidth = pageHeight;
+  // 1. Orientación vertical ('portrait') nativa para evitar inconsistencias visuales
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth(); // 210 mm
 
   let logoBase64 = '';
   try {
@@ -2830,68 +2819,59 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     console.warn('No se pudo cargar el logo:', e);
   }
 
-  const logoWidth = 60;
+  const logoWidth = 55;
   let logoHeight = 0;
   if (logoBase64) {
     const dims = await this.obtenerDimensionesImagen(logoBase64);
     logoHeight = (logoWidth * dims.height) / dims.width;
   }
 
-  const logoY = 15;
-  const offsetY = logoY + (logoHeight || 15) + 8;
+  const logoY = 12;
+  const offsetY = logoY + (logoHeight || 12) + 6;
 
-  // Dibujar Logo
   if (logoBase64) {
-    doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
+    doc.addImage(logoBase64, 'PNG', 14, logoY, logoWidth, logoHeight);
   }
 
-  // Título principal
-  doc.setFontSize(16);
+  doc.setFontSize(15);
   doc.setTextColor(0, 51, 111);
-  doc.text('SOLICITUD DE PENDIENTES', visualWidth / 2, offsetY, { align: 'center' });
+  doc.text('SOLICITUD DE PENDIENTES', pageWidth / 2, offsetY, { align: 'center' });
 
-  // Información de cabecera
-  const infoY = offsetY + 10;
-  doc.setFontSize(9);
+  const infoY = offsetY + 8;
+  doc.setFontSize(8.5);
   doc.setTextColor(100);
-  doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, visualWidth - 18, infoY, { align: 'right' });
-  doc.text(`Total productos: ${filas.length}`, visualWidth - 18, infoY + 5, { align: 'right' });
+  doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 14, infoY, { align: 'right' });
+  doc.text(`Total productos: ${filas.length}`, pageWidth - 14, infoY + 4, { align: 'right' });
 
-  // Configuración de la tabla ajustada al nuevo ancho útil (210 mm)
-  const head = [['Código', 'Producto', 'Cantidad']];
+  const head = [['Código', 'Producto', 'Cant.']];
   const body = filas.map(f => [f.codigo, f.producto, String(f.cantidad)]);
 
+  // Ancho útil disponible = 210 - (14 * 2) = 182 mm
   autoTable(doc, {
-    startY: infoY + 12,
+    startY: infoY + 8,
     head: head,
     body: body,
     theme: 'grid',
-    headStyles: {
-      fillColor: [29, 99, 193],
-      textColor: 255,
-      fontSize: 9,
-      halign: 'center',
-      cellPadding: 2.5
+    headStyles: { 
+      fillColor: [29, 99, 193], 
+      textColor: 255, 
+      fontSize: 8.5, 
+      halign: 'center', 
+      cellPadding: 2 
     },
-    bodyStyles: {
-      fontSize: 8.5,
-      halign: 'center',
-      valign: 'middle'
-    },
-    styles: { cellPadding: 2, overflow: 'linebreak' },
-    margin: { left: 18, right: 18, bottom: 18 },
-    // Ancho total disponible = 210 - 36 = 174 mm
+    bodyStyles: { fontSize: 8, overflow: 'linebreak' },
+    styles: { cellPadding: 2 },
+    margin: { left: 14, right: 14, bottom: 14 },
     columnStyles: {
-      0: { cellWidth: 44, halign: 'center' },
-      1: { cellWidth: 100, halign: 'left' },
-      2: { cellWidth: 30, halign: 'center' }
+      0: { cellWidth: 42, halign: 'center' },
+      1: { cellWidth: 115, halign: 'left' },
+      2: { cellWidth: 25, halign: 'center' }
     }
   });
 
   const fileName = `solicitud_pendientes_${this.getFechaLocal()}.pdf`;
   doc.save(fileName);
 }
-
   async generarReporteProductosPendientesExcel() {
     const abonos = this.abonosFiltrados();
     const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];

@@ -3072,28 +3072,30 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
   doc.text('Telf: 0241-858.02.81 / 858.70.50', margin + 5, currentY + 22);
   doc.text('Email: contactanos@escolaresonline.com', margin + 5, currentY + 26);
 
-  // NOTA DE PEDIDO (Derecha)
-  doc.setFont('times', 'bold');
-  doc.setFontSize(18);
-  doc.text(`NRO FACT: ${abono.nFact}`, pageWidth - margin - 10, currentY + 15, { align: 'right' });
+   // NOTA DE PEDIDO (Derecha)
+   doc.setFont('times', 'bold');
+   doc.setFontSize(18);
+   doc.text(`NRO FACT: ${abono.nFact}`, pageWidth - margin - 10, currentY + 26, { align: 'right' });
 
-  // Línea divisoria cabecera
-  currentY += 32;
-  doc.setLineWidth(0.5);
-  doc.line(margin, currentY, pageWidth - margin, currentY);
+   // Línea divisoria cabecera
+   currentY += 32;
+   doc.setLineWidth(0.5);
+   doc.line(margin, currentY, pageWidth - margin, currentY);
 
-  // --- SECCIÓN EMPRESA ---
-  currentY += 10;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(13);
-  doc.setTextColor(50, 50, 50);
-  doc.text('EMPRESA:', margin + 5, currentY);
+   // --- SECCIÓN EMPRESA ---
+   currentY += 10;
+   doc.setFont('helvetica', 'normal');
+   doc.setFontSize(13);
+   doc.setTextColor(50, 50, 50);
+   doc.text('EMPRESA:', margin + 5, currentY);
+   doc.text('PLANTA:', pageWidth - margin - 10, currentY, { align: 'right' });
 
-  currentY += 12;
-  doc.setFont('times', 'bold');
-  doc.setFontSize(28);
-  doc.setTextColor(0, 0, 0);
-  doc.text((abono.empresa || '').toUpperCase(), margin + 5, currentY);
+   currentY += 12;
+   doc.setFont('times', 'bold');
+   doc.setFontSize(28);
+   doc.setTextColor(0, 0, 0);
+   doc.text((abono.empresa || '').toUpperCase(), margin + 5, currentY);
+   doc.text((abono.planta || '').toUpperCase(), pageWidth - margin - 10, currentY, { align: 'right' });
 
   // --- SECCIÓN CLIENTE Y CEDULA/RIF ---
   currentY += 18;
@@ -3110,7 +3112,7 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
 
   // Cédula / RIF (Alineado a la derecha)
   doc.setFontSize(26);
-  doc.text(`V-${this.editingAbono.cedula}`, pageWidth - margin - 10, currentY, { align: 'right' });
+   doc.text(`V-${abono.cedula}`, pageWidth - margin - 10, currentY, { align: 'right' });
 
   // Línea divisoria para destacar NIÑO / GRADO
   currentY += 10;
@@ -3123,7 +3125,7 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
   doc.text(this.ticketGenero.toUpperCase(), margin + 5, currentY);
 
   doc.setFontSize(42);
-  doc.text(this.ticketCiclo + '  ' + this.ticketNivel, margin + 110, currentY);
+  doc.text(this.ticketCiclo + '  ' + this.ticketNivel, margin + 5, currentY);
 
   doc.save(`Ticket ${abono.nFact}.pdf`);
 

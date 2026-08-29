@@ -142,13 +142,13 @@
       </thead>
       <tbody>
         @for (abono of abonosPaginados(); track abono._id) {
-          <tr style="cursor: pointer;">
+          <tr style="cursor: pointer;" (click)="abrirModal(abono)">
             @for (col of columnasVisibles(); track col.key) {
               <td [class.iva-toggle]="col.key === 'iva'" [class.iva-pagado]="abono.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!abono.ivaPagado && col.key === 'iva'" (click)="onCeldaIvaClick(abono, $event)">{{ getValorAbono(abono, col.key) }}</td>
             }
             <td class="actions">
-              <button type="button" class="btn-edit" (click)="abrirModal(abono)">Editar</button>
-              <button type="button" class="btn-delete" (click)="eliminarAbono(abono._id || '')">Eliminar</button>
+              <button type="button" class="btn-edit" (click)="$event.stopPropagation(); abrirModal(abono)">Editar</button>
+              <button type="button" class="btn-delete" (click)="$event.stopPropagation(); eliminarAbono(abono._id || '')">Eliminar</button>
             </td>
           </tr>
         } @empty {
@@ -597,6 +597,7 @@
           </div>
         </div>
         <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="generarTicketRelacion()">Generar Ticket</button>
           <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
           <button type="submit" class="btn-save" [disabled]="saving()" enterFocusNext>
             @if (saving()) {

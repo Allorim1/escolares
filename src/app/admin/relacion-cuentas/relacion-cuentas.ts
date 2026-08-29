@@ -3010,6 +3010,67 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.cerrarModalPendientes();
   }
 
+  async generarTicketRelacion() {
+    if (!this.editingAbono) return;
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let y = margin;
+
+    const nombre = this.editingAbono.nombre || '';
+    const cedula = this.editingAbono.cedula || '';
+    const planta = this.editingAbono.planta || '';
+    const productos = this.editingAbono.productosPendientes || [];
+
+    doc.setFontSize(16);
+    doc.setTextColor(29, 99, 193);
+    doc.text('TICKET DE RELACIÓN', pageWidth / 2, y, { align: 'center' });
+    y += 10;
+
+    doc.setDrawColor(29, 99, 193);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    doc.setFontSize(11);
+    doc.setTextColor(33, 33, 33);
+    doc.text(`Nombre: ${nombre}`, margin, y);
+    y += 7;
+    doc.text(`Cédula: ${cedula}`, margin, y);
+    y += 7;
+    doc.text(`Planta: ${planta}`, margin, y);
+    y += 10;
+
+    if (productos.length > 0) {
+      doc.setFontSize(12);
+      doc.setTextColor(29, 99, 193);
+      doc.text('Productos Pendientes', margin, y);
+      y += 6;
+
+      doc.setFontSize(10);
+      doc.setTextColor(33, 33, 33);
+      for (const prod of productos) {
+        doc.text(`- ${prod.nombre || 'Sin nombre'} (Cantidad: ${prod.cantidad ?? 1})`, margin + 5, y);
+        y += 6;
+      }
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(120);
+      doc.text('Sin productos pendientes', margin, y);
+      y += 7;
+    }
+
+    const fecha = new Date().toLocaleString('es-VE');
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(`Generado: ${fecha}`, pageWidth - margin, y + 10, { align: 'right' });
+
+    const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
+    const fileName = `ticket_${sanitize(nombre || 'relacion')}_${this.getFechaLocal()}.pdf`;
+    doc.save(fileName);
+  }
+
   abrirModalProductosPendientes(abono?: Abono | null) {
     const inicial = (abono?.productosPendientes || []).map(p => ({
       ...p,

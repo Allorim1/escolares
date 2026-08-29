@@ -179,7 +179,11 @@ export class RelacionCuentas implements OnInit {
         passes = passes && (a.supervisor || '') === f.supervisor;
       }
       if (this.aplicarFiltroSupervisor()) {
-        passes = passes && !!a.supervisor;
+        if (this.soloSupervisor()) {
+          passes = passes && !!a.supervisor;
+        } else {
+          passes = passes && !a.supervisor;
+        }
       }
       if (this.aplicarFiltroIva()) {
         passes = passes && a.ivaPagado === this.soloIvaPagado();
@@ -3027,7 +3031,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
-    format: 'a4'
+    format: 'a5'
   });
 
   const pageWidth = doc.internal.pageSize.getWidth();  // 297 mm
@@ -3106,7 +3110,7 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
 
   // Cédula / RIF (Alineado a la derecha)
   doc.setFontSize(26);
-  doc.text(this.editingAbono.cedula, pageWidth - margin - 10, currentY, { align: 'right' });
+  doc.text(`V-${this.editingAbono.cedula}`, pageWidth - margin - 10, currentY, { align: 'right' });
 
   // Línea divisoria para destacar NIÑO / GRADO
   currentY += 10;

@@ -299,6 +299,10 @@ export class RelacionCuentas implements OnInit {
   reporteProductosPendientesExcel = signal(false);
   reporteSolicitudPendientesExcel = signal(false);
   showModalSender = signal(false);
+  showModalTicket = signal(false);
+  ticketGenero = '';
+  ticketCiclo = '';
+  ticketNivel = '';
 
   columnasVisibles = computed(() => {
     if (this.esRoot()) {
@@ -3022,6 +3026,9 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const cedula = this.editingAbono.cedula || '';
     const planta = this.editingAbono.planta || '';
     const productos = this.editingAbono.productosPendientes || [];
+    const genero = this.ticketGenero;
+    const ciclo = this.ticketCiclo;
+    const nivel = this.ticketNivel;
 
     doc.setFontSize(16);
     doc.setTextColor(29, 99, 193);
@@ -3040,7 +3047,13 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     doc.text(`Cédula: ${cedula}`, margin, y);
     y += 7;
     doc.text(`Planta: ${planta}`, margin, y);
-    y += 10;
+    y += 7;
+    const detalle = [genero, ciclo, nivel].filter(Boolean).join(' ');
+    if (detalle) {
+      doc.text(`${detalle}`, margin, y);
+      y += 7;
+    }
+    y += 3;
 
     if (productos.length > 0) {
       doc.setFontSize(12);
@@ -3061,14 +3074,10 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       y += 7;
     }
 
-   // const fecha = new Date().toLocaleString('es-VE');
-   // doc.setFontSize(9);
-   // doc.setTextColor(120);
-   // doc.text(`Generado: ${fecha}`, pageWidth - margin, y + 10, { align: 'right' });
-
     const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
     const fileName = `ticket_${sanitize(nombre || 'relacion')}_${this.getFechaLocal()}.pdf`;
     doc.save(fileName);
+    this.cerrarModalTicket();
   }
 
   abrirModalProductosPendientes(abono?: Abono | null) {
@@ -3093,6 +3102,17 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       };
     }
     this.productosPendientesAbonoId.set(null);
+  }
+
+  abrirModalTicket() {
+    this.ticketGenero = '';
+    this.ticketCiclo = '';
+    this.ticketNivel = '';
+    this.showModalTicket.set(true);
+  }
+
+  cerrarModalTicket() {
+    this.showModalTicket.set(false);
   }
 
   onBusquedaProductosPendientes(termino: string) {

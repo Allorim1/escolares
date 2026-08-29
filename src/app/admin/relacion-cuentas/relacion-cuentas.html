@@ -597,7 +597,7 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button type="button" class="btn-secondary" (click)="generarTicketRelacion()">Generar Ticket</button>
+          <button type="button" class="btn-secondary" (click)="abrirModalTicket()">Generar Ticket</button>
           <button type="button" class="btn-cancel" (click)="cerrarModal()" enterFocusNext>Cancelar</button>
           <button type="submit" class="btn-save" [disabled]="saving()" enterFocusNext>
             @if (saving()) {
@@ -611,6 +611,51 @@
     </div>
   </div>
 }
+
+  @if (showModalTicket()) {
+    <div class="modal-overlay" (click)="cerrarModalTicket()">
+      <div class="modal modal-small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Generar Ticket</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalTicket()">✕</button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Género:</label>
+            <select [(ngModel)]="ticketGenero">
+              <option value="">Seleccione...</option>
+              <option value="NIÑO">NIÑO</option>
+              <option value="NIÑA">NIÑA</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ciclo:</label>
+            <select [(ngModel)]="ticketCiclo">
+              <option value="">Seleccione...</option>
+              <option value="1ERO">1ERO</option>
+              <option value="2DO">2DO</option>
+              <option value="3ERO">3ERO</option>
+              <option value="4TO">4TO</option>
+              <option value="5TO">5TO</option>
+              <option value="6TO">6TO</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nivel:</label>
+            <select [(ngModel)]="ticketNivel">
+              <option value="">Seleccione...</option>
+              <option value="GRADO">GRADO</option>
+              <option value="AÑO">AÑO</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalTicket()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="generarTicketRelacion()">Generar</button>
+        </div>
+      </div>
+    </div>
+  }
 
   @if (pestanaActiva() === 'comisiones') {
     <div class="comisiones-tab">

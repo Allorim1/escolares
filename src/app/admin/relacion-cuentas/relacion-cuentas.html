@@ -110,8 +110,10 @@
     <!-- Supervisor filter hidden in Relaciones tab -->
       <div class="filtro-group">
         <label>Reporte:</label>
-        <button class="btn-secondary" (click)="abrirModalReportes()">Relaciones</button>
         @if (esRoot()) {
+          <button class="btn-secondary" (click)="abrirModalReportes()">Relaciones</button>
+        }
+        @if (tienePermisosPendientes()) {
           <button class="btn-secondary" (click)="abrirModalPendientes()">Pendientes</button>
         }
       </div>

@@ -1172,6 +1172,14 @@ export class RelacionCuentas implements OnInit {
     return this.authService.user()?.rol === 'root';
   }
 
+  tienePermisosPendientes(): boolean {
+    const user = this.authService.user();
+    if (!user) return false;
+    if (user.rol === 'root') return false;
+    const permisos = this.userPermissions();
+    return permisos.length > 0;
+  }
+
   loadUserPermissions() {
     const user = this.authService.user();
     if (!user) {
@@ -2775,82 +2783,108 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     doc.save(fileName);
   }
 
-  async generarReporteSolicitudPendientesPdf() {
-    const abonos = this.abonosFiltrados();
-    const filas: { codigo: string; producto: string; cantidad: number }[] = [];
-    for (const abono of abonos) {
-      const lista = abono.productosPendientes || [];
-      for (const prod of lista) {
-        filas.push({
-          codigo: prod.codigo || '',
-          producto: prod.nombre || '',
-          cantidad: prod.cantidad ?? 1,
-        });
-      }
+ async generarReporteSolicitudPendientesPdf() {
+  const abonos = this.abonosFiltrados();
+  const filas: { codigo: string; producto: string; cantidad: number }[] = [];
+  for (const abono of abonos) {
+    const lista = abono.productosPendientes || [];
+    for (const prod of lista) {
+      filas.push({
+        codigo: prod.codigo || '',
+        producto: prod.nombre || '',
+        cantidad: prod.cantidad ?? 1,
+      });
     }
-    if (filas.length === 0) {
-      alert('No hay productos pendientes para generar el reporte');
-      return;
-    }
-
-    const doc = new jsPDF({ orientation: 'landscape' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    let logoBase64 = '';
-    try {
-      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-    } catch (e) {
-      console.warn('No se pudo cargar el logo:', e);
-    }
-
-    const logoWidth = 70;
-    let logoHeight = 0;
-    if (logoBase64) {
-      const dims = await this.obtenerDimensionesImagen(logoBase64);
-      logoHeight = (logoWidth * dims.height) / dims.width;
-    }
-
-    const logoY = 15;
-    const offsetY = logoY + logoHeight + 8;
-
-    if (logoBase64) {
-      doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
-    }
-
-    doc.setFontSize(16);
-    doc.setTextColor(0, 51, 111);
-    doc.text('SOLICITUD DE PENDIENTES', pageWidth / 2, offsetY, { align: 'center' });
-
-    const infoY = offsetY + 10;
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
-    doc.text(`Total productos: ${filas.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
-
-    const head = [['Código', 'Producto', 'Cantidad']];
-    const body = filas.map(f => [f.codigo, f.producto, String(f.cantidad)]);
-
-    autoTable(doc, {
-      startY: infoY + 14,
-      head: head,
-      body: body,
-      theme: 'grid',
-      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 9, halign: 'center', overflow: 'linebreak', cellPadding: 2 },
-      bodyStyles: { fontSize: 8, overflow: 'linebreak', halign: 'center' },
-      styles: { cellPadding: 2, fontSize: 8, overflow: 'linebreak', halign: 'center' },
-      margin: { left: 18, right: 18, bottom: 18 },
-      tableWidth: 'auto',
-      columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 100 },
-        2: { cellWidth: 30 },
-      },
-    });
-
-    const sanitize = (s: string) => s.replace(/[\\/:*?"<>|]/g, '-');
-    const fileName = `solicitud_pendientes_${this.getFechaLocal()}.pdf`;
-    doc.save(fileName);
   }
+
+  if (filas.length === 0) {
+    alert('No hay productos pendientes para generar el reporte');
+    return;
+  }
+
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();   // 297 mm
+  const pageHeight = doc.internal.pageSize.getHeight(); // 210 mm
+
+  // 1. APLICAR ROTACIÓN DE 90 GRADOS A LA PÁGINA COMPLETA
+  // Al rotar 90° sobre (0,0), el eje X se desplaza hacia la derecha visual (eje Y original)
+  // y el eje Y apunta hacia la izquierda visual. Trasladamos el origen para corregir el lienzo.
+  doc.setCurrentTransformationMatrix(
+    doc.Matrix(0, 1, -1, 0, pageWidth, 0)
+  );
+
+  // NOTA: Tras la rotación 90°, el ancho útil visual pasa a ser pageHeight (210 mm)
+  // y el alto útil visual pasa a ser pageWidth (297 mm).
+  const visualWidth = pageHeight;
+
+  let logoBase64 = '';
+  try {
+    logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+  } catch (e) {
+    console.warn('No se pudo cargar el logo:', e);
+  }
+
+  const logoWidth = 60;
+  let logoHeight = 0;
+  if (logoBase64) {
+    const dims = await this.obtenerDimensionesImagen(logoBase64);
+    logoHeight = (logoWidth * dims.height) / dims.width;
+  }
+
+  const logoY = 15;
+  const offsetY = logoY + (logoHeight || 15) + 8;
+
+  // Dibujar Logo
+  if (logoBase64) {
+    doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
+  }
+
+  // Título principal
+  doc.setFontSize(16);
+  doc.setTextColor(0, 51, 111);
+  doc.text('SOLICITUD DE PENDIENTES', visualWidth / 2, offsetY, { align: 'center' });
+
+  // Información de cabecera
+  const infoY = offsetY + 10;
+  doc.setFontSize(9);
+  doc.setTextColor(100);
+  doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, visualWidth - 18, infoY, { align: 'right' });
+  doc.text(`Total productos: ${filas.length}`, visualWidth - 18, infoY + 5, { align: 'right' });
+
+  // Configuración de la tabla ajustada al nuevo ancho útil (210 mm)
+  const head = [['Código', 'Producto', 'Cantidad']];
+  const body = filas.map(f => [f.codigo, f.producto, String(f.cantidad)]);
+
+  autoTable(doc, {
+    startY: infoY + 12,
+    head: head,
+    body: body,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [29, 99, 193],
+      textColor: 255,
+      fontSize: 9,
+      halign: 'center',
+      cellPadding: 2.5
+    },
+    bodyStyles: {
+      fontSize: 8.5,
+      halign: 'center',
+      valign: 'middle'
+    },
+    styles: { cellPadding: 2, overflow: 'linebreak' },
+    margin: { left: 18, right: 18, bottom: 18 },
+    // Ancho total disponible = 210 - 36 = 174 mm
+    columnStyles: {
+      0: { cellWidth: 44, halign: 'center' },
+      1: { cellWidth: 100, halign: 'left' },
+      2: { cellWidth: 30, halign: 'center' }
+    }
+  });
+
+  const fileName = `solicitud_pendientes_${this.getFechaLocal()}.pdf`;
+  doc.save(fileName);
+}
 
   async generarReporteProductosPendientesExcel() {
     const abonos = this.abonosFiltrados();

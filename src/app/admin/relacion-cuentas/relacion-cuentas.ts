@@ -3125,7 +3125,7 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
   doc.text(this.ticketGenero.toUpperCase(), margin + 5, currentY);
 
   doc.setFontSize(42);
-  doc.text(this.ticketCiclo + '  ' + this.ticketNivel, margin + 5, currentY);
+  doc.text(this.ticketCiclo + '  ' + this.ticketNivel, margin + 110, currentY);
 
   doc.save(`Ticket ${abono.nFact}.pdf`);
 

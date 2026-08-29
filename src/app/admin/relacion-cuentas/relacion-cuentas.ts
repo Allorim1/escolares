@@ -3031,7 +3031,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
-    format: 'a5'
+    format: 'a4'
   });
 
   const pageWidth = doc.internal.pageSize.getWidth();  // 297 mm

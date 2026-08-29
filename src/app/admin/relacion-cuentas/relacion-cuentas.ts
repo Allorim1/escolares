@@ -3243,8 +3243,8 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
     const productos = (abono.productosPendientes || []).map((p: any) => {
       return `
         <tr>
-          <td style="padding: 6px 10px; border-bottom: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 16px; color: #0d1b2a;">${p.nombre || ''}</td>
-          <td style="padding: 6px 10px; border-bottom: 1px solid #ddd; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 16px; color: #0d1b2a; text-align: center;">${p.cantidad ?? 1}</td>
+          <td style="padding: 2px 4px; border-bottom: 1px dashed #999; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 12px; color: #0d1b2a;">${p.nombre || ''}</td>
+          <td style="padding: 2px 4px; border-bottom: 1px dashed #999; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 12px; color: #0d1b2a; text-align: center;">${p.cantidad ?? 1}</td>
         </tr>
       `;
     }).join('');
@@ -3254,25 +3254,32 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
         <head>
           <title>Ticket</title>
           <style>
-            body { margin: 0; padding: 0; }
-            .ticket-preview { position: relative; width: 420px; margin: 0 auto; font-family: 'Courier New', Courier, monospace; }
-            .ticket-header { text-align: center; margin-bottom: 12px; }
-            .ticket-header img { max-width: 180px; }
-            .ticket-contacto { text-align: center; font-weight: bold; font-size: 14px; color: #0d1b2a; margin-bottom: 6px; }
-            .ticket-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            .ticket-table th { text-align: left; padding: 6px 10px; border-bottom: 1px solid #000; font-weight: bold; font-size: 15px; color: #0d1b2a; }
-            .ticket-footer { margin-top: 15px; text-align: left; font-weight: bold; font-size: 14px; color: #0d1b2a; line-height: 1.6; }
+            body { margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+            .ticket-preview { width: 320px; margin: 0 auto; padding: 4px; }
+            .ticket-header { text-align: center; margin-bottom: 4px; }
+            .ticket-header img { max-width: 140px; height: auto; }
+            .ticket-contacto { text-align: center; font-weight: bold; font-size: 11px; color: #0d1b2a; margin-bottom: 2px; }
+            .ticket-datos { text-align: left; font-weight: bold; font-size: 11px; color: #0d1b2a; margin-bottom: 4px; line-height: 1.4; }
+            .ticket-divider { border-top: 1px solid #0d1b2a; margin: 4px 0; }
+            .ticket-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+            .ticket-table th { text-align: left; padding: 2px 4px; border-bottom: 1px solid #0d1b2a; font-weight: bold; font-size: 12px; color: #0d1b2a; }
           </style>
         </head>
         <body>
           <div class="ticket-preview">
             <div class="ticket-header">
-              <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Escolares" style="max-width: 180px;" />
+              <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Escolares" />
             </div>
             <div class="ticket-contacto">
               Telf: 0241-858.02.81 / 858.70.50<br>
               Email: contactanos@escolaresonline.com
             </div>
+            <div class="ticket-datos">
+              NRO FACT: ${abono.nFact}<br>
+              CLIENTE: ${abono.nombre}<br>
+              CEDULA: ${abono.cedula}
+            </div>
+            <div class="ticket-divider"></div>
             <table class="ticket-table">
               <thead>
                 <tr>
@@ -3284,11 +3291,7 @@ const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png'
                 ${productos}
               </tbody>
             </table>
-            <div class="ticket-footer">
-              NRO FACT: ${abono.nFact}<br>
-              CLIENTE: ${abono.nombre}<br>
-              CEDULA: ${abono.cedula}
-            </div>
+            <div class="ticket-divider"></div>
           </div>
           <script>
             window.onload = function() { window.print(); }

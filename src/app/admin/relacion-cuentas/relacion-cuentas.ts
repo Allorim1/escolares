@@ -1172,12 +1172,18 @@ export class RelacionCuentas implements OnInit {
     return this.authService.user()?.rol === 'root';
   }
 
-  tienePermisosPendientes(): boolean {
+  puedeVerRelaciones(): boolean {
     const user = this.authService.user();
     if (!user) return false;
-    if (user.rol === 'root') return false;
-    const permisos = this.userPermissions();
-    return permisos.length > 0;
+    if (user.rol === 'root') return true;
+    return this.userPermissions().includes('reporte_relaciones');
+  }
+
+  puedeVerPendientes(): boolean {
+    const user = this.authService.user();
+    if (!user) return false;
+    if (user.rol === 'root') return true;
+    return this.userPermissions().includes('reporte_pendientes');
   }
 
   loadUserPermissions() {

@@ -3276,7 +3276,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
             .ticket-divider { border-top: 1px solid #0d1b2a; margin: 4px 0; }
              .ticket-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
              .ticket-table th { text-align: left; padding: 2px 4px; border-bottom: 1px solid #0d1b2a; font-weight: bold; font-size: 12px; color: #0d1b2a; }
-             .ticket-gracias { text-align: center; font-weight: bold; font-size: 18px; text-transform: uppercase; color: #0d1b2a; margin-top: 12px; }
+             .ticket-gracias { text-align: center; font-weight: bold; font-size: 18px; text-transform: uppercase; color: #0d1b2a; margin-top: 24px; }
 
           </style>
         </head>

@@ -3116,18 +3116,23 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   currentY += 6;
   doc.setLineWidth(0.4);
   doc.line(margin, currentY, pageWidth - margin, currentY);
+  const clienteBaseY = currentY;
 
   // --- SECCIÓN GÉNERO Y NIVEL ---
-  currentY += 15;
-  doc.setFont('times', 'bold');
-  doc.setFontSize(26);
-  doc.text(this.ticketGenero.toUpperCase(), margin + 3, currentY);
+  const sinGenero = !this.ticketGenero.trim() && !this.ticketCiclo.trim() && !this.ticketNivel.trim();
 
-  doc.setFontSize(22);
-  doc.text(this.ticketCiclo + ' ' + this.ticketNivel, pageWidth - margin - 5, currentY, { align: 'right' });
+  if (!sinGenero) {
+    currentY += 15;
+    doc.setFont('times', 'bold');
+    doc.setFontSize(26);
+    doc.text(this.ticketGenero.toUpperCase(), margin + 3, currentY);
+
+    doc.setFontSize(22);
+    doc.text(this.ticketCiclo + ' ' + this.ticketNivel, pageWidth - margin - 5, currentY, { align: 'right' });
+  }
 
   // Borde externo ajustado al último texto
-  const bottomY = currentY + 6;
+  const bottomY = (sinGenero ? clienteBaseY : currentY) + 6;
   doc.setLineWidth(0.6);
   doc.rect(margin, margin, pageWidth - (margin * 2), bottomY - margin);
 

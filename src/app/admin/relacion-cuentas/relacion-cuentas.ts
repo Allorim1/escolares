@@ -2803,23 +2803,34 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   }
 
  async generarReporteSolicitudPendientesPdf() {
-  const abonos = this.abonosFiltrados();
-  const filas: { codigo: string; producto: string; cantidad: number }[] = [];
-  for (const abono of abonos) {
-    const lista = abono.productosPendientes || [];
-    for (const prod of lista) {
-      filas.push({
-        codigo: prod.codigo || '',
-        producto: prod.nombre || '',
-        cantidad: prod.cantidad ?? 1,
-      });
-    }
-  }
+   const abonos = this.abonosFiltrados();
+   const agrupado = new Map<string, { codigo: string; producto: string; cantidad: number }>();
+   for (const abono of abonos) {
+     const lista = abono.productosPendientes || [];
+     for (const prod of lista) {
+       const nombre = (prod.nombre || '').trim();
+       if (!nombre) continue;
+       const cantidad = prod.cantidad ?? 1;
+       if (agrupado.has(nombre)) {
+         agrupado.get(nombre)!.cantidad += cantidad;
+       } else {
+         agrupado.set(nombre, {
+           codigo: prod.codigo || '',
+           producto: nombre,
+           cantidad,
+         });
+       }
+     }
+   }
 
-  if (filas.length === 0) {
-    alert('No hay productos pendientes para generar el reporte');
-    return;
-  }
+   const filas = Array.from(agrupado.values()).sort((a, b) =>
+     a.producto.localeCompare(b.producto, 'es', { sensitivity: 'base' })
+   );
+
+   if (filas.length === 0) {
+     alert('No hay productos pendientes para generar el reporte');
+     return;
+   }
 
   // 1. Orientación vertical ('portrait') nativa para evitar inconsistencias visuales
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });

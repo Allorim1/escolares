@@ -3093,7 +3093,13 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   doc.text((abono.empresa || '').toUpperCase(), margin + 3, currentY);
   doc.text((abono.planta || '').toUpperCase(), pageWidth - margin - 5, currentY, { align: 'right' });
 
-  // --- SECCIÓN CLIENTE Y CÉDULA/RIF ---
+  // Cédula / RIF (Alineada a la derecha, entre planta y cliente)
+  doc.setFont('times', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`V-${abono.cedula}`, pageWidth - margin - 5, currentY + 5, { align: 'right' });
+
+  // --- SECCIÓN CLIENTE ---
   currentY += 10;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -3105,10 +3111,6 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   doc.setFontSize(16);
   doc.setTextColor(0, 0, 0);
   doc.text(abono.nombre.toUpperCase(), margin + 3, currentY);
-
-  // Cédula / RIF (Alineado a la derecha)
-  doc.setFontSize(15);
-  doc.text(`V-${abono.cedula}`, pageWidth - margin - 5, currentY, { align: 'right' });
 
   // Línea divisoria para destacar NIÑO / GRADO
   currentY += 6;

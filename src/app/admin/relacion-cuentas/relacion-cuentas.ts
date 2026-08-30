@@ -3036,13 +3036,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   });
 
   const pageWidth = doc.internal.pageSize.getWidth();   // 148 mm
-  const pageHeight = doc.internal.pageSize.getHeight(); // 210 mm
 
-  // Borde externo contenedor
   const margin = 8;
-  doc.setLineWidth(0.6);
-  doc.rect(margin, margin, pageWidth - (margin * 2), pageHeight - (margin * 2));
-
   let currentY = margin + 8;
   const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
 
@@ -3128,6 +3123,11 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
   doc.setFontSize(22);
   doc.text(this.ticketCiclo + ' ' + this.ticketNivel, pageWidth - margin - 5, currentY, { align: 'right' });
+
+  // Borde externo ajustado al último texto
+  const bottomY = currentY + 6;
+  doc.setLineWidth(0.6);
+  doc.rect(margin, margin, pageWidth - (margin * 2), bottomY - margin);
 
   doc.save(`Ticket ${abono.nFact}.pdf`);
 

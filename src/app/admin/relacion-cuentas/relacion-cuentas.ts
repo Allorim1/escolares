@@ -3274,8 +3274,10 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
             .ticket-contacto { text-align: center; font-weight: bold; font-size: 13px; color: #0d1b2a; margin-bottom: 12px; }
             .ticket-datos { text-align: left; font-weight: bold; font-size: 11px; color: #0d1b2a; margin-bottom: 4px; line-height: 1.4; }
             .ticket-divider { border-top: 1px solid #0d1b2a; margin: 4px 0; }
-            .ticket-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-            .ticket-table th { text-align: left; padding: 2px 4px; border-bottom: 1px solid #0d1b2a; font-weight: bold; font-size: 12px; color: #0d1b2a; }
+             .ticket-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+             .ticket-table th { text-align: left; padding: 2px 4px; border-bottom: 1px solid #0d1b2a; font-weight: bold; font-size: 12px; color: #0d1b2a; }
+             .ticket-gracias { text-align: center; font-weight: bold; font-size: 18px; text-transform: uppercase; color: #0d1b2a; margin-top: 12px; }
+
           </style>
         </head>
         <body>
@@ -3303,8 +3305,9 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
               <tbody>
                 ${productos}
               </tbody>
-            </table>
-            <div class="ticket-divider"></div>
+             </table>
+             <div class="ticket-divider"></div>
+             <div class="ticket-gracias">¡GRACIAS POR COMPRAR EN ESCOLARES C.A.!</div>
           </div>
           <script>
             window.onload = function() { window.print(); }

@@ -3025,109 +3025,111 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
  async generarTicketRelacion() {
 
-    if (!this.editingAbono) return;
-    const abono = this.editingAbono;
+ if (!this.editingAbono) return;
+  const abono = this.editingAbono;
 
-    const doc = new jsPDF({
-    orientation: 'landscape',
+  // Cambiamos a Portrait y usamos la mitad del largo (Formato A5 Portrait: 148 x 210 mm)
+  const doc = new jsPDF({
+    orientation: 'portrait',
     unit: 'mm',
-    format: 'a4'
+    format: 'a5'
   });
 
-  const pageWidth = doc.internal.pageSize.getWidth();  // 297 mm
+  const pageWidth = doc.internal.pageSize.getWidth();   // 148 mm
   const pageHeight = doc.internal.pageSize.getHeight(); // 210 mm
 
   // Borde externo contenedor
-  const margin = 10;
-  doc.setLineWidth(0.8);
+  const margin = 8;
+  doc.setLineWidth(0.6);
   doc.rect(margin, margin, pageWidth - (margin * 2), pageHeight - (margin * 2));
 
-  let currentY = margin + 12;
-const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+  let currentY = margin + 8;
+  const logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+
   // --- CABECERA ---
-  // Si tienes la imagen del logo en base64:
   if (logoBase64) {
-    doc.addImage(logoBase64, 'PNG', margin + 5, currentY - 5, 65, 20);
+    // Redimensionado para encajar en el ancho reducido
+    doc.addImage(logoBase64, 'PNG', margin + 3, currentY - 3, 50, 15);
   } else {
-    // Texto de reemplazo si no hay logo cargado
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(13, 59, 130);
-    doc.text('Librería y Papelería', margin + 25, currentY - 2);
-    
-    doc.setFontSize(22);
-    doc.text('ESCOLARES C.A.', margin + 8, currentY + 6);
-    
-    doc.setFontSize(9);
-    doc.text('Mayor y Detal', margin + 28, currentY + 11);
-    doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text('R.I.F. J-30488367-6', margin + 24, currentY + 15);
+    doc.setTextColor(13, 59, 130);
+    doc.text('Librería y Papelería', margin + 15, currentY - 2);
+    
+    doc.setFontSize(16);
+    doc.text('ESCOLARES C.A.', margin + 4, currentY + 4);
+    
+    doc.setFontSize(7);
+    doc.text('Mayor y Detal', margin + 18, currentY + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text('R.I.F. J-30488367-6', margin + 15, currentY + 11);
   }
 
   // Teléfonos y Email (Izquierda)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
+  doc.setFontSize(7);
   doc.setTextColor(0, 0, 0);
-  doc.text('Telf: 0241-858.02.81 / 858.70.50', margin + 5, currentY + 22);
-  doc.text('Email: contactanos@escolaresonline.com', margin + 5, currentY + 26);
+  doc.text('Telf: 0241-858.02.81 / 858.70.50', margin + 3, currentY + 17);
+  doc.text('Email: contactanos@escolaresonline.com', margin + 3, currentY + 21);
 
-   // NOTA DE PEDIDO (Derecha)
-   doc.setFont('times', 'bold');
-   doc.setFontSize(18);
-   doc.text(`NRO FACT: ${abono.nFact}`, pageWidth - margin - 10, currentY + 26, { align: 'right' });
-
-   // Línea divisoria cabecera
-   currentY += 32;
-   doc.setLineWidth(0.5);
-   doc.line(margin, currentY, pageWidth - margin, currentY);
-
-   // --- SECCIÓN EMPRESA ---
-   currentY += 10;
-   doc.setFont('helvetica', 'normal');
-   doc.setFontSize(13);
-   doc.setTextColor(50, 50, 50);
-   doc.text('EMPRESA:', margin + 5, currentY);
-   doc.text('PLANTA:', pageWidth - margin - 10, currentY, { align: 'right' });
-
-   currentY += 12;
-   doc.setFont('times', 'bold');
-   doc.setFontSize(28);
-   doc.setTextColor(0, 0, 0);
-   doc.text((abono.empresa || '').toUpperCase(), margin + 5, currentY);
-   doc.text((abono.planta || '').toUpperCase(), pageWidth - margin - 10, currentY, { align: 'right' });
-
-  // --- SECCIÓN CLIENTE Y CEDULA/RIF ---
-  currentY += 18;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(13);
-  doc.setTextColor(50, 50, 50);
-  doc.text('CLIENTE:', margin + 5, currentY);
-
-  currentY += 12;
+  // NOTA DE PEDIDO (Derecha)
   doc.setFont('times', 'bold');
-  doc.setFontSize(28);
-  doc.setTextColor(0, 0, 0);
-  doc.text(abono.nombre.toUpperCase(), margin + 5, currentY);
+  doc.setFontSize(12);
+  doc.text(`NRO FACT: ${abono.nFact}`, pageWidth - margin - 5, currentY + 21, { align: 'right' });
 
-  // Cédula / RIF (Alineado a la derecha)
-  doc.setFontSize(26);
-   doc.text(`V-${abono.cedula}`, pageWidth - margin - 10, currentY, { align: 'right' });
-
-  // Línea divisoria para destacar NIÑO / GRADO
-  currentY += 10;
-  doc.setLineWidth(0.5);
+  // Línea divisoria cabecera
+  currentY += 25;
+  doc.setLineWidth(0.4);
   doc.line(margin, currentY, pageWidth - margin, currentY);
 
-  currentY += 22;
+  // --- SECCIÓN EMPRESA ---
+  currentY += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(50, 50, 50);
+  doc.text('EMPRESA:', margin + 3, currentY);
+  doc.text('PLANTA:', pageWidth - margin - 5, currentY, { align: 'right' });
+
+  currentY += 7;
   doc.setFont('times', 'bold');
-  doc.setFontSize(48);
-  doc.text(this.ticketGenero.toUpperCase(), margin + 5, currentY);
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  doc.text((abono.empresa || '').toUpperCase(), margin + 3, currentY);
+  doc.text((abono.planta || '').toUpperCase(), pageWidth - margin - 5, currentY, { align: 'right' });
 
-  doc.setFontSize(42);
-  doc.text(this.ticketCiclo + '  ' + this.ticketNivel, margin + 110, currentY);
+  // --- SECCIÓN CLIENTE Y CÉDULA/RIF ---
+  currentY += 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(50, 50, 50);
+  doc.text('CLIENTE:', margin + 3, currentY);
 
-   doc.save(`Ticket ${abono.nFact}.pdf`);
+  currentY += 7;
+  doc.setFont('times', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  doc.text(abono.nombre.toUpperCase(), margin + 3, currentY);
+
+  // Cédula / RIF (Alineado a la derecha)
+  doc.setFontSize(15);
+  doc.text(`V-${abono.cedula}`, pageWidth - margin - 5, currentY, { align: 'right' });
+
+  // Línea divisoria para destacar NIÑO / GRADO
+  currentY += 6;
+  doc.setLineWidth(0.4);
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+
+  // --- SECCIÓN GÉNERO Y NIVEL ---
+  currentY += 15;
+  doc.setFont('times', 'bold');
+  doc.setFontSize(26);
+  doc.text(this.ticketGenero.toUpperCase(), margin + 3, currentY);
+
+  doc.setFontSize(22);
+  doc.text(this.ticketCiclo + ' ' + this.ticketNivel, pageWidth - margin - 5, currentY, { align: 'right' });
+
+  doc.save(`Ticket ${abono.nFact}.pdf`);
 
    const imprimir = confirm('¿Desea imprimir el comprobante?');
    if (imprimir) {

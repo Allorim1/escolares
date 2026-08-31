@@ -1223,7 +1223,7 @@
             @if (esRoot()) {
               <label>Grupo</label>
               <div class="grupo-selector-wrapper">
-                <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off" readonly>
+                <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" placeholder="Buscar grupo..." autocomplete="off" readonly>
                 <button type="button" class="btn-lupa" (click)="abrirModalGrupos()">🔍</button>
                 @if (grupoSeleccionado().length > 0) {
                   <button type="button" class="btn-cerrar" (click)="limpiarGrupos()">&times;</button>

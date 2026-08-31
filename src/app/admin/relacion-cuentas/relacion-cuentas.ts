@@ -3303,7 +3303,6 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   onBusquedaGrupo(termino: string) {
     this.busquedaGrupo.set(termino);
     if (!termino.trim()) {
-      this.mostrarListaGrupos.set(false);
       return;
     }
     this.loadGrupos();
@@ -3323,7 +3322,6 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   limpiarGrupos() {
     this.grupoSeleccionado.set([]);
     this.busquedaGrupo.set('');
-    this.mostrarListaGrupos.set(false);
     this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
   }
 

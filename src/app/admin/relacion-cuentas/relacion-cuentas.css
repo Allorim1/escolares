@@ -1463,6 +1463,32 @@
   font-weight: 500;
 }
 
+.grupo-modal-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.grupo-modal-search-wrapper input {
+  width: 100%;
+  padding: 10px 38px 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.grupo-modal-search-wrapper input:focus {
+  outline: none;
+  border-color: #1d63c1;
+  box-shadow: 0 0 0 3px rgba(29, 99, 193, 0.15);
+}
+.grupo-modal-search-icon {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  font-size: 16px;
+  color: #888;
+}
+
 .productos-pendientes-seleccion {
   display: flex;
   flex-direction: column;

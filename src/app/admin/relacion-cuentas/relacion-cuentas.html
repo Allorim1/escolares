@@ -1291,7 +1291,13 @@
         <button type="button" class="btn-cerrar" (click)="cerrarModalGrupos()">&times;</button>
       </div>
       <div class="modal-body">
-        <input type="text" [value]="busquedaGrupoModal()" (input)="onBusquedaGrupoModal($event.target.value)" placeholder="Buscar grupo por código o nombre..." autocomplete="off">
+        <div class="form-group">
+          <label>Buscar grupo</label>
+          <div class="grupo-modal-search-wrapper">
+            <input type="text" [value]="busquedaGrupoModal()" (input)="onBusquedaGrupoModal($event.target.value)" placeholder="Código o nombre..." autocomplete="off">
+            <span class="grupo-modal-search-icon">🔍</span>
+          </div>
+        </div>
         <div class="grupos-lista-wrapper">
           <table class="abonos-table">
             <thead>

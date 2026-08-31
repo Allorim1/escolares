@@ -107,6 +107,12 @@
         <span class="switch-thumb"></span>
       </span>
     </div>
+    <div class="filtro-group" style="display:flex;flex-direction:column;gap:6px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;color:#333;font-size:14px;">
+        <input type="checkbox" [ngModel]="soloConProductosPendientes()" (ngModelChange)="soloConProductosPendientes.set($event)" style="width:16px;height:16px;cursor:pointer;">
+        Solo con productos pendientes
+      </label>
+    </div>
     <!-- Supervisor filter hidden in Relaciones tab -->
       <div class="filtro-group">
         <label>Reporte:</label>
@@ -941,47 +947,65 @@
     </div>
   }
 
-  @if (showModalPendientes()) {
-    <div class="modal-overlay" (click)="cerrarModalPendientes()">
-      <div class="modal modal-wide" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h2>Generar Reporte - Pendientes</h2>
-          <button type="button" class="btn-cerrar" (click)="cerrarModalPendientes()">✕</button>
-        </div>
-        <div class="reportes-layout">
-          <div class="reportes-col">
-            <div class="reportes-columns-row">
-              <div class="reportes-columns-right">
-                <h4>Generar reportes</h4>
-                <div class="reportes-actions">
-                  <label class="reportes-checkbox">
-                    <input type="checkbox" [(ngModel)]="reporteProductosPendientesPdf">
-                    Productos Pendientes PDF
-                  </label>
-                  <label class="reportes-checkbox">
-                    <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesPdf">
-                    Solicitud de Pendientes PDF
-                  </label>
-                  <label class="reportes-checkbox">
-                    <input type="checkbox" [(ngModel)]="reporteProductosPendientesExcel">
-                    Productos Pendientes Excel
-                  </label>
-                  <label class="reportes-checkbox">
-                    <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesExcel">
-                    Solicitud de Pendientes Excel
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="cerrarModalPendientes()">Cancelar</button>
-          <button type="button" class="btn-save" (click)="generarReportesPendientesSeleccionados()">Generar</button>
-        </div>
-      </div>
-    </div>
-  }
+   @if (showModalPendientes()) {
+     <div class="modal-overlay" (click)="cerrarModalPendientes()">
+       <div class="modal modal-small" (click)="$event.stopPropagation()">
+         <div class="modal-header">
+           <h2>Generar Reporte - Pendientes</h2>
+           <button type="button" class="btn-cerrar" (click)="cerrarModalPendientes()">✕</button>
+         </div>
+         <div class="modal-body">
+           <label>Grupo</label>
+           <div class="grupo-selector-wrapper">
+             <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off" readonly>
+             <button type="button" class="btn-lupa" (click)="abrirModalGrupos()">🔍</button>
+             @if (grupoSeleccionado().length > 0) {
+               <button type="button" class="btn-cerrar" (click)="grupoSeleccionado.set([]); busquedaGrupo.set('')">&times;</button>
+             }
+           </div>
+           @if (grupoSeleccionado().length > 0) {
+             <div class="grupos-chips">
+               @for (cod of grupoSeleccionado(); track cod) {
+                 @let nombre = grupos().find(g => g.codigo === cod)?.nombre || cod;
+                 <span class="grupo-chip">{{ nombre }} <button type="button" class="chip-remove" (click)="toggleGrupo({ codigo: cod, nombre })">&times;</button></span>
+               }
+             </div>
+           }
+           <div class="reportes-layout">
+             <div class="reportes-col">
+               <div class="reportes-columns-row">
+                 <div class="reportes-columns-right">
+                   <h4>Generar reportes</h4>
+                   <div class="reportes-actions">
+                     <label class="reportes-checkbox">
+                       <input type="checkbox" [(ngModel)]="reporteProductosPendientesPdf">
+                       Productos Pendientes PDF
+                     </label>
+                     <label class="reportes-checkbox">
+                       <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesPdf">
+                       Solicitud de Pendientes PDF
+                     </label>
+                     <label class="reportes-checkbox">
+                       <input type="checkbox" [(ngModel)]="reporteProductosPendientesExcel">
+                       Productos Pendientes Excel
+                     </label>
+                     <label class="reportes-checkbox">
+                       <input type="checkbox" [(ngModel)]="reporteSolicitudPendientesExcel">
+                       Solicitud de Pendientes Excel
+                     </label>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+         <div class="modal-actions">
+           <button type="button" class="btn-cancel" (click)="cerrarModalPendientes()">Cancelar</button>
+           <button type="button" class="btn-save" (click)="generarReportesPendientesSeleccionados()">Generar</button>
+         </div>
+       </div>
+     </div>
+   }
 
   @if (showModalSender()) {
     <div class="modal-overlay">
@@ -1194,22 +1218,6 @@
       <div class="modal-body">
         <div class="productos-pendientes-layout-vertical">
           <div class="productos-pendientes-busqueda">
-            <label>Grupo</label>
-            <div class="grupo-selector-wrapper">
-              <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off" readonly>
-              <button type="button" class="btn-lupa" (click)="abrirModalGrupos()">🔍</button>
-              @if (grupoSeleccionado().length > 0) {
-                <button type="button" class="btn-cerrar" (click)="limpiarGrupos()">&times;</button>
-              }
-            </div>
-            @if (grupoSeleccionado().length > 0) {
-              <div class="grupos-chips">
-                @for (cod of grupoSeleccionado(); track cod) {
-                  @let nombre = grupos().find(g => g.codigo === cod)?.nombre || cod;
-                  <span class="grupo-chip">{{ nombre }} <button type="button" class="chip-remove" (click)="toggleGrupo({ codigo: cod, nombre })">&times;</button></span>
-                }
-              </div>
-            }
             <label>Buscar producto</label>
             <input type="text" [value]="productosPendientesBusqueda()" (input)="onBusquedaProductosPendientes($event.target.value)" (click)="seleccionarTextoBusqueda($event)" (focus)="seleccionarTextoBusqueda($event)" placeholder="Código o nombre..." autocomplete="off">
             @if (cargandoProductosPendientes()) {
@@ -1288,55 +1296,5 @@
       </div>
     </div>
   </div>
-  </div>
-}
-
-@if (showModalGrupos()) {
-  <div class="modal-overlay">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Seleccionar Grupo</h2>
-        <button type="button" class="btn-cerrar" (click)="cerrarModalGrupos()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Buscar grupo</label>
-          <div class="grupo-modal-search-wrapper">
-            <input type="text" [value]="busquedaGrupoModal()" (input)="onBusquedaGrupoModal($event.target.value)" placeholder="Código o nombre..." autocomplete="off">
-            <span class="grupo-modal-search-icon">🔍</span>
-          </div>
-        </div>
-        <div class="grupos-lista-wrapper">
-          <table class="abonos-table">
-            <thead>
-              <tr>
-                <th style="width: 40px;"></th>
-                <th><strong style="color: black;">Código</strong></th>
-                <th><strong style="color: black;">Nombre</strong></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (grupo of gruposFiltradosModal(); track grupo.codigo) {
-                <tr>
-                  <td>
-                    <input type="checkbox" [checked]="grupoSeleccionado().includes(grupo.codigo)" (change)="toggleGrupoModal(grupo)">
-                  </td>
-                  <td>{{ grupo.codigo }}</td>
-                  <td>{{ grupo.nombre }}</td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="3" class="empty">No se encontraron grupos</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" (click)="cerrarModalGrupos()">Cancelar</button>
-        <button type="button" class="btn-primary" (click)="aplicarFiltroGrupos()">Aplicar filtro</button>
-      </div>
-    </div>
   </div>
 }

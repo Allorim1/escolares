@@ -197,7 +197,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   });
 
   totales = computed(() => {
-    const datos = this.abonosFiltrados();
+    const datos = this.abonosFiltradosConPendientes();
     const montoFactura = datos.reduce((sum, a) => sum + (a.montoFactura ?? 0), 0);
     const abonos = datos.reduce((sum, a) => sum + (a.abonos ?? 0), 0);
     const iva = datos.reduce((sum, a) => sum + (a.iva ?? 0), 0);
@@ -270,6 +270,14 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   imagenUploading = signal(false);
   empresasCargadas = signal(false);
   userPermissions = signal<string[]>([]);
+
+  soloConProductosPendientes = signal(false);
+
+  abonosFiltradosConPendientes = computed(() => {
+    const lista = this.abonosFiltrados();
+    if (!this.soloConProductosPendientes()) return lista;
+    return lista.filter(a => (a.productosPendientes || []).some(p => p.pendienteStatus === 'pendiente'));
+  });
 
   showModal = signal(false);
   editingAbono: Abono | null = null;
@@ -365,12 +373,11 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   grupoSeleccionado = signal<string[]>([]);
   cargandoGrupos = signal(false);
   busquedaGrupo = signal('');
-  mostrarListaGrupos = signal(false);
   showModalGrupos = signal(false);
   busquedaGrupoModal = signal('');
 
   comisiones = computed(() => {
-    const abonos = this.abonosFiltrados();
+    const abonos = this.abonosFiltradosConPendientes();
     const porcentajeManual = this.comisionNoAsignadaManual();
 
     const porSupervisor = new Map<
@@ -562,15 +569,15 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
 
-  abonosPaginados = computed(() => {
-    const lista = this.abonosFiltrados();
-    const inicio = (this.paginaActual() - 1) * this.TAM_PAGINA;
-    return lista.slice(inicio, inicio + this.TAM_PAGINA);
-  });
+   abonosPaginados = computed(() => {
+     const lista = this.abonosFiltradosConPendientes();
+     const inicio = (this.paginaActual() - 1) * this.TAM_PAGINA;
+     return lista.slice(inicio, inicio + this.TAM_PAGINA);
+   });
 
-  totalPaginas = computed(() => {
-    return Math.max(1, Math.ceil(this.abonosFiltrados().length / this.TAM_PAGINA));
-  });
+   totalPaginas = computed(() => {
+     return Math.max(1, Math.ceil(this.abonosFiltradosConPendientes().length / this.TAM_PAGINA));
+   });
 
   numerosPaginas = computed(() => {
     const total = this.totalPaginas();
@@ -1036,8 +1043,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     return this.columnasSeleccionadasPdf().has(key);
   }
 
-  exportarSenderExcel() {
-      const datos = this.abonosFiltrados();
+   exportarSenderExcel() {
+       const datos = this.abonosFiltradosConPendientes();
       if (datos.length === 0) {
         alert('No hay datos para exportar');
         return;
@@ -1126,7 +1133,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   }
 
   exportarSenderCsv() {
-    const datos = this.abonosFiltrados();
+    const datos = this.abonosFiltradosConPendientes();
     if (datos.length === 0) {
       alert('No hay datos para exportar');
       return;
@@ -1169,7 +1176,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   }
 
   exportarVCard() {
-    const datos = this.abonosFiltrados();
+    const datos = this.abonosFiltradosConPendientes();
     if (datos.length === 0) {
       alert('No hay datos para exportar');
       return;
@@ -2037,7 +2044,7 @@ if (!url) return '';
   }
 
   async generarReportePdf() {
-    const datos = this.abonosFiltrados();
+    const datos = this.abonosFiltradosConPendientes();
     if (datos.length === 0) {
       alert('No hay datos para generar el reporte');
       return;
@@ -2428,7 +2435,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   }
 
   async generarReporteExcel() {
-    const datos = this.abonosFiltrados();
+    const datos = this.abonosFiltradosConPendientes();
     if (datos.length === 0) {
       alert('No hay datos para generar el reporte');
       return;
@@ -2685,7 +2692,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   }
 
   abrirModalSupervisoresRelaciones() {
-    const abonos = this.abonosFiltrados().filter(a => a.supervisor && a.supervisorId);
+    const abonos = this.abonosFiltradosConPendientes().filter(a => a.supervisor && a.supervisorId);
     const porSupervisor = new Map<string, any[]>();
     for (const abono of abonos) {
       const supervisorId = abono.supervisorId || '';
@@ -2765,11 +2772,13 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   }
 
   async generarReporteProductosPendientesPdf() {
-    const abonos = this.abonosFiltrados();
+    const abonos = this.abonosFiltradosConPendientes();
+    const gruposSeleccionados = this.grupoSeleccionado();
     const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
+        if (gruposSeleccionados.length && !gruposSeleccionados.includes(prod.codgrupo1 || '')) continue;
         filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -2852,13 +2861,15 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   }
 
  async generarReporteSolicitudPendientesPdf() {
-   const abonos = this.abonosFiltrados();
+    const abonos = this.abonosFiltradosConPendientes();
+    const gruposSeleccionados = this.grupoSeleccionado();
    const agrupado = new Map<string, { codigo: string; producto: string; cantidad: number }>();
    for (const abono of abonos) {
      const lista = abono.productosPendientes || [];
      for (const prod of lista) {
        const nombre = (prod.nombre || '').trim();
        if (!nombre) continue;
+       if (gruposSeleccionados.length && !gruposSeleccionados.includes(prod.codgrupo1 || '')) continue;
        const cantidad = prod.cantidad ?? 1;
        if (agrupado.has(nombre)) {
          agrupado.get(nombre)!.cantidad += cantidad;
@@ -2946,11 +2957,13 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   doc.save(fileName);
 }
   async generarReporteProductosPendientesExcel() {
-    const abonos = this.abonosFiltrados();
+    const abonos = this.abonosFiltradosConPendientes();
+    const gruposSeleccionados = this.grupoSeleccionado();
     const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
+        if (gruposSeleccionados.length && !gruposSeleccionados.includes(prod.codgrupo1 || '')) continue;
         filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -3004,11 +3017,13 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   }
 
   async generarReporteSolicitudPendientesExcel() {
-    const abonos = this.abonosFiltrados();
+    const abonos = this.abonosFiltradosConPendientes();
+    const gruposSeleccionados = this.grupoSeleccionado();
     const filas: { codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
+        if (gruposSeleccionados.length && !gruposSeleccionados.includes(prod.codgrupo1 || '')) continue;
         filas.push({
           codigo: prod.codigo || '',
           producto: prod.nombre || '',
@@ -3204,24 +3219,18 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
    }
  }
 
-   abrirModalProductosPendientes(abono?: Abono | null) {
-    const inicial = (abono?.productosPendientes || []).map(p => ({
-      ...p,
-      pendienteStatus: p.pendienteStatus || 'pendiente',
-      cantidad: p.cantidad ?? 1,
-    }));
-    this.productosPendientesSeleccionados.set(inicial);
-    this.productosPendientesBusqueda.set('');
-    this.productosPendientesLista.set([]);
-    this.productosPendientesAbonoId.set(abono?._id || null);
-    this.grupoSeleccionado.set([]);
-    this.busquedaGrupo.set('');
-    this.mostrarListaGrupos.set(false);
-    this.showModalGrupos.set(false);
-    this.busquedaGrupoModal.set('');
-    this.showModalProductosPendientes.set(true);
-    this.loadGrupos();
-  }
+    abrirModalProductosPendientes(abono?: Abono | null) {
+     const inicial = (abono?.productosPendientes || []).map(p => ({
+       ...p,
+       pendienteStatus: p.pendienteStatus || 'pendiente',
+       cantidad: p.cantidad ?? 1,
+     }));
+     this.productosPendientesSeleccionados.set(inicial);
+     this.productosPendientesBusqueda.set('');
+     this.productosPendientesLista.set([]);
+     this.productosPendientesAbonoId.set(abono?._id || null);
+     this.showModalProductosPendientes.set(true);
+   }
 
   cerrarModalProductosPendientes() {
     this.showModalProductosPendientes.set(false);
@@ -3248,17 +3257,14 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   onBusquedaProductosPendientes(termino: string) {
     this.productosPendientesBusqueda.set(termino);
     if (this._productosPendientesTimer) clearTimeout(this._productosPendientesTimer);
-    if (!termino.trim() && this.grupoSeleccionado().length === 0) {
+    if (!termino.trim()) {
       this.productosPendientesLista.set([]);
       this.cargandoProductosPendientes.set(false);
       return;
     }
     this._productosPendientesTimer = setTimeout(() => {
       this.cargandoProductosPendientes.set(true);
-      const params = new URLSearchParams();
-      if (termino.trim()) params.set('q', termino.trim());
-      this.grupoSeleccionado().forEach(cod => params.append('codgrupo1', cod));
-      const url = `/api/inv-productos?${params.toString()}`;
+      const url = `/api/inv-productos?q=${encodeURIComponent(termino.trim())}`;
       this.http.get<InvProducto[]>(url).subscribe({
         next: (data) => {
           const filtrados = (data || []).filter(p => p.borrado !== 1);
@@ -3287,15 +3293,6 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
   }
 
-  onBusquedaGrupo(termino: string) {
-    this.busquedaGrupo.set(termino);
-    if (!termino.trim()) {
-      this.mostrarListaGrupos.set(false);
-      return;
-    }
-    this.loadGrupos();
-  }
-
   toggleGrupo(grupo: { codigo: string; nombre: string }) {
     const actual = this.grupoSeleccionado();
     const idx = actual.indexOf(grupo.codigo);
@@ -3305,14 +3302,6 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       actual.push(grupo.codigo);
     }
     this.grupoSeleccionado.set([...actual]);
-    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
-  }
-
-  limpiarGrupos() {
-    this.grupoSeleccionado.set([]);
-    this.busquedaGrupo.set('');
-    this.mostrarListaGrupos.set(false);
-    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
   }
 
   abrirModalGrupos() {
@@ -3339,28 +3328,6 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       g.nombre.toLowerCase().includes(termino)
     );
   });
-
-  toggleGrupoModal(grupo: { codigo: string; nombre: string }) {
-    const actual = this.grupoSeleccionado();
-    const idx = actual.indexOf(grupo.codigo);
-    if (idx >= 0) {
-      actual.splice(idx, 1);
-    } else {
-      actual.push(grupo.codigo);
-    }
-    this.grupoSeleccionado.set([...actual]);
-  }
-
-  aplicarFiltroGrupos() {
-    const seleccionados = this.grupoSeleccionado();
-    const nombres = seleccionados
-      .map(cod => this.grupos().find(g => g.codigo === cod)?.nombre)
-      .filter((n): n is string => !!n);
-    this.busquedaGrupo.set(nombres.join(', '));
-    this.mostrarListaGrupos.set(false);
-    this.cerrarModalGrupos();
-    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
-  }
 
   seleccionarTextoBusqueda(event: Event) {
     const input = event.target as HTMLInputElement;

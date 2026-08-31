@@ -64,6 +64,8 @@ interface InvProducto {
   precio?: number;
   iva?: number;
   stock?: number;
+  codgrupo1?: string;
+  borrado?: number;
 }
 
 interface ProductoPendiente extends InvProducto {
@@ -649,7 +651,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.loadTasaActual();
     this.cargarSupervisores();
     this.loadUserPermissions();
-    this.modalEscSub = this.modalEscService.escPressed.subscribe(() => this.cerrarModalPorPrioridad());
+    this.modalEscSub = this.modalEscService.escPressed$.subscribe(() => this.cerrarModalPorPrioridad());
   }
 
   ngOnDestroy() {

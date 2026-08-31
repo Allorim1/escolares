@@ -1198,10 +1198,18 @@
             <div class="grupo-selector-wrapper">
               <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off" readonly>
               <button type="button" class="btn-lupa" (click)="abrirModalGrupos()">🔍</button>
-              @if (grupoSeleccionado()) {
-                <button type="button" class="btn-cerrar" (click)="limpiarGrupo()">&times;</button>
+              @if (grupoSeleccionado().length > 0) {
+                <button type="button" class="btn-cerrar" (click)="limpiarGrupos()">&times;</button>
               }
             </div>
+            @if (grupoSeleccionado().length > 0) {
+              <div class="grupos-chips">
+                @for (cod of grupoSeleccionado(); track cod) {
+                  @let nombre = grupos().find(g => g.codigo === cod)?.nombre || cod;
+                  <span class="grupo-chip">{{ nombre }} <button type="button" class="chip-remove" (click)="toggleGrupo({ codigo: cod, nombre })">&times;</button></span>
+                }
+              </div>
+            }
             <label>Buscar producto</label>
             <input type="text" [value]="productosPendientesBusqueda()" (input)="onBusquedaProductosPendientes($event.target.value)" (click)="seleccionarTextoBusqueda($event)" (focus)="seleccionarTextoBusqueda($event)" placeholder="Código o nombre..." autocomplete="off">
             @if (cargandoProductosPendientes()) {
@@ -1302,19 +1310,19 @@
           <table class="abonos-table">
             <thead>
               <tr>
+                <th style="width: 40px;"></th>
                 <th><strong style="color: black;">Código</strong></th>
                 <th><strong style="color: black;">Nombre</strong></th>
-                <th></th>
               </tr>
             </thead>
             <tbody>
               @for (grupo of gruposFiltradosModal(); track grupo.codigo) {
                 <tr>
+                  <td>
+                    <input type="checkbox" [checked]="grupoSeleccionado().includes(grupo.codigo)" (change)="toggleGrupoModal(grupo)">
+                  </td>
                   <td>{{ grupo.codigo }}</td>
                   <td>{{ grupo.nombre }}</td>
-                  <td>
-                    <button type="button" class="btn-add-abono" (click)="seleccionarGrupoModal(grupo)">Seleccionar</button>
-                  </td>
                 </tr>
               } @empty {
                 <tr>
@@ -1326,7 +1334,8 @@
         </div>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn-cancel" (click)="cerrarModalGrupos()">Cerrar</button>
+        <button type="button" class="btn-cancel" (click)="cerrarModalGrupos()">Cancelar</button>
+        <button type="button" class="btn-primary" (click)="aplicarFiltroGrupos()">Aplicar filtro</button>
       </div>
     </div>
   </div>

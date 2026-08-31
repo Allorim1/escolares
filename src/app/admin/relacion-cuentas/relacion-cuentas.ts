@@ -3061,12 +3061,14 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
       this.cargarMapaNombreACodgrupo1();
     }
-    const filas: { codigo: string; producto: string; cantidad: number }[] = [];
+    const agrupado = new Map<string, { codigo: string; producto: string; cantidad: number }>();
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
+        const nombre = (prod.nombre || '').trim();
+        if (!nombre) continue;
         if (gruposSeleccionados.length) {
-          const prodGrupo = this.obtenerCodgrupo1PorNombre(prod.nombre || '');
+          const prodGrupo = this.obtenerCodgrupo1PorNombre(nombre);
           if (!prodGrupo) continue;
           const coincide = gruposSeleccionados.some(g => {
             const grupo = String(g).trim();
@@ -3074,13 +3076,23 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           });
           if (!coincide) continue;
         }
-        filas.push({
-          codigo: prod.codigo || '',
-          producto: prod.nombre || '',
-          cantidad: prod.cantidad ?? 1,
-        });
+        const cantidad = prod.cantidad ?? 1;
+        const key = nombre.toLowerCase();
+        if (agrupado.has(key)) {
+          agrupado.get(key)!.cantidad += cantidad;
+        } else {
+          agrupado.set(key, {
+            codigo: prod.codigo || '',
+            producto: nombre,
+            cantidad,
+          });
+        }
       }
     }
+
+    const filas = Array.from(agrupado.values()).sort((a, b) =>
+      a.producto.localeCompare(b.producto, 'es', { sensitivity: 'base' })
+    );
     if (filas.length === 0) {
       alert('No hay productos pendientes para generar el reporte');
       return;

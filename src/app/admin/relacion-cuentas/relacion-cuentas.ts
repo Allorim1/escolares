@@ -376,6 +376,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   showModalGrupos = signal(false);
   busquedaGrupoModal = signal('');
   gruposSeleccionadosModal = signal<string[]>([]);
+  private _nombreACodgrupo1 = new Map<string, string>();
+  private _cargandoMapaProductos = signal(false);
 
   comisiones = computed(() => {
     const abonos = this.abonosFiltradosConPendientes();
@@ -2778,11 +2780,22 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
    async generarReporteProductosPendientesPdf() {
      const abonos = this.abonosFiltradosConPendientes();
      const gruposSeleccionados = this.grupoSeleccionado();
+     if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
+       this.cargarMapaNombreACodgrupo1();
+     }
      const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
      for (const abono of abonos) {
        const lista = abono.productosPendientes || [];
        for (const prod of lista) {
-         if (gruposSeleccionados.length && !gruposSeleccionados.some(g => String(g) === String(prod.codgrupo1 ?? ''))) continue;
+         if (gruposSeleccionados.length) {
+           const prodGrupo = this.obtenerCodgrupo1PorNombre(prod.nombre || '');
+           if (!prodGrupo) continue;
+           const coincide = gruposSeleccionados.some(g => {
+             const grupo = String(g).trim();
+             return grupo === prodGrupo || grupo === prodGrupo.replace(/^0+/, '') || prodGrupo === grupo.replace(/^0+/, '');
+           });
+           if (!coincide) continue;
+         }
          filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -2867,13 +2880,24 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   async generarReporteSolicitudPendientesPdf() {
     const abonos = this.abonosFiltradosConPendientes();
     const gruposSeleccionados = this.grupoSeleccionado();
+    if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
+      this.cargarMapaNombreACodgrupo1();
+    }
    const agrupado = new Map<string, { codigo: string; producto: string; cantidad: number }>();
    for (const abono of abonos) {
      const lista = abono.productosPendientes || [];
      for (const prod of lista) {
        const nombre = (prod.nombre || '').trim();
        if (!nombre) continue;
-       if (gruposSeleccionados.length && !gruposSeleccionados.some(g => String(g) === String(prod.codgrupo1 ?? ''))) continue;
+       if (gruposSeleccionados.length) {
+         const prodGrupo = this.obtenerCodgrupo1PorNombre(nombre);
+         if (!prodGrupo) continue;
+         const coincide = gruposSeleccionados.some(g => {
+           const grupo = String(g).trim();
+           return grupo === prodGrupo || grupo === prodGrupo.replace(/^0+/, '') || prodGrupo === grupo.replace(/^0+/, '');
+         });
+         if (!coincide) continue;
+       }
        const cantidad = prod.cantidad ?? 1;
        if (agrupado.has(nombre)) {
          agrupado.get(nombre)!.cantidad += cantidad;
@@ -2960,14 +2984,25 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   const fileName = `solicitud_pendientes_${this.getFechaLocal()}.pdf`;
   doc.save(fileName);
 }
-   async generarReporteProductosPendientesExcel() {
+     async generarReporteProductosPendientesExcel() {
     const abonos = this.abonosFiltradosConPendientes();
     const gruposSeleccionados = this.grupoSeleccionado();
+    if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
+      this.cargarMapaNombreACodgrupo1();
+    }
     const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
-        if (gruposSeleccionados.length && !gruposSeleccionados.some(g => String(g) === String(prod.codgrupo1 ?? ''))) continue;
+        if (gruposSeleccionados.length) {
+          const prodGrupo = this.obtenerCodgrupo1PorNombre(prod.nombre || '');
+          if (!prodGrupo) continue;
+          const coincide = gruposSeleccionados.some(g => {
+            const grupo = String(g).trim();
+            return grupo === prodGrupo || grupo === prodGrupo.replace(/^0+/, '') || prodGrupo === grupo.replace(/^0+/, '');
+          });
+          if (!coincide) continue;
+        }
         filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -3023,11 +3058,22 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   async generarReporteSolicitudPendientesExcel() {
     const abonos = this.abonosFiltradosConPendientes();
     const gruposSeleccionados = this.grupoSeleccionado();
+    if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
+      this.cargarMapaNombreACodgrupo1();
+    }
     const filas: { codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
-        if (gruposSeleccionados.length && !gruposSeleccionados.some(g => String(g) === String(prod.codgrupo1 ?? ''))) continue;
+        if (gruposSeleccionados.length) {
+          const prodGrupo = this.obtenerCodgrupo1PorNombre(prod.nombre || '');
+          if (!prodGrupo) continue;
+          const coincide = gruposSeleccionados.some(g => {
+            const grupo = String(g).trim();
+            return grupo === prodGrupo || grupo === prodGrupo.replace(/^0+/, '') || prodGrupo === grupo.replace(/^0+/, '');
+          });
+          if (!coincide) continue;
+        }
         filas.push({
           codigo: prod.codigo || '',
           producto: prod.nombre || '',
@@ -3298,6 +3344,37 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         this.cargandoGrupos.set(false);
       },
     });
+  }
+
+  cargarMapaNombreACodgrupo1() {
+    if (this._nombreACodgrupo1.size > 0 || this._cargandoMapaProductos()) return;
+    this._cargandoMapaProductos.set(true);
+    this.http.get<InvProducto[]>('/api/inv-productos?all=true').subscribe({
+      next: (data) => {
+        const mapa = new Map<string, string>();
+        (data || []).forEach(p => {
+          const nombre = (p.nombre || '').trim();
+          const codgrupo1 = (p.codgrupo1 || '').trim();
+          if (nombre && codgrupo1) {
+            mapa.set(nombre, codgrupo1);
+          }
+        });
+        this._nombreACodgrupo1 = mapa;
+        this._cargandoMapaProductos.set(false);
+      },
+      error: () => {
+        this._cargandoMapaProductos.set(false);
+      },
+    });
+  }
+
+  obtenerCodgrupo1PorNombre(nombre: string): string {
+    const n = (nombre || '').trim();
+    if (!n) return '';
+    if (this._nombreACodgrupo1.has(n)) return this._nombreACodgrupo1.get(n) || '';
+    const match = n.match(/^([A-Za-z0-9]+)/i);
+    if (match && this._nombreACodgrupo1.has(match[1])) return this._nombreACodgrupo1.get(match[1]) || '';
+    return '';
   }
 
   onBusquedaGrupo(termino: string) {

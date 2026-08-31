@@ -955,14 +955,14 @@
            <button type="button" class="btn-cerrar" (click)="cerrarModalPendientes()">✕</button>
          </div>
          <div class="modal-body">
-           <label>Grupo</label>
-           <div class="grupo-selector-wrapper">
-             <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off" readonly>
-             <button type="button" class="btn-lupa" (click)="abrirModalGrupos()">🔍</button>
-             @if (grupoSeleccionado().length > 0) {
-               <button type="button" class="btn-cerrar" (click)="grupoSeleccionado.set([]); busquedaGrupo.set('')">&times;</button>
-             }
-           </div>
+            <label>Grupo</label>
+            <div class="grupo-selector-wrapper">
+              <input type="text" [value]="busquedaGrupo()" placeholder="Buscar grupo..." autocomplete="off" readonly>
+              <button type="button" class="btn-lupa" (click)="abrirModalGrupos()">🔍</button>
+              @if (grupoSeleccionado().length > 0) {
+                <button type="button" class="btn-cerrar" (click)="grupoSeleccionado.set([]); busquedaGrupo.set('')">&times;</button>
+              }
+            </div>
            @if (grupoSeleccionado().length > 0) {
              <div class="grupos-chips">
                @for (cod of grupoSeleccionado(); track cod) {

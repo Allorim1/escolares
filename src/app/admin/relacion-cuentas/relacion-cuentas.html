@@ -1194,6 +1194,23 @@
       <div class="modal-body">
         <div class="productos-pendientes-layout-vertical">
           <div class="productos-pendientes-busqueda">
+            <label>Grupo</label>
+            <div class="grupo-selector-wrapper">
+              <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off">
+              <button type="button" class="btn-lupa" (click)="loadGrupos(); mostrarListaGrupos.set(true)">🔍</button>
+              @if (grupoSeleccionado()) {
+                <button type="button" class="btn-cerrar" (click)="limpiarGrupo()">&times;</button>
+              }
+              @if (mostrarListaGrupos() && grupos().length > 0) {
+                <div class="lista-grupos-dropdown">
+                  @for (grupo of grupos(); track grupo.codigo) {
+                    <div class="lista-grupos-item" (click)="seleccionarGrupo(grupo)">
+                      <strong>{{ grupo.codigo }}</strong> - {{ grupo.nombre }}
+                    </div>
+                  }
+                </div>
+              }
+            </div>
             <label>Buscar producto</label>
             <input type="text" [value]="productosPendientesBusqueda()" (input)="onBusquedaProductosPendientes($event.target.value)" (click)="seleccionarTextoBusqueda($event)" (focus)="seleccionarTextoBusqueda($event)" placeholder="Código o nombre..." autocomplete="off">
             @if (cargandoProductosPendientes()) {

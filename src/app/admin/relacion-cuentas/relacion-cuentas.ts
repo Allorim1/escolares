@@ -357,6 +357,12 @@ export class RelacionCuentas implements OnInit {
   productosPendientesAbonoId = signal<string | null>(null);
   private _productosPendientesTimer: any = null;
 
+  grupos = signal<{ codigo: string; nombre: string }[]>([]);
+  grupoSeleccionado = signal('');
+  cargandoGrupos = signal(false);
+  busquedaGrupo = signal('');
+  mostrarListaGrupos = signal(false);
+
   comisiones = computed(() => {
     const abonos = this.abonosFiltrados();
     const porcentajeManual = this.comisionNoAsignadaManual();
@@ -3165,7 +3171,11 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.productosPendientesBusqueda.set('');
     this.productosPendientesLista.set([]);
     this.productosPendientesAbonoId.set(abono?._id || null);
+    this.grupoSeleccionado.set('');
+    this.busquedaGrupo.set('');
+    this.mostrarListaGrupos.set(false);
     this.showModalProductosPendientes.set(true);
+    this.loadGrupos();
   }
 
   cerrarModalProductosPendientes() {
@@ -3193,14 +3203,17 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   onBusquedaProductosPendientes(termino: string) {
     this.productosPendientesBusqueda.set(termino);
     if (this._productosPendientesTimer) clearTimeout(this._productosPendientesTimer);
-    if (!termino.trim()) {
+    if (!termino.trim() && !this.grupoSeleccionado()) {
       this.productosPendientesLista.set([]);
       this.cargandoProductosPendientes.set(false);
       return;
     }
     this._productosPendientesTimer = setTimeout(() => {
       this.cargandoProductosPendientes.set(true);
-      const url = `/api/inv-productos?q=${encodeURIComponent(termino.trim())}`;
+      const params = new URLSearchParams();
+      if (termino.trim()) params.set('q', termino.trim());
+      if (this.grupoSeleccionado()) params.set('codgrupo1', this.grupoSeleccionado());
+      const url = `/api/inv-productos?${params.toString()}`;
       this.http.get<InvProducto[]>(url).subscribe({
         next: (data) => {
           this.productosPendientesLista.set(data || []);
@@ -3212,6 +3225,43 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         },
       });
     }, 300);
+  }
+
+  loadGrupos() {
+    this.cargandoGrupos.set(true);
+    this.http.get<{ codigo: string; nombre: string }[]>('/api/inv-grupos1').subscribe({
+      next: (data) => {
+        this.grupos.set(data || []);
+        this.cargandoGrupos.set(false);
+      },
+      error: () => {
+        this.grupos.set([]);
+        this.cargandoGrupos.set(false);
+      },
+    });
+  }
+
+  onBusquedaGrupo(termino: string) {
+    this.busquedaGrupo.set(termino);
+    if (!termino.trim()) {
+      this.mostrarListaGrupos.set(false);
+      return;
+    }
+    this.loadGrupos();
+  }
+
+  seleccionarGrupo(grupo: { codigo: string; nombre: string }) {
+    this.grupoSeleccionado.set(grupo.codigo);
+    this.busquedaGrupo.set(grupo.nombre);
+    this.mostrarListaGrupos.set(false);
+    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
+  }
+
+  limpiarGrupo() {
+    this.grupoSeleccionado.set('');
+    this.busquedaGrupo.set('');
+    this.mostrarListaGrupos.set(false);
+    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
   }
 
   seleccionarTextoBusqueda(event: Event) {

@@ -11,6 +11,7 @@ export interface InvProducto {
   precio?: number;
   iva?: number;
   stock?: number;
+  codgrupo1?: string;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -1220,6 +1220,24 @@
       <div class="modal-body">
         <div class="productos-pendientes-layout-vertical">
           <div class="productos-pendientes-busqueda">
+            @if (esRoot()) {
+              <label>Grupo</label>
+              <div class="grupo-selector-wrapper">
+                <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off" readonly>
+                <button type="button" class="btn-lupa" (click)="abrirModalGrupos()">🔍</button>
+                @if (grupoSeleccionado().length > 0) {
+                  <button type="button" class="btn-cerrar" (click)="limpiarGrupos()">&times;</button>
+                }
+              </div>
+              @if (grupoSeleccionado().length > 0) {
+                <div class="grupos-chips">
+                  @for (cod of grupoSeleccionado(); track cod) {
+                    @let nombre = grupos().find(g => g.codigo === cod)?.nombre || cod;
+                    <span class="grupo-chip">{{ nombre }} <button type="button" class="chip-remove" (click)="toggleGrupo({ codigo: cod, nombre })">&times;</button></span>
+                  }
+                </div>
+              }
+            }
             <label>Buscar producto</label>
             <input type="text" [value]="productosPendientesBusqueda()" (input)="onBusquedaProductosPendientes($event.target.value)" (click)="seleccionarTextoBusqueda($event)" (focus)="seleccionarTextoBusqueda($event)" placeholder="Código o nombre..." autocomplete="off">
             @if (cargandoProductosPendientes()) {
@@ -1329,7 +1347,7 @@
               @for (grupo of gruposFiltradosModal(); track grupo.codigo) {
                 <tr>
                   <td>
-                    <input type="checkbox" [checked]="grupoSeleccionado().includes(grupo.codigo)" (change)="toggleGrupoModal(grupo)">
+                    <input type="checkbox" [checked]="gruposSeleccionadosModal().includes(grupo.codigo)" (change)="toggleGrupoModal(grupo)">
                   </td>
                   <td>{{ grupo.codigo }}</td>
                   <td>{{ grupo.nombre }}</td>

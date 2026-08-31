@@ -375,6 +375,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   busquedaGrupo = signal('');
   showModalGrupos = signal(false);
   busquedaGrupoModal = signal('');
+  gruposSeleccionadosModal = signal<string[]>([]);
 
   comisiones = computed(() => {
     const abonos = this.abonosFiltradosConPendientes();
@@ -1012,6 +1013,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.reporteSolicitudPendientesPdf.set(false);
     this.reporteProductosPendientesExcel.set(false);
     this.reporteSolicitudPendientesExcel.set(false);
+    this.grupoSeleccionado.set([]);
+    this.busquedaGrupo.set('');
+    this.gruposSeleccionadosModal.set([]);
     this.showModalPendientes.set(true);
   }
 
@@ -3257,14 +3261,17 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   onBusquedaProductosPendientes(termino: string) {
     this.productosPendientesBusqueda.set(termino);
     if (this._productosPendientesTimer) clearTimeout(this._productosPendientesTimer);
-    if (!termino.trim()) {
+    if (!termino.trim() && this.grupoSeleccionado().length === 0) {
       this.productosPendientesLista.set([]);
       this.cargandoProductosPendientes.set(false);
       return;
     }
     this._productosPendientesTimer = setTimeout(() => {
       this.cargandoProductosPendientes.set(true);
-      const url = `/api/inv-productos?q=${encodeURIComponent(termino.trim())}`;
+      const params = new URLSearchParams();
+      if (termino.trim()) params.set('q', termino.trim());
+      this.grupoSeleccionado().forEach(cod => params.append('codgrupo1', cod));
+      const url = `/api/inv-productos?${params.toString()}`;
       this.http.get<InvProducto[]>(url).subscribe({
         next: (data) => {
           const filtrados = (data || []).filter(p => p.borrado !== 1);
@@ -3293,6 +3300,15 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
   }
 
+  onBusquedaGrupo(termino: string) {
+    this.busquedaGrupo.set(termino);
+    if (!termino.trim()) {
+      this.mostrarListaGrupos.set(false);
+      return;
+    }
+    this.loadGrupos();
+  }
+
   toggleGrupo(grupo: { codigo: string; nombre: string }) {
     const actual = this.grupoSeleccionado();
     const idx = actual.indexOf(grupo.codigo);
@@ -3304,8 +3320,16 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.grupoSeleccionado.set([...actual]);
   }
 
+  limpiarGrupos() {
+    this.grupoSeleccionado.set([]);
+    this.busquedaGrupo.set('');
+    this.mostrarListaGrupos.set(false);
+    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
+  }
+
   abrirModalGrupos() {
     this.busquedaGrupoModal.set('');
+    this.gruposSeleccionadosModal.set([...this.grupoSeleccionado()]);
     this.showModalGrupos.set(true);
     this.loadGrupos();
   }
@@ -3330,19 +3354,18 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   });
 
   toggleGrupoModal(grupo: { codigo: string; nombre: string }) {
-    const actual = this.grupoSeleccionado();
+    const actual = this.gruposSeleccionadosModal();
     const idx = actual.indexOf(grupo.codigo);
     if (idx >= 0) {
-      actual.splice(idx, 1);
+      this.gruposSeleccionadosModal.set(actual.filter(cod => cod !== grupo.codigo));
     } else {
-      actual.push(grupo.codigo);
+      this.gruposSeleccionadosModal.set([...actual, grupo.codigo]);
     }
-    this.grupoSeleccionado.set([...actual]);
   }
 
   aplicarFiltroGrupos() {
-    const seleccionados = this.grupoSeleccionado();
-    const nombres = seleccionados
+    this.grupoSeleccionado.set([...this.gruposSeleccionadosModal()]);
+    const nombres = this.grupoSeleccionado()
       .map(cod => this.grupos().find(g => g.codigo === cod)?.nombre)
       .filter((n): n is string => !!n);
     this.busquedaGrupo.set(nombres.join(', '));

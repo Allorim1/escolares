@@ -362,6 +362,8 @@ export class RelacionCuentas implements OnInit {
   cargandoGrupos = signal(false);
   busquedaGrupo = signal('');
   mostrarListaGrupos = signal(false);
+  showModalGrupos = signal(false);
+  busquedaGrupoModal = signal('');
 
   comisiones = computed(() => {
     const abonos = this.abonosFiltrados();
@@ -3261,6 +3263,39 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.grupoSeleccionado.set('');
     this.busquedaGrupo.set('');
     this.mostrarListaGrupos.set(false);
+    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
+  }
+
+  abrirModalGrupos() {
+    this.busquedaGrupoModal.set('');
+    this.showModalGrupos.set(true);
+    this.loadGrupos();
+  }
+
+  cerrarModalGrupos() {
+    this.showModalGrupos.set(false);
+  }
+
+  onBusquedaGrupoModal(termino: string) {
+    this.busquedaGrupoModal.set(termino);
+    this.loadGrupos();
+  }
+
+  gruposFiltradosModal = computed(() => {
+    const termino = this.busquedaGrupoModal().toLowerCase().trim();
+    const lista = this.grupos();
+    if (!termino) return lista;
+    return lista.filter(g =>
+      g.codigo.toLowerCase().includes(termino) ||
+      g.nombre.toLowerCase().includes(termino)
+    );
+  });
+
+  seleccionarGrupoModal(grupo: { codigo: string; nombre: string }) {
+    this.grupoSeleccionado.set(grupo.codigo);
+    this.busquedaGrupo.set(grupo.nombre);
+    this.mostrarListaGrupos.set(false);
+    this.cerrarModalGrupos();
     this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
   }
 

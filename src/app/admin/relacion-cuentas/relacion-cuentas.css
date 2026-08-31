@@ -1440,6 +1440,29 @@
   background: #f5f5f5;
 }
 
+.grupos-lista-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e3e8ee;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+.grupos-lista-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.grupos-lista-wrapper th,
+.grupos-lista-wrapper td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.grupos-lista-wrapper th {
+  background: #f5f5f5;
+  font-weight: 500;
+}
+
 .productos-pendientes-seleccion {
   display: flex;
   flex-direction: column;

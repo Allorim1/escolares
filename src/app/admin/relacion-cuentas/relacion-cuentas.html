@@ -1196,19 +1196,10 @@
           <div class="productos-pendientes-busqueda">
             <label>Grupo</label>
             <div class="grupo-selector-wrapper">
-              <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off">
-              <button type="button" class="btn-lupa" (click)="loadGrupos(); mostrarListaGrupos.set(true)">🔍</button>
+              <input type="text" [value]="busquedaGrupo()" (input)="onBusquedaGrupo($event.target.value)" (focus)="mostrarListaGrupos.set(true)" placeholder="Buscar grupo..." autocomplete="off" readonly>
+              <button type="button" class="btn-lupa" (click)="abrirModalGrupos()">🔍</button>
               @if (grupoSeleccionado()) {
                 <button type="button" class="btn-cerrar" (click)="limpiarGrupo()">&times;</button>
-              }
-              @if (mostrarListaGrupos() && grupos().length > 0) {
-                <div class="lista-grupos-dropdown">
-                  @for (grupo of grupos(); track grupo.codigo) {
-                    <div class="lista-grupos-item" (click)="seleccionarGrupo(grupo)">
-                      <strong>{{ grupo.codigo }}</strong> - {{ grupo.nombre }}
-                    </div>
-                  }
-                </div>
               }
             </div>
             <label>Buscar producto</label>
@@ -1289,5 +1280,48 @@
       </div>
     </div>
   </div>
+  </div>
+}
+
+@if (showModalGrupos()) {
+  <div class="modal-overlay">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Seleccionar Grupo</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalGrupos()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" [value]="busquedaGrupoModal()" (input)="onBusquedaGrupoModal($event.target.value)" placeholder="Buscar grupo por código o nombre..." autocomplete="off">
+        <div class="grupos-lista-wrapper">
+          <table class="abonos-table">
+            <thead>
+              <tr>
+                <th><strong style="color: black;">Código</strong></th>
+                <th><strong style="color: black;">Nombre</strong></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (grupo of gruposFiltradosModal(); track grupo.codigo) {
+                <tr>
+                  <td>{{ grupo.codigo }}</td>
+                  <td>{{ grupo.nombre }}</td>
+                  <td>
+                    <button type="button" class="btn-add-abono" (click)="seleccionarGrupoModal(grupo)">Seleccionar</button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="empty">No se encontraron grupos</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModalGrupos()">Cerrar</button>
+      </div>
+    </div>
   </div>
 }

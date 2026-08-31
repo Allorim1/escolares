@@ -2775,15 +2775,15 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
   }
 
-  async generarReporteProductosPendientesPdf() {
-    const abonos = this.abonosFiltradosConPendientes();
-    const gruposSeleccionados = this.grupoSeleccionado();
-    const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
-    for (const abono of abonos) {
-      const lista = abono.productosPendientes || [];
-      for (const prod of lista) {
-        if (gruposSeleccionados.length && !gruposSeleccionados.includes(prod.codgrupo1 || '')) continue;
-        filas.push({
+   async generarReporteProductosPendientesPdf() {
+     const abonos = this.abonosFiltradosConPendientes();
+     const gruposSeleccionados = this.grupoSeleccionado();
+     const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
+     for (const abono of abonos) {
+       const lista = abono.productosPendientes || [];
+       for (const prod of lista) {
+         if (gruposSeleccionados.length && !gruposSeleccionados.some(g => String(g) === String(prod.codgrupo1 ?? ''))) continue;
+         filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
           planta: abono.planta || '-',
@@ -2864,7 +2864,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     doc.save(fileName);
   }
 
- async generarReporteSolicitudPendientesPdf() {
+  async generarReporteSolicitudPendientesPdf() {
     const abonos = this.abonosFiltradosConPendientes();
     const gruposSeleccionados = this.grupoSeleccionado();
    const agrupado = new Map<string, { codigo: string; producto: string; cantidad: number }>();
@@ -2873,7 +2873,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
      for (const prod of lista) {
        const nombre = (prod.nombre || '').trim();
        if (!nombre) continue;
-       if (gruposSeleccionados.length && !gruposSeleccionados.includes(prod.codgrupo1 || '')) continue;
+       if (gruposSeleccionados.length && !gruposSeleccionados.some(g => String(g) === String(prod.codgrupo1 ?? ''))) continue;
        const cantidad = prod.cantidad ?? 1;
        if (agrupado.has(nombre)) {
          agrupado.get(nombre)!.cantidad += cantidad;
@@ -2960,14 +2960,14 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
   const fileName = `solicitud_pendientes_${this.getFechaLocal()}.pdf`;
   doc.save(fileName);
 }
-  async generarReporteProductosPendientesExcel() {
+   async generarReporteProductosPendientesExcel() {
     const abonos = this.abonosFiltradosConPendientes();
     const gruposSeleccionados = this.grupoSeleccionado();
     const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
-        if (gruposSeleccionados.length && !gruposSeleccionados.includes(prod.codgrupo1 || '')) continue;
+        if (gruposSeleccionados.length && !gruposSeleccionados.some(g => String(g) === String(prod.codgrupo1 ?? ''))) continue;
         filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -3027,7 +3027,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     for (const abono of abonos) {
       const lista = abono.productosPendientes || [];
       for (const prod of lista) {
-        if (gruposSeleccionados.length && !gruposSeleccionados.includes(prod.codgrupo1 || '')) continue;
+        if (gruposSeleccionados.length && !gruposSeleccionados.some(g => String(g) === String(prod.codgrupo1 ?? ''))) continue;
         filas.push({
           codigo: prod.codigo || '',
           producto: prod.nombre || '',

@@ -661,7 +661,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   private modalEscSub: any;
 
   private cerrarModalPorPrioridad() {
-    if (this.showModalGrupos()) {
+    if (this.showModal()) {
+      this.cerrarModal();
+    } else if (this.showModalGrupos()) {
       this.cerrarModalGrupos();
     } else if (this.showModalProductosPendientes()) {
       this.cerrarModalProductosPendientes();

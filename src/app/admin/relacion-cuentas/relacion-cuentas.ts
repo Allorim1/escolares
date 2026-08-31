@@ -3317,6 +3317,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       actual.push(grupo.codigo);
     }
     this.grupoSeleccionado.set([...actual]);
+    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
   }
 
   limpiarGrupos() {
@@ -3368,6 +3369,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       .filter((n): n is string => !!n);
     this.busquedaGrupo.set(nombres.join(', '));
     this.cerrarModalGrupos();
+    this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
   }
 
   seleccionarTextoBusqueda(event: Event) {

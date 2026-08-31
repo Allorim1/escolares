@@ -3329,6 +3329,26 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     );
   });
 
+  toggleGrupoModal(grupo: { codigo: string; nombre: string }) {
+    const actual = this.grupoSeleccionado();
+    const idx = actual.indexOf(grupo.codigo);
+    if (idx >= 0) {
+      actual.splice(idx, 1);
+    } else {
+      actual.push(grupo.codigo);
+    }
+    this.grupoSeleccionado.set([...actual]);
+  }
+
+  aplicarFiltroGrupos() {
+    const seleccionados = this.grupoSeleccionado();
+    const nombres = seleccionados
+      .map(cod => this.grupos().find(g => g.codigo === cod)?.nombre)
+      .filter((n): n is string => !!n);
+    this.busquedaGrupo.set(nombres.join(', '));
+    this.cerrarModalGrupos();
+  }
+
   seleccionarTextoBusqueda(event: Event) {
     const input = event.target as HTMLInputElement;
     input.select();

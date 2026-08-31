@@ -109,9 +109,11 @@
     </div>
     <div class="filtro-group" style="display:flex;flex-direction:column;gap:6px;">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;color:#333;font-size:14px;">
-        <input type="checkbox" [ngModel]="soloConProductosPendientes()" (ngModelChange)="soloConProductosPendientes.set($event)" style="width:16px;height:16px;cursor:pointer;">
-        Solo con productos pendientes
+        Prod. Pendientes
       </label>
+      <span class="switch" [class.active]="soloConProductosPendientes()" (click)="soloConProductosPendientes.set(!soloConProductosPendientes())">
+        <span class="switch-thumb"></span>
+      </span>
     </div>
     <!-- Supervisor filter hidden in Relaciones tab -->
       <div class="filtro-group">
@@ -1296,5 +1298,55 @@
       </div>
     </div>
   </div>
+  </div>
+}
+
+@if (showModalGrupos()) {
+  <div class="modal-overlay">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Seleccionar Grupo</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalGrupos()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Buscar grupo</label>
+          <div class="grupo-modal-search-wrapper">
+            <input type="text" [value]="busquedaGrupoModal()" (input)="onBusquedaGrupoModal($event.target.value)" placeholder="Código o nombre..." autocomplete="off">
+            <span class="grupo-modal-search-icon">🔍</span>
+          </div>
+        </div>
+        <div class="grupos-lista-wrapper">
+          <table class="abonos-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;"></th>
+                <th><strong style="color: black;">Código</strong></th>
+                <th><strong style="color: black;">Nombre</strong></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (grupo of gruposFiltradosModal(); track grupo.codigo) {
+                <tr>
+                  <td>
+                    <input type="checkbox" [checked]="grupoSeleccionado().includes(grupo.codigo)" (change)="toggleGrupoModal(grupo)">
+                  </td>
+                  <td>{{ grupo.codigo }}</td>
+                  <td>{{ grupo.nombre }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="empty">No se encontraron grupos</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModalGrupos()">Cancelar</button>
+        <button type="button" class="btn-primary" (click)="aplicarFiltroGrupos()">Aplicar filtro</button>
+      </div>
+    </div>
   </div>
 }

@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject, computed, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, signal, OnInit, inject, computed, ViewChild, ElementRef, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -14,6 +14,7 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { ChangeDetectorRef } from '@angular/core';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { ModalEscService } from '../../shared/services/modal-esc.service';
 
 interface Abono {
   _id?: string;
@@ -77,7 +78,7 @@ interface ProductoPendiente extends InvProducto {
   templateUrl: './relacion-cuentas.html',
   styleUrl: './relacion-cuentas.css',
 })
-export class RelacionCuentas implements OnInit {
+export class RelacionCuentas implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private empresasService = inject(EmpresasService);
   private tasasGuardadasService = inject(TasasGuardadasService);
@@ -85,6 +86,7 @@ export class RelacionCuentas implements OnInit {
   private authService = inject(AuthService);
   private notificationModal = inject(NotificationModalService);
   private currencyService = inject(CurrencyService);
+  private modalEscService = inject(ModalEscService);
 
   private readonly API = '/api/abonos-polar';
   private readonly SERVER_URL = window.location.origin;
@@ -647,38 +649,46 @@ export class RelacionCuentas implements OnInit {
     this.loadTasaActual();
     this.cargarSupervisores();
     this.loadUserPermissions();
+    this.modalEscSub = this.modalEscService.escPressed.subscribe(() => this.cerrarModalPorPrioridad());
+  }
+
+  ngOnDestroy() {
+    if (this.modalEscSub) {
+      this.modalEscSub.unsubscribe();
+    }
+  }
+
+  private modalEscSub: any;
+
+  private cerrarModalPorPrioridad() {
+    if (this.showModalGrupos()) {
+      this.cerrarModalGrupos();
+    } else if (this.showModalProductosPendientes()) {
+      this.cerrarModalProductosPendientes();
+    } else if (this.showModalTicket()) {
+      this.cerrarModalTicket();
+    } else if (this.showModalReportes()) {
+      this.cerrarModalReportes();
+    } else if (this.showModalPendientes()) {
+      this.cerrarModalPendientes();
+    } else if (this.showModalSender()) {
+      this.cerrarModalSender();
+    } else if (this.showModalAbonos()) {
+      this.cerrarModalAbonos();
+    } else if (this.showModalSupervisoresRelaciones()) {
+      this.cerrarModalSupervisoresRelaciones();
+    } else if (this.showModalSupervisores()) {
+      this.cerrarModalSupervisores();
+    } else if (this.showModalValuacion()) {
+      this.showModalValuacion.set(false);
+      this.abonoValuacion = null;
+    } else if (this.imagenModalAbierta()) {
+      this.cerrarImagenModal();
+    }
   }
 
   @HostListener('window:keydown', ['$event'])
   onGlobalKeydown(event: KeyboardEvent) {
-    // Cerrar modales con Esc
-    if (event.key === 'Escape') {
-      if (this.showModalGrupos()) {
-        this.cerrarModalGrupos();
-      } else if (this.showModalProductosPendientes()) {
-        this.cerrarModalProductosPendientes();
-      } else if (this.showModalTicket()) {
-        this.cerrarModalTicket();
-      } else if (this.showModalReportes()) {
-        this.cerrarModalReportes();
-      } else if (this.showModalPendientes()) {
-        this.cerrarModalPendientes();
-      } else if (this.showModalSender()) {
-        this.cerrarModalSender();
-      } else if (this.showModalAbonos()) {
-        this.cerrarModalAbonos();
-      } else if (this.showModalSupervisoresRelaciones()) {
-        this.cerrarModalSupervisoresRelaciones();
-      } else if (this.showModalSupervisores()) {
-        this.cerrarModalSupervisores();
-      } else if (this.showModalValuacion()) {
-        this.showModalValuacion.set(false);
-        this.abonoValuacion = null;
-      } else if (this.imagenModalAbierta()) {
-        this.cerrarImagenModal();
-      }
-    }
-    // Toggle comisiones visibility with F2
     if (event.key === 'F2') {
       event.preventDefault();
       this.mostrarComisiones.update(v => !v);
@@ -3247,7 +3257,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       const url = `/api/inv-productos?${params.toString()}`;
       this.http.get<InvProducto[]>(url).subscribe({
         next: (data) => {
-          this.productosPendientesLista.set(data || []);
+          const filtrados = (data || []).filter(p => p.borrado !== 1);
+          this.productosPendientesLista.set(filtrados);
           this.cargandoProductosPendientes.set(false);
         },
         error: () => {

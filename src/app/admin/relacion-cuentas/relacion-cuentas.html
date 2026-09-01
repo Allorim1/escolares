@@ -711,6 +711,14 @@
           </select>
         </div>
         <div class="filtro-group">
+          <label>Status:</label>
+          <select [ngModel]="comisionesTabFiltros().status" (ngModelChange)="actualizarFiltroComision('status', $event); onComisionesTabFiltroChange()">
+            <option value="">Todos</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Pagado">Pagado</option>
+          </select>
+        </div>
+        <div class="filtro-group">
           <label>Desde:</label>
           <input type="date" [ngModel]="comisionesTabFiltros().fechaDesde" (ngModelChange)="actualizarFiltroComision('fechaDesde', $event); onComisionesTabFiltroChange()">
         </div>
@@ -1060,6 +1068,10 @@
           <label class="checkbox-label">
             <input type="checkbox" [checked]="incluirColumnaCedulaNombres()" (change)="incluirColumnaCedulaNombres.set(!incluirColumnaCedulaNombres())">
             Incluir columna Cédula
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="incluirColumnaStatusNombres()" (change)="incluirColumnaStatusNombres.set(!incluirColumnaStatusNombres())">
+            Incluir columna Status
           </label>
         </div>
         <div class="modal-actions">

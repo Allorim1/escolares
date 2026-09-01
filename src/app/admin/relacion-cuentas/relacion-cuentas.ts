@@ -523,7 +523,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   comisionNoAsignadaManual = signal<number | null>(null);
   loadingComisiones = signal(false);
 
-  comisionesTabFiltros = signal({ supervisor: '', empresa: '', planta: '', fechaDesde: this.getFechaLocal(), fechaHasta: this.getFechaLocal() });
+  comisionesTabFiltros = signal({ supervisor: '', empresa: '', planta: '', status: '', fechaDesde: this.getFechaLocal(), fechaHasta: this.getFechaLocal() });
   comisionesTabSupervisorSeleccionado = signal<any | null>(null);
   comisionesTabAbonoSeleccionado = signal<any | null>(null);
   comisionesTabNombresAgrupados = signal<any[]>([]);
@@ -573,6 +573,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   incluirTotalesListas = signal(false);
   incluirColumnaTelefonoNombres = signal(false);
   incluirColumnaCedulaNombres = signal(false);
+  incluirColumnaStatusNombres = signal(false);
 
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
@@ -741,6 +742,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       if (f.supervisor) {
         passes = passes && (a.supervisor || '') === f.supervisor;
       }
+      if (f.status) {
+        passes = passes && (a.status || '') === f.status;
+      }
       return passes;
     });
   });
@@ -823,7 +827,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.loadComisionesTab();
   }
 
-  actualizarFiltroComision(key: 'supervisor' | 'empresa' | 'planta' | 'fechaDesde' | 'fechaHasta', value: string) {
+  actualizarFiltroComision(key: 'supervisor' | 'empresa' | 'planta' | 'status' | 'fechaDesde' | 'fechaHasta', value: string) {
     this.comisionesTabFiltros.update((filtros) => ({ ...filtros, [key]: value }));
   }
 
@@ -845,6 +849,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       const planta = abono.planta || '';
       const telefono = abono.telefono || '';
       const cedula = abono.cedula || '';
+      const status = abono.status || '';
       if (existente) {
         existente.cantidad++;
         existente.montoFactura += montoFactura;
@@ -861,6 +866,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
         if (!existente.cedula && cedula) {
           existente.cedula = cedula;
         }
+        if (status) {
+          existente._statuses.add(status);
+        }
         existente.abonos.push(abono);
       } else {
         acc.push({
@@ -868,6 +876,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
           planta,
           telefono,
           cedula,
+          _statuses: new Set(status ? [status] : []),
           cantidad: 1,
           montoFactura,
           iva,
@@ -879,6 +888,11 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       }
       return acc;
     }, []);
+    nombresAgrupados.forEach((n: any) => {
+      const statuses: string[] = Array.from(n._statuses);
+      n.status = statuses.length === 1 ? statuses[0] : statuses.length > 1 ? 'Mixto' : '';
+      delete n._statuses;
+    });
     this.comisionesTabNombresAgrupados.set(nombresAgrupados);
   }
 
@@ -2292,6 +2306,7 @@ if (!url) return '';
     ];
     if (this.incluirColumnaTelefonoNombres()) columnasBase.push({ header: 'Teléfono', width: 24 });
     if (this.incluirColumnaCedulaNombres()) columnasBase.push({ header: 'Cédula', width: 22 });
+    if (this.incluirColumnaStatusNombres()) columnasBase.push({ header: 'Status', width: 22 });
     columnasBase.push(
       { header: 'Cantidad', width: 20 },
       { header: 'Monto Factura Bs', width: 28 },
@@ -2308,6 +2323,7 @@ if (!url) return '';
       const fila = [n.nombre || '', n.planta || '-'];
       if (this.incluirColumnaTelefonoNombres()) fila.push(this.formatTelefono(n.telefono || ''));
       if (this.incluirColumnaCedulaNombres()) fila.push(this.formatCedula(n.cedula || ''));
+      if (this.incluirColumnaStatusNombres()) fila.push(n.status || '-');
       fila.push(
         String(n.cantidad || 0),
         this.formatMonto(n.montoFactura || 0),
@@ -2329,6 +2345,7 @@ if (!url) return '';
       const filaTotales = [this.incluirTotalesClientes() ? `Totales: ${String(nombres.length)}` : 'Totales:', ''];
       if (this.incluirColumnaTelefonoNombres()) filaTotales.push('');
       if (this.incluirColumnaCedulaNombres()) filaTotales.push('');
+      if (this.incluirColumnaStatusNombres()) filaTotales.push('');
       filaTotales.push(
         this.incluirTotalesListas() ? String(totalListas) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoFactura) : '',
@@ -2379,6 +2396,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.incluirTotalesListas.set(false);
     this.incluirColumnaTelefonoNombres.set(false);
     this.incluirColumnaCedulaNombres.set(false);
+    this.incluirColumnaStatusNombres.set(false);
     this.showModalTotalesPdfNombres.set(true);
   }
 
@@ -2408,6 +2426,9 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     }
     if (this.incluirColumnaCedulaNombres()) {
       columnasBase.push({ width: 16, header: 'Cédula' });
+    }
+    if (this.incluirColumnaStatusNombres()) {
+      columnasBase.push({ width: 16, header: 'Status' });
     }
     columnasBase.push(
       { width: 15, header: 'Cantidad' },
@@ -2440,6 +2461,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       const row: (string | number)[] = [n.nombre || '', n.planta || '-'];
       if (this.incluirColumnaTelefonoNombres()) row.push(this.formatTelefono(n.telefono || ''));
       if (this.incluirColumnaCedulaNombres()) row.push(this.formatCedula(n.cedula || ''));
+      if (this.incluirColumnaStatusNombres()) row.push(n.status || '-');
       row.push(
         n.cantidad || 0,
         this.formatMonto(n.montoFactura || 0),
@@ -2466,6 +2488,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       const totalRowData = ['', ''];
       if (this.incluirColumnaTelefonoNombres()) totalRowData.push('');
       if (this.incluirColumnaCedulaNombres()) totalRowData.push('');
+      if (this.incluirColumnaStatusNombres()) totalRowData.push('');
       totalRowData.push(
         '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0)) : '',

@@ -2300,6 +2300,9 @@ if (!url) return '';
     doc.setTextColor(100);
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, infoY, { align: 'center' });
 
+    const marginBottom = 18;
+    const marginSide = 35;
+
     const columnasBase: { header: string; width: number }[] = [
       { header: 'Nombre', width: 40 },
       { header: 'Planta', width: 25 },
@@ -2315,6 +2318,15 @@ if (!url) return '';
       { header: 'Planta % (Bs.)', width: 28 },
       { header: 'Planta % ($)', width: 28 },
     );
+
+    // Con columnas opcionales activadas, el ancho fijo puede superar el área imprimible
+    // (doc usa mm) y la tabla se sale del margen derecho; se reescala proporcionalmente.
+    const anchoDisponible = pageWidth - marginSide * 2;
+    const anchoTotal = columnasBase.reduce((s, c) => s + c.width, 0);
+    if (anchoTotal > anchoDisponible) {
+      const escala = anchoDisponible / anchoTotal;
+      columnasBase.forEach((c) => { c.width = c.width * escala; });
+    }
 
     const head = [columnasBase.map((c) => c.header)];
     const body = nombres.map((n: any) => {
@@ -2356,9 +2368,6 @@ if (!url) return '';
       );
       body.push(filaTotales);
     }
-
-    const marginBottom = 18;
-    const marginSide = 35;
 
     const columnStyles: Record<number, { cellWidth: number }> = {};
     columnasBase.forEach((c, i) => { columnStyles[i] = { cellWidth: c.width }; });

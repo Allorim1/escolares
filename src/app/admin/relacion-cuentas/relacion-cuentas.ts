@@ -556,6 +556,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   aplicarFiltroSupervisor = signal(false);
   soloSupervisor = signal(false);
 
+  soloIvaPagadoComisiones = signal(false);
+  aplicarFiltroIvaComisiones = signal(false);
+
   private getFechaLocal(): string {
     const now = new Date();
     const year = now.getFullYear();
@@ -745,6 +748,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       }
       if (f.status) {
         passes = passes && (a.status || '') === f.status;
+      }
+      if (this.aplicarFiltroIvaComisiones()) {
+        passes = passes && a.ivaPagado === this.soloIvaPagadoComisiones();
       }
       return passes;
     });

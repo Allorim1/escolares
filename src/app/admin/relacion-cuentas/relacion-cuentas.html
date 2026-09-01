@@ -726,6 +726,15 @@
           <label>Hasta:</label>
           <input type="date" [ngModel]="comisionesTabFiltros().fechaHasta" (ngModelChange)="actualizarFiltroComision('fechaHasta', $event); onComisionesTabFiltroChange()">
         </div>
+        <div class="filtro-group" style="display:flex;flex-direction:column;gap:6px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;color:#333;font-size:14px;">
+            <input type="checkbox" [ngModel]="aplicarFiltroIvaComisiones()" (ngModelChange)="aplicarFiltroIvaComisiones.set($event)" style="width:16px;height:16px;cursor:pointer;">
+            Aplicar filtro IVA
+          </label>
+          <span class="switch" [class.active]="soloIvaPagadoComisiones()" (click)="soloIvaPagadoComisiones.set(!soloIvaPagadoComisiones())">
+            <span class="switch-thumb"></span>
+          </span>
+        </div>
         <div class="filtro-group">
           <button class="btn-secondary" (click)="loadComisionesTab()">Buscar</button>
           @if (comisionesTabSupervisorSeleccionado() || comisionesTabNombreSeleccionado() || comisionesTabAbonoSeleccionado()) {
@@ -909,49 +918,49 @@
 
   @if (showModalReportes()) {
     <div class="modal-overlay" (click)="cerrarModalReportes()">
-      <div class="modal modal-wide" (click)="$event.stopPropagation()">
+      <div class="modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Generar Reporte - Relaciones</h2>
           <button type="button" class="btn-cerrar" (click)="cerrarModalReportes()">✕</button>
         </div>
         <div class="reportes-layout">
-          <div class="reportes-col">
-            <div class="reportes-opciones">
-              <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
-                Mostrar Empresa en PDF
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
-                Mostrar Planta en PDF
-              </label>
+          <div class="reportes-columns-row">
+            <div class="reportes-columns-left">
+              <div class="reportes-opciones">
+                <label class="checkbox-label">
+                  <input type="checkbox" [(ngModel)]="mostrarEmpresaPdf">
+                  Mostrar Empresa en PDF
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" [(ngModel)]="mostrarPlantaPdf">
+                  Mostrar Planta en PDF
+                </label>
+              </div>
             </div>
-            <div class="reportes-divider"></div>
-            <div class="reportes-columns-row">
-              <div class="reportes-columns-left">
-                <h4>Columnas PDF</h4>
-                <div class="columnas-grid">
-                  @for (col of columnasDisponibles; track col.key) {
-                    <label class="checkbox-label">
-                      <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
-                      {{ col.label }}
-                    </label>
-                  }
-                </div>
+            <div class="reportes-columns-right">
+              <h4>Generar reportes</h4>
+              <div class="reportes-actions">
+                <label class="reportes-checkbox">
+                  <input type="checkbox" [(ngModel)]="reporteRelacionesPdf">
+                  Relaciones PDF
+                </label>
+                <label class="reportes-checkbox">
+                  <input type="checkbox" [(ngModel)]="reporteRelacionesExcel">
+                  Relaciones Excel
+                </label>
               </div>
-              <div class="reportes-columns-right">
-                <h4>Generar reportes</h4>
-                <div class="reportes-actions">
-                  <label class="reportes-checkbox">
-                    <input type="checkbox" [(ngModel)]="reporteRelacionesPdf">
-                    Relaciones PDF
-                  </label>
-                  <label class="reportes-checkbox">
-                    <input type="checkbox" [(ngModel)]="reporteRelacionesExcel">
-                    Relaciones Excel
-                  </label>
-                </div>
-              </div>
+            </div>
+          </div>
+          <div class="reportes-divider"></div>
+          <div class="reportes-col">
+            <h4>Columnas PDF</h4>
+            <div class="columnas-grid">
+              @for (col of columnasDisponibles; track col.key) {
+                <label class="checkbox-label">
+                  <input type="checkbox" [value]="col.key" [checked]="isColumnaSeleccionadaPdf(col.key)" (change)="toggleColumnaPdf(col.key)">
+                  {{ col.label }}
+                </label>
+              }
             </div>
           </div>
         </div>

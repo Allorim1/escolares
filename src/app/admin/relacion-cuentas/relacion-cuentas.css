@@ -624,6 +624,8 @@
 
 .relaciones-table-wrapper {
   margin-top: 16px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .modal-subtitle {
@@ -1303,6 +1305,8 @@
 .comisiones-abonos-list,
 .comisiones-abono-detalle {
   margin-top: 10px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .abono-detalle-card {
@@ -1371,6 +1375,7 @@
 .productos-pendientes-tabla-wrapper {
   max-height: 640px;
   overflow-y: auto;
+  overflow-x: auto;
   border: 1px solid #e3e8ee;
   border-radius: 8px;
 }

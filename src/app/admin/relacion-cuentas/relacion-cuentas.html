@@ -1073,6 +1073,10 @@
             <input type="checkbox" [checked]="incluirColumnaStatusNombres()" (change)="incluirColumnaStatusNombres.set(!incluirColumnaStatusNombres())">
             Incluir columna Status
           </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="incluirColumnaComisionNombres()" (change)="incluirColumnaComisionNombres.set(!incluirColumnaComisionNombres())">
+            Incluir columnas Comisión (Bs. / $)
+          </label>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModalTotalesPdfNombres()">Cancelar</button>

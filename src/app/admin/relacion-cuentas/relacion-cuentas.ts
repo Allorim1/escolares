@@ -574,6 +574,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   incluirColumnaTelefonoNombres = signal(false);
   incluirColumnaCedulaNombres = signal(false);
   incluirColumnaStatusNombres = signal(false);
+  incluirColumnaComisionNombres = signal(true);
 
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
@@ -2315,9 +2316,10 @@ if (!url) return '';
       { header: 'Monto Factura Bs', width: 28 },
       { header: 'IVA', width: 22 },
       { header: 'Monto Factura Sin Iva', width: 32 },
-      { header: 'Planta % (Bs.)', width: 28 },
-      { header: 'Planta % ($)', width: 28 },
     );
+    if (this.incluirColumnaComisionNombres()) {
+      columnasBase.push({ header: 'Comisión (Bs.)', width: 28 }, { header: 'Comisión ($)', width: 28 });
+    }
 
     // Con columnas opcionales activadas, el ancho fijo puede superar el área imprimible
     // (doc usa mm) y la tabla se sale del margen derecho; se reescala proporcionalmente.
@@ -2341,9 +2343,10 @@ if (!url) return '';
         this.formatMonto(n.montoFactura || 0),
         this.formatMonto(n.iva || 0),
         this.formatMonto(n.montoFacturaSinIva || 0),
-        this.formatMonto(comBs) + ' Bs',
-        this.formatMonto(comUsd) + ' $',
       );
+      if (this.incluirColumnaComisionNombres()) {
+        fila.push(this.formatMonto(comBs) + ' Bs', this.formatMonto(comUsd) + ' $');
+      }
       return fila;
     });
 
@@ -2363,9 +2366,13 @@ if (!url) return '';
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoFactura) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalIva) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoSinIva) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(totalComision) + ' Bs' : '',
-        this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) + ' $' : '',
       );
+      if (this.incluirColumnaComisionNombres()) {
+        filaTotales.push(
+          this.incluirTotalesMontos() ? this.formatMonto(totalComision) + ' Bs' : '',
+          this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) + ' $' : '',
+        );
+      }
       body.push(filaTotales);
     }
 
@@ -2406,6 +2413,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.incluirColumnaTelefonoNombres.set(false);
     this.incluirColumnaCedulaNombres.set(false);
     this.incluirColumnaStatusNombres.set(false);
+    this.incluirColumnaComisionNombres.set(true);
     this.showModalTotalesPdfNombres.set(true);
   }
 
@@ -2444,9 +2452,10 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
       { width: 22, header: 'Monto Factura Bs' },
       { width: 18, header: 'IVA' },
       { width: 28, header: 'Monto Factura Sin Iva' },
-      { width: 22, header: 'Planta % (Bs.)' },
-      { width: 22, header: 'Planta % ($)' },
     );
+    if (this.incluirColumnaComisionNombres()) {
+      columnasBase.push({ width: 22, header: 'Comisión (Bs.)' }, { width: 22, header: 'Comisión ($)' });
+    }
     if (this.incluirTotalesClientes()) {
       columnasBase.push({ width: 18, header: 'Total Clientes' });
     }
@@ -2476,9 +2485,10 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         this.formatMonto(n.montoFactura || 0),
         this.formatMonto(n.iva || 0),
         this.formatMonto(n.montoFacturaSinIva || 0),
-        this.formatMonto(comBs),
-        this.formatMonto(comUsd),
       );
+      if (this.incluirColumnaComisionNombres()) {
+        row.push(this.formatMonto(comBs), this.formatMonto(comUsd));
+      }
       if (this.incluirTotalesClientes()) {
         row.push(String(nombres.length));
       }
@@ -2503,9 +2513,13 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0)) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(totalComision) : '',
-        this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) : '',
       );
+      if (this.incluirColumnaComisionNombres()) {
+        totalRowData.push(
+          this.incluirTotalesMontos() ? this.formatMonto(totalComision) : '',
+          this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) : '',
+        );
+      }
       if (this.incluirTotalesClientes()) {
         totalRowData.push(String(nombres.length));
       }

@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthBackend } from '../../backend/data-access/auth.backend';
 import { Observable } from 'rxjs';
-import { User, Direccion, UserSession } from '../../backend/models';
+import { User, Direccion, UserSession, UserSessionsResponse } from '../../backend/models';
 
-export type { User, Direccion, UserSession };
+export type { User, Direccion, UserSession, UserSessionsResponse };
 
 
 @Injectable({
@@ -50,8 +50,8 @@ export class AuthService {
     return this.backend.getAllUsers();
   }
 
-  getAllSessions() {
-    return this.backend.getAllSessions();
+  getAllSessions(params: { estado?: 'todas' | 'activas' | 'cerradas'; limit?: number; skip?: number } = {}) {
+    return this.backend.getAllSessions(params);
   }
 
   getMySessions() {

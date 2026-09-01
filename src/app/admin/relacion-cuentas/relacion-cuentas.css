@@ -350,6 +350,14 @@
   box-sizing: border-box;
 }
 
+.status-auditoria {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
 .form-group input[readonly] {
   background: #f5f5f5;
   color: #555;

@@ -1,11 +1,12 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { UserSession } from '../../backend/models';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+
+type Tab = 'activas' | 'historial';
 
 @Component({
   selector: 'app-admin-sesiones',
@@ -16,15 +17,22 @@ import { NotificationModalService } from '../../shared/ui/notification-modal/not
 })
 export class AdminSesiones implements OnInit, OnDestroy {
   private authService = inject(AuthService);
-  private http = inject(HttpClient);
   private router = inject(Router);
   private notificationModal = inject(NotificationModalService);
 
-  sesiones = signal<UserSession[]>([]);
+  private readonly HISTORIAL_PAGE_SIZE = 20;
+
+  tab = signal<Tab>('activas');
+
+  sesionesActivas = signal<UserSession[]>([]);
+  historial = signal<UserSession[]>([]);
+  historialTotal = signal(0);
+  private historialSkip = 0;
+
   cargando = signal(true);
+  cargandoMas = signal(false);
   error = signal<string | null>(null);
   filtroTexto = '';
-  filtroEstado: 'todas' | 'activas' | 'cerradas' = 'todas';
   refreshInterval: any;
 
   ngOnInit() {
@@ -32,8 +40,12 @@ export class AdminSesiones implements OnInit, OnDestroy {
       this.router.navigate(['/admin/inicio']);
       return;
     }
-    this.cargarSesiones();
-    this.refreshInterval = setInterval(() => this.cargarSesiones(), 30000);
+    this.cargarActivas();
+    this.refreshInterval = setInterval(() => {
+      if (this.tab() === 'activas') {
+        this.cargarActivas(false);
+      }
+    }, 30000);
   }
 
   ngOnDestroy() {
@@ -42,57 +54,97 @@ export class AdminSesiones implements OnInit, OnDestroy {
     }
   }
 
-  cargarSesiones() {
-    this.cargando.set(true);
-    this.authService.getAllSessions().subscribe({
-      next: (sesiones) => {
-        this.sesiones.set(sesiones || []);
+  cambiarTab(tab: Tab) {
+    if (this.tab() === tab) return;
+    this.tab.set(tab);
+    this.filtroTexto = '';
+    if (tab === 'activas') {
+      this.cargarActivas();
+    } else if (this.historial().length === 0) {
+      this.cargarHistorial(true);
+    }
+  }
+
+  cargarActivas(mostrarCarga = true) {
+    if (mostrarCarga) this.cargando.set(true);
+    this.error.set(null);
+    this.authService.getAllSessions({ estado: 'activas', limit: 500 }).subscribe({
+      next: (res) => {
+        this.sesionesActivas.set(res.sessions || []);
         this.cargando.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al cargar sesiones');
+        this.error.set(err.error?.error || 'Error al cargar sesiones activas');
         this.cargando.set(false);
       },
     });
   }
 
-  get sesionesFiltradas(): UserSession[] {
-    let resultado = this.sesiones();
+  cargarHistorial(reset: boolean) {
+    if (reset) {
+      this.historialSkip = 0;
+      this.cargando.set(true);
+    } else {
+      this.cargandoMas.set(true);
+    }
+    this.error.set(null);
+
+    this.authService
+      .getAllSessions({ estado: 'cerradas', limit: this.HISTORIAL_PAGE_SIZE, skip: this.historialSkip })
+      .subscribe({
+        next: (res) => {
+          this.historial.set(reset ? res.sessions || [] : [...this.historial(), ...(res.sessions || [])]);
+          this.historialTotal.set(res.total || 0);
+          this.cargando.set(false);
+          this.cargandoMas.set(false);
+        },
+        error: (err) => {
+          this.error.set(err.error?.error || 'Error al cargar historial de sesiones');
+          this.cargando.set(false);
+          this.cargandoMas.set(false);
+        },
+      });
+  }
+
+  cargarMasHistorial() {
+    this.historialSkip += this.HISTORIAL_PAGE_SIZE;
+    this.cargarHistorial(false);
+  }
+
+  refrescar() {
+    if (this.tab() === 'activas') {
+      this.cargarActivas();
+    } else {
+      this.cargarHistorial(true);
+    }
+  }
+
+  get hayMasHistorial(): boolean {
+    return this.historial().length < this.historialTotal();
+  }
+
+  private filtrar(sesiones: UserSession[]): UserSession[] {
     const texto = this.filtroTexto.toLowerCase().trim();
-
-    if (texto) {
-      resultado = resultado.filter(s =>
-        s.username?.toLowerCase().includes(texto) ||
-        s.email?.toLowerCase().includes(texto) ||
-        s.ip?.includes(texto) ||
-        s.device?.toLowerCase().includes(texto) ||
-        s.browser?.toLowerCase().includes(texto)
-      );
-    }
-
-    if (this.filtroEstado === 'activas') {
-      resultado = resultado.filter(s => s.active);
-    } else if (this.filtroEstado === 'cerradas') {
-      resultado = resultado.filter(s => !s.active);
-    }
-
-    return resultado;
+    if (!texto) return sesiones;
+    return sesiones.filter(s =>
+      s.username?.toLowerCase().includes(texto) ||
+      s.email?.toLowerCase().includes(texto) ||
+      s.ip?.includes(texto) ||
+      s.device?.toLowerCase().includes(texto) ||
+      s.browser?.toLowerCase().includes(texto)
+    );
   }
 
-  get sesionesActivas(): UserSession[] {
-    return this.sesionesFiltradas.filter(s => s.active);
+  get sesionesActivasFiltradas(): UserSession[] {
+    return this.filtrar(this.sesionesActivas());
   }
 
-  get sesionesCerradas(): UserSession[] {
-    return this.sesionesFiltradas.filter(s => !s.active);
+  get historialFiltrado(): UserSession[] {
+    return this.filtrar(this.historial());
   }
 
   onFiltroTextoChange(valor: string) {
     this.filtroTexto = valor;
-  }
-
-  onFiltroEstadoChange(valor: 'todas' | 'activas' | 'cerradas') {
-    this.filtroEstado = valor;
   }
 
   cerrarSesion(sesion: UserSession) {
@@ -103,7 +155,7 @@ export class AdminSesiones implements OnInit, OnDestroy {
     this.authService.terminateSession(sesion.id).subscribe({
       next: () => {
         this.notificationModal.success('Sesión cerrada correctamente');
-        this.cargarSesiones();
+        this.cargarActivas();
       },
       error: (err) => {
         this.notificationModal.error(err.error?.error || 'Error al cerrar sesión');
@@ -119,7 +171,7 @@ export class AdminSesiones implements OnInit, OnDestroy {
     this.authService.terminateAllUserSessions(userId).subscribe({
       next: () => {
         this.notificationModal.success('Todas las sesiones cerradas correctamente');
-        this.cargarSesiones();
+        this.cargarActivas();
       },
       error: (err) => {
         this.notificationModal.error(err.error?.error || 'Error al cerrar sesiones');
@@ -127,7 +179,7 @@ export class AdminSesiones implements OnInit, OnDestroy {
     });
   }
 
-  formatearFecha(fecha: string): string {
+  formatearFecha(fecha?: string): string {
     if (!fecha) return 'N/A';
     const date = new Date(fecha);
     return date.toLocaleString('es-VE', {
@@ -152,11 +204,23 @@ export class AdminSesiones implements OnInit, OnDestroy {
     }
   }
 
-  getActiveColor(active: boolean): string {
-    return active ? '#22c55e' : '#ef4444';
+  getCierreLabel(sesion: UserSession): string {
+    switch (sesion.closedReason) {
+      case 'logout': return 'Cierre de sesión';
+      case 'expired': return 'Expirada';
+      case 'admin': return 'Cerrada por un administrador';
+      case 'user': return 'Cerrada por el usuario';
+      default: return 'Cerrada';
+    }
   }
 
-  getActiveLabel(active: boolean): string {
-    return active ? 'Activa' : 'Cerrada';
+  getCierreIcon(sesion: UserSession): string {
+    switch (sesion.closedReason) {
+      case 'logout': return '🚪';
+      case 'expired': return '⏱️';
+      case 'admin': return '🛡️';
+      case 'user': return '🔒';
+      default: return '⏹️';
+    }
   }
 }

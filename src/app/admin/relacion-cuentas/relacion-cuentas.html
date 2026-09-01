@@ -514,6 +514,12 @@
               <option value="Pendiente">Pendiente</option>
               <option value="Pagado">Pagado</option>
             </select>
+            @if (editingAbono!.statusModificadoPor) {
+              <small class="status-auditoria">
+                Modificado por <strong>{{ editingAbono!.statusModificadoPor }}</strong>
+                el {{ formatFechaHoraVenezuela(editingAbono!.statusModificadoEn) }}
+              </small>
+            }
           </div>
           @if (esRoot()) {
             <div class="form-group">

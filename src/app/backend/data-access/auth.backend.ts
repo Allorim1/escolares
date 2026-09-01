@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
-import { User, UserSession } from '../models';
+import { User, UserSession, UserSessionsResponse } from '../models';
 import { TokenRenewalService } from '../../shared/data-access/token-renewal.service';
 
 @Injectable({
@@ -117,6 +117,18 @@ export class AuthBackend {
   }
 
   logout() {
+    const token = this.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    // Avisa al backend para que la sesión quede marcada como cerrada.
+    // No bloquea el logout local si falla (token ya vencido, sin red, etc.)
+    this.http.post(`${this.API_URL}/logout`, {}, { headers, withCredentials: true }).subscribe({
+      next: () => {},
+      error: () => {},
+    });
+
     // Stop token renewal service
     this.tokenRenewalService.stop();
     this.currentUser.set(null);
@@ -172,13 +184,17 @@ export class AuthBackend {
     return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
   }
 
-  getAllSessions() {
+  getAllSessions(params: { estado?: 'todas' | 'activas' | 'cerradas'; limit?: number; skip?: number } = {}) {
     const token = this.getToken();
     const headers: Record<string, string> = {};
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    return this.http.get<UserSession[]>(`${this.API_URL}/sessions`, { headers });
+    const queryParams: Record<string, string> = {};
+    if (params.estado) queryParams['estado'] = params.estado;
+    if (params.limit != null) queryParams['limit'] = String(params.limit);
+    if (params.skip != null) queryParams['skip'] = String(params.skip);
+    return this.http.get<UserSessionsResponse>(`${this.API_URL}/sessions`, { headers, params: queryParams });
   }
 
   getMySessions() {

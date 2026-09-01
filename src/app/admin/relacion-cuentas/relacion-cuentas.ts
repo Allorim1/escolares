@@ -34,6 +34,8 @@ interface Abono {
   tasa?: number;
   divisa?: number;
   status: string;
+  statusModificadoPor?: string;
+  statusModificadoEn?: string;
   supervisor?: string;
   supervisorId?: string;
   comisionPorcentaje?: number;
@@ -378,6 +380,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   gruposSeleccionadosModal = signal<string[]>([]);
   private _nombreACodgrupo1 = new Map<string, string>();
   private _cargandoMapaProductos = signal(false);
+  private _mapaProductosPromise: Promise<void> | null = null;
 
   comisiones = computed(() => {
     const abonos = this.abonosFiltradosConPendientes();
@@ -1977,6 +1980,20 @@ if (!url) return '';
     return `${dia}/${mes}/${anio}`;
   }
 
+  formatFechaHoraVenezuela(fecha?: string): string {
+    if (!fecha) return '';
+    const date = new Date(fecha);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleString('es-VE', {
+      timeZone: 'America/Caracas',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }) + ' (hora de Venezuela)';
+  }
+
   formatCedula(cedula: string): string {
     if (!cedula) return '';
     const digits = cedula.replace(/\D/g, '');
@@ -2779,10 +2796,10 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
 
    async generarReporteProductosPendientesPdf() {
      const abonos = this.abonosFiltradosConPendientes();
-     const gruposSeleccionados = this.grupoSeleccionado();
-     if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
-       this.cargarMapaNombreACodgrupo1();
-     }
+    const gruposSeleccionados = this.grupoSeleccionado();
+    if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
+      await this.cargarMapaNombreACodgrupo1();
+    }
      const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
      for (const abono of abonos) {
        const lista = abono.productosPendientes || [];
@@ -2881,24 +2898,24 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const abonos = this.abonosFiltradosConPendientes();
     const gruposSeleccionados = this.grupoSeleccionado();
     if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
-      this.cargarMapaNombreACodgrupo1();
+      await this.cargarMapaNombreACodgrupo1();
     }
-   const agrupado = new Map<string, { codigo: string; producto: string; cantidad: number }>();
-   for (const abono of abonos) {
-     const lista = abono.productosPendientes || [];
-     for (const prod of lista) {
-       const nombre = (prod.nombre || '').trim();
-       if (!nombre) continue;
-       if (gruposSeleccionados.length) {
-         const prodGrupo = this.obtenerCodgrupo1PorNombre(nombre);
-         if (!prodGrupo) continue;
-         const coincide = gruposSeleccionados.some(g => {
-           const grupo = String(g).trim();
-           return grupo === prodGrupo || grupo === prodGrupo.replace(/^0+/, '') || prodGrupo === grupo.replace(/^0+/, '');
-         });
-         if (!coincide) continue;
-       }
-       const cantidad = prod.cantidad ?? 1;
+    const agrupado = new Map<string, { codigo: string; producto: string; cantidad: number }>();
+    for (const abono of abonos) {
+      const lista = abono.productosPendientes || [];
+      for (const prod of lista) {
+        const nombre = (prod.nombre || '').trim();
+        if (!nombre) continue;
+        if (gruposSeleccionados.length) {
+          const prodGrupo = this.obtenerCodgrupo1PorNombre(nombre);
+          if (!prodGrupo) continue;
+          const coincide = gruposSeleccionados.some(g => {
+            const grupo = String(g).trim();
+            return grupo === prodGrupo || grupo === prodGrupo.replace(/^0+/, '') || prodGrupo === grupo.replace(/^0+/, '');
+          });
+          if (!coincide) continue;
+        }
+        const cantidad = prod.cantidad ?? 1;
        if (agrupado.has(nombre)) {
          agrupado.get(nombre)!.cantidad += cantidad;
        } else {
@@ -2988,7 +3005,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const abonos = this.abonosFiltradosConPendientes();
     const gruposSeleccionados = this.grupoSeleccionado();
     if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
-      this.cargarMapaNombreACodgrupo1();
+      await this.cargarMapaNombreACodgrupo1();
     }
     const filas: { fecha: string; empresa: string; planta: string; nombre: string; nFact: string; codigo: string; producto: string; cantidad: number }[] = [];
     for (const abono of abonos) {
@@ -3059,7 +3076,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const abonos = this.abonosFiltradosConPendientes();
     const gruposSeleccionados = this.grupoSeleccionado();
     if (gruposSeleccionados.length && this._nombreACodgrupo1.size === 0) {
-      this.cargarMapaNombreACodgrupo1();
+      await this.cargarMapaNombreACodgrupo1();
     }
     const agrupado = new Map<string, { codigo: string; producto: string; cantidad: number }>();
     for (const abono of abonos) {
@@ -3358,26 +3375,38 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     });
   }
 
-  cargarMapaNombreACodgrupo1() {
-    if (this._nombreACodgrupo1.size > 0 || this._cargandoMapaProductos()) return;
+  cargarMapaNombreACodgrupo1(): Promise<void> {
+    if (this._nombreACodgrupo1.size > 0) {
+      return Promise.resolve();
+    }
+    if (this._mapaProductosPromise) {
+      return this._mapaProductosPromise;
+    }
     this._cargandoMapaProductos.set(true);
-    this.http.get<InvProducto[]>('/api/inv-productos?all=true').subscribe({
-      next: (data) => {
-        const mapa = new Map<string, string>();
-        (data || []).forEach(p => {
-          const nombre = (p.nombre || '').trim();
-          const codgrupo1 = (p.codgrupo1 || '').trim();
-          if (nombre && codgrupo1) {
-            mapa.set(nombre, codgrupo1);
-          }
-        });
-        this._nombreACodgrupo1 = mapa;
-        this._cargandoMapaProductos.set(false);
-      },
-      error: () => {
-        this._cargandoMapaProductos.set(false);
-      },
+    this._mapaProductosPromise = new Promise((resolve) => {
+      this.http.get<InvProducto[]>('/api/inv-productos?all=true').subscribe({
+        next: (data) => {
+          const mapa = new Map<string, string>();
+          (data || []).forEach(p => {
+            const nombre = (p.nombre || '').trim();
+            const codgrupo1 = (p.codgrupo1 || '').trim();
+            if (nombre && codgrupo1) {
+              mapa.set(nombre, codgrupo1);
+            }
+          });
+          this._nombreACodgrupo1 = mapa;
+          this._cargandoMapaProductos.set(false);
+          this._mapaProductosPromise = null;
+          resolve();
+        },
+        error: () => {
+          this._cargandoMapaProductos.set(false);
+          this._mapaProductosPromise = null;
+          resolve();
+        },
+      });
     });
+    return this._mapaProductosPromise;
   }
 
   obtenerCodgrupo1PorNombre(nombre: string): string {

@@ -6,125 +6,186 @@
     <div class="no-access">
       <p>No tienes acceso a esta sección. Solo el usuario root puede gestionar sesiones.</p>
     </div>
-  } @else if (error()) {
-    <div class="error">{{ error() }}</div>
-  }
-
-  @if (cargando()) {
-    <div class="cargando">Cargando sesiones...</div>
   } @else {
+    @if (error()) {
+      <div class="error">{{ error() }}</div>
+    }
+
+    <div class="tabs-sesiones">
+      <button class="tab-btn" [class.activo]="tab() === 'activas'" (click)="cambiarTab('activas')">
+        🟢 Sesiones Activas
+        @if (!cargando() && tab() === 'activas') {
+          <span class="tab-count">{{ sesionesActivas().length }}</span>
+        }
+      </button>
+      <button class="tab-btn" [class.activo]="tab() === 'historial'" (click)="cambiarTab('historial')">
+        🕘 Historial de Sesiones
+        @if (tab() === 'historial') {
+          <span class="tab-count">{{ historialTotal() }}</span>
+        }
+      </button>
+    </div>
+
     <div class="filtros-sesiones">
       <div class="busqueda-container">
-        <input 
-          type="text" 
-          placeholder="Buscar por usuario, email, IP o dispositivo..." 
+        <input
+          type="text"
+          placeholder="Buscar por usuario, email, IP o dispositivo..."
           [value]="filtroTexto"
           (input)="onFiltroTextoChange($any($event.target).value)"
           class="busqueda-input"
         />
       </div>
-      <div class="filtro-estado-container">
-        <select 
-          [value]="filtroEstado"
-          (change)="onFiltroEstadoChange($any($event.target).value)"
-          class="filtro-estado-select"
-        >
-          <option value="todas">Todas</option>
-          <option value="activas">Activas</option>
-          <option value="cerradas">Cerradas</option>
-        </select>
-      </div>
-      <button class="btn-refrescar" (click)="cargarSesiones()">🔄 Actualizar</button>
+      <button class="btn-refrescar" (click)="refrescar()">🔄 Actualizar</button>
     </div>
 
-    <div class="estadisticas">
-      <div class="stat-card activas">
-        <span class="stat-number">{{ sesionesActivas.length }}</span>
-        <span class="stat-label">Sesiones Activas</span>
-      </div>
-      <div class="stat-card cerradas">
-        <span class="stat-number">{{ sesionesCerradas.length }}</span>
-        <span class="stat-label">Sesiones Cerradas</span>
-      </div>
-      <div class="stat-card total">
-        <span class="stat-number">{{ sesionesFiltradas.length }}</span>
-        <span class="stat-label">Total</span>
-      </div>
-    </div>
-
-    <div class="sesiones-lista">
-      @if (sesionesFiltradas.length === 0) {
-        <div class="no-data">No hay sesiones registradas</div>
-      } @else {
-        @for (sesion of sesionesFiltradas; track sesion.id) {
-          <div class="sesion-card" [class.inactiva]="!sesion.active">
-            <div class="sesion-header">
-              <div class="sesion-usuario">
-                <span class="usuario-icon">👤</span>
-                <div class="usuario-info">
-                  <span class="usuario-nombre">{{ sesion.username }}</span>
-                  <span class="usuario-email">{{ sesion.email }}</span>
+    @if (cargando()) {
+      <div class="cargando">Cargando sesiones...</div>
+    } @else if (tab() === 'activas') {
+      <div class="sesiones-lista">
+        @if (sesionesActivasFiltradas.length === 0) {
+          <div class="no-data">No hay sesiones activas en este momento</div>
+        } @else {
+          @for (sesion of sesionesActivasFiltradas; track sesion.id) {
+            <div class="sesion-card">
+              <div class="sesion-header">
+                <div class="sesion-usuario">
+                  <span class="usuario-icon">👤</span>
+                  <div class="usuario-info">
+                    <span class="usuario-nombre">{{ sesion.username }}</span>
+                    <span class="usuario-email">{{ sesion.email }}</span>
+                  </div>
+                </div>
+                <div class="sesion-estado">
+                  <span class="estado-badge activa">Activa</span>
                 </div>
               </div>
-              <div class="sesion-estado">
-                <span class="estado-badge" [style.background-color]="getActiveColor(sesion.active)">
-                  {{ getActiveLabel(sesion.active) }}
-                </span>
-              </div>
-            </div>
 
-            <div class="sesion-detalles">
-              <div class="detalle-item">
-                <span class="detalle-icon">{{ getDeviceIcon(sesion.device) }}</span>
-                <span class="detalle-label">Dispositivo:</span>
-                <span class="detalle-valor">{{ sesion.device || 'Desconocido' }}</span>
+              <div class="sesion-detalles">
+                <div class="detalle-item">
+                  <span class="detalle-icon">{{ getDeviceIcon(sesion.device) }}</span>
+                  <span class="detalle-label">Dispositivo:</span>
+                  <span class="detalle-valor">{{ sesion.device || 'Desconocido' }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-icon">🌐</span>
+                  <span class="detalle-label">IP:</span>
+                  <span class="detalle-valor">{{ sesion.ip || 'N/A' }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-icon">🧭</span>
+                  <span class="detalle-label">Navegador:</span>
+                  <span class="detalle-valor">{{ sesion.browser || 'Desconocido' }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-icon">💻</span>
+                  <span class="detalle-label">Sistema:</span>
+                  <span class="detalle-valor">{{ sesion.os || 'Desconocido' }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-icon">🔑</span>
+                  <span class="detalle-label">Rol:</span>
+                  <span class="detalle-valor">{{ sesion.rol }}</span>
+                </div>
               </div>
-              <div class="detalle-item">
-                <span class="detalle-icon">🌐</span>
-                <span class="detalle-label">IP:</span>
-                <span class="detalle-valor">{{ sesion.ip || 'N/A' }}</span>
-              </div>
-              <div class="detalle-item">
-                <span class="detalle-icon">🧭</span>
-                <span class="detalle-label">Navegador:</span>
-                <span class="detalle-valor">{{ sesion.browser || 'Desconocido' }}</span>
-              </div>
-              <div class="detalle-item">
-                <span class="detalle-icon">💻</span>
-                <span class="detalle-label">Sistema:</span>
-                <span class="detalle-valor">{{ sesion.os || 'Desconocido' }}</span>
-              </div>
-              <div class="detalle-item">
-                <span class="detalle-icon">🔑</span>
-                <span class="detalle-label">Rol:</span>
-                <span class="detalle-valor">{{ sesion.rol }}</span>
-              </div>
-            </div>
 
-            <div class="sesion-fechas">
-              <div class="fecha-item">
-                <span class="fecha-label">Creada:</span>
-                <span class="fecha-valor">{{ formatearFecha(sesion.createdAt) }}</span>
+              <div class="sesion-fechas">
+                <div class="fecha-item">
+                  <span class="fecha-label">Iniciada:</span>
+                  <span class="fecha-valor">{{ formatearFecha(sesion.createdAt) }}</span>
+                </div>
+                <div class="fecha-item">
+                  <span class="fecha-label">Última actividad:</span>
+                  <span class="fecha-valor">{{ formatearFecha(sesion.lastActive) }}</span>
+                </div>
+                <div class="fecha-item">
+                  <span class="fecha-label">Expira:</span>
+                  <span class="fecha-valor">{{ formatearFecha(sesion.expiresAt) }}</span>
+                </div>
               </div>
-              <div class="fecha-item">
-                <span class="fecha-label">Última actividad:</span>
-                <span class="fecha-valor">{{ formatearFecha(sesion.lastActive) }}</span>
-              </div>
-            </div>
 
-            <div class="sesion-acciones">
-              @if (sesion.active) {
+              <div class="sesion-acciones">
                 <button class="btn-cerrar-sesion" (click)="cerrarSesion(sesion)">
                   🔒 Cerrar Sesión
                 </button>
                 <button class="btn-cerrar-todas" (click)="cerrarTodasSesionesUsuario(sesion.userId, sesion.username)">
                   🔒 Cerrar Todas
                 </button>
-              }
+              </div>
             </div>
-          </div>
+          }
         }
+      </div>
+    } @else {
+      <div class="sesiones-lista">
+        @if (historialFiltrado.length === 0) {
+          <div class="no-data">No hay sesiones cerradas registradas</div>
+        } @else {
+          @for (sesion of historialFiltrado; track sesion.id) {
+            <div class="sesion-card inactiva">
+              <div class="sesion-header">
+                <div class="sesion-usuario">
+                  <span class="usuario-icon">👤</span>
+                  <div class="usuario-info">
+                    <span class="usuario-nombre">{{ sesion.username }}</span>
+                    <span class="usuario-email">{{ sesion.email }}</span>
+                  </div>
+                </div>
+                <div class="sesion-estado">
+                  <span class="estado-badge cerrada">{{ getCierreIcon(sesion) }} {{ getCierreLabel(sesion) }}</span>
+                </div>
+              </div>
+
+              <div class="sesion-detalles">
+                <div class="detalle-item">
+                  <span class="detalle-icon">{{ getDeviceIcon(sesion.device) }}</span>
+                  <span class="detalle-label">Dispositivo:</span>
+                  <span class="detalle-valor">{{ sesion.device || 'Desconocido' }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-icon">🌐</span>
+                  <span class="detalle-label">IP:</span>
+                  <span class="detalle-valor">{{ sesion.ip || 'N/A' }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-icon">🧭</span>
+                  <span class="detalle-label">Navegador:</span>
+                  <span class="detalle-valor">{{ sesion.browser || 'Desconocido' }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-icon">💻</span>
+                  <span class="detalle-label">Sistema:</span>
+                  <span class="detalle-valor">{{ sesion.os || 'Desconocido' }}</span>
+                </div>
+                <div class="detalle-item">
+                  <span class="detalle-icon">🔑</span>
+                  <span class="detalle-label">Rol:</span>
+                  <span class="detalle-valor">{{ sesion.rol }}</span>
+                </div>
+              </div>
+
+              <div class="sesion-fechas">
+                <div class="fecha-item">
+                  <span class="fecha-label">Iniciada:</span>
+                  <span class="fecha-valor">{{ formatearFecha(sesion.createdAt) }}</span>
+                </div>
+                <div class="fecha-item">
+                  <span class="fecha-label">Cerrada:</span>
+                  <span class="fecha-valor">{{ formatearFecha(sesion.lastActive) }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      @if (hayMasHistorial) {
+        <div class="cargar-mas-container">
+          <button class="btn-cargar-mas" (click)="cargarMasHistorial()" [disabled]="cargandoMas()">
+            {{ cargandoMas() ? 'Cargando...' : 'Cargar más' }}
+          </button>
+        </div>
       }
-    </div>
+    }
   }
 </section>

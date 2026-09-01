@@ -51,18 +51,49 @@
   border-color: #2563eb;
 }
 
-.filtro-estado-container {
-  min-width: 150px;
+.tabs-sesiones {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.filtro-estado-select {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  background: white;
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #64748b;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn:hover {
+  color: #1e293b;
+}
+
+.tab-btn.activo {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.tab-count {
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tab-btn.activo .tab-count {
+  background: #2563eb;
+  color: white;
 }
 
 .btn-refrescar {
@@ -78,49 +109,6 @@
 
 .btn-refrescar:hover {
   background: #1d4ed8;
-}
-
-.estadisticas {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  flex: 1;
-  padding: 16px;
-  border-radius: 8px;
-  text-align: center;
-  border: 1px solid #e5e7eb;
-}
-
-.stat-card.activas {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-}
-
-.stat-card.cerradas {
-  background: #fef2f2;
-  border-color: #fecaca;
-}
-
-.stat-card.total {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-}
-
-.stat-number {
-  display: block;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.85rem;
-  color: #64748b;
-  margin-top: 4px;
 }
 
 .sesiones-lista {
@@ -186,6 +174,14 @@
   font-size: 0.8rem;
   font-weight: 600;
   color: white;
+}
+
+.estado-badge.activa {
+  background: #22c55e;
+}
+
+.estado-badge.cerrada {
+  background: #94a3b8;
 }
 
 .sesion-detalles {
@@ -278,10 +274,41 @@
   background: #d97706;
 }
 
+.cargar-mas-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.btn-cargar-mas {
+  padding: 10px 24px;
+  background: white;
+  color: #2563eb;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-cargar-mas:hover:not(:disabled) {
+  background: #eff6ff;
+}
+
+.btn-cargar-mas:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .filtros-sesiones {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .tabs-sesiones {
+    overflow-x: auto;
   }
 
   .sesion-header {
@@ -291,9 +318,5 @@
 
   .sesion-detalles {
     grid-template-columns: 1fr;
-  }
-
-  .estadisticas {
-    flex-direction: column;
   }
 }

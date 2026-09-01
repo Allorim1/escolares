@@ -78,4 +78,11 @@ export interface UserSession {
   active: boolean;
   createdAt: string;
   lastActive: string;
+  expiresAt?: string;
+  closedReason?: 'logout' | 'expired' | 'admin' | 'user';
+}
+
+export interface UserSessionsResponse {
+  sessions: UserSession[];
+  total: number;
 }

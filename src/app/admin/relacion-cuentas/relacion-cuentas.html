@@ -1051,6 +1051,17 @@
             Incluir total de facturas
           </label>
         </div>
+        <h4>Columnas adicionales</h4>
+        <div class="columnas-grid">
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="incluirColumnaTelefonoNombres()" (change)="incluirColumnaTelefonoNombres.set(!incluirColumnaTelefonoNombres())">
+            Incluir columna Teléfono
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="incluirColumnaCedulaNombres()" (change)="incluirColumnaCedulaNombres.set(!incluirColumnaCedulaNombres())">
+            Incluir columna Cédula
+          </label>
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModalTotalesPdfNombres()">Cancelar</button>
           <button type="button" class="btn-save" (click)="generarPdfNombresComisiones(); cerrarModalTotalesPdfNombres()">Generar PDF</button>

@@ -571,6 +571,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   incluirTotalesMontos = signal(false);
   incluirTotalesClientes = signal(false);
   incluirTotalesListas = signal(false);
+  incluirColumnaTelefonoNombres = signal(false);
+  incluirColumnaCedulaNombres = signal(false);
 
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
@@ -841,6 +843,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       const iva = abono.iva ?? 0;
       const comisionPorcentaje = abono.comisionPorcentaje ?? supervisor.comisionPorcentaje ?? 0;
       const planta = abono.planta || '';
+      const telefono = abono.telefono || '';
+      const cedula = abono.cedula || '';
       if (existente) {
         existente.cantidad++;
         existente.montoFactura += montoFactura;
@@ -851,11 +855,19 @@ export class RelacionCuentas implements OnInit, OnDestroy {
         if (!existente.planta && planta) {
           existente.planta = planta;
         }
+        if (!existente.telefono && telefono) {
+          existente.telefono = telefono;
+        }
+        if (!existente.cedula && cedula) {
+          existente.cedula = cedula;
+        }
         existente.abonos.push(abono);
       } else {
         acc.push({
           nombre,
           planta,
+          telefono,
+          cedula,
           cantidad: 1,
           montoFactura,
           iva,
@@ -2274,20 +2286,37 @@ if (!url) return '';
     doc.setTextColor(100);
     doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth / 2, infoY, { align: 'center' });
 
-    const head = [['Nombre', 'Planta', 'Cantidad', 'Monto Factura Bs', 'IVA', 'Monto Factura Sin Iva', 'Planta % (Bs.)', 'Planta % ($)']];
+    const columnasBase: { header: string; width: number }[] = [
+      { header: 'Nombre', width: 40 },
+      { header: 'Planta', width: 25 },
+    ];
+    if (this.incluirColumnaTelefonoNombres()) columnasBase.push({ header: 'Teléfono', width: 24 });
+    if (this.incluirColumnaCedulaNombres()) columnasBase.push({ header: 'Cédula', width: 22 });
+    columnasBase.push(
+      { header: 'Cantidad', width: 20 },
+      { header: 'Monto Factura Bs', width: 28 },
+      { header: 'IVA', width: 22 },
+      { header: 'Monto Factura Sin Iva', width: 32 },
+      { header: 'Planta % (Bs.)', width: 28 },
+      { header: 'Planta % ($)', width: 28 },
+    );
+
+    const head = [columnasBase.map((c) => c.header)];
     const body = nombres.map((n: any) => {
       const comBs = n.comision || 0;
       const comUsd = this.tasaActual() > 0 ? comBs / this.tasaActual() : 0;
-      return [
-        n.nombre || '',
-        n.planta || '-',
+      const fila = [n.nombre || '', n.planta || '-'];
+      if (this.incluirColumnaTelefonoNombres()) fila.push(this.formatTelefono(n.telefono || ''));
+      if (this.incluirColumnaCedulaNombres()) fila.push(this.formatCedula(n.cedula || ''));
+      fila.push(
         String(n.cantidad || 0),
         this.formatMonto(n.montoFactura || 0),
         this.formatMonto(n.iva || 0),
         this.formatMonto(n.montoFacturaSinIva || 0),
         this.formatMonto(comBs) + ' Bs',
         this.formatMonto(comUsd) + ' $',
-      ];
+      );
+      return fila;
     });
 
     if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
@@ -2297,20 +2326,25 @@ if (!url) return '';
       const totalIva = nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0);
       const totalMontoSinIva = nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0);
       const totalListas = nombres.reduce((sum: number, n: any) => sum + (n.cantidad || 0), 0);
-      body.push([
-        this.incluirTotalesClientes() ? `Totales: ${String(nombres.length)}` : 'Totales:',
-        '',
+      const filaTotales = [this.incluirTotalesClientes() ? `Totales: ${String(nombres.length)}` : 'Totales:', ''];
+      if (this.incluirColumnaTelefonoNombres()) filaTotales.push('');
+      if (this.incluirColumnaCedulaNombres()) filaTotales.push('');
+      filaTotales.push(
         this.incluirTotalesListas() ? String(totalListas) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoFactura) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalIva) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalMontoSinIva) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalComision) + ' Bs' : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) + ' $' : '',
-      ]);
+      );
+      body.push(filaTotales);
     }
 
     const marginBottom = 18;
     const marginSide = 35;
+
+    const columnStyles: Record<number, { cellWidth: number }> = {};
+    columnasBase.forEach((c, i) => { columnStyles[i] = { cellWidth: c.width }; });
 
     autoTable(doc, {
       startY: infoY + 14,
@@ -2331,16 +2365,7 @@ if (!url) return '';
       styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak', halign: 'center' },
       margin: { left: marginSide, right: marginSide, bottom: marginBottom },
       tableWidth: 'auto',
-      columnStyles: {
-        0: { cellWidth: 40 },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 28 },
-        4: { cellWidth: 22 },
-        5: { cellWidth: 32 },
-        6: { cellWidth: 28 },
-        7: { cellWidth: 28 },
-      },
+      columnStyles,
     });
 
 const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(/\s+/g, '_')}_${this.getFechaLocal()}.pdf`;
@@ -2352,6 +2377,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.incluirTotalesMontos.set(false);
     this.incluirTotalesClientes.set(false);
     this.incluirTotalesListas.set(false);
+    this.incluirColumnaTelefonoNombres.set(false);
+    this.incluirColumnaCedulaNombres.set(false);
     this.showModalTotalesPdfNombres.set(true);
   }
 
@@ -2375,13 +2402,21 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     const columnasBase = [
       { width: 30, header: 'Nombre' },
       { width: 25, header: 'Planta' },
+    ];
+    if (this.incluirColumnaTelefonoNombres()) {
+      columnasBase.push({ width: 16, header: 'Teléfono' });
+    }
+    if (this.incluirColumnaCedulaNombres()) {
+      columnasBase.push({ width: 16, header: 'Cédula' });
+    }
+    columnasBase.push(
       { width: 15, header: 'Cantidad' },
       { width: 22, header: 'Monto Factura Bs' },
       { width: 18, header: 'IVA' },
       { width: 28, header: 'Monto Factura Sin Iva' },
       { width: 22, header: 'Planta % (Bs.)' },
       { width: 22, header: 'Planta % ($)' },
-    ];
+    );
     if (this.incluirTotalesClientes()) {
       columnasBase.push({ width: 18, header: 'Total Clientes' });
     }
@@ -2402,16 +2437,17 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     nombres.forEach((n: any) => {
       const comBs = n.comision || 0;
       const comUsd = this.tasaActual() > 0 ? comBs / this.tasaActual() : 0;
-      const row = [
-        n.nombre || '',
-        n.planta || '-',
+      const row: (string | number)[] = [n.nombre || '', n.planta || '-'];
+      if (this.incluirColumnaTelefonoNombres()) row.push(this.formatTelefono(n.telefono || ''));
+      if (this.incluirColumnaCedulaNombres()) row.push(this.formatCedula(n.cedula || ''));
+      row.push(
         n.cantidad || 0,
         this.formatMonto(n.montoFactura || 0),
         this.formatMonto(n.iva || 0),
         this.formatMonto(n.montoFacturaSinIva || 0),
         this.formatMonto(comBs),
         this.formatMonto(comUsd),
-      ];
+      );
       if (this.incluirTotalesClientes()) {
         row.push(String(nombres.length));
       }
@@ -2427,16 +2463,17 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
       const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
       const totalComisionUsd = this.tasaActual() > 0 ? totalComision / this.tasaActual() : 0;
-      const totalRowData = [
-        '',
-        '',
+      const totalRowData = ['', ''];
+      if (this.incluirColumnaTelefonoNombres()) totalRowData.push('');
+      if (this.incluirColumnaCedulaNombres()) totalRowData.push('');
+      totalRowData.push(
         '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.iva || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(nombres.reduce((sum: number, n: any) => sum + (n.montoFacturaSinIva || 0), 0)) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalComision) : '',
         this.incluirTotalesMontos() ? this.formatMonto(totalComisionUsd) : '',
-      ];
+      );
       if (this.incluirTotalesClientes()) {
         totalRowData.push(String(nombres.length));
       }

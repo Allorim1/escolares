@@ -121,6 +121,10 @@ export class Cotizaciones implements OnInit {
     return this.currencyService.formatUsd(usd);
   }
 
+  getTasaActualTexto(): string {
+    return `Bs. ${this.currencyService.currentTasa().toFixed(2)} / $`;
+  }
+
   get cotizaciones() {
     return this.cotizacionService.cotizaciones();
   }

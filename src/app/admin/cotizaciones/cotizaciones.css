@@ -263,14 +263,11 @@
   min-width: 0;
 }
 
-.tasa-actual-label {
-  margin-top: 12px;
-}
-
-.input-readonly {
-  background: #f3f4f6;
+.tasa-actual-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
   color: #6b7280;
-  cursor: not-allowed;
 }
 
 .form-group textarea {

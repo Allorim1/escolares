@@ -172,6 +172,7 @@
                      <input id="cotizacion-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" (ngModelChange)="onEditingItemPrecioBsChange()" min="0" step="0.01" placeholder="Bs." title="Precio en Bs." enterFocusNext>
                      <input id="cotizacion-edit-precio-usd" type="number" [(ngModel)]="editingItemPrecioUsd" (ngModelChange)="onEditingItemPrecioUsdChange()" min="0" step="0.01" placeholder="$" title="Precio en $ (referencial, según tasa actual)" enterFocusNext>
                    </div>
+                   <span class="tasa-actual-hint">Tasa Actual: {{ getTasaActualTexto() }}</span>
                  </div>
                </div>
                <div class="form-row">
@@ -213,6 +214,7 @@
                      <input id="cotizacion-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" (ngModelChange)="onNewItemPrecioBsChange()" min="0" step="0.01" placeholder="Bs." title="Precio en Bs." enterFocusNext>
                      <input id="cotizacion-nuevo-precio-usd" type="number" [(ngModel)]="newItemPrecioUsd" (ngModelChange)="onNewItemPrecioUsdChange()" min="0" step="0.01" placeholder="$" title="Precio en $ (referencial, según tasa actual)" enterFocusNext>
                    </div>
+                   <span class="tasa-actual-hint">Tasa Actual: {{ getTasaActualTexto() }}</span>
                  </div>
                </div>
                <div class="form-row">
@@ -297,8 +299,6 @@
              <div class="form-group">
                <label for="cotizacion-iva">% IVA</label>
                 <input id="cotizacion-iva" type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
-                <label for="cotizacion-tasa-actual" class="tasa-actual-label">Tasa Actual</label>
-                <input id="cotizacion-tasa-actual" type="text" class="input-readonly" [value]="'Bs. ' + (currencyService.currentTasa() | number:'1.2-2') + ' / $'" readonly tabindex="-1">
              </div>
           </div>
           <div class="totales-display">
@@ -388,6 +388,7 @@
                      <input id="nota-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" (ngModelChange)="onEditingItemPrecioBsChange()" min="0" step="0.01" placeholder="Bs." title="Precio en Bs." enterFocusNext>
                      <input id="nota-edit-precio-usd" type="number" [(ngModel)]="editingItemPrecioUsd" (ngModelChange)="onEditingItemPrecioUsdChange()" min="0" step="0.01" placeholder="$" title="Precio en $ (referencial, según tasa actual)" enterFocusNext>
                    </div>
+                   <span class="tasa-actual-hint">Tasa Actual: {{ getTasaActualTexto() }}</span>
                  </div>
                </div>
                <div class="form-row">
@@ -429,6 +430,7 @@
                      <input id="nota-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" (ngModelChange)="onNewItemPrecioBsChange()" min="0" step="0.01" placeholder="Bs." title="Precio en Bs." enterFocusNext>
                      <input id="nota-nuevo-precio-usd" type="number" [(ngModel)]="newItemPrecioUsd" (ngModelChange)="onNewItemPrecioUsdChange()" min="0" step="0.01" placeholder="$" title="Precio en $ (referencial, según tasa actual)" enterFocusNext>
                    </div>
+                   <span class="tasa-actual-hint">Tasa Actual: {{ getTasaActualTexto() }}</span>
                  </div>
                </div>
                <div class="form-row">
@@ -513,8 +515,6 @@
              <div class="form-group">
                <label for="nota-iva">% IVA</label>
                 <input id="nota-iva" type="number" [(ngModel)]="newNotaEntrega.totales.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
-                <label for="nota-tasa-actual" class="tasa-actual-label">Tasa Actual</label>
-                <input id="nota-tasa-actual" type="text" class="input-readonly" [value]="'Bs. ' + (currencyService.currentTasa() | number:'1.2-2') + ' / $'" readonly tabindex="-1">
              </div>
           </div>
           <div class="totales-display">

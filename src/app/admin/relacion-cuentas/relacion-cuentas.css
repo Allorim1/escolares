@@ -51,6 +51,30 @@
   align-items: flex-end;
 }
 
+.buscar-monto-btn-row {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.btn-buscar-monto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f4fa;
+  border: 1px solid #cfe0f5;
+  color: #1d63c1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-buscar-monto:hover {
+  background: #e2ecf9;
+  border-color: #1d63c1;
+}
+
 .filtros-pdf {
   display: flex;
   gap: 15px;

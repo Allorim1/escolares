@@ -320,6 +320,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   reporteProductosPendientesExcel = signal(false);
   reporteSolicitudPendientesExcel = signal(false);
   showModalSender = signal(false);
+  showModalBuscarMonto = signal(false);
+  tipoBusquedaMonto = signal<'montoFactura' | 'diferencia'>('montoFactura');
+  montoBusquedaValor = signal(0);
   showModalTicket = signal(false);
   ticketGenero = '';
   ticketCiclo = '';
@@ -697,6 +700,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       this.cerrarModalPendientes();
     } else if (this.showModalSender()) {
       this.cerrarModalSender();
+    } else if (this.showModalBuscarMonto()) {
+      this.cerrarModalBuscarMonto();
     } else if (this.showModalAbonos()) {
       this.cerrarModalAbonos();
     } else if (this.showModalSupervisoresRelaciones()) {
@@ -1067,6 +1072,43 @@ export class RelacionCuentas implements OnInit, OnDestroy {
 
   cerrarModalSender() {
     this.showModalSender.set(false);
+  }
+
+  abrirModalBuscarMonto() {
+    this.tipoBusquedaMonto.set('montoFactura');
+    this.montoBusquedaValor.set(0);
+    this.showModalBuscarMonto.set(true);
+  }
+
+  cerrarModalBuscarMonto() {
+    this.showModalBuscarMonto.set(false);
+  }
+
+  actualizarMontoBusqueda(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const valor = this.parsearMontoInput(input.value);
+    this.montoBusquedaValor.set(valor);
+    input.value = this.formatearMontoInput(valor);
+  }
+
+  buscarRelacionPorMonto() {
+    const valor = this.montoBusquedaValor();
+    if (!valor) {
+      this.notificationModal.error('Ingrese un monto para buscar');
+      return;
+    }
+    const campo = this.tipoBusquedaMonto();
+    const etiqueta = campo === 'montoFactura' ? 'Monto Facts. Bs' : 'Diferencia Bs';
+    const candidatos = this.abonos().filter((a) => Math.abs((a[campo] ?? 0) - valor) < 0.01);
+    if (candidatos.length === 0) {
+      this.notificationModal.error(`No se encontró ninguna relación con ${etiqueta} = ${this.formatMonto(valor)}`);
+      return;
+    }
+    this.cerrarModalBuscarMonto();
+    if (candidatos.length > 1) {
+      this.notificationModal.success(`Se encontraron ${candidatos.length} relaciones con ${etiqueta} = ${this.formatMonto(valor)}. Mostrando la primera.`);
+    }
+    this.abrirModal(candidatos[0]);
   }
 
   toggleColumnaPdf(key: string) {
@@ -2357,6 +2399,7 @@ if (!url) return '';
     });
 
     if (this.incluirTotalesMontos() || this.incluirTotalesClientes() || this.incluirTotalesListas()) {
+      
       const totalComision = nombres.reduce((sum: number, n: any) => sum + (n.comision || 0), 0);
       const totalComisionUsd = this.tasaActual() > 0 ? totalComision / this.tasaActual() : 0;
       const totalMontoFactura = nombres.reduce((sum: number, n: any) => sum + (n.montoFactura || 0), 0);

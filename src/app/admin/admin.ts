@@ -189,6 +189,12 @@ export class Admin implements OnInit {
            this.userPermissions.set(permisosIds);
            this.setCategoriesWithExpanded();
            this.setQuickItems();
+         },
+         error: (err) => {
+           console.error('Error cargando permisos (root):', err);
+           this.userPermissions.set([]);
+           this.setCategoriesWithExpanded();
+           this.setQuickItems();
          }
        });
      } else if (user.rolId) {

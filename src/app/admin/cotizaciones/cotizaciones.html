@@ -297,6 +297,8 @@
              <div class="form-group">
                <label for="cotizacion-iva">% IVA</label>
                 <input id="cotizacion-iva" type="number" [(ngModel)]="newCotizacion.totales.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
+                <label for="cotizacion-tasa-actual" class="tasa-actual-label">Tasa Actual</label>
+                <input id="cotizacion-tasa-actual" type="text" class="input-readonly" [value]="'Bs. ' + (currencyService.currentTasa() | number:'1.2-2') + ' / $'" readonly tabindex="-1">
              </div>
           </div>
           <div class="totales-display">
@@ -511,6 +513,8 @@
              <div class="form-group">
                <label for="nota-iva">% IVA</label>
                 <input id="nota-iva" type="number" [(ngModel)]="newNotaEntrega.totales.ivaPorcentaje" min="0" max="100" step="1" enterFocusNext>
+                <label for="nota-tasa-actual" class="tasa-actual-label">Tasa Actual</label>
+                <input id="nota-tasa-actual" type="text" class="input-readonly" [value]="'Bs. ' + (currencyService.currentTasa() | number:'1.2-2') + ' / $'" readonly tabindex="-1">
              </div>
           </div>
           <div class="totales-display">

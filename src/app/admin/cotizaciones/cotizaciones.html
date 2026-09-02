@@ -534,3 +534,21 @@
     </div>
   </div>
 }
+
+@if (mostrarSeleccionMonedaPdf) {
+  <div class="modal-overlay">
+    <div class="modal modal-moneda-pdf" tabindex="0" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Generar PDF</h3>
+        <button class="btn-cerrar" (click)="cancelarSeleccionMonedaPdf()" (keyup.enter)="cancelarSeleccionMonedaPdf()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Selecciona la moneda en la que deseas generar el PDF:</p>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="generarPdfConMoneda('BS')" (keyup.enter)="generarPdfConMoneda('BS')">Bolívares (Bs.)</button>
+          <button class="btn-primary" (click)="generarPdfConMoneda('USD')" (keyup.enter)="generarPdfConMoneda('USD')">Dólares ($)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

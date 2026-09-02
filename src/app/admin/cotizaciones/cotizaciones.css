@@ -156,6 +156,10 @@
   overflow-y: auto;
 }
 
+.modal-moneda-pdf {
+  max-width: 380px;
+}
+
 .modal {
   background: white;
   border-radius: 12px;

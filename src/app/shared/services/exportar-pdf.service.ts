@@ -119,13 +119,20 @@ private rotarImagen90(imageBase64: string): Promise<string> {
   });
 }
 
-async generarCotizacionPdf(data: Cotizacion) {
+async generarCotizacionPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
     let logoBase64 = '';
     try {
       logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
     } catch (e) {
       console.warn('No se pudo cargar el logo:', e);
     }
+
+    const tasa = this.currencyService.currentTasa();
+    const esUsd = moneda === 'USD' && tasa > 0;
+    const simbolo = esUsd ? '$' : 'Bs.';
+    const convertir = (valorBs: number) => (esUsd ? valorBs / tasa : valorBs);
+    const formatearMonto = (valorBs: number) =>
+      convertir(valorBs).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const MAX_ARTICULOS = 12;
     const articulosActuales = data.items ? data.items.length : 0;
@@ -275,17 +282,17 @@ async generarCotizacionPdf(data: Cotizacion) {
                 { text: 'CODIGO', style: 'headerCen' },
                 { text: 'CANTIDAD', style: 'headerCen', alignment: 'center' },
                 { text: 'D E S C R I P C I O N', style: 'headerCen' },
-                { text: 'P. UNITARIO Bs.', style: 'headers', alignment: 'right' },
-                { text: 'MONTO TOTAL Bs.', style: 'headers', alignment: 'right' }
+                { text: `P. UNITARIO ${simbolo}`, style: 'headers', alignment: 'right' },
+                { text: `MONTO TOTAL ${simbolo}`, style: 'headers', alignment: 'right' }
               ],
-              
+
               // Artículos dinámicos
               ...data.items.map(item => [
                 { text: item.codigo, alignment: 'left', style: 'tdMini', border: [true, false, true, false] },
                 { text: item.cantidad.toString(), alignment: 'center', style: 'tdMini', border: [true, false, true, false] },
                 { text: item.descripcion, style: 'tdMini', border: [true, false, true, false] },
-                { text: item.precioUnitarioBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] },
-                { text: item.montoTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), alignment: 'right', style: 'tdMini', border: [true, false, true, false] }
+                { text: formatearMonto(item.precioUnitarioBs), alignment: 'right', style: 'tdMini', border: [true, false, true, false] },
+                { text: formatearMonto(item.montoTotalBs), alignment: 'right', style: 'tdMini', border: [true, false, true, false] }
               ]),
 
               // Fila de relleno para espaciado
@@ -314,34 +321,34 @@ async generarCotizacionPdf(data: Cotizacion) {
                   border: [false, false, false, false],
                   margin: [0, 6, 10, 0]
                 },
-                '', '', 
-                { text: 'NETO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.netoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+                '', '',
+                { text: `NETO ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(data.totales.netoBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
-                { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.descuentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+                '', '', '',
+                { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(data.totales.descuentoBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
-                { text: 'SUB TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.subTotalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+                '', '', '',
+                { text: `SUB TOTAL ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(data.totales.subTotalBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
-                { text: `I.V.A. ${data.totales.ivaPorcentaje}% Bs.`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: ivaCalculado.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+                '', '', '',
+                { text: `I.V.A. ${data.totales.ivaPorcentaje}% ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(ivaCalculado), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
-                { text: 'EXENTO Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.exentoBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+                '', '', '',
+                { text: `EXENTO ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(data.totales.exentoBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
-                '', '', '', 
-                { text: 'TOTAL Bs.', style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: data.totales.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA', border: [true, true, true, true] }
+                '', '', '',
+                { text: `TOTAL ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(data.totales.totalBs), style: 'valorTotalBoldDerecha', fillColor: '#EAEAEA', border: [true, true, true, true] }
               ]
             ]
           },
@@ -428,9 +435,9 @@ tablaComercial: {
     return docDefinition;
   }
 
-  async generarYAbrirPdf(data: Cotizacion) {
+  async generarYAbrirPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
     try {
-      const docDefinition = await this.generarCotizacionPdf(data);
+      const docDefinition = await this.generarCotizacionPdf(data, moneda);
       pdfMake.createPdf(docDefinition).open();
     } catch (error) {
       console.error('Error generando PDF:', error);

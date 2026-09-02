@@ -42,6 +42,9 @@ export class Cotizaciones implements OnInit {
   editingCotizacion: Cotizacion | null = null;
   editingNotaEntrega: NotaEntrega | null = null;
 
+  mostrarSeleccionMonedaPdf = false;
+  pdfPendiente: { tipo: 'cotizacion' | 'nota'; item: Cotizacion | NotaEntrega } | null = null;
+
   newCotizacion: Cotizacion = {
     numeroCotizacion: '',
     fecha: new Date().toISOString().split('T')[0],
@@ -118,7 +121,11 @@ export class Cotizaciones implements OnInit {
   formatCurrencyUsd(bs: number): string {
     const tasa = this.currencyService.currentTasa();
     const usd = tasa > 0 ? bs / tasa : 0;
-    return this.currencyService.formatUsd(usd);
+    const formatted = new Intl.NumberFormat('es-VE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(usd);
+    return `$ ${formatted}`;
   }
 
   getTasaActualTexto(): string {
@@ -177,7 +184,8 @@ export class Cotizaciones implements OnInit {
   }
 
   generatePdfFromRow(cotizacion: Cotizacion) {
-    this.exportarPdfService.generarYAbrirPdf(cotizacion);
+    this.pdfPendiente = { tipo: 'cotizacion', item: cotizacion };
+    this.mostrarSeleccionMonedaPdf = true;
   }
 
   closeModal() {
@@ -445,12 +453,11 @@ export class Cotizaciones implements OnInit {
   }
 
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-VE', {
-      style: 'currency',
-      currency: 'VES',
+    const formatted = new Intl.NumberFormat('es-VE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
+    return `Bs. ${formatted}`;
   }
 
   // --- Nota de Entrega ---
@@ -526,7 +533,27 @@ export class Cotizaciones implements OnInit {
   }
 
   generatePdfNotaEntrega(nota: NotaEntrega) {
-    this.exportarPdfNotaEntregaService.generarYAbrirPdf(nota);
+    this.pdfPendiente = { tipo: 'nota', item: nota };
+    this.mostrarSeleccionMonedaPdf = true;
+  }
+
+  generarPdfConMoneda(moneda: 'BS' | 'USD') {
+    if (!this.pdfPendiente) {
+      return;
+    }
+
+    if (this.pdfPendiente.tipo === 'cotizacion') {
+      this.exportarPdfService.generarYAbrirPdf(this.pdfPendiente.item as Cotizacion, moneda);
+    } else {
+      this.exportarPdfNotaEntregaService.generarYAbrirPdf(this.pdfPendiente.item as NotaEntrega, moneda);
+    }
+
+    this.cancelarSeleccionMonedaPdf();
+  }
+
+  cancelarSeleccionMonedaPdf() {
+    this.mostrarSeleccionMonedaPdf = false;
+    this.pdfPendiente = null;
   }
 
   addItemNotaEntrega() {

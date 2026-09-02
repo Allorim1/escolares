@@ -410,8 +410,8 @@
   }
 
   @if (showModalBuscarMonto()) {
-    <div class="modal-overlay" (click)="cerrarModalBuscarMonto()">
-      <div class="modal modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-overlay">
+      <div class="modal modal-small">
         <div class="modal-header">
           <h2>Buscar Relación por Monto</h2>
           <button type="button" class="btn-cerrar" (click)="cerrarModalBuscarMonto()">✕</button>

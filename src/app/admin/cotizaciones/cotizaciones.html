@@ -167,8 +167,11 @@
                     <input id="cotizacion-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo" enterFocusNext>
                  </div>
                  <div class="form-group">
-                   <label for="cotizacion-edit-precio">Precio Unitario Bs.</label>
-                    <input id="cotizacion-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01" enterFocusNext>
+                   <label for="cotizacion-edit-precio">Precio Unitario</label>
+                   <div class="precio-dual">
+                     <input id="cotizacion-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" (ngModelChange)="onEditingItemPrecioBsChange()" min="0" step="0.01" placeholder="Bs." title="Precio en Bs." enterFocusNext>
+                     <input id="cotizacion-edit-precio-usd" type="number" [(ngModel)]="editingItemPrecioUsd" (ngModelChange)="onEditingItemPrecioUsdChange()" min="0" step="0.01" placeholder="$" title="Precio en $ (referencial, según tasa actual)" enterFocusNext>
+                   </div>
                  </div>
                </div>
                <div class="form-row">
@@ -205,8 +208,11 @@
                    <input id="cotizacion-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo" enterFocusNext>
                  </div>
                  <div class="form-group">
-                   <label for="cotizacion-nuevo-precio">Precio Unitario Bs.</label>
-                   <input id="cotizacion-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01" enterFocusNext>
+                   <label for="cotizacion-nuevo-precio">Precio Unitario</label>
+                   <div class="precio-dual">
+                     <input id="cotizacion-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" (ngModelChange)="onNewItemPrecioBsChange()" min="0" step="0.01" placeholder="Bs." title="Precio en Bs." enterFocusNext>
+                     <input id="cotizacion-nuevo-precio-usd" type="number" [(ngModel)]="newItemPrecioUsd" (ngModelChange)="onNewItemPrecioUsdChange()" min="0" step="0.01" placeholder="$" title="Precio en $ (referencial, según tasa actual)" enterFocusNext>
+                   </div>
                  </div>
                </div>
                <div class="form-row">
@@ -294,11 +300,11 @@
              </div>
           </div>
           <div class="totales-display">
-            <div class="total-row"><span>Neto:</span> <span>{{ formatCurrency(newCotizacion.totales.netoBs) }}</span></div>
-            <div class="total-row"><span>Descuento:</span> <span>{{ formatCurrency(newCotizacion.totales.descuentoBs) }}</span></div>
-            <div class="total-row"><span>Sub Total:</span> <span>{{ formatCurrency(newCotizacion.totales.subTotalBs) }}</span></div>
-            <div class="total-row"><span>I.V.A.:</span> <span>{{ formatCurrency(newCotizacion.totales.ivaBs) }}</span></div>
-            <div class="total-row total-bold"><span>Total Bs.:</span> <span>{{ formatCurrency(newCotizacion.totales.totalBs) }}</span></div>
+            <div class="total-row"><span>Neto:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.netoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.netoBs) }}</span></div>
+            <div class="total-row"><span>Descuento:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.descuentoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.descuentoBs) }}</span></div>
+            <div class="total-row"><span>Sub Total:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.subTotalBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.subTotalBs) }}</span></div>
+            <div class="total-row"><span>I.V.A.:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.ivaBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.ivaBs) }}</span></div>
+            <div class="total-row total-bold"><span>Total:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.totalBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.totalBs) }}</span></div>
           </div>
         </div>
 
@@ -375,8 +381,11 @@
                     <input id="nota-edit-descripcion" type="text" [(ngModel)]="editingItem.descripcion" placeholder="Descripción del artículo" enterFocusNext>
                  </div>
                  <div class="form-group">
-                   <label for="nota-edit-precio">Precio Unitario Bs.</label>
-                    <input id="nota-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" min="0" step="0.01" enterFocusNext>
+                   <label for="nota-edit-precio">Precio Unitario</label>
+                   <div class="precio-dual">
+                     <input id="nota-edit-precio" type="number" [(ngModel)]="editingItem.precioUnitarioBs" (ngModelChange)="onEditingItemPrecioBsChange()" min="0" step="0.01" placeholder="Bs." title="Precio en Bs." enterFocusNext>
+                     <input id="nota-edit-precio-usd" type="number" [(ngModel)]="editingItemPrecioUsd" (ngModelChange)="onEditingItemPrecioUsdChange()" min="0" step="0.01" placeholder="$" title="Precio en $ (referencial, según tasa actual)" enterFocusNext>
+                   </div>
                  </div>
                </div>
                <div class="form-row">
@@ -413,8 +422,11 @@
                    <input id="nota-nuevo-descripcion" type="text" [(ngModel)]="newItem.descripcion" placeholder="Descripción del artículo" enterFocusNext>
                  </div>
                  <div class="form-group">
-                   <label for="nota-nuevo-precio">Precio Unitario Bs.</label>
-                   <input id="nota-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" min="0" step="0.01" enterFocusNext>
+                   <label for="nota-nuevo-precio">Precio Unitario</label>
+                   <div class="precio-dual">
+                     <input id="nota-nuevo-precio" type="number" [(ngModel)]="newItem.precioUnitarioBs" (ngModelChange)="onNewItemPrecioBsChange()" min="0" step="0.01" placeholder="Bs." title="Precio en Bs." enterFocusNext>
+                     <input id="nota-nuevo-precio-usd" type="number" [(ngModel)]="newItemPrecioUsd" (ngModelChange)="onNewItemPrecioUsdChange()" min="0" step="0.01" placeholder="$" title="Precio en $ (referencial, según tasa actual)" enterFocusNext>
+                   </div>
                  </div>
                </div>
                <div class="form-row">
@@ -502,11 +514,11 @@
              </div>
           </div>
           <div class="totales-display">
-            <div class="total-row"><span>Neto:</span> <span>{{ formatCurrency(newNotaEntrega.totales.netoBs) }}</span></div>
-            <div class="total-row"><span>Descuento:</span> <span>{{ formatCurrency(newNotaEntrega.totales.descuentoBs) }}</span></div>
-            <div class="total-row"><span>Sub Total:</span> <span>{{ formatCurrency(newNotaEntrega.totales.subTotalBs) }}</span></div>
-            <div class="total-row"><span>I.V.A.:</span> <span>{{ formatCurrency(newNotaEntrega.totales.ivaBs) }}</span></div>
-            <div class="total-row total-bold"><span>Total Bs.:</span> <span>{{ formatCurrency(newNotaEntrega.totales.totalBs) }}</span></div>
+            <div class="total-row"><span>Neto:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.netoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.netoBs) }}</span></div>
+            <div class="total-row"><span>Descuento:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.descuentoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.descuentoBs) }}</span></div>
+            <div class="total-row"><span>Sub Total:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.subTotalBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.subTotalBs) }}</span></div>
+            <div class="total-row"><span>I.V.A.:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.ivaBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.ivaBs) }}</span></div>
+            <div class="total-row total-bold"><span>Total:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.totalBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.totalBs) }}</span></div>
           </div>
         </div>
 

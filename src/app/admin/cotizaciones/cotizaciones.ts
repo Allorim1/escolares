@@ -5,6 +5,7 @@ import { CotizacionService } from '../../shared/data-access/cotizacion.service';
 import { NotaEntregaService } from '../../shared/data-access/nota-entrega.service';
 import { ExportarPdfService } from '../../shared/services/exportar-pdf.service';
 import { ExportarPdfNotaEntregaService } from '../../shared/services/exportar-pdf-nota-entrega.service';
+import { CurrencyService } from '../../shared/data-access/currency.service';
 import { Cotizacion, ItemCotizacion } from '../../shared/interfaces/cotizacion.interface';
 import { NotaEntrega } from '../../shared/interfaces/nota-entrega.interface';
 
@@ -20,6 +21,7 @@ export class Cotizaciones implements OnInit {
   notaEntregaService = inject(NotaEntregaService);
   exportarPdfService = inject(ExportarPdfService);
   exportarPdfNotaEntregaService = inject(ExportarPdfNotaEntregaService);
+  currencyService = inject(CurrencyService);
 
   @ViewChild('cotizacionModal') cotizacionModal!: ElementRef<HTMLElement>;
   @ViewChild('notaEntregaModal') notaEntregaModal!: ElementRef<HTMLElement>;
@@ -88,6 +90,36 @@ export class Cotizaciones implements OnInit {
     tieneIva: true,
     ivaPorcentaje: 16,
   };
+
+  // Campos visuales (no se guardan) para mostrar/editar el precio unitario en dólares
+  newItemPrecioUsd = 0;
+  editingItemPrecioUsd = 0;
+
+  onNewItemPrecioBsChange() {
+    const tasa = this.currencyService.currentTasa();
+    this.newItemPrecioUsd = tasa > 0 ? Math.round((this.newItem.precioUnitarioBs / tasa) * 100) / 100 : 0;
+  }
+
+  onNewItemPrecioUsdChange() {
+    const tasa = this.currencyService.currentTasa();
+    this.newItem.precioUnitarioBs = tasa > 0 ? Math.round(this.newItemPrecioUsd * tasa * 100) / 100 : 0;
+  }
+
+  onEditingItemPrecioBsChange() {
+    const tasa = this.currencyService.currentTasa();
+    this.editingItemPrecioUsd = tasa > 0 ? Math.round((this.editingItem.precioUnitarioBs / tasa) * 100) / 100 : 0;
+  }
+
+  onEditingItemPrecioUsdChange() {
+    const tasa = this.currencyService.currentTasa();
+    this.editingItem.precioUnitarioBs = tasa > 0 ? Math.round(this.editingItemPrecioUsd * tasa * 100) / 100 : 0;
+  }
+
+  formatCurrencyUsd(bs: number): string {
+    const tasa = this.currencyService.currentTasa();
+    const usd = tasa > 0 ? bs / tasa : 0;
+    return this.currencyService.formatUsd(usd);
+  }
 
   get cotizaciones() {
     return this.cotizacionService.cotizaciones();
@@ -189,6 +221,7 @@ export class Cotizaciones implements OnInit {
       tieneIva: true,
       ivaPorcentaje: 16,
     };
+    this.newItemPrecioUsd = 0;
     this.editingItemIndex = null;
     this.editingItem = {
       codigo: '',
@@ -199,6 +232,7 @@ export class Cotizaciones implements OnInit {
       tieneIva: true,
       ivaPorcentaje: 16,
     };
+    this.editingItemPrecioUsd = 0;
   }
 
   resetFormNotaEntrega() {
@@ -238,6 +272,7 @@ export class Cotizaciones implements OnInit {
       tieneIva: true,
       ivaPorcentaje: 16,
     };
+    this.newItemPrecioUsd = 0;
     this.editingItemIndex = null;
     this.editingItem = {
       codigo: '',
@@ -248,6 +283,7 @@ export class Cotizaciones implements OnInit {
       tieneIva: true,
       ivaPorcentaje: 16,
     };
+    this.editingItemPrecioUsd = 0;
   }
 
   saveCotizacion() {
@@ -286,9 +322,9 @@ export class Cotizaciones implements OnInit {
 
     this.newItem.montoTotalBs = this.newItem.cantidad * this.newItem.precioUnitarioBs;
     this.newCotizacion.items = [...this.newCotizacion.items, { ...this.newItem }];
-    
+
     this.calculateTotals();
-    
+
     this.newItem = {
       codigo: '',
       cantidad: 1,
@@ -298,6 +334,7 @@ export class Cotizaciones implements OnInit {
       tieneIva: true,
       ivaPorcentaje: 16,
     };
+    this.newItemPrecioUsd = 0;
   }
 
   startEditItem(index: number) {
@@ -309,6 +346,7 @@ export class Cotizaciones implements OnInit {
 
     this.editingItemIndex = index;
     this.editingItem = { ...item };
+    this.onEditingItemPrecioBsChange();
 
     setTimeout(() => this.focusNextField());
   }
@@ -340,6 +378,7 @@ export class Cotizaciones implements OnInit {
       tieneIva: true,
       ivaPorcentaje: 16,
     };
+    this.editingItemPrecioUsd = 0;
   }
 
   removeItem(index: number) {
@@ -494,9 +533,9 @@ export class Cotizaciones implements OnInit {
 
     this.newItem.montoTotalBs = this.newItem.cantidad * this.newItem.precioUnitarioBs;
     this.newNotaEntrega.items = [...this.newNotaEntrega.items, { ...this.newItem }];
-    
+
     this.calculateTotalsNotaEntrega();
-    
+
     this.newItem = {
       codigo: '',
       cantidad: 1,
@@ -506,6 +545,7 @@ export class Cotizaciones implements OnInit {
       tieneIva: true,
       ivaPorcentaje: 16,
     };
+    this.newItemPrecioUsd = 0;
   }
 
   startEditItemNotaEntrega(index: number) {
@@ -517,6 +557,7 @@ export class Cotizaciones implements OnInit {
 
     this.editingItemIndex = index;
     this.editingItem = { ...item };
+    this.onEditingItemPrecioBsChange();
 
     setTimeout(() => this.focusNextFieldNotaEntrega());
   }

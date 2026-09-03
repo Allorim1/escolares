@@ -60,14 +60,17 @@
 
   @if (pestanaActiva() === 'relaciones') {
     <div class="buscar-monto-btn-row">
-      <button type="button" class="btn-buscar-monto" (click)="abrirModalBuscarMonto()" title="Buscar relación por monto">
+      <div class="buscar-monto-inline">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="10.5" cy="10.5" r="6.5"></circle>
           <line x1="15.5" y1="15.5" x2="21" y2="21"></line>
           <text x="7.3" y="14" font-size="8.5" font-weight="700" stroke="none" fill="currentColor">$</text>
         </svg>
-        Buscar por monto
-      </button>
+        <input type="text" class="buscar-monto-input" [value]="formatearMontoInput(montoBusquedaValor())" (input)="actualizarMontoBusqueda($event)" (focus)="onMontoFocus($event)" (keydown.enter)="buscarRelacionPorMonto()" placeholder="Buscar relación por Monto Facts. o Diferencia (Bs)">
+        @if (montoBusquedaFiltro() !== null) {
+          <button type="button" class="btn-limpiar-busqueda-monto" (click)="limpiarBusquedaMonto()" title="Quitar filtro por monto">✕</button>
+        }
+      </div>
     </div>
     <div class="filtros">
     <div class="filtro-group">
@@ -169,9 +172,9 @@
       </thead>
       <tbody>
         @for (abono of abonosPaginados(); track abono._id) {
-          <tr style="cursor: pointer;" (click)="abrirModal(abono)">
+          <tr style="cursor: pointer;" [class.abono-destacado]="abonoDestacadoIds().has(abono._id || '')" (click)="abrirModal(abono)">
             @for (col of columnasVisibles(); track col.key) {
-              <td [class.iva-toggle]="col.key === 'iva'" [class.iva-pagado]="abono.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!abono.ivaPagado && col.key === 'iva'" (click)="onCeldaIvaClick(abono, $event)">{{ getValorAbono(abono, col.key) }}</td>
+              <td [class.iva-pagado]="abono.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!abono.ivaPagado && col.key === 'iva'">{{ getValorAbono(abono, col.key) }}</td>
             }
             <td class="actions">
               <button type="button" class="btn-edit" (click)="$event.stopPropagation(); abrirModal(abono)">Editar</button>
@@ -405,34 +408,6 @@
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  }
-
-  @if (showModalBuscarMonto()) {
-    <div class="modal-overlay">
-      <div class="modal modal-small">
-        <div class="modal-header">
-          <h2>Buscar Relación por Monto</h2>
-          <button type="button" class="btn-cerrar" (click)="cerrarModalBuscarMonto()">✕</button>
-        </div>
-        <form (ngSubmit)="buscarRelacionPorMonto()">
-          <div class="form-group">
-            <label>Buscar en:</label>
-            <select [ngModel]="tipoBusquedaMonto()" (ngModelChange)="tipoBusquedaMonto.set($event)" name="tipoBusquedaMonto">
-              <option value="montoFactura">Monto Facts. Bs</option>
-              <option value="diferencia">Diferencia Bs</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Monto</label>
-            <input type="text" [value]="formatearMontoInput(montoBusquedaValor())" (input)="actualizarMontoBusqueda($event)" (focus)="onMontoFocus($event)" placeholder="0,00" autofocus>
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="btn-cancel" (click)="cerrarModalBuscarMonto()">Cancelar</button>
-            <button type="submit" class="btn-save">Buscar</button>
-          </div>
-        </form>
       </div>
     </div>
   }
@@ -1268,7 +1243,7 @@
                     @for (rel of grupo.relaciones; track rel._id) {
                       <tr (click)="abrirModalAbonos(rel)" style="cursor: pointer;">
                         @for (col of columnasVisibles(); track col.key) {
-                          <td [class.iva-toggle]="col.key === 'iva'" [class.iva-pagado]="rel.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!rel.ivaPagado && col.key === 'iva'" (click)="onCeldaIvaClick(rel, $event)">{{ getValorAbono(rel, col.key) }}</td>
+                          <td [class.iva-pagado]="rel.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!rel.ivaPagado && col.key === 'iva'">{{ getValorAbono(rel, col.key) }}</td>
                         }
                         <td class="actions">
                            <button class="btn-edit" (click="$event.stopPropagation(); abrirModalAbonos(rel)")>Ver</button>

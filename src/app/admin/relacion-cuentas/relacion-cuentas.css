@@ -56,23 +56,59 @@
   margin-bottom: 8px;
 }
 
-.btn-buscar-monto {
+.buscar-monto-inline {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: #f0f4fa;
-  border: 1px solid #cfe0f5;
-  color: #1d63c1;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
+  gap: 8px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 10px;
+  max-width: 320px;
+  width: 100%;
 }
 
-.btn-buscar-monto:hover {
-  background: #e2ecf9;
+.buscar-monto-inline:focus-within {
   border-color: #1d63c1;
+}
+
+.buscar-monto-inline svg {
+  color: #1d63c1;
+  flex-shrink: 0;
+}
+
+.buscar-monto-input {
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-limpiar-busqueda-monto {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.btn-limpiar-busqueda-monto:hover {
+  color: #dc3545;
+}
+
+.abono-destacado {
+  animation: destacar-monto-pulso 0.8s ease-in-out 3;
+}
+
+@keyframes destacar-monto-pulso {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: #fff3b0; }
 }
 
 .filtros-pdf {

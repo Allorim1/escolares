@@ -119,6 +119,10 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   });
 
   abonosFiltrados = computed(() => {
+    const montoFiltro = this.montoBusquedaFiltro();
+    if (montoFiltro !== null) {
+      return this.abonos().filter((a) => this.coincideMontoBusqueda(a, montoFiltro));
+    }
     const f = this.filtros();
     return this.abonos().filter((a) => {
       let passes = true;
@@ -320,9 +324,10 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   reporteProductosPendientesExcel = signal(false);
   reporteSolicitudPendientesExcel = signal(false);
   showModalSender = signal(false);
-  showModalBuscarMonto = signal(false);
-  tipoBusquedaMonto = signal<'montoFactura' | 'diferencia'>('montoFactura');
   montoBusquedaValor = signal(0);
+  montoBusquedaFiltro = signal<number | null>(null);
+  abonoDestacadoIds = signal<Set<string>>(new Set());
+  private destacarMontoTimeout: any = null;
   showModalTicket = signal(false);
   ticketGenero = '';
   ticketCiclo = '';
@@ -700,8 +705,6 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       this.cerrarModalPendientes();
     } else if (this.showModalSender()) {
       this.cerrarModalSender();
-    } else if (this.showModalBuscarMonto()) {
-      this.cerrarModalBuscarMonto();
     } else if (this.showModalAbonos()) {
       this.cerrarModalAbonos();
     } else if (this.showModalSupervisoresRelaciones()) {
@@ -1074,16 +1077,6 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.showModalSender.set(false);
   }
 
-  abrirModalBuscarMonto() {
-    this.tipoBusquedaMonto.set('montoFactura');
-    this.montoBusquedaValor.set(0);
-    this.showModalBuscarMonto.set(true);
-  }
-
-  cerrarModalBuscarMonto() {
-    this.showModalBuscarMonto.set(false);
-  }
-
   actualizarMontoBusqueda(event: Event) {
     const input = event.target as HTMLInputElement;
     const valor = this.parsearMontoInput(input.value);
@@ -1091,24 +1084,46 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     input.value = this.formatearMontoInput(valor);
   }
 
+  private coincideMontoBusqueda(a: Abono, valor: number): boolean {
+    const diferenciaCalculada = (a.montoFactura ?? 0) - (a.iva ?? 0);
+    return Math.abs((a.montoFactura ?? 0) - valor) < 0.01 || Math.abs(diferenciaCalculada - valor) < 0.01;
+  }
+
   buscarRelacionPorMonto() {
     const valor = this.montoBusquedaValor();
     if (!valor) {
-      this.notificationModal.error('Ingrese un monto para buscar');
+      this.limpiarBusquedaMonto();
       return;
     }
-    const campo = this.tipoBusquedaMonto();
-    const etiqueta = campo === 'montoFactura' ? 'Monto Facts. Bs' : 'Diferencia Bs';
-    const candidatos = this.abonos().filter((a) => Math.abs((a[campo] ?? 0) - valor) < 0.01);
+    const candidatos = this.abonos().filter((a) => this.coincideMontoBusqueda(a, valor));
     if (candidatos.length === 0) {
-      this.notificationModal.error(`No se encontró ninguna relación con ${etiqueta} = ${this.formatMonto(valor)}`);
+      this.notificationModal.error(`No se encontró ninguna relación con Monto Facts. Bs o Diferencia Bs = ${this.formatMonto(valor)}`);
       return;
     }
-    this.cerrarModalBuscarMonto();
-    if (candidatos.length > 1) {
-      this.notificationModal.success(`Se encontraron ${candidatos.length} relaciones con ${etiqueta} = ${this.formatMonto(valor)}. Mostrando la primera.`);
+    this.montoBusquedaFiltro.set(valor);
+    this.paginaActual.set(1);
+
+    const ids = new Set(candidatos.map((c) => c._id).filter((id): id is string => !!id));
+    this.abonoDestacadoIds.set(ids);
+    if (this.destacarMontoTimeout) clearTimeout(this.destacarMontoTimeout);
+    this.destacarMontoTimeout = setTimeout(() => {
+      this.abonoDestacadoIds.set(new Set());
+      this.destacarMontoTimeout = null;
+    }, 2500);
+
+    setTimeout(() => {
+      document.querySelector('.abono-destacado')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
+
+  limpiarBusquedaMonto() {
+    this.montoBusquedaFiltro.set(null);
+    this.montoBusquedaValor.set(0);
+    this.abonoDestacadoIds.set(new Set());
+    if (this.destacarMontoTimeout) {
+      clearTimeout(this.destacarMontoTimeout);
+      this.destacarMontoTimeout = null;
     }
-    this.abrirModal(candidatos[0]);
   }
 
   toggleColumnaPdf(key: string) {
@@ -1383,7 +1398,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       case 'iva':
         return this.formatMonto(abono.iva ?? 0);
       case 'diferencia':
-        return this.formatMonto(abono.diferencia ?? 0);
+        return this.formatMonto((abono.montoFactura ?? 0) - (abono.iva ?? 0));
       case 'divisa':
         return (abono.divisa ?? 0).toFixed(2);
       case 'pagoParcial':
@@ -1408,11 +1423,6 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       default:
         return valor ?? '';
     }
-  }
-
-  onCeldaIvaClick(abono: Abono, event: Event) {
-    event.stopPropagation();
-    this.toggleIvaPagado(abono);
   }
 
   filtrarAbonos() {
@@ -1614,20 +1624,6 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     if (!this.editingAbono) return;
     this.editingAbono.ivaPagado = !this.editingAbono.ivaPagado;
     this.calcularPagoParcial();
-  }
-
-  toggleIvaPagado(abono: Abono) {
-    this.abonos.update((lista) =>
-      lista.map((a) => {
-        if (a._id !== abono._id) return a;
-        const nuevoIvaPagado = !a.ivaPagado;
-        const monto = Number(a.montoFactura) || 0;
-        const abonos = Number(a.abonos) || 0;
-        const iva = Number(a.iva) || 0;
-        const ivaPagado = nuevoIvaPagado ? iva : 0;
-        return { ...a, ivaPagado: nuevoIvaPagado, diferencia: Number((monto - abonos - ivaPagado).toFixed(2)) };
-      })
-    );
   }
 
   onDragOver(event: DragEvent) {
@@ -1894,10 +1890,8 @@ if (!url) return '';
   calcularPagoParcial() {
     if (!this.editingAbono) return;
     const monto = Number(this.editingAbono.montoFactura) || 0;
-    const abonos = Number(this.editingAbono.abonos) || 0;
     const iva = Number(this.editingAbono.iva) || 0;
-    const ivaPagado = this.editingAbono.ivaPagado ? iva : 0;
-    this.editingAbono.diferencia = Number((monto - abonos - ivaPagado).toFixed(2));
+    this.editingAbono.diferencia = Number((monto - iva).toFixed(2));
     this.calcularDivisa();
   }
 
@@ -2638,7 +2632,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
         a.nFact ? String(+a.nFact) : '',
         this.formatMonto(a.montoFactura ?? 0),
         this.formatMonto(a.iva ?? 0),
-        this.formatMonto(a.diferencia ?? 0),
+        this.formatMonto((a.montoFactura ?? 0) - (a.iva ?? 0)),
         this.formatMonto(a.divisa ?? 0),
         this.formatMonto(a.abonos ?? 0),
         a.tasa?.toFixed(2) ?? '0.00',

@@ -264,6 +264,14 @@
                 <span class="total-value">{{ comisiones().haySupervisores ? 'Si' : 'No' }}</span>
               </div>
               @if (comisiones().haySupervisores) {
+                <div class="total-item">
+                  <span class="total-label">Comisión Supervisores Bs.</span>
+                  <span class="total-value">{{ formatMonto(comisiones().total) }}</span>
+                </div>
+                <div class="total-item">
+                  <span class="total-label">Comisión Supervisores $</span>
+                  <span class="total-value">{{ formatMonto(tasaActual() > 0 ? comisiones().total / tasaActual() : 0) }}</span>
+                </div>
                 <div class="total-item" style="grid-column: span 3; justify-content: flex-end;">
                   <button class="btn-secondary" (click)="abrirModalSupervisoresRelaciones()">Ver supervisores</button>
                 </div>
@@ -1226,36 +1234,42 @@
         <p class="sin-abonos">No hay supervisores en las relaciones filtradas</p>
       } @else {
         <div style="display:flex;flex-direction:column;gap:18px;">
-          @for (grupo of supervisoresAgrupados(); track grupo.supervisorId) {
-            <div>
-              <h3 style="margin:0 0 8px 0;color:#1d63c1;">{{ grupo.supervisor }}</h3>
-              <div class="relaciones-table-wrapper">
-                <table class="abonos-table">
-                  <thead>
-                    <tr>
-                      @for (col of columnasVisibles(); track col.key) {
-                        <th>{{ col.label }}</th>
-                      }
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (rel of grupo.relaciones; track rel._id) {
-                      <tr (click)="abrirModalAbonos(rel)" style="cursor: pointer;">
-                        @for (col of columnasVisibles(); track col.key) {
-                          <td [class.iva-pagado]="rel.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!rel.ivaPagado && col.key === 'iva'">{{ getValorAbono(rel, col.key) }}</td>
-                        }
-                        <td class="actions">
-                           <button class="btn-edit" (click="$event.stopPropagation(); abrirModalAbonos(rel)")>Ver</button>
-                           <button class="btn-delete" (click="$event.stopPropagation(); eliminarAbono(rel._id || '')")>Eliminar</button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          }
+           @for (grupo of supervisoresAgrupados(); track grupo.supervisorId) {
+             <div>
+               <h3 style="margin:0 0 8px 0;color:#1d63c1;">{{ grupo.supervisor }}</h3>
+               <div class="relaciones-table-wrapper">
+                 <table class="abonos-table">
+                   <thead>
+                     <tr>
+                       @for (col of columnasVisibles(); track col.key) {
+                         <th>{{ col.label }}</th>
+                       }
+                       <th>Acciones</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     @for (rel of grupo.relaciones; track rel._id) {
+                       <tr (click)="abrirModalAbonos(rel)" style="cursor: pointer;">
+                         @for (col of columnasVisibles(); track col.key) {
+                           <td [class.iva-pagado]="rel.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!rel.ivaPagado && col.key === 'iva'">{{ getValorAbono(rel, col.key) }}</td>
+                         }
+                         <td class="actions">
+                            <button class="btn-edit" (click="$event.stopPropagation(); abrirModalAbonos(rel)")>Ver</button>
+                            <button class="btn-delete" (click="$event.stopPropagation(); eliminarAbono(rel._id || '')")>Eliminar</button>
+                         </td>
+                       </tr>
+                     }
+                   </tbody>
+                 </table>
+               </div>
+               <div style="margin-top:8px;font-weight:bold;color:#1d63c1;">
+                 Total Comisión: {{ formatMonto(grupo.totalComision) }} Bs
+                 @if (tasaActual() > 0) {
+                   <span> ({{ formatMonto(grupo.totalComision / tasaActual()) }} $)</span>
+                 }
+               </div>
+             </div>
+           }
         </div>
       }
       <div class="modal-actions">

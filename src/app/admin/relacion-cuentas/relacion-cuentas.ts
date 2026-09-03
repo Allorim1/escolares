@@ -2852,11 +2852,18 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     }
     const agrupados = Array.from(porSupervisor.entries()).map(([supervisorId, relaciones]) => {
       const primer = relaciones[0];
+      const totalComision = relaciones.reduce((sum, rel) => {
+        const montoFactura = rel.montoFactura ?? 0;
+        const iva = rel.iva ?? 0;
+        const comisionPorcentaje = rel.comisionPorcentaje ?? 0;
+        return sum + Math.max(0, montoFactura - iva) * (comisionPorcentaje / 100);
+      }, 0);
       return {
         supervisorId,
         supervisor: primer.supervisor || '',
         cantidad: relaciones.length,
         relaciones,
+        totalComision,
       };
     });
     this.supervisoresAgrupados.set(agrupados);

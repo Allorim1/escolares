@@ -1,13 +1,14 @@
-import { Component, inject, signal, computed, effect } from '@angular/core';
+import { Component, inject, signal, computed, effect, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../shared/data-access/auth.service';
+import { Turnstile } from '../shared/ui/turnstile/turnstile';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, Turnstile],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -15,6 +16,9 @@ export class Register {
   private authService = inject(AuthService);
   router = inject(Router);
 
+  @ViewChild(Turnstile) turnstile?: Turnstile;
+
+  turnstileToken = signal('');
   username = signal('');
   email = signal('');
   password = signal('');
@@ -45,7 +49,8 @@ export class Register {
            this.direccion().trim() !== '' &&
            this.nombreCompleto().trim() !== '' &&
            this.mayorEdad() &&
-           this.aceptaTerminos();
+           this.aceptaTerminos() &&
+           this.turnstileToken() !== '';
   });
 
   telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
@@ -245,6 +250,11 @@ export class Register {
       return;
     }
 
+    if (!this.turnstileToken()) {
+      this.authService.registerError.set('Por favor completa la verificación de seguridad');
+      return;
+    }
+
     this.loading.set(true);
     this.authService.register(user, mail, pass, {
       rif: documentoCompleto,
@@ -255,7 +265,8 @@ export class Register {
       genero: this.genero(),
       tipoDocumento: tipoDocumentoValue,
       numeroDocumento: numeroDocumentoValue,
-    });
+    }, this.turnstileToken());
+    this.turnstile?.reset();
   }
 
 

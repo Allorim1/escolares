@@ -42,11 +42,15 @@
         </div>
       </div>
 
+      <div class="form-group turnstile-group">
+        <app-turnstile (tokenChange)="turnstileToken.set($event)"></app-turnstile>
+      </div>
+
       @if (error()) {
         <div class="error-message">{{ error() }}</div>
       }
 
-      <button type="submit" class="login-btn" [disabled]="authService.loginLoading()">
+      <button type="submit" class="login-btn" [disabled]="authService.loginLoading() || !turnstileToken()">
         @if (authService.loginLoading()) {
           <span>Cargando...</span>
         } @else {

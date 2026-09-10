@@ -54,20 +54,20 @@ export class AuthBackend {
     }
   }
 
-  register(username: string, email: string, password: string, extraData?: { 
-    rif?: string; 
-    telefono?: string; 
-    direccion?: string; 
-    tipoPersona?: string; 
-    nombreCompleto?: string; 
+  register(username: string, email: string, password: string, extraData?: {
+    rif?: string;
+    telefono?: string;
+    direccion?: string;
+    tipoPersona?: string;
+    nombreCompleto?: string;
     genero?: string;
     tipoDocumento?: string;
     numeroDocumento?: string;
-  }) {
+  }, turnstileToken?: string) {
     this.registerError.set(null);
     this.registerSuccess.set(false);
 
-    this.http.post<any>(`${this.API_URL}/register`, { username, email, password, ...extraData }).subscribe({
+    this.http.post<any>(`${this.API_URL}/register`, { username, email, password, turnstileToken, ...extraData }).subscribe({
       next: (response) => {
         this.registerSuccess.set(true);
       },
@@ -77,14 +77,14 @@ export class AuthBackend {
     });
   }
 
-  login(usernameOrEmail: string, password: string) {
+  login(usernameOrEmail: string, password: string, turnstileToken?: string) {
     this.loginError.set(null);
     this.loginLoading.set(true);
 
     const isEmail = usernameOrEmail.includes('@');
     const payload = isEmail
-      ? { email: usernameOrEmail, password }
-      : { username: usernameOrEmail, password };
+      ? { email: usernameOrEmail, password, turnstileToken }
+      : { username: usernameOrEmail, password, turnstileToken };
 
     this.http.post<any>(`${this.API_URL}/login`, payload, { withCredentials: true }).subscribe({
       next: (response) => {

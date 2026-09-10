@@ -294,6 +294,10 @@
          </label>
        </div>
 
+       <div class="form-group turnstile-group">
+         <app-turnstile (tokenChange)="turnstileToken.set($event)"></app-turnstile>
+       </div>
+
        <button type="submit" class="btn-register" [disabled]="loading() || !formComplete()">
          {{ loading() ? 'Registrando...' : 'Registrarse' }}
        </button>

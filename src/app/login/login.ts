@@ -1,24 +1,28 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../shared/data-access/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { Turnstile } from '../shared/ui/turnstile/turnstile';
 
  @Component({
    selector: 'app-login',
    standalone: true,
-   imports: [CommonModule, FormsModule, RouterLink],
+   imports: [CommonModule, FormsModule, RouterLink, Turnstile],
    templateUrl: './login.html',
    styleUrl: './login.css',
  })
  export class Login {
    authService = inject(AuthService);
    private http = inject(HttpClient);
- 
+
+   @ViewChild(Turnstile) turnstile?: Turnstile;
+
    username = signal('');
    password = signal('');
    showPassword = signal(false);
+   turnstileToken = signal('');
  
 // Recovery signals
     recoveryMode = signal<'username' | 'password' | null>(null);
@@ -38,16 +42,22 @@ import { HttpClient } from '@angular/common/http';
  
    onSubmit() {
      this.authService.loginError.set(null);
- 
+
      const user = this.username();
      const pass = this.password();
- 
+
      if (!user || !pass) {
        this.authService.loginError.set('Por favor ingresa usuario y contraseña');
        return;
      }
- 
-     this.authService.login(user, pass);
+
+     if (!this.turnstileToken()) {
+       this.authService.loginError.set('Por favor completa la verificación de seguridad');
+       return;
+     }
+
+     this.authService.login(user, pass, this.turnstileToken());
+     this.turnstile?.reset();
    }
  
 openRecovery(mode: 'username' | 'password') {

@@ -387,6 +387,39 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   busquedaGrupoModal = signal('');
   gruposSeleccionadosModal = signal<string[]>([]);
   private _nombreACodgrupo1 = new Map<string, string>();
+
+  productosExcluidos = signal<Set<string>>(new Set());
+  showModalExcluirProductos = signal(false);
+  busquedaExcluirProductoModal = signal('');
+  productosExcluidosModal = signal<Set<string>>(new Set());
+
+  productosPendientesDistintos = computed(() => {
+    const mapa = new Map<string, { nombre: string; cantidad: number }>();
+    for (const abono of this.abonosFiltradosConPendientes()) {
+      for (const prod of abono.productosPendientes || []) {
+        const nombre = (prod.nombre || '').trim();
+        if (!nombre) continue;
+        const cantidad = prod.cantidad ?? 1;
+        if (mapa.has(nombre)) {
+          mapa.get(nombre)!.cantidad += cantidad;
+        } else {
+          mapa.set(nombre, { nombre, cantidad });
+        }
+      }
+    }
+    return Array.from(mapa.values()).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+  });
+
+  productosFiltradosExcluirModal = computed(() => {
+    const termino = this.busquedaExcluirProductoModal().toLowerCase().trim();
+    const lista = this.productosPendientesDistintos();
+    if (!termino) return lista;
+    return lista.filter(p => p.nombre.toLowerCase().includes(termino));
+  });
+
+  productosExcluidosArray = computed(() =>
+    Array.from(this.productosExcluidos()).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))
+  );
   private _cargandoMapaProductos = signal(false);
   private _mapaProductosPromise: Promise<void> | null = null;
 
@@ -693,6 +726,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   private cerrarModalPorPrioridad() {
     if (this.showModal()) {
       this.cerrarModal();
+    } else if (this.showModalExcluirProductos()) {
+      this.cerrarModalExcluirProductos();
     } else if (this.showModalGrupos()) {
       this.cerrarModalGrupos();
     } else if (this.showModalProductosPendientes()) {
@@ -1062,6 +1097,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.grupoSeleccionado.set([]);
     this.busquedaGrupo.set('');
     this.gruposSeleccionadosModal.set([]);
+    this.productosExcluidos.set(new Set());
     this.showModalPendientes.set(true);
   }
 
@@ -2946,6 +2982,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
            });
            if (!coincide) continue;
          }
+         if (this.productoExcluidoPorNombre(prod.nombre || '')) continue;
          filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -3048,6 +3085,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           });
           if (!coincide) continue;
         }
+        if (this.productoExcluidoPorNombre(nombre)) continue;
         const cantidad = prod.cantidad ?? 1;
        if (agrupado.has(nombre)) {
          agrupado.get(nombre)!.cantidad += cantidad;
@@ -3153,6 +3191,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           });
           if (!coincide) continue;
         }
+        if (this.productoExcluidoPorNombre(prod.nombre || '')) continue;
         filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -3226,6 +3265,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           });
           if (!coincide) continue;
         }
+        if (this.productoExcluidoPorNombre(nombre)) continue;
         const cantidad = prod.cantidad ?? 1;
         const key = nombre.toLowerCase();
         if (agrupado.has(key)) {
@@ -3621,6 +3661,49 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.busquedaGrupo.set(nombres.join(', '));
     this.cerrarModalGrupos();
     this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
+  }
+
+  productoExcluidoPorNombre(nombre: string): boolean {
+    return this.productosExcluidos().has((nombre || '').trim());
+  }
+
+  abrirModalExcluirProductos() {
+    this.busquedaExcluirProductoModal.set('');
+    this.productosExcluidosModal.set(new Set(this.productosExcluidos()));
+    this.showModalExcluirProductos.set(true);
+  }
+
+  cerrarModalExcluirProductos() {
+    this.showModalExcluirProductos.set(false);
+  }
+
+  onBusquedaExcluirProductoModal(termino: string) {
+    this.busquedaExcluirProductoModal.set(termino);
+  }
+
+  toggleProductoExcluirModal(nombre: string) {
+    const actual = new Set(this.productosExcluidosModal());
+    if (actual.has(nombre)) {
+      actual.delete(nombre);
+    } else {
+      actual.add(nombre);
+    }
+    this.productosExcluidosModal.set(actual);
+  }
+
+  aplicarFiltroExcluirProductos() {
+    this.productosExcluidos.set(new Set(this.productosExcluidosModal()));
+    this.cerrarModalExcluirProductos();
+  }
+
+  quitarProductoExcluido(nombre: string) {
+    const actual = new Set(this.productosExcluidos());
+    actual.delete(nombre);
+    this.productosExcluidos.set(actual);
+  }
+
+  limpiarProductosExcluidos() {
+    this.productosExcluidos.set(new Set());
   }
 
   seleccionarTextoBusqueda(event: Event) {

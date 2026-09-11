@@ -1560,6 +1560,11 @@
   font-size: 16px;
   color: #888;
 }
+.hint-text {
+  font-size: 12px;
+  color: #888;
+  margin: 6px 0 10px;
+}
 
 .productos-pendientes-seleccion {
   display: flex;

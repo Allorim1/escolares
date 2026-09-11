@@ -1018,15 +1018,15 @@
              </div>
            }
 
-           <label>Excluir productos por nombre</label>
+           <label>Filtrar productos por nombre</label>
            <div class="grupo-selector-wrapper">
-             <input type="text" [value]="productosExcluidos().size ? productosExcluidos().size + ' producto(s) excluido(s)' : ''" placeholder="Ej: Girasol..." autocomplete="off" readonly>
-             <button type="button" class="btn-lupa" (click)="abrirModalExcluirProductos()">🔍</button>
-             @if (productosExcluidos().size > 0) {
-               <button type="button" class="btn-cerrar" (click)="limpiarProductosExcluidos()">&times;</button>
+             <input type="text" [value]="filtroProductoNombre()" placeholder="Ej: Girasol..." autocomplete="off" readonly>
+             <button type="button" class="btn-lupa" (click)="abrirModalFiltrarProductos()">🔍</button>
+             @if (filtroProductoNombre() || productosExcluidos().size > 0) {
+               <button type="button" class="btn-cerrar" (click)="limpiarFiltroProductos()">&times;</button>
              }
            </div>
-           @if (productosExcluidos().size > 0) {
+           @if (productosExcluidosArray().length > 0) {
              <div class="grupos-chips">
                @for (nombre of productosExcluidosArray(); track nombre) {
                  <span class="grupo-chip">{{ nombre }} <button type="button" class="chip-remove" (click)="quitarProductoExcluido(nombre)">&times;</button></span>
@@ -1455,22 +1455,22 @@
   </div>
 }
 
-@if (showModalExcluirProductos()) {
+@if (showModalFiltrarProductos()) {
   <div class="modal-overlay">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Excluir productos por nombre</h2>
-        <button type="button" class="btn-cerrar" (click)="cerrarModalExcluirProductos()">&times;</button>
+        <h2>Filtrar productos por nombre</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModalFiltrarProductos()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Buscar producto</label>
+          <label>Nombre del producto</label>
           <div class="grupo-modal-search-wrapper">
-            <input type="text" [value]="busquedaExcluirProductoModal()" (input)="onBusquedaExcluirProductoModal($event.target.value)" placeholder="Ej: Girasol..." autocomplete="off">
+            <input type="text" [value]="filtroProductoModalDraft()" (input)="onFiltroProductoModalDraft($event.target.value)" placeholder="Ej: Girasol..." autocomplete="off">
             <span class="grupo-modal-search-icon">🔍</span>
           </div>
         </div>
-        <p class="hint-text">Desmarca los productos que quieres excluir del reporte.</p>
+        <p class="hint-text">Solo se incluirán en el reporte los productos que coincidan con este nombre. Deja vacío para no filtrar. Desmarca los que además quieras excluir.</p>
         <div class="grupos-lista-wrapper">
           <table class="abonos-table">
             <thead>
@@ -1481,7 +1481,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (producto of productosFiltradosExcluirModal(); track producto.nombre) {
+              @for (producto of productosFiltradosModalPreview(); track producto.nombre) {
                 <tr>
                   <td>
                     <input type="checkbox" [checked]="!productosExcluidosModal().has(producto.nombre)" (change)="toggleProductoExcluirModal(producto.nombre)">
@@ -1491,7 +1491,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="3" class="empty">No se encontraron productos pendientes</td>
+                  <td colspan="3" class="empty">No se encontraron productos pendientes que coincidan</td>
                 </tr>
               }
             </tbody>
@@ -1499,8 +1499,8 @@
         </div>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn-cancel" (click)="cerrarModalExcluirProductos()">Cancelar</button>
-        <button type="button" class="btn-primary" (click)="aplicarFiltroExcluirProductos()">Aplicar filtro</button>
+        <button type="button" class="btn-cancel" (click)="cerrarModalFiltrarProductos()">Cancelar</button>
+        <button type="button" class="btn-primary" (click)="aplicarFiltroProductos()">Aplicar filtro</button>
       </div>
     </div>
   </div>

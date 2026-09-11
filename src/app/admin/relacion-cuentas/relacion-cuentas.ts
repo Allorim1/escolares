@@ -388,9 +388,10 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   gruposSeleccionadosModal = signal<string[]>([]);
   private _nombreACodgrupo1 = new Map<string, string>();
 
+  filtroProductoNombre = signal('');
   productosExcluidos = signal<Set<string>>(new Set());
-  showModalExcluirProductos = signal(false);
-  busquedaExcluirProductoModal = signal('');
+  showModalFiltrarProductos = signal(false);
+  filtroProductoModalDraft = signal('');
   productosExcluidosModal = signal<Set<string>>(new Set());
 
   productosPendientesDistintos = computed(() => {
@@ -410,8 +411,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     return Array.from(mapa.values()).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
   });
 
-  productosFiltradosExcluirModal = computed(() => {
-    const termino = this.busquedaExcluirProductoModal().toLowerCase().trim();
+  productosFiltradosModalPreview = computed(() => {
+    const termino = this.filtroProductoModalDraft().toLowerCase().trim();
     const lista = this.productosPendientesDistintos();
     if (!termino) return lista;
     return lista.filter(p => p.nombre.toLowerCase().includes(termino));
@@ -726,8 +727,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   private cerrarModalPorPrioridad() {
     if (this.showModal()) {
       this.cerrarModal();
-    } else if (this.showModalExcluirProductos()) {
-      this.cerrarModalExcluirProductos();
+    } else if (this.showModalFiltrarProductos()) {
+      this.cerrarModalFiltrarProductos();
     } else if (this.showModalGrupos()) {
       this.cerrarModalGrupos();
     } else if (this.showModalProductosPendientes()) {
@@ -1097,6 +1098,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.grupoSeleccionado.set([]);
     this.busquedaGrupo.set('');
     this.gruposSeleccionadosModal.set([]);
+    this.filtroProductoNombre.set('');
     this.productosExcluidos.set(new Set());
     this.showModalPendientes.set(true);
   }
@@ -2982,7 +2984,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
            });
            if (!coincide) continue;
          }
-         if (this.productoExcluidoPorNombre(prod.nombre || '')) continue;
+         if (!this.productoPasaFiltroNombre(prod.nombre || '')) continue;
          filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -3085,7 +3087,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           });
           if (!coincide) continue;
         }
-        if (this.productoExcluidoPorNombre(nombre)) continue;
+        if (!this.productoPasaFiltroNombre(nombre)) continue;
         const cantidad = prod.cantidad ?? 1;
        if (agrupado.has(nombre)) {
          agrupado.get(nombre)!.cantidad += cantidad;
@@ -3191,7 +3193,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           });
           if (!coincide) continue;
         }
-        if (this.productoExcluidoPorNombre(prod.nombre || '')) continue;
+        if (!this.productoPasaFiltroNombre(prod.nombre || '')) continue;
         filas.push({
           fecha: this.formatFecha(abono.fecha),
           empresa: abono.empresa || '-',
@@ -3265,7 +3267,7 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
           });
           if (!coincide) continue;
         }
-        if (this.productoExcluidoPorNombre(nombre)) continue;
+        if (!this.productoPasaFiltroNombre(nombre)) continue;
         const cantidad = prod.cantidad ?? 1;
         const key = nombre.toLowerCase();
         if (agrupado.has(key)) {
@@ -3663,22 +3665,26 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.onBusquedaProductosPendientes(this.productosPendientesBusqueda());
   }
 
-  productoExcluidoPorNombre(nombre: string): boolean {
-    return this.productosExcluidos().has((nombre || '').trim());
+  productoPasaFiltroNombre(nombre: string): boolean {
+    const n = (nombre || '').trim();
+    const filtro = this.filtroProductoNombre().trim().toLowerCase();
+    if (filtro && !n.toLowerCase().includes(filtro)) return false;
+    if (this.productosExcluidos().has(n)) return false;
+    return true;
   }
 
-  abrirModalExcluirProductos() {
-    this.busquedaExcluirProductoModal.set('');
+  abrirModalFiltrarProductos() {
+    this.filtroProductoModalDraft.set(this.filtroProductoNombre());
     this.productosExcluidosModal.set(new Set(this.productosExcluidos()));
-    this.showModalExcluirProductos.set(true);
+    this.showModalFiltrarProductos.set(true);
   }
 
-  cerrarModalExcluirProductos() {
-    this.showModalExcluirProductos.set(false);
+  cerrarModalFiltrarProductos() {
+    this.showModalFiltrarProductos.set(false);
   }
 
-  onBusquedaExcluirProductoModal(termino: string) {
-    this.busquedaExcluirProductoModal.set(termino);
+  onFiltroProductoModalDraft(termino: string) {
+    this.filtroProductoModalDraft.set(termino);
   }
 
   toggleProductoExcluirModal(nombre: string) {
@@ -3691,9 +3697,10 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.productosExcluidosModal.set(actual);
   }
 
-  aplicarFiltroExcluirProductos() {
+  aplicarFiltroProductos() {
+    this.filtroProductoNombre.set(this.filtroProductoModalDraft().trim());
     this.productosExcluidos.set(new Set(this.productosExcluidosModal()));
-    this.cerrarModalExcluirProductos();
+    this.cerrarModalFiltrarProductos();
   }
 
   quitarProductoExcluido(nombre: string) {
@@ -3702,7 +3709,8 @@ const fileName = `comisiones_${(supervisor?.supervisor || 'comisiones').replace(
     this.productosExcluidos.set(actual);
   }
 
-  limpiarProductosExcluidos() {
+  limpiarFiltroProductos() {
+    this.filtroProductoNombre.set('');
     this.productosExcluidos.set(new Set());
   }
 

@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 
-type Status = 'solicitado' | 'activo' | 'pagado' | 'rechazado';
+type Status = 'pendiente_aceptacion' | 'solicitado' | 'activo' | 'pagado' | 'rechazado';
 
 interface Solicitud {
   id: string;
@@ -16,12 +16,14 @@ interface Solicitud {
   cuotasPagadas: number;
   proposito: string;
   productoNombre?: string;
+  items?: { nombre: string; cantidad: number }[];
   status: Status;
   createdAt: string;
   motivoRechazo?: string;
 }
 
 const PESTANAS: { value: Status | 'todos'; label: string }[] = [
+  { value: 'pendiente_aceptacion', label: 'Por confirmar (cliente)' },
   { value: 'solicitado', label: 'Pendientes' },
   { value: 'activo', label: 'Activos' },
   { value: 'pagado', label: 'Pagados' },
@@ -41,7 +43,7 @@ export class CreditosSolicitudes implements OnInit {
   private readonly API = '/api/creditos/admin/solicitudes';
 
   readonly pestanas = PESTANAS;
-  pestanaActiva = signal<Status | 'todos'>('solicitado');
+  pestanaActiva = signal<Status | 'todos'>('pendiente_aceptacion');
   solicitudes = signal<Solicitud[]>([]);
   loading = signal(false);
   procesandoId = signal<string | null>(null);
@@ -67,11 +69,17 @@ export class CreditosSolicitudes implements OnInit {
 
   etiqueta(status: Status): { texto: string; clase: string } {
     switch (status) {
+      case 'pendiente_aceptacion': return { texto: 'Por confirmar', clase: 'badge-tertiary' };
       case 'activo': return { texto: 'Activo', clase: 'badge-primary' };
       case 'pagado': return { texto: 'Pagado', clase: 'badge-success' };
       case 'rechazado': return { texto: 'Rechazado', clase: 'badge-danger' };
       default: return { texto: 'Pendiente', clase: 'badge-warning' };
     }
+  }
+
+  descripcion(s: Solicitud): string {
+    if (s.items?.length) return s.items.map((i) => `${i.cantidad}× ${i.nombre}`).join(', ');
+    return s.productoNombre || s.proposito || '—';
   }
 
   aprobar(s: Solicitud) {
@@ -90,6 +98,16 @@ export class CreditosSolicitudes implements OnInit {
     this.http.post(`${this.API}/${s.id}/rechazar`, { motivo }).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
       error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al rechazar'); },
+    });
+  }
+
+  cancelar(s: Solicitud) {
+    const motivo = prompt('¿Por qué la cancelas? (opcional; se guarda como motivo)');
+    if (motivo === null) return;
+    this.procesandoId.set(s.id);
+    this.http.post(`${this.API}/${s.id}/cancelar`, { motivo }).subscribe({
+      next: () => { this.procesandoId.set(null); this.cargar(); },
+      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al cancelar'); },
     });
   }
 

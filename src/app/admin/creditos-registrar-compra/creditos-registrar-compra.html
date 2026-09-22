@@ -1,0 +1,119 @@
+<div class="rc-container">
+  <h1>Créditos Escolares · Registrar compra</h1>
+
+  @if (!usuarioSeleccionado()) {
+    <div class="seccion">
+      <h2>1. Busca al cliente</h2>
+      <input type="text" placeholder="Cédula o nombre..." [(ngModel)]="buscarUsuarioTexto" (ngModelChange)="onBuscarUsuario()">
+
+      @if (buscandoUsuario()) {
+        <div class="muted">Buscando...</div>
+      }
+
+      @if (usuariosEncontrados().length) {
+        <table class="rc-table">
+          <thead><tr><th>Nombre</th><th>Cédula</th><th>Teléfono</th><th>Estado</th><th>Disponible</th><th></th></tr></thead>
+          <tbody>
+            @for (u of usuariosEncontrados(); track u.id) {
+              <tr class="fila-click" (click)="seleccionarUsuario(u)">
+                <td>{{ u.nombre }}</td>
+                <td>{{ u.verificacion?.documento || '—' }}</td>
+                <td>{{ u.telefono }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="u.status === 'verificado'" [class.badge-medium]="u.status !== 'verificado'">
+                    {{ u.status === 'verificado' ? 'Verificado' : u.status }}
+                  </span>
+                </td>
+                <td>${{ u.disponible.toFixed(2) }}</td>
+                <td><button class="btn-primary">Elegir</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  } @else {
+    <div class="seccion usuario-elegido">
+      <div>
+        <strong>{{ usuarioSeleccionado()!.nombre }}</strong>
+        <span class="muted"> · {{ usuarioSeleccionado()!.verificacion?.documento }} · {{ usuarioSeleccionado()!.telefono }}</span>
+        <div class="muted">Disponible: ${{ usuarioSeleccionado()!.disponible.toFixed(2) }} (nivel {{ usuarioSeleccionado()!.nivel }})</div>
+      </div>
+      <button class="btn-cancel" (click)="cambiarUsuario()">Cambiar cliente</button>
+    </div>
+
+    @if (usuarioSeleccionado()!.status !== 'verificado') {
+      <div class="aviso-error">Este usuario no tiene la cuenta verificada; no se le puede registrar una compra.</div>
+    } @else {
+      <div class="seccion">
+        <h2>2. Agrega productos</h2>
+        <input type="text" placeholder="Nombre o código..." [(ngModel)]="buscarProductoTexto" (ngModelChange)="onBuscarProducto()">
+
+        @if (buscandoProducto()) {
+          <div class="muted">Buscando...</div>
+        }
+
+        @if (productosEncontrados().length) {
+          <table class="rc-table">
+            <thead><tr><th>Código</th><th>Nombre</th><th>Precio</th><th>IVA</th><th>Stock</th><th></th></tr></thead>
+            <tbody>
+              @for (p of productosEncontrados(); track p._id) {
+                <tr>
+                  <td>{{ p.codigo }}</td>
+                  <td>{{ p.nombre }}</td>
+                  <td>${{ p.precio.toFixed(2) }}</td>
+                  <td>{{ p.iva }}%</td>
+                  <td>{{ p.stock }}</td>
+                  <td><button class="btn-primary" (click)="agregarProducto(p)">+ Agregar</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <div class="seccion">
+        <h2>3. Factura</h2>
+        <table class="rc-table">
+          <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th><th>IVA</th><th></th></tr></thead>
+          <tbody>
+            @for (l of carrito(); track l.producto._id) {
+              <tr>
+                <td>{{ l.producto.nombre }}</td>
+                <td><input type="number" min="1" class="input-cantidad" [(ngModel)]="l.cantidad"></td>
+                <td>${{ l.producto.precio.toFixed(2) }}</td>
+                <td>${{ subtotalLinea(l).toFixed(2) }}</td>
+                <td>${{ ivaLinea(l).toFixed(2) }}</td>
+                <td><button class="btn-delete" (click)="quitarLinea(l)">Quitar</button></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="empty">Aún no has agregado productos</td></tr>
+            }
+          </tbody>
+        </table>
+
+        @if (carrito().length) {
+          <div class="totales">
+            <div class="fila"><span>Subtotal</span><span>${{ subtotal().toFixed(2) }}</span></div>
+            <div class="fila"><span>IVA (pago inicial)</span><span>${{ iva().toFixed(2) }}</span></div>
+            <div class="fila total"><span>Total factura</span><span>${{ total().toFixed(2) }}</span></div>
+            <div class="fila" [class.excede]="excedeDisponible()">
+              <span>Disponible después de esta compra</span><span>${{ disponibleRestante().toFixed(2) }}</span>
+            </div>
+          </div>
+          @if (excedeDisponible()) {
+            <div class="aviso-error">El subtotal supera el crédito disponible del cliente.</div>
+          }
+        }
+
+        @if (mensaje(); as m) {
+          <div [class]="m.tipo === 'ok' ? 'aviso-ok' : 'aviso-error'">{{ m.texto }}</div>
+        }
+
+        <button class="btn-save" [disabled]="!puedeRegistrar()" (click)="registrarCompra()">
+          {{ guardando() ? 'Registrando...' : 'Registrar compra' }}
+        </button>
+      </div>
+    }
+  }
+</div>

@@ -293,6 +293,10 @@ export const routes: Routes = [
             loadComponent: () => import('./admin/creditos-solicitudes/creditos-solicitudes').then((m) => m.CreditosSolicitudes),
           },
           {
+            path: 'creditos-registrar-compra',
+            loadComponent: () => import('./admin/creditos-registrar-compra/creditos-registrar-compra').then((m) => m.CreditosRegistrarCompra),
+          },
+          {
             path: 'creditos-productos',
             loadComponent: () => import('./admin/creditos-productos/creditos-productos').then((m) => m.CreditosProductos),
           },

@@ -1,0 +1,180 @@
+.rc-container {
+  padding: 20px;
+  max-width: 900px;
+}
+
+.rc-container h1 {
+  margin: 0 0 16px;
+  color: #1d63c1;
+}
+
+.seccion {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.seccion h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: #333;
+}
+
+.seccion > input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.muted {
+  color: #888;
+  font-size: 13px;
+}
+
+.rc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rc-table th,
+.rc-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.rc-table th {
+  color: #888;
+  font-weight: 500;
+}
+
+.fila-click {
+  cursor: pointer;
+}
+
+.fila-click:hover {
+  background: #f8f9fa;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  padding: 16px;
+}
+
+.input-cantidad {
+  width: 60px;
+  padding: 4px 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.usuario-elegido {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+}
+
+.badge-success { background: #28a745; }
+.badge-medium { background: #6c757d; }
+
+.btn-primary {
+  background: #1d63c1;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-cancel {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-save {
+  background: #1d63c1;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.totales {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #ccc;
+}
+
+.totales .fila {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 14px;
+}
+
+.totales .fila.total {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.totales .fila.excede {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+.aviso-error {
+  background: #f8d7da;
+  color: #842029;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.aviso-ok {
+  background: #d4edda;
+  color: #155724;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+}

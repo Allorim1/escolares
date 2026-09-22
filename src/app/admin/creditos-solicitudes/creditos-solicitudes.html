@@ -28,13 +28,16 @@
         @for (s of solicitudes(); track s.id) {
           <tr>
             <td>{{ s.usuarioNombre }}<br><span class="muted">{{ s.usuarioTelefono }}</span></td>
-            <td>{{ s.productoNombre || s.proposito || '—' }}</td>
+            <td>{{ descripcion(s) }}</td>
             <td>${{ s.monto.toFixed(2) }}</td>
             <td>{{ s.cuotasPagadas }} / {{ s.cuotas }} · ${{ s.cuotaMonto.toFixed(2) }} c/u</td>
             <td><span class="badge" [class]="etiqueta(s.status).clase">{{ etiqueta(s.status).texto }}</span></td>
             <td>{{ s.createdAt | date:'dd/MM/yyyy' }}</td>
             <td class="acciones">
-              @if (s.status === 'solicitado') {
+              @if (s.status === 'pendiente_aceptacion') {
+                <span class="muted">Esperando al cliente</span>
+                <button class="btn-rechazar" [disabled]="procesandoId() === s.id" (click)="cancelar(s)">Cancelar</button>
+              } @else if (s.status === 'solicitado') {
                 <button class="btn-aprobar" [disabled]="procesandoId() === s.id" (click)="aprobar(s)">Aprobar</button>
                 <button class="btn-rechazar" [disabled]="procesandoId() === s.id" (click)="rechazar(s)">Rechazar</button>
               } @else if (s.status === 'activo') {

@@ -1,0 +1,76 @@
+<div class="cr-container">
+  <h1>Créditos Escolares · Reglas</h1>
+  <p class="muted">
+    Estos valores los usa la app para calcular el crédito disponible de cada nivel, el pago
+    inicial (IVA de la factura) y el monto de cada cuota. Un cambio aquí se aplica al instante,
+    sin publicar una nueva versión de la app.
+  </p>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else if (reglas(); as r) {
+    <div class="seccion">
+      <h2>Niveles de crédito</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nivelBase">Línea del nivel 1 ($)</label>
+          <input id="nivelBase" type="number" min="0" step="0.01" [(ngModel)]="r.nivelBase" name="nivelBase">
+        </div>
+        <div class="form-group">
+          <label for="factorNivel">Multiplicador por nivel</label>
+          <input id="factorNivel" type="number" min="1" step="0.1" [(ngModel)]="r.factorNivel" name="factorNivel">
+        </div>
+        <div class="form-group">
+          <label for="nivelMaximo">Nivel máximo</label>
+          <input id="nivelMaximo" type="number" min="1" step="1" [(ngModel)]="r.nivelMaximo" name="nivelMaximo">
+        </div>
+      </div>
+      <table class="tabla-niveles">
+        <thead><tr><th>Nivel</th><th>Línea de crédito</th></tr></thead>
+        <tbody>
+          @for (n of niveles(); track n.nivel) {
+            <tr><td>{{ n.nivel }}</td><td>${{ n.limite.toFixed(2) }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="seccion">
+      <h2>Cuotas</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cuotas">Número de cuotas</label>
+          <input id="cuotas" type="number" min="1" step="1" [(ngModel)]="r.cuotas" name="cuotas">
+        </div>
+        <div class="form-group">
+          <label for="dias">Días entre cuotas</label>
+          <input id="dias" type="number" min="1" step="1" [(ngModel)]="r.diasEntreCuotas" name="dias">
+        </div>
+        <div class="form-group">
+          <label for="tasa">Interés por cuota (%)</label>
+          <input id="tasa" type="number" min="0" step="0.1" [(ngModel)]="tasaPorcentaje" name="tasa">
+        </div>
+      </div>
+    </div>
+
+    <div class="seccion">
+      <h2>Pago inicial y monto mínimo</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="iva">IVA de la factura, pago inicial (%)</label>
+          <input id="iva" type="number" min="0" step="0.1" [(ngModel)]="ivaPorcentaje" name="iva">
+        </div>
+        <div class="form-group">
+          <label for="minimo">Monto mínimo de un crédito libre ($)</label>
+          <input id="minimo" type="number" min="0" step="1" [(ngModel)]="r.montoMinimo" name="minimo">
+        </div>
+      </div>
+    </div>
+
+    @if (guardado()) {
+      <div class="aviso-ok">Reglas actualizadas</div>
+    }
+
+    <button class="btn-save" [disabled]="saving()" (click)="guardar()">{{ saving() ? 'Guardando...' : 'Guardar cambios' }}</button>
+  }
+</div>

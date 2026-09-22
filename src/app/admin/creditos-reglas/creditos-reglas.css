@@ -1,0 +1,105 @@
+.cr-container {
+  padding: 20px;
+  max-width: 700px;
+}
+
+.cr-container h1 {
+  margin: 0 0 8px;
+  color: #1d63c1;
+}
+
+.muted {
+  color: #888;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.loading {
+  padding: 24px;
+  color: #888;
+}
+
+.seccion {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.seccion h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: #333;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 160px;
+  margin-bottom: 8px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #555;
+}
+
+.form-group input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.tabla-niveles {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.tabla-niveles th,
+.tabla-niveles td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.tabla-niveles th {
+  color: #888;
+  font-weight: 500;
+}
+
+.aviso-ok {
+  background: #d4edda;
+  color: #155724;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.btn-save {
+  background: #1d63c1;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

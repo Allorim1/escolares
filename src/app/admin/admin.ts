@@ -119,6 +119,15 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
             { label: 'Relación de Cuentas', route: 'relacion-cuentas' },
             { label: 'Relación de Libros', route: 'relacion-libros' },
           ]
+        },
+        {
+          name: 'Créditos Escolares',
+          items: [
+            { label: 'Verificaciones', route: 'creditos-verificaciones', permiso: 'creditos_gestionar' },
+            { label: 'Solicitudes de Crédito', route: 'creditos-solicitudes', permiso: 'creditos_gestionar' },
+            { label: 'Productos', route: 'creditos-productos', permiso: 'creditos_gestionar' },
+            { label: 'Reglas', route: 'creditos-reglas', permiso: 'creditos_gestionar' },
+          ]
         }
    ];
 

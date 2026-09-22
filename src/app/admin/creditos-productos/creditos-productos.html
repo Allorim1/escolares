@@ -1,0 +1,82 @@
+<div class="cp-container">
+  <div class="cp-header">
+    <h1>Créditos Escolares · Productos</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Nuevo producto</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="cp-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of productos(); track p.id) {
+          <tr>
+            <td>{{ p.nombre }}<br><span class="muted">{{ p.descripcion }}</span></td>
+            <td>{{ p.categoria }}</td>
+            <td>${{ p.precio.toFixed(2) }}</td>
+            <td><span class="badge" [class.badge-success]="p.activo" [class.badge-medium]="!p.activo">{{ p.activo ? 'Activo' : 'Inactivo' }}</span></td>
+            <td class="acciones">
+              <button class="btn-edit" (click)="abrirModal(p)">Editar</button>
+              <button class="btn-delete" (click)="eliminar(p)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="empty">No hay productos en el catálogo</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (showModal() && editando) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ editando.id ? 'Editar' : 'Nuevo' }} producto</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      </div>
+      <form (ngSubmit)="guardar()">
+        <div class="form-group">
+          <label for="nombre">Nombre *</label>
+          <input id="nombre" type="text" [(ngModel)]="editando.nombre" name="nombre" required>
+        </div>
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <input id="descripcion" type="text" [(ngModel)]="editando.descripcion" name="descripcion">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categoria">Categoría *</label>
+            <select id="categoria" [(ngModel)]="editando.categoria" name="categoria">
+              @for (c of categorias; track c) { <option [value]="c">{{ c }}</option> }
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="precio">Precio *</label>
+            <input id="precio" type="number" min="0" step="0.01" [(ngModel)]="editando.precio" name="precio" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="icono">Ícono (Ionicons)</label>
+          <input id="icono" type="text" [(ngModel)]="editando.icono" name="icono" placeholder="pricetag">
+        </div>
+        <div class="form-group checkbox">
+          <label><input type="checkbox" [(ngModel)]="editando.activo" name="activo"> Visible en la app</label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Guardar' }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

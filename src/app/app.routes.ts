@@ -280,6 +280,26 @@ export const routes: Routes = [
             path: 'contrasenas',
             loadComponent: () => import('./admin/contrasenas/contrasenas').then((m) => m.AdminContrasenas),
           },
+          {
+            path: 'creditos-verificaciones',
+            loadComponent: () => import('./admin/creditos-verificaciones/creditos-verificaciones').then((m) => m.CreditosVerificaciones),
+          },
+          {
+            path: 'creditos-verificaciones/:id',
+            loadComponent: () => import('./admin/creditos-verificaciones-detalle/creditos-verificaciones-detalle').then((m) => m.CreditosVerificacionesDetalle),
+          },
+          {
+            path: 'creditos-solicitudes',
+            loadComponent: () => import('./admin/creditos-solicitudes/creditos-solicitudes').then((m) => m.CreditosSolicitudes),
+          },
+          {
+            path: 'creditos-productos',
+            loadComponent: () => import('./admin/creditos-productos/creditos-productos').then((m) => m.CreditosProductos),
+          },
+          {
+            path: 'creditos-reglas',
+            loadComponent: () => import('./admin/creditos-reglas/creditos-reglas').then((m) => m.CreditosReglas),
+          },
              ],
         },
       {

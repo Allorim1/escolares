@@ -1,0 +1,100 @@
+<div class="cvd-container">
+  <button class="btn-volver" (click)="volver()">← Volver</button>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else if (usuario(); as u) {
+    <div class="cabecera">
+      <div>
+        <h1>{{ u.nombre }}</h1>
+        <p class="muted">{{ u.telefono }} @if (u.email) { · {{ u.email }} }</p>
+      </div>
+      <div class="cabecera-derecha">
+        <span class="badge" [class]="etiqueta(u.status).clase">{{ etiqueta(u.status).texto }}</span>
+        <div class="nivel-control">
+          <span>Nivel {{ u.nivel }} de {{ nivelMaximo() }}</span>
+          <button (click)="cambiarNivel(-1)" [disabled]="procesando() || u.nivel <= 1">−</button>
+          <button (click)="cambiarNivel(1)" [disabled]="procesando() || u.nivel >= nivelMaximo()">+</button>
+        </div>
+      </div>
+    </div>
+
+    @if (u.status === 'rechazado' && u.verificacion?.motivoRechazo) {
+      <div class="aviso-rechazo">Motivo del rechazo: {{ u.verificacion?.motivoRechazo }}</div>
+    }
+
+    @if (!u.verificacion) {
+      <div class="sin-datos">Esta cuenta todavía no ha enviado su verificación.</div>
+    } @else {
+      <div class="seccion">
+        <h2>Datos personales</h2>
+        <div class="grid-datos">
+          <div><label>Nombre completo</label><span>{{ u.verificacion.nombreCompleto }}</span></div>
+          <div><label>Cédula</label><span>{{ u.verificacion.documento }}</span></div>
+          <div><label>Fecha de nacimiento</label><span>{{ u.verificacion.fechaNacimiento }}</span></div>
+          <div><label>Ocupación</label><span>{{ u.verificacion.ocupacion }}</span></div>
+          @if (u.verificacion.lugarTrabajo) {
+            <div><label>Lugar de trabajo</label><span>{{ u.verificacion.lugarTrabajo }}</span></div>
+          }
+          <div><label>Enviado</label><span>{{ u.verificacion.enviadoEn | date:'dd/MM/yyyy HH:mm' }}</span></div>
+        </div>
+      </div>
+
+      <div class="seccion">
+        <h2>Dirección y referencia</h2>
+        <div class="grid-datos">
+          <div><label>Dirección</label><span>{{ u.verificacion.direccion }}</span></div>
+          <div><label>Ciudad</label><span>{{ u.verificacion.ciudad }}</span></div>
+          <div><label>Referencia</label><span>{{ u.verificacion.referenciaNombre }}</span></div>
+          <div><label>Teléfono de referencia</label><span>{{ u.verificacion.referenciaTelefono }}</span></div>
+        </div>
+      </div>
+
+      <div class="seccion">
+        <h2>Documentos</h2>
+        <div class="grid-documentos">
+          @for (d of documentos; track d.campo) {
+            @if (u.verificacion.documentos[d.campo]) {
+              <div class="documento">
+                <span class="documento-titulo">{{ d.titulo }}</span>
+                @if (esPdf(d.campo)) {
+                  <a [href]="documentoUrl(d.campo)" target="_blank" class="documento-pdf">📄 Abrir PDF</a>
+                } @else {
+                  <a [href]="documentoUrl(d.campo)" target="_blank">
+                    <img [src]="documentoUrl(d.campo)" [alt]="d.titulo" />
+                  </a>
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      @if (u.status === 'en_revision') {
+        <div class="acciones">
+          <button class="btn-aprobar" [disabled]="procesando()" (click)="aprobar()">Aprobar verificación</button>
+          <button class="btn-rechazar" [disabled]="procesando()" (click)="abrirRechazo()">Rechazar</button>
+        </div>
+      }
+    }
+  }
+</div>
+
+@if (mostrarRechazo()) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Rechazar verificación</h2>
+        <button type="button" class="btn-cerrar" (click)="mostrarRechazo.set(false)">✕</button>
+      </div>
+      <div class="form-group">
+        <label for="motivo">Motivo (lo verá el usuario)</label>
+        <textarea id="motivo" rows="3" [ngModel]="motivoRechazo()" (ngModelChange)="motivoRechazo.set($event)"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="mostrarRechazo.set(false)">Cancelar</button>
+        <button type="button" class="btn-delete" [disabled]="procesando()" (click)="confirmarRechazo()">Rechazar</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,44 @@
+<div class="cv-container">
+  <div class="cv-header">
+    <h1>Créditos Escolares · Verificaciones</h1>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" placeholder="Buscar por nombre o teléfono..." name="busqueda">
+  </div>
+
+  <div class="tabs">
+    @for (t of pestanas; track t.value) {
+      <button class="tab" [class.activa]="pestanaActiva() === t.value" (click)="cambiarPestana(t.value)">{{ t.label }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="cv-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Nivel</th>
+          <th>Estado</th>
+          <th>Registrado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of usuariosFiltrados(); track u.id) {
+          <tr class="cv-row" (click)="verDetalle(u)">
+            <td>{{ u.nombre }}</td>
+            <td>{{ u.telefono }}</td>
+            <td>{{ u.nivel }}</td>
+            <td><span class="badge" [class]="etiqueta(u.status).clase">{{ etiqueta(u.status).texto }}</span></td>
+            <td>{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="empty">No hay usuarios en este estado</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

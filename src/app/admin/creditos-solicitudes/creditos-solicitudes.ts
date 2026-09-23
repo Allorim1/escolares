@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 
-type Status = 'pendiente_aceptacion' | 'solicitado' | 'activo' | 'pagado' | 'rechazado';
+type Status = 'pendiente_aceptacion' | 'esperando_pago' | 'solicitado' | 'activo' | 'pagado' | 'rechazado';
 
 interface Solicitud {
   id: string;
@@ -20,10 +20,13 @@ interface Solicitud {
   status: Status;
   createdAt: string;
   motivoRechazo?: string;
+  pagoInicial?: number;
+  factura?: { iva: number; total: number };
 }
 
 const PESTANAS: { value: Status | 'todos'; label: string }[] = [
   { value: 'pendiente_aceptacion', label: 'Por confirmar (cliente)' },
+  { value: 'esperando_pago', label: 'Falta el pago inicial' },
   { value: 'solicitado', label: 'Pendientes' },
   { value: 'activo', label: 'Activos' },
   { value: 'pagado', label: 'Pagados' },
@@ -70,6 +73,7 @@ export class CreditosSolicitudes implements OnInit {
   etiqueta(status: Status): { texto: string; clase: string } {
     switch (status) {
       case 'pendiente_aceptacion': return { texto: 'Por confirmar', clase: 'badge-tertiary' };
+      case 'esperando_pago': return { texto: 'Falta el pago inicial', clase: 'badge-warning' };
       case 'activo': return { texto: 'Activo', clase: 'badge-primary' };
       case 'pagado': return { texto: 'Pagado', clase: 'badge-success' };
       case 'rechazado': return { texto: 'Rechazado', clase: 'badge-danger' };
@@ -108,6 +112,16 @@ export class CreditosSolicitudes implements OnInit {
     this.http.post(`${this.API}/${s.id}/cancelar`, { motivo }).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
       error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al cancelar'); },
+    });
+  }
+
+  /** El staff confirma que ya recibió (efectivo/transferencia) el pago inicial del cliente. */
+  confirmarPago(s: Solicitud) {
+    if (!confirm(`¿Confirmar que recibiste $${(s.pagoInicial ?? 0).toFixed(2)} de pago inicial de ${s.usuarioNombre}?`)) return;
+    this.procesandoId.set(s.id);
+    this.http.post(`${this.API}/${s.id}/confirmar-pago`, {}).subscribe({
+      next: () => { this.procesandoId.set(null); this.cargar(); },
+      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al confirmar el pago'); },
     });
   }
 

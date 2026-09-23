@@ -37,6 +37,9 @@
               @if (s.status === 'pendiente_aceptacion') {
                 <span class="muted">Esperando al cliente</span>
                 <button class="btn-rechazar" [disabled]="procesandoId() === s.id" (click)="cancelar(s)">Cancelar</button>
+              } @else if (s.status === 'esperando_pago') {
+                <span class="muted">Inicial: ${{ (s.pagoInicial ?? 0).toFixed(2) }}</span>
+                <button class="btn-aprobar" [disabled]="procesandoId() === s.id" (click)="confirmarPago(s)">Pago realizado</button>
               } @else if (s.status === 'solicitado') {
                 <button class="btn-aprobar" [disabled]="procesandoId() === s.id" (click)="aprobar(s)">Aprobar</button>
                 <button class="btn-rechazar" [disabled]="procesandoId() === s.id" (click)="rechazar(s)">Rechazar</button>

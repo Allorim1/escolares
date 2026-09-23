@@ -39,73 +39,86 @@
         <span class="muted"> · {{ usuarioSeleccionado()!.verificacion?.documento }} · {{ usuarioSeleccionado()!.telefono }}</span>
         <div class="muted">Disponible: ${{ usuarioSeleccionado()!.disponible.toFixed(2) }} (nivel {{ usuarioSeleccionado()!.nivel }})</div>
       </div>
-      <button class="btn-cancel" (click)="cambiarUsuario()">Cambiar cliente</button>
+      @if (!compraEnCurso()) {
+        <button class="btn-cancel" (click)="cambiarUsuario()">Cambiar cliente</button>
+      }
     </div>
 
     <div class="rc-layout">
       <div class="rc-principal">
-        @if (usuarioSeleccionado()!.status !== 'verificado') {
+        @if (compraEnCurso(); as c) {
+          <!-- Estado: QR generado, esperando o ya resuelto por el cliente -->
+          <div class="seccion qr-panel">
+            @if (c.estado === 'esperando') {
+              <div class="qr-estado esperando">
+                <span class="qr-spinner"></span>
+                Esperando a que el cliente escanee y confirme desde la app...
+              </div>
+              @if (c.qrCode) {
+                <img class="qr-imagen" [src]="c.qrCode" alt="Código QR de la compra">
+              }
+            } @else if (c.estado === 'esperando_pago') {
+              <div class="qr-estado esperando">
+                El cliente eligió pagar ${{ (c.pagoInicial ?? 0).toFixed(2) }} de inicial.
+                Cóbraselo y confirma abajo.
+              </div>
+            } @else if (c.estado === 'confirmada') {
+              <div class="qr-estado confirmada">✓ Compra registrada con éxito</div>
+            } @else {
+              <div class="qr-estado rechazada">
+                El cliente rechazó la compra
+                @if (c.motivoRechazo) { <div class="muted">Motivo: {{ c.motivoRechazo }}</div> }
+              </div>
+            }
+
+            <div class="factura-resumen">
+              <div class="muted">Cliente</div>
+              <strong>{{ c.clienteNombre }}</strong>
+              <div class="muted">{{ c.clienteTelefono }}</div>
+
+              <div class="totales">
+                <div class="fila"><span>Subtotal</span><span>${{ c.factura.subtotal.toFixed(2) }}</span></div>
+                <div class="fila"><span>IVA</span><span>${{ c.factura.iva.toFixed(2) }}</span></div>
+                <div class="fila total"><span>Total factura</span><span>${{ c.factura.total.toFixed(2) }}</span></div>
+                @if (c.estado === 'esperando_pago' || c.estado === 'confirmada') {
+                  <div class="fila"><span>Pago inicial</span><span>${{ (c.pagoInicial ?? 0).toFixed(2) }}</span></div>
+                }
+              </div>
+              <div class="muted factura-nota">
+                Financiado en {{ c.cuotas }} cuotas quincenales de ${{ c.cuotaMonto.toFixed(2) }} · Factura {{ c.factura.numero }}
+              </div>
+            </div>
+
+            @if (c.estado === 'esperando_pago') {
+              <button class="btn-save" [disabled]="guardando()" (click)="confirmarPagoRecibido()">
+                {{ guardando() ? 'Confirmando...' : 'Pago realizado' }}
+              </button>
+            } @else if (c.estado !== 'esperando') {
+              <button class="btn-save" (click)="registrarOtraCompra()">Registrar otra compra</button>
+            }
+          </div>
+        } @else if (usuarioSeleccionado()!.status !== 'verificado') {
           <div class="aviso-error">Este usuario no tiene la cuenta verificada; no se le puede registrar una compra.</div>
         } @else {
           <div class="seccion">
-            <h2>2. Agrega productos</h2>
-            <input type="text" placeholder="Nombre o código..." [(ngModel)]="buscarProductoTexto" (ngModelChange)="onBuscarProducto()">
+            <h2>2. Monto de la compra</h2>
+            <label class="monto-label" for="monto-usd">Monto en dólares</label>
+            <input
+              id="monto-usd"
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder="0.00"
+              class="monto-input"
+              [ngModel]="monto()"
+              (ngModelChange)="monto.set($event)">
 
-            @if (buscandoProducto()) {
-              <div class="muted">Buscando...</div>
+            @if (monto() && monto()! > 0) {
+              <div class="monto-bs">≈ Bs. {{ montoEnBsFormateado() }} <span class="muted">(tasa {{ currency.currentTasa().toFixed(2) }})</span></div>
             }
 
-            @if (productosEncontrados().length) {
-              <table class="rc-table">
-                <thead><tr><th>Código</th><th>Nombre</th><th>Precio</th><th>IVA</th><th>Stock</th><th></th></tr></thead>
-                <tbody>
-                  @for (p of productosEncontrados(); track p._id) {
-                    <tr>
-                      <td>{{ p.codigo }}</td>
-                      <td>{{ p.nombre }}</td>
-                      <td>${{ p.precio.toFixed(2) }}</td>
-                      <td>{{ p.iva }}%</td>
-                      <td>{{ p.stock }}</td>
-                      <td><button class="btn-primary" (click)="agregarProducto(p)">+ Agregar</button></td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            }
-          </div>
-
-          <div class="seccion">
-            <h2>3. Factura</h2>
-            <table class="rc-table">
-              <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th><th>IVA</th><th></th></tr></thead>
-              <tbody>
-                @for (l of carrito(); track l.producto._id) {
-                  <tr>
-                    <td>{{ l.producto.nombre }}</td>
-                    <td><input type="number" min="1" class="input-cantidad" [(ngModel)]="l.cantidad"></td>
-                    <td>${{ l.producto.precio.toFixed(2) }}</td>
-                    <td>${{ subtotalLinea(l).toFixed(2) }}</td>
-                    <td>${{ ivaLinea(l).toFixed(2) }}</td>
-                    <td><button class="btn-delete" (click)="quitarLinea(l)">Quitar</button></td>
-                  </tr>
-                } @empty {
-                  <tr><td colspan="6" class="empty">Aún no has agregado productos</td></tr>
-                }
-              </tbody>
-            </table>
-
-            @if (carrito().length) {
-              <div class="totales">
-                <div class="fila"><span>Subtotal</span><span>${{ subtotal().toFixed(2) }}</span></div>
-                <div class="fila"><span>IVA (pago inicial)</span><span>${{ iva().toFixed(2) }}</span></div>
-                <div class="fila total"><span>Total factura</span><span>${{ total().toFixed(2) }}</span></div>
-                <div class="fila" [class.excede]="excedeDisponible()">
-                  <span>Disponible después de esta compra</span><span>${{ disponibleRestante().toFixed(2) }}</span>
-                </div>
-              </div>
-              @if (excedeDisponible()) {
-                <div class="aviso-error">El subtotal supera el crédito disponible del cliente.</div>
-              }
+            @if (monto() && excedeDisponible()) {
+              <div class="aviso-error">El monto supera el crédito disponible del cliente.</div>
             }
 
             @if (mensaje(); as m) {
@@ -113,7 +126,7 @@
             }
 
             <button class="btn-save" [disabled]="!puedeRegistrar()" (click)="registrarCompra()">
-              {{ guardando() ? 'Registrando...' : 'Registrar compra' }}
+              {{ guardando() ? 'Registrando...' : 'Registrar compra y generar QR' }}
             </button>
           </div>
         }
@@ -149,46 +162,3 @@
     </div>
   }
 </div>
-
-@if (facturaGenerada(); as f) {
-  <div class="modal-overlay" (click)="cerrarFacturaGenerada()">
-    <div class="modal factura-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Factura {{ f.factura.numero }}</h3>
-        <button class="btn-cerrar" (click)="cerrarFacturaGenerada()">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="muted">Cliente</div>
-        <strong>{{ f.clienteNombre }}</strong>
-        <div class="muted">{{ f.clienteTelefono }}</div>
-
-        <table class="rc-table factura-tabla">
-          <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead>
-          <tbody>
-            @for (l of f.items; track l.producto._id) {
-              <tr>
-                <td>{{ l.producto.nombre }}</td>
-                <td>{{ l.cantidad }}</td>
-                <td>${{ l.producto.precio.toFixed(2) }}</td>
-                <td>${{ subtotalLinea(l).toFixed(2) }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-
-        <div class="totales">
-          <div class="fila"><span>Subtotal</span><span>${{ f.factura.subtotal.toFixed(2) }}</span></div>
-          <div class="fila"><span>IVA (pago inicial)</span><span>${{ f.factura.iva.toFixed(2) }}</span></div>
-          <div class="fila total"><span>Total factura</span><span>${{ f.factura.total.toFixed(2) }}</span></div>
-        </div>
-        <div class="muted factura-nota">
-          Financiado en {{ f.cuotas }} cuotas quincenales de ${{ f.cuotaMonto.toFixed(2) }} · Emitida el {{ f.factura.emitidaEn | date:'dd/MM/yyyy' }}
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn-primary" (click)="cerrarFacturaGenerada()">Cerrar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-}

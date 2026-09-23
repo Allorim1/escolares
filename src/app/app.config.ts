@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  ErrorHandler,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
   APP_INITIALIZER,
@@ -11,6 +12,7 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
 import { withCredentialsInterceptor } from './shared/interceptors/with-credentials.interceptor';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { AppErrorHandler } from './shared/services/app-error-handler';
 
 export function initTheme() {
   return () => {
@@ -31,5 +33,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch(), withInterceptors([withCredentialsInterceptor])),
     provideCharts(withDefaultRegisterables()),
     { provide: APP_INITIALIZER, useFactory: initTheme, multi: true },
+    { provide: ErrorHandler, useClass: AppErrorHandler },
   ],
 };

@@ -195,7 +195,6 @@ export class Admin implements OnInit {
        this.rolesBackend.getPermisos().subscribe({
          next: (permisos) => {
            const permisosIds = permisos.map(p => p.id);
-           console.log('Permisos cargados (root):', permisosIds);
            this.userPermissions.set(permisosIds);
            this.setCategoriesWithExpanded();
            this.setQuickItems();
@@ -281,7 +280,6 @@ export class Admin implements OnInit {
   checkApiKeyStatus() {
     this.http.get<TasaResponse>('/api/tasas').subscribe({
       next: (data) => {
-        console.log('API tasas response:', data);
         if (data.apiKeyExpired) {
           this.apiKeyStatusService.setApiKeyExpired(true);
         }

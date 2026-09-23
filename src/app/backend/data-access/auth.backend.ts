@@ -109,9 +109,13 @@ export class AuthBackend {
           this.router.navigate(['/panel/perfil']);
         }
       },
-      error: () => {
+      error: (err) => {
         this.loginLoading.set(false);
-        this.loginError.set('Credenciales inválidas');
+        // Antes se mostraba siempre "Credenciales inválidas", incluso cuando el backend
+        // respondía 429 (demasiados intentos) o 403 (Turnstile falló). Eso hacía pensar
+        // al usuario que la contraseña estaba mal y lo empujaba a reintentar más rápido,
+        // agotando aún más el cupo del limiter. Ahora se muestra el motivo real.
+        this.loginError.set(err.error?.error || 'Credenciales inválidas');
       },
     });
   }

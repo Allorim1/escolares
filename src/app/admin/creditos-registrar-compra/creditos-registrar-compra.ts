@@ -2,6 +2,7 @@ import { Component, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface CreditoUsuarioBusqueda {
   id: string;
@@ -27,6 +28,44 @@ interface LineaCarrito {
   cantidad: number;
 }
 
+type SolicitudStatus = 'pendiente_aceptacion' | 'solicitado' | 'activo' | 'pagado' | 'rechazado';
+
+interface SolicitudHistorialItem {
+  nombre: string;
+  cantidad: number;
+}
+
+interface SolicitudHistorial {
+  id: string;
+  status: SolicitudStatus;
+  monto: number;
+  cuotas: number;
+  cuotaMonto: number;
+  proposito: string;
+  productoNombre?: string;
+  items?: SolicitudHistorialItem[];
+  createdAt: string;
+  motivoRechazo?: string;
+  factura?: { numero: string; total: number };
+}
+
+interface FacturaGenerada {
+  numero: string;
+  emitidaEn: string;
+  subtotal: number;
+  iva: number;
+  total: number;
+}
+
+interface CompraRegistrada {
+  clienteNombre: string;
+  clienteTelefono: string;
+  factura: FacturaGenerada;
+  items: LineaCarrito[];
+  cuotas: number;
+  cuotaMonto: number;
+}
+
 @Component({
   selector: 'app-creditos-registrar-compra',
   standalone: true,
@@ -36,12 +75,17 @@ interface LineaCarrito {
 })
 export class CreditosRegistrarCompra {
   private http = inject(HttpClient);
+  private notificaciones = inject(NotificationModalService);
 
   // Búsqueda de usuario
   buscarUsuarioTexto = '';
   usuariosEncontrados = signal<CreditoUsuarioBusqueda[]>([]);
   buscandoUsuario = signal(false);
   usuarioSeleccionado = signal<CreditoUsuarioBusqueda | null>(null);
+
+  // Historial de compras del cliente elegido (tarjeta a la derecha)
+  historialCliente = signal<SolicitudHistorial[]>([]);
+  cargandoHistorial = signal(false);
 
   // Búsqueda de producto
   buscarProductoTexto = '';
@@ -53,6 +97,9 @@ export class CreditosRegistrarCompra {
 
   guardando = signal(false);
   mensaje = signal<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+
+  // Factura de la última compra registrada, para mostrarla tras guardar
+  facturaGenerada = signal<CompraRegistrada | null>(null);
 
   private timeoutUsuario: ReturnType<typeof setTimeout> | null = null;
   private timeoutProducto: ReturnType<typeof setTimeout> | null = null;
@@ -77,12 +124,38 @@ export class CreditosRegistrarCompra {
     this.usuarioSeleccionado.set(u);
     this.usuariosEncontrados.set([]);
     this.buscarUsuarioTexto = '';
+    this.cargarHistorialCliente(u.id);
   }
 
   cambiarUsuario() {
     this.usuarioSeleccionado.set(null);
     this.carrito.set([]);
     this.mensaje.set(null);
+    this.historialCliente.set([]);
+  }
+
+  /** Compras (activas, pagadas, rechazadas, etc.) del cliente elegido, para la tarjeta de historial. */
+  cargarHistorialCliente(usuarioId: string) {
+    this.cargandoHistorial.set(true);
+    this.http.get<SolicitudHistorial[]>(`/api/creditos/admin/solicitudes?usuarioId=${usuarioId}`).subscribe({
+      next: (data) => { this.historialCliente.set(data); this.cargandoHistorial.set(false); },
+      error: () => { this.historialCliente.set([]); this.cargandoHistorial.set(false); },
+    });
+  }
+
+  descripcionSolicitud(s: SolicitudHistorial): string {
+    if (s.items?.length) return s.items.map((i) => `${i.cantidad}× ${i.nombre}`).join(', ');
+    return s.productoNombre || s.proposito || '—';
+  }
+
+  etiquetaSolicitud(status: SolicitudStatus): { texto: string; clase: string } {
+    switch (status) {
+      case 'pendiente_aceptacion': return { texto: 'Por confirmar', clase: 'badge-tertiary' };
+      case 'solicitado': return { texto: 'Pendiente', clase: 'badge-warning' };
+      case 'activo': return { texto: 'Activo', clase: 'badge-primary' };
+      case 'pagado': return { texto: 'Pagado', clase: 'badge-success' };
+      case 'rechazado': return { texto: 'Rechazado', clase: 'badge-danger' };
+    }
   }
 
   onBuscarProducto() {
@@ -148,24 +221,49 @@ export class CreditosRegistrarCompra {
     const usuario = this.usuarioSeleccionado();
     if (!usuario || !this.puedeRegistrar()) return;
 
+    // Se capturan antes de guardar: al terminar se limpian el carrito y el cliente elegido.
+    const itemsRegistrados = this.carrito();
+
     this.guardando.set(true);
     this.mensaje.set(null);
     const body = {
       usuarioId: usuario.id,
-      items: this.carrito().map((l) => ({ productoId: l.producto._id, cantidad: l.cantidad })),
+      items: itemsRegistrados.map((l) => ({ productoId: l.producto._id, cantidad: l.cantidad })),
     };
 
-    this.http.post<{ factura?: { numero: string } }>('/api/creditos/admin/compras', body).subscribe({
-      next: (res) => {
-        this.guardando.set(false);
-        this.mensaje.set({ tipo: 'ok', texto: `Compra registrada (factura ${res.factura?.numero}). El cliente ya puede aceptarla desde la app.` });
-        this.carrito.set([]);
-        this.usuarioSeleccionado.set(null);
-      },
-      error: (err) => {
-        this.guardando.set(false);
-        this.mensaje.set({ tipo: 'error', texto: err.error?.error || 'Error al registrar la compra' });
-      },
-    });
+    this.http
+      .post<{ factura?: FacturaGenerada; cuotas: number; cuotaMonto: number }>('/api/creditos/admin/compras', body)
+      .subscribe({
+        next: (res) => {
+          this.guardando.set(false);
+          if (res.factura) {
+            this.facturaGenerada.set({
+              clienteNombre: usuario.nombre,
+              clienteTelefono: usuario.telefono,
+              factura: res.factura,
+              items: itemsRegistrados,
+              cuotas: res.cuotas,
+              cuotaMonto: res.cuotaMonto,
+            });
+          }
+          this.notificaciones.success(
+            `Compra registrada (factura ${res.factura?.numero}). El cliente ya puede aceptarla desde la app.`,
+            'Compra registrada',
+          );
+          this.carrito.set([]);
+          this.usuarioSeleccionado.set(null);
+          this.historialCliente.set([]);
+        },
+        error: (err) => {
+          this.guardando.set(false);
+          const texto = err.error?.error || 'Error al registrar la compra';
+          this.mensaje.set({ tipo: 'error', texto });
+          this.notificaciones.error(texto, 'No se pudo registrar la compra');
+        },
+      });
+  }
+
+  cerrarFacturaGenerada() {
+    this.facturaGenerada.set(null);
   }
 }

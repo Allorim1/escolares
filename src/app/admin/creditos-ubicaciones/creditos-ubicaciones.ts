@@ -82,16 +82,56 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
     }
   }
 
-  private obtenerMiUbicacion(): Promise<{ lat: number; lng: number }> {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Tu navegador no soporta geolocalización'));
-        return;
+  private async obtenerMiUbicacion(): Promise<{ lat: number; lng: number }> {
+    if (!navigator.geolocation) {
+      throw new Error('Tu navegador no soporta geolocalización');
+    }
+
+    // El permiso de ubicación del navegador solo se concede en contextos seguros
+    // (HTTPS o localhost). Si el panel se sirve por HTTP sin cifrar, Chrome/Edge/Firefox
+    // bloquean la API directamente y da el mismo error que si el usuario la hubiera
+    // denegado, aunque tenga la ubicación del sistema operativo activada.
+    if (!window.isSecureContext) {
+      throw new Error(
+        'Este panel se está cargando sin HTTPS. Los navegadores bloquean el acceso a la ubicación fuera de un sitio seguro (o localhost); accedé por https:// e intentá de nuevo.',
+      );
+    }
+
+    // El permiso del SITIO es independiente del permiso del sistema operativo: se puede
+    // haber quedado bloqueado para este dominio en particular sin que el usuario lo note.
+    if (navigator.permissions?.query) {
+      try {
+        const estado = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+        if (estado.state === 'denied') {
+          throw new Error(
+            'El permiso de ubicación para este sitio está bloqueado en tu navegador. Hacé clic en el ícono de candado/información junto a la barra de direcciones, habilitá "Ubicación" para este sitio y volvé a intentar.',
+          );
+        }
+      } catch {
+        // Si la Permissions API no soporta 'geolocation' en este navegador, se sigue con getCurrentPosition.
       }
+    }
+
+    return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => reject(new Error('No se pudo obtener tu ubicación. Actívala en el navegador y vuelve a intentar.')),
-        { enableHighAccuracy: true, timeout: 15000 },
+        (error) => {
+          console.error('Error de geolocalización:', error.code, error.message);
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              reject(new Error('Bloqueaste el permiso de ubicación para este sitio. Habilítalo desde el ícono junto a la barra de direcciones y volvé a intentar.'));
+              break;
+            case error.POSITION_UNAVAILABLE:
+              reject(new Error('El navegador no pudo determinar tu ubicación en este momento (sin señal de red/GPS). Probá de nuevo en unos segundos.'));
+              break;
+            case error.TIMEOUT:
+              reject(new Error('Tardó demasiado en obtener tu ubicación. Probá de nuevo.'));
+              break;
+            default:
+              reject(new Error(`No se pudo obtener tu ubicación (${error.message || 'error desconocido'}).`));
+          }
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
       );
     });
   }

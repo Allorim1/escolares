@@ -52,6 +52,35 @@
   cursor: not-allowed;
 }
 
+.btn-secundario {
+  background: white;
+  color: #856404;
+  border: 1px solid #856404;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.btn-secundario:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ub-aviso {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
 .ub-error {
   background: #f8d7da;
   color: #842029;

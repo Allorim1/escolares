@@ -69,12 +69,17 @@
       TRANSIT = 'TRANSIT',
     }
 
+    interface MapsEventListener {
+      remove(): void;
+    }
+
     class Map {
       constructor(element: HTMLElement, options?: MapOptions);
       setCenter(latLng: LatLngLiteral): void;
       setZoom(zoom: number): void;
       setOptions(options: MapOptions): void;
       fitBounds(bounds: LatLngBounds, padding?: number): void;
+      addListener(eventName: string, handler: (event: MapMouseEvent) => void): MapsEventListener;
     }
 
     class Marker {

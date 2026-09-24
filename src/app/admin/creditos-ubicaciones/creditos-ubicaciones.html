@@ -13,8 +13,20 @@
   </div>
 
   @if (errorMapa()) {
-    <div class="ub-error">{{ errorMapa() }}</div>
+    <div class="ub-error">
+      <p>{{ errorMapa() }}</p>
+      <button class="btn-primary" [disabled]="cargando()" (click)="iniciar()">
+        {{ cargando() ? 'Reintentando...' : 'Reintentar' }}
+      </button>
+    </div>
   } @else {
+    @if (avisoUbicacion()) {
+      <div class="ub-aviso">
+        <span>{{ avisoUbicacion() }}</span>
+        <button class="btn-secundario" [disabled]="cargando()" (click)="actualizar()">Reintentar detección</button>
+      </div>
+    }
+
     <div class="ub-layout">
       <div class="ub-mapa-wrap">
         @if (cargando()) {

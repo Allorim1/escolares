@@ -21,6 +21,10 @@ interface ClienteConDistancia extends UbicacionCliente {
 
 const RADIO_KM_DEFAULT = 10;
 
+/** Centro de referencia mientras no se conoce la posición real del staff: local de
+ *  Escolares en Av. Lara, Valencia, Carabobo (placeId ChIJY0Vnkq5ngI4RlAo0hRTQtJE). */
+const CENTRO_DEFECTO = { lat: 10.1794491, lng: -68.0039378 };
+
 /** Distancia entre dos puntos (fórmula de Haversine), en km. */
 function distanciaKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 6371;
@@ -47,7 +51,12 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLElement>;
 
   cargando = signal(true);
+  /** Solo para errores que impiden mostrar el mapa (falló la API de Maps, o el backend). */
   errorMapa = signal<string | null>(null);
+  /** Aviso no bloqueante: el navegador no pudo detectar la ubicación automáticamente, pero
+   *  se puede seguir usando el módulo marcando la posición a mano en el mapa. */
+  avisoUbicacion = signal<string | null>(null);
+  ubicacionManual = signal(false);
   radioKm = signal(RADIO_KM_DEFAULT);
   miUbicacion = signal<{ lat: number; lng: number } | null>(null);
 
@@ -67,16 +76,38 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
     this.marcadoresClientes.forEach((m) => m.setMap(null));
   }
 
-  private async iniciar() {
+  async iniciar() {
     this.cargando.set(true);
     this.errorMapa.set(null);
+    this.avisoUbicacion.set(null);
     try {
-      const [ubicacion] = await Promise.all([this.obtenerMiUbicacion(), this.mapsService.loadApi()]);
-      this.miUbicacion.set(ubicacion);
-      this.iniciarMapa(ubicacion);
-      await this.cargarUbicaciones();
+      await this.mapsService.loadApi();
+    } catch {
+      this.errorMapa.set('No se pudo cargar Google Maps. Revisá la conexión e intentá de nuevo.');
+      this.cargando.set(false);
+      return;
+    }
+
+    let ubicacion: { lat: number; lng: number };
+    try {
+      ubicacion = await this.obtenerMiUbicacion();
+      this.ubicacionManual.set(false);
     } catch (error) {
-      this.errorMapa.set(error instanceof Error ? error.message : 'No se pudo cargar el mapa');
+      // No se pudo detectar sola: se arranca en un punto de referencia y se deja que el
+      // staff marque su posición real con un clic, en vez de bloquear todo el módulo.
+      this.avisoUbicacion.set(
+        `${error instanceof Error ? error.message : 'No se pudo obtener tu ubicación automáticamente.'} Mientras tanto, hacé clic en el mapa para indicar dónde estás.`,
+      );
+      ubicacion = CENTRO_DEFECTO;
+      this.ubicacionManual.set(true);
+    }
+
+    this.miUbicacion.set(ubicacion);
+    this.iniciarMapa(ubicacion);
+    try {
+      await this.cargarUbicaciones();
+    } catch {
+      this.errorMapa.set('No se pudieron cargar las ubicaciones de los clientes.');
     } finally {
       this.cargando.set(false);
     }
@@ -84,7 +115,7 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
 
   private async obtenerMiUbicacion(): Promise<{ lat: number; lng: number }> {
     if (!navigator.geolocation) {
-      throw new Error('Tu navegador no soporta geolocalización');
+      throw new Error('Tu navegador no soporta geolocalización.');
     }
 
     // El permiso de ubicación del navegador solo se concede en contextos seguros
@@ -92,9 +123,7 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
     // bloquean la API directamente y da el mismo error que si el usuario la hubiera
     // denegado, aunque tenga la ubicación del sistema operativo activada.
     if (!window.isSecureContext) {
-      throw new Error(
-        'Este panel se está cargando sin HTTPS. Los navegadores bloquean el acceso a la ubicación fuera de un sitio seguro (o localhost); accedé por https:// e intentá de nuevo.',
-      );
+      throw new Error('Este panel se está cargando sin HTTPS, y los navegadores bloquean la ubicación fuera de un sitio seguro.');
     }
 
     // El permiso del SITIO es independiente del permiso del sistema operativo: se puede
@@ -103,9 +132,7 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
       try {
         const estado = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
         if (estado.state === 'denied') {
-          throw new Error(
-            'El permiso de ubicación para este sitio está bloqueado en tu navegador. Hacé clic en el ícono de candado/información junto a la barra de direcciones, habilitá "Ubicación" para este sitio y volvé a intentar.',
-          );
+          throw new Error('El permiso de ubicación para este sitio está bloqueado en el navegador.');
         }
       } catch {
         // Si la Permissions API no soporta 'geolocation' en este navegador, se sigue con getCurrentPosition.
@@ -119,13 +146,16 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
           console.error('Error de geolocalización:', error.code, error.message);
           switch (error.code) {
             case error.PERMISSION_DENIED:
-              reject(new Error('Bloqueaste el permiso de ubicación para este sitio. Habilítalo desde el ícono junto a la barra de direcciones y volvé a intentar.'));
+              // También aparece cuando Windows no puede resolver ninguna posición (p.ej. un
+              // escritorio sin Wi-Fi, del que depende su proveedor de ubicación) aunque los
+              // permisos del sitio y del sistema estén en "Permitir".
+              reject(new Error('El navegador no pudo obtener tu ubicación (permiso bloqueado, o Windows no logró determinar tu posición).'));
               break;
             case error.POSITION_UNAVAILABLE:
-              reject(new Error('El navegador no pudo determinar tu ubicación en este momento (sin señal de red/GPS). Probá de nuevo en unos segundos.'));
+              reject(new Error('El navegador no pudo determinar tu ubicación en este momento (sin señal de red/GPS).'));
               break;
             case error.TIMEOUT:
-              reject(new Error('Tardó demasiado en obtener tu ubicación. Probá de nuevo.'));
+              reject(new Error('Tardó demasiado en obtener tu ubicación.'));
               break;
             default:
               reject(new Error(`No se pudo obtener tu ubicación (${error.message || 'error desconocido'}).`));
@@ -140,16 +170,27 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
     const container = this.mapContainer?.nativeElement;
     if (!container) return;
 
-    this.map = this.mapsService.createMap(container, { center: centro, zoom: 13 });
+    this.map = this.mapsService.createMap(container, { center: centro, zoom: this.ubicacionManual() ? 6 : 13 });
     this.miMarcador = this.mapsService.createMarker({
       position: centro,
       map: this.map,
       title: 'Tu ubicación',
     });
+
+    // Respaldo cuando la detección automática falla: se puede marcar la posición a mano.
+    this.map.addListener('click', (evento) => {
+      if (!evento.latLng) return;
+      const punto = { lat: evento.latLng.lat(), lng: evento.latLng.lng() };
+      this.miUbicacion.set(punto);
+      this.miMarcador?.setPosition(punto);
+      this.ubicacionManual.set(true);
+      this.avisoUbicacion.set('Ubicación marcada a mano.');
+      void this.recalcular();
+    });
   }
 
   async cargarUbicaciones() {
-    this.todas = await this.http.get<UbicacionCliente[]>('/api/creditos/admin/ubicaciones').toPromise() ?? [];
+    this.todas = (await this.http.get<UbicacionCliente[]>('/api/creditos/admin/ubicaciones').toPromise()) ?? [];
     await this.recalcular();
   }
 
@@ -158,11 +199,20 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
     try {
       const ubicacion = await this.obtenerMiUbicacion();
       this.miUbicacion.set(ubicacion);
+      this.ubicacionManual.set(false);
+      this.avisoUbicacion.set(null);
       this.map?.setCenter(ubicacion);
+      this.map?.setZoom(13);
       this.miMarcador?.setPosition(ubicacion);
       await this.cargarUbicaciones();
     } catch (error) {
-      this.notificaciones.error(error instanceof Error ? error.message : 'No se pudo actualizar', 'Error');
+      // No se pisa la ubicación ya establecida (automática o manual): solo se avisa que
+      // el reintento automático falló y se sigue pudiendo ajustar a mano.
+      this.notificaciones.error(
+        `${error instanceof Error ? error.message : 'No se pudo actualizar tu ubicación'}. Podés marcarla a mano en el mapa.`,
+        'No se pudo detectar la ubicación',
+      );
+      await this.cargarUbicaciones();
     } finally {
       this.cargando.set(false);
     }

@@ -19,11 +19,18 @@ interface ClienteConDistancia extends UbicacionCliente {
   lugar: string | null;
 }
 
+interface WindowConGoogleMapsAuth extends Window {
+  gm_authFailure?: () => void;
+}
+
 const RADIO_KM_DEFAULT = 10;
 
 /** Centro de referencia mientras no se conoce la posición real del staff: local de
  *  Escolares en Av. Lara, Valencia, Carabobo (placeId ChIJY0Vnkq5ngI4RlAo0hRTQtJE). */
 const CENTRO_DEFECTO = { lat: 10.1794491, lng: -68.0039378 };
+
+/** Zoom "de calle": deben verse los negocios adyacentes, no solo el barrio. */
+const ZOOM_DEFECTO = 17;
 
 /** Distancia entre dos puntos (fórmula de Haversine), en km. */
 function distanciaKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
@@ -67,8 +74,17 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
   private miMarcador: google.maps.Marker | null = null;
   private marcadoresClientes: google.maps.Marker[] = [];
   private todas: UbicacionCliente[] = [];
+  private googleMapsAuthFallo = false;
 
   async ngAfterViewInit() {
+    // Google llama a este callback global cuando la clave de API no puede autenticarse:
+    // sin facturación habilitada en Google Cloud, o clave inválida/restringida. No hay otra
+    // forma de detectarlo: el script en sí carga bien (onload dispara igual), el problema
+    // aparece recién cuando el mapa intenta pintar, con el watermark "for development
+    // purposes only" y sin tiles/marcadores confiables.
+    (window as WindowConGoogleMapsAuth).gm_authFailure = () => {
+      this.googleMapsAuthFallo = true;
+    };
     await this.iniciar();
   }
 
@@ -80,6 +96,7 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
     this.cargando.set(true);
     this.errorMapa.set(null);
     this.avisoUbicacion.set(null);
+    this.googleMapsAuthFallo = false;
     try {
       await this.mapsService.loadApi();
     } catch {
@@ -104,6 +121,18 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
 
     this.miUbicacion.set(ubicacion);
     this.iniciarMapa(ubicacion);
+
+    // gm_authFailure se dispara recién cuando el mapa intenta pintar tiles, no antes: hay
+    // que darle un instante después de crear el mapa antes de confiar en que cargó bien.
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    if (this.googleMapsAuthFallo) {
+      this.errorMapa.set(
+        'Google Maps no cargó correctamente: la clave de API no tiene la facturación (Billing) habilitada en Google Cloud Console. Sin eso, el mapa queda en modo de prueba ("For development purposes only") y los datos no se muestran de forma confiable. Habilitá la facturación del proyecto en console.cloud.google.com y volvé a intentar.',
+      );
+      this.cargando.set(false);
+      return;
+    }
+
     try {
       await this.cargarUbicaciones();
     } catch {
@@ -170,7 +199,7 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
     const container = this.mapContainer?.nativeElement;
     if (!container) return;
 
-    this.map = this.mapsService.createMap(container, { center: centro, zoom: this.ubicacionManual() ? 6 : 13 });
+    this.map = this.mapsService.createMap(container, { center: centro, zoom: ZOOM_DEFECTO });
     this.miMarcador = this.mapsService.createMarker({
       position: centro,
       map: this.map,
@@ -202,7 +231,7 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
       this.ubicacionManual.set(false);
       this.avisoUbicacion.set(null);
       this.map?.setCenter(ubicacion);
-      this.map?.setZoom(13);
+      this.map?.setZoom(ZOOM_DEFECTO);
       this.miMarcador?.setPosition(ubicacion);
       await this.cargarUbicaciones();
     } catch (error) {
@@ -271,6 +300,6 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
 
   centrarEn(c: ClienteConDistancia) {
     this.map?.setCenter({ lat: c.lat, lng: c.lng });
-    this.map?.setZoom(15);
+    this.map?.setZoom(ZOOM_DEFECTO);
   }
 }

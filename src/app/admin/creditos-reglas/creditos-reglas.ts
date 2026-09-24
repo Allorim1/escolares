@@ -12,6 +12,8 @@ interface Reglas {
   tasaQuincenal: number;
   ivaTasa: number;
   montoMinimo: number;
+  nombresNiveles?: string[];
+  cuotasParaNivel?: number[];
 }
 
 @Component({
@@ -58,6 +60,35 @@ export class CreditosReglas implements OnInit {
       nivel: i + 1,
       limite: Math.round(r.nivelBase * Math.pow(r.factorNivel, i) * 100) / 100,
     }));
+  }
+
+  nombreNivel(nivel: number): string {
+    return this.reglas()?.nombresNiveles?.[nivel - 1] ?? '';
+  }
+
+  setNombreNivel(nivel: number, valor: string) {
+    const r = this.reglas();
+    if (!r) return;
+    const nombres = [...(r.nombresNiveles ?? [])];
+    while (nombres.length < nivel) nombres.push('');
+    nombres[nivel - 1] = valor;
+    this.reglas.set({ ...r, nombresNiveles: nombres });
+  }
+
+  /** Cuotas que hay que pagar, estando en el nivel anterior, para llegar a este nivel.
+   *  El nivel 1 es el punto de partida: no tiene requisito. */
+  cuotasParaNivel(nivel: number): number | null {
+    if (nivel <= 1) return null;
+    return this.reglas()?.cuotasParaNivel?.[nivel - 2] ?? 0;
+  }
+
+  setCuotasParaNivel(nivel: number, valor: number) {
+    const r = this.reglas();
+    if (!r || nivel <= 1) return;
+    const cuotas = [...(r.cuotasParaNivel ?? [])];
+    while (cuotas.length < nivel - 1) cuotas.push(0);
+    cuotas[nivel - 2] = valor;
+    this.reglas.set({ ...r, cuotasParaNivel: cuotas });
   }
 
   guardar() {

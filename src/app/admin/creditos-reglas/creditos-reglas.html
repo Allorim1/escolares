@@ -25,11 +25,41 @@
           <input id="nivelMaximo" type="number" min="1" step="1" [(ngModel)]="r.nivelMaximo" name="nivelMaximo">
         </div>
       </div>
+      <p class="muted ayuda-cuotas">
+        "Cuotas para subir" es cuántas cuotas hay que pagar en total (acumulado histórico,
+        no se reinicia al subir) para pasar del nivel anterior a este.
+      </p>
       <table class="tabla-niveles">
-        <thead><tr><th>Nivel</th><th>Línea de crédito</th></tr></thead>
+        <thead><tr><th>Nivel</th><th>Nombre</th><th>Línea de crédito</th><th>Cuotas para subir</th></tr></thead>
         <tbody>
           @for (n of niveles(); track n.nivel) {
-            <tr><td>{{ n.nivel }}</td><td>${{ n.limite.toFixed(2) }}</td></tr>
+            <tr>
+              <td>{{ n.nivel }}</td>
+              <td>
+                <input
+                  type="text"
+                  class="input-nombre-nivel"
+                  [placeholder]="'Nivel ' + n.nivel"
+                  [ngModel]="nombreNivel(n.nivel)"
+                  (ngModelChange)="setNombreNivel(n.nivel, $event)"
+                  [name]="'nombreNivel' + n.nivel">
+              </td>
+              <td>${{ n.limite.toFixed(2) }}</td>
+              <td>
+                @if (n.nivel > 1) {
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    class="input-cuotas-nivel"
+                    [ngModel]="cuotasParaNivel(n.nivel)"
+                    (ngModelChange)="setCuotasParaNivel(n.nivel, $event)"
+                    [name]="'cuotasNivel' + n.nivel">
+                } @else {
+                  <span class="muted">— (nivel inicial)</span>
+                }
+              </td>
+            </tr>
           }
         </tbody>
       </table>

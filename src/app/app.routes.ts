@@ -305,6 +305,10 @@ export const routes: Routes = [
             loadComponent: () => import('./admin/creditos-ubicaciones/creditos-ubicaciones').then((m) => m.CreditosUbicaciones),
           },
           {
+            path: 'creditos-ampliar-credito',
+            loadComponent: () => import('./admin/creditos-ampliar-credito/creditos-ampliar-credito').then((m) => m.CreditosAmpliarCredito),
+          },
+          {
             path: 'creditos-productos',
             loadComponent: () => import('./admin/creditos-productos/creditos-productos').then((m) => m.CreditosProductos),
           },

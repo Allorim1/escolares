@@ -1,0 +1,110 @@
+<div class="ac-container">
+  <h1>Créditos Escolares · Ampliar Crédito</h1>
+
+  @if (!usuarioSeleccionado()) {
+    <div class="seccion">
+      <h2>Busca al cliente</h2>
+      <input type="text" placeholder="Cédula, nombre o teléfono..." [(ngModel)]="buscarTexto" (ngModelChange)="onBuscar()">
+
+      @if (buscando()) {
+        <div class="muted">Buscando...</div>
+      }
+
+      @if (usuariosEncontrados().length) {
+        <table class="ac-table">
+          <thead><tr><th>Nombre</th><th>Cédula</th><th>Teléfono</th><th>Nivel</th><th>Disponible</th><th></th></tr></thead>
+          <tbody>
+            @for (u of usuariosEncontrados(); track u.id) {
+              <tr class="fila-click" (click)="seleccionar(u)">
+                <td>{{ u.nombre }}</td>
+                <td>{{ u.verificacion?.documento || '—' }}</td>
+                <td>{{ u.telefono }}</td>
+                <td>{{ u.nivel }}</td>
+                <td>${{ u.disponible.toFixed(2) }}</td>
+                <td><button class="btn-primary">Elegir</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  } @else {
+    <div class="seccion usuario-elegido">
+      <div>
+        <strong>{{ usuarioSeleccionado()!.nombre }}</strong>
+        <span class="muted"> · {{ usuarioSeleccionado()!.verificacion?.documento }} · {{ usuarioSeleccionado()!.telefono }}</span>
+        <div class="muted">Nivel {{ usuarioSeleccionado()!.nivel }} · disponible ${{ usuarioSeleccionado()!.disponible.toFixed(2) }}</div>
+      </div>
+      <button class="btn-cancel" (click)="cambiarUsuario()">Cambiar cliente</button>
+    </div>
+
+    <div class="ac-layout">
+      <div class="ac-principal">
+        <div class="seccion">
+          <h2>Línea de crédito</h2>
+          <div class="fila-dato"><span>Línea por nivel</span><strong>${{ limiteBase().toFixed(2) }}</strong></div>
+          <div class="fila-dato"><span>Extensión otorgada</span><strong>${{ (usuarioSeleccionado()!.extensionCredito ?? 0).toFixed(2) }}</strong></div>
+          <div class="fila-dato total"><span>Línea total</span><strong>${{ usuarioSeleccionado()!.limite.toFixed(2) }}</strong></div>
+          <div class="fila-dato"><span>Disponible ahora</span><strong>${{ usuarioSeleccionado()!.disponible.toFixed(2) }}</strong></div>
+
+          <label class="campo-label" for="extension">Nueva extensión de crédito ($)</label>
+          <input
+            id="extension"
+            type="number"
+            min="0"
+            step="1"
+            class="input-extension"
+            [ngModel]="extensionNueva()"
+            (ngModelChange)="extensionNueva.set($event === null || $event === '' ? null : +$event)">
+          <p class="muted">Se suma a la línea del nivel del cliente. Escribí 0 para quitarla.</p>
+
+          <button class="btn-save" [disabled]="guardando() || extensionNueva() === null" (click)="guardarExtension()">
+            {{ guardando() ? 'Guardando...' : 'Ampliar crédito' }}
+          </button>
+        </div>
+
+        <div class="seccion">
+          <h2>Historial de compras</h2>
+          @if (cargandoHistorial()) {
+            <div class="muted">Cargando...</div>
+          } @else {
+            <table class="ac-table">
+              <thead><tr><th>Producto / Propósito</th><th>Monto</th><th>Estado</th><th>Fecha</th></tr></thead>
+              <tbody>
+                @for (s of historial(); track s.id) {
+                  <tr>
+                    <td>{{ descripcionSolicitud(s) }}</td>
+                    <td>${{ (s.factura?.total ?? s.monto).toFixed(2) }}</td>
+                    <td><span class="badge" [class]="etiquetaSolicitud(s.status).clase">{{ etiquetaSolicitud(s.status).texto }}</span></td>
+                    <td>{{ s.createdAt | date:'dd/MM/yyyy' }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="4" class="empty">Este cliente no tiene compras registradas</td></tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+
+      <div class="ac-lateral">
+        <div class="seccion puntualidad-card">
+          <h2>Puntualidad</h2>
+          @if (cargandoPuntualidad()) {
+            <div class="muted">Calculando...</div>
+          } @else if (puntualidad(); as p) {
+            @if (p.cuotasEvaluadas === 0) {
+              <div class="muted">Todavía no tiene cuotas vencidas para evaluar.</div>
+            } @else {
+              <div class="puntualidad-porcentaje" [class]="clasePuntualidad()">{{ p.porcentaje }}%</div>
+              <div class="muted">{{ p.cuotasATiempo }} de {{ p.cuotasEvaluadas }} cuotas pagadas a tiempo</div>
+              <div class="barra">
+                <div class="barra-relleno" [class]="clasePuntualidad()" [style.width.%]="p.porcentaje"></div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

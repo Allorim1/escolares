@@ -80,6 +80,30 @@
   font-weight: 500;
 }
 
+.input-nombre-nivel {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.input-cuotas-nivel {
+  width: 80px;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.ayuda-cuotas {
+  margin: 12px 0 4px;
+}
+
 .aviso-ok {
   background: #d4edda;
   color: #155724;

@@ -1,0 +1,114 @@
+.cs-container {
+  padding: 20px;
+}
+
+.cs-header {
+  margin-bottom: 20px;
+}
+
+.cs-header h1 {
+  margin: 0;
+  color: #1d63c1;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  border: 1px solid #ddd;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #444;
+}
+
+.tab.activa {
+  background: #1d63c1;
+  border-color: #1d63c1;
+  color: white;
+}
+
+.cs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cs-table th,
+.cs-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.cs-table th {
+  background: #1d63c1;
+  color: white;
+  font-weight: 500;
+}
+
+.muted {
+  color: #888;
+  font-size: 12px;
+}
+
+.acciones {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-aprobar {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-rechazar {
+  background: white;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  padding: 24px;
+}
+
+.loading {
+  padding: 24px;
+  color: #888;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+}
+
+.badge-success { background: #28a745; }
+.badge-warning { background: #ffc107; color: #333; }
+.badge-danger { background: #dc3545; }

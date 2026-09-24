@@ -1,0 +1,51 @@
+<div class="cs-container">
+  <div class="cs-header">
+    <h1>Créditos Escolares · Verificar pagos</h1>
+  </div>
+
+  <div class="tabs">
+    @for (t of pestanas; track t.value) {
+      <button class="tab" [class.activa]="pestanaActiva() === t.value" (click)="cambiarPestana(t.value)">{{ t.label }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="cs-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Factura</th>
+          <th>Monto</th>
+          <th>Método</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of pagos(); track p.id) {
+          <tr>
+            <td>{{ p.usuarioNombre }}<br><span class="muted">{{ p.usuarioTelefono }}</span></td>
+            <td>{{ p.facturaNumero || '—' }}</td>
+            <td>${{ p.monto.toFixed(2) }}</td>
+            <td>{{ metodoLabel(p.metodo) }}</td>
+            <td><span class="badge" [class]="etiqueta(p.status).clase">{{ etiqueta(p.status).texto }}</span></td>
+            <td>{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="acciones">
+              @if (p.status === 'pendiente_verificacion') {
+                <button class="btn-aprobar" [disabled]="procesandoId() === p.id" (click)="verificar(p)">Verificar</button>
+                <button class="btn-rechazar" [disabled]="procesandoId() === p.id" (click)="rechazar(p)">Rechazar</button>
+              } @else if (p.status === 'rechazado' && p.motivoRechazo) {
+                <span class="muted">{{ p.motivoRechazo }}</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="empty">No hay pagos en este estado</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

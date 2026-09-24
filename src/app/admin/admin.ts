@@ -125,6 +125,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           items: [
             { label: 'Verificaciones', route: 'creditos-verificaciones', permiso: 'creditos_gestionar' },
             { label: 'Registrar Compra', route: 'creditos-registrar-compra', permiso: 'creditos_gestionar' },
+            { label: 'Verificar Pagos', route: 'creditos-verificar-pagos', permiso: 'creditos_gestionar' },
             { label: 'Solicitudes de Crédito', route: 'creditos-solicitudes', permiso: 'creditos_gestionar' },
             { label: 'Productos', route: 'creditos-productos', permiso: 'creditos_gestionar' },
             { label: 'Reglas', route: 'creditos-reglas', permiso: 'creditos_gestionar' },

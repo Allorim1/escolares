@@ -301,6 +301,10 @@ export const routes: Routes = [
             loadComponent: () => import('./admin/creditos-verificar-pagos/creditos-verificar-pagos').then((m) => m.CreditosVerificarPagos),
           },
           {
+            path: 'creditos-ubicaciones',
+            loadComponent: () => import('./admin/creditos-ubicaciones/creditos-ubicaciones').then((m) => m.CreditosUbicaciones),
+          },
+          {
             path: 'creditos-productos',
             loadComponent: () => import('./admin/creditos-productos/creditos-productos').then((m) => m.CreditosProductos),
           },

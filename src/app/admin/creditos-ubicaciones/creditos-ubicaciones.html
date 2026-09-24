@@ -1,0 +1,51 @@
+<div class="ub-container">
+  <div class="ub-header">
+    <h1>Créditos Escolares · Ubicación de clientes</h1>
+    <div class="ub-controles">
+      <label>
+        Radio (km)
+        <input type="number" min="1" step="1" [(ngModel)]="radioKm" (ngModelChange)="recalcular()">
+      </label>
+      <button class="btn-primary" [disabled]="cargando()" (click)="actualizar()">
+        {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </div>
+
+  @if (errorMapa()) {
+    <div class="ub-error">{{ errorMapa() }}</div>
+  } @else {
+    <div class="ub-layout">
+      <div class="ub-mapa-wrap">
+        @if (cargando()) {
+          <div class="ub-cargando">Cargando ubicaciones...</div>
+        }
+        <div class="ub-mapa" #mapContainer></div>
+      </div>
+
+      <div class="ub-lista">
+        <h2>Cerca ({{ cercanos().length }})</h2>
+        @for (c of cercanos(); track c.usuarioId) {
+          <div class="ub-item" role="button" tabindex="0" (click)="centrarEn(c)" (keydown.enter)="centrarEn(c)">
+            <div class="ub-nombre">{{ c.nombre }}</div>
+            <div class="muted">{{ c.telefono }}</div>
+            <div class="ub-distancia">{{ c.distanciaKm.toFixed(1) }} km</div>
+          </div>
+        } @empty {
+          <div class="ub-vacio">No hay clientes cerca de tu ubicación</div>
+        }
+
+        <h2>Fuera de rango ({{ lejanos().length }})</h2>
+        @for (c of lejanos(); track c.usuarioId) {
+          <div class="ub-item">
+            <div class="ub-nombre">{{ c.nombre }}</div>
+            <div class="muted">{{ c.telefono }}</div>
+            <div class="ub-lugar">{{ c.lugar || (c.distanciaKm.toFixed(0) + ' km de distancia') }}</div>
+          </div>
+        } @empty {
+          <div class="ub-vacio">No hay más clientes ubicados</div>
+        }
+      </div>
+    </div>
+  }
+</div>

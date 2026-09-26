@@ -53,7 +53,19 @@
       <div class="rc-principal">
         @if (compraAsignada(); as c) {
           <div class="seccion qr-panel">
-            <div class="qr-estado confirmada">✓ Compra asignada, esperando que el cliente responda</div>
+            @if (c.estado === 'esperando') {
+              <div class="qr-estado esperando">
+                <span class="qr-spinner"></span>
+                Esperando a que el cliente la acepte o la rechace desde la app...
+              </div>
+            } @else if (c.estado === 'confirmada') {
+              <div class="qr-estado confirmada">✓ El cliente aceptó; el crédito ya está activo</div>
+            } @else {
+              <div class="qr-estado rechazada">
+                El cliente rechazó la compra
+                @if (c.motivoRechazo) { <div class="muted">Motivo: {{ c.motivoRechazo }}</div> }
+              </div>
+            }
 
             <div class="factura-resumen">
               <div class="totales">
@@ -74,7 +86,7 @@
         } @else {
           <div class="seccion">
             <h2>2. Monto y pago inicial</h2>
-            <label class="monto-label" for="monto-usd">Monto en dólares</label>
+            <label class="monto-label" for="monto-usd">Monto en dólares (incluye IVA)</label>
             <input
               id="monto-usd"
               type="number"
@@ -87,7 +99,7 @@
 
             @if (monto() && monto()! > 0) {
               <div class="monto-bs">≈ Bs. {{ montoEnBsFormateado() }} <span class="muted">(tasa {{ currency.currentTasa().toFixed(2) }})</span></div>
-              <div class="muted">IVA estimado ${{ iva().toFixed(2) }} · Total estimado ${{ total().toFixed(2) }}</div>
+              <div class="muted">Incluye IVA ${{ iva().toFixed(2) }} (subtotal ${{ subtotal().toFixed(2) }})</div>
             }
 
             @if (monto() && excedeDisponible()) {

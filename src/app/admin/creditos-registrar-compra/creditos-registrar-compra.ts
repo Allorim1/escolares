@@ -231,9 +231,11 @@ export class CreditosRegistrarCompra implements OnDestroy {
             this.detenerPolling();
             this.compraEnCurso.update((c) => (c ? { ...c, estado: 'esperando_pago', pagoInicial: s.pagoInicial, cuotaMonto: s.cuotaMonto } : c));
             this.notificaciones.success('El cliente confirmó la compra. Cóbrale el pago inicial y márcalo como recibido.', 'Falta el pago inicial');
+            this.cargarHistorialCliente(this.usuarioSeleccionado()!.id);
           } else if (s.status === 'rechazado') {
             this.detenerPolling();
             this.compraEnCurso.update((c) => (c ? { ...c, estado: 'rechazada', motivoRechazo: s.motivoRechazo } : c));
+            this.cargarHistorialCliente(this.usuarioSeleccionado()!.id);
           }
           // Si sigue 'pendiente_aceptacion', se sigue esperando: el próximo tick vuelve a consultar.
         },
@@ -260,6 +262,7 @@ export class CreditosRegistrarCompra implements OnDestroy {
         this.guardando.set(false);
         this.compraEnCurso.update((cur) => (cur ? { ...cur, estado: 'confirmada' } : cur));
         this.notificaciones.success('Crédito activado.', '¡Listo!');
+        this.cargarHistorialCliente(this.usuarioSeleccionado()!.id);
       },
       error: (err) => {
         this.guardando.set(false);

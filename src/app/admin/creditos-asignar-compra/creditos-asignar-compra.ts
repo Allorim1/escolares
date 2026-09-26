@@ -1,4 +1,4 @@
-import { Component, computed, signal, inject } from '@angular/core';
+import { Component, OnDestroy, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -44,13 +44,22 @@ interface Factura {
   total: number;
 }
 
-interface SolicitudAsignada {
+interface SolicitudAsignadaResponse {
   id: string;
   cuotas: number;
   cuotaMonto: number;
   factura: Factura;
   pagoInicialAsignado: number;
 }
+
+/** Compra recién asignada: se hace polling hasta que el cliente la acepte o la rechace desde
+ *  su app, para que el estado mostrado aquí (y el historial) no se quede desactualizado. */
+interface SolicitudAsignada extends SolicitudAsignadaResponse {
+  estado: 'esperando' | 'confirmada' | 'rechazada';
+  motivoRechazo?: string;
+}
+
+const POLL_INTERVAL_MS = 3000;
 
 function round(n: number): number {
   return Math.round(n * 100) / 100;
@@ -67,7 +76,7 @@ function round(n: number): number {
   templateUrl: './creditos-asignar-compra.html',
   styleUrl: './creditos-asignar-compra.css',
 })
-export class CreditosAsignarCompra {
+export class CreditosAsignarCompra implements OnDestroy {
   private http = inject(HttpClient);
   private notificaciones = inject(NotificationModalService);
   readonly currency = inject(CurrencyService);
@@ -96,8 +105,15 @@ export class CreditosAsignarCompra {
   });
   montoEnBsFormateado = computed(() => new Intl.NumberFormat('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(this.montoEnBs()));
 
-  iva = computed(() => round((this.monto() ?? 0) * this.ivaTasa()));
-  total = computed(() => round((this.monto() ?? 0) + this.iva()));
+  // El monto que se ingresa ya incluye IVA (es lo que paga el cliente): se desglosa para
+  // la vista previa, igual que lo hace el backend al guardar la factura.
+  subtotal = computed(() => {
+    const m = this.monto();
+    if (!m || m <= 0) return 0;
+    return round(m / (1 + this.ivaTasa()));
+  });
+  iva = computed(() => round((this.monto() ?? 0) - this.subtotal()));
+  total = computed(() => round(this.monto() ?? 0));
 
   guardando = signal(false);
   mensaje = signal<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
@@ -106,12 +122,17 @@ export class CreditosAsignarCompra {
   compraAsignada = signal<SolicitudAsignada | null>(null);
 
   private timeoutUsuario: ReturnType<typeof setTimeout> | null = null;
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     this.http.get<{ ivaTasa: number }>('/api/creditos/admin/reglas').subscribe({
       next: (r) => this.ivaTasa.set(r.ivaTasa),
       error: () => undefined,
     });
+  }
+
+  ngOnDestroy() {
+    this.detenerPolling();
   }
 
   onBuscarUsuario() {
@@ -138,6 +159,7 @@ export class CreditosAsignarCompra {
   }
 
   cambiarUsuario() {
+    this.detenerPolling();
     this.usuarioSeleccionado.set(null);
     this.monto.set(null);
     this.pagoInicial.set(null);
@@ -215,12 +237,13 @@ export class CreditosAsignarCompra {
     this.mensaje.set(null);
     const body = { usuarioId: usuario.id, monto, pagoInicial };
 
-    this.http.post<SolicitudAsignada>('/api/creditos/admin/compras/manual', body).subscribe({
+    this.http.post<SolicitudAsignadaResponse>('/api/creditos/admin/compras/manual', body).subscribe({
       next: (res) => {
         this.guardando.set(false);
-        this.compraAsignada.set(res);
+        this.compraAsignada.set({ ...res, estado: 'esperando' });
         this.notificaciones.success('Le aparecerá en "Por confirmar" en su app para que la acepte o la rechace.', 'Compra asignada');
         this.cargarHistorialCliente(usuario.id);
+        this.iniciarPolling(res.id, usuario.id);
       },
       error: (err) => {
         this.guardando.set(false);
@@ -231,8 +254,42 @@ export class CreditosAsignarCompra {
     });
   }
 
+  /** Mientras el cliente no responda, se revisa cada pocos segundos para reflejar acá y en
+   *  el historial en cuanto acepte o rechace la compra asignada. */
+  private iniciarPolling(id: string, usuarioId: string) {
+    this.detenerPolling();
+    this.pollingInterval = setInterval(() => {
+      this.http.get<{ status: SolicitudStatus; motivoRechazo?: string }>(`/api/creditos/admin/solicitudes/${id}`).subscribe({
+        next: (s) => {
+          if (s.status === 'activo') {
+            this.detenerPolling();
+            this.compraAsignada.update((c) => (c ? { ...c, estado: 'confirmada' } : c));
+            this.notificaciones.success('El cliente aceptó la compra: el crédito ya está activo.', '¡Aceptada!');
+            this.cargarHistorialCliente(usuarioId);
+          } else if (s.status === 'rechazado') {
+            this.detenerPolling();
+            this.compraAsignada.update((c) => (c ? { ...c, estado: 'rechazada', motivoRechazo: s.motivoRechazo } : c));
+            this.notificaciones.error('El cliente rechazó la compra asignada.', 'Rechazada');
+            this.cargarHistorialCliente(usuarioId);
+          }
+          // Si sigue 'pendiente_aceptacion', se sigue esperando: el próximo tick vuelve a consultar.
+        },
+        // Un fallo puntual de red no debe cortar el polling; se reintenta en el próximo tick.
+        error: () => undefined,
+      });
+    }, POLL_INTERVAL_MS);
+  }
+
+  private detenerPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
+
   /** Cierra el resumen y vuelve al formulario para asignar otra compra al mismo cliente. */
   asignarOtraCompra() {
+    this.detenerPolling();
     this.compraAsignada.set(null);
     this.monto.set(null);
     this.pagoInicial.set(null);

@@ -1,0 +1,279 @@
+.rc-container {
+  padding: 20px;
+  max-width: 1200px;
+}
+
+.rc-container h1 {
+  margin: 0 0 8px;
+  color: #1d63c1;
+}
+
+.explicacion {
+  margin: 0 0 16px;
+  color: #666;
+  font-size: 13px;
+  max-width: 640px;
+}
+
+.rc-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.rc-principal {
+  flex: 1;
+  min-width: 0;
+}
+
+.rc-historial {
+  width: 320px;
+  flex: none;
+  position: sticky;
+  top: 20px;
+}
+
+@media (max-width: 900px) {
+  .rc-layout {
+    flex-direction: column;
+  }
+  .rc-historial {
+    width: 100%;
+    position: static;
+  }
+}
+
+.seccion {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.seccion h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: #333;
+}
+
+.seccion > input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.muted {
+  color: #888;
+  font-size: 13px;
+}
+
+.rc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rc-table th,
+.rc-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.rc-table th {
+  color: #888;
+  font-weight: 500;
+}
+
+.fila-click {
+  cursor: pointer;
+}
+
+.fila-click:hover {
+  background: #f8f9fa;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  padding: 16px;
+}
+
+.usuario-elegido {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+}
+
+.badge-success { background: #28a745; }
+.badge-medium { background: #6c757d; }
+.badge-warning { background: #ffc107; color: #333; }
+.badge-danger { background: #dc3545; }
+.badge-primary { background: #1d63c1; }
+.badge-tertiary { background: #6f42c1; }
+
+.historial-card h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: #333;
+}
+
+.historial-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.historial-item:last-child {
+  border-bottom: none;
+}
+
+.historial-item .fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.historial-desc {
+  margin: 6px 0;
+  color: #444;
+}
+
+.btn-primary {
+  background: #1d63c1;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-cancel {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-save {
+  background: #1d63c1;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.totales {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #ccc;
+}
+
+.totales .fila {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 14px;
+}
+
+.totales .fila.total {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.aviso-error {
+  background: #f8d7da;
+  color: #842029;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.aviso-ok {
+  background: #d4edda;
+  color: #155724;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.factura-nota {
+  margin-top: 8px;
+}
+
+.monto-label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.inicial-label {
+  margin-top: 16px;
+}
+
+.monto-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.monto-bs {
+  margin-top: 8px;
+  font-size: 15px;
+  color: #333;
+}
+
+.qr-panel {
+  text-align: center;
+}
+
+.qr-estado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.qr-estado.confirmada { background: #d4edda; color: #155724; }
+
+.factura-resumen {
+  text-align: left;
+  max-width: 340px;
+  margin: 0 auto;
+}

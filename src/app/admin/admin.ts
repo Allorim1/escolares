@@ -125,6 +125,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           items: [
             { label: 'Verificaciones', route: 'creditos-verificaciones', permiso: 'creditos_gestionar' },
             { label: 'Registrar Compra', route: 'creditos-registrar-compra', permiso: 'creditos_gestionar' },
+            { label: 'Asignar Compra', route: 'creditos-asignar-compra', soloRoot: true },
             { label: 'Verificar Pagos', route: 'creditos-verificar-pagos', permiso: 'creditos_gestionar' },
             { label: 'Ampliar Crédito', route: 'creditos-ampliar-credito', permiso: 'creditos_gestionar' },
             { label: 'Ubicación de Clientes', route: 'creditos-ubicaciones', permiso: 'creditos_gestionar' },

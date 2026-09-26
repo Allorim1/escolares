@@ -297,6 +297,10 @@ export const routes: Routes = [
             loadComponent: () => import('./admin/creditos-registrar-compra/creditos-registrar-compra').then((m) => m.CreditosRegistrarCompra),
           },
           {
+            path: 'creditos-asignar-compra',
+            loadComponent: () => import('./admin/creditos-asignar-compra/creditos-asignar-compra').then((m) => m.CreditosAsignarCompra),
+          },
+          {
             path: 'creditos-verificar-pagos',
             loadComponent: () => import('./admin/creditos-verificar-pagos/creditos-verificar-pagos').then((m) => m.CreditosVerificarPagos),
           },

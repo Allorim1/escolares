@@ -1,0 +1,155 @@
+<div class="rc-container">
+  <h1>Créditos Escolares · Asignar compra</h1>
+  <p class="explicacion">
+    A diferencia de "Registrar Compra", aquí defines tú el monto y el pago inicial de una vez;
+    no se genera QR. El cliente la ve directo en "Por confirmar" en su app y solo puede
+    aceptarla o rechazarla, con el inicial ya fijo.
+  </p>
+
+  @if (!usuarioSeleccionado()) {
+    <div class="seccion">
+      <h2>1. Busca al cliente</h2>
+      <input type="text" placeholder="Cédula o nombre..." [(ngModel)]="buscarUsuarioTexto" (ngModelChange)="onBuscarUsuario()">
+
+      @if (buscandoUsuario()) {
+        <div class="muted">Buscando...</div>
+      }
+
+      @if (usuariosEncontrados().length) {
+        <table class="rc-table">
+          <thead><tr><th>Nombre</th><th>Cédula</th><th>Teléfono</th><th>Estado</th><th>Disponible</th><th></th></tr></thead>
+          <tbody>
+            @for (u of usuariosEncontrados(); track u.id) {
+              <tr class="fila-click" (click)="seleccionarUsuario(u)">
+                <td>{{ u.nombre }}</td>
+                <td>{{ u.verificacion?.documento || '—' }}</td>
+                <td>{{ u.telefono }}</td>
+                <td>
+                  <span class="badge" [class.badge-success]="u.status === 'verificado'" [class.badge-medium]="u.status !== 'verificado'">
+                    {{ u.status === 'verificado' ? 'Verificado' : u.status }}
+                  </span>
+                </td>
+                <td>${{ u.disponible.toFixed(2) }}</td>
+                <td><button class="btn-primary">Elegir</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  } @else {
+    <div class="seccion usuario-elegido">
+      <div>
+        <strong>{{ usuarioSeleccionado()!.nombre }}</strong>
+        <span class="muted"> · {{ usuarioSeleccionado()!.verificacion?.documento }} · {{ usuarioSeleccionado()!.telefono }}</span>
+        <div class="muted">Disponible: ${{ usuarioSeleccionado()!.disponible.toFixed(2) }} (nivel {{ usuarioSeleccionado()!.nivel }})</div>
+      </div>
+      @if (!compraAsignada()) {
+        <button class="btn-cancel" (click)="cambiarUsuario()">Cambiar cliente</button>
+      }
+    </div>
+
+    <div class="rc-layout">
+      <div class="rc-principal">
+        @if (compraAsignada(); as c) {
+          <div class="seccion qr-panel">
+            <div class="qr-estado confirmada">✓ Compra asignada, esperando que el cliente responda</div>
+
+            <div class="factura-resumen">
+              <div class="totales">
+                <div class="fila"><span>Subtotal</span><span>${{ c.factura.subtotal.toFixed(2) }}</span></div>
+                <div class="fila"><span>IVA</span><span>${{ c.factura.iva.toFixed(2) }}</span></div>
+                <div class="fila total"><span>Total factura</span><span>${{ c.factura.total.toFixed(2) }}</span></div>
+                <div class="fila"><span>Pago inicial asignado</span><span>${{ c.pagoInicialAsignado.toFixed(2) }}</span></div>
+              </div>
+              <div class="muted factura-nota">
+                Financiado en {{ c.cuotas }} cuotas quincenales de ${{ c.cuotaMonto.toFixed(2) }} · Factura {{ c.factura.numero }}
+              </div>
+            </div>
+
+            <button class="btn-save" (click)="asignarOtraCompra()">Asignar otra compra</button>
+          </div>
+        } @else if (usuarioSeleccionado()!.status !== 'verificado') {
+          <div class="aviso-error">Este usuario no tiene la cuenta verificada; no se le puede asignar una compra.</div>
+        } @else {
+          <div class="seccion">
+            <h2>2. Monto y pago inicial</h2>
+            <label class="monto-label" for="monto-usd">Monto en dólares</label>
+            <input
+              id="monto-usd"
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder="0.00"
+              class="monto-input"
+              [ngModel]="monto()"
+              (ngModelChange)="onMontoChange($event)">
+
+            @if (monto() && monto()! > 0) {
+              <div class="monto-bs">≈ Bs. {{ montoEnBsFormateado() }} <span class="muted">(tasa {{ currency.currentTasa().toFixed(2) }})</span></div>
+              <div class="muted">IVA estimado ${{ iva().toFixed(2) }} · Total estimado ${{ total().toFixed(2) }}</div>
+            }
+
+            @if (monto() && excedeDisponible()) {
+              <div class="aviso-error">El monto supera el crédito disponible del cliente.</div>
+            }
+
+            @if (monto() && monto()! > 0) {
+              <label class="monto-label inicial-label" for="inicial-usd">Pago inicial (entre ${{ iva().toFixed(2) }} y ${{ total().toFixed(2) }})</label>
+              <input
+                id="inicial-usd"
+                type="number"
+                [min]="iva()"
+                [max]="total()"
+                step="0.01"
+                placeholder="0.00"
+                class="monto-input"
+                [ngModel]="pagoInicial()"
+                (ngModelChange)="pagoInicial.set($event === null || $event === '' ? null : +$event)">
+
+              @if (pagoInicial() !== null && pagoInicialInvalido()) {
+                <div class="aviso-error">El inicial debe estar entre ${{ iva().toFixed(2) }} y ${{ total().toFixed(2) }}.</div>
+              }
+            }
+
+            @if (mensaje(); as m) {
+              <div [class]="m.tipo === 'ok' ? 'aviso-ok' : 'aviso-error'">{{ m.texto }}</div>
+            }
+
+            <button class="btn-save" [disabled]="!puedeRegistrar()" (click)="asignarCompra()">
+              {{ guardando() ? 'Asignando...' : 'Asignar compra' }}
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="rc-historial">
+        <div class="seccion historial-card">
+          <h2>Historial de compras</h2>
+          @if (cargandoHistorial()) {
+            <div class="muted">Cargando...</div>
+          } @else {
+            @for (s of historialCliente(); track s.id) {
+              <div class="historial-item">
+                <div class="fila">
+                  <span class="badge" [class]="etiquetaSolicitud(s.status).clase">{{ etiquetaSolicitud(s.status).texto }}</span>
+                  <span class="muted">{{ s.createdAt | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="historial-desc">{{ descripcionSolicitud(s) }}</div>
+                <div class="fila">
+                  <span class="muted">{{ s.factura?.numero || 'Sin factura' }}</span>
+                  <strong>${{ (s.factura?.total ?? s.monto).toFixed(2) }}</strong>
+                </div>
+                @if (s.status === 'rechazado' && s.motivoRechazo) {
+                  <div class="muted">Motivo: {{ s.motivoRechazo }}</div>
+                }
+              </div>
+            } @empty {
+              <div class="empty">Este cliente no tiene compras registradas</div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

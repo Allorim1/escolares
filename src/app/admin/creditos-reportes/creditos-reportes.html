@@ -1,0 +1,76 @@
+<div class="rp-container">
+  <h1>Créditos Escolares · Reportes</h1>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else if (reportes(); as r) {
+    <div class="tarjetas">
+      <div class="tarjeta">
+        <div class="valor">{{ r.usuarios.verificados }} / {{ r.usuarios.total }}</div>
+        <div class="etiqueta">Clientes verificados</div>
+      </div>
+      <div class="tarjeta">
+        <div class="valor">${{ r.credito.totalOtorgado.toFixed(2) }}</div>
+        <div class="etiqueta">Crédito otorgado (activo + pagado)</div>
+      </div>
+      <div class="tarjeta">
+        <div class="valor">${{ r.credito.saldoPendienteActivos.toFixed(2) }}</div>
+        <div class="etiqueta">Saldo pendiente de cobro</div>
+      </div>
+      <div class="tarjeta">
+        <div class="valor">{{ r.credito.clientesActivos }}</div>
+        <div class="etiqueta">Créditos activos</div>
+      </div>
+      <div class="tarjeta" [class.alerta]="r.credito.clientesConMoraGrave > 0">
+        <div class="valor">{{ r.credito.clientesConMoraGrave }}</div>
+        <div class="etiqueta">Con más de 7 días de atraso</div>
+      </div>
+      <div class="tarjeta" [class.alerta]="r.credito.montoEnMoraGrave > 0">
+        <div class="valor">${{ r.credito.montoEnMoraGrave.toFixed(2) }}</div>
+        <div class="etiqueta">Monto en mora grave</div>
+      </div>
+    </div>
+
+    <div class="rp-layout">
+      <div class="seccion">
+        <h2>Compras por estado</h2>
+        <table class="rp-table">
+          <thead><tr><th>Estado</th><th>Cantidad</th><th>Monto</th></tr></thead>
+          <tbody>
+            @for (f of filas(); track f.estado) {
+              <tr><td>{{ f.nombre }}</td><td>{{ f.cantidad }}</td><td>${{ f.monto.toFixed(2) }}</td></tr>
+            } @empty {
+              <tr><td colspan="3" class="empty">Sin datos</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="seccion">
+        <h2>Clientes por nivel</h2>
+        <table class="rp-table">
+          <thead><tr><th>Nivel</th><th>Clientes</th></tr></thead>
+          <tbody>
+            @for (f of filasNivel(); track f.nivel) {
+              <tr><td>Nivel {{ f.nivel }}</td><td>{{ f.cantidad }}</td></tr>
+            } @empty {
+              <tr><td colspan="2" class="empty">Sin datos</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="seccion">
+        <h2>Centro de Ayuda</h2>
+        <table class="rp-table">
+          <tbody>
+            <tr><td>Abiertos</td><td>{{ r.tickets.abierto }}</td></tr>
+            <tr><td>En proceso</td><td>{{ r.tickets.en_proceso }}</td></tr>
+            <tr><td>Cerrados</td><td>{{ r.tickets.cerrado }}</td></tr>
+            <tr><td>De pago atrasado</td><td>{{ r.tickets.pagoAtrasado }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

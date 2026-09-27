@@ -58,44 +58,32 @@
   font-weight: 500;
 }
 
+.fila-click {
+  cursor: pointer;
+}
+
+.fila-click:hover {
+  background: #f8f9fa;
+}
+
+.fila-atrasada {
+  background: #fdecea;
+}
+
+.fila-atrasada:hover {
+  background: #fbdcd9;
+}
+
+.ultimo {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #666;
+}
+
 .muted {
   color: #888;
-  font-size: 12px;
-}
-
-.acciones {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.btn-aprobar {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.btn-rechazar {
-  background: white;
-  color: #dc3545;
-  border: 1px solid #dc3545;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.btn-pago {
-  background: #1d63c1;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
   font-size: 12px;
 }
 
@@ -119,20 +107,7 @@
   color: white;
 }
 
-.badge-success { background: #28a745; }
 .badge-warning { background: #ffc107; color: #333; }
-.badge-danger { background: #dc3545; }
 .badge-primary { background: #1d63c1; }
-.badge-tertiary { background: #6f42c1; }
-
-.badge.atraso {
-  margin-top: 4px;
-}
-
-.fila-atrasada {
-  background: #fdecea;
-}
-
-.fila-atrasada:hover {
-  background: #fbdcd9;
-}
+.badge-medium { background: #6c757d; }
+.badge-danger { background: #dc3545; margin-right: 6px; }

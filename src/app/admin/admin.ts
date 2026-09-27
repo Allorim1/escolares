@@ -124,9 +124,13 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           name: 'Créditos Escolares',
           items: [
             { label: 'Verificaciones', route: 'creditos-verificaciones', permiso: 'creditos_gestionar' },
+            { label: 'Reportes', route: 'creditos-reportes', permiso: 'creditos_gestionar' },
             { label: 'Registrar Compra', route: 'creditos-registrar-compra', permiso: 'creditos_gestionar' },
             { label: 'Asignar Compra', route: 'creditos-asignar-compra', soloRoot: true },
             { label: 'Verificar Pagos', route: 'creditos-verificar-pagos', permiso: 'creditos_gestionar' },
+            { label: 'Eliminación de cuentas', route: 'creditos-eliminaciones', permiso: 'creditos_gestionar' },
+            { label: 'Centro de Ayuda', route: 'creditos-tickets', permiso: 'creditos_gestionar' },
+            { label: 'Restablecer contraseñas', route: 'creditos-restablecimientos', permiso: 'creditos_gestionar' },
             { label: 'Ampliar Crédito', route: 'creditos-ampliar-credito', permiso: 'creditos_gestionar' },
             { label: 'Ubicación de Clientes', route: 'creditos-ubicaciones', permiso: 'creditos_gestionar' },
             { label: 'Solicitudes de Crédito', route: 'creditos-solicitudes', permiso: 'creditos_gestionar' },

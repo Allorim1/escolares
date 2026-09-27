@@ -1,0 +1,143 @@
+.td-container {
+  padding: 20px;
+  max-width: 800px;
+}
+
+.btn-volver {
+  background: none;
+  border: none;
+  color: #1d63c1;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.td-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.td-header h1 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #333;
+}
+
+.td-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.muted {
+  color: #888;
+  font-size: 13px;
+}
+
+.hilo {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  min-height: 120px;
+}
+
+.burbuja {
+  max-width: 75%;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f1f3f5;
+}
+
+.burbuja.staff {
+  margin-left: auto;
+  background: #1d63c1;
+  color: white;
+}
+
+.burbuja .texto {
+  white-space: pre-wrap;
+  font-size: 14px;
+}
+
+.burbuja .fecha {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.responder {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.responder textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.btn-aprobar {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  align-self: flex-end;
+}
+
+.btn-aprobar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-rechazar {
+  background: white;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+}
+
+.badge-warning { background: #ffc107; color: #333; }
+.badge-primary { background: #1d63c1; }
+.badge-medium { background: #6c757d; }
+
+.loading, .empty {
+  padding: 24px;
+  color: #888;
+  text-align: center;
+}

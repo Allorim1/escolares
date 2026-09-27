@@ -1,0 +1,40 @@
+<div class="cs-container">
+  <div class="cs-header">
+    <h1>Créditos Escolares · Restablecer contraseñas</h1>
+    <p class="explicacion">
+      Estos clientes no tienen email registrado, así que "olvidé mi contraseña" no les pudo
+      mandar un código. Confirma su identidad por teléfono antes de generarles una temporal.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="cs-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Teléfono</th>
+          <th>Solicitado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of solicitudes(); track s.id) {
+          <tr>
+            <td>{{ s.nombre }}</td>
+            <td>{{ s.telefono }}</td>
+            <td>{{ s.solicitadaEn | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button class="btn-aprobar" [disabled]="procesandoId() === s.id" (click)="restablecer(s)">
+                Generar contraseña temporal
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4" class="empty">No hay solicitudes pendientes</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

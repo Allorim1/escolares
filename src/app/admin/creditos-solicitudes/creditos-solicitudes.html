@@ -26,12 +26,17 @@
       </thead>
       <tbody>
         @for (s of solicitudes(); track s.id) {
-          <tr>
+          <tr [class.fila-atrasada]="(s.diasAtraso ?? 0) > 7">
             <td>{{ s.usuarioNombre }}<br><span class="muted">{{ s.usuarioTelefono }}</span></td>
             <td>{{ descripcion(s) }}</td>
             <td>${{ s.monto.toFixed(2) }}</td>
             <td>{{ s.cuotasPagadas }} / {{ s.cuotas }} · ${{ s.cuotaMonto.toFixed(2) }} c/u</td>
-            <td><span class="badge" [class]="etiqueta(s.status).clase">{{ etiqueta(s.status).texto }}</span></td>
+            <td>
+              <span class="badge" [class]="etiqueta(s.status).clase">{{ etiqueta(s.status).texto }}</span>
+              @if ((s.diasAtraso ?? 0) > 7) {
+                <br><span class="badge badge-danger atraso">{{ s.diasAtraso }} días atrasado</span>
+              }
+            </td>
             <td>{{ s.createdAt | date:'dd/MM/yyyy' }}</td>
             <td class="acciones">
               @if (s.status === 'pendiente_aceptacion') {
@@ -45,6 +50,9 @@
                 <button class="btn-rechazar" [disabled]="procesandoId() === s.id" (click)="rechazar(s)">Rechazar</button>
               } @else if (s.status === 'activo') {
                 <button class="btn-pago" [disabled]="procesandoId() === s.id" (click)="registrarPago(s)">Registrar pago</button>
+                @if ((s.diasAtraso ?? 0) > 7) {
+                  <button class="btn-rechazar" [disabled]="procesandoId() === s.id" (click)="abrirCaso(s)">Abrir caso</button>
+                }
               } @else if (s.status === 'rechazado' && s.motivoRechazo) {
                 <span class="muted">{{ s.motivoRechazo }}</span>
               }

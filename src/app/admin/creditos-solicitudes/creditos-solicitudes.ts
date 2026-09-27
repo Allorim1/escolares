@@ -22,6 +22,8 @@ interface Solicitud {
   motivoRechazo?: string;
   pagoInicial?: number;
   factura?: { iva: number; total: number };
+  /** Días de atraso de la cuota más vieja sin pagar (0 si va al día o no está activo). */
+  diasAtraso?: number;
 }
 
 const PESTANAS: { value: Status | 'todos'; label: string }[] = [
@@ -131,6 +133,16 @@ export class CreditosSolicitudes implements OnInit {
     this.http.post(`${this.API}/${s.id}/registrar-pago`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
       error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al registrar el pago'); },
+    });
+  }
+
+  /** Abre un caso en el Centro de Ayuda contra esta compra (solo si lleva más de 7 días de atraso). */
+  abrirCaso(s: Solicitud) {
+    if (!confirm(`¿Abrir un caso de pago atrasado para ${s.usuarioNombre} (${s.diasAtraso} días)?`)) return;
+    this.procesandoId.set(s.id);
+    this.http.post('/api/creditos/admin/tickets/pago-atrasado', { solicitudId: s.id }).subscribe({
+      next: () => { this.procesandoId.set(null); this.cargar(); },
+      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al abrir el caso'); },
     });
   }
 }

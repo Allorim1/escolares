@@ -1,0 +1,43 @@
+<div class="cs-container">
+  <div class="cs-header">
+    <h1>Créditos Escolares · Centro de Ayuda</h1>
+  </div>
+
+  <div class="tabs">
+    @for (t of pestanas; track t.value) {
+      <button class="tab" [class.activa]="pestanaActiva() === t.value" (click)="cambiarPestana(t.value)">{{ t.label }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <table class="cs-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Asunto</th>
+          <th>Último mensaje</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of tickets(); track t.id) {
+          <tr class="fila-click" [class.fila-atrasada]="(t.diasAtraso ?? 0) > 7" (click)="abrir(t)">
+            <td>{{ t.usuarioNombre }}<br><span class="muted">{{ t.usuarioTelefono }}</span></td>
+            <td>
+              @if (t.tipo === 'pago_atrasado') { <span class="badge badge-danger">Pago atrasado</span> }
+              {{ t.asunto }}
+            </td>
+            <td class="ultimo">{{ ultimoMensaje(t) }}</td>
+            <td><span class="badge" [class]="etiqueta(t.estado).clase">{{ etiqueta(t.estado).texto }}</span></td>
+            <td>{{ t.actualizadoEn | date:'dd/MM/yyyy HH:mm' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="empty">No hay tickets en este estado</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

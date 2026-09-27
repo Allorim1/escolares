@@ -11,29 +11,6 @@
   color: #1d63c1;
 }
 
-.tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.tab {
-  border: 1px solid #ddd;
-  background: white;
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  cursor: pointer;
-  color: #444;
-}
-
-.tab.activa {
-  background: #1d63c1;
-  border-color: #1d63c1;
-  color: white;
-}
-
 .cs-table {
   width: 100%;
   border-collapse: collapse;
@@ -79,20 +56,15 @@
   font-size: 12px;
 }
 
+.btn-aprobar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-rechazar {
   background: white;
   color: #dc3545;
   border: 1px solid #dc3545;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.btn-pago {
-  background: #1d63c1;
-  color: white;
-  border: none;
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -120,19 +92,4 @@
 }
 
 .badge-success { background: #28a745; }
-.badge-warning { background: #ffc107; color: #333; }
 .badge-danger { background: #dc3545; }
-.badge-primary { background: #1d63c1; }
-.badge-tertiary { background: #6f42c1; }
-
-.badge.atraso {
-  margin-top: 4px;
-}
-
-.fila-atrasada {
-  background: #fdecea;
-}
-
-.fila-atrasada:hover {
-  background: #fbdcd9;
-}

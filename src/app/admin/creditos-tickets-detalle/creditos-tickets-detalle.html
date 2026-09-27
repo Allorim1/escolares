@@ -1,0 +1,38 @@
+<div class="td-container">
+  <button class="btn-volver" (click)="volver()">&larr; Volver</button>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else if (ticket(); as t) {
+    <div class="td-header">
+      <div>
+        <h1>{{ t.asunto }}</h1>
+        <span class="muted">{{ t.usuarioNombre }} · {{ t.usuarioTelefono }}</span>
+      </div>
+      <div class="td-acciones">
+        <span class="badge" [class]="etiqueta(t.estado).clase">{{ etiqueta(t.estado).texto }}</span>
+        @if (t.estado !== 'cerrado') {
+          <button class="btn-rechazar" (click)="cerrar()">Cerrar ticket</button>
+        }
+      </div>
+    </div>
+
+    <div class="hilo">
+      @for (m of t.mensajes; track $index) {
+        <div class="burbuja" [class.staff]="m.autor === 'staff'">
+          <div class="texto">{{ m.texto }}</div>
+          <div class="fecha">{{ m.autor === 'staff' ? (m.autorNombre || 'Staff') : t.usuarioNombre }} · {{ m.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="responder">
+      <textarea [(ngModel)]="mensaje" placeholder="Responder al cliente..." rows="3"></textarea>
+      <button class="btn-aprobar" [disabled]="!mensaje.trim() || enviando()" (click)="enviar()">
+        {{ enviando() ? 'Enviando...' : 'Enviar respuesta' }}
+      </button>
+    </div>
+  } @else {
+    <div class="empty">Ticket no encontrado</div>
+  }
+</div>

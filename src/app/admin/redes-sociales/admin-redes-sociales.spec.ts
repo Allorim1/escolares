@@ -47,9 +47,10 @@ describe('buildChatSnapshot', () => {
     ] as any[];
 
     const updatedChat = buildChatSnapshot(currentChat as any, mensajes as any[]);
+    if (!updatedChat) throw new Error('buildChatSnapshot no debería devolver null con un chat seleccionado');
 
     expect(updatedChat.mensajes.length).toBe(2);
-    expect(updatedChat.tieneNoLeidos).toBeTrue();
+    expect(updatedChat.tieneNoLeidos).toBe(true);
     expect(updatedChat.noLeidosCount).toBe(1);
     expect(updatedChat.ultimoMensaje.id).toBe('new-1');
   });

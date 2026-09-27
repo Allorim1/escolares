@@ -1,0 +1,79 @@
+.privacidad-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  color: #1d63c1;
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.privacidad-content {
+  background: #f8f9fa;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+}
+
+.privacidad-section {
+  margin-bottom: 2rem;
+}
+
+.privacidad-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.privacidad-section h2 {
+  color: #333;
+  font-size: 1.4rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #1d63c1;
+  display: inline-block;
+}
+
+.privacidad-section p {
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.privacidad-section ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.privacidad-section li {
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 0.5rem;
+}
+
+.privacidad-section p strong {
+  color: #333;
+}
+
+.privacidad-footer {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #ddd;
+  text-align: center;
+  color: #777;
+}
+
+@media (max-width: 768px) {
+  .privacidad-container {
+    padding: 2rem 1rem;
+  }
+
+  .privacidad-content {
+    padding: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+}

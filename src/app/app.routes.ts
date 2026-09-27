@@ -60,6 +60,10 @@ export const routes: Routes = [
     path: 'privacidad',
     loadComponent: () => import('./privacidad/privacidad').then((m) => m.Privacidad),
   },
+  {
+    path: 'eliminar-cuenta',
+    loadComponent: () => import('./eliminar-cuenta/eliminar-cuenta').then((m) => m.EliminarCuenta),
+  },
 {
     path: 'panel',
     component: Panel,
@@ -303,6 +307,26 @@ export const routes: Routes = [
           {
             path: 'creditos-verificar-pagos',
             loadComponent: () => import('./admin/creditos-verificar-pagos/creditos-verificar-pagos').then((m) => m.CreditosVerificarPagos),
+          },
+          {
+            path: 'creditos-eliminaciones',
+            loadComponent: () => import('./admin/creditos-eliminaciones/creditos-eliminaciones').then((m) => m.CreditosEliminaciones),
+          },
+          {
+            path: 'creditos-tickets',
+            loadComponent: () => import('./admin/creditos-tickets/creditos-tickets').then((m) => m.CreditosTickets),
+          },
+          {
+            path: 'creditos-tickets/:id',
+            loadComponent: () => import('./admin/creditos-tickets-detalle/creditos-tickets-detalle').then((m) => m.CreditosTicketsDetalle),
+          },
+          {
+            path: 'creditos-restablecimientos',
+            loadComponent: () => import('./admin/creditos-restablecimientos/creditos-restablecimientos').then((m) => m.CreditosRestablecimientos),
+          },
+          {
+            path: 'creditos-reportes',
+            loadComponent: () => import('./admin/creditos-reportes/creditos-reportes').then((m) => m.CreditosReportes),
           },
           {
             path: 'creditos-ubicaciones',

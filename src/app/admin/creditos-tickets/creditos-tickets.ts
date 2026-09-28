@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { io, Socket } from 'socket.io-client';
 
 type Estado = 'abierto' | 'en_proceso' | 'cerrado';
 type Tipo = 'consulta' | 'pago_atrasado';
@@ -35,7 +36,7 @@ const PESTANAS: { value: Estado | 'todos'; label: string }[] = [
   templateUrl: './creditos-tickets.html',
   styleUrl: './creditos-tickets.css',
 })
-export class CreditosTickets implements OnInit {
+export class CreditosTickets implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private router = inject(Router);
   private readonly API = '/api/creditos/admin/tickets';
@@ -44,9 +45,19 @@ export class CreditosTickets implements OnInit {
   pestanaActiva = signal<Estado | 'todos'>('abierto');
   tickets = signal<Ticket[]>([]);
   loading = signal(false);
+  private socket: Socket | null = null;
 
   ngOnInit() {
     this.cargar();
+    // Tiempo real: tickets nuevos o mensajes de clientes refrescan la bandeja sola.
+    this.socket = io(window.location.origin, { transports: ['websocket'] });
+    this.socket.on('connect', () => this.socket?.emit('join-tickets-admin-room'));
+    this.socket.on('ticket-actualizado', () => this.cargar(true));
+  }
+
+  ngOnDestroy() {
+    this.socket?.disconnect();
+    this.socket = null;
   }
 
   cambiarPestana(valor: Estado | 'todos') {
@@ -54,8 +65,9 @@ export class CreditosTickets implements OnInit {
     this.cargar();
   }
 
-  cargar() {
-    this.loading.set(true);
+  /** silencioso: recarga sin mostrar "Cargando..." (para los avisos en tiempo real). */
+  cargar(silencioso = false) {
+    if (!silencioso) this.loading.set(true);
     const estado = this.pestanaActiva();
     const url = estado === 'todos' ? this.API : `${this.API}?estado=${estado}`;
     this.http.get<Ticket[]>(url).subscribe({

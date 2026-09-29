@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { RedesSocialesBackend, RedSocial, MensajeRedSocial, RespuestaAutomatica, NotificacionRedSocial } from '../../backend/data-access/redes-sociales.backend';
 
 // Interfaces para el sistema de chat
@@ -70,7 +71,7 @@ export function buildChatSnapshot(
 @Component({
   selector: 'app-admin-redes-sociales',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './admin-redes-sociales.html',
   styleUrl: './admin-redes-sociales.css',
 })
@@ -133,9 +134,9 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
     const chatsMap = new Map<string, Chat>();
 
     // Filtrar mensajes por plataforma si hay un filtro activo
-    const mensajesFiltrados = filtroActual
-      ? mensajes.filter(mensaje => mensaje.plataforma === filtroActual)
-      : mensajes;
+    // WhatsApp tiene su propio módulo (Empresas > WhatsApp): aquí no se muestra.
+    const mensajesFiltrados = mensajes.filter(mensaje =>
+      mensaje.plataforma !== 'WhatsApp' && (!filtroActual || mensaje.plataforma === filtroActual));
 
     console.log('Mensajes después del filtro:', mensajesFiltrados.length);
 

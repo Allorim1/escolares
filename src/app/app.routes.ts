@@ -268,6 +268,10 @@ export const routes: Routes = [
                  path: 'relacion-libros',
                  loadComponent: () => import('./admin/relacion-libros/relacion-libros').then((m) => m.RelacionLibros),
                },
+               {
+                 path: 'whatsapp',
+                 loadComponent: () => import('./admin/whatsapp/whatsapp').then((m) => m.WhatsApp),
+               },
              {
                path: 'sesiones',
                loadComponent: () => import('./admin/sesiones/admin-sesiones').then((m) => m.AdminSesiones),

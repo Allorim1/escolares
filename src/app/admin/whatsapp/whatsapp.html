@@ -1,0 +1,329 @@
+<div class="wa" [class.chat-abierto]="seleccionado()">
+  <!-- ============ Lista de conversaciones ============ -->
+  <aside class="wa-lista">
+    <header class="wa-lista-header">
+      <div class="wa-cuenta">
+        <div class="wa-logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3Z"/></svg>
+        </div>
+        <div class="wa-cuenta-texto">
+          <h2>WhatsApp</h2>
+          <span class="wa-numero">{{ store.cuenta()?.numero || 'Empresas' }}</span>
+        </div>
+      </div>
+      <span class="wa-conexion" [class]="'wa-conexion ' + store.conexion()" [title]="
+        store.conexion() === 'conectado' ? 'Conectado en tiempo real' :
+        store.conexion() === 'conectando' ? 'Conectando…' :
+        store.conexion() === 'sin-permiso' ? 'Sin permiso' : 'Sin conexión, reintentando…'">
+        <span class="punto"></span>
+        {{ store.conexion() === 'conectado' ? 'En vivo' : store.conexion() === 'conectando' ? 'Conectando' : store.conexion() === 'sin-permiso' ? 'Sin permiso' : 'Reconectando' }}
+      </span>
+    </header>
+
+    <div class="wa-buscador">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"/></svg>
+      <input type="search" placeholder="Buscar nombre, teléfono o empresa" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+    </div>
+
+    <div class="wa-filtros">
+      <button [class.activo]="!soloNoLeidos()" (click)="soloNoLeidos.set(false)">Todos</button>
+      <button [class.activo]="soloNoLeidos()" (click)="soloNoLeidos.set(true)">
+        No leídos @if (store.totalNoLeidos()) { <span class="wa-contador">{{ store.totalNoLeidos() }}</span> }
+      </button>
+    </div>
+
+    <div class="wa-conversaciones">
+      @if (store.conexion() === 'sin-permiso') {
+        <div class="wa-vacio">No tienes permiso para ver WhatsApp. Pide a un administrador el permiso <b>WhatsApp</b> en tu rol.</div>
+      } @else if (store.cargandoConversaciones()) {
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div class="wa-conv esqueleto"><span class="wa-avatar"></span><span class="lineas"><i></i><i></i></span></div>
+        }
+      } @else {
+        @for (c of conversacionesFiltradas(); track c.waId) {
+          <button class="wa-conv" [class.activa]="c.waId === seleccionado()" [class.no-leida]="c.noLeidos > 0" (click)="abrir(c.waId)">
+            <span class="wa-avatar" [style.background]="colorAvatar(c.waId)">{{ iniciales(c) }}</span>
+            <span class="wa-conv-cuerpo">
+              <span class="wa-conv-fila">
+                <span class="wa-conv-nombre">{{ nombre(c) }}</span>
+                <span class="wa-conv-hora">{{ horaLista(c.ultimoMensaje?.fecha || c.updatedAt) }}</span>
+              </span>
+              @if (c.cliente?.empresa) {
+                <span class="wa-conv-empresa">{{ c.cliente?.empresa }}@if (c.cliente?.planta) { · {{ c.cliente?.planta }} }</span>
+              }
+              <span class="wa-conv-fila">
+                <span class="wa-conv-preview">
+                  @if (c.ultimoMensaje?.direccion === 'saliente') {
+                    <span class="ticks" [class]="'ticks ' + c.ultimoMensaje?.estado"></span>
+                  }
+                  {{ vistaPrevia(c) }}
+                </span>
+                @if (c.noLeidos > 0) {
+                  <span class="wa-badge">{{ c.noLeidos > 99 ? '99+' : c.noLeidos }}</span>
+                }
+              </span>
+            </span>
+          </button>
+        } @empty {
+          <div class="wa-vacio">
+            @if (busqueda() || soloNoLeidos()) {
+              No hay conversaciones que coincidan.
+            } @else {
+              Aún no hay conversaciones. Cuando un cliente escriba al número de WhatsApp aparecerá aquí al instante.
+            }
+          </div>
+        }
+      }
+    </div>
+  </aside>
+
+  <!-- ============ Chat ============ -->
+  <section class="wa-chat"
+    (dragover)="onArrastre($event, true)" (dragleave)="onArrastre($event, false)" (drop)="onSoltar($event)">
+    @if (conversacion(); as c) {
+      <header class="wa-chat-header">
+        <button class="wa-volver" (click)="cerrarChat()" aria-label="Volver">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="m12 4 1.4 1.4L7.8 11H20v2H7.8l5.6 5.6L12 20l-8-8 8-8Z"/></svg>
+        </button>
+        <span class="wa-avatar" [style.background]="colorAvatar(c.waId)">{{ iniciales(c) }}</span>
+        <div class="wa-chat-titulo">
+          @if (editandoNombre()) {
+            <form class="wa-renombrar" (ngSubmit)="guardarNombre()">
+              <input name="alias" [(ngModel)]="nombreEditado" placeholder="Nombre del contacto" maxlength="80" #inputNombre />
+              <button type="submit">Guardar</button>
+              <button type="button" class="sec" (click)="editandoNombre.set(false)">Cancelar</button>
+            </form>
+          } @else {
+            <h3>
+              {{ nombre(c) }}
+              <button class="wa-icono" (click)="iniciarRenombre()" title="Cambiar nombre">
+                <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M3 17.2V21h3.8L17.8 9.9l-3.7-3.7L3 17.2Zm17.7-10.1a1 1 0 0 0 0-1.4l-2.4-2.4a1 1 0 0 0-1.4 0l-1.8 1.8 3.7 3.7 1.9-1.7Z"/></svg>
+              </button>
+            </h3>
+            <span class="wa-chat-sub">
+              {{ telefono(c.waId) }}
+              @if (c.alias && c.nombre) { · ~{{ c.nombre }} }
+              @if (c.cliente?.empresa) { · <b>{{ c.cliente?.empresa }}</b>@if (c.cliente?.planta) { / {{ c.cliente?.planta }} } }
+              @if (c.cliente?.cedula) { · C.I. {{ c.cliente?.cedula }} }
+            </span>
+          }
+        </div>
+        <span class="wa-ventana" [class.cerrada]="!ventana().abierta"
+          [title]="ventana().abierta ? 'Puedes responder con mensajes libres durante las 24 h siguientes al último mensaje del cliente' : 'El cliente no ha escrito en las últimas 24 h'">
+          @if (ventana().abierta) { ⏱ {{ ventana().restante }} } @else { Ventana cerrada }
+        </span>
+      </header>
+
+      <div class="wa-mensajes" #scroller (scroll)="onScroll()">
+        @if (hilo()?.cargando && !hilo()?.mensajes?.length) {
+          <div class="wa-cargando"><span class="spinner"></span> Cargando mensajes…</div>
+        }
+        @if (hilo()?.hayMas) {
+          <div class="wa-cargando mini">@if (hilo()?.cargando) { <span class="spinner"></span> } Desliza hacia arriba para ver mensajes anteriores</div>
+        }
+
+        @for (it of items(); track it.clave) {
+          @if (it.clase === 'dia') {
+            <div class="wa-dia"><span>{{ it.etiqueta }}</span></div>
+          } @else {
+            @let m = it.m;
+            <div class="wa-fila" [class.saliente]="m.direccion === 'saliente'" [class.agrupado]="it.agrupado">
+              <div class="wa-burbuja" [class.media]="m.tipo === 'image' || m.tipo === 'video' || m.tipo === 'sticker'"
+                [class.sticker]="m.tipo === 'sticker'" [class.fallido]="m.estado === 'fallido'">
+
+                @if (m.cita; as cita) {
+                  <div class="wa-cita" [class.propia]="cita.direccion === 'saliente'">
+                    <b>{{ cita.direccion === 'saliente' ? 'Tú' : nombre(c) }}</b>
+                    <span>{{ textoCita(cita) }}</span>
+                  </div>
+                }
+
+                @switch (m.tipo) {
+                  @case ('image') {
+                    @if (url(m); as src) {
+                      <button class="wa-img-btn" (click)="lightbox.set(src)" title="Ver imagen">
+                        <img class="wa-img" [src]="src" alt="Imagen" (load)="alCargarMedia()" />
+                      </button>
+                    } @else {
+                      <div class="wa-media-cargando" [class.error]="m.media?.estado === 'error'">
+                        @if (m.media?.estado === 'error') {
+                          No se pudo descargar la imagen <button (click)="store.reintentarDescarga(m)">Reintentar</button>
+                        } @else { <span class="spinner"></span> }
+                      </div>
+                    }
+                  }
+                  @case ('sticker') {
+                    @if (url(m); as src) { <img class="wa-sticker" [src]="src" alt="Sticker" (load)="alCargarMedia()" /> }
+                    @else { <div class="wa-media-cargando pequeno"><span class="spinner"></span></div> }
+                  }
+                  @case ('video') {
+                    @if (url(m); as src) {
+                      <video class="wa-video" [src]="src" controls preload="metadata" (loadedmetadata)="alCargarMedia()"></video>
+                    } @else {
+                      <div class="wa-media-cargando" [class.error]="m.media?.estado === 'error'">
+                        @if (m.media?.estado === 'error') {
+                          No se pudo descargar el video <button (click)="store.reintentarDescarga(m)">Reintentar</button>
+                        } @else { <span class="spinner"></span> }
+                      </div>
+                    }
+                  }
+                  @case ('audio') {
+                    @if (url(m); as src) { <audio [src]="src" controls preload="metadata"></audio> }
+                    @else if (m.media?.estado === 'error') {
+                      <span class="wa-nota">No se pudo descargar el audio <button class="wa-link" (click)="store.reintentarDescarga(m)">Reintentar</button></span>
+                    } @else { <span class="wa-nota"><span class="spinner"></span> Cargando audio…</span> }
+                  }
+                  @case ('document') {
+                    <button class="wa-doc" (click)="abrirDocumento(m)" [disabled]="m.media?.estado !== 'listo'" title="Descargar">
+                      <span class="wa-doc-ext">{{ extension(m.media?.nombre) }}</span>
+                      <span class="wa-doc-info">
+                        <span class="wa-doc-nombre">{{ m.media?.nombre || 'Documento' }}</span>
+                        <span class="wa-doc-meta">
+                          @if (m.media?.estado === 'pendiente') { Descargando… }
+                          @else if (m.media?.estado === 'error') { Error al descargar }
+                          @else { {{ tamano(m.media?.size) }} · Descargar }
+                        </span>
+                      </span>
+                    </button>
+                    @if (m.media?.estado === 'error') {
+                      <button class="wa-link" (click)="store.reintentarDescarga(m)">Reintentar descarga</button>
+                    }
+                  }
+                  @case ('location') {
+                    <a class="wa-ubicacion" [href]="mapa(m)" target="_blank" rel="noopener">
+                      <span class="pin">📍</span>
+                      <span>{{ m.ubicacion?.nombre || 'Ubicación compartida' }}<small>{{ m.ubicacion?.direccion || 'Abrir en Google Maps' }}</small></span>
+                    </a>
+                  }
+                  @case ('contacts') {
+                    <div class="wa-contacto">👤 <span class="wa-texto">{{ m.texto }}</span></div>
+                  }
+                  @case ('unsupported') {
+                    <span class="wa-nota">{{ m.texto }}</span>
+                  }
+                }
+
+                @if (m.texto && m.tipo !== 'contacts' && m.tipo !== 'unsupported' && m.tipo !== 'location') {
+                  <div class="wa-texto">{{ m.texto }}</div>
+                }
+
+                <div class="wa-pie">
+                  @if (m.direccion === 'saliente' && m.enviadoPor) { <span class="wa-autor">{{ m.enviadoPor.nombre }}</span> }
+                  @if (m.direccion === 'saliente' && !m.enviadoPor) { <span class="wa-autor">desde el teléfono</span> }
+                  <span>{{ hora(m.fecha) }}</span>
+                  @if (m.direccion === 'saliente') {
+                    <span class="ticks" [class]="'ticks ' + m.estado" [title]="m.estado"></span>
+                  }
+                </div>
+
+                @if (m.reaccion) { <span class="wa-reaccion">{{ m.reaccion }}</span> }
+
+                <button class="wa-accion-citar" (click)="citar(m)" title="Responder a este mensaje">
+                  <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11Z"/></svg>
+                </button>
+              </div>
+
+              @if (m.estado === 'fallido') {
+                <div class="wa-error-envio">
+                  ⚠ {{ m.error || 'No se pudo enviar' }}
+                  <button class="wa-link" (click)="reintentar(m)">Reintentar</button>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      @if (hayNuevosAbajo()) {
+        <button class="wa-nuevos" (click)="bajar(true)">↓ Mensajes nuevos</button>
+      }
+
+      <!-- Composer -->
+      <footer class="wa-composer">
+        @if (errorEnvio()) {
+          <div class="wa-alerta">{{ errorEnvio() }} <button class="wa-icono" (click)="errorEnvio.set(null)">✕</button></div>
+        }
+
+        @if (!ventana().abierta) {
+          <div class="wa-alerta info">
+            Pasaron más de 24 horas desde el último mensaje de este cliente (o nunca ha escrito). WhatsApp solo permite
+            escribirle de nuevo cuando él envíe un mensaje, o usando una plantilla aprobada por Meta.
+          </div>
+        }
+
+        @if (citando(); as q) {
+          <div class="wa-citando">
+            <div class="wa-cita" [class.propia]="q.direccion === 'saliente'">
+              <b>{{ q.direccion === 'saliente' ? 'Tú' : nombre(c) }}</b>
+              <span>{{ textoCita({ id: q.id, direccion: q.direccion, tipo: q.tipo, texto: q.texto }) }}</span>
+            </div>
+            <button class="wa-icono" (click)="citando.set(null)" title="Cancelar respuesta">✕</button>
+          </div>
+        }
+
+        @if (adjunto(); as a) {
+          <div class="wa-adjunto">
+            @if (a.preview) {
+              <img [src]="a.preview" alt="Vista previa" />
+            } @else {
+              <span class="wa-doc-ext">{{ extension(a.archivo.name) }}</span>
+            }
+            <div class="wa-adjunto-info">
+              <b>{{ a.archivo.name }}</b>
+              <span>{{ tamano(a.archivo.size) }}</span>
+              @if (avisoAdjunto(a)) { <small>{{ avisoAdjunto(a) }}</small> }
+              @if (progreso() !== null) {
+                <span class="wa-progreso"><i [style.width.%]="progreso()"></i></span>
+              }
+            </div>
+            @if (!enviando()) {
+              <button class="wa-icono" (click)="limpiarAdjunto()" title="Quitar archivo">✕</button>
+            }
+          </div>
+        }
+
+        <div class="wa-entrada">
+          <button class="wa-boton-adjuntar" (click)="elegirArchivo()" [disabled]="!ventana().abierta || enviando()" title="Adjuntar foto o archivo">
+            <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M16.5 6v11.5a4 4 0 0 1-8 0V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6H10v9.5a2.5 2.5 0 0 0 5 0V5a4 4 0 0 0-8 0v12.5a5.5 5.5 0 0 0 11 0V6h-1.5Z"/></svg>
+          </button>
+          <input #selectorArchivo type="file" hidden
+            accept="image/*,video/mp4,video/3gpp,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+            (change)="onArchivo($event)" />
+          <textarea #entrada rows="1" [(ngModel)]="texto" (input)="autoAjustar()" (keydown)="onTeclado($event)" (paste)="onPegar($event)"
+            [disabled]="!ventana().abierta"
+            [placeholder]="adjunto() ? 'Añade un comentario (opcional)' : 'Escribe un mensaje'"></textarea>
+          <button class="wa-boton-enviar" (click)="enviar()" [disabled]="!puedeEnviar()" title="Enviar (Enter)">
+            @if (enviando()) { <span class="spinner blanco"></span> }
+            @else { <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M2 21 23 12 2 3v7l15 2-15 2v7Z"/></svg> }
+          </button>
+        </div>
+      </footer>
+
+      @if (arrastrando()) {
+        <div class="wa-soltar">Suelta el archivo para enviarlo</div>
+      }
+    } @else {
+      <div class="wa-bienvenida">
+        <div class="wa-logo grande" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="44" height="44"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>
+        </div>
+        <h3>WhatsApp de Escolares</h3>
+        <p>Selecciona una conversación para ver los mensajes y responder. Los mensajes nuevos llegan en tiempo real.</p>
+        @if (!store.configurado()) {
+          <p class="wa-alerta">WhatsApp no está configurado en el servidor (faltan WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID).</p>
+        }
+      </div>
+    }
+  </section>
+</div>
+
+@if (lightbox(); as src) {
+  <div class="wa-lightbox" role="dialog" aria-modal="true" tabindex="-1"
+    (click)="$event.target === $event.currentTarget && lightbox.set(null)" (keydown.escape)="lightbox.set(null)">
+    <img [src]="src" alt="Imagen ampliada" />
+    <div class="wa-lightbox-acciones">
+      <a [href]="src" download="imagen-whatsapp">Descargar</a>
+      <button (click)="lightbox.set(null)">Cerrar ✕</button>
+    </div>
+  </div>
+}

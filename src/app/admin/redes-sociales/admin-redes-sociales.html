@@ -21,7 +21,7 @@
 
   <section class="section">
     <h2>📱 Redes Sociales</h2>
-    <p>Conecta tus cuentas de TikTok, Instagram, Telegram, Facebook y WhatsApp.</p>
+    <p>Conecta tus cuentas de TikTok, Instagram, Telegram y Facebook. Los mensajes de WhatsApp se gestionan en <a routerLink="/admin/whatsapp">Empresas &rsaquo; WhatsApp</a>.</p>
 
     <div class="form-agregar">
       <h3>Agregar nueva red social</h3>
@@ -34,7 +34,6 @@
             <option value="Instagram">Instagram</option>
             <option value="Telegram">Telegram</option>
             <option value="Facebook">Facebook</option>
-            <option value="WhatsApp">WhatsApp</option>
           </select>
         </div>
         <div class="form-group">
@@ -52,14 +51,6 @@
         <div class="form-group">
           <label for="token">Token / Clave API</label>
           <input id="token" type="password" [ngModel]="nuevaRedToken()" (ngModelChange)="nuevaRedToken.set($event)" placeholder="Token de acceso" enterFocusNext>
-          @if (nuevaRedPlataforma() === 'WhatsApp') {
-            <div class="help-text">
-              <small>
-                Para WhatsApp, el token debe ser un <strong>Access Token permanente</strong> con permisos <code>whatsapp_business_messaging</code> y <code>whatsapp_business_management</code>.
-                El campo "Usuario / Página" debe ser el <strong>Phone Number ID</strong> (numérico) de tu WhatsApp Business.
-              </small>
-            </div>
-          }
         </div>
         <div class="form-group">
           <label class="checkbox-label">
@@ -134,7 +125,6 @@
                   <option value="Instagram">Instagram</option>
                   <option value="Telegram">Telegram</option>
                   <option value="Facebook">Facebook</option>
-                  <option value="WhatsApp">WhatsApp</option>
                 </select>
               </div>
             </div>
@@ -186,7 +176,6 @@
 
           <div class="filtro-plataformas">
             <button class="filtro-btn" [class.active]="filtroPlataforma() === ''" (click)="filtroPlataforma.set('')" title="Todas">Todos</button>
-            <button class="filtro-btn" [class.active]="filtroPlataforma() === 'WhatsApp'" (click)="filtroPlataforma.set('WhatsApp')" title="WhatsApp">WhatsApp</button>
             <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Instagram'" (click)="filtroPlataforma.set('Instagram')" title="Instagram">Instagram</button>
           </div>
 

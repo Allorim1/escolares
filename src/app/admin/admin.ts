@@ -50,6 +50,7 @@ const QUICK_ITEMS: QuickItem[] = [
    { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
    { label: 'Cotizaciones\n/ N. Entrega', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
    { label: 'Sesiones', route: 'sesiones', icon: '🔐', permiso: 'sesiones_gestionar' },
+   { label: 'WhatsApp', route: 'whatsapp', icon: '🟢', permiso: 'whatsapp_gestionar' },
  ];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
@@ -118,6 +119,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
             { label: 'Clientes', route: 'clientes' },
             { label: 'Relación de Cuentas', route: 'relacion-cuentas' },
             { label: 'Relación de Libros', route: 'relacion-libros' },
+            { label: 'WhatsApp', route: 'whatsapp', permiso: 'whatsapp_gestionar' },
           ]
         },
         {

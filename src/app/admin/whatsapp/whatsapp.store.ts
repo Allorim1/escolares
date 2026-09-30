@@ -69,18 +69,42 @@ export class WhatsAppStore implements OnDestroy {
   /** URLs locales (blob:) de los adjuntos ya descargados, por id de mensaje. */
   readonly mediaUrls = signal<Record<string, string>>({});
 
+  /** Motivo por el que el tiempo real no está activo (se muestra en el indicador). */
+  readonly errorConexion = signal<string | null>(null);
+  readonly refrescando = signal(false);
+
   readonly totalNoLeidos = computed(() => this.conversaciones().reduce((t, c) => t + (c.noLeidos > 0 ? 1 : 0), 0));
 
-  /** Se llama con cada mensaje entrante nuevo (para sonido / marcar como leído). */
-  onEntrante?: (m: WaMensaje) => void;
+  /** Conversación abierta en pantalla: es la única cuyo hilo se resincroniza. */
+  hiloActivo: string | null = null;
+
+  private sincronizador?: ReturnType<typeof setInterval>;
+  private ultimaSincronizacion = 0;
+  private sincronizando = false;
+  private alVolver = () => {
+    if (document.visibilityState === 'visible') this.sincronizar();
+  };
 
   iniciar() {
     this.cargarEstado();
     this.cargarConversaciones();
     this.conectar();
+
+    // Red de seguridad por si el tiempo real falla (proxy, red, sesión): cada 5 s se mira
+    // si toca sincronizar; sin socket se sincroniza siempre, con socket cada 30 s.
+    this.sincronizador = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      const intervalo = this.conexion() === 'conectado' ? 30000 : 5000;
+      if (Date.now() - this.ultimaSincronizacion >= intervalo) this.sincronizar();
+    }, 5000);
+    document.addEventListener('visibilitychange', this.alVolver);
+    window.addEventListener('focus', this.alVolver);
   }
 
   ngOnDestroy() {
+    clearInterval(this.sincronizador);
+    document.removeEventListener('visibilitychange', this.alVolver);
+    window.removeEventListener('focus', this.alVolver);
     this.socket?.disconnect();
     this.socket = null;
     this.objectUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -101,18 +125,50 @@ export class WhatsAppStore implements OnDestroy {
     });
   }
 
-  cargarConversaciones() {
-    this.http.get<WaConversacion[]>(`${API}/conversaciones`).subscribe({
-      next: (lista) => {
-        this.conversaciones.set(lista);
-        this.cargandoConversaciones.set(false);
-      },
-      error: (err) => {
-        console.error('Error cargando conversaciones de WhatsApp:', err);
-        if (err.status === 403) this.conexion.set('sin-permiso');
-        this.cargandoConversaciones.set(false);
-      },
+  cargarConversaciones(): Promise<void> {
+    return new Promise((resolve) => {
+      this.http.get<WaConversacion[]>(`${API}/conversaciones`).subscribe({
+        next: (lista) => {
+          this.conversaciones.set(lista);
+          this.cargandoConversaciones.set(false);
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error cargando conversaciones de WhatsApp:', err);
+          if (err.status === 403) this.conexion.set('sin-permiso');
+          this.cargandoConversaciones.set(false);
+          resolve();
+        },
+      });
     });
+  }
+
+  /** Trae de nuevo la lista y el hilo abierto (sin parpadeos: se fusiona con lo que ya hay). */
+  async sincronizar(): Promise<void> {
+    if (this.sincronizando || this.conexion() === 'sin-permiso') return;
+    this.sincronizando = true;
+    this.ultimaSincronizacion = Date.now();
+    try {
+      await Promise.all([this.cargarConversaciones(), this.hiloActivo ? this.abrirHilo(this.hiloActivo) : Promise.resolve()]);
+    } finally {
+      this.sincronizando = false;
+    }
+  }
+
+  /** Botón "Actualizar": sincroniza y, si el tiempo real no está activo, lo reconecta. */
+  async refrescar(): Promise<void> {
+    if (this.refrescando()) return;
+    this.refrescando.set(true);
+    try {
+      if (this.socket && this.conexion() !== 'conectado' && this.conexion() !== 'sin-permiso') {
+        if (this.socket.connected) this.unirseSala(true, () => undefined);
+        else this.socket.connect();
+      }
+      await this.sincronizar();
+    } finally {
+      // Un mínimo visible para que se note que se actualizó.
+      setTimeout(() => this.refrescando.set(false), 400);
+    }
   }
 
   /** Carga la página más reciente de una conversación (o la vuelve a sincronizar si ya estaba cargada). */
@@ -248,18 +304,23 @@ export class WhatsAppStore implements OnDestroy {
         primeraConexion = false;
       });
     });
-    this.socket.on('disconnect', () => {
-      if (this.conexion() !== 'sin-permiso') this.conexion.set('desconectado');
+    this.socket.on('disconnect', (motivo) => {
+      if (this.conexion() === 'sin-permiso') return;
+      this.conexion.set('desconectado');
+      this.errorConexion.set(`Conexión perdida (${motivo}). Se actualiza cada 5 s mientras se reconecta.`);
+    });
+    this.socket.on('connect_error', (err) => {
+      if (this.conexion() === 'sin-permiso') return;
+      this.conexion.set('desconectado');
+      this.errorConexion.set(`No se pudo conectar el tiempo real (${err.message}). Se actualiza cada 5 s.`);
     });
     this.socket.io.on('reconnect_attempt', () => {
       if (this.conexion() !== 'sin-permiso') this.conexion.set('conectando');
     });
 
     this.socket.on('wa:mensaje', ({ mensaje, conversacion }: { mensaje: WaMensaje; conversacion?: WaConversacion }) => {
-      const esNuevo = !this.buscarMensaje(mensaje);
       this.upsertMensaje(mensaje);
       if (conversacion) this.actualizarConversacion(conversacion);
-      if (esNuevo && mensaje.direccion === 'entrante') this.onEntrante?.(mensaje);
     });
     this.socket.on('wa:conversacion', ({ conversacion }: { conversacion: WaConversacion }) => this.actualizarConversacion(conversacion));
     this.socket.on('wa:mensaje-eliminado', ({ id, waId }: { id: string; waId: string }) => {
@@ -269,42 +330,45 @@ export class WhatsAppStore implements OnDestroy {
   }
 
   /**
-   * La sala exige un access token válido. Si el guardado venció, una petición REST hace
-   * que el interceptor lo renueve y se reintenta una vez.
+   * La sala exige sesión válida (cookie o token guardado). Si el servidor no responde en
+   * 8 s o rechaza por token vencido, se renueva el token con una petición REST y se
+   * reintenta una vez; si aun así falla, queda la sincronización periódica como respaldo.
    */
   private unirseSala(reintentar: boolean, alUnirse: () => void) {
     const token = localStorage.getItem('accessToken');
-    this.socket?.emit('join-whatsapp-room', token, (r: { ok: boolean; error?: string }) => {
-      if (r?.ok) {
+    this.socket?.timeout(8000).emit('join-whatsapp-room', token, (err: Error | null, r?: { ok: boolean; error?: string }) => {
+      if (!err && r?.ok) {
         this.conexion.set('conectado');
+        this.errorConexion.set(null);
         alUnirse();
-      } else if (r?.error === 'Sin permiso') {
+        return;
+      }
+      const motivo = err ? 'el servidor no respondió' : r?.error || 'rechazado';
+      console.warn(`WhatsApp: no se pudo activar el tiempo real (${motivo})`);
+      if (r?.error === 'Sin permiso') {
         this.conexion.set('sin-permiso');
-      } else if (reintentar) {
+        return;
+      }
+      this.conexion.set('desconectado');
+      this.errorConexion.set(`Tiempo real no disponible (${motivo}). Se actualiza cada 5 s.`);
+      if (reintentar) {
         this.http.get(`${API}/estado`).subscribe({
           next: () => this.unirseSala(false, alUnirse),
-          error: () => this.conexion.set('desconectado'),
+          error: () => undefined,
         });
-      } else {
-        this.conexion.set('desconectado');
       }
     });
   }
 
-  /** Tras una reconexión: recargar lista y los hilos abiertos. */
+  /** Tras una reconexión: recargar lista e hilo abierto, por si algo llegó mientras tanto. */
   private resincronizar() {
-    this.cargarConversaciones();
-    Object.keys(this.hilos()).forEach((waId) => this.abrirHilo(waId));
+    this.sincronizar();
   }
 
   // ---------------------------------------------------------------- Helpers de estado
 
   private setHilo(waId: string, hilo: Hilo) {
     this.hilos.update((h) => ({ ...h, [waId]: hilo }));
-  }
-
-  private buscarMensaje(m: WaMensaje): WaMensaje | undefined {
-    return this.hilos()[m.waId]?.mensajes.find((x) => x.id === m.id);
   }
 
   private upsertMensaje(m: WaMensaje) {

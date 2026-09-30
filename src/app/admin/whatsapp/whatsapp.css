@@ -72,6 +72,34 @@ button { font-family: inherit; }
   color: var(--wa-suave);
   white-space: nowrap;
 }
+.wa-lista-acciones { display: flex; align-items: center; gap: 4px; }
+
+.wa-refrescar {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--wa-suave);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.wa-refrescar:hover { background: rgba(0, 0, 0, 0.07); color: var(--wa-verde-oscuro); }
+.wa-refrescar.girando svg { animation: girar 0.8s linear infinite; }
+
+.wa-aviso-conexion {
+  background: #fff3cd;
+  color: #664d03;
+  font-size: 12px;
+  padding: 6px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+}
+
 .wa-conexion .punto { width: 8px; height: 8px; border-radius: 50%; background: #adb5bd; }
 .wa-conexion.conectado { color: var(--wa-verde-oscuro); }
 .wa-conexion.conectado .punto { background: var(--wa-verde); animation: latido 2s infinite; }

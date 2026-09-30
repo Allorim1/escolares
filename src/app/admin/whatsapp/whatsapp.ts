@@ -74,6 +74,8 @@ export class WhatsApp implements OnInit, OnDestroy {
   private reloj?: ReturnType<typeof setInterval>;
   private pegadoAbajo = true;
   private ultimoId: string | null = null;
+  private noLeidosPrevios: Map<string, number> | null = null;
+  private readonly pestanaVisible = signal(typeof document === 'undefined' || document.visibilityState === 'visible');
   private audio?: AudioContext;
 
   readonly conversacionesFiltradas = computed(() => {
@@ -148,10 +150,29 @@ export class WhatsApp implements OnInit, OnDestroy {
       const n = this.store.totalNoLeidos();
       document.title = n > 0 ? `(${n}) WhatsApp · Escolares` : `WhatsApp · Escolares`;
     });
+
+    // Lectura y aviso sonoro a partir de la lista: funciona igual si el mensaje llegó por
+    // socket o por la sincronización de respaldo.
+    effect(() => {
+      // Hasta la primera carga no hay con qué comparar (no sonar por los no leídos viejos).
+      if (this.store.cargandoConversaciones()) return;
+      const lista = this.store.conversaciones();
+      const abierta = this.seleccionado();
+      const visible = this.pestanaVisible();
+      let hayNuevo = false;
+      for (const c of lista) {
+        const previo = this.noLeidosPrevios?.get(c.waId) ?? 0;
+        if (c.noLeidos > previo && !(c.waId === abierta && visible)) hayNuevo = true;
+      }
+      if (this.noLeidosPrevios && hayNuevo) this.sonar();
+      this.noLeidosPrevios = new Map(lista.map((c) => [c.waId, c.noLeidos]));
+
+      const actual = lista.find((c) => c.waId === abierta);
+      if (actual && actual.noLeidos > 0 && visible) this.store.marcarLeida(actual.waId);
+    });
   }
 
   ngOnInit() {
-    this.store.onEntrante = (m) => this.alRecibir(m);
     this.store.iniciar();
     this.reloj = setInterval(() => this.ahora.set(Date.now()), 30000);
 
@@ -178,13 +199,14 @@ export class WhatsApp implements OnInit, OnDestroy {
     this.pegadoAbajo = true;
     this.ultimoId = null;
     this.router.navigate([], { queryParams: { chat: waId }, replaceUrl: true });
+    this.store.hiloActivo = waId;
     this.store.abrirHilo(waId);
-    this.marcarLeidaSiVisible();
     setTimeout(() => this.entrada?.nativeElement.focus(), 0);
   }
 
   cerrarChat() {
     this.seleccionado.set(null);
+    this.store.hiloActivo = null;
     this.router.navigate([], { queryParams: {}, replaceUrl: true });
   }
 
@@ -268,23 +290,19 @@ export class WhatsApp implements OnInit, OnDestroy {
 
   // ---------------------------------------------------------------- Lectura y avisos
 
-  private alRecibir(m: WaMensaje) {
-    const visible = document.visibilityState === 'visible';
-    if (m.waId === this.seleccionado() && visible) {
-      this.store.marcarLeida(m.waId);
-    } else {
-      this.sonar();
-    }
-  }
-
-  private marcarLeidaSiVisible() {
-    const waId = this.seleccionado();
-    if (waId && document.visibilityState === 'visible') this.store.marcarLeida(waId);
-  }
-
   @HostListener('document:visibilitychange')
   onVisibilidad() {
-    this.marcarLeidaSiVisible();
+    this.pestanaVisible.set(document.visibilityState === 'visible');
+  }
+
+  /** Texto del indicador de conexión (con el motivo si el tiempo real no está activo). */
+  tituloConexion(): string {
+    switch (this.store.conexion()) {
+      case 'conectado': return 'Conectado en tiempo real';
+      case 'conectando': return 'Conectando…';
+      case 'sin-permiso': return 'Sin permiso';
+      default: return this.store.errorConexion() || 'Sin conexión en tiempo real. Se actualiza cada 5 s.';
+    }
   }
 
   /** Aviso sonoro corto (dos tonos), sin archivos de audio. */

@@ -34,6 +34,8 @@ interface Abono {
   tasa?: number;
   divisa?: number;
   status: string;
+  /** Solo aplica cuando status es 'Reprogramado'; reemplaza a `fecha` en listado y filtros. */
+  fechaReprogramada?: string | null;
   statusModificadoPor?: string;
   statusModificadoEn?: string;
   supervisor?: string;
@@ -133,11 +135,11 @@ export class RelacionCuentas implements OnInit, OnDestroy {
         passes = passes && a.planta === f.planta;
       }
       if (f.fechaDesde) {
-        const fechaLocal = this.parsearFechaLocal(a.fecha || '').toLocaleDateString('en-CA');
+        const fechaLocal = this.toYMD(this.fechaEfectiva(a));
         passes = passes && fechaLocal >= f.fechaDesde;
       }
       if (f.fechaHasta) {
-        const fechaLocal = this.parsearFechaLocal(a.fecha || '').toLocaleDateString('en-CA');
+        const fechaLocal = this.toYMD(this.fechaEfectiva(a));
         passes = passes && fechaLocal <= f.fechaHasta;
       }
       if (f.status) {
@@ -199,7 +201,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
         passes = passes && a.ivaPagado === this.soloIvaPagado();
       }
       return passes;
-    });
+    }).sort((x, y) => this.toYMD(this.fechaEfectiva(y)).localeCompare(this.toYMD(this.fechaEfectiva(x))));
   });
 
   totales = computed(() => {
@@ -316,6 +318,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   columnasSeleccionadasPdf = signal<Set<string>>(new Set(this.columnasDisponibles.filter(c => c.key !== 'comisionPlantaBs' && c.key !== 'comisionPlantaUsd').map((c) => c.key)));
 
   showModalReportes = signal(false);
+  showModalReprogramados = signal(false);
   showModalPendientes = signal(false);
   reporteRelacionesPdf = signal(false);
   reporteProductosPendientesPdf = signal(false);
@@ -624,6 +627,55 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   paginaActual = signal(1);
   readonly TAM_PAGINA = 10;
 
+  readonly STATUS_REPROGRAMADO = 'Reprogramado';
+
+  // Reporte de reprogramadas: mismas columnas que Relaciones, con la fecha
+  // original y la reprogramada una al lado de la otra.
+  readonly columnasReprogramados: { key: string; label: string }[] = [
+    { key: 'fecha', label: 'Fecha original' },
+    { key: 'fechaReprogramada', label: 'Fecha reprogramada' },
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'empresa', label: 'Empresa' },
+    { key: 'planta', label: 'Planta' },
+    { key: 'telefono', label: 'Teléfono' },
+    { key: 'cedula', label: 'Cédula' },
+    { key: 'nFact', label: 'N. Fact' },
+    { key: 'montoFactura', label: 'Monto Facts.\nBs' },
+    { key: 'iva', label: 'Iva' },
+    { key: 'diferencia', label: 'Diferencia\nBs' },
+    { key: 'divisa', label: 'Diferencia\n$' },
+    { key: 'pagoParcial', label: 'Pago\nParcial' },
+    { key: 'tasa', label: 'Tasa' },
+    { key: 'status', label: 'Status' },
+    { key: 'supervisor', label: 'Supervisor' },
+  ];
+  repFechaDesde = signal('');
+  repFechaHasta = signal('');
+  repColumnas = signal<Set<string>>(new Set(this.columnasReprogramados.map((c) => c.key)));
+  repMostrarEmpresa = signal(true);
+  repMostrarPlanta = signal(true);
+  repPdf = signal(true);
+  repExcel = signal(false);
+  repGenerando = signal(false);
+
+  /** Reprogramadas cuyo rango se aplica sobre la fecha ORIGINAL (no la del listado). */
+  reprogramadosReporte = computed(() => {
+    const { empresa, planta } = this.filtros();
+    const desde = this.repFechaDesde();
+    const hasta = this.repFechaHasta();
+    return this.abonos()
+      .filter((a) => {
+        if (!this.esReprogramado(a)) return false;
+        if (empresa && a.empresa !== empresa) return false;
+        if (planta && a.planta !== planta) return false;
+        const fecha = this.toYMD(a.fecha);
+        if (desde && fecha < desde) return false;
+        if (hasta && fecha > hasta) return false;
+        return true;
+      })
+      .sort((x, y) => this.toYMD(x.fecha).localeCompare(this.toYMD(y.fecha)));
+  });
+
    abonosPaginados = computed(() => {
      const lista = this.abonosFiltradosConPendientes();
      const inicio = (this.paginaActual() - 1) * this.TAM_PAGINA;
@@ -737,6 +789,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       this.cerrarModalTicket();
     } else if (this.showModalReportes()) {
       this.cerrarModalReportes();
+    } else if (this.showModalReprogramados()) {
+      this.cerrarModalReprogramados();
     } else if (this.showModalPendientes()) {
       this.cerrarModalPendientes();
     } else if (this.showModalSender()) {
@@ -1090,6 +1144,39 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.showModalReportes.set(false);
   }
 
+  abrirModalReprogramados() {
+    // Parte del rango del listado, pero el usuario puede cambiarlo en el modal.
+    this.repFechaDesde.set(this.filtros().fechaDesde || '');
+    this.repFechaHasta.set(this.filtros().fechaHasta || '');
+    this.showModalReprogramados.set(true);
+  }
+
+  cerrarModalReprogramados() {
+    this.showModalReprogramados.set(false);
+  }
+
+  toggleColumnaReprogramados(key: string) {
+    this.repColumnas.update((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  async generarReportesReprogramados() {
+    this.repGenerando.set(true);
+    try {
+      const tareas: Promise<void>[] = [];
+      if (this.repPdf()) tareas.push(this.generarReprogramadosPdf());
+      if (this.repExcel()) tareas.push(this.generarReprogramadosExcel());
+      await Promise.all(tareas);
+      this.cerrarModalReprogramados();
+    } finally {
+      this.repGenerando.set(false);
+    }
+  }
+
   abrirModalPendientes() {
     this.reporteProductosPendientesPdf.set(false);
     this.reporteSolicitudPendientesPdf.set(false);
@@ -1430,7 +1517,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     const valor = (abono as any)[key];
     switch (key) {
       case 'fecha':
-        return this.formatFecha(abono.fecha);
+        return this.formatFecha(this.fechaEfectiva(abono));
       case 'montoFactura':
         return this.formatMonto(abono.montoFactura ?? 0);
       case 'iva':
@@ -1970,10 +2057,17 @@ if (!url) return '';
       return;
     }
 
+    const reprogramado = this.editingAbono.status === this.STATUS_REPROGRAMADO;
+    if (reprogramado && !this.editingAbono.fechaReprogramada) {
+      alert('Indique la Fecha reprogramada');
+      return;
+    }
+
     this.saving.set(true);
 
     const payload = {
       ...this.editingAbono,
+      fechaReprogramada: reprogramado ? this.toInputDate(this.editingAbono.fechaReprogramada) : null,
       supervisor: this.editingAbono.supervisor || '',
       supervisorId: this.editingAbono.supervisorId || '',
       productosPendientes: this.editingAbono.productosPendientes || [],
@@ -2068,6 +2162,23 @@ if (!url) return '';
       maximumFractionDigits: 2,
     });
     return `${prefijo} ${numero}`;
+  }
+
+  esReprogramado(abono: Pick<Abono, 'status' | 'fechaReprogramada'>): boolean {
+    return abono.status === this.STATUS_REPROGRAMADO && !!abono.fechaReprogramada;
+  }
+
+  /** Fecha con la que se lista/filtra la relación: la reprogramada si aplica, si no la original. */
+  fechaEfectiva(abono: Abono): string {
+    return this.esReprogramado(abono) ? (abono.fechaReprogramada as string) : abono.fecha;
+  }
+
+  toInputDate(fecha: string | null | undefined): string {
+    return fecha ? fecha.split('T')[0] : '';
+  }
+
+  private toYMD(fecha: string): string {
+    return this.parsearFechaLocal(fecha || '').toLocaleDateString('en-CA');
   }
 
   private parsearFechaLocal(fecha: string): Date {
@@ -2334,6 +2445,169 @@ if (!url) return '';
     }
 
     doc.save(fileName);
+  }
+
+  private valorReprogramadoPdf(a: Abono, key: string): string {
+    switch (key) {
+      case 'fecha':
+        return this.formatFecha(a.fecha);
+      case 'fechaReprogramada':
+        return a.fechaReprogramada ? this.formatFecha(a.fechaReprogramada) : '-';
+      case 'montoFactura':
+      case 'iva':
+      case 'tasa':
+        return this.formatMonto((a as any)[key] ?? 0);
+      case 'diferencia':
+        return this.formatMonto((a.montoFactura ?? 0) - (a.iva ?? 0));
+      case 'divisa':
+        return `$ ${this.formatMonto(a.divisa ?? 0)}`;
+      case 'pagoParcial':
+        return this.formatMonto(a.abonos ?? 0);
+      case 'cedula':
+        return this.formatCedula(a.cedula);
+      case 'telefono':
+        return this.formatTelefono(a.telefono);
+      case 'nFact':
+        return a.nFact ? String(+a.nFact) : '';
+      case 'empresa':
+        return a.empresa || '-';
+      case 'supervisor':
+        return a.supervisor || '-';
+      default:
+        return (a as any)[key] ?? '';
+    }
+  }
+
+  private rangoReprogramadosTexto(): string {
+    const desde = this.repFechaDesde();
+    const hasta = this.repFechaHasta();
+    if (!desde && !hasta) return '';
+    return `${desde ? this.formatFecha(desde) : '…'} - ${hasta ? this.formatFecha(hasta) : '…'}`;
+  }
+
+  async generarReprogramadosPdf() {
+    const datos = this.reprogramadosReporte();
+    const columnas = this.columnasReprogramados.filter((c) => this.repColumnas().has(c.key));
+    if (datos.length === 0 || columnas.length === 0) {
+      alert('No hay datos para generar el reporte');
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+    const logoWidth = 70;
+    let logoHeight = 0;
+    if (logoBase64) {
+      const dims = await this.obtenerDimensionesImagen(logoBase64);
+      logoHeight = (logoWidth * dims.height) / dims.width;
+    }
+    const logoY = 15;
+    const offsetY = logoY + logoHeight + 8;
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
+    }
+
+    const rango = this.rangoReprogramadosTexto();
+    doc.setFontSize(16);
+    doc.setTextColor(0, 51, 111);
+    doc.text(`RELACIONES REPROGRAMADAS${rango ? ` (${rango})` : ''}`, pageWidth / 2, offsetY, { align: 'center' });
+
+    const { empresa, planta } = this.filtros();
+    const showEmpresa = this.repMostrarEmpresa() && !!empresa;
+    const showPlanta = this.repMostrarPlanta() && !!planta;
+    const filtroY = offsetY + (showEmpresa || showPlanta ? 7 : 10);
+    doc.setFontSize(10);
+    if (showEmpresa || showPlanta) {
+      doc.setFont('helvetica', 'bold');
+      if (showEmpresa) doc.text(`Empresa: ${empresa}`, 18, filtroY);
+      if (showPlanta) doc.text(`Planta: ${planta}`, 18, filtroY + (showEmpresa ? 6 : 0));
+      doc.setFont('helvetica', 'normal');
+    }
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, filtroY, { align: 'right' });
+    doc.text(`Total registros: ${datos.length}`, pageWidth - 18, filtroY + 6, { align: 'right' });
+
+    const columnWidths: any = {};
+    columnas.forEach((c, i) => {
+      columnWidths[i] = { cellWidth: c.key === 'nombre' ? 32 : c.key === 'planta' ? 24 : 20 };
+    });
+
+    autoTable(doc, {
+      startY: filtroY + 14,
+      head: [columnas.map((c) => c.label)],
+      body: datos.map((a) => columnas.map((c) => this.valorReprogramadoPdf(a, c.key))),
+      theme: 'grid',
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
+      bodyStyles: { fontSize: 7, overflow: 'linebreak' },
+      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
+      margin: { left: 18, right: 18, bottom: 18 },
+      tableWidth: 'auto',
+      columnStyles: columnWidths,
+    });
+
+    const sufijoPlanta = planta ? ` (${planta.replace(/[\\/:*?"<>|]/g, '-')})` : '';
+    doc.save(`Relaciones Reprogramadas${sufijoPlanta} ${this.getFechaLocal()}.pdf`);
+  }
+
+  async generarReprogramadosExcel() {
+    const datos = this.reprogramadosReporte();
+    const columnas = this.columnasReprogramados.filter((c) => this.repColumnas().has(c.key));
+    if (datos.length === 0 || columnas.length === 0) {
+      alert('No hay datos para generar el reporte');
+      return;
+    }
+
+    // Montos como número para que Excel pueda sumarlos.
+    const valor = (a: Abono, key: string): string | number => {
+      switch (key) {
+        case 'fecha':
+          return this.formatFecha(a.fecha);
+        case 'fechaReprogramada':
+          return a.fechaReprogramada ? this.formatFecha(a.fechaReprogramada) : '';
+        case 'montoFactura':
+          return a.montoFactura ?? 0;
+        case 'iva':
+          return a.iva ?? 0;
+        case 'diferencia':
+          return (a.montoFactura ?? 0) - (a.iva ?? 0);
+        case 'divisa':
+          return a.divisa ?? 0;
+        case 'pagoParcial':
+          return a.abonos ?? 0;
+        case 'tasa':
+          return a.tasa ?? 0;
+        default:
+          return this.valorReprogramadoPdf(a, key);
+      }
+    };
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Reprogramadas');
+    worksheet.columns = columnas.map((c) => ({ width: c.key === 'nombre' ? 30 : c.key === 'empresa' ? 25 : 18 }));
+
+    const borde: Partial<ExcelJS.Borders> = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    worksheet.addRow(columnas.map((c) => c.label.replace(/\n/g, ' '))).eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
+      cell.border = borde;
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+    for (const a of datos) {
+      worksheet.addRow(columnas.map((c) => valor(a, c.key))).eachCell((cell) => {
+        cell.border = borde;
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `relaciones_reprogramadas_${this.getFechaLocal()}.xlsx`);
   }
 
   async generarPdfNombresComisiones() {

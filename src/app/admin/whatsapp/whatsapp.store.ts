@@ -72,6 +72,8 @@ export class WhatsAppStore implements OnDestroy {
   /** Motivo por el que el tiempo real no está activo (se muestra en el indicador). */
   readonly errorConexion = signal<string | null>(null);
   readonly refrescando = signal(false);
+  /** Transporte de socket.io en uso: 'websocket', o 'polling' si el proxy no deja pasar WebSocket. */
+  readonly transporte = signal<string | null>(null);
 
   readonly totalNoLeidos = computed(() => this.conversaciones().reduce((t, c) => t + (c.noLeidos > 0 ? 1 : 0), 0));
 
@@ -295,10 +297,15 @@ export class WhatsAppStore implements OnDestroy {
   // ---------------------------------------------------------------- Tiempo real
 
   private conectar() {
-    this.socket = io(window.location.origin, { transports: ['websocket'] });
+    // Arranca por HTTP (polling) y sube a WebSocket si el proxy lo permite: si el upgrade
+    // falla, la conexión sigue viva por HTTP en vez de quedarse sin tiempo real.
+    this.socket = io(window.location.origin, { transports: ['polling', 'websocket'] });
     let primeraConexion = true;
+    const actualizarTransporte = () => this.transporte.set(this.socket?.io.engine?.transport?.name ?? null);
 
     this.socket.on('connect', () => {
+      actualizarTransporte();
+      this.socket?.io.engine.once('upgrade', actualizarTransporte);
       this.unirseSala(true, () => {
         if (!primeraConexion) this.resincronizar();
         primeraConexion = false;

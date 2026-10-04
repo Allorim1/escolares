@@ -216,6 +216,14 @@
   background: #f8f9fa;
 }
 
+.abonos-table tr.fila-reprogramada {
+  background: #fefce8;
+}
+
+.abonos-table tr.fila-reprogramada:hover {
+  background: #fef9c3;
+}
+
 .abonos-table .total-row {
   background: #e3f2fd;
   font-weight: bold;
@@ -1809,4 +1817,18 @@
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.reprogramados-rango {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.reprogramados-conteo {
+  font-size: 13px;
+  color: #64748b;
+  padding-bottom: 8px;
 }

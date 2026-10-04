@@ -298,7 +298,10 @@ export class WhatsApp implements OnInit, OnDestroy {
   /** Texto del indicador de conexión (con el motivo si el tiempo real no está activo). */
   tituloConexion(): string {
     switch (this.store.conexion()) {
-      case 'conectado': return 'Conectado en tiempo real';
+      case 'conectado':
+        return this.store.transporte() === 'polling'
+          ? 'Conectado en tiempo real por HTTP (el proxy del servidor no deja pasar WebSocket)'
+          : 'Conectado en tiempo real';
       case 'conectando': return 'Conectando…';
       case 'sin-permiso': return 'Sin permiso';
       default: return this.store.errorConexion() || 'Sin conexión en tiempo real. Se actualiza cada 5 s.';

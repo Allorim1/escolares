@@ -109,6 +109,7 @@
         <option value="">Todos</option>
         <option value="Pendiente">Pendiente</option>
         <option value="Pagado">Pagado</option>
+        <option value="Reprogramado">Reprogramado</option>
       </select>
     </div>
     <div class="filtro-group" style="display:flex;flex-direction:column;gap:6px;">
@@ -133,6 +134,7 @@
         <label>Reporte:</label>
         @if (puedeVerRelaciones()) {
           <button class="btn-secondary" (click)="abrirModalReportes()">Relaciones</button>
+          <button class="btn-secondary" (click)="abrirModalReprogramados()">Reprogramadas</button>
         }
         @if (puedeVerPendientes()) {
           <button class="btn-secondary" (click)="abrirModalPendientes()">Pendientes</button>
@@ -172,7 +174,7 @@
       </thead>
       <tbody>
         @for (abono of abonosPaginados(); track abono._id) {
-          <tr style="cursor: pointer;" [class.abono-destacado]="abonoDestacadoIds().has(abono._id || '')" (click)="abrirModal(abono)">
+          <tr style="cursor: pointer;" [class.abono-destacado]="abonoDestacadoIds().has(abono._id || '')" [class.fila-reprogramada]="esReprogramado(abono)" [attr.title]="esReprogramado(abono) ? 'Reprogramada (fecha original: ' + formatFecha(abono.fecha) + ')' : null" (click)="abrirModal(abono)">
             @for (col of columnasVisibles(); track col.key) {
               <td [class.iva-pagado]="abono.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!abono.ivaPagado && col.key === 'iva'">{{ getValorAbono(abono, col.key) }}</td>
             }
@@ -534,6 +536,7 @@
               <option value="">Seleccionar</option>
               <option value="Pendiente">Pendiente</option>
               <option value="Pagado">Pagado</option>
+              <option value="Reprogramado">Reprogramado</option>
             </select>
             @if (editingAbono!.statusModificadoPor) {
               <small class="status-auditoria">
@@ -542,6 +545,12 @@
               </small>
             }
           </div>
+          @if (editingAbono!.status === STATUS_REPROGRAMADO) {
+            <div class="form-group">
+              <label>Fecha reprogramada *</label>
+              <input type="date" name="fechaReprogramada" [ngModel]="toInputDate(editingAbono!.fechaReprogramada)" (ngModelChange)="editingAbono!.fechaReprogramada = $event" required enterFocusNext>
+            </div>
+          }
           @if (esRoot()) {
             <div class="form-group">
               <label>Supervisor</label>
@@ -988,6 +997,86 @@
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModalReportes()">Cancelar</button>
           <button type="button" class="btn-save" (click)="generarReportesRelacionesSeleccionados()">Generar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showModalReprogramados()) {
+    <div class="modal-overlay" (click)="cerrarModalReprogramados()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Generar Reporte - Reprogramadas</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalReprogramados()">✕</button>
+        </div>
+        <div class="reportes-layout">
+          <h4>Rango por fecha original</h4>
+          <div class="reprogramados-rango">
+            <div class="filtro-group">
+              <label>Desde:</label>
+              <input type="date" [ngModel]="repFechaDesde()" (ngModelChange)="repFechaDesde.set($event)">
+            </div>
+            <div class="filtro-group">
+              <label>Hasta:</label>
+              <input type="date" [ngModel]="repFechaHasta()" (ngModelChange)="repFechaHasta.set($event)">
+            </div>
+            <span class="reprogramados-conteo">
+              {{ reprogramadosReporte().length }} relación(es) reprogramada(s)
+              @if (filtros().empresa || filtros().planta) {
+                · {{ filtros().empresa }}{{ filtros().planta ? ' / ' + filtros().planta : '' }}
+              }
+            </span>
+          </div>
+          <div class="reportes-columns-row">
+            <div class="reportes-columns-left">
+              <div class="reportes-opciones">
+                <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="repMostrarEmpresa()" (ngModelChange)="repMostrarEmpresa.set($event)">
+                  Mostrar Empresa en PDF
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="repMostrarPlanta()" (ngModelChange)="repMostrarPlanta.set($event)">
+                  Mostrar Planta en PDF
+                </label>
+              </div>
+            </div>
+            <div class="reportes-columns-right">
+              <h4>Generar reportes</h4>
+              <div class="reportes-actions">
+                <label class="reportes-checkbox">
+                  <input type="checkbox" [ngModel]="repPdf()" (ngModelChange)="repPdf.set($event)">
+                  Reprogramadas PDF
+                </label>
+                <label class="reportes-checkbox">
+                  <input type="checkbox" [ngModel]="repExcel()" (ngModelChange)="repExcel.set($event)">
+                  Reprogramadas Excel
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="reportes-divider"></div>
+          <div class="reportes-col">
+            <h4>Columnas</h4>
+            <div class="columnas-grid">
+              @for (col of columnasReprogramados; track col.key) {
+                <label class="checkbox-label">
+                  <input type="checkbox" [checked]="repColumnas().has(col.key)" (change)="toggleColumnaReprogramados(col.key)">
+                  {{ col.label }}
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalReprogramados()">Cancelar</button>
+          <button
+            type="button"
+            class="btn-save"
+            [disabled]="repGenerando() || (!repPdf() && !repExcel()) || repColumnas().size === 0 || reprogramadosReporte().length === 0"
+            (click)="generarReportesReprogramados()"
+          >
+            {{ repGenerando() ? 'Generando…' : 'Generar' }}
+          </button>
         </div>
       </div>
     </div>

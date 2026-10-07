@@ -265,6 +265,10 @@ export const routes: Routes = [
                  loadComponent: () => import('./admin/relacion-cuentas/relacion-cuentas').then((m) => m.RelacionCuentas),
                },
                {
+                 path: 'lista-negra',
+                 loadComponent: () => import('./admin/lista-negra/lista-negra').then((m) => m.ListaNegra),
+               },
+               {
                  path: 'relacion-libros',
                  loadComponent: () => import('./admin/relacion-libros/relacion-libros').then((m) => m.RelacionLibros),
                },

@@ -1,0 +1,135 @@
+<div class="lista-negra-container">
+  <div class="lista-negra-header">
+    <h1>Lista Negra</h1>
+    <button class="btn-primary" (click)="abrirModal()">+ Agregar Cliente</button>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" placeholder="Buscar por nombre, cédula, empresa, planta o motivo..." name="busqueda">
+    <span class="contador">{{ listaFiltrada().length }} de {{ lista().length }}</span>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando...</div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="lista-negra-table">
+        <thead>
+          <tr>
+            <th>Cédula</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Empresa</th>
+            <th>Planta</th>
+            <th>Motivo</th>
+            <th>Agregado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of listaFiltrada(); track item._id) {
+            <tr>
+              <td class="nowrap">{{ formatCedula(item.cedula) }}</td>
+              <td>{{ item.nombre }}</td>
+              <td class="nowrap">{{ item.telefono || '-' }}</td>
+              <td>{{ item.empresa || '-' }}</td>
+              <td>{{ item.planta || '-' }}</td>
+              <td class="motivo">{{ item.motivo || '-' }}</td>
+              <td class="nowrap">
+                {{ formatFecha(item.creadoEn) }}
+                @if (item.creadoPor) {
+                  <div class="creado-por">{{ item.creadoPor }}</div>
+                }
+              </td>
+              <td class="actions">
+                <button class="btn-edit" (click)="abrirEditar(item)">Motivo</button>
+                <button class="btn-delete" (click)="quitar(item)">Quitar</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty">
+                {{ lista().length ? 'No hay coincidencias' : 'No hay clientes en la lista negra' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showModal()) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Agregar a Lista Negra</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      </div>
+
+      @if (clienteSeleccionado(); as cliente) {
+        <div class="cliente-seleccionado">
+          <div>
+            <strong>{{ cliente.nombre }}</strong>
+            <div class="cliente-meta">C.I. {{ formatCedula(cliente.cedula) }} · {{ cliente.empresa }} {{ cliente.planta ? '· ' + cliente.planta : '' }}</div>
+          </div>
+          <button type="button" class="btn-cambiar" (click)="clienteSeleccionado.set(null)">Cambiar</button>
+        </div>
+        <div class="form-group">
+          <label for="ln-motivo">Motivo</label>
+          <textarea id="ln-motivo" rows="3" [ngModel]="motivo()" (ngModelChange)="motivo.set($event)" name="motivo" placeholder="Opcional"></textarea>
+        </div>
+      } @else {
+        <div class="form-group">
+          <label for="ln-busqueda">Buscar cliente de Relación de Cuentas</label>
+          <input id="ln-busqueda" type="text" [ngModel]="busquedaCliente()" (ngModelChange)="busquedaCliente.set($event)" name="busquedaCliente" placeholder="Nombre o cédula" autocomplete="off">
+        </div>
+        @if (loadingClientes()) {
+          <div class="loading">Cargando clientes...</div>
+        } @else {
+          <ul class="clientes-lista">
+            @for (cliente of clientesDisponibles(); track cliente.cedula) {
+              <li (click)="seleccionarCliente(cliente)">
+                <div>
+                  <strong>{{ cliente.nombre }}</strong>
+                  <div class="cliente-meta">C.I. {{ formatCedula(cliente.cedula) }} · {{ cliente.empresa }} {{ cliente.planta ? '· ' + cliente.planta : '' }}</div>
+                </div>
+                <span class="badge-relaciones">{{ cliente.cantidadRelaciones }} rel.</span>
+              </li>
+            } @empty {
+              <li class="empty-item">No se encontraron clientes disponibles</li>
+            }
+          </ul>
+        }
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+        <button type="button" class="btn-save" [disabled]="saving() || !clienteSeleccionado()" (click)="agregar()">
+          {{ saving() ? 'Guardando...' : 'Agregar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (editando(); as item) {
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Motivo</h2>
+        <button type="button" class="btn-cerrar" (click)="cerrarEditar()">✕</button>
+      </div>
+      <p class="cliente-meta">{{ item.nombre }} · C.I. {{ formatCedula(item.cedula) }}</p>
+      <div class="form-group">
+        <textarea rows="4" [ngModel]="motivoEdit()" (ngModelChange)="motivoEdit.set($event)" name="motivoEdit"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="cerrarEditar()">Cancelar</button>
+        <button type="button" class="btn-save" [disabled]="saving()" (click)="guardarMotivo()">
+          {{ saving() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

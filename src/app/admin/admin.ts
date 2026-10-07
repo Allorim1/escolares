@@ -118,6 +118,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
           items: [
             { label: 'Clientes', route: 'clientes' },
             { label: 'Relación de Cuentas', route: 'relacion-cuentas' },
+            { label: 'Lista Negra', route: 'lista-negra' },
             { label: 'Relación de Libros', route: 'relacion-libros' },
             { label: 'WhatsApp', route: 'whatsapp', permiso: 'whatsapp_gestionar' },
           ]

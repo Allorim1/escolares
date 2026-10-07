@@ -45,6 +45,21 @@ interface Abono {
   productosPendientes?: ProductoPendiente[];
 }
 
+interface ListaNegraInfo {
+  cedula: string;
+  nombre: string;
+  motivo?: string;
+}
+
+/** Grupo de relaciones de una misma persona cuyos montos suman el monto buscado. */
+interface CombinacionMonto {
+  clave: string;
+  nombre: string;
+  cedula: string;
+  tipo: 'montoFactura' | 'diferencia';
+  abonos: Abono[];
+}
+
 interface AbonoPago {
   fecha: string;
   monto: number;
@@ -98,6 +113,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   private readonly SERVER_URL = window.location.origin;
   private readonly API_EMPRESAS = '/api/empresas';
   private readonly API_SUPERVISORES = '/api/supervisores';
+  private readonly API_LISTA_NEGRA = '/api/lista-negra';
 
   abonos = signal<Abono[]>([]);
   empresas = signal<Empresa[]>([]);
@@ -123,7 +139,13 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   abonosFiltrados = computed(() => {
     const montoFiltro = this.montoBusquedaFiltro();
     if (montoFiltro !== null) {
-      return this.abonos().filter((a) => this.coincideMontoBusqueda(a, montoFiltro));
+      const seleccionada = this.combinacionMontoSeleccionada();
+      if (seleccionada) {
+        const ids = new Set(seleccionada.abonos.map((a) => a._id));
+        return this.abonos().filter((a) => ids.has(a._id));
+      }
+      const idsCombinaciones = this.idsCombinacionesMonto();
+      return this.abonos().filter((a) => this.coincideMontoBusqueda(a, montoFiltro) || idsCombinaciones.has(a._id || ''));
     }
     const f = this.filtros();
     return this.abonos().filter((a) => {
@@ -329,6 +351,13 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   showModalSender = signal(false);
   montoBusquedaValor = signal(0);
   montoBusquedaFiltro = signal<number | null>(null);
+  combinacionesMonto = signal<CombinacionMonto[]>([]);
+  combinacionMontoSeleccionada = signal<CombinacionMonto | null>(null);
+  idsCombinacionesMonto = computed(
+    () => new Set(this.combinacionesMonto().flatMap((c) => c.abonos.map((a) => a._id || '')).filter((id) => !!id))
+  );
+  /** Clientes en lista negra, indexados por cédula normalizada (solo dígitos). */
+  listaNegra = signal<Map<string, ListaNegraInfo>>(new Map());
   abonoDestacadoIds = signal<Set<string>>(new Set());
   private destacarMontoTimeout: any = null;
   showModalTicket = signal(false);
@@ -762,6 +791,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       next: (data) => this.empresas.set(data),
     });
     this.loadAbonos(true);
+    this.loadListaNegra();
     this.loadTasaActual();
     this.cargarSupervisores();
     this.loadUserPermissions();
@@ -1214,6 +1244,135 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     return Math.abs((a.montoFactura ?? 0) - valor) < 0.01 || Math.abs(diferenciaCalculada - valor) < 0.01;
   }
 
+  private clavePersona(a: Abono): string {
+    const cedula = this.normalizarCedula(a.cedula);
+    if (cedula) return `c:${cedula}`;
+    const nombre = (a.nombre || '').trim().toLowerCase();
+    return nombre ? `n:${nombre}` : '';
+  }
+
+  private montoPorTipo(a: Abono, tipo: CombinacionMonto['tipo']): number {
+    const monto = a.montoFactura ?? 0;
+    return tipo === 'montoFactura' ? monto : monto - (a.iva ?? 0);
+  }
+
+  /**
+   * Busca grupos de 2 o más relaciones de una misma persona (misma cédula, o mismo nombre si no tiene cédula)
+   * cuyo Monto Facts. o Diferencia sumados den el monto buscado (varias relaciones pagadas en un solo pago).
+   */
+  private buscarCombinacionesMonto(valor: number): CombinacionMonto[] {
+    const objetivo = Math.round(valor * 100);
+    const grupos = new Map<string, Abono[]>();
+    for (const a of this.abonos()) {
+      const clave = this.clavePersona(a);
+      if (!clave) continue;
+      const lista = grupos.get(clave);
+      if (lista) lista.push(a);
+      else grupos.set(clave, [a]);
+    }
+
+    const resultado: CombinacionMonto[] = [];
+    const MAX_RESULTADOS = 50;
+    for (const [clave, lista] of grupos) {
+      if (lista.length < 2) continue;
+      const vistas = new Set<string>();
+      for (const tipo of ['montoFactura', 'diferencia'] as const) {
+        const items = lista
+          .map((a) => ({ a, centavos: Math.round(this.montoPorTipo(a, tipo) * 100) }))
+          .filter((x) => x.centavos > 0 && x.centavos <= objetivo + 1)
+          .sort((x, y) => y.centavos - x.centavos);
+        if (items.length < 2) continue;
+        for (const indices of this.subconjuntosQueSuman(items.map((x) => x.centavos), objetivo)) {
+          const abonos = indices.map((i) => items[i].a);
+          // Si el IVA es 0, Monto Facts. y Diferencia coinciden: no repetir el mismo grupo.
+          const firma = abonos.map((a) => a._id).sort().join('|');
+          if (vistas.has(firma)) continue;
+          vistas.add(firma);
+          resultado.push({
+            clave,
+            nombre: abonos[0].nombre,
+            cedula: abonos.find((a) => a.cedula)?.cedula || '',
+            tipo,
+            abonos: [...abonos].sort((x, y) => this.parsearFechaLocal(x.fecha).getTime() - this.parsearFechaLocal(y.fecha).getTime()),
+          });
+          if (resultado.length >= MAX_RESULTADOS) return resultado;
+        }
+      }
+    }
+    return resultado;
+  }
+
+  /** Subconjuntos (de 2 a `maxTam` elementos) de `valores` (centavos, orden descendente) que suman `objetivo` ±1 céntimo. */
+  private subconjuntosQueSuman(valores: number[], objetivo: number, maxTam = 6, maxResultados = 10): number[][] {
+    const TOLERANCIA = 1;
+    const MAX_NODOS = 200000;
+    const n = valores.length;
+    const sufijo = new Array<number>(n + 1).fill(0);
+    for (let i = n - 1; i >= 0; i--) sufijo[i] = sufijo[i + 1] + valores[i];
+
+    const resultados: number[][] = [];
+    const actual: number[] = [];
+    let nodos = 0;
+    const dfs = (inicio: number, restante: number) => {
+      if (resultados.length >= maxResultados || ++nodos > MAX_NODOS) return;
+      if (Math.abs(restante) <= TOLERANCIA) {
+        if (actual.length >= 2) resultados.push([...actual]);
+        return;
+      }
+      if (actual.length >= maxTam) return;
+      for (let i = inicio; i < n; i++) {
+        if (sufijo[i] < restante - TOLERANCIA) break;
+        if (valores[i] > restante + TOLERANCIA) continue;
+        actual.push(i);
+        dfs(i + 1, restante - valores[i]);
+        actual.pop();
+      }
+    };
+    dfs(0, objetivo);
+    return resultados;
+  }
+
+  totalCombinacion(c: CombinacionMonto): number {
+    return c.abonos.reduce((sum, a) => sum + this.montoPorTipo(a, c.tipo), 0);
+  }
+
+  montoEnCombinacion(a: Abono, c: CombinacionMonto): number {
+    return this.montoPorTipo(a, c.tipo);
+  }
+
+  toggleCombinacionMonto(c: CombinacionMonto) {
+    this.combinacionMontoSeleccionada.set(this.combinacionMontoSeleccionada() === c ? null : c);
+    this.paginaActual.set(1);
+  }
+
+  normalizarCedula(cedula: unknown): string {
+    return String(cedula ?? '').replace(/\D/g, '');
+  }
+
+  loadListaNegra() {
+    this.http.get<ListaNegraInfo[]>(this.API_LISTA_NEGRA).subscribe({
+      next: (data) => this.listaNegra.set(new Map(data.map((c) => [this.normalizarCedula(c.cedula), c]))),
+      error: (err) => console.error('Error cargando lista negra:', err),
+    });
+  }
+
+  infoListaNegra(cedula: string | undefined): ListaNegraInfo | null {
+    const normalizada = this.normalizarCedula(cedula);
+    return normalizada ? this.listaNegra().get(normalizada) || null : null;
+  }
+
+  /** Al salir del campo Cédula en una relación nueva, avisa con un modal si está en lista negra. */
+  onCedulaBlur() {
+    if (!this.editingAbono || this.editingAbono._id) return;
+    const info = this.infoListaNegra(this.editingAbono.cedula);
+    if (info) {
+      this.notificationModal.warning(
+        `La cédula ${this.formatCedula(info.cedula)} (${info.nombre}) está en LISTA NEGRA.${info.motivo ? ' Motivo: ' + info.motivo : ''}`,
+        'Cliente en lista negra'
+      );
+    }
+  }
+
   buscarRelacionPorMonto() {
     const valor = this.montoBusquedaValor();
     if (!valor) {
@@ -1221,14 +1380,21 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       return;
     }
     const candidatos = this.abonos().filter((a) => this.coincideMontoBusqueda(a, valor));
-    if (candidatos.length === 0) {
-      this.notificationModal.error(`No se encontró ninguna relación con Monto Facts. Bs o Diferencia Bs = ${this.formatMonto(valor)}`);
+    const combinaciones = this.buscarCombinacionesMonto(valor);
+    if (candidatos.length === 0 && combinaciones.length === 0) {
+      this.notificationModal.error(
+        `No se encontró ninguna relación (ni combinación de relaciones de un mismo cliente) con Monto Facts. Bs o Diferencia Bs = ${this.formatMonto(valor)}`
+      );
       return;
     }
     this.montoBusquedaFiltro.set(valor);
+    this.combinacionesMonto.set(combinaciones);
+    this.combinacionMontoSeleccionada.set(null);
     this.paginaActual.set(1);
 
-    const ids = new Set(candidatos.map((c) => c._id).filter((id): id is string => !!id));
+    const ids = new Set(
+      [...candidatos, ...combinaciones.flatMap((c) => c.abonos)].map((c) => c._id).filter((id): id is string => !!id)
+    );
     this.abonoDestacadoIds.set(ids);
     if (this.destacarMontoTimeout) clearTimeout(this.destacarMontoTimeout);
     this.destacarMontoTimeout = setTimeout(() => {
@@ -1243,6 +1409,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
 
   limpiarBusquedaMonto() {
     this.montoBusquedaFiltro.set(null);
+    this.combinacionesMonto.set([]);
+    this.combinacionMontoSeleccionada.set(null);
     this.montoBusquedaValor.set(0);
     this.abonoDestacadoIds.set(new Set());
     if (this.destacarMontoTimeout) {
@@ -1555,6 +1723,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   }
 
   abrirModal(abono?: Abono) {
+    this.loadListaNegra();
     if (abono) {
       this.http.get<Abono[]>(`${this.API}?t=${new Date().getTime()}`).subscribe({
         next: (data) => {

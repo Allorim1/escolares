@@ -72,6 +72,31 @@
         }
       </div>
     </div>
+    @if (montoBusquedaFiltro() !== null && combinacionesMonto().length > 0) {
+      <div class="combinaciones-monto">
+        <div class="combinaciones-monto-titulo">
+          Posibles pagos agrupados ({{ combinacionesMonto().length }}): relaciones de un mismo cliente que suman Bs {{ formatMonto(montoBusquedaFiltro()!) }}
+          @if (combinacionMontoSeleccionada()) {
+            <button type="button" class="btn-ver-todas-combinaciones" (click)="combinacionMontoSeleccionada.set(null)">Ver todas</button>
+          }
+        </div>
+        @for (combo of combinacionesMonto(); track $index) {
+          <div class="combinacion-monto" [class.activa]="combinacionMontoSeleccionada() === combo" (click)="toggleCombinacionMonto(combo)" title="Clic para ver solo estas relaciones">
+            <div class="combinacion-monto-cliente">
+              <strong>{{ combo.nombre }}</strong>
+              @if (combo.cedula) { <span>C.I. {{ formatCedula(combo.cedula) }}</span> }
+              <span class="combinacion-monto-tipo">{{ combo.abonos.length }} relaciones · {{ combo.tipo === 'montoFactura' ? 'Monto Facts.' : 'Diferencia' }}</span>
+            </div>
+            <div class="combinacion-monto-detalle">
+              @for (a of combo.abonos; track a._id) {
+                <span class="combinacion-monto-item">Fact. {{ a.nFact }} ({{ formatFecha(fechaEfectiva(a)) }}): Bs {{ formatMonto(montoEnCombinacion(a, combo)) }}</span>
+              }
+              <span class="combinacion-monto-total">= Bs {{ formatMonto(totalCombinacion(combo)) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
     <div class="filtros">
     <div class="filtro-group">
       <label>Nombre:</label>
@@ -174,7 +199,7 @@
       </thead>
       <tbody>
         @for (abono of abonosPaginados(); track abono._id) {
-          <tr style="cursor: pointer;" [class.abono-destacado]="abonoDestacadoIds().has(abono._id || '')" [class.fila-reprogramada]="esReprogramado(abono)" [attr.title]="esReprogramado(abono) ? 'Reprogramada (fecha original: ' + formatFecha(abono.fecha) + ')' : null" (click)="abrirModal(abono)">
+          <tr style="cursor: pointer;" [class.abono-destacado]="abonoDestacadoIds().has(abono._id || '')" [class.abono-combinacion]="idsCombinacionesMonto().has(abono._id || '')"[class.fila-reprogramada]="esReprogramado(abono)" [attr.title]="esReprogramado(abono) ? 'Reprogramada (fecha original: ' + formatFecha(abono.fecha) + ')' : null" (click)="abrirModal(abono)">
             @for (col of columnasVisibles(); track col.key) {
               <td [class.iva-pagado]="abono.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!abono.ivaPagado && col.key === 'iva'">{{ getValorAbono(abono, col.key) }}</td>
             }
@@ -463,7 +488,15 @@
         <div class="form-row">
           <div class="form-group">
             <label>Cédula</label>
-            <input type="text" [(ngModel)]="editingAbono!.cedula" name="cedula" enterFocusNext>
+            <input type="text" [(ngModel)]="editingAbono!.cedula" name="cedula" (blur)="onCedulaBlur()" [class.input-lista-negra]="!!infoListaNegra(editingAbono!.cedula)" enterFocusNext>
+            @if (infoListaNegra(editingAbono!.cedula); as ln) {
+              <div class="alerta-lista-negra">
+                ⚠ Cédula en <strong>LISTA NEGRA</strong> ({{ ln.nombre }})
+                @if (ln.motivo) {
+                  <div class="alerta-lista-negra-motivo">Motivo: {{ ln.motivo }}</div>
+                }
+              </div>
+            }
           </div>
           <div class="form-group">
             <label>Teléfono</label>

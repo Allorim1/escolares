@@ -746,6 +746,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   pagColumnas = signal<Set<string>>(new Set(this.columnasPagadas.map((c) => c.key)));
   pagMostrarEmpresa = signal(true);
   pagMostrarPlanta = signal(true);
+  pagMostrarSupervisor = signal(true);
   pagMostrarComisionPlanta = signal(true);
   /** Valor del filtro de supervisor para las relaciones sin supervisor. */
   readonly SIN_SUPERVISOR = '__sin_supervisor__';
@@ -3063,7 +3064,7 @@ if (!url) return '';
     const lineasFiltro = [
       this.pagMostrarEmpresa() && empresa ? `Empresa: ${empresa}` : '',
       this.pagMostrarPlanta() && planta ? `Planta: ${planta}` : '',
-      supervisor ? `Supervisor: ${supervisor === this.SIN_SUPERVISOR ? 'Sin supervisor' : supervisor}` : '',
+      this.pagMostrarSupervisor() && supervisor ? `Supervisor: ${supervisor === this.SIN_SUPERVISOR ? 'Sin supervisor' : supervisor}` : '',
       this.pagMostrarComisionPlanta() && columnas.some((c) => c.key.startsWith('comision')) ? `Comisión Planta: ${this.formatMonto(this.pagComisionPlanta())} %` : '',
     ].filter(Boolean);
     const filtroY = offsetY + (lineasFiltro.length ? 7 : 10);

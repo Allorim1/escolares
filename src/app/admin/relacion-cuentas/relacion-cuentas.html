@@ -1193,6 +1193,10 @@
                   Mostrar Planta en PDF
                 </label>
                 <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="pagMostrarSupervisor()" (ngModelChange)="pagMostrarSupervisor.set($event)">
+                  Mostrar Supervisor en PDF
+                </label>
+                <label class="checkbox-label">
                   <input type="checkbox" [ngModel]="pagMostrarComisionPlanta()" (ngModelChange)="pagMostrarComisionPlanta.set($event)">
                   Mostrar Comisión Planta en PDF
                 </label>

@@ -3003,7 +3003,7 @@ if (!url) return '';
     const rango = this.rangoPagadasTexto();
     doc.setFontSize(16);
     doc.setTextColor(0, 51, 111);
-    doc.text(`RELACIONES PAGADAS${rango ? ` (${rango})` : ''}`, pageWidth / 2, offsetY, { align: 'center' });
+    doc.text(`RELACIONES PAGADAS EN FECHA${rango ? ` (${rango})` : ''}`, pageWidth / 2, offsetY, { align: 'center' });
 
     const empresa = this.pagEmpresa();
     const planta = this.pagPlanta();

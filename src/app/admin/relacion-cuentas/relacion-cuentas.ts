@@ -731,6 +731,13 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   ];
   pagFechaDesde = signal('');
   pagFechaHasta = signal('');
+  pagEmpresa = signal('');
+  pagPlanta = signal('');
+  pagSupervisor = signal('');
+  plantasPagadas = computed(() => {
+    const empresa = this.empresas().find((e) => e.nombre === this.pagEmpresa());
+    return empresa?.plantas || [];
+  });
   pagColumnas = signal<Set<string>>(new Set(this.columnasPagadas.map((c) => c.key)));
   pagMostrarEmpresa = signal(true);
   pagMostrarPlanta = signal(true);
@@ -741,7 +748,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
 
   /** Pagadas cuyo rango se aplica sobre la fecha en que pasaron a 'Pagado'. */
   pagadasReporte = computed(() => {
-    const { empresa, planta } = this.filtros();
+    const empresa = this.pagEmpresa();
+    const planta = this.pagPlanta();
+    const supervisor = this.pagSupervisor();
     const desde = this.pagFechaDesde();
     const hasta = this.pagFechaHasta();
     return this.abonos()
@@ -750,6 +759,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
         if (!fechaPago) return false;
         if (empresa && a.empresa !== empresa) return false;
         if (planta && a.planta !== planta) return false;
+        if (supervisor && (a.supervisor || '') !== supervisor) return false;
         if (desde && fechaPago < desde) return false;
         if (hasta && fechaPago > hasta) return false;
         return true;
@@ -1304,7 +1314,17 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     const pagadoEn = this.filtroPagadoEn();
     this.pagFechaDesde.set(pagadoEn ? pagadoEn.desde : this.getFechaLocal());
     this.pagFechaHasta.set(pagadoEn ? pagadoEn.hasta : this.getFechaLocal());
+    // Empresa, planta y supervisor parten de los filtros del listado.
+    const { empresa, planta, supervisor } = this.filtros();
+    this.pagEmpresa.set(empresa);
+    this.pagPlanta.set(planta);
+    this.pagSupervisor.set(supervisor);
     this.showModalPagadas.set(true);
+  }
+
+  onPagEmpresaChange(empresa: string) {
+    this.pagEmpresa.set(empresa);
+    this.pagPlanta.set('');
   }
 
   cerrarModalPagadas() {
@@ -2985,15 +3005,19 @@ if (!url) return '';
     doc.setTextColor(0, 51, 111);
     doc.text(`RELACIONES PAGADAS${rango ? ` (${rango})` : ''}`, pageWidth / 2, offsetY, { align: 'center' });
 
-    const { empresa, planta } = this.filtros();
-    const showEmpresa = this.pagMostrarEmpresa() && !!empresa;
-    const showPlanta = this.pagMostrarPlanta() && !!planta;
-    const filtroY = offsetY + (showEmpresa || showPlanta ? 7 : 10);
+    const empresa = this.pagEmpresa();
+    const planta = this.pagPlanta();
+    const supervisor = this.pagSupervisor();
+    const lineasFiltro = [
+      this.pagMostrarEmpresa() && empresa ? `Empresa: ${empresa}` : '',
+      this.pagMostrarPlanta() && planta ? `Planta: ${planta}` : '',
+      supervisor ? `Supervisor: ${supervisor}` : '',
+    ].filter(Boolean);
+    const filtroY = offsetY + (lineasFiltro.length ? 7 : 10);
     doc.setFontSize(10);
-    if (showEmpresa || showPlanta) {
+    if (lineasFiltro.length) {
       doc.setFont('helvetica', 'bold');
-      if (showEmpresa) doc.text(`Empresa: ${empresa}`, 18, filtroY);
-      if (showPlanta) doc.text(`Planta: ${planta}`, 18, filtroY + (showEmpresa ? 6 : 0));
+      lineasFiltro.forEach((linea, i) => doc.text(linea, 18, filtroY + i * 6));
       doc.setFont('helvetica', 'normal');
     }
     doc.setTextColor(100);
@@ -3012,7 +3036,7 @@ if (!url) return '';
     });
 
     autoTable(doc, {
-      startY: filtroY + 14,
+      startY: filtroY + Math.max(14, lineasFiltro.length * 6 + 2),
       head: [columnas.map((c) => c.label)],
       body: datos.map((a) => columnas.map((c) => this.valorReprogramadoPdf(a, c.key))),
       ...(this.pagFilaTotales() && {

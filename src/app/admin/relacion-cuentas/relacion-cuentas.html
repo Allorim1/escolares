@@ -1167,6 +1167,7 @@
               <label>Supervisor:</label>
               <select [ngModel]="pagSupervisor()" (ngModelChange)="pagSupervisor.set($event)">
                 <option value="">Todos</option>
+                <option [value]="SIN_SUPERVISOR">Sin supervisor</option>
                 @for (sup of supervisoresUnicos(); track sup) {
                   <option [value]="sup">{{ sup }}</option>
                 }
@@ -1190,6 +1191,10 @@
                 <label class="checkbox-label">
                   <input type="checkbox" [ngModel]="pagMostrarPlanta()" (ngModelChange)="pagMostrarPlanta.set($event)">
                   Mostrar Planta en PDF
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="pagMostrarComisionPlanta()" (ngModelChange)="pagMostrarComisionPlanta.set($event)">
+                  Mostrar Comisión Planta en PDF
                 </label>
                 <label class="checkbox-label">
                   <input type="checkbox" [ngModel]="pagFilaTotales()" (ngModelChange)="pagFilaTotales.set($event)">

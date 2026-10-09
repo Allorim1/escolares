@@ -746,6 +746,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   pagColumnas = signal<Set<string>>(new Set(this.columnasPagadas.map((c) => c.key)));
   pagMostrarEmpresa = signal(true);
   pagMostrarPlanta = signal(true);
+  pagMostrarComisionPlanta = signal(true);
+  /** Valor del filtro de supervisor para las relaciones sin supervisor. */
+  readonly SIN_SUPERVISOR = '__sin_supervisor__';
   pagFilaTotales = signal(true);
   pagPdf = signal(true);
   pagExcel = signal(false);
@@ -764,7 +767,11 @@ export class RelacionCuentas implements OnInit, OnDestroy {
         if (!fechaPago) return false;
         if (empresa && a.empresa !== empresa) return false;
         if (planta && a.planta !== planta) return false;
-        if (supervisor && (a.supervisor || '') !== supervisor) return false;
+        if (supervisor === this.SIN_SUPERVISOR) {
+          if (a.supervisor) return false;
+        } else if (supervisor && (a.supervisor || '') !== supervisor) {
+          return false;
+        }
         if (desde && fechaPago < desde) return false;
         if (hasta && fechaPago > hasta) return false;
         return true;
@@ -3056,8 +3063,8 @@ if (!url) return '';
     const lineasFiltro = [
       this.pagMostrarEmpresa() && empresa ? `Empresa: ${empresa}` : '',
       this.pagMostrarPlanta() && planta ? `Planta: ${planta}` : '',
-      supervisor ? `Supervisor: ${supervisor}` : '',
-      columnas.some((c) => c.key.startsWith('comision')) ? `Comisión Planta: ${this.formatMonto(this.pagComisionPlanta())} %` : '',
+      supervisor ? `Supervisor: ${supervisor === this.SIN_SUPERVISOR ? 'Sin supervisor' : supervisor}` : '',
+      this.pagMostrarComisionPlanta() && columnas.some((c) => c.key.startsWith('comision')) ? `Comisión Planta: ${this.formatMonto(this.pagComisionPlanta())} %` : '',
     ].filter(Boolean);
     const filtroY = offsetY + (lineasFiltro.length ? 7 : 10);
     doc.setFontSize(10);

@@ -167,8 +167,7 @@ export const routes: Routes = [
           {
             path: 'cuentas-por-pagar',
             loadComponent: () => import('./admin/cuentas-por-pagar/cuentas-por-pagar').then((m) => m.CuentasPorPagar),
-          },
-           {
+          },           {
              path: 'noticias',
              loadComponent: () => import('./admin/noticias/admin-noticias').then((m) => m.AdminNoticiasComponent),
            },

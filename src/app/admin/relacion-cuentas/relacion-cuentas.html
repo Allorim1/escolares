@@ -137,6 +137,15 @@
         <option value="Reprogramado">Reprogramado</option>
       </select>
     </div>
+    @if (filtroPagadoEn(); as pe) {
+      <div class="filtro-group">
+        <label>Pagado en:</label>
+        <span class="filtro-pagado-en-chip" title="F3 para cambiar">
+          {{ pe.desde ? formatFecha(pe.desde) : '…' }} – {{ pe.hasta ? formatFecha(pe.hasta) : '…' }}
+          <button type="button" (click)="limpiarFiltroPagadoEn()" title="Quitar filtro Pagado en">✕</button>
+        </span>
+      </div>
+    }
     <div class="filtro-group" style="display:flex;flex-direction:column;gap:6px;">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;color:#333;font-size:14px;">
         <input type="checkbox" [ngModel]="aplicarFiltroIva()" (ngModelChange)="aplicarFiltroIva.set($event)" style="width:16px;height:16px;cursor:pointer;">
@@ -199,7 +208,7 @@
       </thead>
       <tbody>
         @for (abono of abonosPaginados(); track abono._id) {
-          <tr style="cursor: pointer;" [class.abono-destacado]="abonoDestacadoIds().has(abono._id || '')" [class.abono-combinacion]="idsCombinacionesMonto().has(abono._id || '')"[class.fila-reprogramada]="esReprogramado(abono)" [attr.title]="esReprogramado(abono) ? 'Reprogramada (fecha original: ' + formatFecha(abono.fecha) + ')' : null" (click)="abrirModal(abono)">
+          <tr style="cursor: pointer;" [class.abono-destacado]="abonoDestacadoIds().has(abono._id || '')" [class.abono-combinacion]="idsCombinacionesMonto().has(abono._id || '')" [class.fila-reprogramada]="esReprogramado(abono)" [attr.title]="esReprogramado(abono) ? 'Reprogramada (fecha original: ' + formatFecha(abono.fecha) + ')' : null" (click)="abrirModal(abono)">
             @for (col of columnasVisibles(); track col.key) {
               <td [class.iva-pagado]="abono.ivaPagado && col.key === 'iva'" [class.iva-pendiente]="!abono.ivaPagado && col.key === 'iva'">{{ getValorAbono(abono, col.key) }}</td>
             }
@@ -1110,6 +1119,35 @@
           >
             {{ repGenerando() ? 'Generando…' : 'Generar' }}
           </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showModalPagadoEn()) {
+    <div class="modal-overlay" (click)="cerrarModalPagadoEn()">
+      <div class="modal modal-pagado-en" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Pagado en</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalPagadoEn()">✕</button>
+        </div>
+        <p class="pagado-en-ayuda">Muestra las relaciones que pasaron a status Pagado entre estas fechas. Mientras esté activo, reemplaza al filtro Desde/Hasta.</p>
+        <div class="reprogramados-rango">
+          <div class="filtro-group">
+            <label>Desde:</label>
+            <input type="date" [ngModel]="pagadoEnDesdeDraft()" (ngModelChange)="pagadoEnDesdeDraft.set($event)">
+          </div>
+          <div class="filtro-group">
+            <label>Hasta:</label>
+            <input type="date" [ngModel]="pagadoEnHastaDraft()" (ngModelChange)="pagadoEnHastaDraft.set($event)" (keydown.enter)="aplicarFiltroPagadoEn()">
+          </div>
+        </div>
+        <div class="modal-actions">
+          @if (filtroPagadoEn()) {
+            <button type="button" class="btn-cancel" (click)="limpiarFiltroPagadoEn()">Quitar filtro</button>
+          }
+          <button type="button" class="btn-cancel" (click)="cerrarModalPagadoEn()">Cancelar</button>
+          <button type="button" class="btn-save" (click)="aplicarFiltroPagadoEn()">Aplicar</button>
         </div>
       </div>
     </div>

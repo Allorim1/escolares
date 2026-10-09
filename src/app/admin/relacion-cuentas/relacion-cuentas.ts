@@ -38,6 +38,8 @@ interface Abono {
   fechaReprogramada?: string | null;
   statusModificadoPor?: string;
   statusModificadoEn?: string;
+  /** Momento en que la relación pasó a 'Pagado'. */
+  pagadoEn?: string | null;
   supervisor?: string;
   supervisorId?: string;
   comisionPorcentaje?: number;
@@ -148,6 +150,7 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       return this.abonos().filter((a) => this.coincideMontoBusqueda(a, montoFiltro) || idsCombinaciones.has(a._id || ''));
     }
     const f = this.filtros();
+    const pagadoEn = this.filtroPagadoEn();
     return this.abonos().filter((a) => {
       let passes = true;
       if (f.empresa) {
@@ -156,13 +159,21 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       if (f.planta) {
         passes = passes && a.planta === f.planta;
       }
-      if (f.fechaDesde) {
-        const fechaLocal = this.toYMD(this.fechaEfectiva(a));
-        passes = passes && fechaLocal >= f.fechaDesde;
-      }
-      if (f.fechaHasta) {
-        const fechaLocal = this.toYMD(this.fechaEfectiva(a));
-        passes = passes && fechaLocal <= f.fechaHasta;
+      if (pagadoEn) {
+        // Mientras está activo, reemplaza al rango Desde/Hasta de la relación.
+        const fechaPago = this.fechaPagadoYMD(a);
+        passes = passes && !!fechaPago;
+        if (pagadoEn.desde) passes = passes && fechaPago >= pagadoEn.desde;
+        if (pagadoEn.hasta) passes = passes && fechaPago <= pagadoEn.hasta;
+      } else {
+        if (f.fechaDesde) {
+          const fechaLocal = this.toYMD(this.fechaEfectiva(a));
+          passes = passes && fechaLocal >= f.fechaDesde;
+        }
+        if (f.fechaHasta) {
+          const fechaLocal = this.toYMD(this.fechaEfectiva(a));
+          passes = passes && fechaLocal <= f.fechaHasta;
+        }
       }
       if (f.status) {
         passes = passes && a.status === f.status;
@@ -633,6 +644,12 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   soloIvaPagadoComisiones = signal(false);
   aplicarFiltroIvaComisiones = signal(false);
 
+  /** Filtro oculto "Pagado en" (F3): rango sobre la fecha en que la relación pasó a 'Pagado'. */
+  filtroPagadoEn = signal<{ desde: string; hasta: string } | null>(null);
+  showModalPagadoEn = signal(false);
+  pagadoEnDesdeDraft = signal('');
+  pagadoEnHastaDraft = signal('');
+
   private getFechaLocal(): string {
     const now = new Date();
     const year = now.getFullYear();
@@ -821,6 +838,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       this.cerrarModalReportes();
     } else if (this.showModalReprogramados()) {
       this.cerrarModalReprogramados();
+    } else if (this.showModalPagadoEn()) {
+      this.cerrarModalPagadoEn();
     } else if (this.showModalPendientes()) {
       this.cerrarModalPendientes();
     } else if (this.showModalSender()) {
@@ -844,7 +863,53 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     if (event.key === 'F2') {
       event.preventDefault();
       this.mostrarComisiones.update(v => !v);
+    } else if (event.key === 'F3' && this.pestanaActiva() === 'relaciones' && this.puedeFiltrarPagadoEn()) {
+      event.preventDefault();
+      if (this.showModalPagadoEn()) this.cerrarModalPagadoEn();
+      else this.abrirModalPagadoEn();
     }
+  }
+
+  puedeFiltrarPagadoEn(): boolean {
+    const user = this.authService.user();
+    if (!user) return false;
+    if (user.rol === 'root') return true;
+    return this.userPermissions().includes('relaciones_filtro_pagado_en');
+  }
+
+  abrirModalPagadoEn() {
+    const actual = this.filtroPagadoEn();
+    this.pagadoEnDesdeDraft.set(actual?.desde ?? this.getFechaLocal());
+    this.pagadoEnHastaDraft.set(actual?.hasta ?? this.getFechaLocal());
+    this.showModalPagadoEn.set(true);
+  }
+
+  cerrarModalPagadoEn() {
+    this.showModalPagadoEn.set(false);
+  }
+
+  aplicarFiltroPagadoEn() {
+    const desde = this.pagadoEnDesdeDraft();
+    const hasta = this.pagadoEnHastaDraft();
+    this.filtroPagadoEn.set(desde || hasta ? { desde, hasta } : null);
+    this.paginaActual.set(1);
+    this.cerrarModalPagadoEn();
+  }
+
+  limpiarFiltroPagadoEn() {
+    this.filtroPagadoEn.set(null);
+    this.paginaActual.set(1);
+    this.cerrarModalPagadoEn();
+  }
+
+  /** Fecha local (YYYY-MM-DD) en que la relación pasó a 'Pagado', o '' si no está pagada. */
+  private fechaPagadoYMD(a: Abono): string {
+    if (a.status !== 'Pagado') return '';
+    // Relaciones pagadas antes de existir `pagadoEn`: se usa el último cambio de status.
+    const momento = a.pagadoEn || a.statusModificadoEn;
+    if (!momento) return '';
+    const d = new Date(momento);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-CA');
   }
 
   onComisionNoAsignadaChange(valor: string) {

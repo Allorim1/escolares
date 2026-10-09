@@ -728,12 +728,17 @@ export class RelacionCuentas implements OnInit, OnDestroy {
   readonly columnasPagadas: { key: string; label: string }[] = [
     { key: 'pagadoEn', label: 'Fecha de pago' },
     ...this.columnasReprogramados.filter((c) => c.key !== 'fechaReprogramada' && c.key !== 'status'),
+    { key: 'comisionPorcentaje', label: '% Comisión' },
+    { key: 'comisionBs', label: 'Comisión\nBs' },
+    { key: 'comisionUsd', label: 'Comisión\n$' },
   ];
   pagFechaDesde = signal('');
   pagFechaHasta = signal('');
   pagEmpresa = signal('');
   pagPlanta = signal('');
   pagSupervisor = signal('');
+  /** % de comisión para las relaciones sin supervisor (las que tienen usan el suyo). */
+  pagComisionPlanta = signal(0);
   plantasPagadas = computed(() => {
     const empresa = this.empresas().find((e) => e.nombre === this.pagEmpresa());
     return empresa?.plantas || [];
@@ -1319,6 +1324,14 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.pagEmpresa.set(empresa);
     this.pagPlanta.set(planta);
     this.pagSupervisor.set(supervisor);
+    // Parte del % de Comisión Planta del listado (F2), o del último guardado.
+    let guardado = 0;
+    try {
+      guardado = Number(localStorage.getItem('comisionNoAsignadaManualPorcentaje')) || 0;
+    } catch {
+      // sin acceso a localStorage
+    }
+    this.pagComisionPlanta.set(this.comisionNoAsignadaManual() ?? guardado);
     this.showModalPagadas.set(true);
   }
 
@@ -2951,6 +2964,36 @@ if (!url) return '';
     saveAs(new Blob([buffer]), `relaciones_reprogramadas_${this.getFechaLocal()}.xlsx`);
   }
 
+  /** % de comisión de una relación pagada: el del supervisor si tiene, si no el de planta del modal. */
+  private comisionPorcentajePagada(a: Abono): number {
+    return a.supervisorId ? a.comisionPorcentaje ?? 0 : this.pagComisionPlanta();
+  }
+
+  /** Comisión en Bs sobre el monto sin IVA, como en el cálculo de comisiones del listado. */
+  private comisionBsPagada(a: Abono): number {
+    const montoSinIva = Math.max(0, (a.montoFactura ?? 0) - (a.iva ?? 0));
+    return montoSinIva * (this.comisionPorcentajePagada(a) / 100);
+  }
+
+  /** Comisión en $ con la tasa de la relación (igual que Diferencia $). */
+  private comisionUsdPagada(a: Abono): number {
+    const tasa = Number(a.tasa) || 0;
+    return tasa > 0 ? this.comisionBsPagada(a) / tasa : 0;
+  }
+
+  private valorPagadaPdf(a: Abono, key: string): string {
+    switch (key) {
+      case 'comisionPorcentaje':
+        return `${this.formatMonto(this.comisionPorcentajePagada(a))} %`;
+      case 'comisionBs':
+        return this.formatMonto(this.comisionBsPagada(a));
+      case 'comisionUsd':
+        return `$ ${this.formatMonto(this.comisionUsdPagada(a))}`;
+      default:
+        return this.valorReprogramadoPdf(a, key);
+    }
+  }
+
   /** Suma de una columna de montos del reporte de pagadas, o null si no es sumable. */
   private totalColumnaPagadas(datos: Abono[], key: string): number | null {
     const montos: Record<string, (a: Abono) => number> = {
@@ -2959,6 +3002,8 @@ if (!url) return '';
       diferencia: (a) => (a.montoFactura ?? 0) - (a.iva ?? 0),
       divisa: (a) => a.divisa ?? 0,
       pagoParcial: (a) => a.abonos ?? 0,
+      comisionBs: (a) => this.comisionBsPagada(a),
+      comisionUsd: (a) => this.comisionUsdPagada(a),
     };
     const monto = montos[key];
     return monto ? datos.reduce((s, a) => s + monto(a), 0) : null;
@@ -3012,6 +3057,7 @@ if (!url) return '';
       this.pagMostrarEmpresa() && empresa ? `Empresa: ${empresa}` : '',
       this.pagMostrarPlanta() && planta ? `Planta: ${planta}` : '',
       supervisor ? `Supervisor: ${supervisor}` : '',
+      columnas.some((c) => c.key.startsWith('comision')) ? `Comisión Planta: ${this.formatMonto(this.pagComisionPlanta())} %` : '',
     ].filter(Boolean);
     const filtroY = offsetY + (lineasFiltro.length ? 7 : 10);
     doc.setFontSize(10);
@@ -3032,13 +3078,13 @@ if (!url) return '';
     const filaTotales = columnas.map((c, i) => {
       const total = this.totalColumnaPagadas(datos, c.key);
       if (total === null) return i === 0 ? 'TOTAL' : '';
-      return c.key === 'divisa' ? `$ ${this.formatMonto(total)}` : this.formatMonto(total);
+      return c.key === 'divisa' || c.key === 'comisionUsd' ? `$ ${this.formatMonto(total)}` : this.formatMonto(total);
     });
 
     autoTable(doc, {
       startY: filtroY + Math.max(14, lineasFiltro.length * 6 + 2),
       head: [columnas.map((c) => c.label)],
-      body: datos.map((a) => columnas.map((c) => this.valorReprogramadoPdf(a, c.key))),
+      body: datos.map((a) => columnas.map((c) => this.valorPagadaPdf(a, c.key))),
       ...(this.pagFilaTotales() && {
         foot: [filaTotales],
         showFoot: 'lastPage' as const,
@@ -3068,7 +3114,8 @@ if (!url) return '';
     // Montos como número para que Excel pueda sumarlos.
     const valor = (a: Abono, key: string): string | number => {
       if (key === 'tasa') return a.tasa ?? 0;
-      return this.totalColumnaPagadas([a], key) ?? this.valorReprogramadoPdf(a, key);
+      if (key === 'comisionPorcentaje') return this.comisionPorcentajePagada(a);
+      return this.totalColumnaPagadas([a], key) ?? this.valorPagadaPdf(a, key);
     };
 
     const workbook = new ExcelJS.Workbook();

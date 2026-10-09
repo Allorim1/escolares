@@ -170,6 +170,9 @@
           <button class="btn-secondary" (click)="abrirModalReportes()">Relaciones</button>
           <button class="btn-secondary" (click)="abrirModalReprogramados()">Reprogramadas</button>
         }
+        @if (puedeVerPagadas()) {
+          <button class="btn-secondary" (click)="abrirModalPagadas()">Pagadas</button>
+        }
         @if (puedeVerPendientes()) {
           <button class="btn-secondary" (click)="abrirModalPendientes()">Pendientes</button>
         }
@@ -1118,6 +1121,90 @@
             (click)="generarReportesReprogramados()"
           >
             {{ repGenerando() ? 'Generando…' : 'Generar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showModalPagadas()) {
+    <div class="modal-overlay" (click)="cerrarModalPagadas()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Generar Reporte - Pagadas</h2>
+          <button type="button" class="btn-cerrar" (click)="cerrarModalPagadas()">✕</button>
+        </div>
+        <div class="reportes-layout">
+          <h4>Rango por fecha de pago</h4>
+          <div class="reprogramados-rango">
+            <div class="filtro-group">
+              <label>Desde:</label>
+              <input type="date" [ngModel]="pagFechaDesde()" (ngModelChange)="pagFechaDesde.set($event)">
+            </div>
+            <div class="filtro-group">
+              <label>Hasta:</label>
+              <input type="date" [ngModel]="pagFechaHasta()" (ngModelChange)="pagFechaHasta.set($event)">
+            </div>
+            <span class="reprogramados-conteo">
+              {{ pagadasReporte().length }} relación(es) pagada(s)
+              @if (filtros().empresa || filtros().planta) {
+                · {{ filtros().empresa }}{{ filtros().planta ? ' / ' + filtros().planta : '' }}
+              }
+            </span>
+          </div>
+          <div class="reportes-columns-row">
+            <div class="reportes-columns-left">
+              <div class="reportes-opciones">
+                <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="pagMostrarEmpresa()" (ngModelChange)="pagMostrarEmpresa.set($event)">
+                  Mostrar Empresa en PDF
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="pagMostrarPlanta()" (ngModelChange)="pagMostrarPlanta.set($event)">
+                  Mostrar Planta en PDF
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" [ngModel]="pagFilaTotales()" (ngModelChange)="pagFilaTotales.set($event)">
+                  Fila de totales
+                </label>
+              </div>
+            </div>
+            <div class="reportes-columns-right">
+              <h4>Generar reportes</h4>
+              <div class="reportes-actions">
+                <label class="reportes-checkbox">
+                  <input type="checkbox" [ngModel]="pagPdf()" (ngModelChange)="pagPdf.set($event)">
+                  Pagadas PDF
+                </label>
+                <label class="reportes-checkbox">
+                  <input type="checkbox" [ngModel]="pagExcel()" (ngModelChange)="pagExcel.set($event)">
+                  Pagadas Excel
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="reportes-divider"></div>
+          <div class="reportes-col">
+            <h4>Columnas</h4>
+            <div class="columnas-grid">
+              @for (col of columnasPagadas; track col.key) {
+                <label class="checkbox-label">
+                  <input type="checkbox" [checked]="pagColumnas().has(col.key)" (change)="toggleColumnaPagadas(col.key)">
+                  {{ col.label }}
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalPagadas()">Cancelar</button>
+          <button
+            type="button"
+            class="btn-save"
+            [disabled]="pagGenerando() || (!pagPdf() && !pagExcel()) || pagColumnas().size === 0 || pagadasReporte().length === 0"
+            (click)="generarReportesPagadas()"
+          >
+            {{ pagGenerando() ? 'Generando…' : 'Generar' }}
           </button>
         </div>
       </div>

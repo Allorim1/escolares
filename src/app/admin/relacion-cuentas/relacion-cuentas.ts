@@ -722,6 +722,41 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       .sort((x, y) => this.toYMD(x.fecha).localeCompare(this.toYMD(y.fecha)));
   });
 
+  showModalPagadas = signal(false);
+  // Reporte de pagadas: mismas columnas que Relaciones, con la fecha de pago
+  // antes de la original. Status se omite porque todas están pagadas.
+  readonly columnasPagadas: { key: string; label: string }[] = [
+    { key: 'pagadoEn', label: 'Fecha de pago' },
+    ...this.columnasReprogramados.filter((c) => c.key !== 'fechaReprogramada' && c.key !== 'status'),
+  ];
+  pagFechaDesde = signal('');
+  pagFechaHasta = signal('');
+  pagColumnas = signal<Set<string>>(new Set(this.columnasPagadas.map((c) => c.key)));
+  pagMostrarEmpresa = signal(true);
+  pagMostrarPlanta = signal(true);
+  pagFilaTotales = signal(true);
+  pagPdf = signal(true);
+  pagExcel = signal(false);
+  pagGenerando = signal(false);
+
+  /** Pagadas cuyo rango se aplica sobre la fecha en que pasaron a 'Pagado'. */
+  pagadasReporte = computed(() => {
+    const { empresa, planta } = this.filtros();
+    const desde = this.pagFechaDesde();
+    const hasta = this.pagFechaHasta();
+    return this.abonos()
+      .filter((a) => {
+        const fechaPago = this.fechaPagadoYMD(a);
+        if (!fechaPago) return false;
+        if (empresa && a.empresa !== empresa) return false;
+        if (planta && a.planta !== planta) return false;
+        if (desde && fechaPago < desde) return false;
+        if (hasta && fechaPago > hasta) return false;
+        return true;
+      })
+      .sort((x, y) => this.momentoPago(x).localeCompare(this.momentoPago(y)));
+  });
+
    abonosPaginados = computed(() => {
      const lista = this.abonosFiltradosConPendientes();
      const inicio = (this.paginaActual() - 1) * this.TAM_PAGINA;
@@ -838,6 +873,8 @@ export class RelacionCuentas implements OnInit, OnDestroy {
       this.cerrarModalReportes();
     } else if (this.showModalReprogramados()) {
       this.cerrarModalReprogramados();
+    } else if (this.showModalPagadas()) {
+      this.cerrarModalPagadas();
     } else if (this.showModalPagadoEn()) {
       this.cerrarModalPagadoEn();
     } else if (this.showModalPendientes()) {
@@ -902,11 +939,16 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     this.cerrarModalPagadoEn();
   }
 
-  /** Fecha local (YYYY-MM-DD) en que la relación pasó a 'Pagado', o '' si no está pagada. */
-  private fechaPagadoYMD(a: Abono): string {
+  /** Momento (ISO) en que la relación pasó a 'Pagado', o '' si no está pagada. */
+  private momentoPago(a: Abono): string {
     if (a.status !== 'Pagado') return '';
     // Relaciones pagadas antes de existir `pagadoEn`: se usa el último cambio de status.
-    const momento = a.pagadoEn || a.statusModificadoEn;
+    return a.pagadoEn || a.statusModificadoEn || '';
+  }
+
+  /** Fecha local (YYYY-MM-DD) en que la relación pasó a 'Pagado', o '' si no está pagada. */
+  private fechaPagadoYMD(a: Abono): string {
+    const momento = this.momentoPago(a);
     if (!momento) return '';
     const d = new Date(momento);
     return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-CA');
@@ -1248,6 +1290,47 @@ export class RelacionCuentas implements OnInit, OnDestroy {
 
   cerrarModalReprogramados() {
     this.showModalReprogramados.set(false);
+  }
+
+  puedeVerPagadas(): boolean {
+    const user = this.authService.user();
+    if (!user) return false;
+    if (user.rol === 'root') return true;
+    return this.userPermissions().includes('reporte_pagadas');
+  }
+
+  abrirModalPagadas() {
+    // Parte del filtro "Pagado en" si está activo; si no, del día de hoy.
+    const pagadoEn = this.filtroPagadoEn();
+    this.pagFechaDesde.set(pagadoEn ? pagadoEn.desde : this.getFechaLocal());
+    this.pagFechaHasta.set(pagadoEn ? pagadoEn.hasta : this.getFechaLocal());
+    this.showModalPagadas.set(true);
+  }
+
+  cerrarModalPagadas() {
+    this.showModalPagadas.set(false);
+  }
+
+  toggleColumnaPagadas(key: string) {
+    this.pagColumnas.update((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  async generarReportesPagadas() {
+    this.pagGenerando.set(true);
+    try {
+      const tareas: Promise<void>[] = [];
+      if (this.pagPdf()) tareas.push(this.generarPagadasPdf());
+      if (this.pagExcel()) tareas.push(this.generarPagadasExcel());
+      await Promise.all(tareas);
+      this.cerrarModalPagadas();
+    } finally {
+      this.pagGenerando.set(false);
+    }
   }
 
   toggleColumnaReprogramados(key: string) {
@@ -2687,6 +2770,10 @@ if (!url) return '';
         return this.formatFecha(a.fecha);
       case 'fechaReprogramada':
         return a.fechaReprogramada ? this.formatFecha(a.fechaReprogramada) : '-';
+      case 'pagadoEn': {
+        const ymd = this.fechaPagadoYMD(a);
+        return ymd ? this.formatFecha(ymd) : '-';
+      }
       case 'montoFactura':
       case 'iva':
       case 'tasa':
@@ -2842,6 +2929,151 @@ if (!url) return '';
 
     const buffer = await workbook.xlsx.writeBuffer();
     saveAs(new Blob([buffer]), `relaciones_reprogramadas_${this.getFechaLocal()}.xlsx`);
+  }
+
+  /** Suma de una columna de montos del reporte de pagadas, o null si no es sumable. */
+  private totalColumnaPagadas(datos: Abono[], key: string): number | null {
+    const montos: Record<string, (a: Abono) => number> = {
+      montoFactura: (a) => a.montoFactura ?? 0,
+      iva: (a) => a.iva ?? 0,
+      diferencia: (a) => (a.montoFactura ?? 0) - (a.iva ?? 0),
+      divisa: (a) => a.divisa ?? 0,
+      pagoParcial: (a) => a.abonos ?? 0,
+    };
+    const monto = montos[key];
+    return monto ? datos.reduce((s, a) => s + monto(a), 0) : null;
+  }
+
+  private rangoPagadasTexto(): string {
+    const desde = this.pagFechaDesde();
+    const hasta = this.pagFechaHasta();
+    if (!desde && !hasta) return '';
+    return `${desde ? this.formatFecha(desde) : '…'} - ${hasta ? this.formatFecha(hasta) : '…'}`;
+  }
+
+  async generarPagadasPdf() {
+    const datos = this.pagadasReporte();
+    const columnas = this.columnasPagadas.filter((c) => this.pagColumnas().has(c.key));
+    if (datos.length === 0 || columnas.length === 0) {
+      alert('No hay datos para generar el reporte');
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    let logoBase64 = '';
+    try {
+      logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
+    } catch (e) {
+      console.warn('No se pudo cargar el logo:', e);
+    }
+    const logoWidth = 70;
+    let logoHeight = 0;
+    if (logoBase64) {
+      const dims = await this.obtenerDimensionesImagen(logoBase64);
+      logoHeight = (logoWidth * dims.height) / dims.width;
+    }
+    const logoY = 15;
+    const offsetY = logoY + logoHeight + 8;
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 18, logoY, logoWidth, logoHeight);
+    }
+
+    const rango = this.rangoPagadasTexto();
+    doc.setFontSize(16);
+    doc.setTextColor(0, 51, 111);
+    doc.text(`RELACIONES PAGADAS${rango ? ` (${rango})` : ''}`, pageWidth / 2, offsetY, { align: 'center' });
+
+    const { empresa, planta } = this.filtros();
+    const showEmpresa = this.pagMostrarEmpresa() && !!empresa;
+    const showPlanta = this.pagMostrarPlanta() && !!planta;
+    const filtroY = offsetY + (showEmpresa || showPlanta ? 7 : 10);
+    doc.setFontSize(10);
+    if (showEmpresa || showPlanta) {
+      doc.setFont('helvetica', 'bold');
+      if (showEmpresa) doc.text(`Empresa: ${empresa}`, 18, filtroY);
+      if (showPlanta) doc.text(`Planta: ${planta}`, 18, filtroY + (showEmpresa ? 6 : 0));
+      doc.setFont('helvetica', 'normal');
+    }
+    doc.setTextColor(100);
+    doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, filtroY, { align: 'right' });
+    doc.text(`Total registros: ${datos.length}`, pageWidth - 18, filtroY + 6, { align: 'right' });
+
+    const columnWidths: any = {};
+    columnas.forEach((c, i) => {
+      columnWidths[i] = { cellWidth: c.key === 'nombre' ? 32 : c.key === 'planta' ? 24 : 20 };
+    });
+
+    const filaTotales = columnas.map((c, i) => {
+      const total = this.totalColumnaPagadas(datos, c.key);
+      if (total === null) return i === 0 ? 'TOTAL' : '';
+      return c.key === 'divisa' ? `$ ${this.formatMonto(total)}` : this.formatMonto(total);
+    });
+
+    autoTable(doc, {
+      startY: filtroY + 14,
+      head: [columnas.map((c) => c.label)],
+      body: datos.map((a) => columnas.map((c) => this.valorReprogramadoPdf(a, c.key))),
+      ...(this.pagFilaTotales() && {
+        foot: [filaTotales],
+        showFoot: 'lastPage' as const,
+        footStyles: { fillColor: [226, 232, 240] as [number, number, number], textColor: 0, fontStyle: 'bold' as const, fontSize: 7 },
+      }),
+      theme: 'grid',
+      headStyles: { fillColor: [29, 99, 193], textColor: 255, fontSize: 7, halign: 'center', overflow: 'linebreak', cellPadding: 1.5 },
+      bodyStyles: { fontSize: 7, overflow: 'linebreak' },
+      styles: { cellPadding: 1.5, fontSize: 7, overflow: 'linebreak' },
+      margin: { left: 18, right: 18, bottom: 18 },
+      tableWidth: 'auto',
+      columnStyles: columnWidths,
+    });
+
+    const sufijoPlanta = planta ? ` (${planta.replace(/[\\/:*?"<>|]/g, '-')})` : '';
+    doc.save(`Relaciones Pagadas${sufijoPlanta} ${this.getFechaLocal()}.pdf`);
+  }
+
+  async generarPagadasExcel() {
+    const datos = this.pagadasReporte();
+    const columnas = this.columnasPagadas.filter((c) => this.pagColumnas().has(c.key));
+    if (datos.length === 0 || columnas.length === 0) {
+      alert('No hay datos para generar el reporte');
+      return;
+    }
+
+    // Montos como número para que Excel pueda sumarlos.
+    const valor = (a: Abono, key: string): string | number => {
+      if (key === 'tasa') return a.tasa ?? 0;
+      return this.totalColumnaPagadas([a], key) ?? this.valorReprogramadoPdf(a, key);
+    };
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Pagadas');
+    worksheet.columns = columnas.map((c) => ({ width: c.key === 'nombre' ? 30 : c.key === 'empresa' ? 25 : 18 }));
+
+    const borde: Partial<ExcelJS.Borders> = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    const bordear = (row: ExcelJS.Row) =>
+      row.eachCell((cell) => {
+        cell.border = borde;
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    const header = worksheet.addRow(columnas.map((c) => c.label.replace(/\n/g, ' ')));
+    bordear(header);
+    header.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
+    });
+    for (const a of datos) {
+      bordear(worksheet.addRow(columnas.map((c) => valor(a, c.key))));
+    }
+    if (this.pagFilaTotales()) {
+      const fila = worksheet.addRow(columnas.map((c, i) => this.totalColumnaPagadas(datos, c.key) ?? (i === 0 ? 'TOTAL' : '')));
+      bordear(fila);
+      fila.font = { bold: true };
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `relaciones_pagadas_${this.getFechaLocal()}.xlsx`);
   }
 
   async generarPdfNombresComisiones() {

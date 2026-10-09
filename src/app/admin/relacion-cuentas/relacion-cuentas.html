@@ -1128,7 +1128,7 @@
   }
 
   @if (showModalPagadas()) {
-    <div class="modal-overlay" (click)="cerrarModalPagadas()">
+    <div class="modal-overlay">
       <div class="modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Generar Reporte - Pagadas</h2>
@@ -1249,7 +1249,7 @@
   }
 
   @if (showModalPagadoEn()) {
-    <div class="modal-overlay" (click)="cerrarModalPagadoEn()">
+    <div class="modal-overlay">
       <div class="modal modal-pagado-en" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Pagado en</h2>

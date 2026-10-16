@@ -148,6 +148,15 @@ async generarCotizacionPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
       return sum + (discountedBase * itemIvaPorcentaje) / 100;
     }, 0);
 
+    // Exento y base imponible se sacan de los artículos (ya con el descuento aplicado) en vez de
+    // data.totales.exentoBs, que en las cotizaciones guardadas antes de calcularlo quedó en 0.
+    // EXENTO + BASE IMPONIBLE = SUB TOTAL - DESCUENTO.
+    const exentoCalculado = data.items.reduce((sum: number, item: any) => {
+      if (item.tieneIva ?? false) return sum;
+      return sum + (item.montoTotalBs * (100 - data.totales.porcentajeDescuento)) / 100;
+    }, 0);
+    const baseImponibleCalculada = data.totales.netoBs - data.totales.descuentoBs - exentoCalculado;
+
     const docDefinition: any = {
       content: [
         {
@@ -307,7 +316,7 @@ async generarCotizacionPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
               // --- FILAS DE TOTALES: SOLO EL MONTO TIENE RECUADRO ---
               [
                 {
-                  rowSpan: 6, // Mantiene el bloque informativo alineado arriba al ras del NETO
+                  rowSpan: 6, // Mantiene el bloque informativo alineado arriba al ras del SUB TOTAL
                   stack: [
                     { text: 'LOS PRECIOS ESTAN SUJETOS A CAMBIOS SIN PREVIO AVISO', fontSize: 6.5 },
                     { text: 'NO SE ACEPTAN DEVOLUCIONES DESPUES DE 48 HORAS DE RECIBIDA LA MERCANCIA', fontSize: 6.5, margin: [0, 1, 0, 3] },
@@ -322,7 +331,7 @@ async generarCotizacionPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
                   margin: [0, 6, 10, 0]
                 },
                 '', '',
-                { text: `NETO ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: `SUB TOTAL ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: formatearMonto(data.totales.netoBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
@@ -332,18 +341,18 @@ async generarCotizacionPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
               ],
               [
                 '', '', '',
-                { text: `SUB TOTAL ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: formatearMonto(data.totales.subTotalBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+                { text: `EXENTO ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(exentoCalculado), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+              ],
+              [
+                '', '', '',
+                { text: `BASE IMPONIBLE ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(baseImponibleCalculada), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
                 '', '', '',
                 { text: `I.V.A. ${data.totales.ivaPorcentaje}% ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: formatearMonto(ivaCalculado), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
-              ],
-              [
-                '', '', '',
-                { text: `EXENTO ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: formatearMonto(data.totales.exentoBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               [
                 '', '', '',

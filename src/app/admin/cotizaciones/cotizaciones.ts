@@ -423,6 +423,12 @@ export class Cotizaciones implements OnInit {
     }, 0);
     this.newCotizacion.totales.ivaBs = Math.round(iva * 100) / 100;
 
+    const exento = this.newCotizacion.items.reduce((sum, item) => {
+      if (item.tieneIva ?? false) return sum;
+      return sum + (item.montoTotalBs * (100 - this.newCotizacion.totales.porcentajeDescuento)) / 100;
+    }, 0);
+    this.newCotizacion.totales.exentoBs = Math.round(exento * 100) / 100;
+
     this.newCotizacion.totales.totalBs = Math.round((subTotal + iva) * 100) / 100;
   }
 
@@ -638,6 +644,12 @@ export class Cotizaciones implements OnInit {
       return sum + (discountedBase * itemIvaPorcentaje) / 100;
     }, 0);
     this.newNotaEntrega.totales.ivaBs = Math.round(iva * 100) / 100;
+
+    const exento = this.newNotaEntrega.items.reduce((sum, item) => {
+      if (item.tieneIva ?? false) return sum;
+      return sum + (item.montoTotalBs * (100 - this.newNotaEntrega.totales.porcentajeDescuento)) / 100;
+    }, 0);
+    this.newNotaEntrega.totales.exentoBs = Math.round(exento * 100) / 100;
 
     this.newNotaEntrega.totales.totalBs = Math.round((subTotal + iva) * 100) / 100;
   }

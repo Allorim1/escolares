@@ -67,6 +67,15 @@ export class ExportarPdfNotaEntregaService {
       return sum + (discountedBase * itemIvaPorcentaje) / 100;
     }, 0);
 
+    // Exento y base imponible se sacan de los artículos (ya con el descuento aplicado) en vez de
+    // data.totales.exentoBs, que en las notas guardadas antes de calcularlo quedó en 0.
+    // EXENTO + BASE IMPONIBLE = SUB TOTAL - DESCUENTO.
+    const exentoCalculado = data.items.reduce((sum: number, item: any) => {
+      if (item.tieneIva ?? false) return sum;
+      return sum + (item.montoTotalBs * (100 - data.totales.porcentajeDescuento)) / 100;
+    }, 0);
+    const baseImponibleCalculada = data.totales.netoBs - data.totales.descuentoBs - exentoCalculado;
+
     const docDefinition: any = {
       content: [
         {
@@ -205,7 +214,7 @@ export class ExportarPdfNotaEntregaService {
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] },
                 { text: '', style: 'tdRelleno', border: [true, false, true, true] }
               ],
-             // FILA NETO: Celda 1 (ocupa 3 columnas usando colSpan), Celda 4 (Etiqueta), Celda 5 (Monto)
+             // FILA SUB TOTAL: Celda 1 (ocupa 3 columnas usando colSpan), Celda 4 (Etiqueta), Celda 5 (Monto)
               [
                 {
                   rowSpan: 6, 
@@ -222,7 +231,7 @@ export class ExportarPdfNotaEntregaService {
                   margin: [0, 6, 10, 0]
                 },
                 {}, {}, // <--- DEBEN estar aquí para que el array tenga las 5 celdas físicas que el validador de layouts necesita
-                { text: `NETO ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: `SUB TOTAL ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: formatearMonto(data.totales.netoBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               // FILA DESCUENTO
@@ -233,13 +242,21 @@ export class ExportarPdfNotaEntregaService {
                 { text: `DESCUENTO ${data.totales.porcentajeDescuento.toLocaleString('de-DE', { minimumFractionDigits: 2 })}% ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: formatearMonto(data.totales.descuentoBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
-              // FILA SUB TOTAL
+              // FILA EXENTO
               [
                 { text: '', border: [false, false, false, false] },
                 { text: '', border: [false, false, false, false] },
                 { text: '', border: [false, false, false, false] },
-                { text: `SUB TOTAL ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: formatearMonto(data.totales.subTotalBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+                { text: `EXENTO ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(exentoCalculado), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
+              ],
+              // FILA BASE IMPONIBLE
+              [
+                { text: '', border: [false, false, false, false] },
+                { text: '', border: [false, false, false, false] },
+                { text: '', border: [false, false, false, false] },
+                { text: `BASE IMPONIBLE ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
+                { text: formatearMonto(baseImponibleCalculada), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               // FILA I.V.A.
               [
@@ -248,14 +265,6 @@ export class ExportarPdfNotaEntregaService {
                 { text: '', border: [false, false, false, false] },
                 { text: `I.V.A. 16% ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
                 { text: formatearMonto(ivaCalculado), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
-              ],
-              // FILA EXENTO
-              [
-                { text: '', border: [false, false, false, false] },
-                { text: '', border: [false, false, false, false] },
-                { text: '', border: [false, false, false, false] },
-                { text: `EXENTO ${simbolo}`, style: 'labelTotalBold', border: [false, false, false, false] },
-                { text: formatearMonto(data.totales.exentoBs), style: 'valorTotalDerecha', fillColor: '#DBDBDB', border: [true, true, true, true] }
               ],
               // FILA TOTAL
               [

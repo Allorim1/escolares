@@ -302,9 +302,10 @@
              </div>
           </div>
           <div class="totales-display">
-            <div class="total-row"><span>Neto:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.netoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.netoBs) }}</span></div>
+            <div class="total-row"><span>Sub Total:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.netoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.netoBs) }}</span></div>
             <div class="total-row"><span>Descuento:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.descuentoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.descuentoBs) }}</span></div>
-            <div class="total-row"><span>Sub Total:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.subTotalBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.subTotalBs) }}</span></div>
+            <div class="total-row"><span>Exento:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.exentoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.exentoBs) }}</span></div>
+            <div class="total-row"><span>Base Imponible:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.subTotalBs - newCotizacion.totales.exentoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.subTotalBs - newCotizacion.totales.exentoBs) }}</span></div>
             <div class="total-row"><span>I.V.A.:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.ivaBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.ivaBs) }}</span></div>
             <div class="total-row total-bold"><span>Total:</span> <span class="total-bs">{{ formatCurrency(newCotizacion.totales.totalBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newCotizacion.totales.totalBs) }}</span></div>
           </div>
@@ -518,9 +519,10 @@
              </div>
           </div>
           <div class="totales-display">
-            <div class="total-row"><span>Neto:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.netoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.netoBs) }}</span></div>
+            <div class="total-row"><span>Sub Total:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.netoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.netoBs) }}</span></div>
             <div class="total-row"><span>Descuento:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.descuentoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.descuentoBs) }}</span></div>
-            <div class="total-row"><span>Sub Total:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.subTotalBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.subTotalBs) }}</span></div>
+            <div class="total-row"><span>Exento:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.exentoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.exentoBs) }}</span></div>
+            <div class="total-row"><span>Base Imponible:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.subTotalBs - newNotaEntrega.totales.exentoBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.subTotalBs - newNotaEntrega.totales.exentoBs) }}</span></div>
             <div class="total-row"><span>I.V.A.:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.ivaBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.ivaBs) }}</span></div>
             <div class="total-row total-bold"><span>Total:</span> <span class="total-bs">{{ formatCurrency(newNotaEntrega.totales.totalBs) }}</span> <span class="total-usd">{{ formatCurrencyUsd(newNotaEntrega.totales.totalBs) }}</span></div>
           </div>

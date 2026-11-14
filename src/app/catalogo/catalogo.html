@@ -1,0 +1,150 @@
+<div class="catalogo">
+  <header class="catalogo-cabecera">
+    <h1>Catálogo</h1>
+    <p>Busca por nombre o filtra por categoría y etiquetas.</p>
+  </header>
+
+  <section class="filtros" aria-label="Filtros del catálogo">
+    <div class="filtros-fila">
+      <label class="campo campo-busqueda">
+        <span>Buscar</span>
+        <input
+          type="search"
+          [ngModel]="busqueda()"
+          (ngModelChange)="buscar($event)"
+          placeholder="Nombre, código o descripción…"
+        />
+      </label>
+
+      <label class="campo">
+        <span>Categoría</span>
+        <select [ngModel]="categoria()" (ngModelChange)="elegirCategoria($event)">
+          <option value="">Todas</option>
+          @for (c of categorias(); track c.nombre) {
+            <option [value]="c.nombre">{{ c.nombre }} ({{ c.cantidad }})</option>
+          }
+        </select>
+      </label>
+
+      @if (hayFiltros()) {
+        <button type="button" class="btn-limpiar" (click)="limpiar()">Limpiar filtros</button>
+      }
+    </div>
+
+    @if (etiquetasDisponibles().length > 0) {
+      <div class="etiquetas" role="group" aria-label="Etiquetas">
+        <span class="etiquetas-titulo">Etiquetas</span>
+        @for (e of etiquetasDisponibles(); track e.nombre) {
+          <button
+            type="button"
+            class="chip"
+            [class.chip-activo]="etiquetaActiva(e.nombre)"
+            [attr.aria-pressed]="etiquetaActiva(e.nombre)"
+            (click)="alternarEtiqueta(e.nombre)"
+          >
+            {{ e.nombre }}
+          </button>
+        }
+      </div>
+    }
+  </section>
+
+  @if (cargando()) {
+    <div class="estado">Cargando catálogo…</div>
+  } @else if (error()) {
+    <div class="estado estado-error">{{ error() }}</div>
+  } @else if (filtrados().length === 0) {
+    <div class="estado">
+      @if (productos().length === 0) {
+        Aún no hay productos publicados.
+      } @else {
+        Ningún producto coincide con los filtros.
+        <button type="button" class="btn-enlace" (click)="limpiar()">Ver todos</button>
+      }
+    </div>
+  } @else {
+    <p class="conteo">{{ filtrados().length }} producto{{ filtrados().length === 1 ? '' : 's' }}</p>
+
+    <div class="grilla">
+      @for (p of paginados(); track p.codigo) {
+        <button type="button" class="tarjeta" (click)="abrir(p)" [attr.aria-label]="'Ver ' + p.nombre">
+          <div class="tarjeta-imagen">
+            @if (p.imagen) {
+              <img [src]="p.imagen" [alt]="p.nombre" loading="lazy" />
+            } @else {
+              <span class="sin-imagen">Sin foto</span>
+            }
+            @if (!p.disponible) {
+              <span class="agotado">Agotado</span>
+            }
+          </div>
+          <div class="tarjeta-cuerpo">
+            @if (p.categorias.length) {
+              <span class="tarjeta-categoria">{{ p.categorias.join(' · ') }}</span>
+            }
+            <h2 class="tarjeta-nombre">{{ p.nombre }}</h2>
+            @if (mostrarPrecio() && p.precioUsd !== null) {
+              <div class="precio">
+                <span class="precio-usd">$ {{ p.precioUsd | number: '1.2-2' }}</span>
+                @if (precioBs(p); as bs) {
+                  <span class="precio-bs">Bs. {{ bs | number: '1.2-2' }}</span>
+                }
+              </div>
+            }
+          </div>
+        </button>
+      }
+    </div>
+
+    @if (totalPaginas() > 1) {
+      <nav class="paginacion" aria-label="Páginas">
+        <button type="button" (click)="irAPagina(pagina() - 1)" [disabled]="pagina() === 1">Anterior</button>
+        <span>Página {{ pagina() }} de {{ totalPaginas() }}</span>
+        <button type="button" (click)="irAPagina(pagina() + 1)" [disabled]="pagina() === totalPaginas()">Siguiente</button>
+      </nav>
+    }
+  }
+</div>
+
+@if (seleccionado(); as p) {
+  <div class="modal-fondo" (click)="cerrar()">
+    <div class="modal" role="dialog" aria-modal="true" [attr.aria-label]="p.nombre" (click)="$event.stopPropagation()">
+      <button type="button" class="modal-cerrar" (click)="cerrar()" aria-label="Cerrar">✕</button>
+      <div class="modal-imagen">
+        @if (p.imagen) {
+          <img [src]="p.imagen" [alt]="p.nombre" />
+        } @else {
+          <span class="sin-imagen">Sin foto</span>
+        }
+      </div>
+      <div class="modal-cuerpo">
+        @if (p.categorias.length) {
+          <span class="tarjeta-categoria">{{ p.categorias.join(' · ') }}</span>
+        }
+        <h2>{{ p.nombre }}</h2>
+        <p class="modal-codigo">Código {{ p.codigo }}</p>
+        @if (p.descripcion && p.descripcion !== p.nombre) {
+          <p class="modal-descripcion">{{ p.descripcion }}</p>
+        }
+        @if (mostrarPrecio() && p.precioUsd !== null) {
+          <div class="precio precio-grande">
+            <span class="precio-usd">$ {{ p.precioUsd | number: '1.2-2' }}</span>
+            @if (precioBs(p); as bs) {
+              <span class="precio-bs">Bs. {{ bs | number: '1.2-2' }}</span>
+            }
+          </div>
+        }
+        <p class="disponibilidad" [class.disponibilidad-no]="!p.disponible">
+          {{ p.disponible ? 'Disponible' : 'Agotado' }}
+        </p>
+        @if (p.etiquetas.length) {
+          <div class="modal-etiquetas">
+            @for (e of p.etiquetas; track e) {
+              <span class="chip chip-estatico">{{ e }}</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

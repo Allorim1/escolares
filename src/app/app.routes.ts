@@ -23,6 +23,12 @@ export const routes: Routes = [
     loadChildren: () => import('./products/features/product-shell/product.route'),
   },
   {
+    // Catálogo de productos que sellhub (EscolaresPRO) marca con "Ver en web".
+    // De momento es privado: sin enlace en el menú y con noindex.
+    path: 'catalogo',
+    loadComponent: () => import('./catalogo/catalogo').then((m) => m.Catalogo),
+  },
+  {
     path: 'cart',
     loadComponent: () => import('./cart/cart').then((m) => m.default),
   },

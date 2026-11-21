@@ -4,31 +4,45 @@
 
   <!-- Notificación de nuevo mensaje -->
   @if (mostrarNotificacionMensaje()) {
-    <div class="mensaje-notificacion" (click)="cerrarNotificacionMensaje()">
+    <div class="mensaje-notificacion" (click)="cerrarNotificacionMensaje()" tabindex="0" (keydown.enter)="cerrarNotificacionMensaje()" (keydown.space)="cerrarNotificacionMensaje(); $event.preventDefault()">
       <div class="notificacion-icon">💬</div>
       <div class="notificacion-content">
         <div class="notificacion-title">Nuevo mensaje</div>
         @if (ultimoMensajeNotificado(); as mensaje) {
           <div class="notificacion-text">
-            <strong>{{ getUserDisplayName(mensaje.usuario) }}</strong> desde <strong>{{ mensaje.plataforma }}</strong>
+            <strong>{{ getUserDisplayName(mensaje.usuario) }}</strong> desde
+            <strong>{{ mensaje.plataforma }}</strong>
           </div>
           <div class="notificacion-preview">{{ mensaje.texto }}</div>
         }
       </div>
-      <button class="notificacion-close" (click)="cerrarNotificacionMensaje(); $event.stopPropagation()">&times;</button>
+      <button
+        class="notificacion-close"
+        (click)="cerrarNotificacionMensaje(); $event.stopPropagation()"
+      >
+        &times;
+      </button>
     </div>
   }
 
   <section class="section">
     <h2>📱 Redes Sociales</h2>
-    <p>Conecta tus cuentas de TikTok, Instagram, Telegram y Facebook. Los mensajes de WhatsApp se gestionan en <a routerLink="/admin/whatsapp">Empresas &rsaquo; WhatsApp</a>.</p>
+    <p>
+      Conecta tus cuentas de TikTok, Instagram, Telegram y Facebook. Los mensajes de WhatsApp se
+      gestionan en <a routerLink="/admin/whatsapp">Empresas &rsaquo; WhatsApp</a>.
+    </p>
 
     <div class="form-agregar">
       <h3>Agregar nueva red social</h3>
       <div class="form-row">
         <div class="form-group">
           <label for="plataforma">Plataforma</label>
-          <select id="plataforma" [ngModel]="nuevaRedPlataforma()" (ngModelChange)="nuevaRedPlataforma.set($event)" enterFocusNext>
+          <select
+            id="plataforma"
+            [ngModel]="nuevaRedPlataforma()"
+            (ngModelChange)="nuevaRedPlataforma.set($event)"
+            appEnterFocusNext
+          >
             <option value="">Selecciona una plataforma</option>
             <option value="TikTok">TikTok</option>
             <option value="Instagram">Instagram</option>
@@ -38,23 +52,44 @@
         </div>
         <div class="form-group">
           <label for="usuario">Usuario / Página</label>
-          <input id="usuario" type="text" [ngModel]="nuevaRedUsuario()" (ngModelChange)="nuevaRedUsuario.set($event)" [placeholder]="nuevaRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'" enterFocusNext>
+          <input
+            id="usuario"
+            type="text"
+            [ngModel]="nuevaRedUsuario()"
+            (ngModelChange)="nuevaRedUsuario.set($event)"
+            [placeholder]="
+              nuevaRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'
+            "
+            appEnterFocusNext
+          />
           @if (nuevaRedPlataforma() === 'Instagram') {
             <div class="help-text">
               <small>
-                Para Instagram, ingresa el <strong>ID de página de Facebook</strong> (numérico) asociado a tu cuenta de Instagram Business.
-                <br>No uses @ en este campo.
+                Para Instagram, ingresa el <strong>ID de página de Facebook</strong> (numérico)
+                asociado a tu cuenta de Instagram Business. <br />No uses @ en este campo.
               </small>
             </div>
           }
         </div>
         <div class="form-group">
           <label for="token">Token / Clave API</label>
-          <input id="token" type="password" [ngModel]="nuevaRedToken()" (ngModelChange)="nuevaRedToken.set($event)" placeholder="Token de acceso" enterFocusNext>
+          <input
+            id="token"
+            type="password"
+            [ngModel]="nuevaRedToken()"
+            (ngModelChange)="nuevaRedToken.set($event)"
+            placeholder="Token de acceso"
+            appEnterFocusNext
+          />
         </div>
         <div class="form-group">
           <label class="checkbox-label">
-            <input type="checkbox" [ngModel]="nuevaRedHabilitada()" (ngModelChange)="nuevaRedHabilitada.set($event)"> Habilitada
+            <input
+              type="checkbox"
+              [ngModel]="nuevaRedHabilitada()"
+              (ngModelChange)="nuevaRedHabilitada.set($event)"
+            />
+            Habilitada
           </label>
         </div>
         <div class="form-group">
@@ -73,7 +108,7 @@
             <th>Habilitada</th>
             <th>Acciones</th>
           </tr>
-</thead>
+        </thead>
         <tbody>
           @if (loading()) {
             <tr>
@@ -90,13 +125,21 @@
                 <td>{{ red.usuario || '—' }}</td>
                 <td>{{ red.token ? '••••••••' : '—' }}</td>
                 <td>
-                  <span class="badge" [class.badge-success]="red.habilitada" [class.badge-danger]="!red.habilitada">
+                  <span
+                    class="badge"
+                    [class.badge-success]="red.habilitada"
+                    [class.badge-danger]="!red.habilitada"
+                  >
                     {{ red.habilitada ? 'Sí' : 'No' }}
                   </span>
                 </td>
                 <td>
-                  <button (click)="actualizarRedSocial(red)" class="btn btn-primary btn-sm me-2">Editar</button>
-                  <button (click)="eliminarRedSocial(red)" class="btn btn-danger btn-sm">Eliminar</button>
+                  <button (click)="actualizarRedSocial(red)" class="btn btn-primary btn-sm me-2">
+                    Editar
+                  </button>
+                  <button (click)="eliminarRedSocial(red)" class="btn btn-danger btn-sm">
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             } @empty {
@@ -106,12 +149,12 @@
             }
           }
         </tbody>
-        </table>
-      </div>
-      <!-- Modal para editar red social -->
+      </table>
+    </div>
+    <!-- Modal para editar red social -->
     @if (modalEditarRedAbierto()) {
-      <div class="modal-overlay" (click)="cerrarModalEditarRed()">
-        <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (cerrarModalEditarRed())" tabindex="0" (keydown.enter)="cerrarModalEditarRed()" (keydown.space)="cerrarModalEditarRed(); $event.preventDefault()">
+        <div class="modal-content">
           <div class="modal-header">
             <h3>Editar Red Social</h3>
             <button class="btn btn-sm btn-outline" (click)="cerrarModalEditarRed()">✕</button>
@@ -120,7 +163,12 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="edit-plataforma">Plataforma</label>
-                  <select id="edit-plataforma" [ngModel]="editRedPlataforma()" (ngModelChange)="editRedPlataforma.set($event)" enterFocusNext>
+                <select
+                  id="edit-plataforma"
+                  [ngModel]="editRedPlataforma()"
+                  (ngModelChange)="editRedPlataforma.set($event)"
+                  appEnterFocusNext
+                >
                   <option value="TikTok">TikTok</option>
                   <option value="Instagram">Instagram</option>
                   <option value="Telegram">Telegram</option>
@@ -131,246 +179,347 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="edit-usuario">Usuario / Página</label>
-                  <input id="edit-usuario" type="text" [ngModel]="editRedUsuario()" (ngModelChange)="editRedUsuario.set($event)" [placeholder]="editRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'" enterFocusNext>
+                <input
+                  id="edit-usuario"
+                  type="text"
+                  [ngModel]="editRedUsuario()"
+                  (ngModelChange)="editRedUsuario.set($event)"
+                  [placeholder]="
+                    editRedPlataforma() === 'Instagram' ? 'Ej: 1234567890123456' : 'Ej: @miempresa'
+                  "
+                  appEnterFocusNext
+                />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="edit-token">Token / Clave API</label>
-                  <input id="edit-token" type="password" [ngModel]="editRedToken()" (ngModelChange)="editRedToken.set($event)" placeholder="Token de acceso" enterFocusNext>
+                <input
+                  id="edit-token"
+                  type="password"
+                  [ngModel]="editRedToken()"
+                  (ngModelChange)="editRedToken.set($event)"
+                  placeholder="Token de acceso"
+                  appEnterFocusNext
+                />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label class="checkbox-label">
-                  <input type="checkbox" [ngModel]="editRedHabilitada()" (ngModelChange)="editRedHabilitada.set($event)"> Habilitada
+                  <input
+                    type="checkbox"
+                    [ngModel]="editRedHabilitada()"
+                    (ngModelChange)="editRedHabilitada.set($event)"
+                  />
+                  Habilitada
                 </label>
               </div>
             </div>
           </div>
           <div class="modal-footer">
             <button (click)="cerrarModalEditarRed()" class="btn btn-outline">Cancelar</button>
-            <button (click)="guardarEdicionRedSocial()" class="btn btn-primary">Guardar cambios</button>
+            <button (click)="guardarEdicionRedSocial()" class="btn btn-primary">
+              Guardar cambios
+            </button>
           </div>
         </div>
       </div>
     }
   </section>
 
-    <section class="section">
-      <h2>💬 Mensajes</h2>
-      <p>Gestiona los mensajes entrantes de tus redes sociales.</p>
+  <section class="section">
+    <h2>💬 Mensajes</h2>
+    <p>Gestiona los mensajes entrantes de tus redes sociales.</p>
 
-      <div class="mensajes-container">
-        <aside class="chats-sidebar">
-          <div class="chats-header">
-            <div>
-              <p class="chat-section-eyebrow">Mensajería</p>
-              <h3>Conversaciones</h3>
-            </div>
-            <div class="chats-actions">
-              <button class="btn btn-sm btn-outline" (click)="cargarDatos()" title="Actualizar">↻</button>
-              <button class="btn btn-sm btn-outline" (click)="verificarEstadoWebhooks()" title="Verificar Webhooks">⚙️</button>
-            </div>
+    <div class="mensajes-container">
+      <aside class="chats-sidebar">
+        <div class="chats-header">
+          <div>
+            <p class="chat-section-eyebrow">Mensajería</p>
+            <h3>Conversaciones</h3>
           </div>
-
-          <div class="filtro-plataformas">
-            <button class="filtro-btn" [class.active]="filtroPlataforma() === ''" (click)="filtroPlataforma.set('')" title="Todas">Todos</button>
-            <button class="filtro-btn" [class.active]="filtroPlataforma() === 'Instagram'" (click)="filtroPlataforma.set('Instagram')" title="Instagram">Instagram</button>
+          <div class="chats-actions">
+            <button class="btn btn-sm btn-outline" (click)="cargarDatos()" title="Actualizar">
+              ↻
+            </button>
+            <button
+              class="btn btn-sm btn-outline"
+              (click)="verificarEstadoWebhooks()"
+              title="Verificar Webhooks"
+            >
+              ⚙️
+            </button>
           </div>
+        </div>
 
-          <div class="chats-list">
-            @if (loading()) {
-              <div class="chat-loading">Cargando chats...</div>
-            } @else if (error()) {
-              <div class="chat-error">{{ error() }}</div>
-            } @else {
-              <div *ngFor="let chat of chats(); trackBy: trackByChat"
+        <div class="filtro-plataformas">
+          <button
+            class="filtro-btn"
+            [class.active]="filtroPlataforma() === ''"
+            (click)="filtroPlataforma.set('')"
+            title="Todas"
+          >
+            Todos
+          </button>
+          <button
+            class="filtro-btn"
+            [class.active]="filtroPlataforma() === 'Instagram'"
+            (click)="filtroPlataforma.set('Instagram')"
+            title="Instagram"
+          >
+            Instagram
+          </button>
+        </div>
+
+        <div class="chats-list">
+          @if (loading()) {
+            <div class="chat-loading">Cargando chats...</div>
+          } @else if (error()) {
+            <div class="chat-error">{{ error() }}</div>
+          } @else {
+            @for (chat of chats(); track trackByChat($index, chat)) {
+              <div
                 class="chat-item"
-                [class.selected]="chatSeleccionado()?.usuario === chat.usuario && chatSeleccionado()?.plataforma === chat.plataforma"
+                [class.selected]="
+                  chatSeleccionado()?.usuario === chat.usuario &&
+                  chatSeleccionado()?.plataforma === chat.plataforma
+                "
                 [class.has-unread]="chat.tieneNoLeidos"
                 (click)="seleccionarChat(chat)"
-              >
+               tabindex="0" (keydown.enter)="seleccionarChat(chat)" (keydown.space)="seleccionarChat(chat); $event.preventDefault()">
                 <div class="chat-avatar" [innerHTML]="getPlatformIconSvg(chat.plataforma)"></div>
                 <div class="chat-info">
                   <div class="chat-header-row">
                     <span class="chat-user">{{ getUserDisplayName(chat.usuario) }}</span>
-                    <span class="chat-time">{{ chat.ultimoMensaje.fecha | date:'HH:mm' }}</span>
+                    <span class="chat-time">{{ chat.ultimoMensaje.fecha | date: 'HH:mm' }}</span>
                   </div>
                   <div class="chat-preview">
                     <span class="chat-platform">{{ chat.plataforma }}</span>
-                    <span class="chat-message">{{ chat.ultimoMensaje.texto | slice:0:50 }}</span>
+                    <span class="chat-message">{{ chat.ultimoMensaje.texto | slice: 0 : 50 }}</span>
                   </div>
                 </div>
                 @if (chat.tieneNoLeidos) {
                   <div class="unread-badge">{{ chat.noLeidosCount }}</div>
                 }
               </div>
-              @if (chats().length === 0) {
-                <div class="no-chats">No hay chats disponibles</div>
-              }
             }
-          </div>
-        </aside>
+            @if (chats().length === 0) {
+              <div class="no-chats">No hay chats disponibles</div>
+            }
+          }
+        </div>
+      </aside>
 
-        <section class="chat-area">
-          @if (chatSeleccionado()) {
-            <div class="chat-header">
-              <div class="chat-user-info">
-                <div class="chat-avatar chat-avatar-large" [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"></div>
-                <div>
-                  <div class="chat-user-name">{{ getUserDisplayName(chatSeleccionado()!.usuario) }}</div>
-                  <div class="chat-platform-badge">{{ chatSeleccionado()!.plataforma }} · En línea</div>
+      <section class="chat-area">
+        @if (chatSeleccionado()) {
+          <div class="chat-header">
+            <div class="chat-user-info">
+              <div
+                class="chat-avatar chat-avatar-large"
+                [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"
+              ></div>
+              <div>
+                <div class="chat-user-name">
+                  {{ getUserDisplayName(chatSeleccionado()!.usuario) }}
+                </div>
+                <div class="chat-platform-badge">
+                  {{ chatSeleccionado()!.plataforma }} · En línea
                 </div>
               </div>
-              <div class="chat-actions">
-                <button (click)="marcarChatComoLeido(chatSeleccionado()!); $event.stopPropagation()" class="btn btn-sm btn-outline">
-                  Marcar leído
+            </div>
+            <div class="chat-actions">
+              <button
+                (click)="marcarChatComoLeido(chatSeleccionado()!); $event.stopPropagation()"
+                class="btn btn-sm btn-outline"
+              >
+                Marcar leído
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="chat-messages"
+            #messagesContainer
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+          >
+            @for (mensaje of chatSeleccionado()!.mensajes; track mensaje.id) {
+              <div
+                class="message"
+                [class.agent]="mensaje.esRespuesta"
+                [class.client]="!mensaje.esRespuesta"
+              >
+                <div class="message-content">
+                  @if (mensaje.mediaUrl) {
+                    @if (mensaje.mediaType?.startsWith('image/')) {
+                      <img
+                        [src]="mensaje.mediaUrl"
+                        [alt]="mensaje.mediaCaption || 'Imagen'"
+                        class="message-image"
+                      />
+                    } @else if (mensaje.mediaType?.startsWith('video/')) {
+                      <video controls class="message-video">
+                        <source [src]="mensaje.mediaUrl" [type]="mensaje.mediaType" />
+                      </video>
+                    } @else {
+                      <div class="message-file">
+                        <span class="file-icon">📎</span>
+                        <a [href]="mensaje.mediaUrl" target="_blank" class="file-link">{{
+                          mensaje.mediaFilename || 'Archivo'
+                        }}</a>
+                      </div>
+                    }
+                  }
+                  @if (mensaje.texto) {
+                    <div class="message-text">{{ mensaje.texto }}</div>
+                  }
+                  @if (mensaje.mediaCaption) {
+                    <div class="message-caption">{{ mensaje.mediaCaption }}</div>
+                  }
+                  <div class="message-time">{{ mensaje.fecha | date: 'HH:mm' }}</div>
+                  <div
+                    class="message-origin"
+                    [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div
+            class="chat-input-area"
+            [class.drag-over]="arrastrando()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+          >
+            @if (arrastrando()) {
+              <div class="drop-overlay">
+                <span>Suelta el archivo para adjuntarlo</span>
+              </div>
+            }
+
+            <div class="message-input-container">
+              <textarea
+                [ngModel]="nuevoMensajeTexto()"
+                (ngModelChange)="nuevoMensajeTexto.set($event)"
+                (keydown)="onKeyDown($event)"
+                (paste)="onPaste($event)"
+                placeholder="Escribe un mensaje... (pega o arrastra un archivo)"
+                rows="1"
+                class="message-input"
+                #messageInput
+              ></textarea>
+
+              <div class="message-actions">
+                <input
+                  type="file"
+                  #fileInput
+                  (change)="onArchivoSeleccionado($event)"
+                  accept="image/*,video/*,audio/*,application/*"
+                  style="display: none"
+                />
+                <button
+                  (click)="fileInput.click()"
+                  class="btn btn-outline btn-sm"
+                  title="Adjuntar archivo"
+                >
+                  📎
+                </button>
+                <button
+                  (click)="enviarMensajeChat(); $event.stopPropagation()"
+                  class="btn btn-primary btn-sm"
+                  [disabled]="!nuevoMensajeTexto().trim() && !archivoSeleccionado()"
+                >
+                  Enviar
                 </button>
               </div>
             </div>
 
-            <div class="chat-messages" #messagesContainer
-                 (dragover)="onDragOver($event)"
-                 (dragleave)="onDragLeave($event)"
-                 (drop)="onDrop($event)">
-              @for (mensaje of chatSeleccionado()!.mensajes; track mensaje.id) {
-                <div class="message" [class.agent]="mensaje.esRespuesta" [class.client]="!mensaje.esRespuesta">
-                  <div class="message-content">
-                    @if (mensaje.mediaUrl) {
-                      @if (mensaje.mediaType?.startsWith('image/')) {
-                        <img [src]="mensaje.mediaUrl" [alt]="mensaje.mediaCaption || 'Imagen'" class="message-image" />
-                      } @else if (mensaje.mediaType?.startsWith('video/')) {
-                        <video controls class="message-video">
-                          <source [src]="mensaje.mediaUrl" [type]="mensaje.mediaType">
-                        </video>
-                      } @else {
-                        <div class="message-file">
-                          <span class="file-icon">📎</span>
-                          <a [href]="mensaje.mediaUrl" target="_blank" class="file-link">{{ mensaje.mediaFilename || 'Archivo' }}</a>
-                        </div>
-                      }
-                    }
-                    @if (mensaje.texto) {
-                      <div class="message-text">{{ mensaje.texto }}</div>
-                    }
-                    @if (mensaje.mediaCaption) {
-                      <div class="message-caption">{{ mensaje.mediaCaption }}</div>
-                    }
-                    <div class="message-time">{{ mensaje.fecha | date:'HH:mm' }}</div>
-                    <div class="message-origin" [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"></div>
-                  </div>
+            @if (archivoSeleccionado()) {
+              <div class="file-preview">
+                <div class="file-preview-thumb">
+                  @if (archivoPreviewEsImagen()) {
+                    <img [src]="archivoPreviewUrl()" alt="Vista previa" />
+                  } @else if (archivoPreviewEsVideo()) {
+                    <video [src]="archivoPreviewUrl()" muted></video>
+                  } @else {
+                    <span class="file-icon">📄</span>
+                  }
                 </div>
-              }
-            </div>
-
-            <div class="chat-input-area"
-                 [class.drag-over]="arrastrando()"
-                 (dragover)="onDragOver($event)"
-                 (dragleave)="onDragLeave($event)"
-                 (drop)="onDrop($event)">
-              @if (arrastrando()) {
-                <div class="drop-overlay">
-                  <span>Suelta el archivo para adjuntarlo</span>
+                <div class="file-info">
+                  <span class="file-name">{{ archivoSeleccionado()?.name }}</span>
+                  <span class="file-size">{{
+                    formatearTamano(archivoSeleccionado()?.size || 0)
+                  }}</span>
                 </div>
-              }
-
-              <div class="message-input-container">
-                <textarea
-                  [ngModel]="nuevoMensajeTexto()"
-                  (ngModelChange)="nuevoMensajeTexto.set($event)"
-                  (keydown)="onKeyDown($event)"
-                  (paste)="onPaste($event)"
-                  placeholder="Escribe un mensaje... (pega o arrastra un archivo)"
-                  rows="1"
-                  class="message-input"
-                  #messageInput
-                ></textarea>
-
-                <div class="message-actions">
-                  <input
-                    type="file"
-                    #fileInput
-                    (change)="onArchivoSeleccionado($event)"
-                    accept="image/*,video/*,audio/*,application/*"
-                    style="display: none"
-                  />
-                  <button (click)="fileInput.click()" class="btn btn-outline btn-sm" title="Adjuntar archivo">📎</button>
-                  <button (click)="enviarMensajeChat(); $event.stopPropagation()" class="btn btn-primary btn-sm" [disabled]="!nuevoMensajeTexto().trim() && !archivoSeleccionado()">Enviar</button>
-                </div>
+                <button
+                  (click)="removerArchivo()"
+                  class="btn btn-sm btn-danger"
+                  title="Quitar archivo"
+                >
+                  ×
+                </button>
               </div>
+            }
 
-              @if (archivoSeleccionado()) {
-                <div class="file-preview">
-                  <div class="file-preview-thumb">
-                    @if (archivoPreviewEsImagen()) {
-                      <img [src]="archivoPreviewUrl()" alt="Vista previa" />
-                    } @else if (archivoPreviewEsVideo()) {
-                      <video [src]="archivoPreviewUrl()" muted></video>
-                    } @else {
-                      <span class="file-icon">📄</span>
-                    }
-                  </div>
-                  <div class="file-info">
-                    <span class="file-name">{{ archivoSeleccionado()?.name }}</span>
-                    <span class="file-size">{{ formatearTamano(archivoSeleccionado()?.size || 0) }}</span>
-                  </div>
-                  <button (click)="removerArchivo()" class="btn btn-sm btn-danger" title="Quitar archivo">×</button>
-                </div>
-              }
+            @if (confirmacionEnvio()) {
+              <div class="send-confirmation">✓ {{ confirmacionEnvio() }}</div>
+            }
+          </div>
+        } @else {
+          <div class="no-chat-selected">
+            <div class="no-chat-icon">💬</div>
+            <h4>Selecciona un chat</h4>
+            <p>Elige un chat de la lista para ver los mensajes y responder</p>
+          </div>
+        }
+      </section>
 
-              @if (confirmacionEnvio()) {
-                <div class="send-confirmation">✓ {{ confirmacionEnvio() }}</div>
-              }
+      <aside class="contact-details-panel">
+        @if (chatSeleccionado()) {
+          <div class="contact-details-header">
+            <h4>Detalles del contacto</h4>
+          </div>
+          <div class="contact-card">
+            <div
+              class="contact-avatar"
+              [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"
+            ></div>
+            <div>
+              <h5>{{ getUserDisplayName(chatSeleccionado()!.usuario) }}</h5>
+              <p>{{ chatSeleccionado()!.plataforma }}</p>
             </div>
-          } @else {
-            <div class="no-chat-selected">
-              <div class="no-chat-icon">💬</div>
-              <h4>Selecciona un chat</h4>
-              <p>Elige un chat de la lista para ver los mensajes y responder</p>
+          </div>
+          <div class="detail-section">
+            <h6>Detalle</h6>
+            <div class="detail-row">
+              <span>Canal</span>
+              <strong>{{ chatSeleccionado()!.plataforma }}</strong>
             </div>
-          }
-        </section>
-
-        <aside class="contact-details-panel">
-          @if (chatSeleccionado()) {
-            <div class="contact-details-header">
-              <h4>Detalles del contacto</h4>
+            <div class="detail-row">
+              <span>Usuario</span>
+              <strong>{{ chatSeleccionado()!.usuario }}</strong>
             </div>
-            <div class="contact-card">
-              <div class="contact-avatar" [innerHTML]="getPlatformIconSvg(chatSeleccionado()!.plataforma)"></div>
-              <div>
-                <h5>{{ getUserDisplayName(chatSeleccionado()!.usuario) }}</h5>
-                <p>{{ chatSeleccionado()!.plataforma }}</p>
-              </div>
+            <div class="detail-row">
+              <span>Estado</span>
+              <strong>En línea</strong>
             </div>
-            <div class="detail-section">
-              <h6>Detalle</h6>
-              <div class="detail-row">
-                <span>Canal</span>
-                <strong>{{ chatSeleccionado()!.plataforma }}</strong>
-              </div>
-              <div class="detail-row">
-                <span>Usuario</span>
-                <strong>{{ chatSeleccionado()!.usuario }}</strong>
-              </div>
-              <div class="detail-row">
-                <span>Estado</span>
-                <strong>En línea</strong>
-              </div>
-            </div>
-            <div class="detail-section">
-              <h6>Notas internas</h6>
-              <p>No hay notas guardadas para este contacto.</p>
-            </div>
-          } @else {
-            <div class="contact-details-empty">
-              <p>Selecciona una conversación para ver información del contacto.</p>
-            </div>
-          }
-        </aside>
-      </div>
-    </section>
+          </div>
+          <div class="detail-section">
+            <h6>Notas internas</h6>
+            <p>No hay notas guardadas para este contacto.</p>
+          </div>
+        } @else {
+          <div class="contact-details-empty">
+            <p>Selecciona una conversación para ver información del contacto.</p>
+          </div>
+        }
+      </aside>
+    </div>
+  </section>
 
   <section class="section">
     <h2>🤖 Respuestas Automáticas (Opcional)</h2>
@@ -381,11 +530,25 @@
       <div class="form-row">
         <div class="form-group">
           <label for="palabraClave">Palabra clave</label>
-          <input id="palabraClave" type="text" [ngModel]="nuevaRespuestaPalabraClave()" (ngModelChange)="nuevaRespuestaPalabraClave.set($event)" placeholder="Ej: hola" enterFocusNext>
+          <input
+            id="palabraClave"
+            type="text"
+            [ngModel]="nuevaRespuestaPalabraClave()"
+            (ngModelChange)="nuevaRespuestaPalabraClave.set($event)"
+            placeholder="Ej: hola"
+            appEnterFocusNext
+          />
         </div>
         <div class="form-group">
           <label for="respuesta">Respuesta</label>
-          <input id="respuesta" type="text" [ngModel]="nuevaRespuestaRespuesta()" (ngModelChange)="nuevaRespuestaRespuesta.set($event)" placeholder="Ej: ¡Hola! ¿En qué puedo ayudarte?" enterFocusNext>
+          <input
+            id="respuesta"
+            type="text"
+            [ngModel]="nuevaRespuestaRespuesta()"
+            (ngModelChange)="nuevaRespuestaRespuesta.set($event)"
+            placeholder="Ej: ¡Hola! ¿En qué puedo ayudarte?"
+            appEnterFocusNext
+          />
         </div>
         <div class="form-group">
           <button (click)="agregarRespuesta()" class="btn btn-primary">Agregar</button>
@@ -417,8 +580,15 @@
                 <td>{{ respuesta.palabraClave }}</td>
                 <td>{{ respuesta.respuesta }}</td>
                 <td>
-                  <button (click)="actualizarRespuesta(respuesta)" class="btn btn-primary btn-sm me-2">Editar</button>
-                  <button (click)="eliminarRespuesta(respuesta)" class="btn btn-danger btn-sm">Eliminar</button>
+                  <button
+                    (click)="actualizarRespuesta(respuesta)"
+                    class="btn btn-primary btn-sm me-2"
+                  >
+                    Editar
+                  </button>
+                  <button (click)="eliminarRespuesta(respuesta)" class="btn btn-danger btn-sm">
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             } @empty {
@@ -441,7 +611,12 @@
       <div class="form-row">
         <div class="form-group">
           <label for="tipo">Tipo de evento</label>
-          <select id="tipo" [ngModel]="nuevaNotificacionTipo()" (ngModelChange)="nuevaNotificacionTipo.set($event)" enterFocusNext>
+          <select
+            id="tipo"
+            [ngModel]="nuevaNotificacionTipo()"
+            (ngModelChange)="nuevaNotificacionTipo.set($event)"
+            appEnterFocusNext
+          >
             <option value="">Selecciona un tipo</option>
             <option value="nuevo_seguidor">Nuevo seguidor</option>
             <option value="nuevo_mensaje">Nuevo mensaje</option>
@@ -451,7 +626,12 @@
         </div>
         <div class="form-group">
           <label for="canal">Canal</label>
-          <select id="canal" [ngModel]="nuevaNotificacionCanal()" (ngModelChange)="nuevaNotificacionCanal.set($event)" enterFocusNext>
+          <select
+            id="canal"
+            [ngModel]="nuevaNotificacionCanal()"
+            (ngModelChange)="nuevaNotificacionCanal.set($event)"
+            appEnterFocusNext
+          >
             <option value="">Selecciona un canal</option>
             <option value="email">Email</option>
             <option value="telegram">Telegram</option>
@@ -461,7 +641,12 @@
         </div>
         <div class="form-group">
           <label class="checkbox-label">
-            <input type="checkbox" [ngModel]="nuevaNotificacionActiva()" (ngModelChange)="nuevaNotificacionActiva.set($event)"> Activa
+            <input
+              type="checkbox"
+              [ngModel]="nuevaNotificacionActiva()"
+              (ngModelChange)="nuevaNotificacionActiva.set($event)"
+            />
+            Activa
           </label>
         </div>
         <div class="form-group">
@@ -495,13 +680,27 @@
                 <td>{{ notificacion.tipo }}</td>
                 <td>{{ notificacion.canal }}</td>
                 <td>
-                  <span class="badge" [class.badge-success]="notificacion.activa" [class.badge-danger]="!notificacion.activa">
+                  <span
+                    class="badge"
+                    [class.badge-success]="notificacion.activa"
+                    [class.badge-danger]="!notificacion.activa"
+                  >
                     {{ notificacion.activa ? 'Sí' : 'No' }}
                   </span>
                 </td>
                 <td>
-                  <button (click)="actualizarNotificacion(notificacion)" class="btn btn-primary btn-sm me-2">Editar</button>
-                  <button (click)="eliminarNotificacion(notificacion)" class="btn btn-danger btn-sm">Eliminar</button>
+                  <button
+                    (click)="actualizarNotificacion(notificacion)"
+                    class="btn btn-primary btn-sm me-2"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    (click)="eliminarNotificacion(notificacion)"
+                    class="btn btn-danger btn-sm"
+                  >
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             } @empty {
@@ -516,6 +715,8 @@
   </section>
 
   <div class="actions">
-    <button (click)="guardarConfiguracion()" class="btn btn-success btn-lg">Guardar Configuración</button>
+    <button (click)="guardarConfiguracion()" class="btn btn-success btn-lg">
+      Guardar Configuración
+    </button>
   </div>
 </div>

@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-terminos',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './terminos.html',
   styleUrl: './terminos.css',
 })

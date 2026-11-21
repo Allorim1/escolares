@@ -14,12 +14,6 @@ interface MenuItem {
   soloRoot?: boolean;
 }
 
-interface ProximoGesto {
-  _id?: string;
-  nombre: string;
-  fechaProximoPago?: string;
-}
-
 interface QuickItem {
   label: string;
   route: string;
@@ -34,21 +28,12 @@ interface MenuCategory {
 
 const QUICK_ITEMS: QuickItem[] = [
    { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
-   { label: 'Costos', route: 'costo-tasa', icon: '💰', permiso: 'tasas_gestionar' },
    { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
-   { label: 'Facturación', route: 'facturacion', icon: '🧾', permiso: 'facturas_gestionar' },
-   { label: 'Gastos', route: 'gastos', icon: '💸', permiso: 'gastos_gestionar' },
-   { label: 'Nómina', route: 'nomina', icon: '👥', permiso: 'nomina_ver' },
-   { label: 'Asistencias', route: 'asistencias', icon: '📅', permiso: 'nomina_ver' },
-   { label: 'Cierre', route: 'cierre-caja', icon: '🔒', permiso: 'caja_ver' },
    { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
-    { label: 'Cuentas', route: 'cuentas-por-pagar', icon: '🏦', permiso: 'ver_proveedores' },
-    { label: 'Constancias', route: 'constancias', icon: '📄', permiso: 'constancias_gestionar' },
-    { label: 'Metas', route: 'conversion', icon: '📊', permiso: 'conversion_gestionar' },
    { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
    { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
    { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
-   { label: 'Cotizaciones\n/ N. Entrega', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
+   { label: 'Cotizaciones', route: 'cotizaciones', icon: '⌨️', permiso: 'cotizaciones_gestionar' },
    { label: 'Sesiones', route: 'sesiones', icon: '🔐', permiso: 'sesiones_gestionar' },
    { label: 'WhatsApp', route: 'whatsapp', icon: '🟢', permiso: 'whatsapp_gestionar' },
  ];
@@ -58,31 +43,13 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
        name: 'Panel Admin',
        items: [
          { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
-         { label: 'Costos y Tasas', route: 'costo-tasa', permiso: 'tasas_gestionar' },
-         { label: 'Histórico Costos', route: 'historico-costos', permiso: 'tasas_ver' },
          { label: 'Registro', route: 'registro', permiso: 'facturas_registrar' },
-         { label: 'Facturación', route: 'facturacion', permiso: 'facturas_gestionar' },
          { label: 'Cotizaciones', route: 'cotizaciones', permiso: 'cotizaciones_gestionar' },
-         { label: 'Gastos', route: 'gastos', permiso: 'gastos_gestionar' },
-         { label: 'Nómina', route: 'nomina', permiso: 'nomina_ver' },
-         { label: 'Control de Asistencias', route: 'asistencias', permiso: 'nomina_ver' },
-          { label: 'Galería de Documentos', route: 'galeria', permiso: 'documentos_ver' },
-          { label: 'Constancias y Recibos', route: 'constancias', permiso: 'constancias_gestionar' },
-          { label: 'Histórico Metas de Ventas', route: 'conversion', permiso: 'conversion_gestionar' },
          { label: 'Chat', route: 'chat', permiso: 'chat_ver' },
-          { label: 'Cierre de Caja', route: 'cierre-caja', permiso: 'caja_ver' },
           { label: 'Repartidores', route: 'repartidores', permiso: 'repartidores_gestionar' },
           { label: 'Estadísticas', route: 'estadisticas', permiso: 'estadisticas_ver' },
         ]
       },
-     {
-       name: 'Cuentas por Pagar',
-       items: [
-         { label: 'Proveedores', route: 'cuentas-por-pagar', permiso: 'ver_proveedores' },
-         { label: 'Retenciones', route: 'retenciones', permiso: 'ver_retenciones' },
-         { label: 'Libro de Compras', route: 'libro-compras', permiso: 'ver_libro_compras' },
-       ]
-     },
        {
          name: 'Panel Web',
          items: [
@@ -110,16 +77,13 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
               { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
               { label: 'Control de Sesiones', route: 'sesiones', permiso: 'sesiones_gestionar' },
               { label: 'Contraseñas', route: 'contrasenas', soloRoot: true },
-              { label: 'Gastos Operativos', route: 'gastos-operativos', permiso: 'gastos_gestionar', soloRoot: true },
             ]
           },
         {
           name: 'Empresas',
           items: [
             { label: 'Clientes', route: 'clientes' },
-            { label: 'Relación de Cuentas', route: 'relacion-cuentas' },
             { label: 'Lista Negra', route: 'lista-negra' },
-            { label: 'Relación de Libros', route: 'relacion-libros' },
             { label: 'WhatsApp', route: 'whatsapp', permiso: 'whatsapp_gestionar' },
           ]
         },
@@ -167,7 +131,6 @@ export class Admin implements OnInit {
   ngOnInit() {
     this.checkApiKeyStatus();
     this.loadUserPermissions();
-    this.verificarGastosProximosVencer();
   }
 
   @HostListener('document:click', ['$event'])
@@ -245,20 +208,12 @@ export class Admin implements OnInit {
   }
 
  setCategoriesWithExpanded() {
-       const permissions = this.userPermissions();
        const user = this.authService.user();
-       const isRoot = user?.rol === 'root' || user?.rol === 'admin';
        const isRepartidor = user?.rol === 'repartidor';
 
       const categories = DEFAULT_CATEGORIAS
         .filter(cat => !isRepartidor || cat.name === 'Repartidor')
         .map(cat => {
-          const hasVisibleItems = cat.items.some(item => {
-            if (item.soloRoot && !isRoot) return false;
-            if (!item.permiso) return true;
-            if (isRoot) return true;
-            return permissions.includes(item.permiso);
-          });
           return { ...cat };
         });
       this.categorias.set(categories);
@@ -296,7 +251,7 @@ export class Admin implements OnInit {
         }
         this.apiKeyStatusLoaded.set(true);
       },
-      error: (err: any) => {
+      error: (err) => {
         console.error('Error checking API key status:', err);
         if (err.error?.apiKeyExpired) {
           this.apiKeyStatusService.setApiKeyExpired(true);
@@ -316,23 +271,6 @@ export class Admin implements OnInit {
       if (item.soloRoot && !isRoot) return false;
       if (!item.permiso) return true;
       return this.hasPermission(item.permiso);
-    });
-  }
-
-  verificarGastosProximosVencer() {
-    const user = this.authService.user();
-    if (!user || user.rol !== 'root') return;
-
-    this.http.get<ProximoGesto[]>('/api/gastos-operativos/proximos-vencer?dias=7').subscribe({
-      next: (gastos) => {
-        if (!gastos || gastos.length === 0) return;
-        const nombres = gastos.map(g => `${g.nombre} (${new Date(g.fechaProximoPago || '').toLocaleDateString('es-VE')})`).join('\n');
-        this.notificationModal.warning(
-          `Tienes ${gastos.length} gasto(s) operativo(s) próximo(s) a vencer:\n\n${nombres}`,
-          'Gastos Operativos - Próximos a Vencer'
-        );
-      },
-      error: (err) => console.error('Error verificando gastos próximos a vencer:', err),
     });
   }
 

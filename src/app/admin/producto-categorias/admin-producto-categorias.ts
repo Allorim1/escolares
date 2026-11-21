@@ -1,13 +1,17 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
-import { ProductoCategoriasBackend, ProductoCategoria, ProductsResponse } from '../../backend/data-access/producto-categorias.backend';
+import {
+  ProductoCategoriasBackend,
+  ProductoCategoria,
+} from '../../backend/data-access/producto-categorias.backend';
 import { NotificationService } from '../../shared/data-access/notification.service';
+import { Product } from '../../shared/interfaces/product.interface';
 
 @Component({
   selector: 'app-admin-producto-categorias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './admin-producto-categorias.html',
   styleUrl: './admin-producto-categorias.css',
 })
@@ -22,8 +26,8 @@ export class AdminProductoCategorias implements OnInit {
   showProductsModal = signal(false);
   editingCategoria = signal<ProductoCategoria | null>(null);
   selectedCategoria = signal<ProductoCategoria | null>(null);
-  categoriaProducts = signal<any[]>([]);
-   
+  categoriaProducts = signal<Product[]>([]);
+
   formNombre = '';
   formDescripcion = '';
   formImagen = '';
@@ -41,10 +45,10 @@ export class AdminProductoCategorias implements OnInit {
         this.categorias.set(data);
         this.loading.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.notification.error('Error', 'No se pudieron cargar las categorías');
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -96,12 +100,14 @@ export class AdminProductoCategorias implements OnInit {
       error: () => {
         this.categoriaProducts.set([]);
         this.loadingProducts.set(false);
-      }
+      },
     });
   }
 
   formatPrice(price: number): string {
-    return new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'USD' }).format(price || 0);
+    return new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'USD' }).format(
+      price || 0,
+    );
   }
 
   onImagenError() {
@@ -128,7 +134,7 @@ export class AdminProductoCategorias implements OnInit {
         },
         error: (err) => {
           this.notification.error('Error', err.error?.error || 'Error al actualizar la categoría');
-        }
+        },
       });
     } else {
       this.backend.create(data).subscribe({
@@ -139,7 +145,7 @@ export class AdminProductoCategorias implements OnInit {
         },
         error: (err) => {
           this.notification.error('Error', err.error?.error || 'Error al crear la categoría');
-        }
+        },
       });
     }
   }
@@ -155,7 +161,7 @@ export class AdminProductoCategorias implements OnInit {
       },
       error: (err) => {
         this.notification.error('Error', err.error?.error || 'Error al eliminar la categoría');
-      }
+      },
     });
   }
 }

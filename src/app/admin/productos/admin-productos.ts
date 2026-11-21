@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
 import { MarcasService, Marca } from '../../shared/data-access/marcas.service';
@@ -110,7 +110,7 @@ export class AdminProductos implements OnInit {
   }
 
   loadProductCategories() {
-    this.http.get<any[]>('/api/productos-categorias').subscribe({
+    this.http.get<CategoriaProducto[]>('/api/productos-categorias').subscribe({
       next: (data) => {
         this.productCategories.set(data);
       },
@@ -137,7 +137,7 @@ export class AdminProductos implements OnInit {
     const nombre = this.newCategoryName.trim();
     if (!nombre) return;
 
-    this.http.post<any>('/api/productos-categorias', { nombre }).subscribe({
+    this.http.post<void>('/api/productos-categorias', { nombre }).subscribe({
       next: () => {
         this.loadProductCategories();
         this.closeCategoryModal();
@@ -148,7 +148,7 @@ export class AdminProductos implements OnInit {
   deleteCategory(cat: CategoriaProducto) {
     if (!confirm(`¿Eliminar categoría "${cat.nombre}"?`)) return;
 
-    this.http.delete<any>(`/api/productos-categorias/${cat.id}`).subscribe({
+    this.http.delete<void>(`/api/productos-categorias/${cat.id}`).subscribe({
     });
   }
 
@@ -264,7 +264,7 @@ export class AdminProductos implements OnInit {
   }
 
   loadPreciosOcultosSetting() {
-    this.http.get<any>('/api/config/precios-ocultos').subscribe({
+    this.http.get<{ hidden: boolean }>('/api/config/precios-ocultos').subscribe({
       next: (data) => {
         this.preciosOcultosParaNoRegistrados.set(data.hidden);
       },
@@ -276,7 +276,7 @@ export class AdminProductos implements OnInit {
 
   togglePreciosOcultos() {
     const nuevoValor = !this.preciosOcultosParaNoRegistrados();
-    this.http.post<any>('/api/config/precios-ocultos', { hidden: nuevoValor }).subscribe({
+    this.http.post<void>('/api/config/precios-ocultos', { hidden: nuevoValor }).subscribe({
       next: () => {
         this.preciosOcultosParaNoRegistrados.set(nuevoValor);
       },
@@ -335,11 +335,11 @@ export class AdminProductos implements OnInit {
       ivaPercentage: product.ivaPercentage || 16,
       estado: product.estado || 'disponible',
       enOferta: product.enOferta || false,
-      ofertaPorcentaje: (product as any).ofertaPorcentaje || 0,
-      ofertaPrecio: (product as any).ofertaPrecio || 0,
+      ofertaPorcentaje: product.ofertaPorcentaje || 0,
+      ofertaPrecio: product.ofertaPrecio || 0,
       ratingRate: product.rating?.rate || 0,
       ratingCount: product.rating?.count || 0,
-      codigo: (product as any).codigo || '',
+      codigo: product.codigo || '',
     });
     this.showModal.set(true);
   }
@@ -400,7 +400,7 @@ export class AdminProductos implements OnInit {
       if (this.saving()) return;
       this.saving.set(true);
       const productId = String(this.editingProduct()!.id);
-      this.http.put<any>(`/api/products/${productId}`, payload).subscribe({
+      this.http.put<Product>(`/api/products/${productId}`, payload).subscribe({
         next: (updated) => {
           this.productsService.clearProductsCache();
           if (data.lineaId) {
@@ -424,7 +424,7 @@ export class AdminProductos implements OnInit {
     } else {
       if (this.saving()) return;
       this.saving.set(true);
-      this.http.post<any>('/api/products', payload).subscribe({
+      this.http.post<Product>('/api/products', payload).subscribe({
         next: (newProduct) => {
           this.productsService.clearProductsCache();
           if (data.lineaId) {
@@ -480,7 +480,7 @@ export class AdminProductos implements OnInit {
     const formData = new FormData();
     formData.append('image', file);
 
-    this.http.post<any>('/api/products/upload-image', formData).subscribe({
+    this.http.post<{ url?: string }>('/api/products/upload-image', formData).subscribe({
       next: (response) => {
         URL.revokeObjectURL(previewUrl);
         if (!response?.url) {
@@ -567,7 +567,7 @@ export class AdminProductos implements OnInit {
     const formData = new FormData();
     formData.append('images', file);
 
-    this.http.post<any>('/api/products/upload-images', formData).subscribe({
+    this.http.post<{ urls?: string[] }>('/api/products/upload-images', formData).subscribe({
       next: (response) => {
         URL.revokeObjectURL(previewUrl);
         if (response.urls && response.urls.length > 0) {
@@ -598,8 +598,13 @@ export class AdminProductos implements OnInit {
     }));
   }
 
-  private handleProductError(err: any, defaultMessage: string) {
-    const message = err?.error?.error || err?.error || err?.message || defaultMessage;
+  private handleProductError(err: HttpErrorResponse, defaultMessage: string) {
+    const response = err.error as { error?: unknown } | null;
+    const message =
+      (typeof response?.error === 'string' && response.error) ||
+      (typeof err.error === 'string' && err.error) ||
+      err.message ||
+      defaultMessage;
     this.notificationModal.error(message);
   }
 
@@ -613,8 +618,8 @@ export class AdminProductos implements OnInit {
     event.stopPropagation();
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
-    for (let i = 0; i < files.length; i++) {
-      this.uploadAdditionalImage(files[i]);
+    for (const file of files) {
+      this.uploadAdditionalImage(file);
     }
   }
 
@@ -623,7 +628,7 @@ export class AdminProductos implements OnInit {
       if (this.saving()) return;
       this.saving.set(true);
       const productId = String(id);
-      this.http.delete<any>(`/api/products/${productId}`).subscribe({
+      this.http.delete<void>(`/api/products/${productId}`).subscribe({
         next: () => {
           this.productsService.clearProductsCache();
           this.notificationModal.success('Producto eliminado correctamente');
@@ -640,7 +645,7 @@ export class AdminProductos implements OnInit {
   }
 
   getLineaName(product: Product): string {
-    const lineaId = (product as any).lineaId;
+    const lineaId = product.lineaId;
     if (!lineaId) return '-';
     const linea = this.lineasService.getLineaById(lineaId);
     return linea?.name || '-';
@@ -684,7 +689,7 @@ export class AdminProductos implements OnInit {
     return this.formData().price || 0;
   }
 
-  onOfertaPorcentajeChange(value: any) {
+  onOfertaPorcentajeChange(value: string) {
     const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue >= 0) {
       this.formData.update(data => ({ ...data, ofertaPorcentaje: numValue }));
@@ -694,7 +699,7 @@ export class AdminProductos implements OnInit {
     }
   }
 
-  onOfertaPrecioChange(value: any) {
+  onOfertaPrecioChange(value: string) {
     const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue >= 0) {
       this.formData.update(data => ({ ...data, ofertaPrecio: numValue }));

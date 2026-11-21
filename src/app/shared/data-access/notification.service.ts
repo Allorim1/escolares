@@ -20,8 +20,6 @@ export class NotificationService {
   notifications$ = this.notificationsSubject.asObservable();
   private notificationId = 0;
 
-  constructor() {}
-
   get notifications(): Notification[] {
     return this.notificationsSubject.value;
   }

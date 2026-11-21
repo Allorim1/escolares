@@ -16,7 +16,7 @@ describe('buildChatSnapshot', () => {
         respondido: false,
         createdAt: new Date('2024-01-01T10:00:00.000Z'),
         updatedAt: new Date('2024-01-01T10:00:00.000Z')
-      } as any,
+      },
       tieneNoLeidos: false,
       noLeidosCount: 0
     };
@@ -44,9 +44,9 @@ describe('buildChatSnapshot', () => {
         createdAt: new Date('2024-01-01T10:00:00.000Z'),
         updatedAt: new Date('2024-01-01T10:00:00.000Z')
       }
-    ] as any[];
+    ];
 
-    const updatedChat = buildChatSnapshot(currentChat as any, mensajes as any[]);
+    const updatedChat = buildChatSnapshot(currentChat, mensajes);
     if (!updatedChat) throw new Error('buildChatSnapshot no debería devolver null con un chat seleccionado');
 
     expect(updatedChat.mensajes.length).toBe(2);

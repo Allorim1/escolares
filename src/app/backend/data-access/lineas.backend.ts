@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Linea } from '../models';
 
@@ -6,12 +6,14 @@ import { Linea } from '../models';
   providedIn: 'root',
 })
 export class LineasBackend {
+  private http = inject(HttpClient);
+
   private readonly API_URL = '/api/lineas';
 
   lineas = signal<Linea[]>([]);
   isInitialized = signal(false);
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.loadFromApi();
   }
 

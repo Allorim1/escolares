@@ -188,7 +188,7 @@
               cursor: pointer;
             "
             (click)="openModal(product)"
-          >
+           tabindex="0" (keydown.enter)="openModal(product)" (keydown.space)="openModal(product); $event.preventDefault()">
             @if (isEnOferta(product)) {
               <div class="oferta-badge">OFERTA -{{ getDescuento(product) }}%</div>
             }
@@ -347,8 +347,8 @@
 }
 
 @if (selectedProduct(); as product) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeModal())" tabindex="0" (keydown.enter)="closeModal()" (keydown.space)="closeModal(); $event.preventDefault()">
+    <div class="modal-content">
       <button class="modal-close" (click)="closeModal()">&times;</button>
       <div class="modal-product-card">
         <div 
@@ -394,7 +394,7 @@
           </div>
           @if (shouldShowPrice()) {
             <div class="modal-quantity-selector">
-              <label>Cantidad:</label>
+              <span class="static-field-label">Cantidad:</span>
               <div class="quantity-controls">
                 <button type="button" class="qty-btn" (click)="decreaseModalQuantity()" [disabled]="modalQuantity() <= 1">-</button>
                 <span class="qty-value">{{ modalQuantity() }}</span>

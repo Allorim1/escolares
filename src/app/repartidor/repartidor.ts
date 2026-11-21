@@ -18,7 +18,7 @@ interface Order {
   _id?: string;
   id: string;
   userId: string;
-  items: any[];
+  items: unknown[];
   total: number;
   nombre: string;
   cedula: string;
@@ -35,7 +35,7 @@ interface Order {
   cedulaTitular?: string;
   correo?: string;
   status: 'confirmar' | 'pendiente' | 'procesando' | 'procesado' | 'enviado' | 'entregado' | 'cancelado';
-  historial: any[];
+  historial: unknown[];
   autorizadoPor?: string;
   autorizadoNombre?: string;
   deliveryPersonId?: string;
@@ -84,7 +84,7 @@ interface Order {
      const token = localStorage.getItem('accessToken');
      const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
-     this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`).subscribe({
+     this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`, { headers }).subscribe({
        next: (person) => {
          this.deliveryPersonId = person.id;
          this.loadOrders();

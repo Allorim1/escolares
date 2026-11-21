@@ -1,5 +1,5 @@
 import { Component, signal, OnInit, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
@@ -40,7 +40,7 @@ export function normalizarCedula(cedula: unknown): string {
 @Component({
   selector: 'app-lista-negra',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './lista-negra.html',
   styleUrl: './lista-negra.css',
 })
@@ -67,7 +67,7 @@ export class ListaNegra implements OnInit {
         (qDigitos && c.cedula.includes(qDigitos)) ||
         (c.empresa || '').toLowerCase().includes(q) ||
         (c.planta || '').toLowerCase().includes(q) ||
-        (c.motivo || '').toLowerCase().includes(q)
+        (c.motivo || '').toLowerCase().includes(q),
     );
   });
 
@@ -85,7 +85,10 @@ export class ListaNegra implements OnInit {
     const enLista = this.cedulasEnLista();
     return this.clientesRelaciones()
       .filter((c) => !enLista.has(c.cedula))
-      .filter((c) => !q || c.nombre.toLowerCase().includes(q) || (!!qDigitos && c.cedula.includes(qDigitos)))
+      .filter(
+        (c) =>
+          !q || c.nombre.toLowerCase().includes(q) || (!!qDigitos && c.cedula.includes(qDigitos)),
+      )
       .slice(0, 50);
   });
 
@@ -136,7 +139,9 @@ export class ListaNegra implements OnInit {
             cantidadRelaciones: 1,
           });
         }
-        this.clientesRelaciones.set([...porCedula.values()].sort((x, y) => x.nombre.localeCompare(y.nombre)));
+        this.clientesRelaciones.set(
+          [...porCedula.values()].sort((x, y) => x.nombre.localeCompare(y.nombre)),
+        );
         this.loadingClientes.set(false);
       },
       error: (err) => {
@@ -204,25 +209,31 @@ export class ListaNegra implements OnInit {
     const item = this.editando();
     if (!item?._id) return;
     this.saving.set(true);
-    this.http.put<ListaNegraItem>(`${this.API}/${item._id}`, { motivo: this.motivoEdit().trim() }).subscribe({
-      next: (actualizado) => {
-        this.lista.update((l) => l.map((c) => (c._id === item._id ? { ...c, motivo: actualizado.motivo } : c)));
-        this.saving.set(false);
-        this.cerrarEditar();
-      },
-      error: (err) => {
-        this.saving.set(false);
-        this.notificationModal.error(err?.error?.error || 'Error al actualizar el motivo');
-      },
-    });
+    this.http
+      .put<ListaNegraItem>(`${this.API}/${item._id}`, { motivo: this.motivoEdit().trim() })
+      .subscribe({
+        next: (actualizado) => {
+          this.lista.update((l) =>
+            l.map((c) => (c._id === item._id ? { ...c, motivo: actualizado.motivo } : c)),
+          );
+          this.saving.set(false);
+          this.cerrarEditar();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          this.notificationModal.error(err?.error?.error || 'Error al actualizar el motivo');
+        },
+      });
   }
 
   quitar(item: ListaNegraItem) {
     if (!item._id) return;
-    if (!confirm(`¿Quitar a ${item.nombre} (${this.formatCedula(item.cedula)}) de la lista negra?`)) return;
+    if (!confirm(`¿Quitar a ${item.nombre} (${this.formatCedula(item.cedula)}) de la lista negra?`))
+      return;
     this.http.delete(`${this.API}/${item._id}`).subscribe({
       next: () => this.lista.update((l) => l.filter((c) => c._id !== item._id)),
-      error: (err) => this.notificationModal.error(err?.error?.error || 'Error al quitar de la lista negra'),
+      error: (err) =>
+        this.notificationModal.error(err?.error?.error || 'Error al quitar de la lista negra'),
     });
   }
 

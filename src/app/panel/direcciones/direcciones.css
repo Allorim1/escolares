@@ -170,7 +170,7 @@
   position: relative;
 }
 
-.form-group label {
+.form-group :is(label, .static-field-label) {
   display: block;
   margin-bottom: 6px;
   font-weight: bold;
@@ -291,7 +291,7 @@
   margin-top: 16px;
 }
 
-.map-preview-container label {
+.map-preview-container :is(label, .static-field-label) {
   display: block;
   margin-bottom: 6px;
   font-weight: bold;
@@ -337,8 +337,8 @@
 [data-theme="dark"] .direcciones-header h3,
 [data-theme="dark"] .direccion-info h4,
 [data-theme="dark"] .direccion-form h4,
-[data-theme="dark"] .form-group label,
-[data-theme="dark"] .map-preview-container label {
+[data-theme="dark"] .form-group :is(label, .static-field-label),
+[data-theme="dark"] .map-preview-container :is(label, .static-field-label) {
   color: var(--text-primary) !important;
 }
 

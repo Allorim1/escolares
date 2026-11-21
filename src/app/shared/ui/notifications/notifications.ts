@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NotificationService, Notification } from '../../data-access/notification.service';
@@ -11,10 +11,8 @@ import { NotificationService, Notification } from '../../data-access/notificatio
   styleUrl: './notifications.css',
 })
 export class NotificationsComponent {
-  constructor(
-    public notificationService: NotificationService,
-    private router: Router
-  ) {}
+  notificationService = inject(NotificationService);
+  private router = inject(Router);
 
   get notifications(): Notification[] {
     return this.notificationService.notifications;

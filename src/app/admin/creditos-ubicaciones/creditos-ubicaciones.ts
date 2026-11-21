@@ -1,5 +1,13 @@
-import { Component, ElementRef, AfterViewInit, OnDestroy, ViewChild, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  ElementRef,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
@@ -46,7 +54,7 @@ function distanciaKm(a: { lat: number; lng: number }, b: { lat: number; lng: num
 @Component({
   selector: 'app-creditos-ubicaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './creditos-ubicaciones.html',
   styleUrl: './creditos-ubicaciones.css',
 })
@@ -152,7 +160,9 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
     // bloquean la API directamente y da el mismo error que si el usuario la hubiera
     // denegado, aunque tenga la ubicación del sistema operativo activada.
     if (!window.isSecureContext) {
-      throw new Error('Este panel se está cargando sin HTTPS, y los navegadores bloquean la ubicación fuera de un sitio seguro.');
+      throw new Error(
+        'Este panel se está cargando sin HTTPS, y los navegadores bloquean la ubicación fuera de un sitio seguro.',
+      );
     }
 
     // El permiso del SITIO es independiente del permiso del sistema operativo: se puede
@@ -161,7 +171,9 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
       try {
         const estado = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
         if (estado.state === 'denied') {
-          throw new Error('El permiso de ubicación para este sitio está bloqueado en el navegador.');
+          throw new Error(
+            'El permiso de ubicación para este sitio está bloqueado en el navegador.',
+          );
         }
       } catch {
         // Si la Permissions API no soporta 'geolocation' en este navegador, se sigue con getCurrentPosition.
@@ -178,16 +190,28 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
               // También aparece cuando Windows no puede resolver ninguna posición (p.ej. un
               // escritorio sin Wi-Fi, del que depende su proveedor de ubicación) aunque los
               // permisos del sitio y del sistema estén en "Permitir".
-              reject(new Error('El navegador no pudo obtener tu ubicación (permiso bloqueado, o Windows no logró determinar tu posición).'));
+              reject(
+                new Error(
+                  'El navegador no pudo obtener tu ubicación (permiso bloqueado, o Windows no logró determinar tu posición).',
+                ),
+              );
               break;
             case error.POSITION_UNAVAILABLE:
-              reject(new Error('El navegador no pudo determinar tu ubicación en este momento (sin señal de red/GPS).'));
+              reject(
+                new Error(
+                  'El navegador no pudo determinar tu ubicación en este momento (sin señal de red/GPS).',
+                ),
+              );
               break;
             case error.TIMEOUT:
               reject(new Error('Tardó demasiado en obtener tu ubicación.'));
               break;
             default:
-              reject(new Error(`No se pudo obtener tu ubicación (${error.message || 'error desconocido'}).`));
+              reject(
+                new Error(
+                  `No se pudo obtener tu ubicación (${error.message || 'error desconocido'}).`,
+                ),
+              );
           }
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
@@ -219,7 +243,9 @@ export class CreditosUbicaciones implements AfterViewInit, OnDestroy {
   }
 
   async cargarUbicaciones() {
-    this.todas = (await this.http.get<UbicacionCliente[]>('/api/creditos/admin/ubicaciones').toPromise()) ?? [];
+    this.todas =
+      (await this.http.get<UbicacionCliente[]>('/api/creditos/admin/ubicaciones').toPromise()) ??
+      [];
     await this.recalcular();
   }
 

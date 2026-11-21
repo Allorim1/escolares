@@ -30,12 +30,12 @@ export class RatingsService {
     return this.http.get<{ averageRate: number; count: number; userRate?: number }>(`/api/ratings/${productId}/stats`);
   }
 
-  getUserRating(productId: string) {
+  getUserRating(productId: string | number) {
     return this.http.get<{ rate?: number }>(`/api/ratings/${productId}/user`).pipe(
     );
   }
 
-  submitRating(productId: string, rate: number) {
+  submitRating(productId: string | number, rate: number) {
     return this.http.post<{ success: boolean; newAverage: number; count: number }>('/api/ratings', {
       productId,
       rate

@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { HttpClient } from '@angular/common/http';
 
 interface Reportes {
@@ -31,7 +31,7 @@ const NOMBRE_ESTADO: Record<string, string> = {
 @Component({
   selector: 'app-creditos-reportes',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './creditos-reportes.html',
   styleUrl: './creditos-reportes.css',
 })
@@ -48,8 +48,14 @@ export class CreditosReportes implements OnInit {
   cargar() {
     this.loading.set(true);
     this.http.get<Reportes>('/api/creditos/admin/reportes').subscribe({
-      next: (data) => { this.reportes.set(data); this.loading.set(false); },
-      error: (err) => { console.error('Error cargando reportes:', err); this.loading.set(false); },
+      next: (data) => {
+        this.reportes.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error cargando reportes:', err);
+        this.loading.set(false);
+      },
     });
   }
 

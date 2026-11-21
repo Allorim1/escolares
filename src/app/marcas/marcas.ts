@@ -6,7 +6,6 @@ import {
   ElementRef,
   ViewChildren,
   QueryList,
-  Inject,
   PLATFORM_ID,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -20,12 +19,14 @@ import { MarcasService } from '../shared/data-access/marcas.service';
   styleUrl: './marcas.css',
 })
 export class Marcas implements AfterViewInit {
+  private platformId = inject(PLATFORM_ID);
+
   marcasService = inject(MarcasService);
   marcas = this.marcasService.marcas;
 
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {
+  constructor() {
     if (isPlatformBrowser(this.platformId)) {
       effect(() => {
         const marcasVal = this.marcas();

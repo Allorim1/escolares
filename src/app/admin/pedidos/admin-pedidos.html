@@ -33,7 +33,7 @@
   } @else {
     <div class="pedidos-list">
       @for (order of filteredOrders; track order.id) {
-        <div class="pedido-card" (click)="selectOrder(order)">
+        <div class="pedido-card" (click)="selectOrder(order)" tabindex="0" (keydown.enter)="selectOrder(order)" (keydown.space)="selectOrder(order); $event.preventDefault()">
           <div class="pedido-header">
             <span class="pedido-id">#{{ order.id.slice(-8) }}</span>
             <div class="pedido-header-right">
@@ -100,8 +100,8 @@
 
   <!-- Detalle del pedido (modal) -->
   @if (selectedOrder()) {
-    <div class="modal-overlay" (click)="closeDetail()">
-      <div class="order-detail-modal" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeDetail())" tabindex="0" (keydown.enter)="closeDetail()" (keydown.space)="closeDetail(); $event.preventDefault()">
+      <div class="order-detail-modal">
         <div class="modal-header">
           <h3>Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
           <button class="close-btn" (click)="closeDetail()">✕</button>
@@ -246,8 +246,8 @@
   }
 
 @if (showAssignDeliveryModal()) {
-   <div class="modal-overlay" (click)="closeAssignDeliveryModal()">
-     <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+   <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeAssignDeliveryModal())" tabindex="0" (keydown.enter)="closeAssignDeliveryModal()" (keydown.space)="closeAssignDeliveryModal(); $event.preventDefault()">
+     <div class="modal-content modal-small">
        <div class="modal-header">
          <h3>Asignar Repartidor - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
          <button class="close-btn" (click)="closeAssignDeliveryModal()">&times;</button>
@@ -255,7 +255,7 @@
        
        <div class="modal-body">
          <div class="form-group">
-           <label>Repartidor *</label>
+           <label for="lint-associated-field-1">Repartidor *</label>
            @if (loadingDeliveryPersons()) {
              <div class="loading-text">Cargando repartidores...</div>
            } @else {
@@ -263,7 +263,7 @@
                 [value]="selectedDeliveryPersonId()"
                 (change)="selectedDeliveryPersonId.set($any($event.target).value || '')"
                 class="delivery-select"
-              >
+               id="lint-associated-field-1">
                 <option value="">Selecciona un repartidor</option>
                 @for (person of getAvailableDeliveryPersons(); track person.id) {
                   <option [value]="person.id">{{ person.nombre }} {{ person.telefono ? '(' + person.telefono + ')' : '' }}</option>
@@ -289,8 +289,8 @@
  }
 
  @if (showDeliveryPersonModal()) {
-   <div class="modal-overlay" (click)="closeDeliveryPersonModal()">
-     <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
+   <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeDeliveryPersonModal())" tabindex="0" (keydown.enter)="closeDeliveryPersonModal()" (keydown.space)="closeDeliveryPersonModal(); $event.preventDefault()">
+     <div class="modal-content modal-medium">
        <div class="modal-header">
          <h3>📋 Ficha Técnica del Repartidor</h3>
          <button class="close-btn" (click)="closeDeliveryPersonModal()">&times;</button>
@@ -340,8 +340,8 @@
  }
 
  @if (imageModalOpen()) {
-  <div class="image-modal-overlay" (click)="closeImageModal()">
-    <div class="image-modal-content" (click)="$event.stopPropagation()">
+  <div class="image-modal-overlay" (click)="($event.target === $event.currentTarget) && (closeImageModal())" tabindex="0" (keydown.enter)="closeImageModal()" (keydown.space)="closeImageModal(); $event.preventDefault()">
+    <div class="image-modal-content">
       <button class="image-modal-close" (click)="closeImageModal()">✕</button>
       <img [src]="modalImageUrl()" alt="Comprobante de pago" class="modal-image" />
     </div>
@@ -349,8 +349,8 @@
 }
 
 @if (showCancelModal()) {
-  <div class="modal-overlay" (click)="closeCancelModal()">
-    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeCancelModal())" tabindex="0" (keydown.enter)="closeCancelModal()" (keydown.space)="closeCancelModal(); $event.preventDefault()">
+    <div class="modal-content modal-small">
       <div class="modal-header">
         <h3>Cancelar Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
         <button class="close-btn" (click)="closeCancelModal()">&times;</button>
@@ -358,26 +358,26 @@
       
       <div class="modal-body">
         <div class="form-group">
-          <label>Motivo de Cancelación *</label>
+          <label for="lint-associated-field-2">Motivo de Cancelación *</label>
           <textarea
             [value]="cancelReason()"
             (input)="cancelReason.set($any($event.target).value || '')"
             rows="3"
             placeholder="Ingresa el motivo de la cancelación..."
             class="cancel-textarea"
-          ></textarea>
+           id="lint-associated-field-2"></textarea>
         </div>
         
         @if (hasSupervisorKey()) {
           <div class="form-group">
-            <label>Clave de Supervisor *</label>
+            <label for="lint-associated-field-3">Clave de Supervisor *</label>
             <input
               type="password"
               [value]="supervisorKey()"
               (input)="supervisorKey.set($any($event.target).value || '')"
               placeholder="Ingresa tu clave de supervisor"
               class="supervisor-input"
-            />
+             id="lint-associated-field-3"/>
             <small class="help-text">Solo usuarios con clave de supervisor pueden cancelar pedidos</small>
           </div>
         }
@@ -398,8 +398,8 @@
 }
 
 @if (showFacturaModal()) {
-   <div class="modal-overlay" (click)="closeFacturaModal()">
-     <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+   <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeFacturaModal())" tabindex="0" (keydown.enter)="closeFacturaModal()" (keydown.space)="closeFacturaModal(); $event.preventDefault()">
+     <div class="modal-content modal-small">
        <div class="modal-header">
          <h3>Subir Factura - Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
          <button class="close-btn" (click)="closeFacturaModal()">&times;</button>
@@ -454,8 +454,8 @@
  }
 
   @if (openOrderMapModal()) {
-    <div class="modal-overlay" (click)="closeOrderMapModal()">
-      <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeOrderMapModal())" tabindex="0" (keydown.enter)="closeOrderMapModal()" (keydown.space)="closeOrderMapModal(); $event.preventDefault()">
+      <div class="modal-content modal-medium">
         <div class="modal-header">
           <h3>📍 Ruta del Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
           <button class="close-btn" (click)="closeOrderMapModal()">&times;</button>
@@ -468,8 +468,8 @@
   }
 
   @if (showMessagesModal()) {
-    <div class="modal-overlay messages-modal-overlay" (click)="closeMessagesModal()">
-      <div class="modal-content messages-modal" (click)="$event.stopPropagation()">
+    <div class="modal-overlay messages-modal-overlay" (click)="($event.target === $event.currentTarget) && (closeMessagesModal())" tabindex="0" (keydown.enter)="closeMessagesModal()" (keydown.space)="closeMessagesModal(); $event.preventDefault()">
+      <div class="modal-content messages-modal">
         <div class="modal-header">
           <h3>💬 Mensajes del Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
           <button class="close-btn" (click)="closeMessagesModal()">&times;</button>

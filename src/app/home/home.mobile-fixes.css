@@ -11,6 +11,28 @@
   .newsletter-form { flex-direction: column; gap: 0.75rem; }
   .newsletter-content h2 { font-size: 1.4rem; }
   .newsletter-content p { font-size: 0.9rem; }
+  .hero-container { width: 100%; max-width: 100%; margin-bottom: 1rem; }
+  .marcas-carousel,
+  .productos-carousel-section,
+  .newsletter-section,
+  .noticias-section,
+  .features-section {
+    max-width: 100%;
+  }
+  .productos-carousel-track,
+  .carousel-track {
+    gap: 8px;
+  }
+  .producto-slide {
+    flex-basis: 172px;
+    width: 172px;
+  }
+  .producto-image {
+    height: 172px;
+  }
+  .features-section {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 480px) {
   .banner-carousel { max-height: 30vh; }
@@ -23,4 +45,17 @@
   .noticias-section { padding: 1rem; margin: 2rem auto 1rem; }
   .noticias-section h2 { font-size: 1.5rem; }
   .noticias-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .features-section {
+    grid-template-columns: 1fr;
+  }
+  .feature-card {
+    min-width: 0;
+  }
+  .producto-slide {
+    flex-basis: 150px;
+    width: 150px;
+  }
+  .producto-image {
+    height: 150px;
+  }
 }

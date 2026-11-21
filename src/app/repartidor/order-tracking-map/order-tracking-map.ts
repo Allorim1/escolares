@@ -1,4 +1,4 @@
-﻿import { Component, Input, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
 import { HttpClient } from '@angular/common/http';
@@ -329,7 +329,7 @@ export class OrderTrackingMapComponent implements AfterViewInit, OnDestroy {
        await this.loadTrackingData();
        await this.initMap();
        this.startLocationTracking();
-     } catch (error: unknown) {
+     } catch (error) {
        this.mapError.set(error instanceof Error ? error.message : 'Error loading map');
        console.error('Map initialization error:', error);
      }
@@ -343,7 +343,7 @@ export class OrderTrackingMapComponent implements AfterViewInit, OnDestroy {
        this.order.set(response?.order ?? null);
        
        if (response?.directions) {
-         this.estimatedTime.set(response.directions.routes[0]?.legs[0]?.duration?.text ?? '');
+         this.estimatedTime.set(response.directions.routes[0]?.legs?.[0]?.duration?.text ?? '');
        }
      } catch (error) {
        console.error('Error loading tracking data:', error);
@@ -395,7 +395,7 @@ export class OrderTrackingMapComponent implements AfterViewInit, OnDestroy {
      
      setTimeout(() => {
        if (this.map) {
-         (window as any).google.maps.event.trigger(this.map, 'resize');
+         google.maps.event.trigger(this.map, 'resize');
          if (order?.latitud && order?.longitud) {
            this.map.setCenter({ lat: order.latitud, lng: order.longitud });
          }
@@ -444,7 +444,7 @@ export class OrderTrackingMapComponent implements AfterViewInit, OnDestroy {
          { lat: order.latitud, lng: order.longitud }
        );
        this.directionsRenderer?.setDirections(result);
-       this.estimatedTime.set(result.routes[0]?.legs[0]?.duration?.text ?? '');
+       this.estimatedTime.set(result.routes[0]?.legs?.[0]?.duration?.text ?? '');
      } catch {
        console.log('Could not calculate route');
      }

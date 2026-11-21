@@ -58,7 +58,7 @@
 
 @if (showModal()) {
    <div class="modal-overlay">
-     <div class="modal-content" (click)="$event.stopPropagation()">
+     <div class="modal-content">
        <div class="modal-header">
          <h3>{{ isEditing() ? 'Editar Rol' : 'Nuevo Rol' }}</h3>
          <button class="close-btn" (click)="closeModal()">&times;</button>
@@ -66,33 +66,33 @@
 
        <div class="modal-body">
          <div class="form-group">
-           <label>Nombre del Rol</label>
-            <input type="text" [(ngModel)]="formNombre" placeholder="Ej: Editor" [disabled]="isEditing() && formNombre === 'root'" enterFocusNext />
+           <label for="lint-associated-field-1">Nombre del Rol</label>
+            <input type="text" [(ngModel)]="formNombre" placeholder="Ej: Editor" [disabled]="isEditing() && formNombre === 'root'" appEnterFocusNext  id="lint-associated-field-1"/>
          </div>
 
          <div class="form-group">
-           <label>Descripción</label>
-           <textarea [(ngModel)]="formDescripcion" placeholder="Descripción del rol..." rows="2" enterFocusNext></textarea>
+           <label for="lint-associated-field-2">Descripción</label>
+           <textarea [(ngModel)]="formDescripcion" placeholder="Descripción del rol..." rows="2" appEnterFocusNext id="lint-associated-field-2"></textarea>
          </div>
 
          <div class="form-group">
            <label class="checkbox-label">
-             <input type="checkbox" [(ngModel)]="formEsDefault" enterFocusNext />
+             <input type="checkbox" [(ngModel)]="formEsDefault" appEnterFocusNext />
              <span>Rol por defecto para nuevos usuarios</span>
            </label>
          </div>
 
          <div class="form-group">
            <label class="checkbox-label">
-             <input type="checkbox" [(ngModel)]="formEsVendedor" enterFocusNext />
+             <input type="checkbox" [(ngModel)]="formEsVendedor" appEnterFocusNext />
              <span>Es vendedor (recibe comisión)</span>
            </label>
          </div>
 
          @if (formEsVendedor) {
            <div class="form-group">
-             <label>Porcentaje de comisión (%)</label>
-             <input type="number" [(ngModel)]="formComision" min="0" max="100" placeholder="Ej: 10" enterFocusNext />
+             <label for="lint-associated-field-3">Porcentaje de comisión (%)</label>
+             <input type="number" [(ngModel)]="formComision" min="0" max="100" placeholder="Ej: 10" appEnterFocusNext  id="lint-associated-field-3"/>
            </div>
          }
 
@@ -116,7 +116,7 @@
                        type="checkbox" 
                        [checked]="formPermisos.includes(permiso.id)"
                        (change)="togglePermiso(permiso.id)"
-                       enterFocusNext
+                       appEnterFocusNext
                      />
                      <span class="permiso-info">
                        <span class="permiso-nombre">{{ permiso.nombre }}</span>

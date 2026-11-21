@@ -10,7 +10,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -30,7 +30,10 @@ const MB = 1024 * 1024;
 /** Mensaje de error que devuelve la API ({ error: '...' }) o uno por defecto. */
 function mensajeError(err: unknown, porDefecto: string): string {
   const cuerpo = err instanceof HttpErrorResponse ? err.error : null;
-  return (cuerpo && typeof cuerpo === 'object' && typeof cuerpo.error === 'string' && cuerpo.error) || porDefecto;
+  return (
+    (cuerpo && typeof cuerpo === 'object' && typeof cuerpo.error === 'string' && cuerpo.error) ||
+    porDefecto
+  );
 }
 const VENTANA_MS = 24 * 60 * 60 * 1000;
 const TITULO_ORIGINAL = typeof document !== 'undefined' ? document.title : '';
@@ -38,7 +41,7 @@ const TITULO_ORIGINAL = typeof document !== 'undefined' ? document.title : '';
 @Component({
   selector: 'app-whatsapp',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   providers: [WhatsAppStore],
   templateUrl: './whatsapp.html',
   styleUrl: './whatsapp.css',
@@ -75,7 +78,9 @@ export class WhatsApp implements OnInit, OnDestroy {
   private pegadoAbajo = true;
   private ultimoId: string | null = null;
   private noLeidosPrevios: Map<string, number> | null = null;
-  private readonly pestanaVisible = signal(typeof document === 'undefined' || document.visibilityState === 'visible');
+  private readonly pestanaVisible = signal(
+    typeof document === 'undefined' || document.visibilityState === 'visible',
+  );
   private audio?: AudioContext;
 
   readonly conversacionesFiltradas = computed(() => {
@@ -83,15 +88,23 @@ export class WhatsApp implements OnInit, OnDestroy {
     return this.store.conversaciones().filter((c) => {
       if (this.soloNoLeidos() && c.noLeidos === 0) return false;
       if (!q) return true;
-      return [c.waId, c.alias, c.nombre, c.cliente?.nombre, c.cliente?.empresa, c.cliente?.planta]
-        .some((v) => v && this.normalizar(v).includes(q));
+      return [
+        c.waId,
+        c.alias,
+        c.nombre,
+        c.cliente?.nombre,
+        c.cliente?.empresa,
+        c.cliente?.planta,
+      ].some((v) => v && this.normalizar(v).includes(q));
     });
   });
 
-  readonly conversacion = computed(() => this.store.conversaciones().find((c) => c.waId === this.seleccionado()) ?? null);
+  readonly conversacion = computed(
+    () => this.store.conversaciones().find((c) => c.waId === this.seleccionado()) ?? null,
+  );
   readonly hilo = computed(() => {
     const id = this.seleccionado();
-    return id ? this.store.hilos()[id] ?? null : null;
+    return id ? (this.store.hilos()[id] ?? null) : null;
   });
 
   readonly items = computed<Item[]>(() => {
@@ -105,7 +118,10 @@ export class WhatsApp implements OnInit, OnDestroy {
         diaAnterior = dia;
         anterior = null;
       }
-      const agrupado = !!anterior && anterior.direccion === m.direccion && +new Date(m.fecha) - +new Date(anterior.fecha) < 5 * 60 * 1000;
+      const agrupado =
+        !!anterior &&
+        anterior.direccion === m.direccion &&
+        +new Date(m.fecha) - +new Date(anterior.fecha) < 5 * 60 * 1000;
       items.push({ clase: 'msg', clave: m.id, m, agrupado });
       anterior = m;
     }
@@ -224,7 +240,13 @@ export class WhatsApp implements OnInit, OnDestroy {
   iniciales(c: WaConversacion): string {
     const n = c.alias || c.nombre || c.cliente?.nombre;
     if (!n) return '#';
-    return n.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+    return n
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0])
+      .join('')
+      .toUpperCase();
   }
 
   colorAvatar(waId: string): string {
@@ -237,8 +259,13 @@ export class WhatsApp implements OnInit, OnDestroy {
     const u = c.ultimoMensaje;
     if (!u) return '';
     const etiquetas: Record<string, string> = {
-      image: '📷 Foto', video: '🎥 Video', audio: '🎤 Audio', document: '📄 Documento',
-      sticker: '🏷️ Sticker', location: '📍 Ubicación', contacts: '👤 Contacto',
+      image: '📷 Foto',
+      video: '🎥 Video',
+      audio: '🎤 Audio',
+      document: '📄 Documento',
+      sticker: '🏷️ Sticker',
+      location: '📍 Ubicación',
+      contacts: '👤 Contacto',
     };
     const base = etiquetas[u.tipo];
     if (base && u.texto) return `${base.split(' ')[0]} ${u.texto}`;
@@ -249,11 +276,13 @@ export class WhatsApp implements OnInit, OnDestroy {
     if (!fecha) return '';
     const d = new Date(fecha);
     const hoy = new Date(this.ahora());
-    if (d.toDateString() === hoy.toDateString()) return d.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
+    if (d.toDateString() === hoy.toDateString())
+      return d.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
     const ayer = new Date(hoy);
     ayer.setDate(hoy.getDate() - 1);
     if (d.toDateString() === ayer.toDateString()) return 'Ayer';
-    if (+hoy - +d < 6 * 24 * 3600 * 1000) return d.toLocaleDateString('es-VE', { weekday: 'short' });
+    if (+hoy - +d < 6 * 24 * 3600 * 1000)
+      return d.toLocaleDateString('es-VE', { weekday: 'short' });
     return d.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: '2-digit' });
   }
 
@@ -268,7 +297,12 @@ export class WhatsApp implements OnInit, OnDestroy {
     ayer.setDate(hoy.getDate() - 1);
     if (d.toDateString() === hoy.toDateString()) return 'Hoy';
     if (d.toDateString() === ayer.toDateString()) return 'Ayer';
-    return d.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    return d.toLocaleDateString('es-VE', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
   }
 
   iniciarRenombre() {
@@ -302,9 +336,12 @@ export class WhatsApp implements OnInit, OnDestroy {
         return this.store.transporte() === 'polling'
           ? 'Conectado en tiempo real por HTTP (el proxy del servidor no deja pasar WebSocket)'
           : 'Conectado en tiempo real';
-      case 'conectando': return 'Conectando…';
-      case 'sin-permiso': return 'Sin permiso';
-      default: return this.store.errorConexion() || 'Sin conexión en tiempo real. Se actualiza cada 5 s.';
+      case 'conectando':
+        return 'Conectando…';
+      case 'sin-permiso':
+        return 'Sin permiso';
+      default:
+        return this.store.errorConexion() || 'Sin conexión en tiempo real. Se actualiza cada 5 s.';
     }
   }
 
@@ -443,10 +480,16 @@ export class WhatsApp implements OnInit, OnDestroy {
   /** Aviso de cómo se enviará el archivo (WhatsApp manda como documento lo que no cumple sus límites). */
   avisoAdjunto(a: Adjunto): string {
     const t = a.archivo.type;
-    if (t.startsWith('image/') && (!['image/jpeg', 'image/png'].includes(t) || a.archivo.size > 5 * MB)) {
+    if (
+      t.startsWith('image/') &&
+      (!['image/jpeg', 'image/png'].includes(t) || a.archivo.size > 5 * MB)
+    ) {
       return 'Se enviará como documento (WhatsApp solo acepta fotos JPG/PNG de hasta 5 MB).';
     }
-    if (t.startsWith('video/') && (!['video/mp4', 'video/3gpp'].includes(t) || a.archivo.size > 16 * MB)) {
+    if (
+      t.startsWith('video/') &&
+      (!['video/mp4', 'video/3gpp'].includes(t) || a.archivo.size > 16 * MB)
+    ) {
       return 'Se enviará como documento (WhatsApp solo acepta videos MP4 de hasta 16 MB).';
     }
     return '';
@@ -474,7 +517,9 @@ export class WhatsApp implements OnInit, OnDestroy {
     try {
       if (adjunto) {
         this.progreso.set(0);
-        await this.store.enviarArchivo(waId, adjunto.archivo, texto, cita, (p) => this.progreso.set(p));
+        await this.store.enviarArchivo(waId, adjunto.archivo, texto, cita, (p) =>
+          this.progreso.set(p),
+        );
         this.limpiarAdjunto();
       } else {
         await this.store.enviarTexto(waId, texto, cita);
@@ -547,7 +592,12 @@ export class WhatsApp implements OnInit, OnDestroy {
 
   textoCita(c: NonNullable<WaMensaje['cita']>): string {
     const etiquetas: Record<string, string> = {
-      image: '📷 Foto', video: '🎥 Video', audio: '🎤 Audio', document: '📄 Documento', sticker: '🏷️ Sticker', location: '📍 Ubicación',
+      image: '📷 Foto',
+      video: '🎥 Video',
+      audio: '🎤 Audio',
+      document: '📄 Documento',
+      sticker: '🏷️ Sticker',
+      location: '📍 Ubicación',
     };
     return c.texto || etiquetas[c.tipo] || '';
   }

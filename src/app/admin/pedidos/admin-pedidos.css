@@ -917,7 +917,7 @@
   margin-bottom: 1rem;
 }
 
-.form-group label {
+.form-group :is(label, .static-field-label) {
   display: block;
   margin-bottom: 0.5rem;
   color: #555;
@@ -1188,7 +1188,7 @@
 /* Dark mode styles */
 [data-theme="dark"] .pedidos-header h2,
 [data-theme="dark"] .pedidos-filters,
-[data-theme="dark"] .filter-group label,
+[data-theme="dark"] .filter-group :is(label, .static-field-label),
 [data-theme="dark"] .status-tab,
 [data-theme="dark"] .search-input,
 [data-theme="dark"] .pedidos-table th,
@@ -1208,7 +1208,7 @@
 }
 
 [data-theme="dark"] .pedidos-header h2,
-[data-theme="dark"] .filter-group label,
+[data-theme="dark"] .filter-group :is(label, .static-field-label),
 [data-theme="dark"] .pedidos-table th,
 [data-theme="dark"] .productos-section h4 {
   color: var(--text-primary) !important;

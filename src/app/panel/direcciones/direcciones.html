@@ -45,7 +45,7 @@
       <h4>{{ editandoId() ? 'Editar Dirección' : 'Nueva Dirección' }}</h4>
       <form (ngSubmit)="guardarDireccion()">
 <div class="form-group">
-           <label>Alias:</label>
+           <label for="lint-associated-field-1">Alias:</label>
            <input
              type="text"
              [ngModel]="formAlias()"
@@ -54,8 +54,8 @@
              placeholder="Ej: Casa, Trabajo"
              list="alias-sugerencias"
              required
-             enterFocusNext
-           />
+             appEnterFocusNext
+            id="lint-associated-field-1"/>
            <datalist id="alias-sugerencias">
              @for (op of aliasSugerencias(); track op) {
                <option [value]="op"></option>
@@ -63,7 +63,7 @@
            </datalist>
          </div>
 <div class="form-group">
-           <label>Calle:</label>
+           <label for="lint-associated-field-2">Calle:</label>
            <input
              #addressInput
              type="text"
@@ -72,20 +72,20 @@
              name="calle"
              placeholder="Ej: Las Mercedes, Caracas..."
              autocomplete="off"
-             enterFocusNext
+             appEnterFocusNext
              required
-           />
+            id="lint-associated-field-2"/>
            <div class="google-places-info">Google Places autocompletado activado - escribe para ver sugerencias</div>
          </div>
         
         @if (formLatitud() && formLongitud()) {
           <div class="map-preview-container">
-            <label>Vista previa del mapa:</label>
+            <span class="static-field-label">Vista previa del mapa:</span>
             <div class="map-preview" #mapContainer></div>
           </div>
         }
 <div class="form-group">
-           <label>Ciudad:</label>
+           <label for="lint-associated-field-3">Ciudad:</label>
            <input
              type="text"
              [ngModel]="formCiudad()"
@@ -94,8 +94,8 @@
              placeholder="Ciudad"
              list="ciudad-sugerencias"
              required
-             enterFocusNext
-           />
+             appEnterFocusNext
+            id="lint-associated-field-3"/>
            <datalist id="ciudad-sugerencias">
              @for (op of ciudadSugerencias(); track op) {
                <option [value]="op"></option>
@@ -103,7 +103,7 @@
            </datalist>
          </div>
          <div class="form-group">
-           <label>Estado:</label>
+           <label for="lint-associated-field-4">Estado:</label>
            <input
              type="text"
              [ngModel]="formEstado()"
@@ -112,8 +112,8 @@
              placeholder="Estado"
              list="estado-sugerencias"
              required
-             enterFocusNext
-           />
+             appEnterFocusNext
+            id="lint-associated-field-4"/>
            <datalist id="estado-sugerencias">
              @for (op of estadoSugerencias(); track op) {
                <option [value]="op"></option>
@@ -121,15 +121,15 @@
            </datalist>
          </div>
          <div class="form-group">
-           <label>Código Postal:</label>
+           <label for="lint-associated-field-5">Código Postal:</label>
            <input
              type="text"
              [ngModel]="formCodigoPostal()"
              (ngModelChange)="formCodigoPostal.set($event)"
              name="codigoPostal"
              placeholder="Opcional"
-             enterFocusNext
-           />
+             appEnterFocusNext
+            id="lint-associated-field-5"/>
          </div>
         <div class="form-group">
           <label>

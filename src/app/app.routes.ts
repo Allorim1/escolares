@@ -8,7 +8,6 @@ import Panel from './panel/panel';
 import { Admin } from './admin/admin';
 import { adminOrRepartidorGuard } from './shared/guards/admin-or-repartidor.guard';
 import { noAuthGuard } from './shared/guards/no-auth.guard';
-import { Login } from './login/login';
 import { authGuard } from './shared/guards/auth.guard';
 import { repartidorGuard } from './shared/guards/repartidor.guard';
 import { Routes } from '@angular/router';
@@ -164,21 +163,10 @@ export const routes: Routes = [
             loadComponent: () => import('./admin/roles/admin-roles').then((m) => m.AdminRoles),
           },
           {
-            path: 'costo-tasa',
-            loadComponent: () => import('./admin/costo-tasa/costo-tasa').then((m) => m.CostoTasa),
-          },
-          {
             path: 'registro',
             loadComponent: () => import('./admin/registro/registro').then((m) => m.AdminRegistro),
           },
-          {
-            path: 'facturacion',
-            loadComponent: () => import('./admin/facturacion/facturacion').then((m) => m.AdminFacturacion),
-          },
-          {
-            path: 'cuentas-por-pagar',
-            loadComponent: () => import('./admin/cuentas-por-pagar/cuentas-por-pagar').then((m) => m.CuentasPorPagar),
-          },           {
+           {
              path: 'noticias',
              loadComponent: () => import('./admin/noticias/admin-noticias').then((m) => m.AdminNoticiasComponent),
            },
@@ -187,36 +175,12 @@ export const routes: Routes = [
             loadComponent: () => import('./admin/pedidos/admin-pedidos').then((m) => m.AdminPedidos),
           },
           {
-            path: 'galeria',
-            loadComponent: () => import('./admin/galeria/galeria').then((m) => m.Galeria),
-          },
-          {
             path: 'manuales',
             loadComponent: () => import('./admin/manuales/admin-manuales').then((m) => m.AdminManuales),
           },
           {
             path: 'chat',
             loadComponent: () => import('./admin/chat/chat').then((m) => m.Chat),
-          },
-          {
-            path: 'cierre-caja',
-            loadComponent: () => import('./admin/cierre-caja/cierre-caja').then((m) => m.CierreCaja),
-          },
-            {
-              path: 'gastos-operativos',
-              loadComponent: () => import('./admin/gastos-operativos/gastos-operativos').then((m) => m.GastosOperativos),
-            },
-            {
-              path: 'gastos',
-              loadComponent: () => import('./admin/gastos/gastos').then((m) => m.Gastos),
-            },
-          {
-            path: 'nomina',
-            loadComponent: () => import('./admin/nomina/nomina').then((m) => m.Nomina),
-          },
-          {
-            path: 'libro-compras',
-            loadComponent: () => import('./admin/libro-compras/libro-compras').then((m) => m.LibroCompras),
           },
           {
             path: 'categorias',
@@ -234,14 +198,6 @@ export const routes: Routes = [
             path: 'redes-sociales',
             loadComponent: () => import('./admin/redes-sociales/admin-redes-sociales').then((m) => m.AdminRedesSociales),
           },
-          {
-            path: 'conversion',
-            loadComponent: () => import('./admin/conversion/conversion').then((m) => m.Conversion),
-          },
-          {
-            path: 'historico-costos',
-            loadComponent: () => import('./admin/historico-costos/historico-costos').then((m) => m.HistoricoCostos),
-          },
 {
              path: 'ofertas',
              loadComponent: () => import('./admin/ofertas/admin-ofertas').then((m) => m.AdminOfertas),
@@ -250,18 +206,10 @@ export const routes: Routes = [
                 path: 'cotizaciones',
                 loadComponent: () => import('./admin/cotizaciones/cotizaciones').then((m) => m.Cotizaciones),
               },
-            {
-             path: 'retenciones',
-             loadComponent: () => import('./admin/retenciones/retenciones').then((m) => m.Retenciones),
-           },
 {
              path: 'repartidor',
              loadComponent: () => import('./admin/repartidor/admin-repartidor').then((m) => m.AdminRepartidorComponent),
            },
-           {
-              path: 'asistencias',
-              loadComponent: () => import('./admin/asistencias/asistencias').then((m) => m.Asistencias),
-            },
               {
                 path: 'clientes',
                 loadComponent: () => import('./admin/clientes/clientes').then((m) => m.Clientes),
@@ -271,16 +219,8 @@ export const routes: Routes = [
                 loadComponent: () => import('./admin/clientes/clientes-detalle').then((m) => m.ClientesDetalle),
               },
                {
-                 path: 'relacion-cuentas',
-                 loadComponent: () => import('./admin/relacion-cuentas/relacion-cuentas').then((m) => m.RelacionCuentas),
-               },
-               {
                  path: 'lista-negra',
                  loadComponent: () => import('./admin/lista-negra/lista-negra').then((m) => m.ListaNegra),
-               },
-               {
-                 path: 'relacion-libros',
-                 loadComponent: () => import('./admin/relacion-libros/relacion-libros').then((m) => m.RelacionLibros),
                },
                {
                  path: 'whatsapp',
@@ -294,10 +234,6 @@ export const routes: Routes = [
               path: 'estadisticas',
               loadComponent: () => import('./admin/estadisticas/estadisticas').then((m) => m.Estadisticas),
             },
-          {
-            path: 'constancias',
-            loadComponent: () => import('./admin/constancias/constancias').then((m) => m.Constancias),
-          },
           {
             path: 'contrasenas',
             loadComponent: () => import('./admin/contrasenas/contrasenas').then((m) => m.AdminContrasenas),

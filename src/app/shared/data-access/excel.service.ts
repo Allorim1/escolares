@@ -1,14 +1,38 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { PDFDocument } from 'pdf-lib';
+import { PDFCheckBox, PDFDocument, PDFRadioGroup, PDFTextField } from 'pdf-lib';
 
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
-import jsPDF from 'jspdf';
+import type { TVirtualFileSystem } from 'pdfmake/interfaces';
 
-(pdfMake as any).vfs = (pdfFonts as any).vfs;
+interface PdfMakeWithFonts {
+  vfs: TVirtualFileSystem;
+}
+
+(pdfMake as typeof pdfMake & PdfMakeWithFonts).vfs =
+  pdfFonts;
+
+interface WorksheetModel {
+  merges?: string[];
+  images?: {
+    name?: string;
+    extension?: string;
+    tl?: { col?: number; row?: number };
+    ext?: { width?: number; height?: number };
+  }[];
+}
+
+type WorksheetWithModel = ExcelJS.Worksheet & { model?: WorksheetModel };
+
+export interface ExtractedPdfData {
+  esFormulario: boolean;
+  campos: string[];
+  texto: string;
+  numeroPaginas: number;
+}
 
 export interface DatosComprobante {
   numeroComprobante: string;
@@ -37,29 +61,35 @@ export interface DatosComprobante {
 export interface EstructuraExcel {
   celdas: {
     ref: string;
-    valor: any;
+    valor: ExcelJS.CellValue;
     estilo: {
-      font: any;
-      alignment: any;
-      fill: any;
-      border: any;
-      numFmt: any;
+      font: Partial<ExcelJS.Font>;
+      alignment: Partial<ExcelJS.Alignment>;
+      fill: ExcelJS.Fill;
+      border: Partial<ExcelJS.Borders>;
+      numFmt: string;
     };
   }[];
   fusiones: string[];
   columnas: { index: number; width: number }[];
-  imagenes: { name: string; extension: string; tl: { col: number; row: number }; size: { width: number; height: number } }[];
+  imagenes: {
+    name: string;
+    extension: string;
+    tl: { col: number; row: number };
+    size: { width: number; height: number };
+  }[];
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ExcelService {
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   private async getLogoBuffer(): Promise<ArrayBuffer> {
-    const response = await this.http.get('/ESCOLARES AZUL RIF GRANDE.png', { responseType: 'arraybuffer' }).toPromise();
+    const response = await this.http
+      .get('/ESCOLARES AZUL RIF GRANDE.png', { responseType: 'arraybuffer' })
+      .toPromise();
     return response!;
   }
 
@@ -71,160 +101,211 @@ export class ExcelService {
       worksheet.getRow(20).height = 7.5;
 
       worksheet.columns = [
-        { width: 0.29 }, { width: 4.71 }, { width: 10.29 }, { width: 9.86 }, { width: 10.71 },
-        { width: 7.14 }, { width: 7 }, { width: 8.43 }, { width: 14.14 }, { width: 14 },
-        { width: 14.14 }, { width: 10.14 }, { width: 13.43 }, { width: 13.29 }, { width: 4.29 },
-        { width: 11 }, ];
+        { width: 0.29 },
+        { width: 4.71 },
+        { width: 10.29 },
+        { width: 9.86 },
+        { width: 10.71 },
+        { width: 7.14 },
+        { width: 7 },
+        { width: 8.43 },
+        { width: 14.14 },
+        { width: 14 },
+        { width: 14.14 },
+        { width: 10.14 },
+        { width: 13.43 },
+        { width: 13.29 },
+        { width: 4.29 },
+        { width: 11 },
+      ];
 
       function crearCajaComprobante(
-  startCell: string, 
-  endCell: string, 
-  titulo: string, 
-  valor: any
-) {
-  // 1. Extraer coordenadas para calcular la división
-  const startMatch = startCell.match(/([A-Z]+)(\d+)/);
-  const endMatch = endCell.match(/([A-Z]+)(\d+)/);
-  
-  if (!startMatch || !endMatch) return;
+        startCell: string,
+        endCell: string,
+        titulo: string,
+        valor: ExcelJS.CellValue,
+      ) {
+        // 1. Extraer coordenadas para calcular la división
+        const startMatch = startCell.match(/([A-Z]+)(\d+)/);
+        const endMatch = endCell.match(/([A-Z]+)(\d+)/);
 
-  const colInicio = startMatch[1];
-  const filaInicio = parseInt(startMatch[2]);
-  const colFin = endMatch[1];
-  const filaFin = parseInt(endMatch[2]);
+        if (!startMatch || !endMatch) return;
 
-  // 2. Fusionar celdas (Fila superior y Fila inferior)
-  // Nota: Esto asume que la caja tiene 2 filas de alto
-  worksheet.mergeCells(`${colInicio}${filaInicio}:${colFin}${filaInicio}`);
-  worksheet.mergeCells(`${colInicio}${filaFin}:${colFin}${filaFin}`);
+        const colInicio = startMatch[1];
+        const filaInicio = parseInt(startMatch[2]);
+        const colFin = endMatch[1];
+        const filaFin = parseInt(endMatch[2]);
 
-  const celdaTop = worksheet.getCell(`${colInicio}${filaInicio}`);
-  const celdaBottom = worksheet.getCell(`${colInicio}${filaFin}`);
+        // 2. Fusionar celdas (Fila superior y Fila inferior)
+        // Nota: Esto asume que la caja tiene 2 filas de alto
+        worksheet.mergeCells(`${colInicio}${filaInicio}:${colFin}${filaInicio}`);
+        worksheet.mergeCells(`${colInicio}${filaFin}:${colFin}${filaFin}`);
 
-  // 3. Insertar Contenido
-  celdaTop.value = titulo;
-  celdaBottom.value = valor;
+        const celdaTop = worksheet.getCell(`${colInicio}${filaInicio}`);
+        const celdaBottom = worksheet.getCell(`${colInicio}${filaFin}`);
 
-  // 4. Estilos de Fuente y Alineación
-  const estiloComun = { vertical: 'middle', horizontal: 'center' };
-  
-  celdaTop.font = { bold: true };
-  celdaTop.alignment = estiloComun as any;
+        // 3. Insertar Contenido
+        celdaTop.value = titulo;
+        celdaBottom.value = valor;
 
-  celdaBottom.alignment = { horizontal: 'left' }
+        // 4. Estilos de Fuente y Alineación
+        const estiloComun: Partial<ExcelJS.Alignment> = { vertical: 'middle', horizontal: 'center' };
 
-  celdaTop.border = {
-    top: { style: 'thin', color: { argb: 'FF000000' }},
-    left: { style: 'thin', color: { argb: 'FF000000' }},
-    right: { style: 'thin', color: { argb: 'FF000000' }
-    // Dejamos el bottom vacío para que no haya línea divisoria fuerte
-  }}
+        celdaTop.font = { bold: true };
+        celdaTop.alignment = estiloComun;
 
-  celdaBottom.border = {
-    left: { style: 'thin', color: { argb: 'FF000000' }},
-    right: { style: 'thin', color: { argb: 'FF000000' }},
-    bottom: { style: 'thin', color: { argb: 'FF000000' }},
-  };
-}
+        celdaBottom.alignment = { horizontal: 'left' };
+
+        celdaTop.border = {
+          top: { style: 'thin', color: { argb: 'FF000000' } },
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          right: {
+            style: 'thin',
+            color: { argb: 'FF000000' },
+            // Dejamos el bottom vacío para que no haya línea divisoria fuerte
+          },
+        };
+
+        celdaBottom.border = {
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          right: { style: 'thin', color: { argb: 'FF000000' } },
+          bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        };
+      }
 
       const logoBuffer = await this.getLogoBuffer();
       const imageId = workbook.addImage({
         buffer: logoBuffer,
-        extension: 'png'
+        extension: 'png',
       });
 
       worksheet.addImage(imageId, {
         tl: { col: 1, row: 0 },
-        ext: { width: 316, height: 84 }
+        ext: { width: 316, height: 84 },
       });
 
       worksheet.getCell('B5').value = 'Agente de Retención: ESCOLARES, C.A';
       worksheet.getCell('B6').value = 'R.I.F.: J-30488367-6';
-      worksheet.getCell('B7').value = 'Dirección fiscal: Calle Girardot entre Diaz Moreno y constitución, local 100-51';
-      worksheet.getCell('B8').value = "Telefonos: 0241-858.0281        Fax: 0241-858-70.50";
+      worksheet.getCell('B7').value =
+        'Dirección fiscal: Calle Girardot entre Diaz Moreno y constitución, local 100-51';
+      worksheet.getCell('B8').value = 'Telefonos: 0241-858.0281        Fax: 0241-858-70.50';
 
       const subtitle = worksheet.getCell('B10');
       subtitle.font = { bold: true };
-      subtitle.value = "COMPROBANTE DE RETENCION DEL IMPUESTO AL VALOR AGREGADO";
+      subtitle.value = 'COMPROBANTE DE RETENCION DEL IMPUESTO AL VALOR AGREGADO';
 
+      worksheet.mergeCells('K10:L10');
+      worksheet.mergeCells('K11:L11');
 
-      worksheet.mergeCells('K10:L10')
-      worksheet.mergeCells('K11:L11')
-
-
-      const cellCompro = worksheet.getCell('K10')
+      const cellCompro = worksheet.getCell('K10');
       cellCompro.value = 'Nro. Comprobante';
       const cellNumCompro = worksheet.getCell('K11');
-      cellNumCompro.value = '      '+datos.numeroComprobante;
-      cellCompro.font = { bold: true }
+      cellNumCompro.value = '      ' + datos.numeroComprobante;
+      cellCompro.font = { bold: true };
       cellCompro.alignment = { vertical: 'middle', horizontal: 'center' };
       cellNumCompro.alignment = { vertical: 'middle' };
 
       cellCompro.border = {
         top: { style: 'thin', color: { argb: 'FF000000' } },
         left: { style: 'thin', color: { argb: 'FF000000' } },
-        right: { style: 'thin', color: { argb: 'FF000000' } }
-      }
+        right: { style: 'thin', color: { argb: 'FF000000' } },
+      };
 
       cellNumCompro.border = {
         left: { style: 'thin', color: { argb: 'FF000000' } },
         right: { style: 'thin', color: { argb: 'FF000000' } },
-        bottom: { style: 'thin', color: { argb: 'FF000000' } }
-      }
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+      };
 
       const fechaFormateada = `${String(datos.fecha.getDate()).padStart(2, '0')}/${String(datos.fecha.getMonth() + 1).padStart(2, '0')}/${datos.fecha.getFullYear()}`;
       crearCajaComprobante('N10', 'N11', 'Fecha', fechaFormateada);
 
+      worksheet.getCell('B11').value =
+        '(Ley IVA- Art. 11 "Seran responsables del pago del impuesto en calidad de agente de retención,';
 
-      worksheet.getCell('B11').value = '(Ley IVA- Art. 11 "Seran responsables del pago del impuesto en calidad de agente de retención,';
+      worksheet.getCell('B12').value =
+        'los compradores o adquirientes de determinados bienes muebles y los receptores de ciertos';
 
-      worksheet.getCell('B12').value = 'los compradores o adquirientes de determinados bienes muebles y los receptores de ciertos';
+      worksheet.getCell('B13').value =
+        '                         servicios, a quienes la Administración tributaria designe como tal¨)    ';
 
-      worksheet.getCell('B13').value = '                         servicios, a quienes la Administración tributaria designe como tal¨)    ';
+      crearCajaComprobante(
+        'B15',
+        'G16',
+        '      Nombre o Razón Social del Sujeto Retenido',
+        datos.proveedor.nombre,
+      );
+      crearCajaComprobante(
+        'I15',
+        'L16',
+        'Registro de Información Fiscal del Sujeto Retenido (RIF)',
+        datos.proveedor.rif,
+      );
+      crearCajaComprobante(
+        'B18',
+        'L19',
+        'Dirección Fiscal del Sujeto Retenido',
+        datos.proveedor.nombre,
+      );
 
-      crearCajaComprobante('B15', 'G16', '      Nombre o Razón Social del Sujeto Retenido', datos.proveedor.nombre);
-      crearCajaComprobante('I15', 'L16', 'Registro de Información Fiscal del Sujeto Retenido (RIF)', datos.proveedor.rif)
-      crearCajaComprobante('B18', 'L19', "Dirección Fiscal del Sujeto Retenido", datos.proveedor.nombre)
-      
       const fechaFactura = datos.facturas[0]?.fecha || datos.fecha;
       const periodoFiscal = `${fechaFactura.getFullYear()}-${String(fechaFactura.getMonth() + 1).padStart(2, '0')}`;
       crearCajaComprobante('N15', 'N16', 'Periodo Fiscal', periodoFiscal);
 
-        worksheet.mergeCells('L21:M21')
-      worksheet.mergeCells('L22:M22')
+      worksheet.mergeCells('L21:M21');
+      worksheet.mergeCells('L22:M22');
 
-
-      const comprasInternas = worksheet.getCell('L21')
+      const comprasInternas = worksheet.getCell('L21');
       comprasInternas.value = '   COMPRAS INTERNAS';
       const OIM = worksheet.getCell('L22');
       OIM.value = '     O IMPORTACIONES';
-      comprasInternas.font = { bold: true }
+      comprasInternas.font = { bold: true };
       comprasInternas.alignment = { vertical: 'middle', horizontal: 'center' };
-      OIM.font = { bold: true }
+      OIM.font = { bold: true };
 
       comprasInternas.border = {
         top: { style: 'thin', color: { argb: 'FF000000' } },
         left: { style: 'thin', color: { argb: 'FF000000' } },
-        right: { style: 'thin', color: { argb: 'FF000000' } }
-      }
+        right: { style: 'thin', color: { argb: 'FF000000' } },
+      };
 
       OIM.border = {
         left: { style: 'thin', color: { argb: 'FF000000' } },
         right: { style: 'thin', color: { argb: 'FF000000' } },
-        bottom: { style: 'thin', color: { argb: 'FF000000' } }
-      }
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+      };
 
-      const headerRow = ['', 'Oper. Nro', 'Fecha de la Factura', 'Nro. de Factura', 'Nro. Control de la Factura', 'Nota de Debito', 'Nota Crédito', 'Nro. de Factura Afectada', 'Total Compras Incluyendo Iva', 'Compras sin derecho a Crédito Iva', 'Base Imponible', '%\nAlicuota', 'Impuesto Iva', 'Impuesto Retenido'];
+      const headerRow = [
+        '',
+        'Oper. Nro',
+        'Fecha de la Factura',
+        'Nro. de Factura',
+        'Nro. Control de la Factura',
+        'Nota de Debito',
+        'Nota Crédito',
+        'Nro. de Factura Afectada',
+        'Total Compras Incluyendo Iva',
+        'Compras sin derecho a Crédito Iva',
+        'Base Imponible',
+        '%\nAlicuota',
+        'Impuesto Iva',
+        'Impuesto Retenido',
+      ];
       const row17 = worksheet.addRow(headerRow);
-      
+
       row17.eachCell((cell) => {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F2F2F2' } };
-        cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
         cell.font = { size: 9, bold: true };
         cell.alignment = { wrapText: true, horizontal: 'center' };
       });
 
-      datos.facturas.forEach((fact, index) => {
+      datos.facturas.forEach((fact) => {
         const dataRow = [
           '',
           fact.operacion,
@@ -239,21 +320,26 @@ export class ExcelService {
           fact.baseImponible,
           fact.porcentajeIva,
           fact.iva,
-          fact.retenido
+          fact.retenido,
         ];
         const row = worksheet.addRow(dataRow);
-        row.eachCell(cell => {
-          cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
         });
       });
 
       worksheet.getCell(`C29`).value = '      ____________________________';
       worksheet.getCell(`C30`).value = '            Agente de Retención';
-      worksheet.getCell('C31').value = "                     Firma y Sello";
+      worksheet.getCell('C31').value = '                     Firma y Sello';
 
       worksheet.getCell(`I29`).value = '      ____________________________';
       worksheet.getCell(`I30`).value = '            Agente de Retención';
-      worksheet.getCell('I31').value = "                     Firma y Sello";
+      worksheet.getCell('I31').value = '                     Firma y Sello';
 
       const buffer = await workbook.xlsx.writeBuffer();
       saveAs(new Blob([buffer]), `Comprobante_Retencion_IVA_${datos.numeroComprobante}.xlsx`);
@@ -269,18 +355,18 @@ export class ExcelService {
     await workbook.xlsx.load(arrayBuffer);
     const worksheet = workbook.getWorksheet(1);
 
-    if (!worksheet) throw new Error("No se encontró la hoja de trabajo.");
+    if (!worksheet) throw new Error('No se encontró la hoja de trabajo.');
 
     const estructura: EstructuraExcel = {
       celdas: [],
       fusiones: [],
       columnas: [],
-      imagenes: []
+      imagenes: [],
     };
 
-    const model = (worksheet as any).model;
+    const model = (worksheet as WorksheetWithModel).model;
     if (model && model.merges) {
-      estructura.fusiones = model.merges.map((range: any) => range.full);
+      estructura.fusiones = model.merges;
     }
 
     console.log('=== DEBUG MODEL IMAGES ===');
@@ -288,18 +374,18 @@ export class ExcelService {
     console.log('==========================');
 
     if (model && model.images) {
-      estructura.imagenes = model.images.map((img: any) => ({
+      estructura.imagenes = model.images.map((img) => ({
         name: img.name || 'image',
         extension: img.extension || 'png',
         tl: { col: img.tl?.col || 0, row: img.tl?.row || 0 },
-        size: { width: img.ext?.width || 100, height: img.ext?.height || 100 }
+        size: { width: img.ext?.width || 100, height: img.ext?.height || 100 },
       }));
     }
 
     worksheet.columns?.forEach((col, index) => {
       estructura.columnas.push({
         index: index + 1,
-        width: col.width || 10
+        width: col.width || 10,
       });
     });
 
@@ -313,8 +399,8 @@ export class ExcelService {
             alignment: cell.alignment,
             fill: cell.fill,
             border: cell.border,
-            numFmt: cell.numFmt
-          }
+            numFmt: cell.numFmt,
+          },
         });
       });
     });
@@ -322,11 +408,10 @@ export class ExcelService {
     return estructura;
   }
 
-
   private async getLogoBase64(): Promise<string> {
     const buffer = await this.getLogoBuffer();
     const base64 = btoa(
-      new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
     );
     return `data:image/png;base64,${base64}`;
   }
@@ -338,8 +423,7 @@ export class ExcelService {
     const periodoFiscal = `${fechaFactura.getFullYear()}-${String(fechaFactura.getMonth() + 1).padStart(2, '0')}`;
 
     let filasFacturas = '';
-    datos.facturas.forEach((fact, index) => {
-      const rowNum = 23 + index;
+    datos.facturas.forEach((fact) => {
       filasFacturas += `
         <tr>
           <td>${fact.operacion}</td>
@@ -512,32 +596,35 @@ export class ExcelService {
     `;
   }
 
-  async extraerDatosPDF(file: File): Promise<any> {
+  async extraerDatosPDF(file: File): Promise<ExtractedPdfData> {
     const arrayBuffer = await file.arrayBuffer();
     const pdfDoc = await PDFDocument.load(arrayBuffer);
-    
+
     const form = pdfDoc.getForm();
     const fields = form.getFields();
-    
-    const resultado: any = {
+
+    const resultado: ExtractedPdfData = {
       esFormulario: fields.length > 0,
-      campos: [] as string[],
-      texto: ''
+      campos: [],
+      texto: '',
+      numeroPaginas: pdfDoc.getPageCount(),
     };
 
     if (fields.length > 0) {
-      fields.forEach(f => {
+      fields.forEach((f) => {
         const name = f.getName();
         let value = '';
         try {
-          if ('getText' in f) {
-            value = (f as any).getText() || '';
-          } else if ('getRadioGroup' in f) {
-            value = (f as any).getSelected() || '';
-          } else if ('getCheckBox' in f) {
-            value = (f as any).isChecked() ? 'marcado' : 'no marcado';
+          if (f instanceof PDFTextField) {
+            value = f.getText() || '';
+          } else if (f instanceof PDFRadioGroup) {
+            value = f.getSelected() || '';
+          } else if (f instanceof PDFCheckBox) {
+            value = f.isChecked() ? 'marcado' : 'no marcado';
           }
-        } catch (e) {}
+        } catch {
+          value = '';
+        }
         resultado.campos.push(`${name}: ${value}`);
       });
     }

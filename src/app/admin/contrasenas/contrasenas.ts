@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -19,7 +19,7 @@ interface ContrasenaAuditoria {
 @Component({
   selector: 'app-admin-contrasenas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './contrasenas.html',
   styleUrl: './contrasenas.css',
 })
@@ -40,7 +40,9 @@ export class AdminContrasenas implements OnInit {
 
   ngOnInit() {
     if (!this.esRoot()) {
-      this.error.set('No tienes acceso a esta sección. Solo el usuario root puede ver las contraseñas.');
+      this.error.set(
+        'No tienes acceso a esta sección. Solo el usuario root puede ver las contraseñas.',
+      );
       this.cargando.set(false);
       return;
     }

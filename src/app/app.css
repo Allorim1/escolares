@@ -173,6 +173,63 @@ a.nav-btn.primary:hover {
   box-sizing: border-box;
 }
 
+html,
+body,
+app-root,
+main {
+  max-width: 100%;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+table {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .table-container,
+  .tabla-container,
+  [class*="-table-container"],
+  [class*="-container"]:not(.modal):not(.checkout-modal) {
+    max-width: 100%;
+  }
+
+  .table-container,
+  [class*="table-container"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: max-content;
+  }
+
+  .modal,
+  [class*="-modal"] {
+    max-width: calc(100vw - 24px);
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+}
+
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
@@ -238,6 +295,15 @@ input, select, textarea, button {
   
   input, select, textarea {
     min-height: 44px;
+  }
+  .checkout-modal,
+  .modal,
+  [class*="-modal"] {
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+  }
+  .checkout-modal {
+    max-height: calc(100dvh - 16px);
   }
 }
 

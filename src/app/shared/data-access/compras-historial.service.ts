@@ -123,7 +123,7 @@ export class ComprasHistorialService {
     return this.http.get<Compra>(`${this.API}/${id}`).pipe(
       catchError((err) => {
         console.error('Error cargando compra:', err);
-        return of(null as unknown as Compra);
+        return of(null);
       }),
     );
   }
@@ -132,7 +132,7 @@ export class ComprasHistorialService {
     return this.http.post<Compra>(this.API, data).pipe(
       catchError((err) => {
         console.error('Error creando compra:', err);
-        return of(null as unknown as Compra);
+        return of(null);
       }),
     );
   }
@@ -141,7 +141,7 @@ export class ComprasHistorialService {
     return this.http.put<Compra>(`${this.API}/${id}`, data).pipe(
       catchError((err) => {
         console.error('Error actualizando compra:', err);
-        return of(null as unknown as Compra);
+        return of(null);
       }),
     );
   }
@@ -213,7 +213,7 @@ export class ComprasHistorialService {
     return this.http.post<AcuerdoComercial>(`${this.API}/acuerdos-comerciales`, data).pipe(
       catchError((err) => {
         console.error('Error creando acuerdo:', err);
-        return of(null as unknown as AcuerdoComercial);
+        return of(null);
       }),
     );
   }
@@ -240,7 +240,7 @@ export class ComprasHistorialService {
     return this.http.put<AcuerdoComercial>(`${this.API}/acuerdos-comerciales/${id}`, data).pipe(
       catchError((err) => {
         console.error('Error actualizando acuerdo:', err);
-        return of(null as unknown as AcuerdoComercial);
+        return of(null);
       }),
     );
   }

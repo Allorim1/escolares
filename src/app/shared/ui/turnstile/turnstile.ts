@@ -13,10 +13,18 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../../environments/environment';
 
+interface TurnstileOptions {
+  sitekey: string;
+  theme: 'light' | 'dark' | 'auto';
+  callback: (token: string) => void;
+  'expired-callback': () => void;
+  'error-callback': () => void;
+}
+
 declare global {
   interface Window {
     turnstile?: {
-      render: (container: string | HTMLElement, options: Record<string, unknown>) => string;
+      render: (container: string | HTMLElement, options: TurnstileOptions) => string;
       reset: (widgetId?: string) => void;
       remove: (widgetId?: string) => void;
     };

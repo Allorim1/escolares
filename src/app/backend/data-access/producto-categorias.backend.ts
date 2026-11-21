@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Product } from '../../shared/interfaces/product.interface';
 
 export interface ProductoCategoria {
   _id?: string;
@@ -12,7 +13,7 @@ export interface ProductoCategoria {
 }
 
 export interface ProductsResponse {
-  products: any[];
+  products: Product[];
   total: number;
 }
 
@@ -39,7 +40,7 @@ export class ProductoCategoriasBackend {
     return this.http.put<ProductoCategoria>(`${this.API_URL}/${id}`, categoria);
   }
 
-  delete(id: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/${id}`);
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}`);
   }
 }

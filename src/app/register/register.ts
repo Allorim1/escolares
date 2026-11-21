@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, effect, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../shared/data-access/auth.service';
@@ -8,7 +8,7 @@ import { Turnstile } from '../shared/ui/turnstile/turnstile';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Turnstile],
+  imports: [FormsModule, RouterLink, Turnstile],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -23,34 +23,45 @@ export class Register {
   email = signal('');
   password = signal('');
   confirmPassword = signal('');
-   showPassword = signal(false);
-   showConfirmPassword = signal(false);
-   telefono = signal('');
-   telefonoPrefijo = signal('0412');
-   direccion = signal('');
-   tipoPersona = signal<'natural' | 'juridica'>('natural');
-   nombreCompleto = signal('');
-   genero = signal<'hombre' | 'mujer' | 'no_especificado'>('no_especificado');
-   tipoDocumento = signal<'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e'>('cedula');
-   numeroDocumento = signal('');
-   aceptaTerminos = signal(false);
-   mayorEdad = signal(false);
-   mostrarModalConfirmacion = signal(false);
-   registroOk = signal(false);
+  showPassword = signal(false);
+  showConfirmPassword = signal(false);
+  telefono = signal('');
+  telefonoPrefijo = signal('0412');
+  direccion = signal('');
+  tipoPersona = signal<'natural' | 'juridica'>('natural');
+  nombreCompleto = signal('');
+  genero = signal<'hombre' | 'mujer' | 'no_especificado'>('no_especificado');
+  tipoDocumento = signal<
+    | 'cedula'
+    | 'rif'
+    | 'pasaporte'
+    | 'extranjero'
+    | 'gobierno'
+    | 'rif_personal_natural'
+    | 'rif_v'
+    | 'rif_e'
+  >('cedula');
+  numeroDocumento = signal('');
+  aceptaTerminos = signal(false);
+  mayorEdad = signal(false);
+  mostrarModalConfirmacion = signal(false);
+  registroOk = signal(false);
 
   // Computed para verificar si el formulario está completo
   formComplete = computed(() => {
-    return this.username().trim() !== '' &&
-           this.email().trim() !== '' &&
-           this.password().trim() !== '' &&
-           this.confirmPassword().trim() !== '' &&
-           this.numeroDocumento().trim() !== '' &&
-           this.telefono().trim() !== '' &&
-           this.direccion().trim() !== '' &&
-           this.nombreCompleto().trim() !== '' &&
-           this.mayorEdad() &&
-           this.aceptaTerminos() &&
-           this.turnstileToken() !== '';
+    return (
+      this.username().trim() !== '' &&
+      this.email().trim() !== '' &&
+      this.password().trim() !== '' &&
+      this.confirmPassword().trim() !== '' &&
+      this.numeroDocumento().trim() !== '' &&
+      this.telefono().trim() !== '' &&
+      this.direccion().trim() !== '' &&
+      this.nombreCompleto().trim() !== '' &&
+      this.mayorEdad() &&
+      this.aceptaTerminos() &&
+      this.turnstileToken() !== ''
+    );
   });
 
   telefonoPrefijos = ['0412', '0414', '0424', '0416', '0426', '0434', '0251'];
@@ -102,7 +113,7 @@ export class Register {
   async iniciarCamera() {
     try {
       this.cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
+        video: { facingMode: 'environment' },
       });
       this.videoElement = document.getElementById('cameraVideo') as HTMLVideoElement;
       if (this.videoElement) {
@@ -137,7 +148,7 @@ export class Register {
 
   cerrarCamera() {
     if (this.cameraStream) {
-      this.cameraStream.getTracks().forEach(track => track.stop());
+      this.cameraStream.getTracks().forEach((track) => track.stop());
       this.cameraStream = null;
     }
     this.showCamera.set(false);
@@ -160,7 +171,8 @@ export class Register {
     // Construir el número de documento con el prefijo correspondiente
     const documentoCompleto = this.construirDocumentoCompleto();
 
-    const mensaje = `Hola, me acabo de registrar en Escolares y te envío las fotos de mi identificación.\n\n` +
+    const mensaje =
+      `Hola, me acabo de registrar en Escolares y te envío las fotos de mi identificación.\n\n` +
       `Usuario: ${this.username()}\n` +
       `Email: ${this.email()}\n` +
       `Tipo Persona: ${this.tipoPersona()}\n` +
@@ -178,10 +190,11 @@ export class Register {
     switch (tipo) {
       case 'cedula':
         return 'V-' + numero;
-      case 'rif':
+      case 'rif': {
         // RIF normal: J- para jurídica, V- para natural
         const letraRif = persona === 'juridica' ? 'J' : 'V';
         return letraRif + '-' + numero;
+      }
       case 'rif_personal_natural':
         // RIF Personal Natural siempre usa V
         return 'V-' + numero;
@@ -225,7 +238,16 @@ export class Register {
 
     const telefonoCompleto = telefonoPrefijoValue + '-' + telefonoValue;
 
-    if (!user || !mail || !pass || !confirm || !numeroDocumentoValue || !telefonoValue || !direccionValue || !nombreCompletoValue) {
+    if (
+      !user ||
+      !mail ||
+      !pass ||
+      !confirm ||
+      !numeroDocumentoValue ||
+      !telefonoValue ||
+      !direccionValue ||
+      !nombreCompletoValue
+    ) {
       this.authService.registerError.set('Todos los campos son obligatorios');
       return;
     }
@@ -256,19 +278,24 @@ export class Register {
     }
 
     this.loading.set(true);
-    this.authService.register(user, mail, pass, {
-      rif: documentoCompleto,
-      telefono: telefonoCompleto,
-      direccion: direccionValue,
-      tipoPersona: tipoPersonaValue,
-      nombreCompleto: nombreCompletoValue,
-      genero: this.genero(),
-      tipoDocumento: tipoDocumentoValue,
-      numeroDocumento: numeroDocumentoValue,
-    }, this.turnstileToken());
+    this.authService.register(
+      user,
+      mail,
+      pass,
+      {
+        rif: documentoCompleto,
+        telefono: telefonoCompleto,
+        direccion: direccionValue,
+        tipoPersona: tipoPersonaValue,
+        nombreCompleto: nombreCompletoValue,
+        genero: this.genero(),
+        tipoDocumento: tipoDocumentoValue,
+        numeroDocumento: numeroDocumentoValue,
+      },
+      this.turnstileToken(),
+    );
     this.turnstile?.reset();
   }
-
 
   onRegisterSuccess() {
     this.registroOk.set(true);

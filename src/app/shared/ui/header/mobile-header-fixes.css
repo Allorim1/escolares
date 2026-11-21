@@ -26,6 +26,39 @@
   .address-text { max-width: 100px; font-size: 0.75rem; }
   .cart-btn img, .user-btn img { width: 26px; height: 26px; }
 }
+@media (max-width: 768px) {
+  .header-top {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .brand {
+    min-width: 0;
+  }
+  .header-search {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    order: initial;
+    margin: 0;
+  }
+  .header-icons {
+    min-width: 0;
+  }
+  .address-selector-container {
+    display: none;
+  }
+  .cart-preview-dropdown,
+  .address-popover,
+  .notifications-dropdown,
+  .dropdown-menu {
+    max-width: calc(100vw - 16px);
+  }
+  .cart-preview-dropdown {
+    right: -48px;
+  }
+  .notifications-dropdown {
+    right: -36px;
+  }
+}
 @media (max-width: 480px) {
   .header-top { padding: 8px 10px; min-height: 52px; }
   .brand-logo { height: 28px; }

@@ -63,20 +63,20 @@
 </div>
 
 @if (showModal()) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" role="button" tabindex="0" (click)="($event.target === $event.currentTarget) && (closeModal())" (keydown.escape)="closeModal()">
+    <div class="modal">
       <div class="modal-header">
         <h3>{{ editingCategoria() ? 'Editar' : 'Nueva' }} Categoría</h3>
         <button class="modal-close" (click)="closeModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" [(ngModel)]="newCategoria().nombre" placeholder="Nombre de la categoría" enterFocusNext />
+          <label for="categoria-nombre">Nombre</label>
+          <input id="categoria-nombre" type="text" [(ngModel)]="newCategoria().nombre" placeholder="Nombre de la categoría" appEnterFocusNext />
         </div>
         <div class="form-group">
-          <label>Orden</label>
-          <input type="number" [(ngModel)]="newCategoria().orden" placeholder="0" enterFocusNext />
+          <label for="categoria-orden">Orden</label>
+          <input id="categoria-orden" type="number" [(ngModel)]="newCategoria().orden" placeholder="0" appEnterFocusNext />
         </div>
         <div class="form-group checkbox">
           <label>
@@ -94,24 +94,24 @@
 }
 
 @if (showItemModal()) {
-  <div class="modal-overlay" (click)="closeItemModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" role="button" tabindex="0" (click)="($event.target === $event.currentTarget) && (closeItemModal())" (keydown.escape)="closeItemModal()">
+    <div class="modal">
       <div class="modal-header">
         <h3>{{ editingItemIndex() >= 0 ? 'Editar' : 'Nuevo' }} Item</h3>
         <button class="modal-close" (click)="closeItemModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Label</label>
-          <input type="text" [(ngModel)]="newItem().label" placeholder="Ej: Productos" enterFocusNext />
+          <label for="categoria-item-label">Label</label>
+          <input id="categoria-item-label" type="text" [(ngModel)]="newItem().label" placeholder="Ej: Productos" appEnterFocusNext />
         </div>
         <div class="form-group">
-          <label>Route</label>
-          <input type="text" [(ngModel)]="newItem().route" placeholder="Ej: productos" enterFocusNext />
+          <label for="categoria-item-route">Route</label>
+          <input id="categoria-item-route" type="text" [(ngModel)]="newItem().route" placeholder="Ej: productos" appEnterFocusNext />
         </div>
         <div class="form-group">
-          <label>Permiso (opcional)</label>
-          <input type="text" [(ngModel)]="newItem().permiso" placeholder="Ej: productos_gestionar" enterFocusNext />
+          <label for="categoria-item-permiso">Permiso (opcional)</label>
+          <input id="categoria-item-permiso" type="text" [(ngModel)]="newItem().permiso" placeholder="Ej: productos_gestionar" appEnterFocusNext />
         </div>
       </div>
       <div class="modal-footer">

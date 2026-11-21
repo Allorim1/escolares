@@ -15,14 +15,14 @@
     <div class="add-form">
       <button type="button" class="back-btn" (click)="isAdding.set(false)">← Volver</button>
       <div class="form-group">
-        <label>Nombre de la línea</label>
+        <label for="lint-associated-field-1">Nombre de la línea</label>
         <input
           type="text"
           [ngModel]="newLineaName()"
           (ngModelChange)="newLineaName.set($event)"
           placeholder="Nombre de la línea"
           class="linea-input"
-        />
+         id="lint-associated-field-1"/>
       </div>
       <div class="form-actions">
         <button class="save-btn" (click)="agregarLinea()">Agregar</button>

@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { Observable } from 'rxjs';
@@ -56,7 +56,13 @@ export interface OrderMessage {
   fecha: Date;
 }
 
-export type OrderStatus = 'confirmar' | 'pendiente' | 'procesando' | 'enviado' | 'entregado' | 'cancelado';
+export type OrderStatus =
+  | 'confirmar'
+  | 'pendiente'
+  | 'procesando'
+  | 'enviado'
+  | 'entregado'
+  | 'cancelado';
 
 export interface OrderHistorial {
   status: OrderStatus;
@@ -92,12 +98,10 @@ export interface CreateOrderData {
   providedIn: 'root',
 })
 export class OrdersBackend {
-  private readonly API_URL = '/api/orders';
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) {}
+  private readonly API_URL = '/api/orders';
 
   getOrders(): Observable<Order[]> {
     const user = this.authService.user();

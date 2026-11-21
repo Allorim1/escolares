@@ -247,8 +247,8 @@ export class WhatsAppStore implements OnDestroy {
     });
   }
 
-  reintentar(mensaje: WaMensaje): Promise<unknown> {
-    return firstValueFrom(this.http.post(`${API}/mensajes/${mensaje.id}/reintentar`, {}));
+  reintentar(mensaje: WaMensaje): Promise<void> {
+    return firstValueFrom(this.http.post<void>(`${API}/mensajes/${mensaje.id}/reintentar`, {}));
   }
 
   reintentarDescarga(mensaje: WaMensaje) {

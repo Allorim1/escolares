@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 export interface TasaGuardada {
@@ -10,12 +10,12 @@ export interface TasaGuardada {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TasasGuardadasService {
-  private apiUrl = '/api/tasas-guardadas';
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private apiUrl = '/api/tasas-guardadas';
 
   getAll(tipo?: string) {
     const url = tipo ? `${this.apiUrl}?tipo=${tipo}` : this.apiUrl;
@@ -28,18 +28,14 @@ export class TasasGuardadasService {
 
   save(nombre: string, tasas: Map<string, number>, tipo: 'actual' | 'anterior' = 'actual') {
     const tasasArray = Array.from(tasas.entries()).map(([fecha, valor]) => ({ fecha, valor }));
-    return this.http.post<{ success: boolean; id: string }>(this.apiUrl, { nombre, tasas: tasasArray, tipo });
+    return this.http.post<{ success: boolean; id: string }>(this.apiUrl, {
+      nombre,
+      tasas: tasasArray,
+      tipo,
+    });
   }
 
   delete(id: string) {
     return this.http.delete<{ success: boolean }>(`${this.apiUrl}/${id}`);
-  }
-
-  getTripleAnterior() {
-    return this.http.get<{ cents: number[]; fechas: string[] }>('/api/conversion/triple-anterior');
-  }
-
-  saveTripleAnterior(cents: [number, number, number], fechas: [string, string, string]) {
-    return this.http.post<{ success: boolean }>('/api/conversion/triple-anterior', { cents, fechas });
   }
 }

@@ -29,7 +29,7 @@
     </div>
   </aside>
 
-  <div class="admin-sidebar-overlay" [class.open]="quickAccessOpen() || categoriaExpandida() !== null" (click)="closeQuickAccess(); closeCategoriaSideboard()"></div>
+  <div class="admin-sidebar-overlay" role="button" tabindex="0" [class.open]="quickAccessOpen() || categoriaExpandida() !== null" (click)="closeQuickAccess(); closeCategoriaSideboard()" (keydown.escape)="closeQuickAccess(); closeCategoriaSideboard()"></div>
 
   <div class="quick-access-sidebar-menu" [class.open]="quickAccessOpen()">
     @for (quickItem of quickItems(); track quickItem.route) {

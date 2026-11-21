@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
+
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -15,7 +15,14 @@ interface PagoQrPublico {
     rif: string;
     titular: string;
   };
-  estado: 'esperando' | 'enviado' | 'validando' | 'validado' | 'rechazado' | 'cancelado' | 'vencido';
+  estado:
+    | 'esperando'
+    | 'enviado'
+    | 'validando'
+    | 'validado'
+    | 'rechazado'
+    | 'cancelado'
+    | 'vencido';
   mensaje: string | null;
   expiraEn: string;
   intentosRestantes: number;
@@ -23,7 +30,7 @@ interface PagoQrPublico {
 
 @Component({
   selector: 'app-pago-qr',
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './pago-qr.html',
   styleUrl: './pago-qr.css',
 })
@@ -76,7 +83,11 @@ export class PagoQr implements OnInit, OnDestroy {
   fechaPago = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Caracas' }).format(new Date());
 
   get puedeEnviar(): boolean {
-    return Boolean(this.solicitud && ['esperando', 'rechazado'].includes(this.solicitud.estado) && this.solicitud.intentosRestantes > 0);
+    return Boolean(
+      this.solicitud &&
+      ['esperando', 'rechazado'].includes(this.solicitud.estado) &&
+      this.solicitud.intentosRestantes > 0,
+    );
   }
 
   get vencido(): boolean {
@@ -103,8 +114,14 @@ export class PagoQr implements OnInit, OnDestroy {
     try {
       this.solicitud = await firstValueFrom(this.http.get<PagoQrPublico>(this.base));
       this.cargando = false;
-      if (this.solicitud.estado === 'rechazado') this.error = this.solicitud.mensaje || 'El banco no confirmó el pago. Revisa los datos e inténtalo otra vez.';
-      else if (this.solicitud.estado === 'vencido' || this.solicitud.estado === 'cancelado') this.error = this.solicitud.mensaje || 'Esta solicitud ya no está activa. Pide un nuevo QR en la caja.';
+      if (this.solicitud.estado === 'rechazado')
+        this.error =
+          this.solicitud.mensaje ||
+          'El banco no confirmó el pago. Revisa los datos e inténtalo otra vez.';
+      else if (this.solicitud.estado === 'vencido' || this.solicitud.estado === 'cancelado')
+        this.error =
+          this.solicitud.mensaje ||
+          'Esta solicitud ya no está activa. Pide un nuevo QR en la caja.';
       else this.error = '';
       if (['validado', 'vencido', 'cancelado'].includes(this.solicitud.estado) && this.intervalo) {
         clearInterval(this.intervalo);
@@ -112,7 +129,10 @@ export class PagoQr implements OnInit, OnDestroy {
       }
     } catch (error) {
       this.cargando = false;
-      this.error = this.mensajeError(error, 'No se pudo consultar la solicitud. Revisa tu conexión.');
+      this.error = this.mensajeError(
+        error,
+        'No se pudo consultar la solicitud. Revisa tu conexión.',
+      );
     } finally {
       this.consultando = false;
     }
@@ -123,13 +143,15 @@ export class PagoQr implements OnInit, OnDestroy {
     this.error = '';
     this.enviando = true;
     try {
-      await firstValueFrom(this.http.post(`${this.base}/datos`, {
-        cedula: `${this.nacionalidad}${this.cedula.replace(/\D/g, '')}`,
-        telefono: this.telefono.replace(/\D/g, ''),
-        banco: this.banco,
-        referencia: this.referencia.replace(/\D/g, ''),
-        fechaPago: this.fechaPago,
-      }));
+      await firstValueFrom(
+        this.http.post(`${this.base}/datos`, {
+          cedula: `${this.nacionalidad}${this.cedula.replace(/\D/g, '')}`,
+          telefono: this.telefono.replace(/\D/g, ''),
+          banco: this.banco,
+          referencia: this.referencia.replace(/\D/g, ''),
+          fechaPago: this.fechaPago,
+        }),
+      );
       this.solicitud = this.solicitud ? { ...this.solicitud, estado: 'enviado' } : null;
       this.error = '';
     } catch (error) {
@@ -156,7 +178,14 @@ export class PagoQr implements OnInit, OnDestroy {
   }
 
   private mensajeError(error: unknown, alternativo: string): string {
-    const body = (error as { error?: { message?: unknown } })?.error;
-    return typeof body?.message === 'string' ? body.message : alternativo;
+    const body = error instanceof Error && 'error' in error
+      ? error.error
+      : typeof error === 'object' && error !== null && 'error' in error
+        ? error.error
+        : undefined;
+    const message = typeof body === 'object' && body !== null && 'message' in body
+      ? body.message
+      : undefined;
+    return typeof message === 'string' ? message : alternativo;
   }
 }

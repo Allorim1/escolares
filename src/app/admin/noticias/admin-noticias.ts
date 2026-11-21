@@ -1,5 +1,5 @@
-import { Component, OnInit, signal, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, ChangeDetectorRef, inject } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { NoticiasService, Noticia } from '../../shared/data-access/noticias.service';
 import { catchError, of, timeout } from 'rxjs';
@@ -8,13 +8,15 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 @Component({
   selector: 'app-admin-noticias',
   standalone: true,
-  imports: [CommonModule, FormsModule, MarkdownPipe],
+  imports: [FormsModule, MarkdownPipe],
   templateUrl: './admin-noticias.html',
   styleUrl: './admin-noticias.css',
 })
 export class AdminNoticiasComponent implements OnInit {
    noticias = signal<Noticia[]>([]);
    loading = signal(true);
+   private readonly noticiasService = inject(NoticiasService);
+   private readonly cdr = inject(ChangeDetectorRef);
    error = signal<string | null>(null);
    editingId = signal<string | null>(null);
    previewMode = false;
@@ -25,16 +27,11 @@ export class AdminNoticiasComponent implements OnInit {
     importante: false
   };
 
-  constructor(
-    private noticiasService: NoticiasService,
-    private cdr: ChangeDetectorRef
-  ) {}
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadNoticias();
   }
 
-  insertMarkdown(type: string) {
+  insertMarkdown(type: string): void {
     const textarea = document.querySelector('textarea[name="contenido"]') as HTMLTextAreaElement;
     if (!textarea) return;
     
@@ -69,7 +66,7 @@ export class AdminNoticiasComponent implements OnInit {
         insertText = `![alt](url)`;
         cursorOffset = -5;
         break;
-      case 'youtube':
+      case 'youtube': {
         const ytId = prompt('Ingresa el ID del video de YouTube (ej: dQw4w9WgXcQ):');
         if (ytId) {
           insertText = `youtube: ${ytId}`;
@@ -78,6 +75,7 @@ export class AdminNoticiasComponent implements OnInit {
         }
         cursorOffset = 0;
         break;
+      }
       case 'list':
         insertText = `- ${selected || 'item de lista'}`;
         cursorOffset = 0;
@@ -158,7 +156,7 @@ crearNoticia() {
             importante: false
           };
         },
-        error: (err: any) => {
+        error: (err) => {
           console.error('Error creating noticia:', err);
           this.error.set('Error al crear la noticia');
         }
@@ -176,7 +174,7 @@ toggleActiva(noticia: Noticia) {
             return [...noticias];
           });
         },
-        error: (err: any) => {
+        error: (err) => {
           console.error('Error updating noticia:', err);
           this.error.set('Error al actualizar la noticia');
         }
@@ -194,7 +192,7 @@ toggleActiva(noticia: Noticia) {
             return [...noticias];
           });
         },
-        error: (err: any) => {
+        error: (err) => {
           console.error('Error updating noticia:', err);
           this.error.set('Error al actualizar la noticia');
         }

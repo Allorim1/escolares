@@ -4,8 +4,8 @@ import {
   ElementRef,
   ViewChildren,
   QueryList,
-  Inject,
   PLATFORM_ID,
+  inject,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -16,6 +16,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './how-buy.css',
 })
 export class HowBuy implements AfterViewInit {
+  private platformId = inject(PLATFORM_ID);
+
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
   steps = [
@@ -40,8 +42,6 @@ export class HowBuy implements AfterViewInit {
       description: 'Te entregamos en la comodidad de tu hogar o puedes retirar en tienda.',
     },
   ];
-
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {

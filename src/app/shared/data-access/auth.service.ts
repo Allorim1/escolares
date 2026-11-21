@@ -42,7 +42,7 @@ export class AuthService {
     return this.backend.currentUser();
   }
 
-  updateProfile(profileData: Partial<User>): Observable<any> | undefined {
+  updateProfile(profileData: Partial<User>): Observable<User> | undefined {
     return this.backend.updateProfile(profileData);
   }
 

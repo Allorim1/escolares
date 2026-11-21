@@ -131,7 +131,7 @@ export class CurrencyService {
     this.saveToStorage(display);
     
     // Save to backend (only root users can actually change it)
-    this.http.put<any>(this.API_CURRENCY_DISPLAY, { display }).subscribe({
+    this.http.put<{ display?: CurrencyDisplay }>(this.API_CURRENCY_DISPLAY, { display }).subscribe({
       next: (data) => {
         if (data && data.display) {
           // Confirm with server response

@@ -88,7 +88,7 @@
   margin-bottom: 1rem;
 }
 
-.form-group label {
+.form-group :is(label, .static-field-label) {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;

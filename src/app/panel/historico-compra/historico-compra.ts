@@ -34,19 +34,8 @@ export class HistoricoCompra implements OnInit {
 
   loadOrders() {
     this.ordersBackend.getOrders().subscribe({
-      next: (response: any) => {
-        let orders: Order[] = [];
-        // Handle array response or object with orders/data property
-        if (Array.isArray(response)) {
-          orders = response;
-        } else if (response && typeof response === 'object') {
-          if (Array.isArray(response.orders)) {
-            orders = response.orders;
-          } else if (Array.isArray(response.data)) {
-            orders = response.data;
-          }
-        }
-        this.orders.set(orders);
+      next: (response) => {
+        this.orders.set(response);
         this.loading.set(false);
       },
       error: (err) => {

@@ -209,11 +209,11 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
 
   loading = signal(false);
   error = signal<string | null>(null);
-  private mensajesInterval: any;
+  private mensajesInterval: number | null = null;
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
-  private mensajesPollingInterval: any;
+  private mensajesPollingInterval: number | null = null;
   private readonly manejarEnfoqueVentana = () => this.actualizarMensajes();
   private readonly manejarCambioVisibilidad = () => {
     if (document.visibilityState === 'visible') {
@@ -229,7 +229,7 @@ export class AdminRedesSociales implements OnInit, OnDestroy {
   }
 
   private iniciarPollingMensajes() {
-    this.mensajesPollingInterval = setInterval(() => {
+    this.mensajesPollingInterval = window.setInterval(() => {
       this.actualizarMensajes();
     }, 5000);
   }
@@ -388,7 +388,7 @@ private iniciarVerificacionMensajes() {
             };
 
             // Verificar si el mensaje ya existe
-            if (!mensajesPrevios.some((m: any) => m.id === nuevoMensaje.id)) {
+            if (!mensajesPrevios.some((m) => m.id === nuevoMensaje.id)) {
               const nuevosMensajes = [nuevoMensaje, ...mensajesPrevios];
               this.mensajes.set(nuevosMensajes);
               this.sincronizarChatSeleccionado();

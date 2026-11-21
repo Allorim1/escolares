@@ -13,13 +13,10 @@ export class CartItem {
    
    productCartItem = input.required<ProductItemCart>();
 
-   onRemove = output<number | string>();
-
-   onIncrease = output<ProductItemCart>();
-
-   onDecrease = output<ProductItemCart>();
-
-   onSaveForLater = output<ProductItemCart['product']>();
+   remove = output<number | string>();
+   increase = output<ProductItemCart>();
+   decrease = output<ProductItemCart>();
+   saveForLater = output<ProductItemCart['product']>();
 
    // Format price based on current currency display
    formatPrice(priceInUsd: number): string {

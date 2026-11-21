@@ -66,8 +66,8 @@ export class RedesSocialesBackend {
     return this.http.put<RedSocial>(`${this.API_URL}/redes/${id}`, redSocial);
   }
 
-  deleteRedSocial(id: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/redes/${id}`);
+  deleteRedSocial(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/redes/${id}`);
   }
 
   // Mensajes
@@ -83,8 +83,8 @@ export class RedesSocialesBackend {
     return this.http.put<MensajeRedSocial>(`${this.API_URL}/mensajes/${id}`, mensaje);
   }
 
-  deleteMensaje(id: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/mensajes/${id}`);
+  deleteMensaje(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/mensajes/${id}`);
   }
 
   // Respuestas Automáticas
@@ -100,8 +100,8 @@ export class RedesSocialesBackend {
     return this.http.put<RespuestaAutomatica>(`${this.API_URL}/respuestas-automaticas/${id}`, respuesta);
   }
 
-  deleteRespuestaAutomatica(id: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/respuestas-automaticas/${id}`);
+  deleteRespuestaAutomatica(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/respuestas-automaticas/${id}`);
   }
 
   // Notificaciones
@@ -117,7 +117,7 @@ export class RedesSocialesBackend {
     return this.http.put<NotificacionRedSocial>(`${this.API_URL}/notificaciones/${id}`, notificacion);
   }
 
-  deleteNotificacion(id: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/notificaciones/${id}`);
+  deleteNotificacion(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/notificaciones/${id}`);
   }
 }

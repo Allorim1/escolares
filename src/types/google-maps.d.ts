@@ -1,11 +1,17 @@
-﻿declare namespace google {
+declare namespace google {
   namespace maps {
     interface MapOptions {
       center?: LatLngLiteral;
       zoom?: number;
       mapTypeId?: MapTypeId;
       disableDefaultUI?: boolean;
-      styles?: any[];
+      styles?: MapTypeStyle[];
+    }
+
+    interface MapTypeStyle {
+      featureType?: string;
+      elementType?: string;
+      stylers?: Record<string, string | number | boolean>[];
     }
 
     interface LatLngLiteral {
@@ -50,9 +56,48 @@
     }
 
     interface DirectionsResult {
-      routes: any[];
+      routes: DirectionsRoute[];
       status: string;
-      geocoded_waypoints?: any[];
+      geocoded_waypoints?: GeocodedWaypoint[];
+    }
+
+    interface DirectionsRoute {
+      bounds?: LatLngBounds;
+      overview_path?: LatLng[];
+      summary?: string;
+      legs?: DirectionsLeg[];
+    }
+
+    interface DirectionsLeg {
+      duration?: { text: string };
+    }
+
+    namespace places {
+      interface PlaceResult {
+        geometry?: { location?: LatLng };
+        place_id?: string;
+        formatted_address?: string;
+        address_components?: { types: string[]; long_name: string; short_name: string }[];
+      }
+
+      class Autocomplete {
+        constructor(
+          input: HTMLInputElement,
+          options?: {
+            componentRestrictions?: { country: string };
+            fields?: string[];
+          },
+        );
+        addListener(eventName: string, handler: () => void): MapsEventListener;
+        getPlace(): PlaceResult;
+        setTarget(element: HTMLInputElement): void;
+      }
+    }
+
+    interface GeocodedWaypoint {
+      geocoder_status: string;
+      place_id: string;
+      types: string[];
     }
 
     enum MapTypeId {
@@ -117,7 +162,7 @@
     }
 
     namespace event {
-      function trigger(instance: unknown, eventName: string): void;
+      function trigger(instance: object, eventName: string): void;
     }
 
     namespace marker {

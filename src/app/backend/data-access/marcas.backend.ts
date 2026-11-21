@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Marca } from '../models';
 
@@ -6,12 +6,14 @@ import { Marca } from '../models';
   providedIn: 'root',
 })
 export class MarcasBackend {
+  private http = inject(HttpClient);
+
   private readonly API_URL = '/api/marcas';
 
   marcas = signal<Marca[]>([]);
   isInitialized = signal(false);
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.loadFromApi();
   }
 

@@ -1,6 +1,7 @@
 <div class="rating-container" [class.interactive]="isInteractive">
   @for (star of stars; track star.value; let i = $index) {
-    <span 
+    <button
+      type="button"
       class="star"
       [class.filled]="star.filled"
       [class.hovered]="star.hovered"
@@ -9,7 +10,8 @@
       (mouseenter)="onMouseEnter(i)"
       (mouseleave)="onMouseLeave()"
       (click)="onClick(i)"
-    >★</span>
+      [attr.aria-label]="'Calificar con ' + star.value + ' estrellas'"
+    >★</button>
   }
   <span class="rating-info">
     @if (count > 0) {

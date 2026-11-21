@@ -15,8 +15,6 @@ interface DireccionUsuario extends Direccion {
   placeId?: string;
 }
 
-declare const google: any;
-
 @Component({
   selector: 'app-direcciones',
   standalone: true,
@@ -44,12 +42,12 @@ export class Direcciones implements AfterViewInit {
   formLatitud = signal<number | null>(null);
   formLongitud = signal<number | null>(null);
 
-  @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
-  @ViewChild('addressInput', { static: false }) addressInput!: ElementRef;
+  @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef<HTMLElement>;
+  @ViewChild('addressInput', { static: false }) addressInput!: ElementRef<HTMLInputElement>;
   
-  private map: any = null;
-  private marker: any = null;
-  private placesAutocomplete: any = null;
+  private map: google.maps.Map | null = null;
+  private marker: google.maps.Marker | null = null;
+  private placesAutocomplete: google.maps.places.Autocomplete | null = null;
   private listenerClickAgregado = false;
 
   readonly estadosVenezuela = [
@@ -184,7 +182,9 @@ export class Direcciones implements AfterViewInit {
   }
 
   private onPlaceSelected() {
-    const place = this.placesAutocomplete.getPlace();
+    const autocomplete = this.placesAutocomplete;
+    if (!autocomplete) return;
+    const place = autocomplete.getPlace();
     
     if (place.geometry && place.geometry.location) {
       this.formLatitud.set(place.geometry.location.lat());
@@ -286,12 +286,12 @@ export class Direcciones implements AfterViewInit {
       estado: d.estado || '',
       codigoPostal: d.codigoPostal || '',
       principal: !!d.principal,
-      latitud: d.latitud || null,
-      longitud: d.longitud || null,
-      placeId: d.placeId || null,
+      latitud: d.latitud,
+      longitud: d.longitud,
+      placeId: d.placeId,
     }));
 
-    const req = this.authService.updateProfile({ direcciones: payload as any });
+    const req = this.authService.updateProfile({ direcciones: payload });
     if (!req) {
       this.guardando.set(false);
       this.error.set('No se pudo actualizar tu perfil. Inicia sesión nuevamente.');
@@ -398,14 +398,9 @@ export class Direcciones implements AfterViewInit {
         }
       } else {
         const position = { lat, lng };
-        (this.map as any).setCenter(position);
+        this.map.setCenter(position);
         if (this.marker) {
-          const m = this.marker as any;
-          if (m.setPosition) {
-            m.setPosition(position);
-          } else {
-            m.position = position;
-          }
+          this.marker.setPosition(position);
         } else {
           this.marker = this.mapsService.createMarker({
             position,

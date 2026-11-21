@@ -44,25 +44,25 @@
 </div>
 
 @if (showModal()) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeModal())" tabindex="0" (keydown.enter)="closeModal()" (keydown.space)="closeModal(); $event.preventDefault()">
+    <div class="modal">
       <div class="modal-header">
         <h3>{{ editingCategoria() ? 'Editar' : 'Nueva' }} Categoría</h3>
         <button class="modal-close" (click)="closeModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Nombre *</label>
-          <input type="text" [(ngModel)]="formNombre" placeholder="Nombre de la categoría" enterFocusNext />
+          <label for="lint-associated-field-1">Nombre *</label>
+          <input type="text" [(ngModel)]="formNombre" placeholder="Nombre de la categoría" appEnterFocusNext  id="lint-associated-field-1"/>
         </div>
         <div class="form-group">
-          <label>Descripción</label>
-          <textarea [(ngModel)]="formDescripcion" placeholder="Descripción (opcional)" enterFocusNext></textarea>
+          <label for="lint-associated-field-2">Descripción</label>
+          <textarea [(ngModel)]="formDescripcion" placeholder="Descripción (opcional)" appEnterFocusNext id="lint-associated-field-2"></textarea>
           <div class="form-hint">Breve descripción de la categoría</div>
         </div>
         <div class="form-group">
-          <label>Imagen URL</label>
-          <input type="text" [(ngModel)]="formImagen" placeholder="URL de la imagen (opcional)" enterFocusNext />
+          <label for="lint-associated-field-3">Imagen URL</label>
+          <input type="text" [(ngModel)]="formImagen" placeholder="URL de la imagen (opcional)" appEnterFocusNext  id="lint-associated-field-3"/>
           <div class="form-hint">Enlace a la imagen de la categoría</div>
           @if (formImagen && !imagenError()) {
             <div class="imagen-preview">
@@ -75,8 +75,8 @@
           }
         </div>
         <div class="form-group">
-          <label>Orden</label>
-          <input type="number" [(ngModel)]="formOrden" placeholder="0" enterFocusNext />
+          <label for="lint-associated-field-4">Orden</label>
+          <input type="number" [(ngModel)]="formOrden" placeholder="0" appEnterFocusNext  id="lint-associated-field-4"/>
           <div class="form-hint">Orden de visualización (menor aparece primero)</div>
         </div>
       </div>
@@ -89,8 +89,8 @@
 }
 
 @if (showProductsModal()) {
-  <div class="modal-overlay" (click)="closeProductsModal()">
-    <div class="modal products-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeProductsModal())" tabindex="0" (keydown.enter)="closeProductsModal()" (keydown.space)="closeProductsModal(); $event.preventDefault()">
+    <div class="modal products-modal">
       <div class="modal-header">
         <h3>Productos en "{{ selectedCategoria()?.nombre }}"</h3>
         <button class="modal-close" (click)="closeProductsModal()">&times;</button>

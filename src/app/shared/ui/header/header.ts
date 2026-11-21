@@ -7,6 +7,7 @@ import { CartStateService } from '../../data-access/cart-state.service';
 import { CurrencyService } from '../../data-access/currency.service';
 import { Product, ProductItemCart } from '../../../shared/interfaces/product.interface';
 import { NoticiasService } from '../../data-access/noticias.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -50,10 +51,10 @@ export class Header implements OnInit, OnDestroy {
   notifications = () => this.noticiasService.userNotificaciones();
   hasNotifications = () => this.noticiasService.userNotificaciones().length > 0;
 
-  private notificationsSubscription: any;
+  private notificationsSubscription: Subscription | null = null;
 
   constructor() {
-    this.productsService.getProducts().subscribe((response: any) => {
+    this.productsService.getProducts().subscribe((response) => {
       const products = Array.isArray(response) ? response : (response?.products || []);
       this.allProducts.set(products);
     });
@@ -163,13 +164,13 @@ export class Header implements OnInit, OnDestroy {
 
   mobileMenuOpen = signal(false);
   userDropdownOpen = signal(false);
-  private dropdownTimer: any = null;
-  private cartPreviewTimer: any = null;
-  private searchTimer: any = null;
+  private dropdownTimer: ReturnType<typeof setTimeout> | null = null;
+  private cartPreviewTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
   notificationsOpen = signal(false);
-  notificationsTimer: any = null;
+  notificationsTimer: ReturnType<typeof setTimeout> | null = null;
   quickAccessOpen = signal(false);
-  private quickAccessTimer: any = null;
+  private quickAccessTimer: ReturnType<typeof setTimeout> | null = null;
 
    onSearchEnter() {
      if (this.searchTimer) {
@@ -349,7 +350,7 @@ onSearchInput() {
     if (query || this.selectedCategory()) {
       if (query) this.addToSearchHistory(query);
 
-      const queryParams: any = {};
+      const queryParams: { search?: string; category?: string } = {};
       if (query) queryParams.search = query;
       if (this.selectedCategory()) queryParams.category = this.selectedCategory();
 
@@ -429,7 +430,6 @@ onSearchInput() {
     const notificacion = this.noticiasService.userNotificaciones().find(n => n.noticiaId === id);
     if (notificacion) {
       this.noticiasService.markNotificationAsRead(notificacion.id).subscribe({
-        next: () => {},
         error: (err: Error) => {
           console.error('Error marking notification as read:', err);
         }

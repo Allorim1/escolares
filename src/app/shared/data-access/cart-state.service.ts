@@ -47,7 +47,7 @@ export class CartStateService {
       update: (state, action$: Observable<ProductItemCart>) =>
         action$.pipe(map((product) => this.update(state, product))),
       clear: (state, action$: Observable<void>) =>
-        action$.pipe(map(() => this.clear(state))),
+        action$.pipe(map(() => this.clear())),
     },
     effects: (state) => ({
       load: () => {
@@ -106,7 +106,7 @@ export class CartStateService {
      return { products };
    }
 
-  private clear(state: Signal<State>) {
+  private clear() {
     return { products: [] };
   }
 }

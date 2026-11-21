@@ -112,7 +112,7 @@
     <span class="arrow-icon">▼</span>
   </button>
   @if (addressPopoverOpen()) {
-    <div class="address-popover" (click)="$event.stopPropagation()">
+    <div class="address-popover">
       <div class="popover-arrow"></div>
       <div class="popover-header">
         <h3>¿A dónde quieres pedir?</h3>
@@ -120,12 +120,12 @@
       <div class="popover-body">
         @if (userAddresses().length > 0) {
           @for (address of userAddresses(); track address.id) {
-            <div class="address-item"
+            <button type="button" class="address-item"
                [class.active]="address.id === selectedAddressId()"
                (click)="selectAddress(address)">
               <span class="address-alias">{{ address.alias || address.nombre || 'Dirección' }}</span>
               <span class="address-details">{{ address.direccion }}</span>
-            </div>
+            </button>
           }
         } @else {
           <div class="address-empty">

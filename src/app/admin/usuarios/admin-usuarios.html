@@ -1,5 +1,9 @@
 <section class="usuarios-container">
-  <img src="/ESCOLARES AZUL RIF GRANDE.png" alt="Logo" style="height: 50px; display: block; margin-bottom: 10px;">
+  <img
+    src="/ESCOLARES AZUL RIF GRANDE.png"
+    alt="Logo"
+    style="height: 50px; display: block; margin-bottom: 10px"
+  />
   <h3>Control de Usuarios</h3>
 
   @if (!esRoot()) {
@@ -15,16 +19,16 @@
   } @else {
     <div class="filtros-usuarios">
       <div class="busqueda-container">
-        <input 
-          type="text" 
-          placeholder="Buscar por nombre, cédula o email..." 
+        <input
+          type="text"
+          placeholder="Buscar por nombre, cédula o email..."
           [value]="filtroTexto"
           (input)="onFiltroTextoChange($any($event.target).value)"
           class="busqueda-input"
         />
       </div>
       <div class="filtro-tipo-container">
-        <select 
+        <select
           [value]="filtroTipo"
           (change)="onFiltroTipoChange($any($event.target).value)"
           class="filtro-tipo-select"
@@ -67,7 +71,7 @@
 
 @if (showCreateModal()) {
   <div class="modal-overlay">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-content">
       <div class="modal-header">
         <h3>Crear Nuevo Usuario</h3>
         <button class="close-btn" (click)="closeCreateUser()">&times;</button>
@@ -78,33 +82,78 @@
           <div class="form-section-title">Información de Acceso</div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Usuario *</label>
-              <input type="text" [(ngModel)]="newUser.username" placeholder="Nombre de usuario" enterFocusNext />
+              <label for="lint-associated-field-1">Usuario *</label>
+              <input
+                type="text"
+                [(ngModel)]="newUser.username"
+                placeholder="Nombre de usuario"
+                appEnterFocusNext
+               id="lint-associated-field-1"/>
             </div>
-<div class="form-group password-group">
-               <label>Contraseña *</label>
-               <div class="password-input-container">
-                 <input [type]="showPassword() ? 'text' : 'password'" [(ngModel)]="newUser.password" placeholder="Contraseña" enterFocusNext />
-                 <button type="button" class="toggle-password" (click)="showPassword.set(!showPassword())" tabindex="-1" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-                   <svg *ngIf="!showPassword()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                     <circle cx="12" cy="12" r="3"></circle>
-                   </svg>
-                   <svg *ngIf="showPassword()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                     <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"></path>
-                     <line x1="1" y1="1" x2="23" y2="23"></line>
-                   </svg>
-                 </button>
-               </div>
-             </div>
+            <div class="form-group password-group">
+              <label for="lint-associated-field-2">Contraseña *</label>
+              <div class="password-input-container">
+                <input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  [(ngModel)]="newUser.password"
+                  placeholder="Contraseña"
+                  appEnterFocusNext
+                 id="lint-associated-field-2"/>
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="showPassword.set(!showPassword())"
+                  tabindex="-1"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                >
+                  @if (!showPassword()) {
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#666"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  }
+                  @if (showPassword()) {
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#666"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+                      ></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  }
+                </button>
+              </div>
+            </div>
             <div class="form-group">
-              <label>Email *</label>
-              <input type="email" [(ngModel)]="newUser.email" placeholder="correo@ejemplo.com" enterFocusNext />
+              <label for="lint-associated-field-3">Email *</label>
+              <input
+                type="email"
+                [(ngModel)]="newUser.email"
+                placeholder="correo@ejemplo.com"
+                appEnterFocusNext
+               id="lint-associated-field-3"/>
             </div>
             @if (roles().length > 0) {
               <div class="form-group">
-                <label>Seleccionar Rol Específico</label>
-                <select [(ngModel)]="newUser.rolId" enterFocusNext>
+                <label for="lint-associated-field-4">Seleccionar Rol Específico</label>
+                <select [(ngModel)]="newUser.rolId" appEnterFocusNext id="lint-associated-field-4">
                   <option value="">-- Seleccionar rol --</option>
                   @for (rol of roles(); track rol.id) {
                     <option [value]="rol.id">{{ rol.nombre }}</option>
@@ -119,17 +168,27 @@
           <div class="form-section-title">Datos Personales</div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Nombre</label>
-              <input type="text" [(ngModel)]="newUser.nombreCompleto" placeholder="Nombre completo" enterFocusNext />
+              <label for="lint-associated-field-5">Nombre</label>
+              <input
+                type="text"
+                [(ngModel)]="newUser.nombreCompleto"
+                placeholder="Nombre completo"
+                appEnterFocusNext
+               id="lint-associated-field-5"/>
             </div>
             <div class="form-group">
-              <label>Apellido</label>
-              <input type="text" [(ngModel)]="newUser.apellido" placeholder="Apellido" enterFocusNext />
+              <label for="lint-associated-field-6">Apellido</label>
+              <input
+                type="text"
+                [(ngModel)]="newUser.apellido"
+                placeholder="Apellido"
+                appEnterFocusNext
+               id="lint-associated-field-6"/>
             </div>
 
             <div class="form-group">
               <label for="tipoDocumento">Tipo de Documento</label>
-              <select id="tipoDocumento" [(ngModel)]="newUser.tipoDocumento" enterFocusNext>
+              <select id="tipoDocumento" [(ngModel)]="newUser.tipoDocumento" appEnterFocusNext>
                 <option value="cedula">Cédula</option>
                 <option value="rif">RIF</option>
                 <option value="rif_personal_natural">RIF Personal Natural</option>
@@ -165,17 +224,25 @@
                 type="text"
                 id="numeroDocumento"
                 [(ngModel)]="newUser.numeroDocumento"
-                enterFocusNext
+                appEnterFocusNext
                 [placeholder]="
-                  newUser.tipoDocumento === 'rif' ? 'J-12345678-9' :
-                  newUser.tipoDocumento === 'cedula' ? '12345678' :
-                  newUser.tipoDocumento === 'pasaporte' ? 'PA12345678' :
-                  newUser.tipoDocumento === 'extranjero' ? 'E-12345678' :
-                  newUser.tipoDocumento === 'gobierno' ? 'G-12345678' :
-                  newUser.tipoDocumento === 'rif_personal_natural' ? 'V-12345678-9' :
-                  newUser.tipoDocumento === 'rif_v' ? 'V-12345678-9' :
-                  newUser.tipoDocumento === 'rif_e' ? 'E-12345678-9' :
-                  'Número de documento'
+                  newUser.tipoDocumento === 'rif'
+                    ? 'J-12345678-9'
+                    : newUser.tipoDocumento === 'cedula'
+                      ? '12345678'
+                      : newUser.tipoDocumento === 'pasaporte'
+                        ? 'PA12345678'
+                        : newUser.tipoDocumento === 'extranjero'
+                          ? 'E-12345678'
+                          : newUser.tipoDocumento === 'gobierno'
+                            ? 'G-12345678'
+                            : newUser.tipoDocumento === 'rif_personal_natural'
+                              ? 'V-12345678-9'
+                              : newUser.tipoDocumento === 'rif_v'
+                                ? 'V-12345678-9'
+                                : newUser.tipoDocumento === 'rif_e'
+                                  ? 'E-12345678-9'
+                                  : 'Número de documento'
                 "
                 class="rif-input"
               />
@@ -183,7 +250,7 @@
 
             <div class="form-group">
               <label for="genero">Género</label>
-              <select id="genero" [(ngModel)]="newUser.genero" enterFocusNext>
+              <select id="genero" [(ngModel)]="newUser.genero" appEnterFocusNext>
                 <option value="no_especificado">No especificado</option>
                 <option value="hombre">Hombre</option>
                 <option value="mujer">Mujer</option>
@@ -191,8 +258,13 @@
             </div>
 
             <div class="form-group">
-              <label>Teléfono</label>
-              <input type="text" [(ngModel)]="newUser.telefono" placeholder="Número de teléfono" enterFocusNext />
+              <label for="lint-associated-field-7">Teléfono</label>
+              <input
+                type="text"
+                [(ngModel)]="newUser.telefono"
+                placeholder="Número de teléfono"
+                appEnterFocusNext
+               id="lint-associated-field-7"/>
             </div>
           </div>
         </div>
@@ -201,49 +273,75 @@
           <div class="form-section-title">Dirección y Comentarios</div>
           <div class="form-grid">
             <div class="form-group full-width">
-              <label>
-                @if (newUser.tipoDocumento === 'rif' || newUser.tipoDocumento === 'rif_personal_natural' || newUser.tipoDocumento === 'rif_v' || newUser.tipoDocumento === 'rif_e') {
+              <span class="static-field-label">
+                @if (
+                  newUser.tipoDocumento === 'rif' ||
+                  newUser.tipoDocumento === 'rif_personal_natural' ||
+                  newUser.tipoDocumento === 'rif_v' ||
+                  newUser.tipoDocumento === 'rif_e'
+                ) {
                   Dirección Fiscal
                 } @else {
                   Dirección
                 }
-              </label>
+              </span>
               <input
                 type="text"
                 [(ngModel)]="newUser.direccion"
-                enterFocusNext
-                [placeholder]="newUser.tipoDocumento === 'rif' || newUser.tipoDocumento === 'rif_personal_natural' || newUser.tipoDocumento === 'rif_v' || newUser.tipoDocumento === 'rif_e' ? 'Dirección fiscal del negocio' : 'Dirección'"
+                appEnterFocusNext
+                [placeholder]="
+                  newUser.tipoDocumento === 'rif' ||
+                  newUser.tipoDocumento === 'rif_personal_natural' ||
+                  newUser.tipoDocumento === 'rif_v' ||
+                  newUser.tipoDocumento === 'rif_e'
+                    ? 'Dirección fiscal del negocio'
+                    : 'Dirección'
+                "
               />
             </div>
 
             <div class="form-group full-width">
-              <label>Comentarios</label>
-              <textarea [(ngModel)]="newUser.comentarios" rows="2" placeholder="Comentarios" enterFocusNext></textarea>
+              <label for="lint-associated-field-8">Comentarios</label>
+              <textarea
+                [(ngModel)]="newUser.comentarios"
+                rows="2"
+                placeholder="Comentarios"
+                appEnterFocusNext
+               id="lint-associated-field-8"></textarea>
             </div>
           </div>
         </div>
       </div>
 
-<div class="modal-footer">
-         <button class="btn-secondary" (click)="closeCreateUser()">Cancelar</button>
-         <button class="btn-primary" (click)="createUser()" enterFocusPrev>Crear Usuario</button>
-       </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeCreateUser()">Cancelar</button>
+        <button class="btn-primary" (click)="createUser()" enterFocusPrev>Crear Usuario</button>
+      </div>
     </div>
   </div>
 }
 
 @if (selectedUser()) {
-   <div class="modal-overlay">
-     <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+  <div class="modal-overlay">
+    <div class="modal-content modal-large">
       <div class="modal-header">
         <h3>Detalles del Usuario</h3>
         <button class="close-btn" (click)="closeUserDetails()">&times;</button>
       </div>
 
       <div class="user-details-tabs">
-        <button [class.active]="userDetailsTab() === 'info'" (click)="userDetailsTab.set('info')">Información</button>
-        <button [class.active]="userDetailsTab() === 'rol'" (click)="userDetailsTab.set('rol')">Rol</button>
-        <button [class.active]="userDetailsTab() === 'password'" (click)="userDetailsTab.set('password')">Contraseña</button>
+        <button [class.active]="userDetailsTab() === 'info'" (click)="userDetailsTab.set('info')">
+          Información
+        </button>
+        <button [class.active]="userDetailsTab() === 'rol'" (click)="userDetailsTab.set('rol')">
+          Rol
+        </button>
+        <button
+          [class.active]="userDetailsTab() === 'password'"
+          (click)="userDetailsTab.set('password')"
+        >
+          Contraseña
+        </button>
       </div>
 
       <div class="modal-body">
@@ -251,28 +349,32 @@
           @if (editingUser()) {
             <div class="form-grid">
               <div class="form-group">
-                <label>Usuario</label>
-                <input type="text" [(ngModel)]="editingUser()!.username" enterFocusNext />
+                <label for="lint-associated-field-9">Usuario</label>
+                <input type="text" [(ngModel)]="editingUser()!.username" appEnterFocusNext  id="lint-associated-field-9"/>
               </div>
               <div class="form-group">
-                <label>Email</label>
-                <input type="email" [(ngModel)]="editingUser()!.email" enterFocusNext />
+                <label for="lint-associated-field-10">Email</label>
+                <input type="email" [(ngModel)]="editingUser()!.email" appEnterFocusNext  id="lint-associated-field-10"/>
               </div>
               <div class="form-group">
-                <label>Nombre Completo</label>
-                <input type="text" [(ngModel)]="editingUser()!.nombreCompleto" enterFocusNext />
+                <label for="lint-associated-field-11">Nombre Completo</label>
+                <input type="text" [(ngModel)]="editingUser()!.nombreCompleto" appEnterFocusNext  id="lint-associated-field-11"/>
               </div>
               <div class="form-group">
-                <label>Teléfono</label>
-                <input type="text" [(ngModel)]="editingUser()!.telefono" enterFocusNext />
+                <label for="lint-associated-field-12">Teléfono</label>
+                <input type="text" [(ngModel)]="editingUser()!.telefono" appEnterFocusNext  id="lint-associated-field-12"/>
               </div>
               <div class="form-group full-width">
-                <label>Dirección</label>
-                <input type="text" [(ngModel)]="editingUser()!.direccion" enterFocusNext />
+                <label for="lint-associated-field-13">Dirección</label>
+                <input type="text" [(ngModel)]="editingUser()!.direccion" appEnterFocusNext  id="lint-associated-field-13"/>
               </div>
               <div class="form-group full-width">
-                <label>Comentarios</label>
-                <textarea [(ngModel)]="editingUser()!.comentarios" rows="3" enterFocusNext></textarea>
+                <label for="lint-associated-field-14">Comentarios</label>
+                <textarea
+                  [(ngModel)]="editingUser()!.comentarios"
+                  rows="3"
+                  appEnterFocusNext
+                 id="lint-associated-field-14"></textarea>
               </div>
             </div>
           }
@@ -281,8 +383,8 @@
         @if (userDetailsTab() === 'rol') {
           <div class="rol-info">
             <div class="form-group">
-              <label>Seleccionar Rol</label>
-              <select class="rol-select" [(ngModel)]="selectedUserRolData" enterFocusNext>
+              <label for="lint-associated-field-15">Seleccionar Rol</label>
+              <select class="rol-select" [(ngModel)]="selectedUserRolData" appEnterFocusNext id="lint-associated-field-15">
                 <option value="usuario">Usuario</option>
                 <option value="repartidor">Repartidor</option>
                 @for (rol of roles(); track rol.id) {
@@ -290,12 +392,14 @@
                 }
               </select>
             </div>
-            
+
             @if (getSelectedRolFromId(); as selectedRol) {
               <div class="rol-permisos-section">
                 <div class="rol-permisos-header">
                   <h4>Permisos del Rol: {{ selectedRol.nombre }}</h4>
-                  <button class="btn-edit-permisos" (click)="openEditPermisos(selectedRol)">Editar Permisos</button>
+                  <button class="btn-edit-permisos" (click)="openEditPermisos(selectedRol)">
+                    Editar Permisos
+                  </button>
                 </div>
                 <div class="permisos-list">
                   @if (getPermisosDelRol().length === 0) {
@@ -315,84 +419,129 @@
           </div>
         }
 
-@if (userDetailsTab() === 'password') {
-<div class="form-group">
-               <label>Rol *</label>
-                <select [(ngModel)]="newUser.rol" enterFocusNext>
-                  <option value="usuario">Usuario</option>
-                  <option value="repartidor">Repartidor</option>
-                </select>
-             </div>
-             <div class="form-group password-group">
-             <label>Nueva Contraseña</label>
-             <div class="password-input-container">
-               <input [type]="showPasswordChange() ? 'text' : 'password'" [(ngModel)]="newPassword" placeholder="Ingrese nueva contraseña" enterFocusNext />
-               <button type="button" class="toggle-password" (click)="showPasswordChange.set(!showPasswordChange())" tabindex="-1" [attr.aria-label]="showPasswordChange() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-                 <svg *ngIf="!showPasswordChange()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                   <circle cx="12" cy="12" r="3"></circle>
-                 </svg>
-                 <svg *ngIf="showPasswordChange()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                   <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"></path>
-                   <line x1="1" y1="1" x2="23" y2="23"></line>
-                 </svg>
-               </button>
-             </div>
-           </div>
-         }
+        @if (userDetailsTab() === 'password') {
+          <div class="form-group">
+            <label for="lint-associated-field-16">Rol *</label>
+            <select [(ngModel)]="newUser.rol" appEnterFocusNext id="lint-associated-field-16">
+              <option value="usuario">Usuario</option>
+              <option value="repartidor">Repartidor</option>
+            </select>
+          </div>
+          <div class="form-group password-group">
+            <label for="lint-associated-field-17">Nueva Contraseña</label>
+            <div class="password-input-container">
+              <input
+                [type]="showPasswordChange() ? 'text' : 'password'"
+                [(ngModel)]="newPassword"
+                placeholder="Ingrese nueva contraseña"
+                appEnterFocusNext
+               id="lint-associated-field-17"/>
+              <button
+                type="button"
+                class="toggle-password"
+                (click)="showPasswordChange.set(!showPasswordChange())"
+                tabindex="-1"
+                [attr.aria-label]="
+                  showPasswordChange() ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                "
+              >
+                @if (!showPasswordChange()) {
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#666"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                }
+                @if (showPasswordChange()) {
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#666"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
+                    ></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                }
+              </button>
+            </div>
+          </div>
+        }
       </div>
 
-<div class="modal-footer">
-         @if (userDetailsTab() === 'info') {
-           <button class="btn-danger" (click)="confirmDeleteUserFromDetails()" enterFocusPrev>Eliminar</button>
-           <button class="btn-primary" (click)="saveUserDetails()" enterFocusPrev>Guardar</button>
-         }
-         @if (userDetailsTab() === 'rol') {
-           <button class="btn-primary" (click)="saveUserRoleFromDetails()" enterFocusPrev>Guardar Rol</button>
-         }
-         @if (userDetailsTab() === 'password') {
-           <button class="btn-primary" (click)="changePasswordFromDetails()" enterFocusPrev>Cambiar Contraseña</button>
-         }
-       </div>
+      <div class="modal-footer">
+        @if (userDetailsTab() === 'info') {
+          <button class="btn-danger" (click)="confirmDeleteUserFromDetails()" enterFocusPrev>
+            Eliminar
+          </button>
+          <button class="btn-primary" (click)="saveUserDetails()" enterFocusPrev>Guardar</button>
+        }
+        @if (userDetailsTab() === 'rol') {
+          <button class="btn-primary" (click)="saveUserRoleFromDetails()" enterFocusPrev>
+            Guardar Rol
+          </button>
+        }
+        @if (userDetailsTab() === 'password') {
+          <button class="btn-primary" (click)="changePasswordFromDetails()" enterFocusPrev>
+            Cambiar Contraseña
+          </button>
+        }
+      </div>
     </div>
   </div>
 }
 
 @if (editRolPermisosState().show && editRolPermisosState().rol) {
-   <div class="modal-overlay">
-     <div class="modal-content" (click)="$event.stopPropagation()">
-       <div class="modal-header">
-         <h3>Editar Permisos: {{ editRolPermisosState().rol?.nombre }}</h3>
-         <button class="close-btn" (click)="closeEditPermisos()">&times;</button>
-       </div>
-       
-       <div class="modal-body">
-         <div class="permisos-edit-grid">
-           @for (modulo of getModulos(); track modulo) {
-             <div class="modulo-section">
-               <h5>{{ modulo }}</h5>
-               <div class="permisos-checkboxes">
-                 @for (permiso of getPermisosPorModulo(modulo); track permiso.id) {
-                   <label class="permiso-checkbox">
-                     <input 
-                       type="checkbox" 
-                       [checked]="isPermisoSelected(permiso.id)"
-                       (change)="togglePermiso(permiso.id)"
-                       enterFocusNext
-                     />
-                     <span>{{ permiso.nombre }}</span>
-                   </label>
-                 }
-               </div>
-             </div>
-           }
-         </div>
-       </div>
-       
-       <div class="modal-footer">
-         <button class="btn-secondary" (click)="closeEditPermisos()" enterFocusPrev>Cancelar</button>
-         <button class="btn-primary" (click)="saveRolPermisos()" enterFocusPrev>Guardar Permisos</button>
-       </div>
-     </div>
-   </div>
- }
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Editar Permisos: {{ editRolPermisosState().rol?.nombre }}</h3>
+        <button class="close-btn" (click)="closeEditPermisos()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="permisos-edit-grid">
+          @for (modulo of getModulos(); track modulo) {
+            <div class="modulo-section">
+              <h5>{{ modulo }}</h5>
+              <div class="permisos-checkboxes">
+                @for (permiso of getPermisosPorModulo(modulo); track permiso.id) {
+                  <label class="permiso-checkbox">
+                    <input
+                      type="checkbox"
+                      [checked]="isPermisoSelected(permiso.id)"
+                      (change)="togglePermiso(permiso.id)"
+                      appEnterFocusNext
+                    />
+                    <span>{{ permiso.nombre }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeEditPermisos()" enterFocusPrev>Cancelar</button>
+        <button class="btn-primary" (click)="saveRolPermisos()" enterFocusPrev>
+          Guardar Permisos
+        </button>
+      </div>
+    </div>
+  </div>
+}

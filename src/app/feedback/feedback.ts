@@ -4,8 +4,8 @@ import {
   ElementRef,
   ViewChildren,
   QueryList,
-  Inject,
   PLATFORM_ID,
+  inject,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -17,9 +17,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './feedback.css',
 })
 export class Feedback implements AfterViewInit {
-  @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
+  private platformId = inject(PLATFORM_ID);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
+  @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {

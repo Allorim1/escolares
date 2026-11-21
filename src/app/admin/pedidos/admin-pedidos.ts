@@ -1,9 +1,9 @@
 import { Component, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
-import { AuthService } from '../../shared/data-access/auth.service';
+import { AuthService, User } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { io, Socket } from 'socket.io-client';
 import { OrdersBackend, Order, OrderMessage } from '../../backend/data-access/orders.backend';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
@@ -19,21 +19,16 @@ interface DeliveryPerson {
    updatedAt: Date;
  }
 
-interface OrderItem {
-  productId: number | string;
-  title: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-interface OrderHistorial {
-  status: string;
-  fecha: Date;
-  observaciones?: string;
-}
-
-
+ interface RepartidorUser {
+   id: string;
+   deliveryPersonId?: string;
+   nombreCompleto?: string;
+   username: string;
+   telefono?: string;
+   activo?: boolean;
+   createdAt: string | Date;
+   updatedAt: string | Date;
+ }
 
 interface CompraNotificacion {
   tipo: 'compra';
@@ -58,7 +53,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
   authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
   private mapsService = inject(GoogleMapsService);
-  private intervalId: any;
+  private intervalId: ReturnType<typeof setInterval> | null = null;
   private socket: Socket | null = null;
   private socketSetupDone = false;
   private currentMessagesRoomId: string | null = null;
@@ -91,9 +86,9 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
   // Mapa
   @ViewChild('orderMapContainer', { static: false }) orderMapContainer!: ElementRef;
-  private map: any = null;
-  private repartidorMarker: any = null;
-  private directionsRenderer: any = null;
+  private map: google.maps.Map | null = null;
+  private repartidorMarker: google.maps.Marker | null = null;
+  private directionsRenderer: google.maps.DirectionsRenderer | null = null;
 
 // Modal de asignar repartidor
     showAssignDeliveryModal = signal(false);
@@ -140,17 +135,17 @@ export class AdminPedidos implements OnInit, OnDestroy {
 
 
 
-private tienePermisosAdmin(user: any): boolean {
+private tienePermisosAdmin(user: User | null): boolean {
+      if (!user) return false;
       if (user.rol === 'root' || user.isAdmin) {
        return true;
      }
     
     // Verificar permisos específicos que otorgan acceso al panel admin
     const permisosAdmin = [
-      'pedidos_ver', 'tasas_gestionar', 'tasas_ver', 'facturas_registrar',
-      'facturas_gestionar', 'gastos_gestionar', 'nomina_ver', 'documentos_ver',
-      'conversion_gestionar', 'chat_ver', 'caja_ver', 'ver_proveedores',
-      'ver_retenciones', 'ver_libro_compras', 'inicio_gestionar', 'productos_gestionar',
+      'pedidos_ver', 'facturas_registrar',
+      'chat_ver',
+      'inicio_gestionar', 'productos_gestionar',
       'marcas_ver', 'lineas_ver', 'ofertas_ver', 'usuarios_gestionar', 
       'roles_gestionar', 'manuales_ver'
     ];
@@ -212,7 +207,7 @@ private tienePermisosAdmin(user: any): boolean {
           this.handleDeliveryLocationUpdate(data);
         });
         
-        this.socket.on('nuevo-mensaje-pedido', (data: any) => {
+        this.socket.on('nuevo-mensaje-pedido', (data: OrderMessage) => {
           this.handleNewOrderMessage(data);
         });
         
@@ -220,7 +215,7 @@ private tienePermisosAdmin(user: any): boolean {
           console.log('WebSocket desconectado');
         });
         
-        this.socket.on('connect_error', (error: any) => {
+        this.socket.on('connect_error', (error: Error) => {
           console.error('Error en WebSocket:', error);
         });
       }
@@ -272,7 +267,7 @@ private mostrarNotificacionCompra(notificacion: CompraNotificacion) {
       }
     }
 
-  private handleNewOrderMessage(data: any) {
+  private handleNewOrderMessage(data: OrderMessage) {
     const currentOrder = this.selectedOrder();
     if (currentOrder && currentOrder.id === data.orderId) {
       const currentMessages = this.messages();
@@ -312,10 +307,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
        
        // Clear previous marker
        if (this.repartidorMarker) {
-         const m = this.repartidorMarker as any;
-         if (m.setMap) {
-           m.setMap(null);
-         }
+         this.repartidorMarker.setMap(null);
        }
        
        // Update marker position
@@ -328,7 +320,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
        // Recalculate route
        const directionsService = this.mapsService.createDirectionsService();
        this.directionsRenderer?.setMap(null);
-       this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+       this.directionsRenderer = new google.maps.DirectionsRenderer({
          map: this.map,
          suppressMarkers: false,
          polylineOptions: {
@@ -341,9 +333,9 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
          {
            origin: repartidorPosition,
            destination: clientePosition,
-           travelMode: (window as any).google.maps.TravelMode.DRIVING,
+           travelMode: google.maps.TravelMode.DRIVING,
          },
-         (result: any, status: any) => {
+         (result: google.maps.DirectionsResult, status: string) => {
            if (status === 'OK' && result) {
              this.directionsRenderer?.setDirections(result);
              
@@ -351,7 +343,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
              const bounds = this.mapsService.createLatLngBounds();
              bounds.extend(repartidorPosition);
              bounds.extend(clientePosition);
-             (this.map as any)?.fitBounds(bounds, 80);
+             this.map?.fitBounds(bounds, 80);
            }
          }
        );
@@ -367,7 +359,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
 		        this.orders.set(orders);
 		        this.loading.set(false);
 		      },
-		      error: (err: any) => {
+		      error: (err: HttpErrorResponse) => {
 		        console.error('Error loading orders:', err);
 		        this.loading.set(false);
 		        this.notificationService.error(
@@ -423,7 +415,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
       const order = this.selectedOrder();
       const wasConfirmed = order && order.status === 'confirmar';
       const isPendiente = newStatus === 'pendiente';
-      this.http.put<any>(`/api/orders/${orderId}/status`, {
+      this.http.put<Order>(`/api/orders/${orderId}/status`, {
         status: newStatus,
         observaciones: ''
       }).subscribe({
@@ -454,7 +446,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
   }
 
   hasComprobante(order: Order): boolean {
-    return !!(order as any).fotoComprobante;
+    return !!order.fotoComprobante;
   }
 
   getPaymentMethodLabel(method: string): string {
@@ -557,7 +549,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
       this.isCancelling.set(true);
       this.cancelError.set('');
 
-      this.http.put<any>(`/api/orders/${order.id}/cancel-authorize`, {
+      this.http.put<Order>(`/api/orders/${order.id}/cancel-authorize`, {
         motivo,
         claveSupervisor: clave
       }).subscribe({
@@ -570,7 +562,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
           }
           alert('Pedido cancelado correctamente');
         },
-        error: (err: any) => {
+        error: (err: HttpErrorResponse) => {
           this.isCancelling.set(false);
           this.cancelError.set(err.error?.error || 'Error al cancelar pedido');
         }
@@ -665,7 +657,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
       this.isUploadingFactura.set(true);
       this.facturaError.set('');
 
-      this.http.put<any>(`/api/orders/${order.id}/factura`, {
+      this.http.put<Order>(`/api/orders/${order.id}/factura`, {
         facturaImage: preview
       }).subscribe({
         next: (updatedOrder) => {
@@ -677,7 +669,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
           }
           alert('Factura subida correctamente');
         },
-        error: (err: any) => {
+        error: (err: HttpErrorResponse) => {
           this.isUploadingFactura.set(false);
           this.facturaError.set(err.error?.error || 'Error al subir factura');
         }
@@ -700,7 +692,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
   }
 
   loadRepartidorUsers() {
-    this.http.get<any[]>('/api/users?role=repartidor').subscribe({
+    this.http.get<RepartidorUser[]>('/api/users?role=repartidor').subscribe({
       next: (users) => {
         const repartidores = users.map(user => {
           const deliveryPersonId = user.deliveryPersonId || user.id;
@@ -773,7 +765,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
     this.isAssigningDelivery.set(true);
     this.assignDeliveryError.set('');
 
-    this.http.put<any>(`/api/orders/${order.id}/assign-delivery`, {
+    this.http.put<Order>(`/api/orders/${order.id}/assign-delivery`, {
       deliveryPersonId: selectedPerson.id,
       deliveryPersonName: selectedPerson.nombre
     }).subscribe({
@@ -786,7 +778,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
         }
         alert('Repartidor asignado correctamente');
       },
-      error: (err: any) => {
+      error: (err: HttpErrorResponse) => {
         this.isAssigningDelivery.set(false);
         this.assignDeliveryError.set(err.error?.error || 'Error al asignar repartidor');
       }
@@ -827,18 +819,12 @@ closeDeliveryPersonModal() {
      
      // Clear markers using setMap for both Marker and AdvancedMarkerElement
      if (this.repartidorMarker) {
-       const m = this.repartidorMarker as any;
-       if (m.setMap) {
-         m.setMap(null);
-       }
+       this.repartidorMarker.setMap(null);
        this.repartidorMarker = null;
      }
      
      if (this.directionsRenderer) {
-       const d = this.directionsRenderer as any;
-       if (d.setMap) {
-         d.setMap(null);
-       }
+       this.directionsRenderer.setMap(null);
        this.directionsRenderer = null;
      }
    }
@@ -883,7 +869,7 @@ closeDeliveryPersonModal() {
             center: initialCenter,
             zoom: 12,
           });
-          this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+          this.directionsRenderer = new google.maps.DirectionsRenderer({
             map: this.map,
             suppressMarkers: false,
           });
@@ -895,10 +881,7 @@ closeDeliveryPersonModal() {
           
           // Limpiar marcadores anteriores
           if (this.repartidorMarker) {
-            const m = this.repartidorMarker as any;
-            if (m.setMap) {
-              m.setMap(null);
-            }
+            this.repartidorMarker.setMap(null);
           }
           
           // Crear marcador del repartidor
@@ -910,7 +893,7 @@ closeDeliveryPersonModal() {
           
           // Calcular y mostrar ruta
           this.directionsRenderer?.setMap(null);
-          this.directionsRenderer = new (window as any).google.maps.DirectionsRenderer({
+          this.directionsRenderer = new google.maps.DirectionsRenderer({
             map: this.map,
             suppressMarkers: false,
             polylineOptions: {
@@ -924,9 +907,9 @@ closeDeliveryPersonModal() {
             {
               origin: repartidorPosition,
               destination: clientePosition,
-              travelMode: (window as any).google.maps.TravelMode.DRIVING,
+              travelMode: google.maps.TravelMode.DRIVING,
             },
-            (result: any, status: any) => {
+            (result: google.maps.DirectionsResult, status: string) => {
               if (status === 'OK' && result) {
                 this.directionsRenderer?.setDirections(result);
                 
@@ -934,15 +917,15 @@ closeDeliveryPersonModal() {
                 const bounds = this.mapsService.createLatLngBounds();
                 bounds.extend(repartidorPosition);
                 bounds.extend(clientePosition);
-                (this.map as any)?.fitBounds(bounds, 50);
+                this.map?.fitBounds(bounds, 50);
               }
             }
           );
         } else {
           // Solo mostrar ubicación del cliente
           this.directionsRenderer?.setMap(null);
-          (this.map as any)?.setCenter(clientePosition);
-          (this.map as any)?.setZoom(16);
+          this.map?.setCenter(clientePosition);
+          this.map?.setZoom(16);
         }
       } catch (error) {
         console.error('Error loading map:', error);
@@ -980,7 +963,7 @@ closeDeliveryPersonModal() {
     this.isLoadingMessages.set(true);
     this.messagesError.set('');
     
-    this.http.get<any[]>(`/api/order-messages/order/${orderId}`).subscribe({
+    this.http.get<OrderMessage[]>(`/api/order-messages/order/${orderId}`).subscribe({
       next: (messages) => {
         const normalized = messages.map(m => ({ ...m, _id: typeof m._id === 'string' ? m._id : String(m._id || '') }));
         this.messages.set(normalized);
@@ -988,7 +971,6 @@ closeDeliveryPersonModal() {
         
         if (messages.length > 0) {
           this.http.put(`/api/order-messages/order/${orderId}/leer`, {}).subscribe({
-            next: () => {},
             error: (err) => console.error('Error marcando mensajes como leídos:', err)
           });
         }

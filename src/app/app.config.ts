@@ -2,7 +2,6 @@ import {
   ApplicationConfig,
   ErrorHandler,
   provideBrowserGlobalErrorListeners,
-  provideZoneChangeDetection,
   APP_INITIALIZER,
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';

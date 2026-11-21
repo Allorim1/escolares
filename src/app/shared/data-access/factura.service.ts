@@ -1,10 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 export interface Factura {
   _id?: string;
   cliente: string;
-  productos: any[];
+  productos: unknown[];
   total: number;
   estado: 'pendiente' | 'pagado';
   fecha: Date;
@@ -25,12 +25,14 @@ export interface ResumenFacturas {
   providedIn: 'root',
 })
 export class FacturaService {
+  private http = inject(HttpClient);
+
   private readonly API_URL = '/api/facturas';
 
   facturas = signal<Factura[]>([]);
   resumen = signal<ResumenFacturas | null>(null);
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.loadFacturas();
     this.loadResumen();
   }
@@ -49,7 +51,7 @@ export class FacturaService {
     });
   }
 
-  crearFactura(cliente: string, productos: any[], total: number) {
+  crearFactura(cliente: string, productos: unknown[], total: number) {
     const factura = { cliente, productos, total, estado: 'pendiente' };
     this.http.post(this.API_URL, factura).subscribe({
       next: () => {

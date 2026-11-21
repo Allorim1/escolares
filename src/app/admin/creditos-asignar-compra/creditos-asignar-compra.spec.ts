@@ -13,12 +13,15 @@ function stubLocalStorageSiHaceFalta(): void {
   if (storageOk) return;
 
   const almacen = new Map<string, string>();
-  (globalThis as unknown as { localStorage: Partial<Storage> }).localStorage = {
-    getItem: (k: string) => almacen.get(k) ?? null,
-    setItem: (k: string, v: string) => { almacen.set(k, v); },
-    removeItem: (k: string) => { almacen.delete(k); },
-    clear: () => { almacen.clear(); },
-  };
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (k: string) => almacen.get(k) ?? null,
+      setItem: (k: string, v: string) => { almacen.set(k, v); },
+      removeItem: (k: string) => { almacen.delete(k); },
+      clear: () => { almacen.clear(); },
+    },
+  });
 }
 
 describe('CreditosAsignarCompra', () => {

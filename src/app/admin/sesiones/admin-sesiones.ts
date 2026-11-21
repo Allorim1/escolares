@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../shared/data-access/auth.service';
@@ -11,7 +11,7 @@ type Tab = 'activas' | 'historial';
 @Component({
   selector: 'app-admin-sesiones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './admin-sesiones.html',
   styleUrl: './admin-sesiones.css',
 })
@@ -33,7 +33,7 @@ export class AdminSesiones implements OnInit, OnDestroy {
   cargandoMas = signal(false);
   error = signal<string | null>(null);
   filtroTexto = '';
-  refreshInterval: any;
+  refreshInterval: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit() {
     if (!this.esRoot()) {
@@ -90,10 +90,16 @@ export class AdminSesiones implements OnInit, OnDestroy {
     this.error.set(null);
 
     this.authService
-      .getAllSessions({ estado: 'cerradas', limit: this.HISTORIAL_PAGE_SIZE, skip: this.historialSkip })
+      .getAllSessions({
+        estado: 'cerradas',
+        limit: this.HISTORIAL_PAGE_SIZE,
+        skip: this.historialSkip,
+      })
       .subscribe({
         next: (res) => {
-          this.historial.set(reset ? res.sessions || [] : [...this.historial(), ...(res.sessions || [])]);
+          this.historial.set(
+            reset ? res.sessions || [] : [...this.historial(), ...(res.sessions || [])],
+          );
           this.historialTotal.set(res.total || 0);
           this.cargando.set(false);
           this.cargandoMas.set(false);
@@ -126,12 +132,13 @@ export class AdminSesiones implements OnInit, OnDestroy {
   private filtrar(sesiones: UserSession[]): UserSession[] {
     const texto = this.filtroTexto.toLowerCase().trim();
     if (!texto) return sesiones;
-    return sesiones.filter(s =>
-      s.username?.toLowerCase().includes(texto) ||
-      s.email?.toLowerCase().includes(texto) ||
-      s.ip?.includes(texto) ||
-      s.device?.toLowerCase().includes(texto) ||
-      s.browser?.toLowerCase().includes(texto)
+    return sesiones.filter(
+      (s) =>
+        s.username?.toLowerCase().includes(texto) ||
+        s.email?.toLowerCase().includes(texto) ||
+        s.ip?.includes(texto) ||
+        s.device?.toLowerCase().includes(texto) ||
+        s.browser?.toLowerCase().includes(texto),
     );
   }
 
@@ -148,7 +155,9 @@ export class AdminSesiones implements OnInit, OnDestroy {
   }
 
   cerrarSesion(sesion: UserSession) {
-    if (!confirm(`¿Cerrar sesión de "${sesion.username}" desde ${sesion.ip || 'IP desconocida'}?`)) {
+    if (
+      !confirm(`¿Cerrar sesión de "${sesion.username}" desde ${sesion.ip || 'IP desconocida'}?`)
+    ) {
       return;
     }
 
@@ -197,30 +206,44 @@ export class AdminSesiones implements OnInit, OnDestroy {
 
   getDeviceIcon(device?: string): string {
     switch (device) {
-      case 'Móvil': return '📱';
-      case 'Tablet': return '📱';
-      case 'Escritorio': return '💻';
-      default: return '🖥️';
+      case 'Móvil':
+        return '📱';
+      case 'Tablet':
+        return '📱';
+      case 'Escritorio':
+        return '💻';
+      default:
+        return '🖥️';
     }
   }
 
   getCierreLabel(sesion: UserSession): string {
     switch (sesion.closedReason) {
-      case 'logout': return 'Cierre de sesión';
-      case 'expired': return 'Expirada';
-      case 'admin': return 'Cerrada por un administrador';
-      case 'user': return 'Cerrada por el usuario';
-      default: return 'Cerrada';
+      case 'logout':
+        return 'Cierre de sesión';
+      case 'expired':
+        return 'Expirada';
+      case 'admin':
+        return 'Cerrada por un administrador';
+      case 'user':
+        return 'Cerrada por el usuario';
+      default:
+        return 'Cerrada';
     }
   }
 
   getCierreIcon(sesion: UserSession): string {
     switch (sesion.closedReason) {
-      case 'logout': return '🚪';
-      case 'expired': return '⏱️';
-      case 'admin': return '🛡️';
-      case 'user': return '🔒';
-      default: return '⏹️';
+      case 'logout':
+        return '🚪';
+      case 'expired':
+        return '⏱️';
+      case 'admin':
+        return '🛡️';
+      case 'user':
+        return '🔒';
+      default:
+        return '⏹️';
     }
   }
 }

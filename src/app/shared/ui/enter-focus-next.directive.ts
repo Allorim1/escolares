@@ -1,17 +1,17 @@
-import { Directive, HostListener, ElementRef } from '@angular/core';
+import { Directive, HostListener, ElementRef, inject } from '@angular/core';
 
 @Directive({
-  selector: '[enterFocusNext]',
+  selector: '[appEnterFocusNext]',
   standalone: true
 })
 export class EnterFocusNextDirective {
-  constructor(private el: ElementRef) {}
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   @HostListener('keydown.enter', ['$event'])
-  onEnterKey(event: any) {
+  onEnterKey(event: Event) {
     const container = this.getContainer();
     if (!container) return;
-    event.preventDefault();
+    (event as KeyboardEvent).preventDefault();
 
     const focusableElements = this.getFocusableElements(container);
     const currentIndex = focusableElements.indexOf(this.el.nativeElement);
@@ -26,7 +26,7 @@ export class EnterFocusNextDirective {
     const selectors = ['body', '.modal-content', '.add-form', '.modal', '.modal-overlay', '.cierre-form'];
     for (const selector of selectors) {
       const container = this.el.nativeElement.closest(selector);
-      if (container) return container;
+      if (container instanceof HTMLElement) return container;
     }
     return null;
   }

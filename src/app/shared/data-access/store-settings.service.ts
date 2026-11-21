@@ -1,6 +1,15 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
+interface ComprasSettingsResponse {
+  disabled?: boolean;
+}
+
+interface MaintenanceSettingsResponse {
+  enabled?: boolean;
+  tipo?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -74,7 +83,7 @@ export class StoreSettingsService {
     this.saveToStorage(disabled);
     
     // Save to backend
-    this.http.put<any>(`${this.API_SETTINGS}/compras-deshabilitadas`, { disabled }).subscribe({
+    this.http.put<ComprasSettingsResponse>(`${this.API_SETTINGS}/compras-deshabilitadas`, { disabled }).subscribe({
       next: (data) => {
         if (data && typeof data.disabled === 'boolean') {
           this.comprasDeshabilitadasInternal.set(data.disabled);
@@ -141,7 +150,7 @@ export class StoreSettingsService {
           }
         }
       },
-      error: () => {}
+      error: (error) => console.error('Error cargando el estado de mantenimiento:', error)
     });
   }
 
@@ -158,7 +167,7 @@ export class StoreSettingsService {
       localStorage.setItem('mantenimientoTipo', tipo);
     }
     
-    this.http.put<any>(`${this.API_SETTINGS}/mantenimiento`, { enabled, tipo }).subscribe({
+    this.http.put<MaintenanceSettingsResponse>(`${this.API_SETTINGS}/mantenimiento`, { enabled, tipo }).subscribe({
       next: (data) => {
         if (data && typeof data.enabled === 'boolean') {
           this.mantenimientoInternal.set(data.enabled);

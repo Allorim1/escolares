@@ -38,7 +38,7 @@ async function renewAccessToken(http: HttpClient): Promise<boolean> {
 
   try {
     const res = await firstValueFrom(
-      http.post<any>('/api/auth/refresh', { refreshToken })
+      http.post<{ accessToken?: string; refreshToken?: string }>('/api/auth/refresh', { refreshToken })
     );
     if (res.accessToken) {
       localStorage.setItem('accessToken', res.accessToken);

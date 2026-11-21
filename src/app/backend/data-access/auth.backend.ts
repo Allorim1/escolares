@@ -5,10 +5,29 @@ import { tap } from 'rxjs/operators';
 import { User, UserSession, UserSessionsResponse } from '../models';
 import { TokenRenewalService } from '../../shared/data-access/token-renewal.service';
 
+interface LoginResponse extends User {
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+interface PasswordAuditRecord {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  contrasena: string;
+  rol: string;
+  fecha: string;
+  accion: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthBackend {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+
   private readonly API_URL = '/api/auth';
   private readonly STORAGE_KEY_SESSION = 'user';
   private tokenRenewalService = inject(TokenRenewalService);
@@ -29,10 +48,7 @@ export class AuthBackend {
     isAdmin: true,
   };
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {
+  constructor() {
     this.loadFromStorage();
   }
 
@@ -43,7 +59,9 @@ export class AuthBackend {
         const user = JSON.parse(stored);
         this.currentUser.set(user);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(user.isAdmin || user.rol === 'root' || user.rol === 'admin' || user.rol === 'repartidor');
+        this.isAdmin.set(
+          user.isAdmin || user.rol === 'root' || user.rol === 'admin' || user.rol === 'repartidor',
+        );
         // Start token renewal service if user is already logged in
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
@@ -54,27 +72,41 @@ export class AuthBackend {
     }
   }
 
-  register(username: string, email: string, password: string, extraData?: {
-    rif?: string;
-    telefono?: string;
-    direccion?: string;
-    tipoPersona?: string;
-    nombreCompleto?: string;
-    genero?: string;
-    tipoDocumento?: string;
-    numeroDocumento?: string;
-  }, turnstileToken?: string) {
+  register(
+    username: string,
+    email: string,
+    password: string,
+    extraData?: {
+      rif?: string;
+      telefono?: string;
+      direccion?: string;
+      tipoPersona?: string;
+      nombreCompleto?: string;
+      genero?: string;
+      tipoDocumento?: string;
+      numeroDocumento?: string;
+    },
+    turnstileToken?: string,
+  ) {
     this.registerError.set(null);
     this.registerSuccess.set(false);
 
-    this.http.post<any>(`${this.API_URL}/register`, { username, email, password, turnstileToken, ...extraData }).subscribe({
-      next: (response) => {
-        this.registerSuccess.set(true);
-      },
-      error: (error) => {
-        this.registerError.set(error.error?.error || 'Error al registrar usuario');
-      },
-    });
+    this.http
+      .post<void>(`${this.API_URL}/register`, {
+        username,
+        email,
+        password,
+        turnstileToken,
+        ...extraData,
+      })
+      .subscribe({
+        next: () => {
+          this.registerSuccess.set(true);
+        },
+        error: (error) => {
+          this.registerError.set(error.error?.error || 'Error al registrar usuario');
+        },
+      });
   }
 
   login(usernameOrEmail: string, password: string, turnstileToken?: string) {
@@ -86,11 +118,16 @@ export class AuthBackend {
       ? { email: usernameOrEmail, password, turnstileToken }
       : { username: usernameOrEmail, password, turnstileToken };
 
-    this.http.post<any>(`${this.API_URL}/login`, payload, { withCredentials: true }).subscribe({
+    this.http.post<LoginResponse>(`${this.API_URL}/login`, payload, { withCredentials: true }).subscribe({
       next: (response) => {
         this.currentUser.set(response);
         this.isLoggedIn.set(true);
-        this.isAdmin.set(response.isAdmin || response.rol === 'root' || response.rol === 'admin' || response.rol === 'repartidor');
+        this.isAdmin.set(
+          response.isAdmin ||
+            response.rol === 'root' ||
+            response.rol === 'admin' ||
+            response.rol === 'repartidor',
+        );
         this.saveToStorage(response);
         if (response.accessToken) {
           this.saveToken(response.accessToken);
@@ -129,8 +166,7 @@ export class AuthBackend {
     // Avisa al backend para que la sesión quede marcada como cerrada.
     // No bloquea el logout local si falla (token ya vencido, sin red, etc.)
     this.http.post(`${this.API_URL}/logout`, {}, { headers, withCredentials: true }).subscribe({
-      next: () => {},
-      error: () => {},
+      error: (error) => console.error('Error cerrando la sesión en el servidor:', error),
     });
 
     // Stop token renewal service
@@ -149,7 +185,7 @@ export class AuthBackend {
     const userId = this.currentUser()?.id;
     if (!userId) return;
 
-    return this.http.put<any>(`${this.API_URL}/profile`, { ...profileData }).pipe(
+    return this.http.put<User>(`${this.API_URL}/profile`, { ...profileData }).pipe(
       tap({
         next: (response) => {
           this.currentUser.set(response);
@@ -168,7 +204,7 @@ export class AuthBackend {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    return this.http.get<any[]>(`${this.API_URL}/users`, { headers });
+    return this.http.get<User[]>(`${this.API_URL}/users`, { headers });
   }
 
   private getToken(): string | null {
@@ -185,10 +221,12 @@ export class AuthBackend {
   }
 
   updateUserRol(targetUserId: string, rol: 'usuario' | 'repartidor', rolId?: string) {
-    return this.http.put<any>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
+    return this.http.put<User>(`${this.API_URL}/users/rol`, { targetUserId, rol, rolId });
   }
 
-  getAllSessions(params: { estado?: 'todas' | 'activas' | 'cerradas'; limit?: number; skip?: number } = {}) {
+  getAllSessions(
+    params: { estado?: 'todas' | 'activas' | 'cerradas'; limit?: number; skip?: number } = {},
+  ) {
     const token = this.getToken();
     const headers: Record<string, string> = {};
     if (token) {
@@ -198,7 +236,10 @@ export class AuthBackend {
     if (params.estado) queryParams['estado'] = params.estado;
     if (params.limit != null) queryParams['limit'] = String(params.limit);
     if (params.skip != null) queryParams['skip'] = String(params.skip);
-    return this.http.get<UserSessionsResponse>(`${this.API_URL}/sessions`, { headers, params: queryParams });
+    return this.http.get<UserSessionsResponse>(`${this.API_URL}/sessions`, {
+      headers,
+      params: queryParams,
+    });
   }
 
   getMySessions() {
@@ -234,7 +275,7 @@ export class AuthBackend {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    return this.http.get<any[]>(`${this.API_URL}/passwords`, { headers });
+    return this.http.get<PasswordAuditRecord[]>(`${this.API_URL}/passwords`, { headers });
   }
 
   searchPasswords(term: string) {
@@ -243,7 +284,7 @@ export class AuthBackend {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    return this.http.get<any[]>(`${this.API_URL}/passwords`, {
+    return this.http.get<PasswordAuditRecord[]>(`${this.API_URL}/passwords`, {
       headers,
       params: { q: term },
     });
@@ -273,4 +314,3 @@ export class AuthBackend {
     }
   }
 }
-

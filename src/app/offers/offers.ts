@@ -1,17 +1,6 @@
-import {
-  Component,
-  inject,
-  signal,
-  OnInit,
-  AfterViewInit,
-  ElementRef,
-  ViewChildren,
-  QueryList,
-  Inject,
-  PLATFORM_ID,
-} from '@angular/core';
+import { Component, inject, signal, OnInit, AfterViewInit, ElementRef, ViewChildren, QueryList, PLATFORM_ID } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { OfertasService } from '../shared/data-access/ofertas.service';
 import { ProductsService } from '../products/data-access/products.service';
 import { Product } from '../shared/interfaces/product.interface';
@@ -20,12 +9,13 @@ import { CurrencyService } from '../shared/data-access/currency.service';
 
 @Component({
   selector: 'app-offers',
-  imports: [RouterLink, LoadingComponent, CommonModule],
+  imports: [RouterLink, LoadingComponent],
   templateUrl: './offers.html',
   styleUrl: './offers.css',
 })
 export class Offers implements OnInit, AfterViewInit {
-  private ofertasService = inject(OfertasService);
+  private readonly ofertasService = inject(OfertasService);
+  private readonly platformId = inject(PLATFORM_ID);
   private productsService = inject(ProductsService);
   currencyService = inject(CurrencyService);
 
@@ -39,13 +29,11 @@ export class Offers implements OnInit, AfterViewInit {
   productsEnOferta = signal<Product[]>([]);
   loading = signal(true);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
-
-    ngOnInit() {
+  ngOnInit(): void {
     this.productsService.getProducts().subscribe({
-      next: (response: {products: Product[], total: number}) => {
+      next: (response: {products: Product[], total?: number}) => {
         const ofertaIds = this.ofertasService.ofertas().map((o) => o.productId);
-        this.productsEnOferta.set(response.products.filter((p: Product) => ofertaIds.includes(p.id as any)));
+        this.productsEnOferta.set(response.products.filter((p: Product) => ofertaIds.includes(p.id)));
         this.loading.set(false);
       },
       error: (err) => {
@@ -86,7 +74,7 @@ export class Offers implements OnInit, AfterViewInit {
   }
 
   getOfertaPriceForProduct(product: Product): number {
-    return this.ofertasService.getOfertaPrice(product.id as any) || 0;
+    return this.ofertasService.getOfertaPrice(product.id) || 0;
   }
 
   getOfertaPrice(productId: number | string): number {

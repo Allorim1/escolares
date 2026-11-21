@@ -29,24 +29,24 @@
       <div class="seccion">
         <h2>Datos personales</h2>
         <div class="grid-datos">
-          <div><label>Nombre completo</label><span>{{ u.verificacion.nombreCompleto }}</span></div>
-          <div><label>Cédula</label><span>{{ u.verificacion.documento }}</span></div>
-          <div><label>Fecha de nacimiento</label><span>{{ u.verificacion.fechaNacimiento }}</span></div>
-          <div><label>Ocupación</label><span>{{ u.verificacion.ocupacion }}</span></div>
+          <div><span class="static-field-label">Nombre completo</span><span>{{ u.verificacion.nombreCompleto }}</span></div>
+          <div><span class="static-field-label">Cédula</span><span>{{ u.verificacion.documento }}</span></div>
+          <div><span class="static-field-label">Fecha de nacimiento</span><span>{{ u.verificacion.fechaNacimiento }}</span></div>
+          <div><span class="static-field-label">Ocupación</span><span>{{ u.verificacion.ocupacion }}</span></div>
           @if (u.verificacion.lugarTrabajo) {
-            <div><label>Lugar de trabajo</label><span>{{ u.verificacion.lugarTrabajo }}</span></div>
+            <div><span class="static-field-label">Lugar de trabajo</span><span>{{ u.verificacion.lugarTrabajo }}</span></div>
           }
-          <div><label>Enviado</label><span>{{ u.verificacion.enviadoEn | date:'dd/MM/yyyy HH:mm' }}</span></div>
+          <div><span class="static-field-label">Enviado</span><span>{{ u.verificacion.enviadoEn | date:'dd/MM/yyyy HH:mm' }}</span></div>
         </div>
       </div>
 
       <div class="seccion">
         <h2>Dirección y referencia</h2>
         <div class="grid-datos">
-          <div><label>Dirección</label><span>{{ u.verificacion.direccion }}</span></div>
-          <div><label>Ciudad</label><span>{{ u.verificacion.ciudad }}</span></div>
-          <div><label>Referencia</label><span>{{ u.verificacion.referenciaNombre }}</span></div>
-          <div><label>Teléfono de referencia</label><span>{{ u.verificacion.referenciaTelefono }}</span></div>
+          <div><span class="static-field-label">Dirección</span><span>{{ u.verificacion.direccion }}</span></div>
+          <div><span class="static-field-label">Ciudad</span><span>{{ u.verificacion.ciudad }}</span></div>
+          <div><span class="static-field-label">Referencia</span><span>{{ u.verificacion.referenciaNombre }}</span></div>
+          <div><span class="static-field-label">Teléfono de referencia</span><span>{{ u.verificacion.referenciaTelefono }}</span></div>
         </div>
       </div>
 

@@ -14,7 +14,9 @@
         </div>
 
         <div class="product-info-col">
-          <div class="product-badge" *ngIf="isEnOferta">OFERTA</div>
+          @if (isEnOferta) {
+            <div class="product-badge">OFERTA</div>
+          }
 
           <h1 class="product-detail-title">
             {{ product.title }}
@@ -45,7 +47,7 @@
             </div>
           } @else {
             <div class="price-section">
-              <p style="font-size: 1rem; color: #888; font-style: italic;">
+              <p style="font-size: 1rem; color: #888; font-style: italic">
                 Inicie sesión para ver precios
               </p>
             </div>
@@ -95,26 +97,24 @@
 
           @if (shouldShowPrice()) {
             <div class="quantity-selector">
-              <label class="quantity-label">Cantidad:</label>
+              <span class="quantity-label static-field-label">Cantidad:</span>
               <div class="quantity-controls">
-                <button 
-                  type="button" 
-                  class="qty-btn" 
+                <button
+                  type="button"
+                  class="qty-btn"
                   (click)="decreaseQuantity()"
                   [disabled]="quantity() <= 1"
-                >-</button>
+                >
+                  -
+                </button>
                 <span class="qty-value">{{ quantity() }}</span>
-                <button 
-                  type="button" 
-                  class="qty-btn" 
-                  (click)="increaseQuantity()"
-                >+</button>
+                <button type="button" class="qty-btn" (click)="increaseQuantity()">+</button>
               </div>
             </div>
 
             <div class="action-buttons">
-              <button 
-                class="add-to-cart-btn" 
+              <button
+                class="add-to-cart-btn"
                 [class.added]="showAddedMessage()"
                 [disabled]="product.estado === 'agotado'"
                 (click)="addToCart()"

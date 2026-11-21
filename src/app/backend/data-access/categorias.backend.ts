@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -36,8 +36,8 @@ export class CategoriasBackend {
     return this.http.put<CategoriaMenu>(`${this.API_URL}/${id}`, categoria);
   }
 
-  delete(id: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/${id}`);
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}`);
   }
 
   addItem(categoriaId: string, item: CategoriaItem): Observable<CategoriaMenu> {

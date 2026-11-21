@@ -12,7 +12,7 @@
   } @else {
     <div class="orders-list">
       @for (order of orders(); track order.id) {
-        <div class="order-card" (click)="selectOrder(order)">
+        <div class="order-card" (click)="selectOrder(order)" tabindex="0" (keydown.enter)="selectOrder(order)" (keydown.space)="selectOrder(order); $event.preventDefault()">
           <div class="order-header">
             <div class="order-id">
               <span class="label">Pedido #</span>
@@ -56,8 +56,8 @@
 </section>
 
 @if (selectedOrder()) {
-  <div class="modal-overlay" (click)="closeDetail()">
-    <div class="order-detail-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeDetail())" tabindex="0" (keydown.enter)="closeDetail()" (keydown.space)="closeDetail(); $event.preventDefault()">
+    <div class="order-detail-modal">
       <div class="modal-header">
         <h3>Detalle del Pedido #{{ selectedOrder()?.id }}</h3>
         <button class="close-btn" (click)="closeDetail()">&times;</button>
@@ -158,8 +158,8 @@
 }
 
 @if (showDeliveryPersonModal()) {
-  <div class="modal-overlay" (click)="closeDeliveryPersonModal()">
-    <div class="order-detail-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeDeliveryPersonModal())" tabindex="0" (keydown.enter)="closeDeliveryPersonModal()" (keydown.space)="closeDeliveryPersonModal(); $event.preventDefault()">
+    <div class="order-detail-modal">
       <div class="modal-header">
         <h3>📋 Ficha Técnica del Repartidor</h3>
         <button class="close-btn" (click)="closeDeliveryPersonModal()">&times;</button>
@@ -211,8 +211,8 @@
 }
 
 @if (showMessagesModal()) {
-  <div class="modal-overlay messages-modal-overlay" (click)="closeMessagesModal()">
-    <div class="modal-content messages-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay messages-modal-overlay" (click)="($event.target === $event.currentTarget) && (closeMessagesModal())" tabindex="0" (keydown.enter)="closeMessagesModal()" (keydown.space)="closeMessagesModal(); $event.preventDefault()">
+    <div class="modal-content messages-modal">
       <div class="modal-header">
         <h3>💬 Mensajes del Pedido #{{ selectedOrder()!.id.slice(-8) }}</h3>
         <button class="close-btn" (click)="closeMessagesModal()">&times;</button>

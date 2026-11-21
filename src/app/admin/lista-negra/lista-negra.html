@@ -89,7 +89,7 @@
         } @else {
           <ul class="clientes-lista">
             @for (cliente of clientesDisponibles(); track cliente.cedula) {
-              <li (click)="seleccionarCliente(cliente)">
+              <li (click)="seleccionarCliente(cliente)" tabindex="0" (keydown.enter)="seleccionarCliente(cliente)" (keydown.space)="seleccionarCliente(cliente); $event.preventDefault()">
                 <div>
                   <strong>{{ cliente.nombre }}</strong>
                   <div class="cliente-meta">C.I. {{ formatCedula(cliente.cedula) }} · {{ cliente.empresa }} {{ cliente.planta ? '· ' + cliente.planta : '' }}</div>

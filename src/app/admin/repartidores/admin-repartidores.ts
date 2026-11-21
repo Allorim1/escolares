@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,14 +15,27 @@ interface DeliveryPerson {
   isUser?: boolean;
 }
 
+interface DeliveryUserResponse {
+  id: string;
+  deliveryPersonId?: string;
+  nombreCompleto?: string;
+  username?: string;
+  telefono?: string;
+  activo?: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
 @Component({
   selector: 'app-admin-repartidores',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-repartidores.html',
-  styleUrls: ['./admin-repartidores.css']
+  styleUrls: ['./admin-repartidores.css'],
 })
 export class AdminRepartidoresComponent implements OnInit {
+  private http = inject(HttpClient);
+
   deliveryPersons = signal<DeliveryPerson[]>([]);
   repartidorUsers = signal<DeliveryPerson[]>([]);
   combinedList = signal<DeliveryPerson[]>([]);
@@ -35,11 +48,9 @@ export class AdminRepartidoresComponent implements OnInit {
     activo: true,
     email: '',
     password: '',
-    fotoDNI: ''
+    fotoDNI: '',
   });
   selectedDNIFile: File | null = null;
-
-  constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.loadDeliveryPersons();
@@ -52,29 +63,29 @@ export class AdminRepartidoresComponent implements OnInit {
         this.deliveryPersons.set(data);
         this.updateCombinedList();
       },
-      error: (err) => console.error('Error cargando repartidores:', err)
+      error: (err) => console.error('Error cargando repartidores:', err),
     });
   }
 
   loadRepartidorUsers() {
-    this.http.get<any[]>('/api/users?role=repartidor').subscribe({
+    this.http.get<DeliveryUserResponse[]>('/api/users?role=repartidor').subscribe({
       next: (users) => {
-        const repartidores = users.map(user => {
+        const repartidores = users.map((user) => {
           const deliveryPersonId = user.deliveryPersonId || user.id;
           return {
             id: deliveryPersonId,
-            nombre: user.nombreCompleto || user.username,
+            nombre: user.nombreCompleto || user.username || '',
             telefono: user.telefono,
             activo: user.activo !== undefined ? user.activo : true,
-            createdAt: new Date(user.createdAt),
-            updatedAt: new Date(user.updatedAt),
-            isUser: true
+            createdAt: new Date(user.createdAt ?? Date.now()),
+            updatedAt: new Date(user.updatedAt ?? Date.now()),
+            isUser: true,
           };
         });
         this.repartidorUsers.set(repartidores);
         this.updateCombinedList();
       },
-      error: (err) => console.error('Error cargando usuarios repartidores:', err)
+      error: (err) => console.error('Error cargando usuarios repartidores:', err),
     });
   }
 
@@ -103,7 +114,7 @@ export class AdminRepartidoresComponent implements OnInit {
       activo: true,
       email: '',
       password: '',
-      fotoDNI: ''
+      fotoDNI: '',
     });
     this.selectedDNIFile = null;
     this.showModal.set(true);
@@ -118,14 +129,14 @@ export class AdminRepartidoresComponent implements OnInit {
       activo: person.activo,
       email: '',
       password: '',
-      fotoDNI: person.fotoDNI || ''
+      fotoDNI: person.fotoDNI || '',
     });
     this.selectedDNIFile = null;
     this.showModal.set(true);
   }
 
-  onDNIFileSelected(event: any) {
-    const file = event.target.files[0];
+  onDNIFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
       this.selectedDNIFile = file;
     }
@@ -149,56 +160,62 @@ export class AdminRepartidoresComponent implements OnInit {
         alert('Email y password son requeridos para crear el repartidor');
         return;
       }
-this.http.post<DeliveryPerson>('/api/delivery', data).subscribe({
-         next: (newPerson) => {
-           if (this.selectedDNIFile && newPerson.id) {
-             this.uploadDNI(newPerson.id);
-           } else {
-             this.loadDeliveryPersons();
-             this.loadRepartidorUsers();
-             this.cancelEdit();
-           }
-         },
+      this.http.post<DeliveryPerson>('/api/delivery', data).subscribe({
+        next: (newPerson) => {
+          if (this.selectedDNIFile && newPerson.id) {
+            this.uploadDNI(newPerson.id);
+          } else {
+            this.loadDeliveryPersons();
+            this.loadRepartidorUsers();
+            this.cancelEdit();
+          }
+        },
         error: (err) => {
           console.error('Error creando repartidor:', err);
           alert('Error al crear repartidor');
-        }
+        },
       });
     } else {
       const person = this.editingPerson();
       if (!person?.id) return;
-      const updateData: any = {
+      const updateData: {
+        nombre: string;
+        telefono: string;
+        activo: boolean;
+        email?: string;
+        password?: string;
+      } = {
         nombre: data.nombre,
         telefono: data.telefono,
-        activo: data.activo
+        activo: data.activo,
       };
       if (data.email) updateData.email = data.email;
       if (data.password) updateData.password = data.password;
       const personId = person.id;
-this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe({
-         next: () => {
-           if (this.selectedDNIFile) {
-             this.uploadDNI(personId);
-           } else {
-             this.loadDeliveryPersons();
-             this.loadRepartidorUsers();
-             this.cancelEdit();
-           }
-         },
+      this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe({
+        next: () => {
+          if (this.selectedDNIFile) {
+            this.uploadDNI(personId);
+          } else {
+            this.loadDeliveryPersons();
+            this.loadRepartidorUsers();
+            this.cancelEdit();
+          }
+        },
         error: (err) => {
           console.error('Error actualizando repartidor:', err);
           alert('Error al actualizar repartidor');
-        }
+        },
       });
     }
   }
 
   uploadDNI(personId: string) {
     if (!this.selectedDNIFile) return;
-    
+
     const formData = new FormData();
     formData.append('dni', this.selectedDNIFile);
-    
+
     this.http.post<DeliveryPerson>(`/api/delivery/${personId}/dni`, formData).subscribe({
       next: () => {
         this.loadDeliveryPersons();
@@ -208,7 +225,7 @@ this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe
       error: (err) => {
         console.error('Error subiendo DNI:', err);
         alert('Error al subir foto de DNI');
-      }
+      },
     });
   }
 
@@ -222,15 +239,15 @@ this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe
       error: (err) => {
         console.error('Error eliminando repartidor:', err);
         alert('Error al eliminar repartidor');
-      }
+      },
     });
   }
 
   toggleActivo(person: DeliveryPerson) {
-    const updated = { 
-      nombre: person.nombre, 
-      telefono: person.telefono, 
-      activo: !person.activo 
+    const updated = {
+      nombre: person.nombre,
+      telefono: person.telefono,
+      activo: !person.activo,
     };
     this.http.put<DeliveryPerson>(`/api/delivery/${person.id}`, updated).subscribe({
       next: () => {
@@ -240,7 +257,7 @@ this.http.put<DeliveryPerson>(`/api/delivery/${personId}`, updateData).subscribe
       error: (err) => {
         console.error('Error cambiando estado:', err);
         alert('Error al cambiar estado');
-      }
+      },
     });
   }
 }

@@ -66,8 +66,8 @@ export class NoticiasService extends BaseHttpService {
     });
   }
 
-  markNotificationAsRead(id: string): Observable<any> {
-    return new Observable(observer => {
+  markNotificationAsRead(id: string): Observable<unknown> {
+    return new Observable<unknown>(observer => {
       this.http.put(`${this.apiUrl}/noticias/user-notifications/${id}/read`, {}).subscribe({
         next: (result) => {
           this.userNotificaciones.update(notifs => notifs.map(n => n.id === id ? { ...n, leido: true } : n));

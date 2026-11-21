@@ -13,7 +13,8 @@ function esAbortError(error: unknown): boolean {
   if (!error) return false;
   if (error instanceof DOMException && error.name === 'AbortError') return true;
 
-  const err = error as { name?: string; message?: string; error?: unknown };
+  if (typeof error !== 'object') return false;
+  const err = error as { name?: unknown; message?: unknown; error?: unknown };
   if (err.name === 'AbortError') return true;
   if (typeof err.message === 'string' && /aborted/i.test(err.message)) return true;
   // HttpErrorResponse suele envolver la causa original en `.error`.

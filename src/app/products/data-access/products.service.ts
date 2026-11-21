@@ -4,14 +4,21 @@ import { map, Observable } from "rxjs";
 import { Product } from "../../shared/interfaces/product.interface";
 import { shareReplay } from "rxjs/operators";
 
+export interface ProductPageResponse {
+  products: Product[];
+  total?: number;
+  page?: number;
+  totalPages?: number;
+}
+
 @Injectable({
      providedIn: 'root'
  })
  export class ProductsService extends BaseHttpService {
    private productsCache$: Observable<Product[]> | null = null;
 
-   getProducts(page = '1', limit = '50'): Observable<any> {
-     return this.http.get<any>(`${this.apiUrl}/products`, {
+   getProducts(page = '1', limit = '50'): Observable<ProductPageResponse> {
+     return this.http.get<ProductPageResponse>(`${this.apiUrl}/products`, {
        params: { page, limit }
      });
    }
@@ -30,8 +37,8 @@ import { shareReplay } from "rxjs/operators";
      this.productsCache$ = null;
    }
 
-   searchProducts(search: string): Observable<any> {
-     return this.http.get<any>(`${this.apiUrl}/products`, {
+   searchProducts(search: string): Observable<ProductPageResponse> {
+     return this.http.get<ProductPageResponse>(`${this.apiUrl}/products`, {
        params: { search }
      });
    }

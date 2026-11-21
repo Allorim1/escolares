@@ -1,5 +1,5 @@
 import { Component, signal, OnInit, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -33,10 +33,12 @@ interface Abono {
   status: string;
 }
 
+type ColumnaAbono = keyof Abono | 'divisaFactura';
+
 @Component({
   selector: 'app-clientes-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './clientes-detalle.html',
   styleUrl: './clientes-detalle.css',
 })
@@ -66,7 +68,7 @@ export class ClientesDetalle implements OnInit {
   relFiltroHasta = signal('');
 
   showModalColumnas = signal(false);
-  columnasDisponibles = [
+  columnasDisponibles: { key: ColumnaAbono; label: string }[] = [
     { key: 'fecha', label: 'Fecha' },
     { key: 'nombre', label: 'Nombre' },
     { key: 'planta', label: 'Planta' },
@@ -92,7 +94,7 @@ export class ClientesDetalle implements OnInit {
     const desde = this.relFiltroDesde();
     const hasta = this.relFiltroHasta();
 
-    return this.abonos().filter(a => {
+    return this.abonos().filter((a) => {
       if (a.empresa !== nombre) return false;
       if (planta && a.planta !== planta) return false;
       if (desde && new Date(a.fecha) < new Date(desde)) return false;
@@ -106,7 +108,7 @@ export class ClientesDetalle implements OnInit {
     if (id) {
       this.clienteId.set(id);
       this.loadCliente(id);
-      this.cargarAbonos(id);
+      this.cargarAbonos();
     }
   }
 
@@ -126,7 +128,7 @@ export class ClientesDetalle implements OnInit {
     });
   }
 
-  cargarAbonos(id: string) {
+  cargarAbonos() {
     this.abonosLoading.set(true);
     this.http.get<Abono[]>(this.API_ABONOS).subscribe({
       next: (data) => {
@@ -150,18 +152,18 @@ export class ClientesDetalle implements OnInit {
     const planta = this.nuevaPlanta().trim();
     if (!planta) return;
     if (this.cliente()!.plantas.includes(planta)) return;
-    this.cliente.update(e => e ? { ...e, plantas: [...e.plantas, planta] } : e);
+    this.cliente.update((e) => (e ? { ...e, plantas: [...e.plantas, planta] } : e));
     this.nuevaPlanta.set('');
   }
 
   eliminarPlanta(planta: string) {
     if (!this.cliente()) return;
-    this.cliente.update(e => e ? { ...e, plantas: e.plantas.filter(p => p !== planta) } : e);
+    this.cliente.update((e) => (e ? { ...e, plantas: e.plantas.filter((p) => p !== planta) } : e));
   }
 
   actualizarNombre(valor: string) {
     if (!this.cliente()) return;
-    this.cliente.update(e => e ? { ...e, nombre: valor } : e);
+    this.cliente.update((e) => (e ? { ...e, nombre: valor } : e));
   }
 
   guardarCliente() {
@@ -224,37 +226,44 @@ export class ClientesDetalle implements OnInit {
 
   guardarAbono() {
     if (!this.editingAbono) return;
-    if (!this.editingAbono.nombre.trim() || !this.editingAbono.empresa || !this.editingAbono.planta || !this.editingAbono.nFact) {
+    if (
+      !this.editingAbono.nombre.trim() ||
+      !this.editingAbono.empresa ||
+      !this.editingAbono.planta ||
+      !this.editingAbono.nFact
+    ) {
       alert('Por favor, complete los campos requeridos: Nombre, Empresa, Planta y N. Fact');
       return;
     }
 
     this.saving.set(true);
     if (this.editingAbono._id) {
-      this.http.put<Abono>(`${this.API_ABONOS}/${this.editingAbono._id}`, this.editingAbono).subscribe({
-        next: (abonoActualizado) => {
-          this.saving.set(false);
-          this.cerrarModalAbono();
-          if (abonoActualizado && abonoActualizado._id) {
-            this.abonos.update((lista) => {
-              const index = lista.findIndex((a) => a._id === abonoActualizado._id);
-              if (index >= 0) {
-                lista[index] = abonoActualizado;
-              } else {
-                lista.unshift(abonoActualizado);
-              }
-              return [...lista];
-            });
-          } else if (this.clienteId()) {
-            this.cargarAbonos(this.clienteId());
-          }
-        },
-        error: (err) => {
-          console.error('Error updating abono:', err);
-          this.saving.set(false);
-          if (this.clienteId()) this.cargarAbonos(this.clienteId());
-        },
-      });
+      this.http
+        .put<Abono>(`${this.API_ABONOS}/${this.editingAbono._id}`, this.editingAbono)
+        .subscribe({
+          next: (abonoActualizado) => {
+            this.saving.set(false);
+            this.cerrarModalAbono();
+            if (abonoActualizado && abonoActualizado._id) {
+              this.abonos.update((lista) => {
+                const index = lista.findIndex((a) => a._id === abonoActualizado._id);
+                if (index >= 0) {
+                  lista[index] = abonoActualizado;
+                } else {
+                  lista.unshift(abonoActualizado);
+                }
+                return [...lista];
+              });
+            } else if (this.clienteId()) {
+              this.cargarAbonos();
+            }
+          },
+          error: (err) => {
+            console.error('Error updating abono:', err);
+            this.saving.set(false);
+            if (this.clienteId()) this.cargarAbonos();
+          },
+        });
     } else {
       this.http.post<Abono>(this.API_ABONOS, this.editingAbono).subscribe({
         next: (abonoCreado) => {
@@ -263,13 +272,13 @@ export class ClientesDetalle implements OnInit {
           if (abonoCreado && abonoCreado._id) {
             this.abonos.update((lista) => [abonoCreado, ...lista]);
           } else if (this.clienteId()) {
-            this.cargarAbonos(this.clienteId());
+            this.cargarAbonos();
           }
         },
         error: (err) => {
           console.error('Error creating abono:', err);
           this.saving.set(false);
-          if (this.clienteId()) this.cargarAbonos(this.clienteId());
+          if (this.clienteId()) this.cargarAbonos();
         },
       });
     }
@@ -279,7 +288,7 @@ export class ClientesDetalle implements OnInit {
     if (!confirm('¿Está seguro de eliminar esta relación?')) return;
     this.http.delete(`${this.API_ABONOS}/${id}`).subscribe({
       next: () => {
-        if (this.clienteId()) this.cargarAbonos(this.clienteId());
+        if (this.clienteId()) this.cargarAbonos();
       },
       error: (err) => console.error('Error deleting abono:', err),
     });
@@ -305,7 +314,7 @@ export class ClientesDetalle implements OnInit {
     if (!this.editingAbono) return;
     const input = event.target as HTMLInputElement;
     const valor = this.parsearMontoInput(input.value);
-    (this.editingAbono as any)[campo] = valor;
+    this.editingAbono[campo] = valor;
     input.value = this.formatearMontoInput(valor);
 
     if (campo === 'montoFactura' || campo === 'iva') {
@@ -419,7 +428,9 @@ export class ClientesDetalle implements OnInit {
       return;
     }
 
-    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
+    const columnas = this.columnasDisponibles.filter((c) =>
+      this.columnasSeleccionadas().has(c.key),
+    );
     if (columnas.length === 0) {
       alert('Seleccione al menos una columna');
       return;
@@ -466,13 +477,17 @@ export class ClientesDetalle implements OnInit {
       doc.text(`Planta: ${plantaFiltro}`, 18, infoY, { align: 'left' });
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
-      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
+      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, {
+        align: 'right',
+      });
       doc.text(`Total registros: ${datos.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
       headerHeight = infoY + 14;
     } else {
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, { align: 'right' });
+      doc.text(`Generado: ${new Date().toLocaleString('es-VE')}`, pageWidth - 18, infoY, {
+        align: 'right',
+      });
       doc.text(`Total registros: ${datos.length}`, pageWidth - 18, infoY + 6, { align: 'right' });
       headerHeight = infoY + 14;
     }
@@ -481,20 +496,27 @@ export class ClientesDetalle implements OnInit {
     const body = datos.map((a: Abono) => {
       return columnas.map((c) => {
         if (c.key === 'fecha') return this.formatFecha(a.fecha);
-        if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia' || c.key === 'tasa') return this.formatMonto((a as any)[c.key]);
-        if (c.key === 'divisa') return `$ ${this.formatMonto((a as any)[c.key])}`;
+        if (
+          c.key === 'montoFactura' ||
+          c.key === 'iva' ||
+          c.key === 'diferencia' ||
+          c.key === 'tasa'
+        )
+          return this.formatMonto(a[c.key] ?? 0);
+        if (c.key === 'divisa') return `$ ${this.formatMonto(a.divisa ?? 0)}`;
         if (c.key === 'divisaFactura') {
-          const mf = (a as any).montoFactura;
-          const t = (a as any).tasa;
+          const mf = a.montoFactura ?? 0;
+          const t = a.tasa ?? 0;
           return t ? `$ ${this.formatMonto(mf / t)}` : '$ 0,00';
         }
-        if (c.key === 'cedula') return this.formatCedula((a as any)[c.key]);
-        if (c.key === 'telefono') return this.formatTelefono((a as any)[c.key]);
+        if (c.key === 'cedula') return this.formatCedula(a.cedula);
+        if (c.key === 'telefono') return this.formatTelefono(a.telefono);
         if (c.key === 'nFact') {
-          const val = (a as any)[c.key];
+          const val = a.nFact;
           return val ? String(+val) : '';
         }
-        return (a as any)[c.key] ?? '';
+        const value = a[c.key];
+        return value == null ? '' : String(value);
       });
     });
 
@@ -506,7 +528,7 @@ export class ClientesDetalle implements OnInit {
       body.push(columnas.map(() => ''));
     }
 
-    const columnWidths: any = {};
+    const columnWidths: Record<number, { cellWidth: number }> = {};
     columnas.forEach((c, i) => {
       columnWidths[i] = { cellWidth: c.key === 'nombre' ? 32 : c.key === 'planta' ? 24 : 20 };
     });
@@ -536,7 +558,9 @@ export class ClientesDetalle implements OnInit {
       return;
     }
 
-    const columnas = this.columnasDisponibles.filter((c) => this.columnasSeleccionadas().has(c.key));
+    const columnas = this.columnasDisponibles.filter((c) =>
+      this.columnasSeleccionadas().has(c.key),
+    );
     if (columnas.length === 0) {
       alert('Seleccione al menos una columna');
       return;
@@ -552,7 +576,12 @@ export class ClientesDetalle implements OnInit {
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D63C1' } };
-      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
     });
 
@@ -560,18 +589,25 @@ export class ClientesDetalle implements OnInit {
       const row = worksheet.addRow(
         columnas.map((c) => {
           if (c.key === 'fecha') return this.formatFecha(a.fecha);
-          if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia') return this.formatMonto(a[c.key as keyof Abono] as number);
+          if (c.key === 'montoFactura' || c.key === 'iva' || c.key === 'diferencia')
+            return this.formatMonto(a[c.key as keyof Abono] as number);
           if (c.key === 'tasa') return a.tasa?.toFixed(2) ?? '0.00';
           if (c.key === 'divisa') return this.formatMonto(a.divisa ?? 0);
-          if (c.key === 'divisaFactura') return a.tasa && a.montoFactura ? this.formatMonto(a.montoFactura / a.tasa) : '0,00';
+          if (c.key === 'divisaFactura')
+            return a.tasa && a.montoFactura ? this.formatMonto(a.montoFactura / a.tasa) : '0,00';
           if (c.key === 'cedula') return this.formatCedula(a.cedula);
           if (c.key === 'telefono') return this.formatTelefono(a.telefono);
           if (c.key === 'nFact') return a.nFact ? String(+a.nFact) : '';
-          return (a as any)[c.key] ?? '';
-        })
+          return a[c.key] ?? '';
+        }),
       );
       row.eachCell((cell) => {
-        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
     });

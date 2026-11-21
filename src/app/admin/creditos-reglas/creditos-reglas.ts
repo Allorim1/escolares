@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
@@ -19,7 +19,7 @@ interface Reglas {
 @Component({
   selector: 'app-creditos-reglas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './creditos-reglas.html',
   styleUrl: './creditos-reglas.css',
 })
@@ -49,7 +49,10 @@ export class CreditosReglas implements OnInit {
         this.tasaPorcentaje = Math.round(data.tasaQuincenal * 1000) / 10;
         this.loading.set(false);
       },
-      error: (err) => { console.error('Error cargando reglas:', err); this.loading.set(false); },
+      error: (err) => {
+        console.error('Error cargando reglas:', err);
+        this.loading.set(false);
+      },
     });
   }
 
@@ -96,14 +99,21 @@ export class CreditosReglas implements OnInit {
     if (!r) return;
     this.saving.set(true);
     this.guardado.set(false);
-    const payload = { ...r, ivaTasa: this.ivaPorcentaje / 100, tasaQuincenal: this.tasaPorcentaje / 100 };
+    const payload = {
+      ...r,
+      ivaTasa: this.ivaPorcentaje / 100,
+      tasaQuincenal: this.tasaPorcentaje / 100,
+    };
     this.http.put<Reglas>(this.API, payload).subscribe({
       next: (data) => {
         this.reglas.set(data);
         this.saving.set(false);
         this.guardado.set(true);
       },
-      error: (err) => { this.saving.set(false); alert(err.error?.error || 'Error al guardar'); },
+      error: (err) => {
+        this.saving.set(false);
+        alert(err.error?.error || 'Error al guardar');
+      },
     });
   }
 }

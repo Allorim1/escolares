@@ -2,9 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import { Cotizacion } from '../interfaces/cotizacion.interface';
 import { HttpClient } from '@angular/common/http';
 import { CurrencyService } from '../data-access/currency.service';
+import type { CustomTableLayout, TCreatedPdf, TDocumentDefinitions } from 'pdfmake/interfaces';
 
 // Declaración para window.pdfMake (cargado desde CDN en index.html)
-declare const pdfMake: any;
+declare const pdfMake: { createPdf: (definition: TDocumentDefinitions) => TCreatedPdf };
+
+type PdfTableNode = Parameters<NonNullable<CustomTableLayout['vLineWidth']>>[1];
+type PdfDocumentDefinition = TDocumentDefinitions & { tableLayouts?: Record<string, CustomTableLayout> };
+
+function buildPdfDefinition(definition: unknown): PdfDocumentDefinition {
+  return definition as PdfDocumentDefinition;
+}
 
 export interface ConstanciaTrabajo {
   nombreCompleto: string;
@@ -140,7 +148,7 @@ async generarCotizacionPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
     const lineasFaltantes = Math.max(0, MAX_ARTICULOS - articulosActuales);
     const stringRelleno = '\n'.repeat(lineasFaltantes * 2);
 
-    const ivaCalculado = data.items.reduce((sum: number, item: any) => {
+    const ivaCalculado = data.items.reduce((sum, item) => {
       const tieneIva = item.tieneIva ?? false;
       const itemIvaPorcentaje = item.ivaPorcentaje ?? 16;
       if (!tieneIva) return sum;
@@ -151,13 +159,13 @@ async generarCotizacionPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
     // Exento y base imponible se sacan de los artículos (ya con el descuento aplicado) en vez de
     // data.totales.exentoBs, que en las cotizaciones guardadas antes de calcularlo quedó en 0.
     // EXENTO + BASE IMPONIBLE = SUB TOTAL - DESCUENTO.
-    const exentoCalculado = data.items.reduce((sum: number, item: any) => {
+    const exentoCalculado = data.items.reduce((sum, item) => {
       if (item.tieneIva ?? false) return sum;
       return sum + (item.montoTotalBs * (100 - data.totales.porcentajeDescuento)) / 100;
     }, 0);
     const baseImponibleCalculada = data.totales.netoBs - data.totales.descuentoBs - exentoCalculado;
 
-    const docDefinition: any = {
+    const docDefinition = buildPdfDefinition({
       content: [
         {
           columns: [
@@ -403,16 +411,13 @@ async generarCotizacionPdf(data: Cotizacion, moneda: 'BS' | 'USD' = 'BS') {
       },
       pageSize: 'A4',
       pageMargins: [40, 30, 40, 30] // Reducidos los márgenes superior/inferior de 40 a 30 para ganar más área útil
-    };
+    });
 
 docDefinition.tableLayouts = {
 tablaComercial: {
-    hLineWidth: (i: number, node: any) => {
-      // Deja que las celdas controlen sus propios bordes de forma nativa
-      return 0.8;
-    },
-    vLineWidth: (i: number, node: any) => {
-      return (i === 0 || i === node.table.widths.length) ? 1.2 : 0.8;
+    hLineWidth: () => 0.8,
+    vLineWidth: (i: number, node: PdfTableNode) => {
+      return (i === 0 || i === (node.table.widths?.length ?? 0)) ? 1.2 : 0.8;
     },
     hLineColor: () => '#000000',
     vLineColor: () => '#000000',
@@ -453,7 +458,7 @@ tablaComercial: {
     }
   }
 
-   descargarPdf(docDefinition: any, fileName: string) {
+   descargarPdf(docDefinition: TDocumentDefinitions, fileName: string) {
     pdfMake.createPdf(docDefinition).download(fileName);
   }
 
@@ -495,14 +500,14 @@ tablaComercial: {
       }
 
      const fechaLarga = this.formatearFechaComercial(data.fechaEmision);
-         const background: any = logoMarcaAgua ? {
+         const background: TDocumentDefinitions['background'] = logoMarcaAgua ? {
       image: logoMarcaAgua,
       width: 400,
       opacity: 0.08,
       absolutePosition: { x: 97.64, y: 240 }
     } : undefined;
 
-     const docDefinition: any = {
+     const docDefinition = buildPdfDefinition({
        content: [
          {
            columns: [
@@ -551,7 +556,7 @@ tablaComercial: {
           ]
          },
        ],
-       footer: (currentPage: number, pageCount: number) => {
+       footer: () => {
   return {
     stack: [
       {
@@ -596,7 +601,7 @@ tablaComercial: {
        },
        pageSize: 'LETTER',
        pageMargins: [40, 40, 40, 40]
-     };
+     });
 
      docDefinition.tableLayouts = {
        tablaConstancia: {
@@ -634,14 +639,14 @@ tablaComercial: {
     const cifrasTexto = this.convertirNumeroATexto(data.cifras) + (data.cifras && !isNaN(parseInt(data.cifras, 10)) ? ' cifras' : '');
     const fechaLarga = this.formatearFechaComercial(data.fecha);
 
-    const background: any = logoMarcaAgua ? {
+    const background: TDocumentDefinitions['background'] = logoMarcaAgua ? {
       image: logoMarcaAgua,
       width: 400,
       opacity: 0.08,
       absolutePosition: { x: 97.64, y: 240 }
     } : undefined;
 
-    const docDefinition: any = {
+    const docDefinition = buildPdfDefinition({
       content: [
         {
           columns: [
@@ -681,7 +686,7 @@ tablaComercial: {
         }
       ],
 
-footer: (currentPage: number, pageCount: number) => {
+footer: () => {
   return {
     stack: [
       {
@@ -721,7 +726,7 @@ footer: (currentPage: number, pageCount: number) => {
       },
       pageSize: 'LETTER',
       pageMargins: [40, 50, 40, 50]
-    };
+    });
 
     return docDefinition;
   }
@@ -869,13 +874,6 @@ footer: (currentPage: number, pageCount: number) => {
   }
 
     async generarConstanciaPersonalPdf(data: ConstanciaPersonal) {
-      let logoBase64 = '';
-      try {
-        logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-      } catch (e) {
-        console.warn('No se pudo cargar el logo:', e);
-      }
-
       const de = data.de || '';
       const cedulaDe = this.formatearCedula(data.cedulaDe);
       const direccion = data.direccion || '';
@@ -891,7 +889,7 @@ footer: (currentPage: number, pageCount: number) => {
       console.log('Constancia personal fechaEmision:', fechaEmision);
       console.log('Constancia personal telefono:', telefono);
 
-      const docDefinition: any = {
+      const docDefinition = buildPdfDefinition({
         content: [
           {
             text: 'C O N S T A N C I A',
@@ -929,7 +927,7 @@ footer: (currentPage: number, pageCount: number) => {
             ]
           },
         ],
-        footer: (currentPage: number, pageCount: number) => {
+        footer: () => {
           return {
             stack: [
           {
@@ -955,7 +953,7 @@ footer: (currentPage: number, pageCount: number) => {
         },
         pageSize: 'LETTER',
         pageMargins: [40, 50, 40, 50]
-      };
+      });
 
       docDefinition.tableLayouts = {
         tablaConstancia: {
@@ -976,20 +974,12 @@ footer: (currentPage: number, pageCount: number) => {
     async descargarPdfPersonalBlob(data: ConstanciaPersonal, fileName: string) {
       const docDefinition = await this.generarConstanciaPersonalPdf(data);
       const pdfDoc = pdfMake.createPdf(docDefinition);
-      const blob = await new Promise<Blob | void>((resolve, reject) => {
-        pdfDoc.getBlob((blobResult: Blob) => {
-          if (blobResult && blobResult.size > 0) {
-            resolve(blobResult);
-          } else {
-            reject(new Error('PDF blob vacío'));
-          }
-        });
-      }).catch((err) => {
+      const blob = await pdfDoc.getBlob().catch((err) => {
         console.error('Error generando blob PDF:', err);
         throw err;
       });
 
-      if (!blob) return;
+      if (!blob || blob.size === 0) throw new Error('PDF blob vacío');
 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -1005,8 +995,8 @@ footer: (currentPage: number, pageCount: number) => {
   let logoBase64 = '';
   try {
     logoBase64 = await this.cargarImagenLocal('/ESCOLARES AZUL RIF GRANDE.png');
-  } catch (e) {
-    console.warn('No se pudo cargar el logo:', e);
+  } catch (error) {
+    console.warn('No se pudo cargar el logo:', error);
   }
 
   const montoNumero = Number(data?.monto) || 0;
@@ -1019,7 +1009,7 @@ footer: (currentPage: number, pageCount: number) => {
 
   const cuerpo = `HE RECIBIDO DE ${nombreCabecera} LA CANTIDAD DE ${(montoTexto || '').toUpperCase()} BOLIVARES EXACTOS (${montoExactos}) POR CONCEPTO DE ${(data?.concepto || '').toUpperCase()} SIN MÁS QUE OBJETAR FIRMO CONFORME`;
 
-  const docDefinition: any = {
+  const docDefinition = buildPdfDefinition({
     content: [
       {
         columns: [
@@ -1115,7 +1105,7 @@ footer: (currentPage: number, pageCount: number) => {
     },
     pageSize: 'LETTER',
     pageMargins: [40, 40, 40, 40]
-  };
+  });
 
   return docDefinition;
 }

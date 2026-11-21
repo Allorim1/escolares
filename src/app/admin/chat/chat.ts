@@ -1,5 +1,13 @@
-import { Component, inject, signal, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  AfterViewChecked,
+} from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../shared/data-access/auth.service';
@@ -35,7 +43,7 @@ interface MensajePublico {
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
 })
@@ -51,15 +59,15 @@ export class Chat implements OnInit, AfterViewChecked {
   usuarioSeleccionado = signal<Usuario | null>(null);
   mensajes: Mensaje[] = [];
   mensajesPublicos: MensajePublico[] = [];
-  
+
   tabActiva: 'privado' | 'publico' = 'privado';
   busqueda = '';
   nuevoMensaje = '';
   nuevoMensajePublico = '';
   currentUserId = '';
-  
-  private pollingInterval: any;
-  private pollingPublicoInterval: any;
+
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
+  private pollingPublicoInterval: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit() {
     this.currentUserId = this.authService.user()?.id || '';
@@ -78,7 +86,7 @@ export class Chat implements OnInit, AfterViewChecked {
         this.usuarios.set(data);
         this.usuariosFiltrados = data;
       },
-      error: (err) => console.error('Error cargando usuarios:', err)
+      error: (err) => console.error('Error cargando usuarios:', err),
     });
   }
 
@@ -88,8 +96,8 @@ export class Chat implements OnInit, AfterViewChecked {
       this.usuariosFiltrados = usuariosList;
     } else {
       const term = this.busqueda.toLowerCase();
-      this.usuariosFiltrados = usuariosList.filter(u => 
-        (u.username || u.nombre || '').toLowerCase().includes(term)
+      this.usuariosFiltrados = usuariosList.filter((u) =>
+        (u.username || u.nombre || '').toLowerCase().includes(term),
       );
     }
   }
@@ -105,7 +113,7 @@ export class Chat implements OnInit, AfterViewChecked {
         this.mensajes = data;
         this.scrollToBottom();
       },
-      error: (err) => console.error('Error cargando mensajes:', err)
+      error: (err) => console.error('Error cargando mensajes:', err),
     });
   }
 
@@ -114,7 +122,7 @@ export class Chat implements OnInit, AfterViewChecked {
       next: (data) => {
         this.mensajesPublicos = data;
       },
-      error: (err) => console.error('Error cargando mensajes públicos:', err)
+      error: (err) => console.error('Error cargando mensajes públicos:', err),
     });
   }
 
@@ -122,17 +130,19 @@ export class Chat implements OnInit, AfterViewChecked {
     if (!this.nuevoMensaje.trim() || !this.usuarioSeleccionado()) return;
 
     const receptorId = this.usuarioSeleccionado()!._id;
-    
-    this.http.post('/api/chat/mensaje', {
-      receptorId,
-      mensaje: this.nuevoMensaje.trim()
-    }).subscribe({
-      next: () => {
-        this.nuevoMensaje = '';
-        this.cargarMensajes(receptorId);
-      },
-      error: (err) => console.error('Error enviando mensaje:', err)
-    });
+
+    this.http
+      .post('/api/chat/mensaje', {
+        receptorId,
+        mensaje: this.nuevoMensaje.trim(),
+      })
+      .subscribe({
+        next: () => {
+          this.nuevoMensaje = '';
+          this.cargarMensajes(receptorId);
+        },
+        error: (err) => console.error('Error enviando mensaje:', err),
+      });
   }
 
   enviarMensajePublico() {
@@ -141,16 +151,18 @@ export class Chat implements OnInit, AfterViewChecked {
     const usuario = this.authService.user();
     const emisorNombre = usuario?.username || 'Usuario';
 
-    this.http.post('/api/chat/publico', {
-      emisorNombre,
-      mensaje: this.nuevoMensajePublico.trim()
-    }).subscribe({
-      next: () => {
-        this.nuevoMensajePublico = '';
-        this.cargarMensajesPublicos();
-      },
-      error: (err) => console.error('Error enviando mensaje:', err)
-    });
+    this.http
+      .post('/api/chat/publico', {
+        emisorNombre,
+        mensaje: this.nuevoMensajePublico.trim(),
+      })
+      .subscribe({
+        next: () => {
+          this.nuevoMensajePublico = '';
+          this.cargarMensajesPublicos();
+        },
+        error: (err) => console.error('Error enviando mensaje:', err),
+      });
   }
 
   getInitials(nombre: string): string {
@@ -164,9 +176,9 @@ export class Chat implements OnInit, AfterViewChecked {
 
   getRolLabel(rol: string): string {
     const labels: Record<string, string> = {
-      'root': 'Administrador',
-      'admin': 'Admin',
-      'usuario': 'Usuario',
+      root: 'Administrador',
+      admin: 'Admin',
+      usuario: 'Usuario',
     };
     return labels[rol] || rol;
   }
@@ -183,12 +195,12 @@ export class Chat implements OnInit, AfterViewChecked {
     if (diffMins < 60) return `${diffMins}m`;
     if (diffHours < 24) return `${diffHours}h`;
     if (diffDays < 7) return `${diffDays}d`;
-    
+
     return date.toLocaleDateString('es-VE', {
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   }
 

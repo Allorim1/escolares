@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
 import { Header } from './shared/ui/header/header';
 import { Footer } from './shared/ui/footer/footer';

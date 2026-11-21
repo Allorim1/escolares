@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { LineasService, Linea } from '../../shared/data-access/lineas.service';
@@ -15,7 +15,7 @@ import { FavoritesService } from '../../shared/data-access/favorites.service';
 @Component({
   selector: 'app-productos-linea',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './productos-linea.html',
   styleUrl: './productos-linea.css',
 })
@@ -73,11 +73,8 @@ export class ProductosLinea implements OnInit {
       const matchesLinea = p.lineaId === currentLinea.id;
       const text = this.filterText().toLowerCase();
       const matchesText =
-        !text ||
-        p.title.toLowerCase().includes(text) ||
-        p.description.toLowerCase().includes(text);
-      const matchesBrand =
-        !this.selectedBrand() || p.marca === this.selectedBrand();
+        !text || p.title.toLowerCase().includes(text) || p.description.toLowerCase().includes(text);
+      const matchesBrand = !this.selectedBrand() || p.marca === this.selectedBrand();
       return matchesLinea && matchesText && matchesBrand;
     });
 
@@ -170,7 +167,7 @@ export class ProductosLinea implements OnInit {
 
   getCardQuantity(productId: number | string): number {
     const cartItem = this.cartState().products.find(
-      (p: { product: { id: number | string } }) => p.product.id === productId
+      (p: { product: { id: number | string } }) => p.product.id === productId,
     );
     return cartItem ? cartItem.quantity : 0;
   }

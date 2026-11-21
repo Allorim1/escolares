@@ -12,7 +12,7 @@
   } @else {
     <div class="orders-list">
       @for (order of orders(); track order.id) {
-        <div class="order-card" (click)="selectOrder(order)">
+        <div class="order-card" (click)="selectOrder(order)" tabindex="0" (keydown.enter)="selectOrder(order)" (keydown.space)="selectOrder(order); $event.preventDefault()">
           <div class="order-header">
             <div class="order-id">
               <span class="label">Pedido #</span>
@@ -44,8 +44,8 @@
 </section>
 
 @if (selectedOrder()) {
-  <div class="modal-overlay" (click)="closeDetail()">
-    <div class="order-detail-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeDetail())" tabindex="0" (keydown.enter)="closeDetail()" (keydown.space)="closeDetail(); $event.preventDefault()">
+    <div class="order-detail-modal">
       <div class="modal-header">
         <h3>Detalle del Pedido #{{ selectedOrder()?.id }}</h3>
         <button class="close-btn" (click)="closeDetail()">&times;</button>

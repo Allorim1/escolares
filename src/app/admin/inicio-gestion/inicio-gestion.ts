@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
+
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
 
@@ -36,7 +36,7 @@ interface HomeSettings {
 @Component({
   selector: 'app-admin-inicio-gestion',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule],
   templateUrl: './inicio-gestion.html',
   styleUrl: './inicio-gestion.css',
 })
@@ -47,7 +47,7 @@ export class AdminInicioGestion implements OnInit {
   loading = signal(true);
   saving = signal(false);
   activeTab = signal<'banners' | 'features' | 'featured' | 'settings'>('banners');
-  
+
   settings = signal<HomeSettings>({
     banners: [],
     features: [],
@@ -58,10 +58,10 @@ export class AdminInicioGestion implements OnInit {
   });
 
   allProducts = signal<Product[]>([]);
-  
+
   editingBanner = signal<HomeBanner | null>(null);
   showBannerModal = signal(false);
-  
+
   editingFeature = signal<HomeFeature | null>(null);
   showFeatureModal = signal(false);
 
@@ -86,7 +86,7 @@ export class AdminInicioGestion implements OnInit {
 
   loadProducts() {
     this.productsService.getProducts().subscribe({
-      next: (response: any) => {
+      next: (response) => {
         this.allProducts.set(response.products);
       },
       error: (err) => console.error('Error loading products:', err),
@@ -223,14 +223,14 @@ export class AdminInicioGestion implements OnInit {
     const id = String(productId);
     const current = this.settings().featuredProducts;
     let updated: string[];
-    
+
     if (current.includes(id)) {
-      updated = current.filter(pid => pid !== id);
+      updated = current.filter((pid) => pid !== id);
     } else {
       updated = [...current, id];
     }
-    
-    this.settings.update(s => ({ ...s, featuredProducts: updated }));
+
+    this.settings.update((s) => ({ ...s, featuredProducts: updated }));
   }
 
   toggleFeaturedProduct(product: Product) {
@@ -258,7 +258,7 @@ export class AdminInicioGestion implements OnInit {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result as string;
-      this.editingBanner.update(b => b ? { ...b, image: base64 } : b);
+      this.editingBanner.update((b) => (b ? { ...b, image: base64 } : b));
     };
     reader.readAsDataURL(file);
   }

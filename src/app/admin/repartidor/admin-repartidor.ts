@@ -18,7 +18,7 @@ interface Order {
   _id?: string;
   id: string;
   userId: string;
-  items: any[];
+  items: unknown[];
   total: number;
   nombre: string;
   cedula: string;
@@ -34,8 +34,15 @@ interface Order {
   bancoEmisor?: string;
   cedulaTitular?: string;
   correo?: string;
-  status: 'confirmar' | 'pendiente' | 'procesando' | 'procesado' | 'enviado' | 'entregado' | 'cancelado';
-  historial: any[];
+  status:
+    | 'confirmar'
+    | 'pendiente'
+    | 'procesando'
+    | 'procesado'
+    | 'enviado'
+    | 'entregado'
+    | 'cancelado';
+  historial: unknown[];
   autorizadoPor?: string;
   autorizadoNombre?: string;
   deliveryPersonId?: string;
@@ -54,22 +61,22 @@ interface Order {
   standalone: true,
   imports: [CommonModule, FormsModule, OrderTrackingMapComponent],
   templateUrl: './admin-repartidor.html',
-  styleUrls: ['./admin-repartidor.css']
+  styleUrls: ['./admin-repartidor.css'],
 })
 export class AdminRepartidorComponent implements OnInit, OnDestroy {
-   orders = signal<Order[]>([]);
-    loading = signal(true);
-    selectedStatus = signal<Order['status'] | ''>('');
-    selectedOrderMap = signal<string>('');
-    currentOrder = signal<Order | null>(null);
-    watchId: number | null = null;
-    deliveryPersonId: string | null = null;
+  private http = inject(HttpClient);
 
-   private authService = inject(AuthService);
+  orders = signal<Order[]>([]);
+  loading = signal(true);
+  selectedStatus = signal<Order['status'] | ''>('');
+  selectedOrderMap = signal<string>('');
+  currentOrder = signal<Order | null>(null);
+  watchId: number | null = null;
+  deliveryPersonId: string | null = null;
 
-   constructor(private http: HttpClient) {}
+  private authService = inject(AuthService);
 
- ngOnInit() {
+  ngOnInit() {
     const user = this.authService.user();
     const currentUserId = user?.id;
 
@@ -85,67 +92,69 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
     const token = localStorage.getItem('accessToken');
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
-    this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`).subscribe({
-          next: (person) => {
-            this.deliveryPersonId = person.id;
-            this.loadOrders();
-            this.watchLocation();
-          },
-          error: (err) => {
-            console.error('Error loading delivery person:', err);
-            this.loadOrders(); // Still try to load orders even if delivery person lookup fails
-          }
-        });
-      }
+    this.http.get<DeliveryPerson>(`/api/delivery/by-user/${currentUserId}`, { headers }).subscribe({
+      next: (person) => {
+        this.deliveryPersonId = person.id;
+        this.loadOrders();
+        this.watchLocation();
+      },
+      error: (err) => {
+        console.error('Error loading delivery person:', err);
+        this.loadOrders(); // Still try to load orders even if delivery person lookup fails
+      },
+    });
+  }
 
-   ngOnDestroy() {
-      if (this.watchId) {
-        navigator.geolocation.clearWatch(this.watchId);
-      }
+  ngOnDestroy() {
+    if (this.watchId) {
+      navigator.geolocation.clearWatch(this.watchId);
     }
+  }
 
-   watchLocation() {
-      if (!navigator.geolocation) return;
-      
-      this.watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          this.updateMyLocation(latitude, longitude);
-        },
-        (error) => console.error('Geolocation error:', error),
-        { enableHighAccuracy: true, maximumAge: 30000 }
-      );
-    }
+  watchLocation() {
+    if (!navigator.geolocation) return;
 
-    updateMyLocation(lat: number, lng: number) {
-      if (!this.deliveryPersonId) return;
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        this.updateMyLocation(latitude, longitude);
+      },
+      (error) => console.error('Geolocation error:', error),
+      { enableHighAccuracy: true, maximumAge: 30000 },
+    );
+  }
 
-      const token = localStorage.getItem('accessToken');
-      const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+  updateMyLocation(lat: number, lng: number) {
+    if (!this.deliveryPersonId) return;
 
-      this.http.put(`/api/delivery/${this.deliveryPersonId}/location`, { lat, lng }, { headers }).subscribe({
-        error: (err) => console.error('Error updating location:', err)
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+
+    this.http
+      .put(`/api/delivery/${this.deliveryPersonId}/location`, { lat, lng }, { headers })
+      .subscribe({
+        error: (err) => console.error('Error updating location:', err),
       });
-    }
+  }
 
-    loadOrders() {
-      this.loading.set(true);
-      const token = localStorage.getItem('accessToken');
-      const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
-      
-      this.http.get<Order[]>('/api/orders/delivery/assigned', { headers }).subscribe({
-        next: (data) => {
-          this.orders.set(data);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          console.error('Error cargando pedidos:', err);
-          this.loading.set(false);
-        }
-      });
-    }
+  loadOrders() {
+    this.loading.set(true);
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
- updateOrderStatus(order: Order, newStatus: Order['status']) {
+    this.http.get<Order[]>('/api/orders/delivery/assigned', { headers }).subscribe({
+      next: (data) => {
+        this.orders.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error cargando pedidos:', err);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  updateOrderStatus(order: Order, newStatus: Order['status']) {
     if (!confirm(`¿Cambiar estado a "${this.getStatusText(newStatus)}"?`)) return;
 
     const token = localStorage.getItem('accessToken');
@@ -158,7 +167,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error actualizando estado:', err);
         alert('Error al actualizar estado');
-      }
+      },
     });
   }
 
@@ -180,7 +189,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error aceptando pedido:', err);
         alert('Error al aceptar el pedido');
-      }
+      },
     });
   }
 
@@ -200,7 +209,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error rechazando pedido:', err);
         alert('Error al rechazar el pedido');
-      }
+      },
     });
   }
 
@@ -210,7 +219,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
   }
 
   onOrderStarted(orderId: string) {
-    const order = this.orders().find(o => o.id === orderId);
+    const order = this.orders().find((o) => o.id === orderId);
     if (order) {
       this.startOrder(order);
     }
@@ -223,10 +232,12 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
     if (!status) return this.loadOrders();
-    this.http.get<Order[]>(`/api/orders/delivery/assigned?status=${status}`, { headers }).subscribe({
-      next: (data) => this.orders.set(data),
-      error: (err) => console.error('Error filtrando pedidos:', err)
-    });
+    this.http
+      .get<Order[]>(`/api/orders/delivery/assigned?status=${status}`, { headers })
+      .subscribe({
+        next: (data) => this.orders.set(data),
+        error: (err) => console.error('Error filtrando pedidos:', err),
+      });
   }
 
   getStatusColor(status: Order['status']): string {
@@ -237,7 +248,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       procesado: 'primary',
       enviado: 'success',
       entregado: 'success',
-      cancelado: 'danger'
+      cancelado: 'danger',
     };
     return colors[status] || 'secondary';
   }
@@ -250,7 +261,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       procesado: 'Aceptado',
       enviado: 'En camino',
       entregado: 'Entregado',
-      cancelado: 'Cancelado'
+      cancelado: 'Cancelado',
     };
     return texts[status] || status;
   }

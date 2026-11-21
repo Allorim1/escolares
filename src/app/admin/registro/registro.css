@@ -126,7 +126,7 @@
   flex-wrap: wrap;
 }
 
-.filtros-fecha label {
+.filtros-fecha :is(label, .static-field-label) {
   font-weight: 600;
   color: #333;
 }
@@ -352,7 +352,7 @@
   margin-bottom: 12px;
 }
 
-.detalle-row label {
+.detalle-row :is(label, .static-field-label) {
   font-weight: 600;
   width: 100px;
   color: #374151;

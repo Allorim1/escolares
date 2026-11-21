@@ -48,10 +48,10 @@
         />
       </div>
       <div class="filtros-fecha">
-        <label>Desde:</label>
-        <input type="date" [(ngModel)]="fechaDesde" class="input-fecha" />
-        <label>Hasta:</label>
-        <input type="date" [(ngModel)]="fechaHasta" class="input-fecha" />
+        <label for="lint-associated-field-1">Desde:</label>
+        <input type="date" [(ngModel)]="fechaDesde" class="input-fecha"  id="lint-associated-field-1"/>
+        <label for="lint-associated-field-2">Hasta:</label>
+        <input type="date" [(ngModel)]="fechaHasta" class="input-fecha"  id="lint-associated-field-2"/>
         @if (fechaDesde || fechaHasta) {
           <button class="btn-limpiar-fecha" (click)="fechaDesde = ''; fechaHasta = ''">Limpiar fechas</button>
         }
@@ -115,23 +115,23 @@
 </div>
 
 @if (mostrarModal && registroSeleccionado) {
-  <div class="modal-overlay" (click)="cerrarModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (cerrarModal())" tabindex="0" (keydown.enter)="cerrarModal()" (keydown.space)="cerrarModal(); $event.preventDefault()">
+    <div class="modal">
       <div class="modal-header">
         <h3>Detalles del Registro</h3>
         <button class="btn-cerrar" (click)="cerrarModal()">×</button>
       </div>
       <div class="modal-body">
         <div class="detalle-row">
-          <label>Fecha:</label>
+          <span class="static-field-label">Fecha:</span>
           <span>{{ formatearFecha(registroSeleccionado.fecha) }}</span>
         </div>
         <div class="detalle-row">
-          <label>Módulo:</label>
+          <span class="static-field-label">Módulo:</span>
           <span>{{ registroSeleccionado.modulo }}</span>
         </div>
         <div class="detalle-row">
-          <label>Acción:</label>
+          <span class="static-field-label">Acción:</span>
           <span [class.text-green-600]="registroSeleccionado.accion.toLowerCase() === 'crear'"
                 [class.text-blue-600]="registroSeleccionado.accion.toLowerCase() === 'editar'"
                 [class.text-red-600]="registroSeleccionado.accion.toLowerCase() === 'eliminar'">
@@ -139,16 +139,16 @@
           </span>
         </div>
         <div class="detalle-row">
-          <label>Usuario:</label>
+          <span class="static-field-label">Usuario:</span>
           <span>{{ registroSeleccionado.usuario }}</span>
         </div>
         <div class="detalle-row">
-          <label>Descripción:</label>
+          <span class="static-field-label">Descripción:</span>
           <span>{{ registroSeleccionado.descripcion }}</span>
         </div>
         @if (registroSeleccionado.datos && (registroSeleccionado.datos | json) !== '{}') {
           <div class="detalle-row">
-            <label>Datos:</label>
+            <span class="static-field-label">Datos:</span>
             @if (registroSeleccionado.datos.modificaciones) {
               <div class="modificaciones-list">
                 @for (mod of registroSeleccionado.datos.modificaciones; track $index) {

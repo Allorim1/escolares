@@ -51,7 +51,7 @@
   min-width: 400px;
 }
 
-.filter-group label {
+.filter-group :is(label, .static-field-label) {
   font-size: 0.8rem;
   color: #666;
   font-weight: 500;
@@ -170,7 +170,7 @@
   word-break: break-word;
 }
 
-.form-group label {
+.form-group :is(label, .static-field-label) {
   display: block;
   margin-bottom: 0.5rem;
   color: #555;
@@ -261,7 +261,7 @@
   margin-bottom: 0.75rem;
 }
 
-.additional-images-header label {
+.additional-images-header :is(label, .static-field-label) {
   font-weight: 600;
   color: #333;
   margin: 0;
@@ -743,7 +743,7 @@ tbody tr:hover {
   gap: 0.5rem;
 }
 
-.oferta-field label {
+.oferta-field :is(label, .static-field-label) {
   font-size: 0.85rem;
   font-weight: 600;
   color: #e65100;
@@ -1315,7 +1315,7 @@ tbody tr:hover {
   margin-bottom: 0.75rem;
 }
 
-.default-colors-header label {
+.default-colors-header :is(label, .static-field-label) {
   font-weight: 600;
   color: #495057;
   font-size: 0.95rem;
@@ -1677,7 +1677,7 @@ tbody tr:hover {
   border: 2px solid #4caf50;
 }
 
-.rating-group label {
+.rating-group :is(label, .static-field-label) {
   color: #2e7d32;
   font-weight: 600;
 }
@@ -1695,7 +1695,7 @@ tbody tr:hover {
   flex: 1;
 }
 
-.rating-field label {
+.rating-field :is(label, .static-field-label) {
   font-size: 0.8rem;
   color: #555;
   font-weight: 500;
@@ -2724,7 +2724,7 @@ input:checked + .toggle-slider:before {
 }
 
 [data-theme="dark"] .header h2,
-[data-theme="dark"] .filter-group label,
+[data-theme="dark"] .filter-group :is(label, .static-field-label),
 [data-theme="dark"] .product-table th,
 [data-theme="dark"] .empty-state p {
   color: var(--text-primary) !important;

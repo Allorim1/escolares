@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -26,9 +26,9 @@ export interface Rol {
   providedIn: 'root',
 })
 export class RolesBackend {
-  private readonly API_URL = '/api/roles';
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly API_URL = '/api/roles';
 
   getPermisos(): Observable<Permiso[]> {
     return this.http.get<Permiso[]>(`${this.API_URL}/permisos`);
@@ -54,7 +54,7 @@ export class RolesBackend {
     return this.http.put<Rol>(`${this.API_URL}/${id}`, rol);
   }
 
-  deleteRol(id: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/${id}`);
+  deleteRol(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}`);
   }
 }

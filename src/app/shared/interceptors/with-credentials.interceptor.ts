@@ -5,12 +5,20 @@ import { Observable, catchError, throwError, switchMap, from } from 'rxjs';
 
 let isRefreshing = false;
 
+interface TokenPayload {
+  exp?: number;
+}
+
+interface RefreshResponse {
+  accessToken?: string;
+  refreshToken?: string;
+  error?: string;
+}
+
 const publicEndpointsWithoutAuth = [
   '/api/tasas',
   '/api/settings/tasas-status',
   '/api/costos',
-  '/api/facturas',
-  '/api/proveedores',
 ];
 
 function isPublicEndpoint(url: string): boolean {
@@ -39,13 +47,13 @@ function isValidJWTToken(token: string | null): boolean {
   }
 }
 
-function decodeToken(token: string | null): any {
+function decodeToken(token: string | null): TokenPayload | null {
   if (!token) return null;
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
-    const payload = JSON.parse(atob(parts[1]));
-    return payload;
+    const payload = JSON.parse(atob(parts[1])) as { exp?: unknown };
+    return typeof payload.exp === 'number' ? { exp: payload.exp } : {};
   } catch {
     return null;
   }
@@ -54,7 +62,7 @@ function decodeToken(token: string | null): any {
 function isTokenExpired(token: string | null): boolean {
   if (!token || !isValidJWTToken(token)) return true;
   const payload = decodeToken(token);
-  if (!payload || !payload.exp) return true;
+  if (!payload?.exp) return true;
   const expDate = new Date(payload.exp * 1000);
   const now = new Date();
   return expDate <= now;
@@ -75,12 +83,12 @@ async function refreshToken(): Promise<{ accessToken?: string; refreshToken?: st
       credentials: 'include',
       body: JSON.stringify({ refreshToken: refreshTokenValue })
     });
-    const data = await res.json();
+    const data = await res.json() as RefreshResponse;
     if (!res.ok) {
       return { error: data.error || 'Refresh failed' };
     }
     return data;
-  } catch (e) {
+  } catch {
     return { error: 'Refresh failed' };
   }
 }
@@ -133,7 +141,7 @@ if (typeof window !== 'undefined' && window.localStorage) {
       if (!isRefreshing) {
         isRefreshing = true;
         return from(refreshToken()).pipe(
-          switchMap((data: any) => {
+          switchMap((data) => {
             isRefreshing = false;
             if (data.accessToken) {
               localStorage.setItem('accessToken', data.accessToken);
@@ -155,7 +163,7 @@ const clonedReq = req.clone({
               return throwError(() => new Error(data.error || 'Token expirado'));
             }
           }),
-          catchError((error: any) => {
+          catchError(() => {
             isRefreshing = false;
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
@@ -211,7 +219,7 @@ return next(req).pipe(
            return throwError(() => new Error('Sesión expirada'));
          }
          return from(refreshToken()).pipe(
-           switchMap((data: any) => {
+           switchMap((data) => {
              if (data.accessToken) {
                localStorage.setItem('accessToken', data.accessToken);
                if (data.refreshToken) {

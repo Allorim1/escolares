@@ -1,13 +1,17 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
-import { CategoriasBackend, CategoriaMenu, CategoriaItem } from '../../backend/data-access/categorias.backend';
+import {
+  CategoriasBackend,
+  CategoriaMenu,
+  CategoriaItem,
+} from '../../backend/data-access/categorias.backend';
 
 @Component({
   selector: 'app-admin-categorias',
   standalone: true,
-  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
+  imports: [FormsModule, EnterFocusNextDirective],
   templateUrl: './admin-categorias.html',
   styleUrl: './admin-categorias.css',
 })
@@ -19,7 +23,7 @@ export class AdminCategorias implements OnInit {
   editingCategoria = signal<CategoriaMenu | null>(null);
   showModal = signal(false);
   showItemModal = signal(false);
-  
+
   newCategoria = signal<Partial<CategoriaMenu>>({});
   newItem = signal<CategoriaItem>({ label: '', route: '' });
   selectedCategoriaId = signal<string>('');
@@ -38,7 +42,7 @@ export class AdminCategorias implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -68,14 +72,14 @@ export class AdminCategorias implements OnInit {
         next: () => {
           this.loadCategorias();
           this.closeModal();
-        }
+        },
       });
     } else {
       this.categoriasBackend.create(categoria).subscribe({
         next: () => {
           this.loadCategorias();
           this.closeModal();
-        }
+        },
       });
     }
   }
@@ -83,11 +87,11 @@ export class AdminCategorias implements OnInit {
   deleteCategoria(categoria: CategoriaMenu) {
     if (!confirm(`¿Eliminar categoría "${categoria.nombre}"?`)) return;
     if (!categoria.id) return;
-    
+
     this.categoriasBackend.delete(categoria.id).subscribe({
       next: () => {
         this.loadCategorias();
-      }
+      },
     });
   }
 
@@ -113,10 +117,10 @@ export class AdminCategorias implements OnInit {
   saveItem() {
     const item = this.newItem();
     if (!item.label || !item.route) return;
-    
+
     const categoriaId = this.selectedCategoriaId();
     if (!categoriaId) return;
-    
+
     const index = this.editingItemIndex();
 
     if (index >= 0) {
@@ -126,27 +130,27 @@ export class AdminCategorias implements OnInit {
             next: () => {
               this.loadCategorias();
               this.closeItemModal();
-            }
+            },
           });
-        }
+        },
       });
     } else {
       this.categoriasBackend.addItem(categoriaId, item).subscribe({
         next: () => {
           this.loadCategorias();
           this.closeItemModal();
-        }
+        },
       });
     }
   }
 
   removeItem(categoriaId: string, index: number) {
     if (!confirm('¿Eliminar este item?')) return;
-    
+
     this.categoriasBackend.removeItem(categoriaId, index).subscribe({
       next: () => {
         this.loadCategorias();
-      }
+      },
     });
   }
 }

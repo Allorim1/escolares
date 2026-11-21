@@ -7,11 +7,21 @@ interface TokenData {
   expiresAt: number;
 }
 
+interface DecodedToken {
+  exp?: number;
+}
+
+interface RefreshResponse {
+  accessToken?: string;
+  refreshToken?: string;
+  error?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class TokenRenewalService {
-  private refreshInterval: any = null;
+  private refreshInterval: ReturnType<typeof setInterval> | null = null;
   private readonly CHECK_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes
   private readonly RENEW_BEFORE_MS = 15 * 60 * 1000; // Renew 15 minutes before expiration
   private readonly STORAGE_KEY = 'token_renewal_data';
@@ -85,11 +95,12 @@ export class TokenRenewalService {
   /**
    * Decode JWT token to get expiration
    */
-  private decodeToken(token: string): any {
+  private decodeToken(token: string): DecodedToken | null {
     try {
       const parts = token.split('.');
       if (parts.length !== 3) return null;
-      return JSON.parse(atob(parts[1]));
+      const payload = JSON.parse(atob(parts[1])) as { exp?: unknown };
+      return typeof payload.exp === 'number' ? { exp: payload.exp } : {};
     } catch {
       return null;
     }
@@ -99,10 +110,11 @@ export class TokenRenewalService {
    * Save token data for persistence across page reloads
    */
   private saveTokenData(accessToken: string, refreshToken: string): void {
+    const expiresIn = this.decodeToken(accessToken)?.exp;
     const tokenData: TokenData = {
       accessToken,
       refreshToken,
-      expiresAt: this.decodeToken(accessToken)?.exp * 1000 || 0
+      expiresAt: expiresIn ? expiresIn * 1000 : 0
     };
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tokenData));
   }
@@ -144,12 +156,12 @@ export class TokenRenewalService {
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json() as RefreshResponse;
         console.warn('Token renewal failed:', data.error);
         return false;
       }
 
-      const data = await res.json();
+      const data = await res.json() as RefreshResponse;
       if (data.accessToken) {
         localStorage.setItem('accessToken', data.accessToken);
         if (data.refreshToken) {

@@ -1,11 +1,13 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 interface Paso {
   id: string;
@@ -28,10 +30,14 @@ interface Manual {
   fechaActualizacion?: Date;
 }
 
+interface ManualMediaUploadResponse {
+  url: string;
+}
+
 @Component({
   selector: 'app-admin-manuales',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './admin-manuales.html',
   styleUrl: './admin-manuales.css',
 })
@@ -64,7 +70,6 @@ export class AdminManuales implements OnInit {
     { value: 'productos', label: 'Gestión de Productos' },
     { value: 'usuarios', label: 'Gestión de Usuarios' },
     { value: 'pedidos', label: 'Gestión de Pedidos' },
-    { value: 'facturacion', label: 'Facturación' },
     { value: 'configuracion', label: 'Configuración' },
   ];
 
@@ -87,7 +92,7 @@ export class AdminManuales implements OnInit {
         this.manuales.set(manuales);
         this.cargando.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.notificationModal.error('Error al cargar manuales');
         this.cargando.set(false);
       },
@@ -110,7 +115,7 @@ export class AdminManuales implements OnInit {
     this.formTitulo = manual.titulo;
     this.formDescripcion = manual.descripcion;
     this.formCategoria = manual.categoria;
-    this.formPasos = [...manual.pasos.map(p => ({ ...p }))];
+    this.formPasos = [...manual.pasos.map((p) => ({ ...p }))];
     this.showModal.set(true);
   }
 
@@ -135,7 +140,7 @@ export class AdminManuales implements OnInit {
       id: this.generarId(),
       numero: this.formPasos.length + 1,
       titulo: '',
-      descripcion: ''
+      descripcion: '',
     };
     this.formPasos = [...this.formPasos, nuevoPaso];
   }
@@ -175,8 +180,8 @@ export class AdminManuales implements OnInit {
     }
   }
 
-  async onImageSelected(event: any, pasoIndex: number) {
-    const file = event.target.files[0];
+  async onImageSelected(event: Event, pasoIndex: number) {
+    const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
 
     const maxSize = 5 * 1024 * 1024; // 5MB limit for images
@@ -189,15 +194,18 @@ export class AdminManuales implements OnInit {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response: any = await this.http.post('/api/manuales/upload-image', formData).toPromise();
+      const response = await firstValueFrom(
+        this.http.post<ManualMediaUploadResponse>('/api/manuales/upload-image', formData),
+      );
       this.formPasos[pasoIndex].imagen = response.url;
-    } catch (err: any) {
-      this.notificationModal.error(err.error?.error || 'Error al subir la imagen');
+    } catch (err) {
+      const error = err as HttpErrorResponse;
+      this.notificationModal.error(error.error?.error || 'Error al subir la imagen');
     }
   }
 
-  async onVideoSelected(event: any, pasoIndex: number) {
-    const file = event.target.files[0];
+  async onVideoSelected(event: Event, pasoIndex: number) {
+    const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('video/')) {
@@ -229,11 +237,14 @@ export class AdminManuales implements OnInit {
         const formData = new FormData();
         formData.append('video', file);
 
-        const response: any = await this.http.post('/api/manuales/upload-video', formData).toPromise();
+        const response = await firstValueFrom(
+          this.http.post<ManualMediaUploadResponse>('/api/manuales/upload-video', formData),
+        );
         this.formPasos[pasoIndex].video = response.url;
         this.formPasos[pasoIndex].videoDuration = Math.round(duration);
-      } catch (err: any) {
-        this.notificationModal.error(err.error?.error || 'Error al subir el video');
+      } catch (err) {
+        const error = err as HttpErrorResponse;
+        this.notificationModal.error(error.error?.error || 'Error al subir el video');
       }
     };
 
@@ -275,21 +286,25 @@ export class AdminManuales implements OnInit {
 
   getEmbedUrl(url: string): SafeHtml {
     if (!url) return '';
-    
+
     let embedHtml = '';
-    
-    const youtubeMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+
+    const youtubeMatch = url.match(
+      /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/,
+    );
     if (youtubeMatch) {
       embedHtml = `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${youtubeMatch[1]}" frameborder="0" allowfullscreen></iframe>`;
       return this.sanitizer.bypassSecurityTrustHtml(embedHtml);
     }
-    
-    const vimeoMatch = url.match(/(?:www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|)(\d+)/);
+
+    const vimeoMatch = url.match(
+      /(?:www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^/]*\/videos\/|album\/\d+\/video\/|)(\d+)/,
+    );
     if (vimeoMatch) {
       embedHtml = `<iframe width="100%" height="200" src="https://player.vimeo.com/video/${vimeoMatch[1]}" frameborder="0" allowfullscreen></iframe>`;
       return this.sanitizer.bypassSecurityTrustHtml(embedHtml);
     }
-    
+
     return this.sanitizer.bypassSecurityTrustHtml('<p>URL no compatible</p>');
   }
 
@@ -335,7 +350,7 @@ export class AdminManuales implements OnInit {
       titulo: this.formTitulo,
       descripcion: this.formDescripcion,
       categoria: this.formCategoria,
-      pasos: this.formPasos.filter(p => p.titulo.trim() && p.descripcion.trim())
+      pasos: this.formPasos.filter((p) => p.titulo.trim() && p.descripcion.trim()),
     };
 
     this.http.post('/api/manuales', manualData).subscribe({
@@ -358,7 +373,7 @@ export class AdminManuales implements OnInit {
       titulo: this.formTitulo,
       descripcion: this.formDescripcion,
       categoria: this.formCategoria,
-      pasos: this.formPasos.filter(p => p.titulo.trim() && p.descripcion.trim())
+      pasos: this.formPasos.filter((p) => p.titulo.trim() && p.descripcion.trim()),
     };
 
     this.http.put(`/api/manuales/${manual.id}`, manualData).subscribe({
@@ -390,7 +405,7 @@ export class AdminManuales implements OnInit {
   }
 
   getCategoriaLabel(categoria: string): string {
-    const found = this.categorias.find(c => c.value === categoria);
+    const found = this.categorias.find((c) => c.value === categoria);
     return found ? found.label : categoria;
   }
 

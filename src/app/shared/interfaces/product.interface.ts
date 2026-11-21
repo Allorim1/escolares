@@ -21,6 +21,7 @@ export interface Product {
   linea?: string;
   lineaId?: string;
   enOferta?: boolean;
+  ofertaPorcentaje?: number;
   ofertaPrecio?: number;
   createdAt?: Date;
   iva?: boolean;

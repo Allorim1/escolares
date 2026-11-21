@@ -89,8 +89,8 @@
 
   <!-- Product Form Modal -->
   @if (showModal()) {
-    <div class="modal-overlay" (click)="cancelEdit()">
-      <div class="modal-content modal-product-form" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (cancelEdit())" tabindex="0" (keydown.enter)="cancelEdit()" (keydown.space)="cancelEdit(); $event.preventDefault()">
+      <div class="modal-content modal-product-form">
         <div class="modal-header">
           <h3>{{ editingProduct() ? 'Editar Producto' : 'Agregar Nuevo Producto' }}</h3>
           <button class="close-btn" (click)="cancelEdit()">&times;</button>
@@ -100,7 +100,7 @@
             <div class="form-section">
               <form (ngSubmit)="saveProduct()">
                 <div class="form-group">
-                  <label>Imagen Principal</label>
+                  <span class="static-field-label">Imagen Principal</span>
                   <div class="image-upload-section">
                     <div
                       class="drop-zone"
@@ -138,7 +138,7 @@
                        name="image"
                        (ngModelChange)="updateFormField('image', $event)"
                        placeholder="https://..."
-                       enterFocusNext
+                       appEnterFocusNext
                      />
                     </div>
                     @if (uploadingImage()) {
@@ -151,7 +151,7 @@
                     <!-- Imágenes Adicionales -->
                     <div class="additional-images-section">
                       <div class="additional-images-header">
-                        <label>Imágenes Adicionales</label>
+                        <span class="static-field-label">Imágenes Adicionales</span>
                         <span class="images-limit-text">{{ formData().images.length }}/{{ getMaxAdditionalImages() }}</span>
                       </div>
                       <input
@@ -167,7 +167,7 @@
                       @if (formData().images.length > 0) {
                         <div class="additional-images-grid">
                           @for (img of formData().images; track img; let i = $index) {
-                            <div class="additional-image-item" (click)="setMainImage(img)">
+                            <div class="additional-image-item" (click)="setMainImage(img)" tabindex="0" (keydown.enter)="setMainImage(img)" (keydown.space)="setMainImage(img); $event.preventDefault()">
                               <img [src]="img" alt="Imagen adicional" />
                               <button type="button" class="remove-img-btn" (click)="removeAdditionalImage(i); $event.stopPropagation()">&times;</button>
                             </div>
@@ -188,18 +188,18 @@
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Nombre</label>
+                    <label for="lint-associated-field-1">Nombre</label>
 <input
                       type="text"
                       [ngModel]="formData().title"
                       name="title"
                       (ngModelChange)="updateFormField('title', $event)"
                       required
-                      enterFocusNext
-                    />
+                      appEnterFocusNext
+                     id="lint-associated-field-1"/>
                   </div>
                   <div class="form-group">
-                    <label>Precio (IVA incluido)</label>
+                    <label for="lint-associated-field-2">Precio (IVA incluido)</label>
                     <input
                       type="number"
                       [ngModel]="formData().price"
@@ -207,8 +207,8 @@
                       (ngModelChange)="updateFormField('price', $event)"
                       step="0.01"
                       required
-                      enterFocusNext
-                    />
+                      appEnterFocusNext
+                     id="lint-associated-field-2"/>
                     @if (formData().iva && formData().price > 0) {
                       <div class="iva-preview">
                         <span>Base: </span>
@@ -221,15 +221,15 @@
                 </div>
 
                 <div class="form-group">
-                  <label>Código (Código de Barras)</label>
+                  <label for="lint-associated-field-3">Código (Código de Barras)</label>
                   <input
                     type="text"
                     [ngModel]="formData().codigo"
                     name="codigo"
                     (ngModelChange)="updateFormField('codigo', $event)"
                     placeholder="Ej: 7790001234567"
-                    enterFocusNext
-                  />
+                    appEnterFocusNext
+                   id="lint-associated-field-3"/>
                 </div>
 
                 <div class="form-row">
@@ -261,7 +261,7 @@
                           step="0.1"
                           class="iva-input"
                           placeholder="16"
-                          enterFocusNext
+                          appEnterFocusNext
                         />
                         <span class="iva-info">IVA %</span>
                       </div>
@@ -285,7 +285,7 @@
                     @if (formData().enOferta) {
                       <div class="oferta-inputs">
                         <div class="oferta-field">
-                          <label>Descuento %</label>
+                          <label for="lint-associated-field-4">Descuento %</label>
 <input
                           type="number"
                           [ngModel]="formData().ofertaPorcentaje"
@@ -295,12 +295,12 @@
                           step="0.1"
                           placeholder="0"
                           [disabled]="ofertaFieldModifiedByUser() === 'precio'"
-                          enterFocusNext
-                        />
+                          appEnterFocusNext
+                         id="lint-associated-field-4"/>
                           <span class="oferta-suffix">%</span>
                         </div>
                         <div class="oferta-field">
-                          <label>Precio Oferta</label>
+                          <label for="lint-associated-field-5">Precio Oferta</label>
 <input
                           type="number"
                           [ngModel]="formData().ofertaPrecio"
@@ -310,8 +310,8 @@
                           [max]="formData().price"
                           placeholder="0.00"
                           [disabled]="ofertaFieldModifiedByUser() === 'porcentaje'"
-                          enterFocusNext
-                        />
+                          appEnterFocusNext
+                         id="lint-associated-field-5"/>
                         </div>
                         @if (formData().price > 0 && formData().ofertaPrecio > 0) {
                           <div class="oferta-preview">
@@ -326,52 +326,52 @@
                 </div>
 
                 <div class="form-group">
-                  <label>Estado</label>
+                  <label for="lint-associated-field-6">Estado</label>
 <select
                       [ngModel]="formData().estado"
                       name="estado"
                       (ngModelChange)="updateFormField('estado', $event)"
-                      enterFocusNext
-                    >
+                      appEnterFocusNext
+                     id="lint-associated-field-6">
                     <option value="disponible">Disponible</option>
                     <option value="agotado">Temporalmente agotado</option>
                   </select>
                 </div>
 
                 <div class="form-group">
-                  <label>Descripción</label>
+                  <label for="lint-associated-field-7">Descripción</label>
 <textarea
                       [ngModel]="formData().description"
                       name="description"
                       (ngModelChange)="updateFormField('description', $event)"
                       rows="3"
                       required
-                      enterFocusNext
-                    ></textarea>
+                      appEnterFocusNext
+                     id="lint-associated-field-7"></textarea>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Categoría</label>
+                    <label for="lint-associated-field-8">Categoría</label>
 <select
                       [ngModel]="formData().category"
                       name="category"
                       (ngModelChange)="updateFormField('category', $event)"
-                      enterFocusNext
-                    >
+                      appEnterFocusNext
+                     id="lint-associated-field-8">
                       @for (cat of categorias; track cat.id) {
                         <option [value]="cat.nombre">{{ cat.nombre }}</option>
                       }
                     </select>
                   </div>
                   <div class="form-group">
-                    <label>Marca (opcional)</label>
+                    <label for="lint-associated-field-9">Marca (opcional)</label>
 <select
                       [ngModel]="formData().marca"
                       name="marca"
                       (ngModelChange)="updateFormField('marca', $event)"
-                      enterFocusNext
-                    >
+                      appEnterFocusNext
+                     id="lint-associated-field-9">
                       <option value="">Sin marca</option>
                       @for (marca of marcas; track marca.id) {
                         <option [value]="marca.name">{{ marca.name }}</option>
@@ -379,13 +379,13 @@
                     </select>
                   </div>
                   <div class="form-group">
-                    <label>Línea (opcional)</label>
+                    <label for="lint-associated-field-10">Línea (opcional)</label>
 <select
                       [ngModel]="formData().lineaId"
                       name="lineaId"
                       (ngModelChange)="updateFormField('lineaId', $event)"
-                      enterFocusNext
-                    >
+                      appEnterFocusNext
+                     id="lint-associated-field-10">
                       <option value="">Sin línea</option>
                       @for (linea of lineas; track linea.id) {
                         <option [value]="linea.id">{{ linea.name }}</option>
@@ -396,10 +396,10 @@
 
                 @if (isRoot()) {
                   <div class="form-group rating-group">
-                    <label>Calificación (solo root)</label>
+                    <label for="lint-associated-field-11">Calificación (solo root)</label>
                     <div class="rating-inputs">
                       <div class="rating-field">
-                        <label>Puntaje</label>
+                        <label for="lint-associated-field-12">Puntaje</label>
 <input
                           type="number"
                           [ngModel]="formData().ratingRate"
@@ -408,12 +408,12 @@
                           max="5"
                           step="0.1"
                           placeholder="0-5"
-                          enterFocusNext
-                        />
+                          appEnterFocusNext
+                         id="lint-associated-field-11" id="lint-associated-field-12"/>
                         <span class="rating-suffix">/ 5</span>
                       </div>
                       <div class="rating-field">
-                        <label>Cantidad</label>
+                        <label for="lint-associated-field-13">Cantidad</label>
 <input
                           type="number"
                           [ngModel]="formData().ratingCount"
@@ -421,8 +421,8 @@
                           min="0"
                           step="1"
                           placeholder="0"
-                          enterFocusNext
-                        />
+                          appEnterFocusNext
+                         id="lint-associated-field-13"/>
                         <span class="rating-suffix">reseñas</span>
                       </div>
                     </div>
@@ -489,15 +489,15 @@
 
   <!-- Category Modal -->
   @if (showCategoryModal()) {
-    <div class="modal-overlay" (click)="closeCategoryModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeCategoryModal())" tabindex="0" (keydown.enter)="closeCategoryModal()" (keydown.space)="closeCategoryModal(); $event.preventDefault()">
+      <div class="modal-content">
         <div class="modal-header">
           <h3>Gestionar Categorías</h3>
           <button class="close-btn" (click)="closeCategoryModal()">&times;</button>
         </div>
         <div class="modal-body">
           <div class="add-category-form">
-            <input type="text" [(ngModel)]="newCategoryName" placeholder="Nueva categoría" class="form-input" enterFocusNext />
+            <input type="text" [(ngModel)]="newCategoryName" placeholder="Nueva categoría" class="form-input" appEnterFocusNext />
             <button class="btn-primary" (click)="addCategory()">Agregar</button>
           </div>
           <div class="categories-list">

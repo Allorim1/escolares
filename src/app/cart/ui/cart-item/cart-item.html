@@ -13,7 +13,7 @@
   <div class="item-quantity">
     <button
       class="qty-btn"
-      (click)="onDecrease.emit(productCartItem())"
+      (click)="decrease.emit(productCartItem())"
       [disabled]="productCartItem().quantity <= 1"
     >
       <svg
@@ -29,7 +29,7 @@
       </svg>
     </button>
     <span class="qty-value">{{ productCartItem().quantity }}</span>
-    <button class="qty-btn" (click)="onIncrease.emit(productCartItem())">
+    <button class="qty-btn" (click)="increase.emit(productCartItem())">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="16"
@@ -48,7 +48,7 @@
     <span [innerHTML]="formatPrice(productCartItem().product.price * productCartItem().quantity)"></span>
   </div>
 
-  <button class="save-later-btn" (click)="onSaveForLater.emit(productCartItem().product)" title="Guardar para más tarde">
+  <button class="save-later-btn" (click)="saveForLater.emit(productCartItem().product)" title="Guardar para más tarde">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="18"
@@ -62,7 +62,7 @@
     </svg>
   </button>
 
-  <button class="remove-btn" (click)="onRemove.emit(productCartItem().product.id)" title="Eliminar">
+  <button class="remove-btn" (click)="remove.emit(productCartItem().product.id)" title="Eliminar">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="18"

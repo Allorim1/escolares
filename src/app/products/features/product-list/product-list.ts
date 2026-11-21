@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { ProductsStateService } from '../../data-access/products-state.service';
 import { LoadingComponent } from '../../../shared/ui/loading/loading';
 import { CurrencyService } from '../../../shared/data-access/currency.service';
@@ -15,7 +15,7 @@ import { Product } from '../../../shared/interfaces/product.interface';
 
 @Component({
   selector: 'app-product-list',
-  imports: [RouterLink, FormsModule, LoadingComponent, CommonModule],
+  imports: [RouterLink, FormsModule, LoadingComponent],
   templateUrl: './product-list.html',
   styles: `
     .products-layout {
@@ -469,21 +469,19 @@ export default class ProductList implements OnInit {
   }
 
   getCardQuantity(productId: string | number): number {
-    const cartItem = this.cartState().products.find(
-      (p: any) => p.product.id === productId
-    );
+    const cartItem = this.cartState().products.find((p) => p.product.id === productId);
     return cartItem ? cartItem.quantity : 0;
   }
 
   readonly productsInCart = computed(() => {
     const products = this.cartState().products;
-    return new Set(products.map((p: any) => p.product.id));
+    return new Set(products.map((p) => p.product.id));
   });
 
   readonly productQuantities = computed(() => {
     const products = this.cartState().products;
     const map = new Map<string | number, number>();
-    products.forEach((p: any) => map.set(p.product.id, p.quantity));
+    products.forEach((p) => map.set(p.product.id, p.quantity));
     return map;
   });
 
@@ -496,12 +494,10 @@ export default class ProductList implements OnInit {
   }
 
   decreaseCardQuantity(product: Product) {
-    const cartItem = this.cartState().products.find(
-      (p: any) => p.product.id === product.id
-    );
+    const cartItem = this.cartState().products.find((p) => p.product.id === product.id);
     if (!cartItem) return;
-    
-if (cartItem.quantity <= 1) {
+
+    if (cartItem.quantity <= 1) {
       this.cartState.remove(product.id);
     } else {
       this.cartState.update({ product, quantity: cartItem.quantity - 1 });
@@ -522,19 +518,19 @@ if (cartItem.quantity <= 1) {
   }
 
   increaseModalQuantity() {
-    this.modalQuantity.update(q => q + 1);
+    this.modalQuantity.update((q) => q + 1);
   }
 
   decreaseModalQuantity() {
     if (this.modalQuantity() > 1) {
-      this.modalQuantity.update(q => q - 1);
+      this.modalQuantity.update((q) => q - 1);
     }
   }
 
   addToCartFromModal() {
     const product = this.selectedProduct();
     if (!product) return;
-    
+
     this.cartState.add({
       product,
       quantity: this.modalQuantity(),
@@ -573,21 +569,21 @@ if (cartItem.quantity <= 1) {
   }
 
   isEnOferta(product: Product): boolean {
-    return this.ofertasService.isEnOferta(product.id as any);
+    return this.ofertasService.isEnOferta(product.id);
   }
 
   getOfertaPrice(product: Product): number | null {
-    return this.ofertasService.getOfertaPrice(product.id as any);
+    return this.ofertasService.getOfertaPrice(product.id);
   }
 
-getDescuento(product: Product): number {
+  getDescuento(product: Product): number {
     const ofertaPrice = this.getOfertaPrice(product);
     if (!ofertaPrice) return 0;
     const descuento = ((product.price - ofertaPrice) / product.price) * 100;
     return Math.round(descuento);
   }
 
-toggleFavorito(product: Product) {
+  toggleFavorito(product: Product) {
     this.favoritesService.toggleFavorito(product.id);
   }
 
@@ -744,4 +740,3 @@ toggleFavorito(product: Product) {
     }
   }
 }
-

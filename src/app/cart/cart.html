@@ -35,10 +35,10 @@
         @for (item of state().products; track item) {
           <app-cart-item
             [productCartItem]="item"
-            (onRemove)="onRemove($event)"
-            (onIncrease)="onIncrease($event)"
-            (onDecrease)="onDecrease($event)"
-            (onSaveForLater)="saveForLater($event)"
+            (remove)="onRemove($event)"
+            (increase)="onIncrease($event)"
+            (decrease)="onDecrease($event)"
+            (saveForLater)="saveForLater($event)"
           ></app-cart-item>
         }
       </div>
@@ -57,8 +57,8 @@
       </div>
 
       @if (showRecommendationsModal() && state().products.length > 0 && recommendedProducts().length > 0) {
-        <div class="recommendations-modal-overlay" (click)="closeRecommendationsModal()">
-          <div class="recommendations-modal" (click)="$event.stopPropagation()">
+        <div class="recommendations-modal-overlay" (click)="($event.target === $event.currentTarget) && (closeRecommendationsModal())" tabindex="0" (keydown.enter)="closeRecommendationsModal()" (keydown.space)="closeRecommendationsModal(); $event.preventDefault()">
+          <div class="recommendations-modal">
             <div class="recommendations-modal-header">
               <h4>Productos recomendados para agregar</h4>
               <button class="modal-close-btn" (click)="closeRecommendationsModal()">&times;</button>
@@ -157,18 +157,18 @@
                 }
                 
                 <div class="form-group">
-                  <label>Nombre completo</label>
-                  <input type="text" [value]="userName" readonly class="readonly-field" />
+                  <label for="lint-associated-field-1">Nombre completo</label>
+                  <input type="text" [value]="userName" readonly class="readonly-field"  id="lint-associated-field-1"/>
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Cédula</label>
-                    <input type="text" [value]="userCedula" readonly class="readonly-field" />
+                    <label for="lint-associated-field-2">Cédula</label>
+                    <input type="text" [value]="userCedula" readonly class="readonly-field"  id="lint-associated-field-2"/>
                   </div>
                   <div class="form-group">
-                    <label>Teléfono</label>
-                    <input type="tel" [value]="userPhone" readonly class="readonly-field" />
+                    <label for="lint-associated-field-3">Teléfono</label>
+                    <input type="tel" [value]="userPhone" readonly class="readonly-field"  id="lint-associated-field-3"/>
                   </div>
                 </div>
 
@@ -198,7 +198,7 @@
                 </div>
 
                 <div class="form-group">
-                  <label>Tarifa de envío (Propina)</label>
+                  <span class="static-field-label">Tarifa de envío (Propina)</span>
                   <div class="shipping-options-grid">
                     @for (rate of shippingRates; track rate.id) {
                       <button
@@ -215,7 +215,7 @@
                 </div>
 
                 <div class="form-group">
-                  <label>Tipo de entrega</label>
+                  <span class="static-field-label">Tipo de entrega</span>
                   <div class="delivery-type-options">
                     <button
                       type="button"
@@ -238,7 +238,7 @@
 
                 @if (deliveryType() === 'programado') {
                   <div class="form-group">
-                    <label>Fecha y hora programada</label>
+                    <label for="lint-associated-field-4">Fecha y hora programada</label>
                     <input
                       type="datetime-local"
                       [ngModel]="scheduledFor()"
@@ -246,7 +246,7 @@
                       [min]="getMinScheduleDateTime()"
                       [max]="getMaxScheduleDateTime()"
                       name="scheduledFor"
-                    />
+                     id="lint-associated-field-4"/>
                     <small class="schedule-hint">Solo puedes programar hasta 3 días después del momento de compra.</small>
                   </div>
                 }
@@ -268,8 +268,8 @@
 
                 <div class="form-group">
                   @if (userPaymentMethods.length > 0) {
-                    <label>Método guardado</label>
-                    <select [ngModel]="selectedSavedPaymentId()" (ngModelChange)="onSavedPaymentChange($event)" name="metodoGuardado">
+                    <label for="lint-associated-field-5">Método guardado</label>
+                    <select [ngModel]="selectedSavedPaymentId()" (ngModelChange)="onSavedPaymentChange($event)" name="metodoGuardado" id="lint-associated-field-5">
                       <option value="">Selecciona un método guardado</option>
                       @for (saved of userPaymentMethods; track saved.id) {
                         <option [value]="saved.id">{{ saved.alias }} - {{ saved.tipo }}</option>
@@ -304,16 +304,16 @@
                     <div class="info-row"><span>Teléfono:</span> <strong>{{ getPagoMovilInfo().telefono }}</strong></div>
                   </div>
                   <div class="form-group">
-                    <label>Banco emisor</label>
-                    <input type="text" [(ngModel)]="paymentData().bancoEmisor" name="bancoEmisor" placeholder="Ej: Banesco, Mercantil, etc." />
+                    <label for="lint-associated-field-6">Banco emisor</label>
+                    <input type="text" [(ngModel)]="paymentData().bancoEmisor" name="bancoEmisor" placeholder="Ej: Banesco, Mercantil, etc."  id="lint-associated-field-6"/>
                   </div>
                   <div class="form-group">
-                    <label>Teléfono del titular</label>
-                    <input type="tel" [(ngModel)]="paymentData().telefono" name="telefonoTitular" placeholder="Número de teléfono del titular" />
+                    <label for="lint-associated-field-7">Teléfono del titular</label>
+                    <input type="tel" [(ngModel)]="paymentData().telefono" name="telefonoTitular" placeholder="Número de teléfono del titular"  id="lint-associated-field-7"/>
                   </div>
                   <div class="form-group">
-                    <label>Cédula del titular</label>
-                    <input type="text" [(ngModel)]="paymentData().cedulaTitular" name="cedulaTitular" placeholder="Cédula del titular" />
+                    <label for="lint-associated-field-8">Cédula del titular</label>
+                    <input type="text" [(ngModel)]="paymentData().cedulaTitular" name="cedulaTitular" placeholder="Cédula del titular"  id="lint-associated-field-8"/>
                   </div>
                 }
 
@@ -326,26 +326,26 @@
                     <div class="info-row"><span>Número de cuenta:</span> <strong>{{ getTransferenciaInfo().numero_cuenta }}</strong></div>
                   </div>
                   <div class="form-group">
-                    <label>Banco emisor</label>
-                    <input type="text" [(ngModel)]="paymentData().bancoEmisor" name="bancoEmisorTransferencia" placeholder="Ej: Banesco, Mercantil, etc." />
+                    <label for="lint-associated-field-9">Banco emisor</label>
+                    <input type="text" [(ngModel)]="paymentData().bancoEmisor" name="bancoEmisorTransferencia" placeholder="Ej: Banesco, Mercantil, etc."  id="lint-associated-field-9"/>
                   </div>
                   <div class="form-group">
-                    <label>Cédula del titular</label>
-                    <input type="text" [(ngModel)]="paymentData().cedulaTitular" name="cedulaTitularTransferencia" placeholder="Cédula del titular" />
+                    <label for="lint-associated-field-10">Cédula del titular</label>
+                    <input type="text" [(ngModel)]="paymentData().cedulaTitular" name="cedulaTitularTransferencia" placeholder="Cédula del titular"  id="lint-associated-field-10"/>
                   </div>
                 }
 
                 @if (paymentData().metodoPago !== 'efectivo') {
                   <div class="form-group">
-                    <label>Número de referencia</label>
-                    <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Número de referencia" />
+                    <label for="lint-associated-field-11">Número de referencia</label>
+                    <input type="text" [(ngModel)]="paymentData().referencia" name="referencia" placeholder="Número de referencia"  id="lint-associated-field-11"/>
                   </div>
                 }
 
                 @if (paymentData().metodoPago === 'zelle') {
                   <div class="form-group">
-                    <label>Correo de Zelle</label>
-                    <input type="email" [(ngModel)]="paymentData().correo" name="correoZelle" placeholder="Correo electrónico asociado a Zelle" />
+                    <label for="lint-associated-field-12">Correo de Zelle</label>
+                    <input type="email" [(ngModel)]="paymentData().correo" name="correoZelle" placeholder="Correo electrónico asociado a Zelle"  id="lint-associated-field-12"/>
                   </div>
                 }
 
@@ -361,11 +361,11 @@
 
                 @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia' || paymentData().metodoPago === 'efectivo') {
                   <div class="form-group">
-                    <label>Foto del comprobante 
+                    <span class="static-field-label">Foto del comprobante 
                       @if (paymentData().metodoPago === 'efectivo') {
                         <span style="color: #dc3545; font-size: 0.9rem;">(Obligatoria)</span>
                       }
-                    </label>
+                    </span>
                     
                      @if (paymentData().fotoComprobante) {
                        <div class="comprobante-preview">
@@ -423,8 +423,8 @@
 }
 
 @if (showCamera()) {
-  <div class="camera-modal" (click)="cerrarCamera()">
-    <div class="camera-content" (click)="$event.stopPropagation()">
+  <div class="camera-modal" (click)="($event.target === $event.currentTarget) && (cerrarCamera())" tabindex="0" (keydown.enter)="cerrarCamera()" (keydown.space)="cerrarCamera(); $event.preventDefault()">
+    <div class="camera-content">
       <div class="camera-header">
         <h3>Capturar Comprobante</h3>
         <button class="close-btn" (click)="cerrarCamera()">&times;</button>
@@ -441,8 +441,8 @@
 }
 
 @if (showQRModal()) {
-  <div class="modal-overlay" (click)="cerrarQRModal()">
-    <div class="qr-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (cerrarQRModal())" tabindex="0" (keydown.enter)="cerrarQRModal()" (keydown.space)="cerrarQRModal(); $event.preventDefault()">
+    <div class="qr-modal">
       <div class="qr-modal-header">
         <h3>📱 Escanear desde Celular</h3>
         <button class="close-btn" (click)="cerrarQRModal()">✕</button>
@@ -475,20 +475,20 @@
 }
 
 @if (showAddAddressModal()) {
-  <div class="modal-overlay" (click)="showAddAddressModal.set(false)">
-    <div class="checkout-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (showAddAddressModal.set(false))" tabindex="0" (keydown.enter)="showAddAddressModal.set(false)" (keydown.space)="showAddAddressModal.set(false); $event.preventDefault()">
+    <div class="checkout-modal">
       <div class="modal-header">
         <h3>Agregar Dirección</h3>
         <button class="close-btn" (click)="showAddAddressModal.set(false)">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Nombre de esta dirección (ej: Casa, Oficina)</label>
-          <input type="text" [(ngModel)]="newAddressNombre" placeholder="Ej: Casa" />
+          <label for="lint-associated-field-13">Nombre de esta dirección (ej: Casa, Oficina)</label>
+          <input type="text" [(ngModel)]="newAddressNombre" placeholder="Ej: Casa"  id="lint-associated-field-13"/>
         </div>
         <div class="form-group">
-          <label>Dirección completa</label>
-          <input type="text" [(ngModel)]="newAddressDireccion" placeholder="Calle, ciudad, estado..." />
+          <label for="lint-associated-field-14">Dirección completa</label>
+          <input type="text" [(ngModel)]="newAddressDireccion" placeholder="Calle, ciudad, estado..."  id="lint-associated-field-14"/>
         </div>
         <div class="step-actions">
           <button type="button" class="btn-secondary" (click)="showAddAddressModal.set(false)">Cancelar</button>
@@ -500,8 +500,8 @@
 }
 
 @if (showAddressSavedModal()) {
-  <div class="modal-overlay" (click)="showAddressSavedModal.set(false)">
-    <div class="checkout-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (showAddressSavedModal.set(false))" tabindex="0" (keydown.enter)="showAddressSavedModal.set(false)" (keydown.space)="showAddressSavedModal.set(false); $event.preventDefault()">
+    <div class="checkout-modal">
       <div class="modal-header">
         <h3>Dirección Guardada</h3>
         <button class="close-btn" (click)="showAddressSavedModal.set(false)">&times;</button>

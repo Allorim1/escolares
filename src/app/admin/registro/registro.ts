@@ -1,7 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { jsPDF } from 'jspdf';
 import { RegistroService, Registro } from '../../shared/data-access/registro.service';
 
@@ -113,7 +112,8 @@ export class AdminRegistro implements OnInit {
     this.filtroModulo = '';
   }
 
-  formatearFecha(fecha: Date | string): string {
+  formatearFecha(fecha: Date | string | undefined): string {
+    if (!fecha) return '';
     const date = new Date(fecha);
     return date.toLocaleString('es-VE', {
       year: 'numeric',
@@ -161,34 +161,33 @@ export class AdminRegistro implements OnInit {
 
     let y = 45;
     const lineHeight = 7;
-    const maxLinesPerPage = 26;
 
     doc.setFontSize(9);
     doc.setTextColor(0);
     doc.setFillColor(230, 240, 250);
     doc.rect(14, y - 4, pageWidth - 28, 8, 'F');
-    doc.setFont(undefined as any, 'bold');
+    doc.setFont('helvetica', 'bold');
     doc.text('Fecha', 16, y);
     doc.text('Acción', 50, y);
     doc.text('Descripción', 80, y);
     doc.text('Usuario', 175, y);
     
     y += lineHeight;
-    doc.setFont(undefined as any, 'normal');
+    doc.setFont('helvetica', 'normal');
 
-    registros.forEach((registro, index) => {
+    registros.forEach((registro) => {
       if (y > 270) {
         doc.addPage();
         y = 20;
         doc.setFillColor(230, 240, 250);
         doc.rect(14, y - 4, pageWidth - 28, 8, 'F');
-        doc.setFont(undefined as any, 'bold');
+        doc.setFont('helvetica', 'bold');
         doc.text('Fecha', 16, y);
         doc.text('Acción', 50, y);
         doc.text('Descripción', 80, y);
         doc.text('Usuario', 175, y);
         y += lineHeight;
-        doc.setFont(undefined as any, 'normal');
+        doc.setFont('helvetica', 'normal');
       }
 
       const fecha = this.formatearFecha(registro.fecha).substring(0, 16);

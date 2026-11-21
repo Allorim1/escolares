@@ -6,8 +6,8 @@
   </div>
 } @else {
   @if (mostrarModal) {
-    <div class="maintenance-overlay" (click)="dismissModal()">
-      <div class="maintenance-container" (click)="$event.stopPropagation()">
+    <div class="maintenance-overlay" (click)="($event.target === $event.currentTarget) && (dismissModal())" tabindex="0" (keydown.enter)="dismissModal()" (keydown.space)="dismissModal(); $event.preventDefault()">
+      <div class="maintenance-container">
         <img src="/mantenimiento.jpg" alt="Página en mantenimiento" class="maintenance-image">
         <button class="continue-btn" (click)="dismissModal()">Continuar</button>
       </div>

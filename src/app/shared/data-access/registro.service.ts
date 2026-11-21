@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 export interface Registro {
@@ -7,7 +7,15 @@ export interface Registro {
   modulo: string;
   descripcion: string;
   usuario: string;
-  datos: any;
+  datos: Record<string, unknown> & {
+    modificaciones?: {
+      campo: string;
+      valorAnterior?: unknown;
+      valorNuevo?: unknown;
+      usuario?: string;
+      fecha?: string | Date;
+    }[];
+  };
   fecha: Date;
 }
 
@@ -15,11 +23,13 @@ export interface Registro {
   providedIn: 'root',
 })
 export class RegistroService {
+  private http = inject(HttpClient);
+
   private readonly API_URL = '/api/registros';
 
   registros = signal<Registro[]>([]);
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.loadRegistros();
   }
 
@@ -31,7 +41,7 @@ export class RegistroService {
     });
   }
 
-  registrar(accion: string, modulo: string, descripcion: string, datos: any = {}) {
+  registrar(accion: string, modulo: string, descripcion: string, datos: unknown = {}) {
     const registro = {
       accion,
       modulo,

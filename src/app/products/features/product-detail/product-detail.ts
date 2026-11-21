@@ -1,5 +1,5 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { ProductDetailSateService } from '../../data-access/product-detail-state.service';
 import { CartStateService } from '../../../shared/data-access/cart-state.service';
 import { RouterLink } from '@angular/router';
@@ -14,7 +14,7 @@ import { ProductRating } from '../../../shared/ui/product-rating/product-rating'
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, ProductRating, NgIf],
+  imports: [RouterLink, ProductRating],
   templateUrl: './product-detail.html',
   styleUrls: ['./product-detail.css'],
   providers: [ProductDetailSateService],
@@ -52,23 +52,23 @@ export default class ProductDetail {
 
   get isEnOferta(): boolean {
     const product = this.product;
-    return product ? this.ofertasService.isEnOferta(product.id as any) : false;
+    return product ? this.ofertasService.isEnOferta(product.id) : false;
   }
 
   get precioOferta(): number | null {
     const product = this.product;
-    return product ? this.ofertasService.getOfertaPrice(product.id as any) : null;
+    return product ? this.ofertasService.getOfertaPrice(product.id) : null;
   }
 
   constructor() {
     effect(() => {
       this.productDetailService.getById(this.id());
     });
-    
+
     effect(() => {
       const product = this.product;
       if (product && this.authService.isLoggedIn()) {
-        this.loadUserRating(product.id as string);
+        this.loadUserRating(product.id);
       }
     });
   }
@@ -77,21 +77,21 @@ export default class ProductDetail {
     return this.authService.isLoggedIn();
   }
 
-  loadUserRating(productId: string) {
+  loadUserRating(productId: string | number) {
     this.ratingsService.getUserRating(productId).subscribe({
-      next: (data: any) => {
+      next: (data) => {
         this.userRating.set(data?.rate || 0);
       },
-      error: () => {}
+      error: (error) => console.error('Error cargando los detalles del producto:', error),
     });
   }
 
   submitRating(rate: number) {
     const product = this.product;
     if (!product) return;
-    
-    this.ratingsService.submitRating(product.id as string, rate).subscribe({
-      next: (data: any) => {
+
+    this.ratingsService.submitRating(product.id, rate).subscribe({
+      next: (data) => {
         if (data.success) {
           this.userRating.set(rate);
           const currentProduct = this.product;
@@ -100,15 +100,15 @@ export default class ProductDetail {
               ...currentProduct,
               rating: {
                 rate: data.newAverage,
-                count: data.count
-              }
+                count: data.count,
+              },
             });
           }
         }
       },
       error: () => {
         alert('Error al guardar la calificación');
-      }
+      },
     });
   }
 
@@ -131,12 +131,12 @@ export default class ProductDetail {
   }
 
   increaseQuantity() {
-    this.quantity.update(q => q + 1);
+    this.quantity.update((q) => q + 1);
   }
 
   decreaseQuantity() {
     if (this.quantity() > 1) {
-      this.quantity.update(q => q - 1);
+      this.quantity.update((q) => q - 1);
     }
   }
 

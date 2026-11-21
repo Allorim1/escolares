@@ -13,6 +13,7 @@ import { NotificationService } from '../shared/data-access/notification.service'
 import { CurrencyService } from '../shared/data-access/currency.service';
 import { StoreSettingsService } from '../shared/data-access/store-settings.service';
 import { ProductsStateService } from '../products/data-access/products-state.service';
+import { Subscription } from 'rxjs';
 
 const CART_IMPORTS = [CartItem, RouterLink, FormsModule, DatePipe];
 
@@ -186,8 +187,8 @@ showCheckoutModal = signal(false);
   qrExpiracion = signal('');
   qrLoading = signal(false);
   qrFotoRecibida = signal(false);
-  qrPollingInterval: any = null;
-  qrPollingSubscription: any = null;
+  qrPollingInterval: ReturnType<typeof setInterval> | null = null;
+  qrPollingSubscription: Subscription | null = null;
   qrToken = signal('');
 
   showAddressModal = signal(false);
@@ -210,7 +211,10 @@ showCheckoutModal = signal(false);
     this.qrExpiracion.set('');
     this.qrToken.set('');
     
-    const subscription = this.http.post<any>('/api/pago/generate-qr', {}).subscribe({
+    const subscription = this.http.post<{ qrCode: string; expiresAt: string; uploadUrl: string }>(
+      '/api/pago/generate-qr',
+      {},
+    ).subscribe({
       next: (res) => {
         this.qrCodeData.set(res.qrCode);
         this.qrExpiracion.set(res.expiresAt);
@@ -249,10 +253,13 @@ showCheckoutModal = signal(false);
         return;
       }
       
-      const subscription = this.http.get<any>(`/api/pago/check/${token}`).subscribe({
+      const subscription = this.http.get<{ success: boolean; imagen?: string }>(
+        `/api/pago/check/${token}`,
+      ).subscribe({
         next: (res) => {
-          if (res.success && res.imagen) {
-            this.paymentData.update(p => ({ ...p, fotoComprobante: res.imagen }));
+          const imagen = res.imagen;
+          if (res.success && imagen) {
+            this.paymentData.update(p => ({ ...p, fotoComprobante: imagen }));
             this.qrFotoRecibida.set(true);
             this.detenerPollingQR();
             setTimeout(() => {
@@ -631,7 +638,7 @@ price = () => {
     this.authService.updateProfile({
       direcciones: [...currentAddresses, newDir]
     })?.subscribe({
-      next: (user) => {
+      next: () => {
         this.selectedAddressId.set(newDir.id);
         this.paymentData.update(p => ({ ...p, direccion: newDir.direccion }));
         this.showAddAddressModal.set(false);
@@ -1071,6 +1078,7 @@ this.ordersBackend.createOrder(orderData).subscribe({
       `*Banco:* ${pmInfo.banco}\n` +
       `*Titular:* ${pmInfo.titular}\n` +
       `*RIF:* ${pmInfo.rif}\n` +
+      `*Método de pago:* ${metodo}\n` +
       `*Teléfono:* ${pmInfo.telefono}\n\n` +
       `*Monto:* $${this.price().toFixed(2)}\n` +
       `*Referencia:* ${data.referencia}\n\n` +

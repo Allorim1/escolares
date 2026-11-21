@@ -1,5 +1,5 @@
-import { Component, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, AfterViewInit, OnInit, OnDestroy, inject } from '@angular/core';
+
 import { NoticiasService } from '../shared/data-access/noticias.service';
 import { Noticia } from '../shared/data-access/noticias.service';
 import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
@@ -7,7 +7,7 @@ import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
 @Component({
   selector: 'app-noticias',
   standalone: true,
-  imports: [CommonModule, MarkdownPipe],
+  imports: [MarkdownPipe],
   templateUrl: './noticias.html',
   styleUrl: './noticias.css',
 })
@@ -15,17 +15,14 @@ export class NoticiasComponent implements OnInit, AfterViewInit, OnDestroy {
   noticias: Noticia[] = [];
   loading = true;
   error: string | null = null;
+  private readonly noticiasService = inject(NoticiasService);
   private hashChangeHandler = () => this.scrollToNews();
 
-  constructor(
-    private noticiasService: NoticiasService
-  ) {}
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadNoticias();
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     setTimeout(() => this.scrollToNews());
     window.addEventListener('hashchange', this.hashChangeHandler);
   }

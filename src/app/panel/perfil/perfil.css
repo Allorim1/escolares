@@ -49,7 +49,7 @@
   align-items: center;
 }
 
-.perfil-field label {
+.perfil-field :is(label, .static-field-label) {
   font-weight: 600;
   color: #333;
   flex: 0 0 170px;

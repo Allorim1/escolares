@@ -89,7 +89,7 @@
               class="product-select-card" 
               [class.selected]="isProductFeatured(product)"
               (click)="toggleFeaturedProduct(product)"
-            >
+             tabindex="0" (keydown.enter)="toggleFeaturedProduct(product)" (keydown.space)="toggleFeaturedProduct(product); $event.preventDefault()">
               <img [src]="product.image" [alt]="product.title" />
               <h4>{{ product.title }}</h4>
               <p>${{ product.price }}</p>
@@ -133,35 +133,35 @@
 </div>
 
 @if (showBannerModal()) {
-  <div class="modal-overlay" (click)="closeBannerModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeBannerModal())" tabindex="0" (keydown.enter)="closeBannerModal()" (keydown.space)="closeBannerModal(); $event.preventDefault()">
+    <div class="modal-content">
       <div class="modal-header">
         <h3>{{ editingBanner()?.id ? 'Editar Banner' : 'Nuevo Banner' }}</h3>
         <button class="close-btn" (click)="closeBannerModal()">&times;</button>
       </div>
       <form (ngSubmit)="saveBanner()">
         <div class="form-group">
-          <label>Título</label>
-          <input type="text" [(ngModel)]="editingBanner()!.title" name="title" enterFocusNext />
+          <label for="lint-associated-field-1">Título</label>
+          <input type="text" [(ngModel)]="editingBanner()!.title" name="title" appEnterFocusNext  id="lint-associated-field-1"/>
         </div>
         <div class="form-group">
-          <label>Subtítulo</label>
-          <input type="text" [(ngModel)]="editingBanner()!.subtitle" name="subtitle" enterFocusNext />
+          <label for="lint-associated-field-2">Subtítulo</label>
+          <input type="text" [(ngModel)]="editingBanner()!.subtitle" name="subtitle" appEnterFocusNext  id="lint-associated-field-2"/>
         </div>
         <div class="form-group">
-          <label>Imagen</label>
-          <input type="file" accept="image/*" (change)="onBannerFileSelected($event)" />
+          <label for="lint-associated-field-3">Imagen</label>
+          <input type="file" accept="image/*" (change)="onBannerFileSelected($event)"  id="lint-associated-field-3"/>
           @if (editingBanner()?.image) {
             <img [src]="editingBanner()!.image" alt="Preview" class="image-preview" />
           }
         </div>
         <div class="form-group">
-          <label>Enlace (URL)</label>
-          <input type="text" [(ngModel)]="editingBanner()!.link" name="link" placeholder="/products" enterFocusNext />
+          <label for="lint-associated-field-4">Enlace (URL)</label>
+          <input type="text" [(ngModel)]="editingBanner()!.link" name="link" placeholder="/products" appEnterFocusNext  id="lint-associated-field-4"/>
         </div>
         <div class="form-group">
-          <label>Orden</label>
-          <input type="number" [(ngModel)]="editingBanner()!.order" name="order" enterFocusNext />
+          <label for="lint-associated-field-5">Orden</label>
+          <input type="number" [(ngModel)]="editingBanner()!.order" name="order" appEnterFocusNext  id="lint-associated-field-5"/>
         </div>
         <div class="form-group">
           <label class="checkbox-label">
@@ -179,15 +179,15 @@
 }
 
 @if (showFeatureModal()) {
-  <div class="modal-overlay" (click)="closeFeatureModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (closeFeatureModal())" tabindex="0" (keydown.enter)="closeFeatureModal()" (keydown.space)="closeFeatureModal(); $event.preventDefault()">
+    <div class="modal-content">
       <div class="modal-header">
         <h3>{{ editingFeature()?.id ? 'Editar Característica' : 'Nueva Característica' }}</h3>
         <button class="close-btn" (click)="closeFeatureModal()">&times;</button>
       </div>
       <form (ngSubmit)="saveFeature()">
         <div class="form-group">
-          <label>Icono</label>
+          <span class="static-field-label">Icono</span>
           <div class="icon-selector">
             @for (icon of icons; track icon) {
               <button 
@@ -202,16 +202,16 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Título</label>
-          <input type="text" [(ngModel)]="editingFeature()!.title" name="title" required enterFocusNext />
+          <label for="lint-associated-field-6">Título</label>
+          <input type="text" [(ngModel)]="editingFeature()!.title" name="title" required appEnterFocusNext  id="lint-associated-field-6"/>
         </div>
         <div class="form-group">
-          <label>Descripción</label>
-          <textarea [(ngModel)]="editingFeature()!.description" name="description" rows="2" enterFocusNext></textarea>
+          <label for="lint-associated-field-7">Descripción</label>
+          <textarea [(ngModel)]="editingFeature()!.description" name="description" rows="2" appEnterFocusNext id="lint-associated-field-7"></textarea>
         </div>
         <div class="form-group">
-          <label>Orden</label>
-          <input type="number" [(ngModel)]="editingFeature()!.order" name="order" enterFocusNext />
+          <label for="lint-associated-field-8">Orden</label>
+          <input type="number" [(ngModel)]="editingFeature()!.order" name="order" appEnterFocusNext  id="lint-associated-field-8"/>
         </div>
         <div class="form-group">
           <label class="checkbox-label">

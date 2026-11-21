@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
@@ -18,7 +18,7 @@ const CATEGORIAS = ['Útiles', 'Uniformes', 'Libros', 'Tecnología'];
 @Component({
   selector: 'app-creditos-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './creditos-productos.html',
   styleUrl: './creditos-productos.css',
 })
@@ -40,15 +40,29 @@ export class CreditosProductos implements OnInit {
   cargar() {
     this.loading.set(true);
     this.http.get<Producto[]>(this.API).subscribe({
-      next: (data) => { this.productos.set(data); this.loading.set(false); },
-      error: (err) => { console.error('Error cargando productos:', err); this.loading.set(false); },
+      next: (data) => {
+        this.productos.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error cargando productos:', err);
+        this.loading.set(false);
+      },
     });
   }
 
   abrirModal(producto?: Producto) {
     this.editando = producto
       ? { ...producto }
-      : { id: '', nombre: '', descripcion: '', categoria: CATEGORIAS[0], precio: 0, icono: 'pricetag', activo: true };
+      : {
+          id: '',
+          nombre: '',
+          descripcion: '',
+          categoria: CATEGORIAS[0],
+          precio: 0,
+          icono: 'pricetag',
+          activo: true,
+        };
     this.showModal.set(true);
   }
 
@@ -67,13 +81,27 @@ export class CreditosProductos implements OnInit {
     this.saving.set(true);
     if (this.editando.id) {
       this.http.put<Producto>(`${this.API}/${this.editando.id}`, this.editando).subscribe({
-        next: () => { this.saving.set(false); this.cerrarModal(); this.cargar(); },
-        error: (err) => { this.saving.set(false); alert(err.error?.error || 'Error al guardar'); },
+        next: () => {
+          this.saving.set(false);
+          this.cerrarModal();
+          this.cargar();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          alert(err.error?.error || 'Error al guardar');
+        },
       });
     } else {
       this.http.post<Producto>(this.API, this.editando).subscribe({
-        next: () => { this.saving.set(false); this.cerrarModal(); this.cargar(); },
-        error: (err) => { this.saving.set(false); alert(err.error?.error || 'Error al crear'); },
+        next: () => {
+          this.saving.set(false);
+          this.cerrarModal();
+          this.cargar();
+        },
+        error: (err) => {
+          this.saving.set(false);
+          alert(err.error?.error || 'Error al crear');
+        },
       });
     }
   }

@@ -1,5 +1,5 @@
 ﻿import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -14,20 +14,28 @@ interface UserWithRol extends User {
 }
 
 interface NewUser {
-   username: string;
-   email: string;
-   nombreCompleto: string;
-   apellido: string;
-   telefono: string;
-   direccion: string;
-   comentarios: string;
-   password: string;
-   tipoDocumento: 'cedula' | 'rif' | 'pasaporte' | 'extranjero' | 'gobierno' | 'rif_personal_natural' | 'rif_v' | 'rif_e';
-   numeroDocumento: string;
-   genero: 'hombre' | 'mujer' | 'no_especificado';
-    rol: 'usuario' | 'repartidor';
-   rolId?: string;
- }
+  username: string;
+  email: string;
+  nombreCompleto: string;
+  apellido: string;
+  telefono: string;
+  direccion: string;
+  comentarios: string;
+  password: string;
+  tipoDocumento:
+    | 'cedula'
+    | 'rif'
+    | 'pasaporte'
+    | 'extranjero'
+    | 'gobierno'
+    | 'rif_personal_natural'
+    | 'rif_v'
+    | 'rif_e';
+  numeroDocumento: string;
+  genero: 'hombre' | 'mujer' | 'no_especificado';
+  rol: 'usuario' | 'repartidor';
+  rolId?: string;
+}
 
 interface EditRolPermisosState {
   show: boolean;
@@ -38,7 +46,7 @@ interface EditRolPermisosState {
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, EnterFocusNextDirective],
+  imports: [FormsModule, EnterFocusNextDirective],
   templateUrl: './admin-usuarios.html',
   styleUrl: './admin-usuarios.css',
 })
@@ -55,28 +63,29 @@ export class AdminUsuarios implements OnInit {
     const tipo = this.filtroTipo;
 
     if (texto) {
-      resultado = resultado.filter(u =>
-        (u.username?.toLowerCase().includes(texto)) ||
-        (u.nombreCompleto?.toLowerCase().includes(texto)) ||
-        (u.cedula?.toLowerCase().includes(texto)) ||
-        (u.email?.toLowerCase().includes(texto))
+      resultado = resultado.filter(
+        (u) =>
+          u.username?.toLowerCase().includes(texto) ||
+          u.nombreCompleto?.toLowerCase().includes(texto) ||
+          u.cedula?.toLowerCase().includes(texto) ||
+          u.email?.toLowerCase().includes(texto),
       );
     }
 
     if (tipo === 'admin') {
-      resultado = resultado.filter(u => {
+      resultado = resultado.filter((u) => {
         if (u.rol === 'root') return true;
         if (u.rolId) {
-          const rol = this.roles().find(r => r.id === u.rolId);
+          const rol = this.roles().find((r) => r.id === u.rolId);
           if (rol && rol.permisos && rol.permisos.length > 0) return true;
         }
         return false;
       });
     } else if (tipo === 'comun') {
-      resultado = resultado.filter(u => {
+      resultado = resultado.filter((u) => {
         if (u.rol === 'root') return false;
         if (!u.rolId) return true;
-        const rol = this.roles().find(r => r.id === u.rolId);
+        const rol = this.roles().find((r) => r.id === u.rolId);
         if (!rol || !rol.permisos || rol.permisos.length === 0) return true;
         return false;
       });
@@ -109,7 +118,7 @@ export class AdminUsuarios implements OnInit {
   selectedUser = signal<UserWithRol | null>(null);
   editingUser = signal<UserWithRol | null>(null);
   newComentario = '';
-  
+
   showCreateModal = signal(false);
   showPassword = signal(false);
   newUser: NewUser = {
@@ -125,17 +134,17 @@ export class AdminUsuarios implements OnInit {
     numeroDocumento: '',
     genero: 'no_especificado',
     rol: 'usuario',
-    rolId: undefined
+    rolId: undefined,
   };
 
-userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
-   selectedUserRolData = '';
-   newPassword = '';
-   showPasswordChange = signal(false);
-  
+  userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
+  selectedUserRolData = '';
+  newPassword = '';
+  showPasswordChange = signal(false);
+
   editRolPermisosState = signal<EditRolPermisosState>({
     show: false,
-    permisosSeleccionados: []
+    permisosSeleccionados: [],
   });
 
   ngOnInit() {
@@ -148,7 +157,7 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
 
   cargarDatos() {
     this.cargando.set(true);
-    
+
     this.rolesBackend.getPermisos().subscribe({
       next: (permisos) => {
         this.permisos.set(permisos);
@@ -159,7 +168,7 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
           },
           error: () => {
             this.cargarUsuarios();
-          }
+          },
         });
       },
       error: () => {
@@ -170,16 +179,16 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
           },
           error: () => {
             this.cargarUsuarios();
-          }
+          },
         });
-      }
+      },
     });
   }
 
   cargarUsuarios() {
     this.authService.getAllUsers().subscribe({
       next: (users) => {
-        const usersWithRoles: UserWithRol[] = users.map(u => {
+        const usersWithRoles: UserWithRol[] = users.map((u) => {
           const rolName = this.getRolName(u);
           return { ...u, rolName };
         });
@@ -195,23 +204,23 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
 
   getRolName(user: User): string {
     if (user.rolId) {
-      const rol = this.roles().find(r => r.id === user.rolId);
+      const rol = this.roles().find((r) => r.id === user.rolId);
       if (rol) return rol.nombre;
     }
     return this.getRolLabel(user.rol);
   }
 
-   esOwner(): boolean {
-     return this.authService.user()?.rol === 'root';
-   }
+  esOwner(): boolean {
+    return this.authService.user()?.rol === 'root';
+  }
 
-   esRoot(): boolean {
-     return this.authService.user()?.rol === 'root';
-   }
+  esRoot(): boolean {
+    return this.authService.user()?.rol === 'root';
+  }
 
-   esAdmin(): boolean {
-     return this.esRoot();
-   }
+  esAdmin(): boolean {
+    return this.esRoot();
+  }
 
   getRolLabel(rol?: string): string {
     switch (rol) {
@@ -244,7 +253,7 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
   getSelectedRolFromId(): Rol | undefined {
     if (this.selectedUserRolData.startsWith('usuario:')) {
       const rolId = this.selectedUserRolData.split(':')[1];
-      return this.roles().find(r => r.id === rolId);
+      return this.roles().find((r) => r.id === rolId);
     }
     return undefined;
   }
@@ -252,7 +261,7 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
   getPermisosDelRol(): Permiso[] {
     const rol = this.getSelectedRolFromId();
     if (!rol) return [];
-    return this.permisos().filter(p => rol.permisos.includes(p.id));
+    return this.permisos().filter((p) => rol.permisos.includes(p.id));
   }
 
   getPermisosCount(): number {
@@ -262,34 +271,34 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
   openEditPermisos(rol?: Rol) {
     const rolToEdit = rol || this.getSelectedRolFromId();
     if (!rolToEdit) return;
-    
+
     this.editRolPermisosState.set({
       show: true,
       rol: rolToEdit,
-      permisosSeleccionados: [...(rolToEdit.permisos || [])]
+      permisosSeleccionados: [...(rolToEdit.permisos || [])],
     });
   }
 
   closeEditPermisos() {
     this.editRolPermisosState.set({
       show: false,
-      permisosSeleccionados: []
+      permisosSeleccionados: [],
     });
   }
 
   togglePermiso(permisoId: string) {
     const currentState = this.editRolPermisosState();
     const index = currentState.permisosSeleccionados.indexOf(permisoId);
-    
+
     if (index >= 0) {
       this.editRolPermisosState.set({
         ...currentState,
-        permisosSeleccionados: currentState.permisosSeleccionados.filter(p => p !== permisoId)
+        permisosSeleccionados: currentState.permisosSeleccionados.filter((p) => p !== permisoId),
       });
     } else {
       this.editRolPermisosState.set({
         ...currentState,
-        permisosSeleccionados: [...currentState.permisosSeleccionados, permisoId]
+        permisosSeleccionados: [...currentState.permisosSeleccionados, permisoId],
       });
     }
   }
@@ -305,23 +314,23 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
     this.rolesBackend.updateRol(state.rol.id, { permisos: state.permisosSeleccionados }).subscribe({
       next: () => {
         this.rolesBackend.getRoles().subscribe({
-          next: (roles) => this.roles.set(roles)
+          next: (roles) => this.roles.set(roles),
         });
         this.closeEditPermisos();
         this.notificationModal.success('Permisos del rol actualizados correctamente');
       },
       error: () => {
         this.error.set('Error al actualizar permisos del rol');
-      }
+      },
     });
   }
 
   getModulos(): string[] {
-    return Array.from(new Set(this.permisos().map(p => p.modulo)));
+    return Array.from(new Set(this.permisos().map((p) => p.modulo)));
   }
 
   getPermisosPorModulo(modulo: string): Permiso[] {
-    return this.permisos().filter(p => p.modulo === modulo);
+    return this.permisos().filter((p) => p.modulo === modulo);
   }
 
   saveUserRoleFromDetails() {
@@ -350,18 +359,20 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
       return;
     }
 
-    this.http.put(`/api/auth/users/${user.id}/password`, {
-      newPassword: this.newPassword,
-    }).subscribe({
-      next: () => {
-        this.newPassword = '';
-        this.userDetailsTab.set('info');
-        this.notificationModal.success('Contraseña actualizada correctamente');
-      },
-      error: (err) => {
-        this.error.set(err.error?.error || 'Error al cambiar contraseña');
-      },
-    });
+    this.http
+      .put(`/api/auth/users/${user.id}/password`, {
+        newPassword: this.newPassword,
+      })
+      .subscribe({
+        next: () => {
+          this.newPassword = '';
+          this.userDetailsTab.set('info');
+          this.notificationModal.success('Contraseña actualizada correctamente');
+        },
+        error: (err) => {
+          this.error.set(err.error?.error || 'Error al cambiar contraseña');
+        },
+      });
   }
 
   confirmDeleteUserFromDetails() {
@@ -386,25 +397,27 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
     const user = this.editingUser();
     if (!user) return;
 
-    this.http.put(`/api/auth/users/${user.id}`, {
-      username: user.username,
-      email: user.email,
-      nombreCompleto: user.nombreCompleto,
-      telefono: user.telefono,
-      direccion: user.direccion,
-      cedula: user.cedula,
-      tipoPersona: user.tipoPersona,
-      comentarios: user.comentarios,
-    }).subscribe({
-      next: () => {
-        this.cargarUsuarios();
-        this.closeUserDetails();
-        this.notificationModal.success('Usuario guardado correctamente');
-      },
-      error: (err) => {
-        this.error.set(err.error?.error || 'Error al guardar usuario');
-      },
-    });
+    this.http
+      .put(`/api/auth/users/${user.id}`, {
+        username: user.username,
+        email: user.email,
+        nombreCompleto: user.nombreCompleto,
+        telefono: user.telefono,
+        direccion: user.direccion,
+        cedula: user.cedula,
+        tipoPersona: user.tipoPersona,
+        comentarios: user.comentarios,
+      })
+      .subscribe({
+        next: () => {
+          this.cargarUsuarios();
+          this.closeUserDetails();
+          this.notificationModal.success('Usuario guardado correctamente');
+        },
+        error: (err) => {
+          this.error.set(err.error?.error || 'Error al guardar usuario');
+        },
+      });
   }
 
   agregarComentario() {
@@ -413,26 +426,28 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
     if (!user || !comentario) return;
 
     const comentariosActuales = user.comentarios || '';
-    const nuevoComentario = comentariosActuales 
+    const nuevoComentario = comentariosActuales
       ? `${comentariosActuales}\n${new Date().toLocaleDateString('es-VE')}: ${comentario}`
       : `${new Date().toLocaleDateString('es-VE')}: ${comentario}`;
 
-    this.http.put(`/api/auth/users/${user.id}`, {
-      comentarios: nuevoComentario,
-    }).subscribe({
-      next: () => {
-        this.cargarUsuarios();
-        const updatedUser = this.usuarios().find(u => u.id === user.id);
-        if (updatedUser) {
-          this.editingUser.set({ ...updatedUser, comentarios: nuevoComentario });
-        }
-        this.newComentario = '';
-        this.notificationModal.success('Comentario agregado correctamente');
-      },
-      error: (err) => {
-        this.error.set(err.error?.error || 'Error al agregar comentario');
-      },
-    });
+    this.http
+      .put(`/api/auth/users/${user.id}`, {
+        comentarios: nuevoComentario,
+      })
+      .subscribe({
+        next: () => {
+          this.cargarUsuarios();
+          const updatedUser = this.usuarios().find((u) => u.id === user.id);
+          if (updatedUser) {
+            this.editingUser.set({ ...updatedUser, comentarios: nuevoComentario });
+          }
+          this.newComentario = '';
+          this.notificationModal.success('Comentario agregado correctamente');
+        },
+        error: (err) => {
+          this.error.set(err.error?.error || 'Error al agregar comentario');
+        },
+      });
   }
 
   openCreateUser() {
@@ -450,7 +465,7 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
       numeroDocumento: '',
       genero: 'no_especificado',
       rol: 'usuario',
-      rolId: undefined
+      rolId: undefined,
     };
   }
 
@@ -500,30 +515,32 @@ userDetailsTab = signal<'info' | 'rol' | 'password'>('info');
 
     const rol = userData.rolId ? 'usuario' : 'root';
 
-    this.http.post('/api/auth/register-simple', {
-      username: userData.username,
-      email: userData.email,
-      password: userData.password,
-      nombreCompleto: userData.nombreCompleto,
-      apellido: userData.apellido,
-      telefono: userData.telefono,
-      direccion: userData.direccion,
-      comentarios: userData.comentarios,
-      rif: documentoCompleto,
-      tipoDocumento: tipo,
-      numeroDocumento: numero,
-      genero: userData.genero,
-      rol: rol,
-      rolId: userData.rolId,
-    }).subscribe({
-      next: () => {
-        this.cargarUsuarios();
-        this.closeCreateUser();
-        this.notificationModal.success('Usuario creado correctamente');
-      },
-      error: (err) => {
-        this.error.set(err.error?.error || 'Error al crear usuario');
-      },
-    });
+    this.http
+      .post('/api/auth/register-simple', {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        nombreCompleto: userData.nombreCompleto,
+        apellido: userData.apellido,
+        telefono: userData.telefono,
+        direccion: userData.direccion,
+        comentarios: userData.comentarios,
+        rif: documentoCompleto,
+        tipoDocumento: tipo,
+        numeroDocumento: numero,
+        genero: userData.genero,
+        rol: rol,
+        rolId: userData.rolId,
+      })
+      .subscribe({
+        next: () => {
+          this.cargarUsuarios();
+          this.closeCreateUser();
+          this.notificationModal.success('Usuario creado correctamente');
+        },
+        error: (err) => {
+          this.error.set(err.error?.error || 'Error al crear usuario');
+        },
+      });
   }
 }

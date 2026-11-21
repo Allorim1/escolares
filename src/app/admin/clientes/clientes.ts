@@ -1,5 +1,5 @@
 import { Component, signal, OnInit, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -14,7 +14,7 @@ interface Cliente {
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './clientes.html',
   styleUrl: './clientes.css',
 })
@@ -28,7 +28,7 @@ export class Clientes implements OnInit {
   clientesFiltrados = computed(() => {
     const termino = this.busqueda().toLowerCase().trim();
     if (!termino) return this.clientes();
-    return this.clientes().filter(c => c.nombre.toLowerCase().includes(termino));
+    return this.clientes().filter((c) => c.nombre.toLowerCase().includes(termino));
   });
   loading = signal(false);
   showModal = signal(false);
@@ -114,7 +114,7 @@ export class Clientes implements OnInit {
         next: (res: Cliente) => {
           this.saving.set(false);
           this.cerrarModal();
-          this.clientes.update(clientes => [...clientes, res]);
+          this.clientes.update((clientes) => [...clientes, res]);
           this.empresasService.load();
         },
         error: (err) => {
@@ -136,7 +136,4 @@ export class Clientes implements OnInit {
     });
   }
 
-  verHistorialCompras() {
-    this.router.navigate(['/admin/historico-costos']);
-  }
 }

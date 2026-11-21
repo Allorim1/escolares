@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Oferta } from '../models';
 
@@ -6,11 +6,13 @@ import { Oferta } from '../models';
   providedIn: 'root',
 })
 export class OfertasBackend {
+  private http = inject(HttpClient);
+
   private readonly API_URL = '/api/ofertas';
 
   ofertas = signal<Oferta[]>([]);
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.loadFromApi();
   }
 
@@ -36,7 +38,9 @@ export class OfertasBackend {
           const pidStr = String(productId);
           const existing = ofertas.find((o) => String(o.productId) === pidStr);
           if (existing) {
-            return ofertas.map((o) => String(o.productId) === pidStr ? { ...o, precioOferta: newOferta.precioOferta } : o);
+            return ofertas.map((o) =>
+              String(o.productId) === pidStr ? { ...o, precioOferta: newOferta.precioOferta } : o,
+            );
           }
           return [...ofertas, { productId, precioOferta }];
         });

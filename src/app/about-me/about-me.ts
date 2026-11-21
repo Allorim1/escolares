@@ -4,8 +4,8 @@ import {
   ElementRef,
   ViewChildren,
   QueryList,
-  Inject,
   PLATFORM_ID,
+  inject,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -16,6 +16,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './about-me.css',
 })
 export class AboutMe implements AfterViewInit {
+  private platformId = inject(PLATFORM_ID);
+
   @ViewChildren('revealElement') revealElements!: QueryList<ElementRef>;
 
   zonas = [
@@ -26,8 +28,6 @@ export class AboutMe implements AfterViewInit {
     'Los Guayos',
     'Despacho a nivel nacional (consúltenos)',
   ];
-
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {

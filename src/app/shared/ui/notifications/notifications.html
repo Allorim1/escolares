@@ -1,8 +1,20 @@
 <div class="notifications-container">
   @for (notification of notificationService.notifications; track notification.id) {
-    <div class="notification notification-{{ notification.type }}" 
-         [class.clickable]="notification.url"
-         (click)="notification.url && navigateToNews(notification.url)">
+    @if (notification.url) {
+      <button type="button" class="notification notification-{{ notification.type }} clickable"
+              (click)="navigateToNews(notification.url)">
+        @if (notification.icon) {
+          <span class="notification-icon">{{ notification.icon }}</span>
+        }
+        <div class="notification-content">
+          <div class="notification-title">{{ notification.title }}</div>
+          @if (notification.message) {
+            <div class="notification-message">{{ notification.message }}</div>
+          }
+        </div>
+      </button>
+    } @else {
+      <div class="notification notification-{{ notification.type }}">
       @if (notification.icon) {
         <span class="notification-icon">{{ notification.icon }}</span>
       }
@@ -16,6 +28,7 @@
       <button class="notification-close" (click)="notificationService.remove(notification.id); $event.stopPropagation()">
         ×
       </button>
-    </div>
+      </div>
+    }
   }
 </div>

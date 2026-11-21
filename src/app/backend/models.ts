@@ -33,6 +33,7 @@ export interface User {
   direcciones?: Direccion[];
   metodosPago?: MetodoPago[];
   supervisorKey?: string;
+  permisos?: string[];
   comentarios?: string;
   favoritos?: (number | string)[];
 }

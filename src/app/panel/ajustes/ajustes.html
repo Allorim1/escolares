@@ -10,12 +10,12 @@
   <div class="ajuste-section">
     <h4>Cambiar Correo Electrónico</h4>
     <div class="form-group">
-      <label>Correo electrónico</label>
-      <input type="email" [(ngModel)]="email" placeholder="tu@email.com" />
+      <label for="lint-associated-field-1">Correo electrónico</label>
+      <input type="email" [(ngModel)]="email" placeholder="tu@email.com"  id="lint-associated-field-1"/>
     </div>
     <div class="form-group">
-      <label>Contraseña actual *</label>
-      <input type="password" [(ngModel)]="emailPassword" placeholder="Ingresa tu contraseña actual" />
+      <label for="lint-associated-field-2">Contraseña actual *</label>
+      <input type="password" [(ngModel)]="emailPassword" placeholder="Ingresa tu contraseña actual"  id="lint-associated-field-2"/>
     </div>
     <button class="btn-guardar" (click)="guardarEmail()" [disabled]="guardando()">
       {{ guardando() ? 'Guardando...' : 'Actualizar Correo' }}
@@ -25,16 +25,16 @@
   <div class="ajuste-section">
     <h4>Cambiar Contraseña</h4>
     <div class="form-group">
-      <label>Contraseña actual *</label>
-      <input type="password" [(ngModel)]="currentPassword" placeholder="Ingresa tu contraseña actual" />
+      <label for="lint-associated-field-3">Contraseña actual *</label>
+      <input type="password" [(ngModel)]="currentPassword" placeholder="Ingresa tu contraseña actual"  id="lint-associated-field-3"/>
     </div>
     <div class="form-group">
-      <label>Nueva contraseña *</label>
-      <input type="password" [(ngModel)]="newPassword" placeholder="Mínimo 6 caracteres" />
+      <label for="lint-associated-field-4">Nueva contraseña *</label>
+      <input type="password" [(ngModel)]="newPassword" placeholder="Mínimo 6 caracteres"  id="lint-associated-field-4"/>
     </div>
     <div class="form-group">
-      <label>Confirmar nueva contraseña *</label>
-      <input type="password" [(ngModel)]="confirmPassword" placeholder="Repite la nueva contraseña" />
+      <label for="lint-associated-field-5">Confirmar nueva contraseña *</label>
+      <input type="password" [(ngModel)]="confirmPassword" placeholder="Repite la nueva contraseña"  id="lint-associated-field-5"/>
     </div>
     <button class="btn-guardar" (click)="cambiarContrasena()" [disabled]="guardando()">
       {{ guardando() ? 'Guardando...' : 'Cambiar Contraseña' }}

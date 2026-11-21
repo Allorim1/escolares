@@ -37,7 +37,7 @@ interface OrderMessage {
   templateUrl: './pedidos.html',
   styleUrls: ['./pedidos.css'],
 })
-export default class Pedidos implements OnInit {
+export default class Pedidos implements OnInit, OnDestroy {
   private ordersBackend = inject(OrdersBackend);
   private notificationService = inject(NotificationService);
   private route = inject(ActivatedRoute);
@@ -98,7 +98,7 @@ export default class Pedidos implements OnInit {
           }
         });
 
-        this.socket.on('nuevo-mensaje-pedido', (data: any) => {
+        this.socket.on('nuevo-mensaje-pedido', (data: OrderMessage) => {
           this.handleNewOrderMessage(data);
         });
 
@@ -106,7 +106,7 @@ export default class Pedidos implements OnInit {
           console.log('WebSocket desconectado');
         });
 
-        this.socket.on('connect_error', (error: any) => {
+        this.socket.on('connect_error', (error: Error) => {
           console.error('Error en WebSocket:', error);
         });
       }
@@ -124,7 +124,7 @@ export default class Pedidos implements OnInit {
     }
   }
 
-  private handleNewOrderMessage(data: any) {
+  private handleNewOrderMessage(data: OrderMessage) {
     const currentOrder = this.selectedOrder();
     if (currentOrder && currentOrder.id === data.orderId) {
       const currentMessages = this.messages();

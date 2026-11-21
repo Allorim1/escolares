@@ -38,13 +38,13 @@ export class AdminLineas implements OnInit {
   }
 
   getProductsForLinea(linea: Linea): Product[] {
-    return this.allProducts().filter((p) => linea.productIds.includes(p.id as any));
+    return this.allProducts().filter((p) => linea.productIds.includes(p.id));
   }
 
   getAvailableProducts(linea: Linea): Product[] {
     const filter = this.productFilter().toLowerCase();
     return this.allProducts().filter((p) => {
-      const notInLinea = !linea.productIds.includes(p.id as any);
+      const notInLinea = !linea.productIds.includes(p.id);
       const matchesFilter =
         !filter ||
         p.title.toLowerCase().includes(filter) ||

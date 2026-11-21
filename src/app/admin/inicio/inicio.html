@@ -29,8 +29,8 @@
     </div>
 
     @if (showApiKeyModal) {
-      <div class="popup-overlay" (click)="closeApiKeyModal()">
-        <div class="popup-content popup-small" (click)="$event.stopPropagation()">
+      <div class="popup-overlay" (click)="($event.target === $event.currentTarget) && (closeApiKeyModal())" tabindex="0" (keydown.enter)="closeApiKeyModal()" (keydown.space)="closeApiKeyModal(); $event.preventDefault()">
+        <div class="popup-content popup-small">
           <h3>API Key de DolarVzla</h3>
           <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
             Ingresa tu API key de <a href="https://www.dolarvzla.com/settings/api/" target="_blank">dolarvzla.com</a>
@@ -130,53 +130,6 @@
     <div class="loading">Cargando estadísticas...</div>
   } @else {
     <div class="stats-grid">
-      <div class="stat-card stat-primary" (click)="goTo('/admin/cuentas-por-pagar')" title="Ver Cuentas por pagar">
-        <div class="stat-icon">🏢</div>
-        <div class="stat-content">
-          <div class="stat-value">{{ stats().totalProveedores }}</div>
-          <div class="stat-label">Proveedores</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-info" (click)="goTo('/admin/facturacion')" title="Ir a facturación">
-        <div class="stat-icon">📄</div>
-        <div class="stat-content">
-          <div class="stat-value">{{ stats().totalFacturas }}</div>
-          <div class="stat-label">Total Facturas</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-warning" (click)="goTo('/admin/facturacion')" title="Ver pendientes">
-        <div class="stat-icon">⏳</div>
-        <div class="stat-content">
-          <div class="stat-value">{{ stats().facturasPendientes }}</div>
-          <div class="stat-label">Pendientes</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-success" (click)="goTo('/admin/facturacion')" title="Facturas pagadas">
-        <div class="stat-icon">✓</div>
-        <div class="stat-content">
-          <div class="stat-value">{{ stats().facturasPagadas }}</div>
-          <div class="stat-label">Pagadas</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-danger">
-        <div class="stat-icon">💰</div>
-        <div class="stat-content">
-          <div class="stat-value">$ {{ formatMoneda(stats().totalDeuda) }}</div>
-          <div class="stat-label">Deuda Total</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-success">
-        <div class="stat-icon">💵</div>
-        <div class="stat-content">
-          <div class="stat-value">$ {{ formatMoneda(stats().totalPagado) }}</div>
-          <div class="stat-label">Total Pagado</div>
-        </div>
-      </div>
     </div>
 
     <div class="dashboard-body">
@@ -184,18 +137,6 @@
         <div class="quick-actions">
       <h2>Accesos Rápidos</h2>
       <div class="actions-grid">
-        <a href="/admin/cuentas-por-pagar" class="action-card">
-          <span class="action-icon">📋</span>
-          <span class="action-label">Cuentas por Pagar</span>
-        </a>
-        <a href="/admin/facturacion" class="action-card">
-          <span class="action-icon">📑</span>
-          <span class="action-label">Facturación</span>
-        </a>
-        <a href="/admin/costo-tasa" class="action-card">
-          <span class="action-icon">💹</span>
-          <span class="action-label">Costos y Tasas</span>
-        </a>
         <a href="/admin/productos" class="action-card">
           <span class="action-icon">📦</span>
           <span class="action-label">Productos</span>
@@ -203,10 +144,6 @@
         <a href="/admin/registro" class="action-card">
           <span class="action-icon">📝</span>
           <span class="action-label">Registro</span>
-        </a>
-        <a href="/admin/retenciones" class="action-card">
-          <span class="action-icon">📊</span>
-          <span class="action-label">Retenciones</span>
         </a>
       </div>
         </div>

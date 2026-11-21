@@ -107,8 +107,8 @@
 </div>
 
 @if (seleccionado(); as p) {
-  <div class="modal-fondo" (click)="cerrar()">
-    <div class="modal" role="dialog" aria-modal="true" [attr.aria-label]="p.nombre" (click)="$event.stopPropagation()">
+  <div class="modal-fondo" (click)="($event.target === $event.currentTarget) && (cerrar())" tabindex="0" (keydown.enter)="cerrar()" (keydown.space)="cerrar(); $event.preventDefault()">
+    <div class="modal" role="dialog" aria-modal="true" [attr.aria-label]="p.nombre">
       <button type="button" class="modal-cerrar" (click)="cerrar()" aria-label="Cerrar">✕</button>
       <div class="modal-imagen">
         @if (p.imagen) {

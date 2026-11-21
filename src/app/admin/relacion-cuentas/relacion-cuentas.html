@@ -589,6 +589,18 @@
                 el {{ formatFechaHoraVenezuela(editingAbono!.statusModificadoEn) }}
               </small>
             }
+            @if (editingAbono!.historialStatus?.length) {
+              <details class="status-auditoria">
+                <summary>Historial de status ({{ editingAbono!.historialStatus!.length }})</summary>
+                @for (h of editingAbono!.historialStatus!; track $index) {
+                  <div>
+                    {{ formatFechaHoraVenezuela(h.fecha) }} · {{ textoCambioStatus(h) }}
+                    @if (h.fechaReprogramada) { · reprogramada al {{ formatFecha(h.fechaReprogramada) }} }
+                    · {{ h.usuario || '-' }}{{ h.origen === 'sellhub' ? ' (sellhub)' : '' }}
+                  </div>
+                }
+              </details>
+            }
           </div>
           @if (editingAbono!.status === STATUS_REPROGRAMADO) {
             <div class="form-group">
@@ -1055,6 +1067,21 @@
           <button type="button" class="btn-cerrar" (click)="cerrarModalReprogramados()">✕</button>
         </div>
         <div class="reportes-layout">
+          <h4>Relaciones a incluir</h4>
+          <div class="reprogramados-rango">
+            @for (m of modosReprogramados; track m.key) {
+              <label class="checkbox-label">
+                <input type="radio" name="repModo" [checked]="repModo() === m.key" (change)="repModo.set(m.key)">
+                {{ m.label }}
+              </label>
+            }
+          </div>
+          @if (repModo() !== 'actuales') {
+            <small class="reprogramados-conteo">
+              Se detectan por el historial de status y, en las relaciones anteriores al historial, porque conservan su
+              fecha reprogramada. Las que se pagaron antes de este cambio desde Relación de Cuentas no dejaron rastro.
+            </small>
+          }
           <h4>Rango por fecha original</h4>
           <div class="reprogramados-rango">
             <div class="filtro-group">
@@ -1066,7 +1093,7 @@
               <input type="date" [ngModel]="repFechaHasta()" (ngModelChange)="repFechaHasta.set($event)">
             </div>
             <span class="reprogramados-conteo">
-              {{ reprogramadosReporte().length }} relación(es) reprogramada(s)
+              {{ reprogramadosReporte().length }} relación(es) {{ infoModoReprogramados().conteo }}
               @if (filtros().empresa || filtros().planta) {
                 · {{ filtros().empresa }}{{ filtros().planta ? ' / ' + filtros().planta : '' }}
               }
@@ -1090,11 +1117,11 @@
               <div class="reportes-actions">
                 <label class="reportes-checkbox">
                   <input type="checkbox" [ngModel]="repPdf()" (ngModelChange)="repPdf.set($event)">
-                  Reprogramadas PDF
+                  PDF
                 </label>
                 <label class="reportes-checkbox">
                   <input type="checkbox" [ngModel]="repExcel()" (ngModelChange)="repExcel.set($event)">
-                  Reprogramadas Excel
+                  Excel
                 </label>
               </div>
             </div>
@@ -1103,7 +1130,7 @@
           <div class="reportes-col">
             <h4>Columnas</h4>
             <div class="columnas-grid">
-              @for (col of columnasReprogramados; track col.key) {
+              @for (col of columnasRepModo(); track col.key) {
                 <label class="checkbox-label">
                   <input type="checkbox" [checked]="repColumnas().has(col.key)" (change)="toggleColumnaReprogramados(col.key)">
                   {{ col.label }}
@@ -1117,7 +1144,7 @@
           <button
             type="button"
             class="btn-save"
-            [disabled]="repGenerando() || (!repPdf() && !repExcel()) || repColumnas().size === 0 || reprogramadosReporte().length === 0"
+            [disabled]="repGenerando() || (!repPdf() && !repExcel()) || columnasRepSeleccionadas().length === 0 || reprogramadosReporte().length === 0"
             (click)="generarReportesReprogramados()"
           >
             {{ repGenerando() ? 'Generando…' : 'Generar' }}

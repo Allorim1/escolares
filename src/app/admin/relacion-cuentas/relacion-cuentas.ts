@@ -16,6 +16,19 @@ import { ChangeDetectorRef } from '@angular/core';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { ModalEscService } from '../../shared/services/modal-esc.service';
 
+interface HistorialStatus {
+  /** Status anterior ('' al crear la relación). */
+  de: string;
+  a: string;
+  fecha: string;
+  usuario: string;
+  origen?: string;
+  /** Al entrar a 'Reprogramado' la fecha nueva; al salir, la que tenía. */
+  fechaReprogramada?: string | null;
+}
+
+type ModoReprogramados = 'actuales' | 'pagadas' | 'todas';
+
 interface Abono {
   _id?: string;
   fecha: string;
@@ -40,6 +53,8 @@ interface Abono {
   statusModificadoEn?: string;
   /** Momento en que la relación pasó a 'Pagado'. */
   pagadoEn?: string | null;
+  /** Cambios de status, del más antiguo al más reciente (lo escribe el backend o sellhub). */
+  historialStatus?: HistorialStatus[];
   supervisor?: string;
   supervisorId?: string;
   comisionPorcentaje?: number;
@@ -695,9 +710,26 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     { key: 'status', label: 'Status' },
     { key: 'supervisor', label: 'Supervisor' },
   ];
+  readonly modosReprogramados: { key: ModoReprogramados; label: string; titulo: string; archivo: string; conteo: string }[] = [
+    { key: 'actuales', label: 'Reprogramadas actuales', titulo: 'RELACIONES REPROGRAMADAS', archivo: 'Relaciones Reprogramadas', conteo: 'reprogramada(s)' },
+    { key: 'pagadas', label: 'Reprogramadas que se pagaron', titulo: 'REPROGRAMADAS QUE SE PAGARON', archivo: 'Reprogramadas Pagadas', conteo: 'reprogramada(s) ya pagada(s)' },
+    { key: 'todas', label: 'Todas las que tuvieron reprogramación', titulo: 'RELACIONES CON REPROGRAMACIÓN', archivo: 'Relaciones con Reprogramacion', conteo: 'con reprogramación (cualquier status)' },
+  ];
+  repModo = signal<ModoReprogramados>('actuales');
+  infoModoReprogramados = computed(() => this.modosReprogramados.find((m) => m.key === this.repModo()) ?? this.modosReprogramados[0]);
+  /** En los modos históricos se agregan "Pagado en" y "Detectada por". */
+  columnasRepModo = computed(() =>
+    this.repModo() === 'actuales'
+      ? this.columnasReprogramados
+      : [
+          ...this.columnasReprogramados.flatMap((c) => (c.key === 'fechaReprogramada' ? [c, { key: 'pagadoEn', label: 'Pagado en' }] : [c])),
+          { key: 'rastro', label: 'Detectada por' },
+        ]
+  );
+  columnasRepSeleccionadas = computed(() => this.columnasRepModo().filter((c) => this.repColumnas().has(c.key)));
   repFechaDesde = signal('');
   repFechaHasta = signal('');
-  repColumnas = signal<Set<string>>(new Set(this.columnasReprogramados.map((c) => c.key)));
+  repColumnas = signal<Set<string>>(new Set([...this.columnasReprogramados.map((c) => c.key), 'pagadoEn', 'rastro']));
   repMostrarEmpresa = signal(true);
   repMostrarPlanta = signal(true);
   repPdf = signal(true);
@@ -709,9 +741,12 @@ export class RelacionCuentas implements OnInit, OnDestroy {
     const { empresa, planta } = this.filtros();
     const desde = this.repFechaDesde();
     const hasta = this.repFechaHasta();
+    const modo = this.repModo();
     return this.abonos()
       .filter((a) => {
-        if (!this.esReprogramado(a)) return false;
+        if (modo === 'actuales' && !this.esReprogramado(a)) return false;
+        if (modo === 'pagadas' && !(a.status === 'Pagado' && this.rastroReprogramada(a))) return false;
+        if (modo === 'todas' && !(this.esReprogramado(a) || this.rastroReprogramada(a))) return false;
         if (empresa && a.empresa !== empresa) return false;
         if (planta && a.planta !== planta) return false;
         const fecha = this.toYMD(a.fecha);
@@ -719,7 +754,9 @@ export class RelacionCuentas implements OnInit, OnDestroy {
         if (hasta && fecha > hasta) return false;
         return true;
       })
-      .sort((x, y) => this.toYMD(x.fecha).localeCompare(this.toYMD(y.fecha)));
+      .sort((x, y) => this.toYMD(x.fecha).localeCompare(this.toYMD(y.fecha)))
+      // La fecha reprogramada puede venir solo del historial; 'rastro' alimenta la columna "Detectada por".
+      .map((a) => ({ ...a, fechaReprogramada: this.ultimaFechaReprogramada(a), rastro: this.rastroReprogramada(a) || '-' }));
   });
 
   showModalPagadas = signal(false);
@@ -2425,7 +2462,9 @@ if (!url) return '';
 
     const payload = {
       ...this.editingAbono,
-      fechaReprogramada: reprogramado ? this.toInputDate(this.editingAbono.fechaReprogramada) : null,
+      // Al salir de 'Reprogramado' la fecha se conserva (undefined = no se envía) para poder
+      // saber después que estuvo reprogramada; el listado solo la usa con ese status.
+      fechaReprogramada: reprogramado ? this.toInputDate(this.editingAbono.fechaReprogramada) : undefined,
       supervisor: this.editingAbono.supervisor || '',
       supervisorId: this.editingAbono.supervisorId || '',
       productosPendientes: this.editingAbono.productosPendientes || [],
@@ -2524,6 +2563,28 @@ if (!url) return '';
 
   esReprogramado(abono: Pick<Abono, 'status' | 'fechaReprogramada'>): boolean {
     return abono.status === this.STATUS_REPROGRAMADO && !!abono.fechaReprogramada;
+  }
+
+  /**
+   * Cómo se sabe que la relación estuvo reprogramada alguna vez: por el historial de
+   * status, o (relaciones de antes del historial) porque conserva la fecha reprogramada.
+   */
+  rastroReprogramada(abono: Abono): '' | 'Historial' | 'Fecha guardada' {
+    const R = this.STATUS_REPROGRAMADO;
+    if ((abono.historialStatus || []).some((h) => h.de === R || h.a === R)) return 'Historial';
+    if (abono.fechaReprogramada) return 'Fecha guardada';
+    return '';
+  }
+
+  /** La última fecha reprogramada conocida (la guardada o, si no, la del historial). */
+  ultimaFechaReprogramada(abono: Abono): string | null {
+    if (abono.fechaReprogramada) return abono.fechaReprogramada;
+    const conFecha = (abono.historialStatus || []).filter((h) => h.fechaReprogramada);
+    return conFecha.length ? conFecha[conFecha.length - 1].fechaReprogramada ?? null : null;
+  }
+
+  textoCambioStatus(h: HistorialStatus): string {
+    return h.de ? `${h.de} → ${h.a || '(sin status)'}` : `Creada como ${h.a || '(sin status)'}`;
   }
 
   /** Fecha con la que se lista/filtra la relación: la reprogramada si aplica, si no la original. */
@@ -2849,7 +2910,8 @@ if (!url) return '';
 
   async generarReprogramadosPdf() {
     const datos = this.reprogramadosReporte();
-    const columnas = this.columnasReprogramados.filter((c) => this.repColumnas().has(c.key));
+    const columnas = this.columnasRepSeleccionadas();
+    const info = this.infoModoReprogramados();
     if (datos.length === 0 || columnas.length === 0) {
       alert('No hay datos para generar el reporte');
       return;
@@ -2879,7 +2941,7 @@ if (!url) return '';
     const rango = this.rangoReprogramadosTexto();
     doc.setFontSize(16);
     doc.setTextColor(0, 51, 111);
-    doc.text(`RELACIONES REPROGRAMADAS${rango ? ` (${rango})` : ''}`, pageWidth / 2, offsetY, { align: 'center' });
+    doc.text(`${info.titulo}${rango ? ` (${rango})` : ''}`, pageWidth / 2, offsetY, { align: 'center' });
 
     const { empresa, planta } = this.filtros();
     const showEmpresa = this.repMostrarEmpresa() && !!empresa;
@@ -2915,12 +2977,13 @@ if (!url) return '';
     });
 
     const sufijoPlanta = planta ? ` (${planta.replace(/[\\/:*?"<>|]/g, '-')})` : '';
-    doc.save(`Relaciones Reprogramadas${sufijoPlanta} ${this.getFechaLocal()}.pdf`);
+    doc.save(`${info.archivo}${sufijoPlanta} ${this.getFechaLocal()}.pdf`);
   }
 
   async generarReprogramadosExcel() {
     const datos = this.reprogramadosReporte();
-    const columnas = this.columnasReprogramados.filter((c) => this.repColumnas().has(c.key));
+    const columnas = this.columnasRepSeleccionadas();
+    const info = this.infoModoReprogramados();
     if (datos.length === 0 || columnas.length === 0) {
       alert('No hay datos para generar el reporte');
       return;
@@ -2951,7 +3014,7 @@ if (!url) return '';
     };
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Reprogramadas');
+    const worksheet = workbook.addWorksheet(info.label.slice(0, 31));
     worksheet.columns = columnas.map((c) => ({ width: c.key === 'nombre' ? 30 : c.key === 'empresa' ? 25 : 18 }));
 
     const borde: Partial<ExcelJS.Borders> = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
@@ -2969,7 +3032,7 @@ if (!url) return '';
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `relaciones_reprogramadas_${this.getFechaLocal()}.xlsx`);
+    saveAs(new Blob([buffer]), `${info.archivo.toLowerCase().replace(/\s+/g, '_')}_${this.getFechaLocal()}.xlsx`);
   }
 
   /** % de comisión de una relación pagada: el del supervisor si tiene, si no el de planta del modal. */

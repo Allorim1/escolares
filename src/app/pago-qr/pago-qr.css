@@ -1,0 +1,289 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #f1f5f9;
+  color: #172033;
+}
+
+.pago-page {
+  display: flex;
+  justify-content: center;
+  padding: 28px 14px;
+}
+
+.pago-card {
+  width: min(100%, 520px);
+  overflow: hidden;
+  align-self: flex-start;
+  border: 1px solid #dbe3ee;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 16px 48px rgb(15 23 42 / 10%);
+}
+
+.pago-header {
+  padding: 24px;
+  background: #10233f;
+  color: #fff;
+  text-align: center;
+}
+
+.marca {
+  color: #8dc5ff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.pago-header h1 {
+  margin: 8px 0 2px;
+  font-size: 26px;
+}
+
+.pago-header p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.resumen,
+.datos-destino,
+form {
+  margin: 22px 24px;
+}
+
+.resumen {
+  padding: 18px;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  background: #f0fdf4;
+  text-align: center;
+}
+
+.monto-label,
+.dato span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.monto {
+  margin: 4px 0;
+  color: #15803d;
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.aviso-monto,
+.ayuda {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.datos-destino h2,
+form h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.dato {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dato div {
+  min-width: 0;
+}
+
+.dato span,
+.dato strong {
+  display: block;
+}
+
+.dato strong {
+  overflow-wrap: anywhere;
+}
+
+.dato button,
+.copiar-monto {
+  flex: 0 0 auto;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.copiar-monto {
+  width: 100%;
+  margin-top: 12px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+form .ayuda {
+  margin: -6px 0 8px;
+}
+
+label {
+  margin-top: 5px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  padding: 9px 11px;
+  background: #fff;
+  color: #172033;
+  font: inherit;
+}
+
+input:focus,
+select:focus {
+  border-color: #2563eb;
+  outline: 3px solid rgb(37 99 235 / 14%);
+}
+
+.cedula {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 8px;
+}
+
+.enviar {
+  min-height: 48px;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #1769aa;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.enviar:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.intentos {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+}
+
+.estado {
+  margin: 24px;
+  padding: 24px 18px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.estado h2 {
+  margin: 8px 0;
+}
+
+.estado p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.estado-info {
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.estado-ok {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.estado-error,
+.mensaje-error {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.mensaje-error {
+  margin: 0 24px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.icono {
+  display: block;
+  font-size: 42px;
+  font-weight: 900;
+}
+
+.spinner {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  border: 3px solid #bfdbfe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+.nota-seguridad {
+  margin: 0 24px 20px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .pago-page {
+    padding: 10px;
+  }
+
+  .pago-card {
+    border-radius: 14px;
+  }
+
+  .pago-header {
+    padding: 20px 16px;
+  }
+
+  .resumen,
+  .datos-destino,
+  form {
+    margin: 18px 16px;
+  }
+
+  .monto {
+    font-size: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

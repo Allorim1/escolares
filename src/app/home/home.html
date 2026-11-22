@@ -1,4 +1,5 @@
 <section>
+  <div class="desktop-home-view">
   <div class="hero-container reveal-init" #revealElement>
     <div class="banner-carousel">
       <button class="banner-btn prev" (click)="prevBanner()">‹</button>
@@ -170,4 +171,102 @@
   <a href="https://wa.me/584241234567" target="_blank" class="whatsapp-float">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
   </a>
+  </div>
+
+  <main class="mobile-home-view">
+    <section class="mobile-home-intro" aria-labelledby="mobile-home-title">
+      <p class="mobile-eyebrow">Escolares</p>
+      <h1 id="mobile-home-title">Encuentra lo que necesitas</h1>
+      <p>Busca tus productos y explora el catálogo en pocos pasos.</p>
+
+      <form class="mobile-search-form" (ngSubmit)="searchMobileProducts()">
+        <label class="visually-hidden" for="mobile-product-search">Buscar productos</label>
+        <input
+          id="mobile-product-search"
+          type="search"
+          [(ngModel)]="mobileSearchQuery"
+          name="mobileSearch"
+          placeholder="¿Qué estás buscando?"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" [disabled]="!mobileSearchQuery.trim()" aria-label="Buscar">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-4-4"></path>
+          </svg>
+        </button>
+      </form>
+
+      <a class="mobile-catalog-link" routerLink="/products">
+        Explorar todo el catálogo
+        <span aria-hidden="true">→</span>
+      </a>
+    </section>
+
+    @if (mobileCategories().length > 0) {
+      <section class="mobile-category-section" aria-labelledby="mobile-category-title">
+        <div class="mobile-section-heading">
+          <h2 id="mobile-category-title">Compra por categoría</h2>
+        </div>
+        <div class="mobile-category-list">
+          @for (category of mobileCategories(); track category) {
+            <a [routerLink]="['/products']" [queryParams]="{ category: category }">
+              {{ category }}
+            </a>
+          }
+        </div>
+      </section>
+    }
+
+    @if (productosDestacados().length > 0) {
+      <section class="mobile-products-section" aria-labelledby="mobile-products-title">
+        <div class="mobile-section-heading">
+          <div>
+            <p class="mobile-eyebrow">Selección para ti</p>
+            <h2 id="mobile-products-title">Productos destacados</h2>
+          </div>
+          <a routerLink="/products" aria-label="Ver todos los productos">Ver todo</a>
+        </div>
+
+        <div class="mobile-product-grid">
+          @for (product of productosDestacados().slice(0, 6); track product.id) {
+            <a [routerLink]="['/products', product.id]" class="mobile-product-card">
+              @if (product.enOferta) {
+                <span class="mobile-product-badge">Oferta</span>
+              }
+              <img [src]="product.image" [alt]="product.title" loading="lazy" />
+              <div class="mobile-product-info">
+                <h3>{{ product.title }}</h3>
+                @if (product.enOferta) {
+                  <div class="mobile-product-price mobile-product-price-sale">
+                    <span class="mobile-original-price" [innerHTML]="formatPrice(product.price)"></span>
+                    <span [innerHTML]="formatPrice(product.ofertaPrecio!)"></span>
+                  </div>
+                } @else {
+                  <p class="mobile-product-price" [innerHTML]="formatPrice(product.price)"></p>
+                }
+                <span class="mobile-product-action">Ver producto <span aria-hidden="true">→</span></span>
+              </div>
+            </a>
+          }
+        </div>
+      </section>
+    }
+  </main>
+
+  <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
+    <a routerLink="/" aria-current="page">
+      <span aria-hidden="true">⌂</span>
+      Inicio
+    </a>
+    <a routerLink="/products">
+      <span aria-hidden="true">▦</span>
+      Catálogo
+    </a>
+    <a routerLink="/cart">
+      <span aria-hidden="true">🛒</span>
+      Carrito
+    </a>
+  </nav>
 </section>

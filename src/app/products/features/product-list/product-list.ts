@@ -615,10 +615,9 @@ export default class ProductList implements OnInit {
     });
 
     this.route.queryParamMap.subscribe((queryParams) => {
-      const search = queryParams.get('search');
-      if (search) {
-        this.filterText.set(search);
-      }
+      this.filterText.set(queryParams.get('search') || '');
+      this.filterCategory.set(queryParams.get('category') || '');
+      this.productsState.reset();
     });
   }
 

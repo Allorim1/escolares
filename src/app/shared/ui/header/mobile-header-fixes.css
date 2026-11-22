@@ -1,5 +1,9 @@
 /* Mobile Header Improvements - Enhanced */
 @media (max-width: 768px) {
+  .app-header.home-route .header-search {
+    display: none;
+  }
+
   .header-top {
     padding: 10px 12px;
     min-height: 56px;

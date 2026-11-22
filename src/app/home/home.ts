@@ -17,7 +17,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MarcasService } from '../shared/data-access/marcas.service';
 import { NoticiasService, Noticia } from '../shared/data-access/noticias.service';
 import { MarkdownPipe } from '../shared/pipes/markdown.pipe';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ProductsStateService } from '../products/data-access/products-state.service';
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { CurrencyService } from '../shared/data-access/currency.service';
@@ -908,8 +908,20 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private cartState = inject(CartStateService).state;
   private currencyService = inject(CurrencyService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   marcas = this.marcasService.marcas;
+  mobileSearchQuery = '';
+  mobileCategories = computed(() =>
+    Array.from(
+      new Set(
+        this.productsState
+          .allProducts()
+          .map(({ category }) => category.trim())
+          .filter(Boolean),
+      ),
+    ).slice(0, 8),
+  );
   noticias = signal<Noticia[]>([]);
   noticiasLoaded = signal(false);
   currentIndex = 0;
@@ -970,6 +982,13 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.productsState.loadProducts();
       this.waitForDataAndReveal();
     }
+  }
+
+  searchMobileProducts(): void {
+    const search = this.mobileSearchQuery.trim();
+    if (!search) return;
+
+    this.router.navigate(['/products'], { queryParams: { search } });
   }
 
   private waitForDataAndReveal(): void {

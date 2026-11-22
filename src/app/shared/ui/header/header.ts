@@ -28,6 +28,7 @@ export class Header implements OnInit, OnDestroy {
 
   unreadCount = computed(() => this.noticiasService.userNotificaciones().filter(n => !n.leido).length);
   isAdminRoute = signal(false);
+  isHomeRoute = signal(false);
 
   userAddresses = computed<Direccion[]>(() => this.authService.user()?.direcciones || []);
   hasAddresses = computed(() => this.userAddresses().length > 0);
@@ -63,12 +64,14 @@ export class Header implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.isHomeRoute.set(this.router.url.split('?')[0] === '/');
     if (this.authService.isLoggedIn()) {
       this.loadUserNotifications();
     }
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         this.isAdminRoute.set(event.urlAfterRedirects.startsWith('/admin') || event.urlAfterRedirects.startsWith('/repartidor'));
+        this.isHomeRoute.set(event.urlAfterRedirects.split('?')[0] === '/');
       }
     });
   }

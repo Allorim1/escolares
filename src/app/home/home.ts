@@ -487,7 +487,13 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
       /* Banner responsive */
       @media (max-width: 768px) {
         :host {
+          width: 100%;
+          min-height: auto;
           padding: 0;
+          align-items: stretch;
+          justify-content: flex-start;
+          box-sizing: border-box;
+          text-align: left;
         }
 
         .banner-btn {

@@ -9,7 +9,7 @@
     min-height: 56px;
     gap: 12px;
     flex-wrap: wrap;
-    overflow-x: hidden;
+    overflow: visible;
     max-width: 100%;
   }
   .brand-logo { height: 32px; }
@@ -57,7 +57,8 @@
     max-width: calc(100vw - 16px);
   }
   .cart-preview-dropdown {
-    right: -48px;
+    right: -8px;
+    width: min(330px, calc(100vw - 24px));
   }
   .notifications-dropdown {
     right: -36px;
@@ -74,10 +75,36 @@
   .notification-btn { padding: 6px; }
 }
 @media (max-width: 360px) {
-  .header-top { padding: 6px 8px; gap: 6px; }
+  .header-top {
+    grid-template-columns: minmax(0, 1fr) 44px auto;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+  .brand-logo {
+    width: 88px;
+    max-width: 100%;
+    height: auto;
+  }
+  .header-icons {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+  .mobile-menu-btn {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
   .search-input { padding: 6px 8px; font-size: 0.8rem; }
   .category-btn { padding: 0 6px; font-size: 0.7rem; }
   .address-text { max-width: 70px; font-size: 0.65rem; }
+}
+@media (max-width: 340px) {
+  .brand-logo {
+    width: 72px;
+  }
+  .dark-toggle {
+    display: none;
+  }
 }
 @media (hover: none) and (pointer: coarse) {
   .nav-address-btn, .dark-toggle, .cart-btn, .notification-btn, .user-btn {

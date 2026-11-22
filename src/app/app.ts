@@ -1,5 +1,5 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
-import { RouterOutlet, Router } from '@angular/router';
+import { RouterOutlet, RouterLink, Router } from '@angular/router';
 import { Header } from './shared/ui/header/header';
 import { Footer } from './shared/ui/footer/footer';
 import { NotificationsComponent } from './shared/ui/notifications/notifications';
@@ -11,7 +11,7 @@ import { ModalEscService } from './shared/services/modal-esc.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Header, Footer, NotificationsComponent, NotificationModalComponent],
+  imports: [RouterOutlet, RouterLink, Header, Footer, NotificationsComponent, NotificationModalComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
 })
@@ -52,5 +52,14 @@ export class App implements OnInit {
 
   get esSitioBloqueado(): boolean {
     return this.storeSettings.debeBloquearSitio();
+  }
+
+  get isAdminRoute(): boolean {
+    const path = this.router.url.split(/[?#]/)[0];
+    return path.startsWith('/admin') || path.startsWith('/repartidor');
+  }
+
+  get isHomeRoute(): boolean {
+    return this.router.url.split(/[?#]/)[0] === '/';
   }
 }

@@ -376,7 +376,13 @@ import { Product } from '../../../shared/interfaces/product.interface';
       }
       .products-sidebar {
         width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
         position: static;
+      }
+      .products-main {
+        min-width: 0;
+        max-width: 100%;
       }
       .modal-product-card {
         grid-template-columns: 1fr;

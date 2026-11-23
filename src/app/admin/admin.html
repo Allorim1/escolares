@@ -10,13 +10,13 @@
       <a routerLink="inicio" routerLinkActive="active" class="inicio-link">
         🏠 Inicio
       </a>
-      <button type="button" class="quick-access-sidebar-toggle" (click)="toggleQuickAccess()" [class.open]="quickAccessOpen()">
+      <button type="button" class="quick-access-sidebar-toggle" (click)="toggleQuickAccess()" [class.open]="quickAccessOpen()" [attr.aria-expanded]="quickAccessOpen()" aria-controls="quick-access-menu">
         <span class="quick-access-sidebar-label">⚡ Accesos Rápidos</span>
         <span class="quick-access-sidebar-arrow" [class.open]="quickAccessOpen()">▶</span>
       </button>
       @for (categoria of categorias(); track categoria.name; let i = $index) {
         <div class="menu-categoria">
-          <button type="button" class="categoria-header" (click)="toggleCategoria(categoria.name)" [class.open]="categoriaExpandida() === categoria.name">
+          <button type="button" class="categoria-header" (click)="toggleCategoria(categoria.name)" [class.open]="categoriaExpandida() === categoria.name" [attr.aria-expanded]="categoriaExpandida() === categoria.name">
             <span>{{ categoria.name }}</span>
             <span class="toggle-icon" [class.open]="categoriaExpandida() === categoria.name">▶</span>
           </button>
@@ -29,9 +29,9 @@
     </div>
   </aside>
 
-  <div class="admin-sidebar-overlay" role="button" tabindex="0" [class.open]="quickAccessOpen() || categoriaExpandida() !== null" (click)="closeQuickAccess(); closeCategoriaSideboard()" (keydown.escape)="closeQuickAccess(); closeCategoriaSideboard()"></div>
+  <div class="admin-sidebar-overlay" aria-hidden="true" [class.open]="quickAccessOpen() || categoriaExpandida() !== null" (click)="closeQuickAccess(); closeCategoriaSideboard()"></div>
 
-  <div class="quick-access-sidebar-menu" [class.open]="quickAccessOpen()">
+  <div id="quick-access-menu" class="quick-access-sidebar-menu" [class.open]="quickAccessOpen()">
     @for (quickItem of quickItems(); track quickItem.route) {
       @if (!quickItem.permiso || hasPermission(quickItem.permiso)) {
         <a [routerLink]="quickItem.route" routerLinkActive="active" class="quick-access-sidebar-item" (click)="closeQuickAccess()">
@@ -42,7 +42,7 @@
     }
   </div>
 
-  <div class="categoria-sideboard-menu" [class.open]="categoriaExpandida() !== null">
+  <div class="categoria-sideboard-menu" [class.open]="categoriaExpandida() !== null" role="navigation" aria-label="Submenú de categoría">
     @for (categoria of categorias(); track categoria.name) {
       @if (categoria.name === categoriaExpandida()) {
         @for (item of categoria.items; track item.route) {

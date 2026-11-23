@@ -2,6 +2,9 @@ import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 import { io, Socket } from 'socket.io-client';
 
 type Estado = 'abierto' | 'en_proceso' | 'cerrado';
@@ -32,12 +35,13 @@ const PESTANAS: { value: Estado | 'todos'; label: string }[] = [
 @Component({
   selector: 'app-creditos-tickets',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './creditos-tickets.html',
   styleUrl: './creditos-tickets.css',
 })
 export class CreditosTickets implements OnInit, OnDestroy {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
   private router = inject(Router);
   private readonly API = '/api/creditos/admin/tickets';
 
@@ -72,7 +76,7 @@ export class CreditosTickets implements OnInit, OnDestroy {
     const url = estado === 'todos' ? this.API : `${this.API}?estado=${estado}`;
     this.http.get<Ticket[]>(url).subscribe({
       next: (data) => { this.tickets.set(data); this.loading.set(false); },
-      error: (err) => { console.error('Error cargando tickets:', err); this.loading.set(false); },
+      error: (err) => { console.error('Error al cargar tickets', err); this.loading.set(false); this.notifications.fromHttpError(err, 'Error al cargar tickets'); },
     });
   }
 

@@ -1,6 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 
 interface SolicitudEliminacion {
   id: string;
@@ -18,12 +21,13 @@ interface SolicitudEliminacion {
 @Component({
   selector: 'app-creditos-eliminaciones',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './creditos-eliminaciones.html',
   styleUrl: './creditos-eliminaciones.css',
 })
 export class CreditosEliminaciones implements OnInit {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
   private readonly API = '/api/creditos/admin';
 
   solicitudes = signal<SolicitudEliminacion[]>([]);
@@ -38,7 +42,7 @@ export class CreditosEliminaciones implements OnInit {
     this.loading.set(true);
     this.http.get<SolicitudEliminacion[]>(`${this.API}/eliminaciones`).subscribe({
       next: (data) => { this.solicitudes.set(data); this.loading.set(false); },
-      error: (err) => { console.error('Error cargando solicitudes de eliminación:', err); this.loading.set(false); },
+      error: (err) => { console.error('Error cargando solicitudes de eliminación:', err); this.loading.set(false); this.notifications.fromHttpError(err, 'Error cargando solicitudes de eliminación:'); },
     });
   }
 
@@ -47,7 +51,7 @@ export class CreditosEliminaciones implements OnInit {
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/usuarios/${s.id}/eliminacion/aprobar`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al eliminar la cuenta'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al eliminar la cuenta'); },
     });
   }
 
@@ -58,7 +62,7 @@ export class CreditosEliminaciones implements OnInit {
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/usuarios/${s.id}/eliminacion/rechazar`, { motivo }).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al rechazar'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al rechazar'); },
     });
   }
 }

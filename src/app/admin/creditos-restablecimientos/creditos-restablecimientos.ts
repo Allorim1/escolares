@@ -1,6 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 
 interface SolicitudRestablecimiento {
   id: string;
@@ -14,12 +17,13 @@ interface SolicitudRestablecimiento {
 @Component({
   selector: 'app-creditos-restablecimientos',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './creditos-restablecimientos.html',
   styleUrl: './creditos-restablecimientos.css',
 })
 export class CreditosRestablecimientos implements OnInit {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
   private readonly API = '/api/creditos/admin';
 
   solicitudes = signal<SolicitudRestablecimiento[]>([]);
@@ -34,7 +38,7 @@ export class CreditosRestablecimientos implements OnInit {
     this.loading.set(true);
     this.http.get<SolicitudRestablecimiento[]>(`${this.API}/restablecimientos`).subscribe({
       next: (data) => { this.solicitudes.set(data); this.loading.set(false); },
-      error: (err) => { console.error('Error cargando restablecimientos:', err); this.loading.set(false); },
+      error: (err) => { console.error('Error al cargar restablecimientos', err); this.loading.set(false); this.notifications.fromHttpError(err, 'Error al cargar restablecimientos'); },
     });
   }
 
@@ -44,10 +48,10 @@ export class CreditosRestablecimientos implements OnInit {
     this.http.post<{ passwordTemporal: string }>(`${this.API}/usuarios/${s.id}/restablecer-password`, {}).subscribe({
       next: (res) => {
         this.procesandoId.set(null);
-        alert(`Contraseña temporal para ${s.nombre}: ${res.passwordTemporal}\n\nDíctasela por teléfono; puede cambiarla luego desde su Perfil.`);
+        this.notifications.success(`Contraseña temporal para ${s.nombre}: ${res.passwordTemporal}. Díctasela por teléfono.`, 'Contraseña temporal generada');
         this.cargar();
       },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al restablecer la contraseña'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al restablecer la contraseña'); },
     });
   }
 }

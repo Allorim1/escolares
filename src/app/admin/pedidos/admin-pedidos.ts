@@ -1,5 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 import { AuthService, User } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,7 +45,7 @@ interface CompraNotificacion {
 @Component({
   selector: 'app-admin-pedidos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './admin-pedidos.html',
   styleUrl: './admin-pedidos.css',
 })

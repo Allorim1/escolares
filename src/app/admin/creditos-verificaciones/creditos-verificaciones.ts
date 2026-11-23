@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 
 type Estado = 'sin_verificar' | 'en_revision' | 'verificado' | 'rechazado';
 
@@ -27,13 +30,14 @@ const PESTANAS: { value: Estado | 'todos'; label: string }[] = [
 @Component({
   selector: 'app-creditos-verificaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './creditos-verificaciones.html',
   styleUrl: './creditos-verificaciones.css',
 })
 export class CreditosVerificaciones implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private notifications = inject(NotificationModalService);
   private readonly API = '/api/creditos/admin/usuarios';
 
   readonly pestanas = PESTANAS;

@@ -2,6 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 
 type Status = 'pendiente_verificacion' | 'verificado' | 'rechazado';
 type Metodo = 'pago_movil' | 'transferencia';
@@ -35,7 +37,7 @@ const METODO_LABEL: Record<Metodo, string> = {
 @Component({
   selector: 'app-creditos-verificar-pagos',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './creditos-verificar-pagos.html',
   styleUrl: './creditos-verificar-pagos.css',
 })
@@ -65,7 +67,7 @@ export class CreditosVerificarPagos implements OnInit {
     const url = estado === 'todos' ? this.API : `${this.API}?status=${estado}`;
     this.http.get<Pago[]>(url).subscribe({
       next: (data) => { this.pagos.set(data); this.loading.set(false); },
-      error: (err) => { console.error('Error cargando pagos:', err); this.loading.set(false); },
+      error: (err) => { console.error('Error cargando pagos:', err); this.loading.set(false); this.notificaciones.fromHttpError(err, 'Error al cargar pagos'); },
     });
   }
 
@@ -92,7 +94,7 @@ export class CreditosVerificarPagos implements OnInit {
       },
       error: (err) => {
         this.procesandoId.set(null);
-        this.notificaciones.error(err.error?.error || 'Error al verificar el pago', 'Error');
+        this.notificaciones.fromHttpError(err, 'Error al verificar el pago', 'Error');
       },
     });
   }
@@ -108,7 +110,7 @@ export class CreditosVerificarPagos implements OnInit {
       },
       error: (err) => {
         this.procesandoId.set(null);
-        this.notificaciones.error(err.error?.error || 'Error al rechazar el pago', 'Error');
+        this.notificaciones.fromHttpError(err, 'Error al rechazar el pago', 'Error');
       },
     });
   }

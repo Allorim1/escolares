@@ -1,6 +1,6 @@
 <section class="pedidos-container">
   <div class="pedidos-header">
-    <h2>Gestión de Pedidos</h2>
+    <h2>Gestión de pedidos</h2>
     <button class="btn-refresh" (click)="loadOrders()">🔄 Actualizar</button>
   </div>
 
@@ -29,7 +29,11 @@
   </div>
 
   @if (loading()) {
-    <div class="loading">Cargando pedidos...</div>
+    <div class="ui-card" style="padding:1rem; display:grid; gap:.75rem;">
+      <app-skeleton height="42px"></app-skeleton>
+      <app-skeleton height="96px"></app-skeleton>
+      <app-skeleton height="96px"></app-skeleton>
+    </div>
   } @else {
     <div class="pedidos-list">
       @for (order of filteredOrders; track order.id) {
@@ -93,7 +97,7 @@
       }
       
       @if (filteredOrders.length === 0) {
-        <div class="no-orders">No hay pedidos</div>
+        <app-empty-state title="No hay pedidos" description="No se encontraron pedidos con los filtros actuales."></app-empty-state>
       }
     </div>
   }

@@ -1,6 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 
 type Status = 'pendiente_aceptacion' | 'esperando_pago' | 'solicitado' | 'activo' | 'pagado' | 'rechazado';
 
@@ -39,12 +42,13 @@ const PESTANAS: { value: Status | 'todos'; label: string }[] = [
 @Component({
   selector: 'app-creditos-solicitudes',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent, SkeletonComponent],
   templateUrl: './creditos-solicitudes.html',
   styleUrl: './creditos-solicitudes.css',
 })
 export class CreditosSolicitudes implements OnInit {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
   private readonly API = '/api/creditos/admin/solicitudes';
 
   readonly pestanas = PESTANAS;
@@ -68,7 +72,7 @@ export class CreditosSolicitudes implements OnInit {
     const url = estado === 'todos' ? this.API : `${this.API}?status=${estado}`;
     this.http.get<Solicitud[]>(url).subscribe({
       next: (data) => { this.solicitudes.set(data); this.loading.set(false); },
-      error: (err) => { console.error('Error cargando solicitudes:', err); this.loading.set(false); },
+      error: (err) => { console.error('Error cargando solicitudes:', err); this.loading.set(false); this.notifications.fromHttpError(err, 'Error al cargar solicitudes'); },
     });
   }
 
@@ -93,7 +97,7 @@ export class CreditosSolicitudes implements OnInit {
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/aprobar`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al aprobar'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al aprobar'); },
     });
   }
 
@@ -103,7 +107,7 @@ export class CreditosSolicitudes implements OnInit {
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/rechazar`, { motivo }).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al rechazar'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al rechazar'); },
     });
   }
 
@@ -113,7 +117,7 @@ export class CreditosSolicitudes implements OnInit {
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/cancelar`, { motivo }).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al cancelar'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al cancelar'); },
     });
   }
 
@@ -123,7 +127,7 @@ export class CreditosSolicitudes implements OnInit {
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/confirmar-pago`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al confirmar el pago'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al confirmar el pago'); },
     });
   }
 
@@ -132,7 +136,7 @@ export class CreditosSolicitudes implements OnInit {
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/registrar-pago`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al registrar el pago'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al registrar el pago'); },
     });
   }
 
@@ -142,7 +146,7 @@ export class CreditosSolicitudes implements OnInit {
     this.procesandoId.set(s.id);
     this.http.post('/api/creditos/admin/tickets/pago-atrasado', { solicitudId: s.id }).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
-      error: (err) => { this.procesandoId.set(null); alert(err.error?.error || 'Error al abrir el caso'); },
+      error: (err) => { this.procesandoId.set(null); this.notifications.fromHttpError(err, 'Error al abrir el caso'); },
     });
   }
 }

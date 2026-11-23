@@ -1,10 +1,10 @@
-<div class="notifications-container">
+﻿<div class="notifications-container" aria-live="polite" aria-atomic="false">
   @for (notification of notificationService.notifications; track notification.id) {
     @if (notification.url) {
       <button type="button" class="notification notification-{{ notification.type }} clickable"
               (click)="navigateToNews(notification.url)">
         @if (notification.icon) {
-          <span class="notification-icon">{{ notification.icon }}</span>
+          <span class="notification-icon" aria-hidden="true">{{ notification.icon }}</span>
         }
         <div class="notification-content">
           <div class="notification-title">{{ notification.title }}</div>
@@ -15,19 +15,17 @@
       </button>
     } @else {
       <div class="notification notification-{{ notification.type }}">
-      @if (notification.icon) {
-        <span class="notification-icon">{{ notification.icon }}</span>
-      }
-      <div class="notification-content">
-        <div class="notification-title">{{ notification.title }}</div>
-        <div class="notification-message">{{ notification.message }}</div>
-        @if (notification.imageUrl) {
-          <img [src]="notification.imageUrl" class="notification-image" alt="Producto" />
+        @if (notification.icon) {
+          <span class="notification-icon" aria-hidden="true">{{ notification.icon }}</span>
         }
-      </div>
-      <button class="notification-close" (click)="notificationService.remove(notification.id); $event.stopPropagation()">
-        ×
-      </button>
+        <div class="notification-content">
+          <div class="notification-title">{{ notification.title }}</div>
+          <div class="notification-message">{{ notification.message }}</div>
+          @if (notification.imageUrl) {
+            <img [src]="notification.imageUrl" class="notification-image" alt="Producto" />
+          }
+        </div>
+        <button class="notification-close" (click)="notificationService.remove(notification.id); $event.stopPropagation()" aria-label="Cerrar notificación">×</button>
       </div>
     }
   }

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 export interface Notification {
@@ -34,19 +34,26 @@ export class NotificationService {
   }
 
   success(title: string, message: string, duration?: number): string {
-    return this.show({ type: 'success', title, message, duration, icon: '✅' });
+    return this.show({ type: 'success', title, message, duration, icon: '✓' });
   }
 
   info(title: string, message: string, duration?: number): string {
-    return this.show({ type: 'info', title, message, duration, icon: 'ℹ️' });
+    return this.show({ type: 'info', title, message, duration, icon: 'ℹ' });
   }
 
   warning(title: string, message: string, duration?: number): string {
-    return this.show({ type: 'warning', title, message, duration, icon: '⚠️' });
+    return this.show({ type: 'warning', title, message, duration, icon: '⚠' });
   }
 
   error(title: string, message: string, duration?: number): string {
-    return this.show({ type: 'error', title, message, duration, icon: '❌' });
+    return this.show({ type: 'error', title, message, duration, icon: '!' });
+  }
+
+  fromHttpError(err: any, fallback = 'Ocurrió un error inesperado', title = 'Error'): string {
+    const msg = err?.error?.error || err?.message || fallback;
+    const details = Array.isArray(err?.error?.details) ? err.error.details.filter((d: any) => typeof d === 'string') : [];
+    const full = details.length ? `${msg}: ${details.join('; ')}` : msg;
+    return this.error(title, full, 6000);
   }
 
   remove(id: string): void {
@@ -58,17 +65,15 @@ export class NotificationService {
     this.notificationsSubject.next([]);
   }
 
-  // Método para mostrar notificación con imagen
   showWithImage(notification: Omit<Notification, 'id'>): string {
     return this.show(notification);
   }
 
-  // Notificación de nueva noticia
   newsNotification(titulo: string, preview: string, noticiaId: string, duration = 10000): string {
     const previewText = preview.length > 100 ? preview.substring(0, 100) + '...' : preview;
     return this.show({
       type: 'info',
-      title: '📰 ¡Nueva Noticia!',
+      title: 'Nueva noticia',
       message: previewText,
       duration,
       url: `/noticias#${noticiaId}`,

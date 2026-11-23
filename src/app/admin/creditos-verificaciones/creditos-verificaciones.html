@@ -14,9 +14,11 @@
   </div>
 
   @if (loading()) {
-    <div class="loading">Cargando...</div>
+    <div class="ui-card" style="padding:1rem; display:grid; gap:.75rem;">
+      <app-skeleton height="40px"></app-skeleton><app-skeleton height="56px"></app-skeleton><app-skeleton height="56px"></app-skeleton>
+    </div>
   } @else {
-    <table class="cv-table">
+    <div class="ui-table-wrap"><table class="cv-table ui-table">
       <thead>
         <tr>
           <th>Nombre</th>
@@ -39,6 +41,9 @@
           <tr><td colspan="5" class="empty">No hay usuarios en este estado</td></tr>
         }
       </tbody>
-    </table>
+    </table></div>
+    @if (usuariosFiltrados().length === 0) {
+      <app-empty-state title="No hay usuarios" description="No se encontraron usuarios para este filtro."></app-empty-state>
+    }
   }
 </div>

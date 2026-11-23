@@ -1,16 +1,17 @@
 <div class="cs-container">
-  <div class="cs-header">
-    <h1>Créditos Escolares · Restablecer contraseñas</h1>
-    <p class="explicacion">
-      Estos clientes no tienen email registrado, así que "olvidé mi contraseña" no les pudo
-      mandar un código. Confirma su identidad por teléfono antes de generarles una temporal.
-    </p>
+  <div class="ui-page-header">
+    <div>
+      <h1 class="ui-page-title">Créditos Escolares - Restablecer contraseñas</h1>
+      <p class="ui-page-subtitle">Estos clientes no tienen email registrado, así que "olvidé mi contraseña" no les pudo mandar un código. Confirma su identidad por teléfono antes de generarles una temporal.</p>
+    </div>
   </div>
 
   @if (loading()) {
-    <div class="loading">Cargando...</div>
+    <div class="ui-card" style="padding:1rem; display:grid; gap:.75rem;">
+      <app-skeleton height="40px"></app-skeleton><app-skeleton height="56px"></app-skeleton><app-skeleton height="56px"></app-skeleton>
+    </div>
   } @else {
-    <table class="cs-table">
+    <div class="ui-table-wrap"><table class="cs-table ui-table">
       <thead>
         <tr>
           <th>Cliente</th>
@@ -35,6 +36,9 @@
           <tr><td colspan="4" class="empty">No hay solicitudes pendientes</td></tr>
         }
       </tbody>
-    </table>
+    </table></div>
+    @if (solicitudes().length === 0) {
+      <app-empty-state title="No hay solicitudes" description="No se encontraron solicitudes de restablecimiento."></app-empty-state>
+    }
   }
 </div>

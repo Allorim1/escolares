@@ -2,6 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 
 interface Reglas {
   nivelBase: number;
@@ -19,12 +21,13 @@ interface Reglas {
 @Component({
   selector: 'app-creditos-reglas',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SkeletonComponent],
   templateUrl: './creditos-reglas.html',
   styleUrl: './creditos-reglas.css',
 })
 export class CreditosReglas implements OnInit {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
   private readonly API = '/api/creditos/admin/reglas';
 
   reglas = signal<Reglas | null>(null);
@@ -52,6 +55,7 @@ export class CreditosReglas implements OnInit {
       error: (err) => {
         console.error('Error cargando reglas:', err);
         this.loading.set(false);
+        this.notifications.fromHttpError(err, 'Error al cargar reglas');
       },
     });
   }
@@ -109,10 +113,11 @@ export class CreditosReglas implements OnInit {
         this.reglas.set(data);
         this.saving.set(false);
         this.guardado.set(true);
+        this.notifications.success('Reglas guardadas correctamente.');
       },
       error: (err) => {
         this.saving.set(false);
-        alert(err.error?.error || 'Error al guardar');
+        this.notifications.fromHttpError(err, 'Error al guardar reglas');
       },
     });
   }

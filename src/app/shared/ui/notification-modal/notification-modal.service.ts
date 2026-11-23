@@ -1,10 +1,19 @@
-﻿import { Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 export interface NotificationOptions {
   titulo?: string;
   mensaje: string;
   tipo?: 'success' | 'error' | 'warning' | 'info';
   duracion?: number;
+  detalles?: string[];
+}
+
+export interface ConfirmOptions {
+  titulo?: string;
+  mensaje: string;
+  confirmarTexto?: string;
+  cancelarTexto?: string;
+  tipo?: 'warning' | 'danger' | 'info';
   detalles?: string[];
 }
 
@@ -18,6 +27,10 @@ export class NotificationModalService {
   private _tipo = signal<'success' | 'error' | 'warning' | 'info'>('success');
   private _duracion = signal(3500);
   private _detalles = signal<string[]>([]);
+  private _modo = signal<'notification' | 'confirm'>('notification');
+  private _confirmarTexto = signal('Confirmar');
+  private _cancelarTexto = signal('Cancelar');
+  private _confirmResolver: ((value: boolean) => void) | null = null;
 
   mostrar = this._mostrar.asReadonly();
   titulo = this._titulo.asReadonly();
@@ -25,6 +38,9 @@ export class NotificationModalService {
   tipo = this._tipo.asReadonly();
   duracion = this._duracion.asReadonly();
   detalles = this._detalles.asReadonly();
+  modo = this._modo.asReadonly();
+  confirmarTexto = this._confirmarTexto.asReadonly();
+  cancelarTexto = this._cancelarTexto.asReadonly();
 
   success(mensaje: string, titulo = 'Éxito') {
     this.mostrarNotificacion(mensaje, titulo, 'success');
@@ -48,6 +64,39 @@ export class NotificationModalService {
     this.error(msg, titulo, details);
   }
 
+  confirm(options: ConfirmOptions | string, mensaje?: string): Promise<boolean> {
+    const opts: ConfirmOptions = typeof options === 'string'
+      ? { titulo: 'Confirmar acción', mensaje: options, confirmarTexto: mensaje }
+      : options;
+    if (this._confirmResolver) this._confirmResolver(false);
+    this._titulo.set(opts.titulo ?? 'Confirmar acción');
+    this._mensaje.set(opts.mensaje);
+    this._tipo.set(opts.tipo === 'danger' ? 'error' : opts.tipo === 'info' ? 'info' : 'warning');
+    this._detalles.set(opts.detalles ?? []);
+    this._confirmarTexto.set(opts.confirmarTexto ?? 'Confirmar');
+    this._cancelarTexto.set(opts.cancelarTexto ?? 'Cancelar');
+    this._modo.set('confirm');
+    this._mostrar.set(true);
+    return new Promise<boolean>((resolve) => { this._confirmResolver = resolve; });
+  }
+
+  confirmar() {
+    this.resolveConfirm(true);
+  }
+
+  cancelar() {
+    this.resolveConfirm(false);
+  }
+
+  private resolveConfirm(value: boolean) {
+    const resolve = this._confirmResolver;
+    this._confirmResolver = null;
+    this._mostrar.set(false);
+    this._modo.set('notification');
+    this._detalles.set([]);
+    resolve?.(value);
+  }
+
   private mostrarNotificacion(
     mensaje: string,
     titulo: string,
@@ -55,6 +104,8 @@ export class NotificationModalService {
     duracion = 3500,
     detalles: string[] = []
   ) {
+    if (this._confirmResolver) { this._confirmResolver(false); this._confirmResolver = null; }
+    this._modo.set('notification');
     this._titulo.set(titulo);
     this._mensaje.set(mensaje);
     this._tipo.set(tipo);
@@ -63,11 +114,12 @@ export class NotificationModalService {
     this._mostrar.set(true);
 
     setTimeout(() => {
-      this.cerrar();
+      if (this._modo() === 'notification') this.cerrar();
     }, duracion);
   }
 
   cerrar() {
+    if (this._modo() === 'confirm') { this.resolveConfirm(false); return; }
     this._mostrar.set(false);
     this._mensaje.set('');
     this._detalles.set([]);

@@ -36,9 +36,9 @@
             <td>${{ s.monto.toFixed(2) }}</td>
             <td>{{ s.cuotasPagadas }} / {{ s.cuotas }} · ${{ s.cuotaMonto.toFixed(2) }} c/u</td>
             <td>
-              <span class="badge" [class]="etiqueta(s.status).clase">{{ etiqueta(s.status).texto }}</span>
+              <app-status-badge [label]="etiqueta(s.status).texto" [tone]="etiqueta(s.status).tone"></app-status-badge>
               @if ((s.diasAtraso ?? 0) > 7) {
-                <br><span class="badge badge-danger atraso">{{ s.diasAtraso }} días atrasado</span>
+                <br><app-status-badge [label]="s.diasAtraso + ' días atrasado'" tone="danger"></app-status-badge>
               }
             </td>
             <td>{{ s.createdAt | date:'dd/MM/yyyy' }}</td>

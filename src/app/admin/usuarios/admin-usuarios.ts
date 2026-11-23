@@ -10,6 +10,7 @@ import { NotificationModalService } from '../../shared/ui/notification-modal/not
 import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
 
 interface UserWithRol extends User {
   rolName?: string;
@@ -48,7 +49,7 @@ interface EditRolPermisosState {
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [FormsModule, EnterFocusNextDirective, EmptyStateComponent, SkeletonComponent],
+  imports: [FormsModule, EnterFocusNextDirective, EmptyStateComponent, SkeletonComponent, StatusBadgeComponent],
   templateUrl: './admin-usuarios.html',
   styleUrl: './admin-usuarios.css',
 })
@@ -98,14 +99,40 @@ export class AdminUsuarios implements OnInit {
 
   onFiltroTextoChange(valor: string) {
     this.filtroTexto = valor;
+    this.paginaActual = 1;
   }
 
   onFiltroTipoChange(valor: 'todos' | 'admin' | 'comun') {
     this.filtroTipo = valor;
+    this.paginaActual = 1;
   }
 
   get usuariosFiltrados(): UserWithRol[] {
     return this.filtrarUsuarios();
+  }
+
+  get totalPaginasUsuarios(): number {
+    return Math.max(1, Math.ceil(this.usuariosFiltrados.length / this.pageSize));
+  }
+
+  get usuariosPaginados(): UserWithRol[] {
+    const start = (this.paginaActual - 1) * this.pageSize;
+    return this.usuariosFiltrados.slice(start, start + this.pageSize);
+  }
+
+  irPagina(p: number) {
+    if (p < 1 || p > this.totalPaginasUsuarios) return;
+    this.paginaActual = p;
+  }
+
+  getRolTone(user: UserWithRol): 'success'|'warning'|'danger'|'info'|'neutral' {
+    if (user.rol === 'root') return 'danger';
+    if (user.rol === 'repartidor') return 'info';
+    if (user.rolId) {
+      const rol = this.roles().find(r => r.id === user.rolId);
+      if (rol?.permisos?.length) return 'warning';
+    }
+    return 'neutral';
   }
 
   usuarios = signal<UserWithRol[]>([]);
@@ -116,6 +143,8 @@ export class AdminUsuarios implements OnInit {
 
   filtroTexto = '';
   filtroTipo: 'todos' | 'admin' | 'comun' = 'todos';
+  paginaActual = 1;
+  readonly pageSize = 10;
 
   selectedUser = signal<UserWithRol | null>(null);
   editingUser = signal<UserWithRol | null>(null);

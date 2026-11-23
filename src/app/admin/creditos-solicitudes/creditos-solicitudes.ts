@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
 
 type Status = 'pendiente_aceptacion' | 'esperando_pago' | 'solicitado' | 'activo' | 'pagado' | 'rechazado';
 
@@ -42,7 +43,7 @@ const PESTANAS: { value: Status | 'todos'; label: string }[] = [
 @Component({
   selector: 'app-creditos-solicitudes',
   standalone: true,
-  imports: [CommonModule, EmptyStateComponent, SkeletonComponent],
+  imports: [CommonModule, EmptyStateComponent, SkeletonComponent, StatusBadgeComponent],
   templateUrl: './creditos-solicitudes.html',
   styleUrl: './creditos-solicitudes.css',
 })
@@ -76,14 +77,14 @@ export class CreditosSolicitudes implements OnInit {
     });
   }
 
-  etiqueta(status: Status): { texto: string; clase: string } {
+  etiqueta(status: Status): { texto: string; clase: string; tone: 'success'|'warning'|'danger'|'info'|'neutral' } {
     switch (status) {
-      case 'pendiente_aceptacion': return { texto: 'Por confirmar', clase: 'badge-tertiary' };
-      case 'esperando_pago': return { texto: 'Falta el pago inicial', clase: 'badge-warning' };
-      case 'activo': return { texto: 'Activo', clase: 'badge-primary' };
-      case 'pagado': return { texto: 'Pagado', clase: 'badge-success' };
-      case 'rechazado': return { texto: 'Rechazado', clase: 'badge-danger' };
-      default: return { texto: 'Pendiente', clase: 'badge-warning' };
+      case 'pendiente_aceptacion': return { texto: 'Por confirmar', clase: 'badge-tertiary', tone: 'info' };
+      case 'esperando_pago': return { texto: 'Falta el pago inicial', clase: 'badge-warning', tone: 'warning' };
+      case 'activo': return { texto: 'Activo', clase: 'badge-primary', tone: 'info' };
+      case 'pagado': return { texto: 'Pagado', clase: 'badge-success', tone: 'success' };
+      case 'rechazado': return { texto: 'Rechazado', clase: 'badge-danger', tone: 'danger' };
+      default: return { texto: 'Pendiente', clase: 'badge-warning', tone: 'warning' };
     }
   }
 

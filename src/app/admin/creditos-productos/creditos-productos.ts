@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface Producto {
   id: string;
@@ -24,6 +25,7 @@ const CATEGORIAS = ['Útiles', 'Uniformes', 'Libros', 'Tecnología'];
 })
 export class CreditosProductos implements OnInit {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
   private readonly API = '/api/creditos/admin/productos';
 
   readonly categorias = CATEGORIAS;
@@ -106,11 +108,11 @@ export class CreditosProductos implements OnInit {
     }
   }
 
-  eliminar(producto: Producto) {
+  async eliminar(producto: Producto) {
     if (!confirm(`¿Eliminar "${producto.nombre}" del catálogo?`)) return;
     this.http.delete(`${this.API}/${producto.id}`).subscribe({
       next: () => this.cargar(),
-      error: (err) => alert(err.error?.error || 'Error al eliminar'),
+      error: (err) => this.notifications.fromHttpError(err, 'Error al eliminar producto'),
     });
   }
 }

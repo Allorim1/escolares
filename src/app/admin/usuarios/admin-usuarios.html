@@ -24,58 +24,48 @@
       <app-skeleton height="42px"></app-skeleton>
     </div>
   } @else {
-    <div class="filtros-usuarios">
-      <div class="busqueda-container">
-        <input
-          type="text"
-          placeholder="Buscar por nombre, cédula o email..."
-          [value]="filtroTexto"
-          (input)="onFiltroTextoChange($any($event.target).value)"
-          class="busqueda-input"
-        />
-      </div>
-      <div class="filtro-tipo-container">
-        <select
-          [value]="filtroTipo"
-          (change)="onFiltroTipoChange($any($event.target).value)"
-          class="filtro-tipo-select"
-        >
-          <option value="todos">Todos</option>
-          <option value="admin">Administrativo</option>
-          <option value="comun">Común</option>
-        </select>
+    <div class="ui-card" style="padding:1rem; margin-bottom:1rem;">
+      <div class="filtros-usuarios" style="margin-bottom:0;">
+        <div class="busqueda-container">
+          <label class="ui-label" for="user-search">Buscar</label>
+          <input id="user-search" type="text" placeholder="Nombre, cédula o email..." [value]="filtroTexto" (input)="onFiltroTextoChange($any($event.target).value)" class="ui-input" />
+        </div>
+        <div class="filtro-tipo-container">
+          <label class="ui-label" for="user-type">Tipo</label>
+          <select id="user-type" [value]="filtroTipo" (change)="onFiltroTipoChange($any($event.target).value)" class="ui-select">
+            <option value="todos">Todos</option>
+            <option value="admin">Administrativo</option>
+            <option value="comun">Común</option>
+          </select>
+        </div>
+        <div class="users-count ui-page-subtitle" aria-live="polite">{{ usuariosFiltrados.length }} usuario(s)</div>
       </div>
     </div>
+
     <div class="ui-table-wrap">
-    <table class="usuarios-table ui-table">
-      <thead>
-        <tr>
-          <th>Usuario</th>
-          <th>Email</th>
-          <th>Rol</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (usuario of usuariosFiltrados; track usuario.id) {
-          <tr>
-            <td>{{ usuario.username }}</td>
-            <td>{{ usuario.email }}</td>
-            <td>
-              <span class="rol-badge" [class]="usuario.rol || 'usuario'">
-                {{ usuario.rolName || getRolLabel(usuario.rol) }}
-              </span>
-            </td>
-            <td>
-              <button class="btn-ver-detalles" (click)="openUserDetails(usuario)">Ver</button>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+      <table class="usuarios-table ui-table">
+        <thead><tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Acciones</th></tr></thead>
+        <tbody>
+          @for (usuario of usuariosPaginados; track usuario.id) {
+            <tr>
+              <td><strong>{{ usuario.username }}</strong></td>
+              <td>{{ usuario.email }}</td>
+              <td><app-status-badge [label]="usuario.rolName || getRolLabel(usuario.rol)" [tone]="getRolTone(usuario)"></app-status-badge></td>
+              <td><button class="ui-btn ui-btn-secondary ui-btn-sm" (click)="openUserDetails(usuario)">Ver detalles</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
+
     @if (usuariosFiltrados.length === 0) {
       <app-empty-state title="No se encontraron usuarios" description="Prueba ajustando la búsqueda o el filtro."></app-empty-state>
+    } @else if (totalPaginasUsuarios > 1) {
+      <div class="ui-pagination" style="display:flex; gap:.5rem; align-items:center; justify-content:flex-end; margin-top:1rem;">
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual===1" (click)="irPagina(paginaActual-1)">Anterior</button>
+        <span class="ui-page-subtitle">Página {{ paginaActual }} de {{ totalPaginasUsuarios }}</span>
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual===totalPaginasUsuarios" (click)="irPagina(paginaActual+1)">Siguiente</button>
+      </div>
     }
   }
 </section>

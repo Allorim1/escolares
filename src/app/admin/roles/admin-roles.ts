@@ -120,7 +120,7 @@ export class AdminRoles implements OnInit {
 
   saveRol() {
     if (!this.formNombre.trim()) {
-      alert('Por favor ingresa el nombre del rol');
+      this.notificationModal.error('Por favor ingresa el nombre del rol');
       return;
     }
 
@@ -158,10 +158,9 @@ export class AdminRoles implements OnInit {
     }
   }
 
-  deleteRol(id: string, nombre: string) {
-    if (!confirm(`¿Estás seguro de eliminar el rol "${nombre}"?`)) {
-      return;
-    }
+  async deleteRol(id: string, nombre: string) {
+    const ok = await this.notificationModal.confirm({ titulo: 'Eliminar rol', mensaje: `¿Estás seguro de eliminar el rol "${nombre}"?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
 
     this.rolesBackend.deleteRol(id).subscribe({
       next: () => {

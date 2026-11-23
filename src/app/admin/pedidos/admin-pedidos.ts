@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { NotificationService } from '../../shared/data-access/notification.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 import { AuthService, User } from '../../shared/data-access/auth.service';
@@ -52,6 +53,7 @@ interface CompraNotificacion {
 export class AdminPedidos implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private notificationService = inject(NotificationService);
+  private notificationModal = inject(NotificationModalService);
   authService = inject(AuthService);
   private ordersBackend = inject(OrdersBackend);
   private mapsService = inject(GoogleMapsService);
@@ -433,11 +435,11 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
           if (this.selectedOrder()?.id === orderId) {
             this.selectedOrder.set(updatedOrder);
           }
-          alert('Estado actualizado');
+          this.notificationService.success('Pedidos','Estado actualizado');
         },
         error: (err) => {
           console.error('Error updating status:', err);
-          alert('Error al actualizar estado');
+          this.notificationModal.error('Error al actualizar estado');
         }
       });
     }
@@ -562,7 +564,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
           if (this.selectedOrder()?.id === order.id) {
             this.selectedOrder.set(updatedOrder);
           }
-          alert('Pedido cancelado correctamente');
+          this.notificationService.success('Pedidos','Pedido cancelado correctamente');
         },
         error: (err: HttpErrorResponse) => {
           this.isCancelling.set(false);
@@ -669,7 +671,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
           if (this.selectedOrder()?.id === order.id) {
             this.selectedOrder.set(updatedOrder);
           }
-          alert('Factura subida correctamente');
+          this.notificationService.success('Pedidos','Factura subida correctamente');
         },
         error: (err: HttpErrorResponse) => {
           this.isUploadingFactura.set(false);
@@ -778,7 +780,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
         if (this.selectedOrder()?.id === order.id) {
           this.selectedOrder.set(updatedOrder);
         }
-        alert('Repartidor asignado correctamente');
+        this.notificationService.success('Pedidos','Repartidor asignado correctamente');
       },
       error: (err: HttpErrorResponse) => {
         this.isAssigningDelivery.set(false);

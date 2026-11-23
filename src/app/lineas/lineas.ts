@@ -51,11 +51,19 @@ export class Lineas implements AfterViewInit {
   }
 
   private revealAll() {
-    if (!this.revealElements?.length) return;
-    this.revealElements.forEach((el) => {
-      if (el?.nativeElement) {
-        el.nativeElement.classList.add('reveal-active');
+    setTimeout(() => {
+      const els = this.revealElements?.toArray() ?? [];
+      if (els.length === 0) {
+        document.querySelectorAll('.reveal-init:not(.reveal-active)').forEach((el) => {
+          el.classList.add('reveal-active');
+        });
+        return;
       }
-    });
+      els.forEach((el) => {
+        if (el?.nativeElement) {
+          el.nativeElement.classList.add('reveal-active');
+        }
+      });
+    }, 50);
   }
 }

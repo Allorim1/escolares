@@ -38,9 +38,21 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
         transition: all 0.8s ease-out;
       }
 
-      .reveal-active {
+      .reveal-active,
+      .reveal-init.reveal-fallback {
         opacity: 1;
         transform: translateY(0);
+      }
+
+      .reveal-init:not(.reveal-active) {
+        animation: reveal-safety 0.01s 1.8s forwards;
+      }
+
+      @keyframes reveal-safety {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       :host {
@@ -967,6 +979,11 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.autoScrollInterval = setInterval(() => {
         this.next();
       }, 3000);
+
+      this.revealElements?.changes?.subscribe(() => {
+        this.revealAll();
+      });
+      this.revealAll();
     }
   }
 
@@ -1051,7 +1068,13 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private revealAll() {
     setTimeout(() => {
-      if (!this.revealElements?.length) return;
+      if (!this.revealElements?.length) {
+        // Fallback: si ViewChildren no está listo, revela por selector
+        document.querySelectorAll('.reveal-init:not(.reveal-active)').forEach((el) => {
+          el.classList.add('reveal-active');
+        });
+        return;
+      }
       this.revealElements.forEach((el) => {
         if (el?.nativeElement) {
           el.nativeElement.classList.add('reveal-active');

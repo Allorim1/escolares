@@ -18,9 +18,21 @@
   transition: all 0.8s ease-out;
 }
 
-.reveal-active {
+.reveal-active,
+.reveal-init.reveal-fallback {
   opacity: 1;
   transform: translateY(0);
+}
+
+.reveal-init:not(.reveal-active) {
+  animation: reveal-safety 0.01s 1.8s forwards;
+}
+
+@keyframes reveal-safety {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .page-title {
@@ -39,10 +51,11 @@
 .linea-card {
   display: flex;
   flex-direction: column;
-  background: white;
+  background: #fff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgb(250, 248, 248);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition:
     transform 0.3s,
     box-shadow 0.3s;
@@ -52,7 +65,7 @@
 
 .linea-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.966);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .linea-image {

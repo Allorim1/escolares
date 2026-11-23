@@ -239,7 +239,13 @@ export class AdminUsuarios implements OnInit {
     this.selectedUser.set(user);
     this.editingUser.set({ ...user });
     this.userDetailsTab.set('info');
-    this.selectedUserRolData = user.rol || 'usuario';
+    if (user.rol === 'repartidor') {
+      this.selectedUserRolData = 'repartidor';
+    } else if (user.rolId) {
+      this.selectedUserRolData = `usuario:${user.rolId}`;
+    } else {
+      this.selectedUserRolData = user.rol || 'usuario';
+    }
     this.newPassword = '';
   }
 

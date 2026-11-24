@@ -10,7 +10,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
     <div class="login-card">
       <div class="card-header">
         <h2>INICIA SESIÓN</h2>
-        <p class="subtitle">Ingresa tus datos</p>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
@@ -67,12 +66,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
         color: #002855;
         font-size: 18px;
         font-weight: 700;
-        margin: 0 0 4px 0;
-      }
-
-      .subtitle {
-        color: #757575;
-        font-size: 13px;
         margin: 0 0 20px 0;
       }
 
@@ -188,10 +181,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
         .card-header h2 {
           font-size: 16px;
-        }
-
-        .subtitle {
-          font-size: 12px;
           margin: 0 0 16px 0;
         }
 

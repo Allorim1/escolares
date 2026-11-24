@@ -22,12 +22,10 @@ import { ProductsStateService } from '../products/data-access/products-state.ser
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { CurrencyService } from '../shared/data-access/currency.service';
 import { Product } from '../shared/interfaces/product.interface';
-import { LoginCardComponent } from '../shared/ui/login-card/login-card.component';
-
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, CommonModule, MarkdownPipe, RouterLink, LoginCardComponent],
+  imports: [FormsModule, CommonModule, MarkdownPipe, RouterLink],
   templateUrl: './home.html',
   styleUrls: ['./home.mobile-fixes.css'],
   styles: [
@@ -120,53 +118,32 @@ import { LoginCardComponent } from '../shared/ui/login-card/login-card.component
         display: block;
       }
 
-      .login-card-wrapper {
-        flex: 1 1 320px;
-        width: 320px;
-        align-self: stretch;
-      }
-
-      /* Mobile: column layout, banner on top */
+      /* Mobile: banner responsive */
       @media (max-width: 768px) {
         .hero-container {
-          flex-direction: column;
-          align-items: center;
-          gap: 1rem;
           padding: 0 0.75rem;
         }
 
         .banner-carousel {
-          flex: 0 0 auto;
+          flex: 1 1 100%;
           width: 100%;
-          min-width: auto;
+          min-width: 0;
           aspect-ratio: 16/6;
-        }
-
-        .login-card-wrapper {
-          flex: 0 0 auto;
-          width: 100%;
-          max-width: 340px;
         }
       }
 
       @media (max-width: 500px) {
         .hero-container {
-          gap: 0.75rem;
           padding: 0 0.5rem;
         }
 
         .banner-carousel {
           aspect-ratio: 16/5;
         }
-
-        .login-card-wrapper {
-          max-width: 300px;
-        }
       }
 
       @media (max-width: 400px) {
         .hero-container {
-          gap: 0.5rem;
           padding: 0 0.25rem;
         }
 

@@ -376,7 +376,20 @@ import { NotificationService } from '../../../shared/data-access/notification.se
     .card-link:focus-visible { outline: 3px solid rgba(29,99,193,.3); outline-offset: -3px; border-radius: 12px; }
     .quick-view-btn { background: #f3f6fa; color: #425a75; border: 1px solid #dbe5f0; border-radius: 8px; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; flex-shrink: 0; }
     .quick-view-btn:hover { background: #e8f1fb; color: #1d63c1; border-color: #bfd4ec; }
-    .quick-view-btn:focus-visible, .btn-fav:focus-visible, .qty-btn:focus-visible, .modal-close:focus-visible, .modal-add-to-cart-btn:focus-visible, .clear-filters-btn:focus-visible, .currency-toggle-btn:focus-visible, .pagination button:focus-visible, .category-item:focus-visible, .filter-group input:focus-visible, .filter-group select:focus-visible, .filter-chip button:focus-visible, .btn-primary-cta:focus-visible, .filters-toggle-btn:focus-visible { outline: 3px solid rgba(29,99,193,.28); outline-offset: 2px; }
+    .quick-view-btn:focus-visible, .btn-fav:focus-visible, .qty-btn:focus-visible, .modal-close:focus-visible, .modal-add-to-cart-btn:focus-visible, .clear-filters-btn:focus-visible, .currency-toggle-btn:focus-visible, .pagination button:focus-visible, .category-item:focus-visible, .filter-group input:focus-visible, .filter-group select:focus-visible, .filter-chip button:focus-visible, .btn-primary-cta:focus-visible, .filters-toggle-btn:focus-visible, .btn:focus-visible { outline: 3px solid rgba(29,99,193,.28); outline-offset: 2px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.65rem 1rem; border-radius:10px; font-size:.875rem; font-weight:600; cursor:pointer; border:1px solid transparent; transition: background .2s, color .2s, border-color .2s, transform .15s ease, box-shadow .2s; text-decoration:none; line-height:1.2; }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+    .btn-primary { background:#1d63c1; color:#fff; border-color:#1d63c1; box-shadow:0 2px 8px rgba(29,99,193,.2); }
+    .btn-primary:hover:not(:disabled) { background:#155a9e; border-color:#155a9e; }
+    .btn-secondary { background:#fff; color:#334e68; border-color:#d6e2f0; }
+    .btn-secondary:hover:not(:disabled) { background:#f3f8fd; border-color:#bfd4ec; color:#1d63c1; }
+    .filters-toggle-btn { background:#fff; color:#1d63c1; border:1px solid #d6e2f0; box-shadow:0 1px 3px rgba(15,23,42,.04); }
+    .filters-toggle-btn:hover { background:#f3f8fd; border-color:#bfd4ec; }
+    .clear-filters-btn { display:inline-flex; align-items:center; justify-content:center; padding:.65rem 1rem; border-radius:10px; border:1px solid #d6e2f0; background:#fff; color:#425a75; font-size:.85rem; font-weight:600; cursor:pointer; transition: all .2s; }
+    .clear-filters-btn:hover { background:#f8fbff; color:#1d63c1; border-color:#bfd4ec; }
+    .currency-toggle-btn { display:inline-flex; align-items:center; justify-content:center; min-width:52px; height:40px; padding:0 .9rem; border-radius:10px; border:1px solid #d6e2f0; background:#fff; color:#1d63c1; font-weight:700; cursor:pointer; transition: all .2s; }
+    .currency-toggle-btn:hover { background:#f3f8fd; border-color:#bfd4ec; }
     .qty-btn { transition: background .2s, transform .15s ease; }
     .qty-btn:active { transform: scale(.96); }
     .btn-fav { transition: transform .15s ease, filter .2s ease; }

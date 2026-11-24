@@ -166,8 +166,8 @@
           <h3>No se encontraron productos</h3>
           <p>Prueba quitar algún filtro o buscar con otro término.</p>
           <div style="display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap;">
-            <button type="button" class="clear-filters-btn" (click)="clearFilters()">Limpiar filtros</button>
-            <a routerLink="/products" class="clear-filters-btn" style="text-decoration:none; display:inline-flex; align-items:center;" (click)="clearFilters()">Ver todo el catálogo</a>
+            <button type="button" class="btn btn-primary" (click)="clearFilters()">Limpiar filtros</button>
+            <a routerLink="/products" class="btn btn-secondary" (click)="clearFilters()">Ver todo el catálogo</a>
           </div>
         </div>
       } @else {
@@ -211,7 +211,7 @@
                   <button type="button" class="btn-primary-cta" (click)="addToCardFromCard(product)">Agregar</button>
                 }
               } @else {
-                <a [routerLink]="[product.id]" class="btn btn-primary" style="background:#1d63c1; color:#fff; border:none; border-radius:8px; padding:.55rem .5rem; font-size:.78rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; flex:1; height:38px;">Ver detalle</a>
+                <a [routerLink]="[product.id]" class="btn btn-primary" style="flex:1; height:38px; padding:.55rem .5rem; font-size:.78rem;">Ver detalle</a>
               }
               <button type="button" class="quick-view-btn" (click)="openModal(product, $event.currentTarget)" aria-label="Vista rápida" title="Vista rápida">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -222,9 +222,9 @@
       </div>
       @if (totalPages() > 1) {
       <div class="pagination" style="display: flex; justify-content: center; gap: 1rem; margin: 2rem 0; align-items: center;">
-        <button class="btn btn-secondary" style="padding: 0.75rem 1.5rem; border-radius: 8px" type="button" (click)="changePage(-1)" [disabled]="!productsState.hasPrev()">Anterior</button>
+        <button class="btn btn-secondary" type="button" (click)="changePage(-1)" [disabled]="!productsState.hasPrev()">Anterior</button>
         <span class="page-indicator">Página {{ productsState.state.page() }} de {{ totalPages() }}</span>
-        <button class="btn btn-secondary" style="padding: 0.75rem 1.5rem; border-radius: 8px" type="button" (click)="changePage(1)" [disabled]="!productsState.hasNext()">Siguiente</button>
+        <button class="btn btn-secondary" type="button" (click)="changePage(1)" [disabled]="!productsState.hasNext()">Siguiente</button>
       </div>
       }
       }

@@ -17,7 +17,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (s of solicitudes(); track s.id) {
+        @for (s of paginadas; track s.id) {
           <tr>
             <td>{{ s.nombre }}<br><span class="muted">{{ s.telefono }}{{ s.email ? ' · ' + s.email : '' }}</span></td>
             <td>{{ s.motivo || '—' }}</td>

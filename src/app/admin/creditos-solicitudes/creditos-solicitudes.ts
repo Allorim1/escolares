@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
@@ -26,7 +26,7 @@ interface Solicitud {
   motivoRechazo?: string;
   pagoInicial?: number;
   factura?: { iva: number; total: number };
-  /** Días de atraso de la cuota más vieja sin pagar (0 si va al día o no está activo). */
+  /** DÃ­as de atraso de la cuota mÃ¡s vieja sin pagar (0 si va al dÃ­a o no estÃ¡ activo). */
   diasAtraso?: number;
 }
 
@@ -57,22 +57,25 @@ export class CreditosSolicitudes implements OnInit {
   solicitudes = signal<Solicitud[]>([]);
   loading = signal(false);
   procesandoId = signal<string | null>(null);
+  paginaActual = signal(1);
+  readonly pageSize = 10;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.cargar();
   }
 
-  cambiarPestana(valor: Status | 'todos') {
+  async cambiarPestana(valor: Status | 'todos') {
     this.pestanaActiva.set(valor);
+    this.paginaActual.set(1);
     this.cargar();
   }
 
-  cargar() {
+  async cargar() {
     this.loading.set(true);
     const estado = this.pestanaActiva();
     const url = estado === 'todos' ? this.API : `${this.API}?status=${estado}`;
     this.http.get<Solicitud[]>(url).subscribe({
-      next: (data) => { this.solicitudes.set(data); this.loading.set(false); },
+      next: (data) => { this.solicitudes.set(data); this.paginaActual.set(1); this.loading.set(false); },
       error: (err) => { console.error('Error cargando solicitudes:', err); this.loading.set(false); this.notifications.fromHttpError(err, 'Error al cargar solicitudes'); },
     });
   }
@@ -89,12 +92,13 @@ export class CreditosSolicitudes implements OnInit {
   }
 
   descripcion(s: Solicitud): string {
-    if (s.items?.length) return s.items.map((i) => `${i.cantidad}× ${i.nombre}`).join(', ');
-    return s.productoNombre || s.proposito || '—';
+    if (s.items?.length) return s.items.map((i) => `${i.cantidad}Ã— ${i.nombre}`).join(', ');
+    return s.productoNombre || s.proposito || 'â€”';
   }
 
-  aprobar(s: Solicitud) {
-    if (!confirm(`¿Aprobar el crédito de ${s.usuarioNombre} por $${s.monto}?`)) return;
+  async aprobar(s: Solicitud) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: `Â¿Aprobar el crÃ©dito de ${s.usuarioNombre} por $${s.monto}?`, tipo: 'warning', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/aprobar`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
@@ -102,8 +106,8 @@ export class CreditosSolicitudes implements OnInit {
     });
   }
 
-  rechazar(s: Solicitud) {
-    const motivo = prompt('Motivo del rechazo (lo verá el usuario):');
+  async rechazar(s: Solicitud) {
+    const motivo = prompt('Motivo del rechazo (lo verÃ¡ el usuario):');
     if (motivo === null) return;
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/rechazar`, { motivo }).subscribe({
@@ -112,8 +116,8 @@ export class CreditosSolicitudes implements OnInit {
     });
   }
 
-  cancelar(s: Solicitud) {
-    const motivo = prompt('¿Por qué la cancelas? (opcional; se guarda como motivo)');
+  async cancelar(s: Solicitud) {
+    const motivo = prompt('Â¿Por quÃ© la cancelas? (opcional; se guarda como motivo)');
     if (motivo === null) return;
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/cancelar`, { motivo }).subscribe({
@@ -122,9 +126,10 @@ export class CreditosSolicitudes implements OnInit {
     });
   }
 
-  /** El staff confirma que ya recibió (efectivo/transferencia) el pago inicial del cliente. */
-  confirmarPago(s: Solicitud) {
-    if (!confirm(`¿Confirmar que recibiste $${(s.pagoInicial ?? 0).toFixed(2)} de pago inicial de ${s.usuarioNombre}?`)) return;
+  /** El staff confirma que ya recibiÃ³ (efectivo/transferencia) el pago inicial del cliente. */
+  async confirmarPago(s: Solicitud) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: `Â¿Confirmar que recibiste $${(s.pagoInicial ?? 0).toFixed(2)} de pago inicial de ${s.usuarioNombre}?`, tipo: 'warning', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/confirmar-pago`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
@@ -132,8 +137,9 @@ export class CreditosSolicitudes implements OnInit {
     });
   }
 
-  registrarPago(s: Solicitud) {
-    if (!confirm(`¿Registrar el pago de la cuota ${s.cuotasPagadas + 1} de ${s.cuotas}?`)) return;
+  async registrarPago(s: Solicitud) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: `Â¿Registrar el pago de la cuota ${s.cuotasPagadas + 1} de ${s.cuotas}?`, tipo: 'warning', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/${s.id}/registrar-pago`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },
@@ -141,9 +147,14 @@ export class CreditosSolicitudes implements OnInit {
     });
   }
 
-  /** Abre un caso en el Centro de Ayuda contra esta compra (solo si lleva más de 7 días de atraso). */
-  abrirCaso(s: Solicitud) {
-    if (!confirm(`¿Abrir un caso de pago atrasado para ${s.usuarioNombre} (${s.diasAtraso} días)?`)) return;
+  /** Abre un caso en el Centro de Ayuda contra esta compra (solo si lleva mÃ¡s de 7 dÃ­as de atraso). */
+  get totalPaginas(): number { return Math.max(1, Math.ceil(this.solicitudes().length / this.pageSize)); }
+  get paginadas(): Solicitud[] { const s=(this.paginaActual()-1)*this.pageSize; return this.solicitudes().slice(s,s+this.pageSize); }
+  irPagina(p:number){ if(p<1||p>this.totalPaginas) return; this.paginaActual.set(p); }
+
+  async abrirCaso(s: Solicitud) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: `Â¿Abrir un caso de pago atrasado para ${s.usuarioNombre} (${s.diasAtraso} dÃ­as)?`, tipo: 'warning', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
     this.procesandoId.set(s.id);
     this.http.post('/api/creditos/admin/tickets/pago-atrasado', { solicitudId: s.id }).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },

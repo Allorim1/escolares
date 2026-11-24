@@ -1,3 +1,4 @@
+﻿import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
@@ -25,6 +26,7 @@ interface ContrasenaAuditoria {
 })
 export class AdminContrasenas implements OnInit {
   private authService = inject(AuthService);
+  private notifications = inject(NotificationModalService);
   private router = inject(Router);
 
   contrasenas = signal<ContrasenaAuditoria[]>([]);
@@ -41,7 +43,7 @@ export class AdminContrasenas implements OnInit {
   ngOnInit() {
     if (!this.esRoot()) {
       this.error.set(
-        'No tienes acceso a esta sección. Solo el usuario root puede ver las contraseñas.',
+        'No tienes acceso a esta secciÃ³n. Solo el usuario root puede ver las contraseÃ±as.',
       );
       this.cargando.set(false);
       return;
@@ -72,7 +74,7 @@ export class AdminContrasenas implements OnInit {
         this.cargando.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Error al cargar contraseñas');
+        this.error.set(err.error?.error || 'Error al cargar contraseÃ±as');
         this.cargando.set(false);
       },
     });
@@ -181,8 +183,9 @@ export class AdminContrasenas implements OnInit {
     });
   }
 
-  eliminarContrasena(item: ContrasenaAuditoria) {
-    if (!confirm(`¿Eliminar el registro de contraseña de "${item.username}"?`)) {
+  async eliminarContrasena(item: ContrasenaAuditoria) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar eliminaciÃ³n', mensaje: `Â¿Eliminar el registro de contraseÃ±a de "${item.username}"?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) {
       return;
     }
 
@@ -191,8 +194,9 @@ export class AdminContrasenas implements OnInit {
         this.cargarContrasenas();
       },
       error: (err) => {
-        alert(err.error?.error || 'Error al eliminar el registro');
+        this.notifications.fromHttpError(err, 'Error al eliminar el registro');
       },
     });
   }
 }
+

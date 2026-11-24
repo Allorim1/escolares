@@ -23,7 +23,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (t of tickets(); track t.id) {
+        @for (t of ticketsPaginados; track t.id) {
           <tr class="fila-click" [class.fila-atrasada]="(t.diasAtraso ?? 0) > 7" (click)="abrir(t)">
             <td>{{ t.usuarioNombre }}<br><span class="muted">{{ t.usuarioTelefono }}</span></td>
             <td>
@@ -31,7 +31,7 @@
               {{ t.asunto }}
             </td>
             <td class="ultimo">{{ ultimoMensaje(t) }}</td>
-            <td><span class="badge" [class]="etiqueta(t.estado).clase">{{ etiqueta(t.estado).texto }}</span></td>
+            <td><app-status-badge [label]="etiqueta(t.estado).texto" [tone]="etiqueta(t.estado).tone"></app-status-badge></td>
             <td>{{ t.actualizadoEn | date:'dd/MM/yyyy HH:mm' }}</td>
           </tr>
         } @empty {
@@ -41,6 +41,12 @@
     </table></div>
     @if (tickets().length === 0) {
       <app-empty-state title="No hay tickets" description="No se encontraron tickets para este estado."></app-empty-state>
+    } @else if (totalPaginas > 1) {
+      <div style="display:flex; gap:.5rem; align-items:center; justify-content:flex-end; margin-top:1rem;">
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===1" (click)="irPagina(paginaActual()-1)">Anterior</button>
+        <span class="ui-page-subtitle">Página {{ paginaActual() }} de {{ totalPaginas }}</span>
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===totalPaginas" (click)="irPagina(paginaActual()+1)">Siguiente</button>
+      </div>
     }
   }
-  </div>
+</div>

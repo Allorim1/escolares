@@ -136,12 +136,12 @@
         <div class="seccion historial-card">
           <h2>Historial de compras</h2>
           @if (cargandoHistorial()) {
-            <div class="muted">Cargando...</div>
+            <div style="display:grid;gap:.5rem;"><app-skeleton height="36px"></app-skeleton><app-skeleton height="36px"></app-skeleton></div>
           } @else {
-            @for (s of historialCliente(); track s.id) {
+            @for (s of historialPaginado; track s.id) {
               <div class="historial-item">
                 <div class="fila">
-                  <span class="badge" [class]="etiquetaSolicitud(s.status).clase">{{ etiquetaSolicitud(s.status).texto }}</span>
+                  <app-status-badge [label]="etiquetaSolicitud(s.status).texto" [tone]="etiquetaSolicitud(s.status).tone"></app-status-badge>
                   <span class="muted">{{ s.createdAt | date:'dd/MM/yyyy' }}</span>
                 </div>
                 <div class="historial-desc">{{ descripcionSolicitud(s) }}</div>
@@ -155,6 +155,13 @@
               </div>
             } @empty {
               <div class="empty">Este cliente no tiene compras registradas</div>
+            }
+            @if (totalPaginasHistorial > 1) {
+              <div style="display:flex; gap:.5rem; align-items:center; justify-content:flex-end; margin-top:.75rem;">
+                <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaHistorial()===1" (click)="irPaginaHistorial(paginaHistorial()-1)">Anterior</button>
+                <span class="ui-page-subtitle">{{ paginaHistorial() }} / {{ totalPaginasHistorial }}</span>
+                <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaHistorial()===totalPaginasHistorial" (click)="irPaginaHistorial(paginaHistorial()+1)">Siguiente</button>
+              </div>
             }
           }
         </div>

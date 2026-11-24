@@ -1,3 +1,4 @@
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OfertasService } from '../../shared/data-access/ofertas.service';
@@ -14,6 +15,7 @@ import { Product } from '../../shared/interfaces/product.interface';
 export class AdminOfertas implements OnInit {
   ofertasService = inject(OfertasService);
   private productsService = inject(ProductsService);
+  private notifications = inject(NotificationModalService);
 
   allProducts = signal<Product[]>([]);
   filterText = signal('');
@@ -39,26 +41,26 @@ export class AdminOfertas implements OnInit {
     });
   });
 
-  ngOnInit() {
+  async ngOnInit() {
     this.productsService.getProducts().subscribe({
       next: (response) => this.allProducts.set(response.products),
       error: (err) => console.error('Error loading products:', err),
     });
   }
 
-  openAddForm(product: Product) {
+  async openAddForm(product: Product) {
     this.selectedProduct.set(product);
     const oferta = this.ofertasService.getOferta(product.id);
     this.ofertaPrice.set(oferta?.precioOferta || product.price * 0.9);
     this.showAddForm.set(true);
   }
 
-  closeForm() {
+  async closeForm() {
     this.showAddForm.set(false);
     this.selectedProduct.set(null);
   }
 
-  saveOferta() {
+  async saveOferta() {
     const product = this.selectedProduct();
     if (product && this.ofertaPrice() > 0) {
       this.ofertasService.agregarOferta(product.id, this.ofertaPrice());
@@ -66,8 +68,9 @@ export class AdminOfertas implements OnInit {
     }
   }
 
-  removeOferta(productId: number | string) {
-    if (confirm('¿Eliminar esta oferta?')) {
+  async removeOferta(productId: number | string) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: '¿Eliminar esta oferta?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       this.ofertasService.eliminarOferta(productId);
     }
   }

@@ -3,6 +3,9 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
 
 interface Producto {
   id: string;
@@ -19,7 +22,7 @@ const CATEGORIAS = ['Útiles', 'Uniformes', 'Libros', 'Tecnología'];
 @Component({
   selector: 'app-creditos-productos',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, EmptyStateComponent, SkeletonComponent, StatusBadgeComponent],
   templateUrl: './creditos-productos.html',
   styleUrl: './creditos-productos.css',
 })
@@ -34,16 +37,19 @@ export class CreditosProductos implements OnInit {
   saving = signal(false);
   showModal = signal(false);
   editando: Producto | null = null;
+  paginaActual = signal(1);
+  readonly pageSize = 10;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.cargar();
   }
 
-  cargar() {
+  async cargar() {
     this.loading.set(true);
     this.http.get<Producto[]>(this.API).subscribe({
       next: (data) => {
         this.productos.set(data);
+        this.paginaActual.set(1);
         this.loading.set(false);
       },
       error: (err) => {
@@ -53,7 +59,7 @@ export class CreditosProductos implements OnInit {
     });
   }
 
-  abrirModal(producto?: Producto) {
+  async abrirModal(producto?: Producto) {
     this.editando = producto
       ? { ...producto }
       : {
@@ -68,15 +74,19 @@ export class CreditosProductos implements OnInit {
     this.showModal.set(true);
   }
 
-  cerrarModal() {
+  async cerrarModal() {
     this.showModal.set(false);
     this.editando = null;
   }
 
-  guardar() {
+  get totalPaginas(): number { return Math.max(1, Math.ceil(this.productos().length / this.pageSize)); }
+  get paginados(): Producto[] { const s=(this.paginaActual()-1)*this.pageSize; return this.productos().slice(s,s+this.pageSize); }
+  irPagina(p:number){ if(p<1||p>this.totalPaginas) return; this.paginaActual.set(p); }
+
+  async guardar() {
     if (!this.editando) return;
     if (!this.editando.nombre.trim() || !(this.editando.precio > 0)) {
-      alert('Nombre y precio (mayor a 0) son requeridos');
+      this.notifications.error('Nombre y precio (mayor a 0) son requeridos');
       return;
     }
 
@@ -86,11 +96,12 @@ export class CreditosProductos implements OnInit {
         next: () => {
           this.saving.set(false);
           this.cerrarModal();
+          this.notifications.success('Producto guardado');
           this.cargar();
         },
         error: (err) => {
           this.saving.set(false);
-          alert(err.error?.error || 'Error al guardar');
+          this.notifications.fromHttpError(err, 'Error al guardar producto');
         },
       });
     } else {
@@ -98,18 +109,20 @@ export class CreditosProductos implements OnInit {
         next: () => {
           this.saving.set(false);
           this.cerrarModal();
+          this.notifications.success('Producto guardado');
           this.cargar();
         },
         error: (err) => {
           this.saving.set(false);
-          alert(err.error?.error || 'Error al crear');
+          this.notifications.fromHttpError(err, 'Error al crear producto');
         },
       });
     }
   }
 
   async eliminar(producto: Producto) {
-    if (!confirm(`¿Eliminar "${producto.nombre}" del catálogo?`)) return;
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar eliminación', mensaje: `¿Eliminar "${producto.nombre}" del catálogo?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
     this.http.delete(`${this.API}/${producto.id}`).subscribe({
       next: () => this.cargar(),
       error: (err) => this.notifications.fromHttpError(err, 'Error al eliminar producto'),

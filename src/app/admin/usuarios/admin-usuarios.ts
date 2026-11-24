@@ -412,11 +412,12 @@ export class AdminUsuarios implements OnInit {
       });
   }
 
-  confirmDeleteUserFromDetails() {
+  async confirmDeleteUserFromDetails() {
     const user = this.selectedUser();
     if (!user) return;
 
-    if (confirm(`¿Estás seguro de eliminar al usuario "${user.username}"?`)) {
+    const ok = await this.notificationModal.confirm({ titulo: 'Eliminar usuario', mensaje: `¿Estás seguro de eliminar al usuario "${user.username}"?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       this.http.delete(`/api/auth/users/${user.id}`).subscribe({
         next: () => {
           this.closeUserDetails();
@@ -581,3 +582,4 @@ export class AdminUsuarios implements OnInit {
       });
   }
 }
+

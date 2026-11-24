@@ -29,13 +29,13 @@
         </tr>
       </thead>
       <tbody>
-        @for (p of pagos(); track p.id) {
+        @for (p of pagosPaginados; track p.id) {
           <tr>
             <td>{{ p.usuarioNombre }}<br><span class="muted">{{ p.usuarioTelefono }}</span></td>
             <td>{{ p.facturaNumero || '—' }}</td>
             <td>${{ p.monto.toFixed(2) }}</td>
             <td>{{ metodoLabel(p.metodo) }}</td>
-            <td><span class="badge" [class]="etiqueta(p.status).clase">{{ etiqueta(p.status).texto }}</span></td>
+            <td><app-status-badge [label]="etiqueta(p.status).texto" [tone]="etiqueta(p.status).tone"></app-status-badge></td>
             <td>{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
             <td class="acciones">
               @if (p.status === 'pendiente_verificacion') {
@@ -53,6 +53,12 @@
     </table></div>
     @if (pagos().length === 0) {
       <app-empty-state title="No hay pagos" description="No se encontraron pagos para este estado."></app-empty-state>
+    } @else if (totalPaginas > 1) {
+      <div style="display:flex; gap:.5rem; align-items:center; justify-content:flex-end; margin-top:1rem;">
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===1" (click)="irPagina(paginaActual()-1)">Anterior</button>
+        <span class="ui-page-subtitle">Página {{ paginaActual() }} de {{ totalPaginas }}</span>
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===totalPaginas" (click)="irPagina(paginaActual()+1)">Siguiente</button>
+      </div>
     }
   }
 </div>

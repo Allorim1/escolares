@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { FormsModule } from '@angular/forms';
 import { jsPDF } from 'jspdf';
 import { RegistroService, Registro } from '../../shared/data-access/registro.service';
@@ -12,6 +13,7 @@ import { RegistroService, Registro } from '../../shared/data-access/registro.ser
   styleUrl: './registro.css',
 })
 export class AdminRegistro implements OnInit {
+  private notifications = inject(NotificationModalService);
   registroService = inject(RegistroService);
 
   filtroModulo = '';
@@ -25,7 +27,7 @@ export class AdminRegistro implements OnInit {
   paginaActual = 1;
   registrosPorPagina = 20;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.registroService.loadRegistros();
   }
 
@@ -75,7 +77,7 @@ export class AdminRegistro implements OnInit {
     return Math.ceil(this.registrosFiltrados.length / this.registrosPorPagina);
   }
 
-  cambiarPagina(pagina: number) {
+  async cambiarPagina(pagina: number) {
     if (pagina >= 1 && pagina <= this.totalPaginasRegistros) {
       this.paginaActual = pagina;
     }
@@ -88,18 +90,19 @@ export class AdminRegistro implements OnInit {
     return Array.from(modulos);
   }
 
-  verDetalle(registro: Registro) {
+  async verDetalle(registro: Registro) {
     this.registroSeleccionado = registro;
     this.mostrarModal = true;
   }
 
-  cerrarModal() {
+  async cerrarModal() {
     this.mostrarModal = false;
     this.registroSeleccionado = null;
   }
 
-  limpiarRegistros() {
-    if (confirm('¿Estás seguro de que deseas eliminar todos los registros?')) {
+  async limpiarRegistros() {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: '¿Estás seguro de que deseas eliminar todos los registros?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       this.registroService.limpiarRegistros();
     }
   }
@@ -143,7 +146,7 @@ export class AdminRegistro implements OnInit {
       registros = registros.filter(r => new Date(r.fecha) <= hasta);
     }
     if (registros.length === 0) {
-      alert('No hay registros para este módulo');
+      this.notifications.info('No hay registros para este módulo');
       return;
     }
 

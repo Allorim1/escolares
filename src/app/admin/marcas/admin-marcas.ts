@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+﻿import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MarcasService } from '../../shared/data-access/marcas.service';
 import { AuthService } from '../../shared/data-access/auth.service';
 import { RegistroService } from '../../shared/data-access/registro.service';
 import { EnterFocusNextDirective } from '../../shared/ui/enter-focus-next.directive';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 @Component({
   selector: 'app-admin-marcas',
@@ -16,6 +17,7 @@ export class AdminMarcas {
   marcasService = inject(MarcasService);
   authService = inject(AuthService);
   registroService = inject(RegistroService);
+  private notifications = inject(NotificationModalService);
 
   marcas = this.marcasService.marcas;
   editingIndex = signal<string | null>(null);
@@ -31,13 +33,13 @@ export class AdminMarcas {
     return rol === 'root';
   }
 
-  showMessage(text: string, type: 'success' | 'error' = 'success') {
+  async showMessage(text: string, type: 'success' | 'error' = 'success') {
     this.message.set(text);
     this.messageType.set(type);
     setTimeout(() => this.message.set(''), 3000);
   }
 
-  onFileSelected(event: Event) {
+  async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
@@ -51,7 +53,7 @@ export class AdminMarcas {
     }
   }
 
-  onFileSelectedEdit(event: Event) {
+  async onFileSelectedEdit(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
@@ -65,7 +67,7 @@ export class AdminMarcas {
     }
   }
 
-  private convertToBase64(file: File, callback: (base64: string) => void) {
+  private async convertToBase64(file: File, callback: (base64: string) => void) {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
@@ -76,7 +78,7 @@ export class AdminMarcas {
     reader.readAsDataURL(file);
   }
 
-  private resizeImage(base64: string, maxWidth: number, callback: (result: string) => void) {
+  private async resizeImage(base64: string, maxWidth: number, callback: (result: string) => void) {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -97,7 +99,7 @@ export class AdminMarcas {
     img.src = base64;
   }
 
-  agregarMarca() {
+  async agregarMarca() {
     const name = this.newMarcaName();
     if (!name || !name.trim()) {
       this.showMessage('Por favor ingresa el nombre de la marca', 'error');
@@ -112,8 +114,9 @@ export class AdminMarcas {
     this.showMessage('Marca agregada correctamente');
   }
 
-  eliminarMarca(id: string) {
-    if (confirm('¿Estás seguro de eliminar esta marca?')) {
+  async eliminarMarca(id: string) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: 'Â¿EstÃ¡s seguro de eliminar esta marca?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       const marca = this.marcas().find((m) => m.id === id);
       this.marcasService.eliminarMarca(id);
       this.registroService.registrar('eliminar', 'Marcas', `Marca "${marca?.name}" eliminada`, { id, nombre: marca?.name });

@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface Cliente {
   _id?: string;
@@ -49,6 +50,7 @@ export class ClientesDetalle implements OnInit {
   private readonly API = '/api/empresas';
   private readonly API_ABONOS = '/api/abonos-polar';
   private empresasService = inject(EmpresasService);
+  private notifications = inject(NotificationModalService);
 
   cliente = signal<Cliente | null>(null);
   clienteId = signal('');
@@ -112,7 +114,7 @@ export class ClientesDetalle implements OnInit {
     }
   }
 
-  loadCliente(id: string) {
+  async loadCliente(id: string) {
     this.loading.set(true);
     this.loadError.set(null);
     this.http.get<Cliente>(`${this.API}/${id}`).subscribe({
@@ -128,7 +130,7 @@ export class ClientesDetalle implements OnInit {
     });
   }
 
-  cargarAbonos() {
+  async cargarAbonos() {
     this.abonosLoading.set(true);
     this.http.get<Abono[]>(this.API_ABONOS).subscribe({
       next: (data) => {
@@ -143,11 +145,11 @@ export class ClientesDetalle implements OnInit {
     });
   }
 
-  volver() {
+  async volver() {
     this.router.navigate(['/admin/clientes']);
   }
 
-  agregarPlanta() {
+  async agregarPlanta() {
     if (!this.cliente()) return;
     const planta = this.nuevaPlanta().trim();
     if (!planta) return;
@@ -156,20 +158,20 @@ export class ClientesDetalle implements OnInit {
     this.nuevaPlanta.set('');
   }
 
-  eliminarPlanta(planta: string) {
+  async eliminarPlanta(planta: string) {
     if (!this.cliente()) return;
     this.cliente.update((e) => (e ? { ...e, plantas: e.plantas.filter((p) => p !== planta) } : e));
   }
 
-  actualizarNombre(valor: string) {
+  async actualizarNombre(valor: string) {
     if (!this.cliente()) return;
     this.cliente.update((e) => (e ? { ...e, nombre: valor } : e));
   }
 
-  guardarCliente() {
+  async guardarCliente() {
     if (!this.cliente() || !this.cliente()!._id) return;
     if (!this.cliente()!.nombre.trim()) {
-      alert('El nombre del cliente es requerido');
+      this.notifications.error('El nombre del cliente es requerido');
       return;
     }
 
@@ -187,7 +189,7 @@ export class ClientesDetalle implements OnInit {
     });
   }
 
-  abrirModalAbono(abono?: Abono) {
+  async abrirModalAbono(abono?: Abono) {
     if (!this.cliente()) return;
     if (abono) {
       this.editingAbono = {
@@ -219,12 +221,12 @@ export class ClientesDetalle implements OnInit {
     this.showModalAbono.set(true);
   }
 
-  cerrarModalAbono() {
+  async cerrarModalAbono() {
     this.showModalAbono.set(false);
     this.editingAbono = null;
   }
 
-  guardarAbono() {
+  async guardarAbono() {
     if (!this.editingAbono) return;
     if (
       !this.editingAbono.nombre.trim() ||
@@ -232,7 +234,7 @@ export class ClientesDetalle implements OnInit {
       !this.editingAbono.planta ||
       !this.editingAbono.nFact
     ) {
-      alert('Por favor, complete los campos requeridos: Nombre, Empresa, Planta y N. Fact');
+      this.notifications.error('Por favor, complete los campos requeridos: Nombre, Empresa, Planta y N. Fact');
       return;
     }
 
@@ -284,8 +286,9 @@ export class ClientesDetalle implements OnInit {
     }
   }
 
-  eliminarAbono(id: string) {
-    if (!confirm('¿Está seguro de eliminar esta relación?')) return;
+  async eliminarAbono(id: string) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar eliminación', mensaje: '¿Está seguro de eliminar esta relación?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
     this.http.delete(`${this.API_ABONOS}/${id}`).subscribe({
       next: () => {
         if (this.clienteId()) this.cargarAbonos();
@@ -424,7 +427,7 @@ export class ClientesDetalle implements OnInit {
   async generarReportePdf() {
     const datos = this.relacionesFiltradas();
     if (datos.length === 0) {
-      alert('No hay datos para generar el reporte');
+      this.notifications.error('No hay datos para generar el reporte');
       return;
     }
 
@@ -432,7 +435,7 @@ export class ClientesDetalle implements OnInit {
       this.columnasSeleccionadas().has(c.key),
     );
     if (columnas.length === 0) {
-      alert('Seleccione al menos una columna');
+      this.notifications.error('Seleccione al menos una columna');
       return;
     }
 
@@ -554,7 +557,7 @@ export class ClientesDetalle implements OnInit {
   async generarReporteExcel() {
     const datos = this.relacionesFiltradas();
     if (datos.length === 0) {
-      alert('No hay datos para generar el reporte');
+      this.notifications.error('No hay datos para generar el reporte');
       return;
     }
 
@@ -562,7 +565,7 @@ export class ClientesDetalle implements OnInit {
       this.columnasSeleccionadas().has(c.key),
     );
     if (columnas.length === 0) {
-      alert('Seleccione al menos una columna');
+      this.notifications.error('Seleccione al menos una columna');
       return;
     }
 

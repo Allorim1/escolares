@@ -4,28 +4,20 @@
     <button class="btn-refresh" (click)="loadOrders()">🔄 Actualizar</button>
   </div>
 
-  <div class="pedidos-filters">
-    <div class="status-tabs">
+  <div class="pedidos-filters ui-card" style="padding:1rem; margin-bottom:1rem;">
+    <div class="status-tabs" role="tablist" aria-label="Filtrar por estado">
       @for (status of statusOptions; track status.value) {
-        <button 
-          class="status-tab" 
-          [class.active]="filterStatus() === status.value"
-          (click)="filterStatus.set(status.value)"
-        >
+        <button class="status-tab" [class.active]="filterStatus() === status.value" (click)="onFilterStatusChange(status.value)" type="button">
           {{ status.label }}
           <span class="count">{{ getOrderCountByStatus(status.value) }}</span>
         </button>
       }
     </div>
-    
     <div class="search-box">
-      <input 
-        type="text" 
-        placeholder="Buscar por nombre, cédula, teléfono o ID..." 
-        [ngModel]="searchTerm()"
-        (ngModelChange)="searchTerm.set($event)"
-      />
+      <label class="ui-label" for="orders-search">Buscar pedido</label>
+      <input id="orders-search" class="ui-input" type="text" placeholder="Nombre, cédula, teléfono o ID..." [ngModel]="searchTerm()" (ngModelChange)="onSearchTermChange($event)" />
     </div>
+    <div class="ui-page-subtitle" style="align-self:flex-end;" aria-live="polite">{{ filteredOrders.length }} pedido(s)</div>
   </div>
 
   @if (loading()) {
@@ -36,22 +28,15 @@
     </div>
   } @else {
     <div class="pedidos-list">
-      @for (order of filteredOrders; track order.id) {
+      @for (order of pedidosPaginados; track order.id) {
         <div class="pedido-card" (click)="selectOrder(order)" tabindex="0" (keydown.enter)="selectOrder(order)" (keydown.space)="selectOrder(order); $event.preventDefault()">
           <div class="pedido-header">
             <span class="pedido-id">#{{ order.id.slice(-8) }}</span>
             <div class="pedido-header-right">
               @if (order.deliveryPersonName) {
-                <span class="delivery-badge" title="Repartidor asignado: {{ order.deliveryPersonName }}">
-                  🚚 {{ order.deliveryPersonName }}
-                </span>
+                <app-status-badge [label]="'Repartidor: ' + order.deliveryPersonName" tone="info"></app-status-badge>
               }
-              <span 
-                class="pedido-status" 
-                [style.background-color]="statusColors[order.status] || '#6c757d'"
-              >
-                {{ getStatusLabel(order.status) }}
-              </span>
+              <app-status-badge [label]="getStatusLabel(order.status)" [tone]="getStatusTone(order.status)"></app-status-badge>
             </div>
           </div>
           
@@ -100,6 +85,13 @@
         <app-empty-state title="No hay pedidos" description="No se encontraron pedidos con los filtros actuales."></app-empty-state>
       }
     </div>
+    @if (totalPaginasPedidos > 1) {
+      <div style="display:flex; gap:.5rem; align-items:center; justify-content:flex-end; margin-top:1rem;">
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===1" (click)="irPaginaPedidos(paginaActual()-1)" type="button">Anterior</button>
+        <span class="ui-page-subtitle">Página {{ paginaActual() }} de {{ totalPaginasPedidos }}</span>
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===totalPaginasPedidos" (click)="irPaginaPedidos(paginaActual()+1)" type="button">Siguiente</button>
+      </div>
+    }
   }
 
   <!-- Detalle del pedido (modal) -->

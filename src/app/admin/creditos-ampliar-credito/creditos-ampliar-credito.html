@@ -7,7 +7,7 @@
       <input type="text" placeholder="Cédula, nombre o teléfono..." [(ngModel)]="buscarTexto" (ngModelChange)="onBuscar()">
 
       @if (buscando()) {
-        <div class="muted">Buscando...</div>
+        <app-skeleton height="36px"></app-skeleton>
       }
 
       @if (usuariosEncontrados().length) {
@@ -66,16 +66,16 @@
         <div class="seccion">
           <h2>Historial de compras</h2>
           @if (cargandoHistorial()) {
-            <div class="muted">Cargando...</div>
+            <app-skeleton height="40px"></app-skeleton>
           } @else {
             <table class="ac-table">
               <thead><tr><th>Producto / Propósito</th><th>Monto</th><th>Estado</th><th>Fecha</th></tr></thead>
               <tbody>
-                @for (s of historial(); track s.id) {
+                @for (s of historialPaginado; track s.id) {
                   <tr>
                     <td>{{ descripcionSolicitud(s) }}</td>
                     <td>${{ (s.factura?.total ?? s.monto).toFixed(2) }}</td>
-                    <td><span class="badge" [class]="etiquetaSolicitud(s.status).clase">{{ etiquetaSolicitud(s.status).texto }}</span></td>
+                    <td><app-status-badge [label]="etiquetaSolicitud(s.status).texto" [tone]="etiquetaSolicitud(s.status).tone"></app-status-badge></td>
                     <td>{{ s.createdAt | date:'dd/MM/yyyy' }}</td>
                   </tr>
                 } @empty {
@@ -83,6 +83,13 @@
                 }
               </tbody>
             </table>
+            @if (totalPaginasHistorial > 1) {
+              <div style="display:flex; gap:.5rem; align-items:center; justify-content:flex-end; margin-top:.75rem;">
+                <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaHistorial()===1" (click)="irPaginaHistorial(paginaHistorial()-1)">Anterior</button>
+                <span class="ui-page-subtitle">{{ paginaHistorial() }} / {{ totalPaginasHistorial }}</span>
+                <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaHistorial()===totalPaginasHistorial" (click)="irPaginaHistorial(paginaHistorial()+1)">Siguiente</button>
+              </div>
+            }
           }
         </div>
       </div>

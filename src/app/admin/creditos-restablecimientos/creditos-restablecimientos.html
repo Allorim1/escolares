@@ -21,7 +21,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (s of solicitudes(); track s.id) {
+        @for (s of paginadas; track s.id) {
           <tr>
             <td>{{ s.nombre }}</td>
             <td>{{ s.telefono }}</td>

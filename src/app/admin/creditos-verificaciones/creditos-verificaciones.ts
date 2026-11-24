@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
 
 type Estado = 'sin_verificar' | 'en_revision' | 'verificado' | 'rechazado';
 
@@ -30,7 +31,7 @@ const PESTANAS: { value: Estado | 'todos'; label: string }[] = [
 @Component({
   selector: 'app-creditos-verificaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, EmptyStateComponent, SkeletonComponent],
+  imports: [CommonModule, FormsModule, EmptyStateComponent, SkeletonComponent, StatusBadgeComponent],
   templateUrl: './creditos-verificaciones.html',
   styleUrl: './creditos-verificaciones.css',
 })
@@ -45,6 +46,8 @@ export class CreditosVerificaciones implements OnInit {
   busqueda = signal('');
   usuarios = signal<CreditoUsuario[]>([]);
   loading = signal(false);
+  paginaActual = signal(1);
+  readonly pageSize = 10;
 
   usuariosFiltrados = computed(() => {
     const termino = this.busqueda().toLowerCase().trim();
@@ -60,6 +63,7 @@ export class CreditosVerificaciones implements OnInit {
 
   cambiarPestana(valor: Estado | 'todos') {
     this.pestanaActiva.set(valor);
+    this.paginaActual.set(1);
     this.cargar();
   }
 
@@ -79,14 +83,18 @@ export class CreditosVerificaciones implements OnInit {
     });
   }
 
-  etiqueta(status: Estado): { texto: string; clase: string } {
+  etiqueta(status: Estado): { texto: string; clase: string; tone: 'success'|'warning'|'danger'|'info'|'neutral' } {
     switch (status) {
-      case 'verificado': return { texto: 'Verificada', clase: 'badge-success' };
-      case 'en_revision': return { texto: 'En revisión', clase: 'badge-warning' };
-      case 'rechazado': return { texto: 'Rechazada', clase: 'badge-danger' };
-      default: return { texto: 'Sin verificar', clase: 'badge-medium' };
+      case 'verificado': return { texto: 'Verificada', clase: 'badge-success', tone: 'success' };
+      case 'en_revision': return { texto: 'En revisión', clase: 'badge-warning', tone: 'warning' };
+      case 'rechazado': return { texto: 'Rechazada', clase: 'badge-danger', tone: 'danger' };
+      default: return { texto: 'Sin verificar', clase: 'badge-medium', tone: 'neutral' };
     }
   }
+
+  get totalPaginas(): number { return Math.max(1, Math.ceil(this.usuariosFiltrados().length / this.pageSize)); }
+  get usuariosPaginados() { const s=(this.paginaActual()-1)*this.pageSize; return this.usuariosFiltrados().slice(s,s+this.pageSize); }
+  irPagina(p:number){ if(p<1||p>this.totalPaginas) return; this.paginaActual.set(p); }
 
   verDetalle(usuario: CreditoUsuario) {
     this.router.navigate(['/admin/creditos-verificaciones', usuario.id]);

@@ -1,3 +1,4 @@
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { Component, inject, signal, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,7 @@ import {
 })
 export class AdminCategorias implements OnInit {
   private categoriasBackend = inject(CategoriasBackend);
+  private notifications = inject(NotificationModalService);
 
   categorias = signal<CategoriaMenu[]>([]);
   loading = signal(true);
@@ -29,11 +31,11 @@ export class AdminCategorias implements OnInit {
   selectedCategoriaId = signal<string>('');
   editingItemIndex = signal<number>(-1);
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadCategorias();
   }
 
-  loadCategorias() {
+  async loadCategorias() {
     this.loading.set(true);
     this.categoriasBackend.getAll().subscribe({
       next: (data) => {
@@ -46,24 +48,24 @@ export class AdminCategorias implements OnInit {
     });
   }
 
-  openCreateModal() {
+  async openCreateModal() {
     this.newCategoria.set({ nombre: '', expanded: true, orden: 0, items: [] });
     this.editingCategoria.set(null);
     this.showModal.set(true);
   }
 
-  openEditModal(categoria: CategoriaMenu) {
+  async openEditModal(categoria: CategoriaMenu) {
     this.newCategoria.set({ ...categoria });
     this.editingCategoria.set(categoria);
     this.showModal.set(true);
   }
 
-  closeModal() {
+  async closeModal() {
     this.showModal.set(false);
     this.editingCategoria.set(null);
   }
 
-  saveCategoria() {
+  async saveCategoria() {
     const categoria = this.newCategoria();
     if (!categoria.nombre) return;
 
@@ -84,8 +86,9 @@ export class AdminCategorias implements OnInit {
     }
   }
 
-  deleteCategoria(categoria: CategoriaMenu) {
-    if (!confirm(`¿Eliminar categoría "${categoria.nombre}"?`)) return;
+  async deleteCategoria(categoria: CategoriaMenu) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: `¿Eliminar categoría "${categoria.nombre}"?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
     if (!categoria.id) return;
 
     this.categoriasBackend.delete(categoria.id).subscribe({
@@ -95,14 +98,14 @@ export class AdminCategorias implements OnInit {
     });
   }
 
-  addItem(categoriaId: string) {
+  async addItem(categoriaId: string) {
     this.selectedCategoriaId.set(categoriaId);
     this.newItem.set({ label: '', route: '' });
     this.editingItemIndex.set(-1);
     this.showItemModal.set(true);
   }
 
-  editItem(categoria: CategoriaMenu, index: number) {
+  async editItem(categoria: CategoriaMenu, index: number) {
     if (!categoria.id) return;
     this.selectedCategoriaId.set(categoria.id);
     this.newItem.set({ ...categoria.items[index] });
@@ -110,11 +113,11 @@ export class AdminCategorias implements OnInit {
     this.showItemModal.set(true);
   }
 
-  closeItemModal() {
+  async closeItemModal() {
     this.showItemModal.set(false);
   }
 
-  saveItem() {
+  async saveItem() {
     const item = this.newItem();
     if (!item.label || !item.route) return;
 
@@ -144,8 +147,9 @@ export class AdminCategorias implements OnInit {
     }
   }
 
-  removeItem(categoriaId: string, index: number) {
-    if (!confirm('¿Eliminar este item?')) return;
+  async removeItem(categoriaId: string, index: number) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: '¿Eliminar este item?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
 
     this.categoriasBackend.removeItem(categoriaId, index).subscribe({
       next: () => {

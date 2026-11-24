@@ -5,6 +5,7 @@ import { NoticiasService, Noticia } from '../../shared/data-access/noticias.serv
 import { catchError, of, timeout } from 'rxjs';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 @Component({
   selector: 'app-admin-noticias',
   standalone: true,
@@ -13,6 +14,7 @@ import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
   styleUrl: './admin-noticias.css',
 })
 export class AdminNoticiasComponent implements OnInit {
+  private notifications = inject(NotificationModalService);
    noticias = signal<Noticia[]>([]);
    loading = signal(true);
    private readonly noticiasService = inject(NoticiasService);
@@ -98,7 +100,7 @@ export class AdminNoticiasComponent implements OnInit {
     }, 0);
   }
 
-loadNoticias() {
+async loadNoticias() {
      this.loading.set(true);
      this.error.set(null);
      
@@ -141,7 +143,7 @@ loadNoticias() {
      });
    }
 
-crearNoticia() {
+async crearNoticia() {
       if (!this.nuevaNoticia['titulo'].trim() || !this.nuevaNoticia['contenido'].trim()) {
         return;
       }
@@ -163,7 +165,7 @@ crearNoticia() {
       });
     }
 
-toggleActiva(noticia: Noticia) {
+async toggleActiva(noticia: Noticia) {
       this.noticiasService.actualizarNoticia(noticia.id, { activa: !noticia.activa }).subscribe({
         next: (noticiaActualizada: Noticia) => {
           this.noticias.update(noticias => {
@@ -181,7 +183,7 @@ toggleActiva(noticia: Noticia) {
       });
     }
 
-    toggleImportante(noticia: Noticia) {
+    async toggleImportante(noticia: Noticia) {
       this.noticiasService.actualizarNoticia(noticia.id, { importante: !noticia.importante }).subscribe({
         next: (noticiaActualizada: Noticia) => {
           this.noticias.update(noticias => {
@@ -199,7 +201,7 @@ toggleActiva(noticia: Noticia) {
       });
     }
 
-    iniciarEdicion(noticia: Noticia) {
+    async iniciarEdicion(noticia: Noticia) {
       this.editingId.set(noticia.id);
       this.nuevaNoticia = {
         titulo: noticia.titulo,
@@ -209,7 +211,7 @@ toggleActiva(noticia: Noticia) {
       };
     }
 
-guardarEdicion() {
+async guardarEdicion() {
       const editingIdValue = this.editingId();
       if (!editingIdValue || !this.nuevaNoticia['titulo'].trim() || !this.nuevaNoticia['contenido'].trim()) {
         return;
@@ -233,7 +235,7 @@ guardarEdicion() {
       });
     }
 
-    cancelarEdicion() {
+    async cancelarEdicion() {
       this.editingId.set(null);
       this.nuevaNoticia = {
         titulo: '',
@@ -243,10 +245,9 @@ guardarEdicion() {
       };
     }
 
-    eliminarNoticia(id: string) {
-      if (!confirm('¿Estás seguro de que deseas eliminar esta noticia?')) {
-        return;
-      }
+    async eliminarNoticia(id: string) {
+      const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: '¿Estás seguro de que deseas eliminar esta noticia?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
       
       this.noticiasService.eliminarNoticia(id).subscribe({
         next: () => {

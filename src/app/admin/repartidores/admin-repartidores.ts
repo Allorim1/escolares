@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -35,6 +36,7 @@ interface DeliveryUserResponse {
 })
 export class AdminRepartidoresComponent implements OnInit {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
 
   deliveryPersons = signal<DeliveryPerson[]>([]);
   repartidorUsers = signal<DeliveryPerson[]>([]);
@@ -89,7 +91,7 @@ export class AdminRepartidoresComponent implements OnInit {
     });
   }
 
-  updateCombinedList() {
+  async updateCombinedList() {
     const merged = [...this.deliveryPersons(), ...this.repartidorUsers()];
     const seen = new Set<string>();
 
@@ -105,7 +107,7 @@ export class AdminRepartidoresComponent implements OnInit {
     this.combinedList.set(deduped);
   }
 
-  showAddForm() {
+  async showAddForm() {
     this.isAdding.set(true);
     this.editingPerson.set(null);
     this.formData.set({
@@ -135,29 +137,29 @@ export class AdminRepartidoresComponent implements OnInit {
     this.showModal.set(true);
   }
 
-  onDNIFileSelected(event: Event) {
+  async onDNIFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
       this.selectedDNIFile = file;
     }
   }
 
-  cancelEdit() {
+  async cancelEdit() {
     this.showModal.set(false);
     this.isAdding.set(false);
     this.editingPerson.set(null);
   }
 
-  savePerson() {
+  async savePerson() {
     const data = this.formData();
     if (!data.nombre.trim()) {
-      alert('El nombre es requerido');
+      this.notifications.error('El nombre es requerido');
       return;
     }
 
     if (this.isAdding()) {
       if (!data.email || !data.password) {
-        alert('Email y password son requeridos para crear el repartidor');
+        this.notifications.error('Email y password son requeridos para crear el repartidor');
         return;
       }
       this.http.post<DeliveryPerson>('/api/delivery', data).subscribe({
@@ -172,7 +174,7 @@ export class AdminRepartidoresComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error creando repartidor:', err);
-          alert('Error al crear repartidor');
+          this.notifications.fromHttpError(err, 'Error al crear repartidor');
         },
       });
     } else {
@@ -204,13 +206,13 @@ export class AdminRepartidoresComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error actualizando repartidor:', err);
-          alert('Error al actualizar repartidor');
+          this.notifications.fromHttpError(err, 'Error al actualizar repartidor');
         },
       });
     }
   }
 
-  uploadDNI(personId: string) {
+  async uploadDNI(personId: string) {
     if (!this.selectedDNIFile) return;
 
     const formData = new FormData();
@@ -224,13 +226,14 @@ export class AdminRepartidoresComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error subiendo DNI:', err);
-        alert('Error al subir foto de DNI');
+        this.notifications.fromHttpError(err, 'Error al subir foto de DNI');
       },
     });
   }
 
-  deletePerson(person: DeliveryPerson) {
-    if (!confirm(`¿Eliminar repartidor "${person.nombre}"?`)) return;
+  async deletePerson(person: DeliveryPerson) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: `¿Eliminar repartidor "${person.nombre}"?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
     this.http.delete(`/api/delivery/${person.id}`).subscribe({
       next: () => {
         this.loadDeliveryPersons();
@@ -238,7 +241,7 @@ export class AdminRepartidoresComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error eliminando repartidor:', err);
-        alert('Error al eliminar repartidor');
+        this.notifications.fromHttpError(err, 'Error al eliminar repartidor');
       },
     });
   }
@@ -256,7 +259,7 @@ export class AdminRepartidoresComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error cambiando estado:', err);
-        alert('Error al cambiar estado');
+        this.notifications.fromHttpError(err, 'Error al cambiar estado');
       },
     });
   }

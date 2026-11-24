@@ -29,7 +29,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (s of solicitudes(); track s.id) {
+        @for (s of paginadas; track s.id) {
           <tr [class.fila-atrasada]="(s.diasAtraso ?? 0) > 7">
             <td>{{ s.usuarioNombre }}<br><span class="muted">{{ s.usuarioTelefono }}</span></td>
             <td>{{ descripcion(s) }}</td>
@@ -69,6 +69,12 @@
     </table></div>
     @if (solicitudes().length === 0) {
       <app-empty-state title="No hay solicitudes" description="No se encontraron solicitudes para este estado."></app-empty-state>
+    } @else if (totalPaginas > 1) {
+      <div style="display:flex; gap:.5rem; align-items:center; justify-content:flex-end; margin-top:1rem;">
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===1" (click)="irPagina(paginaActual()-1)">Anterior</button>
+        <span class="ui-page-subtitle">Página {{ paginaActual() }} de {{ totalPaginas }}</span>
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===totalPaginas" (click)="irPagina(paginaActual()+1)">Siguiente</button>
+      </div>
     }
   }
 </div>

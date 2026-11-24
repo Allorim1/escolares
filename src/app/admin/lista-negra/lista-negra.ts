@@ -96,12 +96,12 @@ export class ListaNegra implements OnInit {
   editando = signal<ListaNegraItem | null>(null);
   motivoEdit = signal('');
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadLista();
     this.loadClientesRelaciones();
   }
 
-  loadLista() {
+  async loadLista() {
     this.loading.set(true);
     this.http.get<ListaNegraItem[]>(this.API).subscribe({
       next: (data) => {
@@ -116,7 +116,7 @@ export class ListaNegra implements OnInit {
   }
 
   /** Clientes únicos (por cédula) tomados de las relaciones de Relación de Cuentas. */
-  loadClientesRelaciones() {
+  async loadClientesRelaciones() {
     this.loadingClientes.set(true);
     this.http.get<AbonoBasico[]>(this.API_ABONOS).subscribe({
       next: (abonos) => {
@@ -151,22 +151,22 @@ export class ListaNegra implements OnInit {
     });
   }
 
-  abrirModal() {
+  async abrirModal() {
     this.busquedaCliente.set('');
     this.clienteSeleccionado.set(null);
     this.motivo.set('');
     this.showModal.set(true);
   }
 
-  cerrarModal() {
+  async cerrarModal() {
     this.showModal.set(false);
   }
 
-  seleccionarCliente(cliente: ClienteRelacion) {
+  async seleccionarCliente(cliente: ClienteRelacion) {
     this.clienteSeleccionado.set(cliente);
   }
 
-  agregar() {
+  async agregar() {
     const cliente = this.clienteSeleccionado();
     if (!cliente) {
       this.notificationModal.warning('Seleccione un cliente');
@@ -196,16 +196,16 @@ export class ListaNegra implements OnInit {
       });
   }
 
-  abrirEditar(item: ListaNegraItem) {
+  async abrirEditar(item: ListaNegraItem) {
     this.editando.set(item);
     this.motivoEdit.set(item.motivo || '');
   }
 
-  cerrarEditar() {
+  async cerrarEditar() {
     this.editando.set(null);
   }
 
-  guardarMotivo() {
+  async guardarMotivo() {
     const item = this.editando();
     if (!item?._id) return;
     this.saving.set(true);
@@ -226,10 +226,10 @@ export class ListaNegra implements OnInit {
       });
   }
 
-  quitar(item: ListaNegraItem) {
+  async quitar(item: ListaNegraItem) {
     if (!item._id) return;
-    if (!confirm(`¿Quitar a ${item.nombre} (${this.formatCedula(item.cedula)}) de la lista negra?`))
-      return;
+    const ok = await this.notificationModal.confirm({ titulo: 'Confirmar eliminación', mensaje: `¿Quitar a ${item.nombre} (${this.formatCedula(item.cedula)}) de la lista negra?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
     this.http.delete(`${this.API}/${item._id}`).subscribe({
       next: () => this.lista.update((l) => l.filter((c) => c._id !== item._id)),
       error: (err) =>

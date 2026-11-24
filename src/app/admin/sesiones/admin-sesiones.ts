@@ -1,3 +1,4 @@
+import { NotificationService } from '../../shared/data-access/notification.service';
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,7 @@ type Tab = 'activas' | 'historial';
 })
 export class AdminSesiones implements OnInit, OnDestroy {
   private authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
   private router = inject(Router);
   private notificationModal = inject(NotificationModalService);
 
@@ -35,7 +37,7 @@ export class AdminSesiones implements OnInit, OnDestroy {
   filtroTexto = '';
   refreshInterval: ReturnType<typeof setInterval> | null = null;
 
-  ngOnInit() {
+  async ngOnInit() {
     if (!this.esRoot()) {
       this.router.navigate(['/admin/inicio']);
       return;
@@ -48,13 +50,13 @@ export class AdminSesiones implements OnInit, OnDestroy {
     }, 30000);
   }
 
-  ngOnDestroy() {
+  async ngOnDestroy() {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
   }
 
-  cambiarTab(tab: Tab) {
+  async cambiarTab(tab: Tab) {
     if (this.tab() === tab) return;
     this.tab.set(tab);
     this.filtroTexto = '';
@@ -65,7 +67,7 @@ export class AdminSesiones implements OnInit, OnDestroy {
     }
   }
 
-  cargarActivas(mostrarCarga = true) {
+  async cargarActivas(mostrarCarga = true) {
     if (mostrarCarga) this.cargando.set(true);
     this.error.set(null);
     this.authService.getAllSessions({ estado: 'activas', limit: 500 }).subscribe({
@@ -80,7 +82,7 @@ export class AdminSesiones implements OnInit, OnDestroy {
     });
   }
 
-  cargarHistorial(reset: boolean) {
+  async cargarHistorial(reset: boolean) {
     if (reset) {
       this.historialSkip = 0;
       this.cargando.set(true);
@@ -112,7 +114,7 @@ export class AdminSesiones implements OnInit, OnDestroy {
       });
   }
 
-  cargarMasHistorial() {
+  async cargarMasHistorial() {
     this.historialSkip += this.HISTORIAL_PAGE_SIZE;
     this.cargarHistorial(false);
   }
@@ -150,14 +152,13 @@ export class AdminSesiones implements OnInit, OnDestroy {
     return this.filtrar(this.historial());
   }
 
-  onFiltroTextoChange(valor: string) {
+  async onFiltroTextoChange(valor: string) {
     this.filtroTexto = valor;
   }
 
-  cerrarSesion(sesion: UserSession) {
-    if (
-      !confirm(`¿Cerrar sesión de "${sesion.username}" desde ${sesion.ip || 'IP desconocida'}?`)
-    ) {
+  async cerrarSesion(sesion: UserSession) {
+    const ok = await this.notificationModal.confirm({ titulo: 'Cerrar sesión', mensaje: `¿Cerrar sesión de "${sesion.username}" desde ${sesion.ip || 'IP desconocida'}?`, tipo: 'warning', confirmarTexto: 'Cerrar sesión' });
+    if (!ok) {
       return;
     }
 
@@ -172,10 +173,9 @@ export class AdminSesiones implements OnInit, OnDestroy {
     });
   }
 
-  cerrarTodasSesionesUsuario(userId: string, username: string) {
-    if (!confirm(`¿Cerrar TODAS las sesiones activas de "${username}"?`)) {
-      return;
-    }
+  async cerrarTodasSesionesUsuario(userId: string, username: string) {
+    const ok = await this.notificationModal.confirm({ titulo: 'Confirmar acción', mensaje: `¿Cerrar TODAS las sesiones activas de "${username}"?`, tipo: 'danger', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
 
     this.authService.terminateAllUserSessions(userId).subscribe({
       next: () => {

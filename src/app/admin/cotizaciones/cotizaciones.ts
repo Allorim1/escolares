@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+﻿import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { CotizacionService } from '../../shared/data-access/cotizacion.service';
@@ -6,6 +6,7 @@ import { ExportarPdfService } from '../../shared/services/exportar-pdf.service';
 import { CurrencyService } from '../../shared/data-access/currency.service';
 import { Cotizacion, ItemCotizacion } from '../../shared/interfaces/cotizacion.interface';
 
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 @Component({
   selector: 'app-cotizaciones',
   standalone: true,
@@ -14,6 +15,7 @@ import { Cotizacion, ItemCotizacion } from '../../shared/interfaces/cotizacion.i
   styleUrl: './cotizaciones.css',
 })
 export class Cotizaciones implements OnInit {
+  private notifications = inject(NotificationModalService);
   cotizacionService = inject(CotizacionService);
   exportarPdfService = inject(ExportarPdfService);
   currencyService = inject(CurrencyService);
@@ -79,7 +81,7 @@ export class Cotizaciones implements OnInit {
     ivaPorcentaje: 16,
   };
 
-  // Campos visuales (no se guardan) para mostrar/editar el precio unitario en dólares
+  // Campos visuales (no se guardan) para mostrar/editar el precio unitario en dÃ³lares
   newItemPrecioUsd = 0;
   editingItemPrecioUsd = 0;
 
@@ -125,11 +127,11 @@ export class Cotizaciones implements OnInit {
     return this.cotizacionService.cotizaciones();
   }
 
-  openModal() {
+  async openModal() {
     this.openModalCotizacion();
   }
 
-  openModalCotizacion(cotizacion?: Cotizacion) {
+  async openModalCotizacion(cotizacion?: Cotizacion) {
     if (cotizacion) {
       this.editingCotizacion = { ...cotizacion };
       this.newCotizacion = {
@@ -167,29 +169,29 @@ export class Cotizaciones implements OnInit {
     this.showModal = true;
   }
 
-  generatePdfFromRow(cotizacion: Cotizacion) {
+  async generatePdfFromRow(cotizacion: Cotizacion) {
     this.pdfPendiente = cotizacion;
     this.mostrarSeleccionMonedaPdf = true;
   }
 
-  generarPdfConMoneda(moneda: 'BS' | 'USD') {
+  async generarPdfConMoneda(moneda: 'BS' | 'USD') {
     if (!this.pdfPendiente) return;
     this.exportarPdfService.generarYAbrirPdf(this.pdfPendiente, moneda);
     this.cancelarSeleccionMonedaPdf();
   }
 
-  cancelarSeleccionMonedaPdf() {
+  async cancelarSeleccionMonedaPdf() {
     this.mostrarSeleccionMonedaPdf = false;
     this.pdfPendiente = null;
   }
 
-  closeModal() {
+  async closeModal() {
     this.showModal = false;
     this.editingCotizacion = null;
     this.resetFormCotizacion();
   }
 
-  resetFormCotizacion() {
+  async resetFormCotizacion() {
     this.newCotizacion = {
       numeroCotizacion: '',
       fecha: new Date().toISOString().split('T')[0],
@@ -240,14 +242,14 @@ export class Cotizaciones implements OnInit {
     this.editingItemPrecioUsd = 0;
   }
 
-  saveCotizacion() {
+  async saveCotizacion() {
     if (!this.newCotizacion.numeroCotizacion || !this.newCotizacion.cliente.nombre) {
-      alert('Por favor completa los campos obligatorios');
+      this.notifications.error('Por favor completa los campos obligatorios');
       return;
     }
 
     if (this.newCotizacion.items.length === 0) {
-      alert('Agrega al menos un artículo a la cotización');
+      this.notifications.info('Agrega al menos un artÃ­culo a la cotizaciÃ³n');
       return;
     }
 
@@ -262,8 +264,9 @@ export class Cotizaciones implements OnInit {
     this.closeModal();
   }
 
-  eliminarCotizacion(cotizacion: Cotizacion) {
-    if (confirm('¿Eliminar esta cotización?')) {
+  async eliminarCotizacion(cotizacion: Cotizacion) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: 'Â¿Eliminar esta cotizaciÃ³n?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       this.cotizacionService.eliminarCotizacion(cotizacion._id!);
     }
   }
@@ -275,7 +278,7 @@ export class Cotizaciones implements OnInit {
       this.newItem.cantidad <= 0 ||
       this.newItem.precioUnitarioBs <= 0
     ) {
-      alert('Por favor completa todos los campos del artículo');
+      this.notifications.error('Por favor completa todos los campos del artÃ­culo');
       return;
     }
 
@@ -317,7 +320,7 @@ export class Cotizaciones implements OnInit {
       this.editingItem.cantidad <= 0 ||
       this.editingItem.precioUnitarioBs <= 0
     ) {
-      alert('Por favor completa todos los campos del artículo');
+      this.notifications.error('Por favor completa todos los campos del artÃ­culo');
       return;
     }
 
@@ -426,3 +429,4 @@ export class Cotizaciones implements OnInit {
     return `Bs. ${formatted}`;
   }
 }
+

@@ -3,7 +3,6 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
-import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 
 interface Reglas {
   nivelBase: number;
@@ -21,7 +20,7 @@ interface Reglas {
 @Component({
   selector: 'app-creditos-reglas',
   standalone: true,
-  imports: [FormsModule, SkeletonComponent],
+  imports: [FormsModule],
   templateUrl: './creditos-reglas.html',
   styleUrl: './creditos-reglas.css',
 })

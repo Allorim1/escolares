@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+﻿import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -103,20 +103,20 @@ export class AdminProductos implements OnInit {
   newCategoryName = '';
   showCategoryModal = signal(false);
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadProducts();
     this.loadProductCategories();
     this.loadPreciosOcultosSetting();
   }
 
-  loadProductCategories() {
+  async loadProductCategories() {
     this.http.get<CategoriaProducto[]>('/api/productos-categorias').subscribe({
       next: (data) => {
         this.productCategories.set(data);
       },
       error: () => {
         this.productCategories.set([
-          { id: 'cat-1', nombre: 'Lápices' },
+          { id: 'cat-1', nombre: 'LÃ¡pices' },
           { id: 'cat-2', nombre: 'Mochilas' },
           { id: 'cat-3', nombre: 'Uniformes' },
         ]);
@@ -124,16 +124,16 @@ export class AdminProductos implements OnInit {
     });
   }
 
-  openCategoryModal() {
+  async openCategoryModal() {
     this.newCategoryName = '';
     this.showCategoryModal.set(true);
   }
 
-  closeCategoryModal() {
+  async closeCategoryModal() {
     this.showCategoryModal.set(false);
   }
 
-  addCategory() {
+  async addCategory() {
     const nombre = this.newCategoryName.trim();
     if (!nombre) return;
 
@@ -145,8 +145,9 @@ export class AdminProductos implements OnInit {
     });
   }
 
-  deleteCategory(cat: CategoriaProducto) {
-    if (!confirm(`¿Eliminar categoría "${cat.nombre}"?`)) return;
+  async deleteCategory(cat: CategoriaProducto) {
+    const ok = await this.notificationModal.confirm({ titulo: 'Confirmar eliminaciÃ³n', mensaje: `Â¿Eliminar categorÃ­a "${cat.nombre}"?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
 
     this.http.delete<void>(`/api/productos-categorias/${cat.id}`).subscribe({
     });
@@ -200,20 +201,20 @@ export class AdminProductos implements OnInit {
     return this.currentPage() < this.totalPages();
   }
 
-  goToPage(page: number) {
+  async goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
   }
 
-  previousPage() {
+  async previousPage() {
     if (this.hasPreviousPage) {
       this.currentPage.update(p => p - 1);
       this.loadProducts();
     }
   }
 
-  nextPage() {
+  async nextPage() {
     if (this.hasNextPage) {
       this.currentPage.update(p => p + 1);
       this.loadProducts();
@@ -236,7 +237,7 @@ export class AdminProductos implements OnInit {
     return this.lineasService.lineas();
   }
 
-  loadProducts() {
+  async loadProducts() {
     this.loading.set(true);
     this.productsService.getAllProducts().subscribe({
       next: (products: Product[]) => {
@@ -263,7 +264,7 @@ export class AdminProductos implements OnInit {
     });
   }
 
-  loadPreciosOcultosSetting() {
+  async loadPreciosOcultosSetting() {
     this.http.get<{ hidden: boolean }>('/api/config/precios-ocultos').subscribe({
       next: (data) => {
         this.preciosOcultosParaNoRegistrados.set(data.hidden);
@@ -274,23 +275,23 @@ export class AdminProductos implements OnInit {
     });
   }
 
-  togglePreciosOcultos() {
+  async togglePreciosOcultos() {
     const nuevoValor = !this.preciosOcultosParaNoRegistrados();
     this.http.post<void>('/api/config/precios-ocultos', { hidden: nuevoValor }).subscribe({
       next: () => {
         this.preciosOcultosParaNoRegistrados.set(nuevoValor);
       },
       error: () => {
-        alert('Error al guardar la configuración');
+        this.notificationModal.error('Error al guardar la configuraciÃ³n');
       }
     });
   }
 
-  updateFormField(field: keyof ProductFormData, value: string | number | boolean) {
+  async updateFormField(field: keyof ProductFormData, value: string | number | boolean) {
     this.formData.update((data) => ({ ...data, [field]: value }));
   }
 
-  showAddForm() {
+  async showAddForm() {
     this.uploadError.set(null);
     this.isAdding.set(true);
     this.editingProduct.set(null);
@@ -317,7 +318,7 @@ export class AdminProductos implements OnInit {
     this.showModal.set(true);
   }
 
-  showEditForm(product: Product) {
+  async showEditForm(product: Product) {
     this.uploadError.set(null);
     this.isAdding.set(false);
     this.editingProduct.set({ ...product });
@@ -344,14 +345,15 @@ export class AdminProductos implements OnInit {
     this.showModal.set(true);
   }
 
-  closeModal() {
+  async closeModal() {
     this.uploadError.set(null);
     this.showModal.set(false);
     this.editingProduct.set(null);
   }
 
-  cancelEdit() {
-    if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los cambios.')) {
+  async cancelEdit() {
+    const ok = await this.notificationModal.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: 'Â¿EstÃ¡s seguro de que quieres cancelar? Se perderÃ¡n todos los cambios.', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       this.closeModal();
     }
   }
@@ -371,7 +373,7 @@ export class AdminProductos implements OnInit {
     const category = data.category.trim();
 
     if (!title) {
-      this.notificationModal.error('El título del producto es obligatorio');
+      this.notificationModal.error('El tÃ­tulo del producto es obligatorio');
       return;
     }
 
@@ -448,7 +450,7 @@ export class AdminProductos implements OnInit {
     }
   }
 
-  onFileSelected(event: Event) {
+  async onFileSelected(event: Event) {
     if (this.uploadingImage()) {
       return;
     }
@@ -457,13 +459,13 @@ export class AdminProductos implements OnInit {
     this.uploadMainImage(input.files[0]);
   }
 
-  private uploadMainImage(file: File) {
+  private async uploadMainImage(file: File) {
     if (this.uploadingImage()) {
       return;
     }
 
     if (!file.type.startsWith('image/')) {
-      this.uploadError.set('Por favor selecciona un archivo de imagen válido.');
+      this.uploadError.set('Por favor selecciona un archivo de imagen vÃ¡lido.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -485,7 +487,7 @@ export class AdminProductos implements OnInit {
         URL.revokeObjectURL(previewUrl);
         if (!response?.url) {
           this.formData.update(data => ({ ...data, image: previousImage || '' }));
-          this.uploadError.set('No se recibió una URL válida de la imagen.');
+          this.uploadError.set('No se recibiÃ³ una URL vÃ¡lida de la imagen.');
         } else {
           const resolvedImageUrl = new URL(response.url, window.location.origin).toString();
           this.formData.update(data => ({ ...data, image: resolvedImageUrl }));
@@ -501,19 +503,19 @@ export class AdminProductos implements OnInit {
     });
   }
 
-  onDragOver(event: DragEvent) {
+  async onDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver.set(true);
   }
 
-  onDragLeave(event: DragEvent) {
+  async onDragLeave(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver.set(false);
   }
 
-  onDrop(event: DragEvent) {
+  async onDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver.set(false);
@@ -525,7 +527,7 @@ export class AdminProductos implements OnInit {
     this.uploadMainImage(files[0]);
   }
 
-  onAdditionalImageSelected(event: Event) {
+  async onAdditionalImageSelected(event: Event) {
     if (this.uploadingImage()) {
       return;
     }
@@ -538,7 +540,7 @@ export class AdminProductos implements OnInit {
     return 4;
   }
 
-  private uploadAdditionalImage(file: File) {
+  private async uploadAdditionalImage(file: File) {
     if (this.uploadingImage()) {
       return;
     }
@@ -546,11 +548,11 @@ export class AdminProductos implements OnInit {
     const currentImages = this.formData().images.length;
     const maxImages = this.getMaxAdditionalImages();
     if (currentImages >= maxImages) {
-      this.uploadError.set(`Máximo ${maxImages} imágenes adicionales permitidas`);
+      this.uploadError.set(`MÃ¡ximo ${maxImages} imÃ¡genes adicionales permitidas`);
       return;
     }
     if (!file.type.startsWith('image/')) {
-      this.uploadError.set('Por favor selecciona un archivo de imagen válido.');
+      this.uploadError.set('Por favor selecciona un archivo de imagen vÃ¡lido.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -578,7 +580,7 @@ export class AdminProductos implements OnInit {
           }));
         } else {
           this.formData.update(data => ({ ...data, images: previousImages }));
-          this.uploadError.set('No se recibió una URL válida para la imagen adicional.');
+          this.uploadError.set('No se recibiÃ³ una URL vÃ¡lida para la imagen adicional.');
         }
         this.uploadingImage.set(false);
       },
@@ -591,14 +593,14 @@ export class AdminProductos implements OnInit {
     });
   }
 
-  removeAdditionalImage(index: number) {
+  async removeAdditionalImage(index: number) {
     this.formData.update(data => ({
       ...data,
       images: data.images.filter((_, i) => i !== index)
     }));
   }
 
-  private handleProductError(err: HttpErrorResponse, defaultMessage: string) {
+  private async handleProductError(err: HttpErrorResponse, defaultMessage: string) {
     const response = err.error as { error?: unknown } | null;
     const message =
       (typeof response?.error === 'string' && response.error) ||
@@ -608,12 +610,12 @@ export class AdminProductos implements OnInit {
     this.notificationModal.error(message);
   }
 
-  onAdditionalDragOver(event: DragEvent) {
+  async onAdditionalDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
   }
 
-  onAdditionalDrop(event: DragEvent) {
+  async onAdditionalDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     const files = event.dataTransfer?.files;
@@ -623,8 +625,9 @@ export class AdminProductos implements OnInit {
     }
   }
 
-  deleteProduct(id: number | string) {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
+  async deleteProduct(id: number | string) {
+    const ok = await this.notificationModal.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: 'Â¿EstÃ¡s seguro de eliminar este producto?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       if (this.saving()) return;
       this.saving.set(true);
       const productId = String(id);
@@ -713,3 +716,4 @@ export class AdminProductos implements OnInit {
     }
   }
 }
+

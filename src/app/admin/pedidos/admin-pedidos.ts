@@ -3,6 +3,7 @@ import { NotificationService } from '../../shared/data-access/notification.servi
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
 import { AuthService, User } from '../../shared/data-access/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -46,7 +47,7 @@ interface CompraNotificacion {
 @Component({
   selector: 'app-admin-pedidos',
   standalone: true,
-  imports: [CommonModule, FormsModule, EmptyStateComponent, SkeletonComponent],
+  imports: [CommonModule, FormsModule, EmptyStateComponent, SkeletonComponent, StatusBadgeComponent],
   templateUrl: './admin-pedidos.html',
   styleUrl: './admin-pedidos.css',
 })
@@ -67,6 +68,8 @@ export class AdminPedidos implements OnInit, OnDestroy {
   selectedOrder = signal<Order | null>(null);
   filterStatus = signal('todos');
   searchTerm = signal('');
+  paginaActual = signal(1);
+  readonly pageSize = 8;
   imageModalOpen = signal(false);
   modalImageUrl = signal('');
   now = signal(Date.now());
@@ -383,8 +386,8 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
 		      if (this.filterStatus() !== 'todos') {
 		        result = result.filter(o => o.status === this.filterStatus());
 		      }
-		      if (this.searchTerm()) {
-		        const term = this.searchTerm().toLowerCase();
+		      const term = this.searchTerm().trim().toLowerCase();
+		      if (term) {
 		        result = result.filter(o =>
 		          o.nombre?.toLowerCase().includes(term) ||
 		          o.cedula?.toLowerCase().includes(term) ||
@@ -398,6 +401,43 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
 		      return [];
 		    }
 		  }
+
+  get totalPaginasPedidos(): number {
+    return Math.max(1, Math.ceil(this.filteredOrders.length / this.pageSize));
+  }
+
+  get pedidosPaginados(): Order[] {
+    const page = Math.min(this.paginaActual(), this.totalPaginasPedidos);
+    const start = (page - 1) * this.pageSize;
+    return this.filteredOrders.slice(start, start + this.pageSize);
+  }
+
+  irPaginaPedidos(p: number) {
+    const page = Math.max(1, Math.min(p, this.totalPaginasPedidos));
+    this.paginaActual.set(page);
+  }
+
+  onFilterStatusChange(status: string) {
+    this.filterStatus.set(status);
+    this.paginaActual.set(1);
+  }
+
+  onSearchTermChange(term: string) {
+    this.searchTerm.set(term);
+    this.paginaActual.set(1);
+  }
+
+  getStatusTone(status: string): 'success'|'warning'|'danger'|'info'|'neutral' {
+    switch (status) {
+      case 'entregado': return 'success';
+      case 'cancelado': return 'danger';
+      case 'procesando':
+      case 'enviado': return 'info';
+      case 'confirmar':
+      case 'pendiente': return 'warning';
+      default: return 'neutral';
+    }
+  }
 
 	  selectOrder(order: Order) {
 	    this.selectedOrder.set(order);

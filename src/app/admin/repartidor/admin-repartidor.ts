@@ -1,9 +1,10 @@
-import { Component, OnInit, signal, inject, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, signal, inject, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrderTrackingMapComponent } from '../../repartidor/order-tracking-map/order-tracking-map';
 import { AuthService } from '../../shared/data-access/auth.service';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface DeliveryPerson {
   id: string;
@@ -65,6 +66,7 @@ interface Order {
 })
 export class AdminRepartidorComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
 
   orders = signal<Order[]>([]);
   loading = signal(true);
@@ -76,7 +78,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
 
   private authService = inject(AuthService);
 
-  ngOnInit() {
+  async ngOnInit() {
     const user = this.authService.user();
     const currentUserId = user?.id;
 
@@ -105,13 +107,13 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() {
+  async ngOnDestroy() {
     if (this.watchId) {
       navigator.geolocation.clearWatch(this.watchId);
     }
   }
 
-  watchLocation() {
+  async watchLocation() {
     if (!navigator.geolocation) return;
 
     this.watchId = navigator.geolocation.watchPosition(
@@ -124,7 +126,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
     );
   }
 
-  updateMyLocation(lat: number, lng: number) {
+  async updateMyLocation(lat: number, lng: number) {
     if (!this.deliveryPersonId) return;
 
     const token = localStorage.getItem('accessToken');
@@ -137,7 +139,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadOrders() {
+  async loadOrders() {
     this.loading.set(true);
     const token = localStorage.getItem('accessToken');
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
@@ -154,8 +156,9 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateOrderStatus(order: Order, newStatus: Order['status']) {
-    if (!confirm(`¿Cambiar estado a "${this.getStatusText(newStatus)}"?`)) return;
+  async updateOrderStatus(order: Order, newStatus: Order['status']) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: `Â¿Cambiar estado a "${this.getStatusText(newStatus)}"?`, tipo: 'warning', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
 
     const token = localStorage.getItem('accessToken');
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
@@ -166,18 +169,19 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error actualizando estado:', err);
-        alert('Error al actualizar estado');
+        this.notifications.fromHttpError(err, 'Error al actualizar estado');
       },
     });
   }
 
-  showMap(order: Order) {
+  async showMap(order: Order) {
     this.selectedOrderMap.set(order.id);
     this.currentOrder.set(order);
   }
 
-  acceptOrder(order: Order) {
-    if (!confirm(`¿Aceptar el pedido #${order.id}?`)) return;
+  async acceptOrder(order: Order) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: `Â¿Aceptar el pedido #${order.id}?`, tipo: 'warning', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
 
     const token = localStorage.getItem('accessToken');
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
@@ -188,14 +192,15 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error aceptando pedido:', err);
-        alert('Error al aceptar el pedido');
+        this.notifications.fromHttpError(err, 'Error al aceptar el pedido');
       },
     });
   }
 
-  rejectOrder(order: Order) {
-    const motivo = prompt('¿Cuál es el motivo del rechazo? (Opcional)');
-    if (!confirm(`¿Rechazar el pedido #${order.id}?${motivo ? `\nMotivo: ${motivo}` : ''}`)) return;
+  async rejectOrder(order: Order) {
+    const motivo = prompt('Â¿CuÃ¡l es el motivo del rechazo? (Opcional)');
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: `Â¿Rechazar el pedido #${order.id}?${motivo ? `\nMotivo: ${motivo}` : ''}`, tipo: 'danger', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
 
     const token = localStorage.getItem('accessToken');
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
@@ -208,13 +213,14 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error rechazando pedido:', err);
-        alert('Error al rechazar el pedido');
+        this.notifications.fromHttpError(err, 'Error al rechazar el pedido');
       },
     });
   }
 
-  startOrder(order: Order) {
-    if (!confirm(`¿Iniciar entrega del pedido #${order.id}?`)) return;
+  async startOrder(order: Order) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acciÃ³n', mensaje: `Â¿Iniciar entrega del pedido #${order.id}?`, tipo: 'warning', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
     this.updateOrderStatus(order, 'enviado');
   }
 
@@ -231,7 +237,7 @@ export class AdminRepartidorComponent implements OnInit, OnDestroy {
     const token = localStorage.getItem('accessToken');
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
-    if (!status) return this.loadOrders();
+    if (!status) { this.loadOrders(); return; }
     this.http
       .get<Order[]>(`/api/orders/delivery/assigned?status=${status}`, { headers })
       .subscribe({

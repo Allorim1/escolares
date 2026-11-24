@@ -2,6 +2,7 @@ import { Component, signal, OnInit, inject, computed } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { Router } from '@angular/router';
 import { EmpresasService } from '../../shared/data-access/empresas.service';
 
@@ -20,6 +21,7 @@ interface Cliente {
 })
 export class Clientes implements OnInit {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
   private readonly API = '/api/empresas';
   private empresasService = inject(EmpresasService);
 
@@ -37,11 +39,11 @@ export class Clientes implements OnInit {
   saving = signal(false);
   private router = inject(Router);
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadClientes();
   }
 
-  loadClientes() {
+  async loadClientes() {
     this.loading.set(true);
     this.http.get<Cliente[]>(this.API).subscribe({
       next: (data) => {
@@ -55,7 +57,7 @@ export class Clientes implements OnInit {
     });
   }
 
-  abrirModal(cliente?: Cliente) {
+  async abrirModal(cliente?: Cliente) {
     if (cliente) {
       this.editingCliente = { ...cliente, plantas: [...cliente.plantas] };
     } else {
@@ -64,17 +66,17 @@ export class Clientes implements OnInit {
     this.showModal.set(true);
   }
 
-  cerrarModal() {
+  async cerrarModal() {
     this.showModal.set(false);
     this.editingCliente = null;
     this.nuevaPlanta.set('');
   }
 
-  verDetalle(cliente: Cliente) {
+  async verDetalle(cliente: Cliente) {
     this.router.navigate(['/admin/clientes', cliente._id]);
   }
 
-  agregarPlanta() {
+  async agregarPlanta() {
     if (!this.editingCliente) return;
     const planta = this.nuevaPlanta().trim();
     if (!planta) return;
@@ -83,15 +85,15 @@ export class Clientes implements OnInit {
     this.nuevaPlanta.set('');
   }
 
-  eliminarPlanta(planta: string) {
+  async eliminarPlanta(planta: string) {
     if (!this.editingCliente) return;
     this.editingCliente.plantas = this.editingCliente.plantas.filter((p) => p !== planta);
   }
 
-  guardarCliente() {
+  async guardarCliente() {
     if (!this.editingCliente) return;
     if (!this.editingCliente.nombre.trim()) {
-      alert('El nombre del cliente es requerido');
+      this.notifications.error('El nombre del cliente es requerido');
       return;
     }
 
@@ -125,8 +127,9 @@ export class Clientes implements OnInit {
     }
   }
 
-  eliminarCliente(id: string) {
-    if (!confirm('¿Está seguro de eliminar este cliente?')) return;
+  async eliminarCliente(id: string) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar eliminación', mensaje: '¿Está seguro de eliminar este cliente?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
     this.http.delete(`${this.API}/${id}`).subscribe({
       next: () => {
         this.loadClientes();

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
 
 interface Reportes {
   usuarios: { total: number; verificados: number };
@@ -31,7 +32,7 @@ const NOMBRE_ESTADO: Record<string, string> = {
 @Component({
   selector: 'app-creditos-reportes',
   standalone: true,
-  imports: [],
+  imports: [SkeletonComponent],
   templateUrl: './creditos-reportes.html',
   styleUrl: './creditos-reportes.css',
 })

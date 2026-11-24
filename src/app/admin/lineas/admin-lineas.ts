@@ -5,6 +5,7 @@ import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
 import { AuthService } from '../../shared/data-access/auth.service';
 
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 @Component({
   selector: 'app-admin-lineas',
   standalone: true,
@@ -15,6 +16,7 @@ import { AuthService } from '../../shared/data-access/auth.service';
 export class AdminLineas implements OnInit {
   lineasService = inject(LineasService);
   private productsService = inject(ProductsService);
+  private notifications = inject(NotificationModalService);
   authService = inject(AuthService);
 
   lineas = this.lineasService.lineas;
@@ -30,7 +32,7 @@ export class AdminLineas implements OnInit {
     return rol === 'root';
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.productsService.getProducts().subscribe({
       next: (response) => this.allProducts.set(response.products),
       error: (err) => console.error('Error loading products:', err),
@@ -53,26 +55,26 @@ export class AdminLineas implements OnInit {
     });
   }
 
-  openLinea(linea: Linea) {
+  async openLinea(linea: Linea) {
     this.selectedLinea.set(linea);
     this.showAddProduct.set(false);
     this.productFilter.set('');
   }
 
-  closeLinea() {
+  async closeLinea() {
     this.selectedLinea.set(null);
     this.showAddProduct.set(false);
     this.productFilter.set('');
   }
 
-  toggleAddProduct() {
+  async toggleAddProduct() {
     this.showAddProduct.update((v) => !v);
     if (!this.showAddProduct()) {
       this.productFilter.set('');
     }
   }
 
-  agregarLinea() {
+  async agregarLinea() {
     const name = this.newLineaName();
     if (!name || !name.trim()) {
       return;
@@ -82,7 +84,7 @@ export class AdminLineas implements OnInit {
     this.isAdding.set(false);
   }
 
-  addProductToLinea(productId: number | string) {
+  async addProductToLinea(productId: number | string) {
     const linea = this.selectedLinea();
     if (linea) {
       this.lineasService.agregarProductoALinea(linea.id, productId);
@@ -90,7 +92,7 @@ export class AdminLineas implements OnInit {
     }
   }
 
-  removeProductFromLinea(productId: number | string) {
+  async removeProductFromLinea(productId: number | string) {
     const linea = this.selectedLinea();
     if (linea) {
       this.lineasService.eliminarProductoDeLinea(linea.id, productId);
@@ -98,8 +100,9 @@ export class AdminLineas implements OnInit {
     }
   }
 
-  deleteLinea(id: string) {
-    if (confirm('¿Estás seguro de eliminar esta línea?')) {
+  async deleteLinea(id: string) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: '¿Estás seguro de eliminar esta línea?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       this.lineasService.eliminarLinea(id);
     }
   }

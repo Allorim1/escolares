@@ -4,7 +4,7 @@
   </div>
 
   <div class="search-bar">
-    <input type="text" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" placeholder="Buscar por nombre o teléfono..." name="busqueda">
+    <input type="text" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event); paginaActual.set(1)" placeholder="Buscar por nombre o teléfono..." name="busqueda">
   </div>
 
   <div class="tabs">
@@ -29,12 +29,12 @@
         </tr>
       </thead>
       <tbody>
-        @for (u of usuariosFiltrados(); track u.id) {
+        @for (u of usuariosPaginados; track u.id) {
           <tr class="cv-row" (click)="verDetalle(u)">
             <td>{{ u.nombre }}</td>
             <td>{{ u.telefono }}</td>
             <td>{{ u.nivel }}</td>
-            <td><span class="badge" [class]="etiqueta(u.status).clase">{{ etiqueta(u.status).texto }}</span></td>
+            <td><app-status-badge [label]="etiqueta(u.status).texto" [tone]="etiqueta(u.status).tone"></app-status-badge></td>
             <td>{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
           </tr>
         } @empty {
@@ -44,6 +44,12 @@
     </table></div>
     @if (usuariosFiltrados().length === 0) {
       <app-empty-state title="No hay usuarios" description="No se encontraron usuarios para este filtro."></app-empty-state>
+    } @else if (totalPaginas > 1) {
+      <div style="display:flex; gap:.5rem; align-items:center; justify-content:flex-end; margin-top:1rem;">
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===1" (click)="irPagina(paginaActual()-1)">Anterior</button>
+        <span class="ui-page-subtitle">Página {{ paginaActual() }} de {{ totalPaginas }}</span>
+        <button class="ui-btn ui-btn-secondary ui-btn-sm" [disabled]="paginaActual()===totalPaginas" (click)="irPagina(paginaActual()+1)">Siguiente</button>
+      </div>
     }
   }
 </div>

@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { ProductsService } from '../../products/data-access/products.service';
 import { Product } from '../../shared/interfaces/product.interface';
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 
 interface HomeBanner {
   id: string;
@@ -43,6 +44,7 @@ interface HomeSettings {
 export class AdminInicioGestion implements OnInit {
   private http = inject(HttpClient);
   private productsService = inject(ProductsService);
+  private notifications = inject(NotificationModalService);
 
   loading = signal(true);
   saving = signal(false);
@@ -67,12 +69,12 @@ export class AdminInicioGestion implements OnInit {
 
   icons = ['🚚', '🏪', '💳', '📞', '📦', '🏠', '⭐', '🎁', '🔥', '💰', '🛒', '📱'];
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadSettings();
     this.loadProducts();
   }
 
-  loadSettings() {
+  async loadSettings() {
     this.http.get<HomeSettings>('/api/home').subscribe({
       next: (data) => {
         this.settings.set(data);
@@ -84,7 +86,7 @@ export class AdminInicioGestion implements OnInit {
     });
   }
 
-  loadProducts() {
+  async loadProducts() {
     this.productsService.getProducts().subscribe({
       next: (response) => {
         this.allProducts.set(response.products);
@@ -93,26 +95,26 @@ export class AdminInicioGestion implements OnInit {
     });
   }
 
-  saveSettings() {
+  async saveSettings() {
     this.saving.set(true);
     this.http.put<HomeSettings>('/api/home', this.settings()).subscribe({
       next: (data) => {
         this.settings.set(data);
         this.saving.set(false);
-        alert('Configuración guardada');
+        this.notifications.success('Configuración guardada');
       },
       error: () => {
         this.saving.set(false);
-        alert('Error al guardar');
+        this.notifications.error('Error al guardar');
       },
     });
   }
 
-  setTab(tab: 'banners' | 'features' | 'featured' | 'settings') {
+  async setTab(tab: 'banners' | 'features' | 'featured' | 'settings') {
     this.activeTab.set(tab);
   }
 
-  openBannerModal(banner?: HomeBanner) {
+  async openBannerModal(banner?: HomeBanner) {
     if (banner) {
       this.editingBanner.set({ ...banner });
     } else {
@@ -129,12 +131,12 @@ export class AdminInicioGestion implements OnInit {
     this.showBannerModal.set(true);
   }
 
-  closeBannerModal() {
+  async closeBannerModal() {
     this.showBannerModal.set(false);
     this.editingBanner.set(null);
   }
 
-  saveBanner() {
+  async saveBanner() {
     const banner = this.editingBanner();
     if (!banner) return;
 
@@ -144,7 +146,7 @@ export class AdminInicioGestion implements OnInit {
           this.loadSettings();
           this.closeBannerModal();
         },
-        error: () => alert('Error al guardar'),
+        error: (err) => this.notifications.fromHttpError(err, 'Error al guardar'),
       });
     } else {
       this.http.post<HomeBanner>('/api/home/banners', banner).subscribe({
@@ -152,16 +154,17 @@ export class AdminInicioGestion implements OnInit {
           this.loadSettings();
           this.closeBannerModal();
         },
-        error: () => alert('Error al guardar'),
+        error: (err) => this.notifications.fromHttpError(err, 'Error al guardar'),
       });
     }
   }
 
-  deleteBanner(id: string) {
-    if (confirm('¿Eliminar este banner?')) {
+  async deleteBanner(id: string) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: '¿Eliminar este banner?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       this.http.delete(`/api/home/banners/${id}`).subscribe({
         next: () => this.loadSettings(),
-        error: () => alert('Error al eliminar'),
+        error: (err) => this.notifications.fromHttpError(err, 'Error al eliminar'),
       });
     }
   }
@@ -182,12 +185,12 @@ export class AdminInicioGestion implements OnInit {
     this.showFeatureModal.set(true);
   }
 
-  closeFeatureModal() {
+  async closeFeatureModal() {
     this.showFeatureModal.set(false);
     this.editingFeature.set(null);
   }
 
-  saveFeature() {
+  async saveFeature() {
     const feature = this.editingFeature();
     if (!feature) return;
 
@@ -197,7 +200,7 @@ export class AdminInicioGestion implements OnInit {
           this.loadSettings();
           this.closeFeatureModal();
         },
-        error: () => alert('Error al guardar'),
+        error: (err) => this.notifications.fromHttpError(err, 'Error al guardar'),
       });
     } else {
       this.http.post<HomeFeature>('/api/home/features', feature).subscribe({
@@ -205,16 +208,17 @@ export class AdminInicioGestion implements OnInit {
           this.loadSettings();
           this.closeFeatureModal();
         },
-        error: () => alert('Error al guardar'),
+        error: (err) => this.notifications.fromHttpError(err, 'Error al guardar'),
       });
     }
   }
 
-  deleteFeature(id: string) {
-    if (confirm('¿Eliminar esta característica?')) {
+  async deleteFeature(id: string) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: '¿Eliminar esta característica?', tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (ok) {
       this.http.delete(`/api/home/features/${id}`).subscribe({
         next: () => this.loadSettings(),
-        error: () => alert('Error al eliminar'),
+        error: (err) => this.notifications.fromHttpError(err, 'Error al eliminar'),
       });
     }
   }
@@ -251,7 +255,7 @@ export class AdminInicioGestion implements OnInit {
 
     const file = input.files[0];
     if (!file.type.startsWith('image/')) {
-      alert('Selecciona un archivo de imagen');
+      this.notifications.error('Selecciona un archivo de imagen');
       return;
     }
 

@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
 
 interface SolicitudEliminacion {
   id: string;
@@ -21,7 +22,7 @@ interface SolicitudEliminacion {
 @Component({
   selector: 'app-creditos-eliminaciones',
   standalone: true,
-  imports: [CommonModule, EmptyStateComponent, SkeletonComponent],
+  imports: [CommonModule, EmptyStateComponent, SkeletonComponent, StatusBadgeComponent],
   templateUrl: './creditos-eliminaciones.html',
   styleUrl: './creditos-eliminaciones.css',
 })
@@ -33,21 +34,28 @@ export class CreditosEliminaciones implements OnInit {
   solicitudes = signal<SolicitudEliminacion[]>([]);
   loading = signal(false);
   procesandoId = signal<string | null>(null);
+  paginaActual = signal(1);
+  readonly pageSize = 10;
 
-  ngOnInit() {
+  get totalPaginas(): number { return Math.max(1, Math.ceil(this.solicitudes().length / this.pageSize)); }
+  get paginadas(): SolicitudEliminacion[] { const s=(this.paginaActual()-1)*this.pageSize; return this.solicitudes().slice(s,s+this.pageSize); }
+  irPagina(p:number){ if(p<1||p>this.totalPaginas) return; this.paginaActual.set(p); }
+
+  async ngOnInit() {
     this.cargar();
   }
 
-  cargar() {
+  async cargar() {
     this.loading.set(true);
     this.http.get<SolicitudEliminacion[]>(`${this.API}/eliminaciones`).subscribe({
-      next: (data) => { this.solicitudes.set(data); this.loading.set(false); },
+      next: (data) => { this.solicitudes.set(data); this.paginaActual.set(1); this.loading.set(false); },
       error: (err) => { console.error('Error cargando solicitudes de eliminación:', err); this.loading.set(false); this.notifications.fromHttpError(err, 'Error cargando solicitudes de eliminación:'); },
     });
   }
 
-  aprobar(s: SolicitudEliminacion) {
-    if (!confirm(`¿Eliminar la cuenta de ${s.nombre}? Sus datos personales y documentos se borran; no se puede deshacer.`)) return;
+  async aprobar(s: SolicitudEliminacion) {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar eliminación', mensaje: `¿Eliminar la cuenta de ${s.nombre}? Sus datos personales y documentos se borran; no se puede deshacer.`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) return;
     this.procesandoId.set(s.id);
     this.http.post(`${this.API}/usuarios/${s.id}/eliminacion/aprobar`, {}).subscribe({
       next: () => { this.procesandoId.set(null); this.cargar(); },

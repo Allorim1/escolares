@@ -32,11 +32,11 @@ export class AdminRoles implements OnInit {
 
   permisosPorModulo = signal<{ modulo: string; permisos: Permiso[] }[]>([]);
 
-  ngOnInit() {
+  async ngOnInit() {
     this.loadData();
   }
 
-  loadData() {
+  async loadData() {
     this.rolesBackend.getPermisos().subscribe({
       next: (permisos) => {
         this.permisos.set(permisos);
@@ -69,7 +69,7 @@ export class AdminRoles implements OnInit {
     });
   }
 
-  openAddModal() {
+  async openAddModal() {
     this.isEditing.set(false);
     this.editingRolId.set(null);
     this.formNombre = '';
@@ -81,7 +81,7 @@ export class AdminRoles implements OnInit {
     this.showModal.set(true);
   }
 
-  openEditModal(rol: Rol) {
+  async openEditModal(rol: Rol) {
     this.isEditing.set(true);
     this.editingRolId.set(rol.id);
     this.formNombre = rol.nombre;
@@ -93,13 +93,13 @@ export class AdminRoles implements OnInit {
     this.showModal.set(true);
   }
 
-  closeModal() {
+  async closeModal() {
     this.showModal.set(false);
     this.isEditing.set(false);
     this.editingRolId.set(null);
   }
 
-  togglePermiso(permisoId: string) {
+  async togglePermiso(permisoId: string) {
     if (this.formPermisos.includes(permisoId)) {
       this.formPermisos = this.formPermisos.filter(p => p !== permisoId);
     } else {
@@ -107,18 +107,18 @@ export class AdminRoles implements OnInit {
     }
   }
 
-  selectAllInModulo(modulo: string) {
+  async selectAllInModulo(modulo: string) {
     const permisosModulo = this.permisos().filter(p => p.modulo === modulo).map(p => p.id);
     const nuevosPermisos = [...new Set([...this.formPermisos, ...permisosModulo])];
     this.formPermisos = nuevosPermisos;
   }
 
-  deselectAllInModulo(modulo: string) {
+  async deselectAllInModulo(modulo: string) {
     const permisosModulo = this.permisos().filter(p => p.modulo === modulo).map(p => p.id);
     this.formPermisos = this.formPermisos.filter(p => !permisosModulo.includes(p));
   }
 
-  saveRol() {
+  async saveRol() {
     if (!this.formNombre.trim()) {
       this.notificationModal.error('Por favor ingresa el nombre del rol');
       return;

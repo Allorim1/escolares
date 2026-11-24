@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
 
 interface CreditoUsuarioBusqueda {
   id: string;
@@ -46,7 +49,7 @@ interface Puntualidad {
 @Component({
   selector: 'app-creditos-ampliar-credito',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EmptyStateComponent, SkeletonComponent, StatusBadgeComponent],
   templateUrl: './creditos-ampliar-credito.html',
   styleUrl: './creditos-ampliar-credito.css',
 })
@@ -66,6 +69,8 @@ export class CreditosAmpliarCredito {
 
   historial = signal<SolicitudHistorial[]>([]);
   cargandoHistorial = signal(false);
+  paginaHistorial = signal(1);
+  readonly pageSizeHistorial = 8;
 
   extensionNueva = signal<number | null>(null);
   guardando = signal(false);
@@ -121,24 +126,28 @@ export class CreditosAmpliarCredito {
   cargarHistorial(usuarioId: string) {
     this.cargandoHistorial.set(true);
     this.http.get<SolicitudHistorial[]>(`${this.API}/solicitudes?usuarioId=${usuarioId}`).subscribe({
-      next: (data) => { this.historial.set(data); this.cargandoHistorial.set(false); },
+      next: (data) => { this.historial.set(data); this.paginaHistorial.set(1); this.cargandoHistorial.set(false); },
       error: () => { this.historial.set([]); this.cargandoHistorial.set(false); },
     });
   }
+
+  get totalPaginasHistorial(): number { return Math.max(1, Math.ceil(this.historial().length / this.pageSizeHistorial)); }
+  get historialPaginado(): SolicitudHistorial[] { const s=(this.paginaHistorial()-1)*this.pageSizeHistorial; return this.historial().slice(s,s+this.pageSizeHistorial); }
+  irPaginaHistorial(p:number){ if(p<1||p>this.totalPaginasHistorial) return; this.paginaHistorial.set(p); }
 
   descripcionSolicitud(s: SolicitudHistorial): string {
     if (s.items?.length) return s.items.map((i) => `${i.cantidad}× ${i.nombre}`).join(', ');
     return s.productoNombre || s.proposito || '—';
   }
 
-  etiquetaSolicitud(status: SolicitudStatus): { texto: string; clase: string } {
+  etiquetaSolicitud(status: SolicitudStatus): { texto: string; clase: string; tone: 'success'|'warning'|'danger'|'info'|'neutral' } {
     switch (status) {
-      case 'pendiente_aceptacion': return { texto: 'Por confirmar', clase: 'badge-tertiary' };
-      case 'esperando_pago': return { texto: 'Falta el pago inicial', clase: 'badge-warning' };
-      case 'solicitado': return { texto: 'Pendiente', clase: 'badge-warning' };
-      case 'activo': return { texto: 'Activo', clase: 'badge-primary' };
-      case 'pagado': return { texto: 'Pagado', clase: 'badge-success' };
-      case 'rechazado': return { texto: 'Rechazado', clase: 'badge-danger' };
+      case 'pendiente_aceptacion': return { texto: 'Por confirmar', clase: 'badge-tertiary', tone: 'info' };
+      case 'esperando_pago': return { texto: 'Falta el pago inicial', clase: 'badge-warning', tone: 'warning' };
+      case 'solicitado': return { texto: 'Pendiente', clase: 'badge-warning', tone: 'warning' };
+      case 'activo': return { texto: 'Activo', clase: 'badge-primary', tone: 'info' };
+      case 'pagado': return { texto: 'Pagado', clase: 'badge-success', tone: 'success' };
+      case 'rechazado': return { texto: 'Rechazado', clase: 'badge-danger', tone: 'danger' };
     }
   }
 

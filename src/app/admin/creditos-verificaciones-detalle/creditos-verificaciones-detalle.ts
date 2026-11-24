@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 type Estado = 'sin_verificar' | 'en_revision' | 'verificado' | 'rechazado';
 
 interface DocumentoArchivo {
@@ -58,6 +59,7 @@ const DOCUMENTOS: { campo: string; titulo: string }[] = [
 })
 export class CreditosVerificacionesDetalle implements OnInit {
   private http = inject(HttpClient);
+  private notifications = inject(NotificationModalService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -71,7 +73,7 @@ export class CreditosVerificacionesDetalle implements OnInit {
   motivoRechazo = signal('');
   mostrarRechazo = signal(false);
 
-  ngOnInit() {
+  async ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id') || '';
     this.cargar();
     this.http.get<{ nivelMaximo: number }>('/api/creditos/admin/reglas').subscribe({
@@ -83,7 +85,7 @@ export class CreditosVerificacionesDetalle implements OnInit {
     return `/api/creditos/admin/usuarios/${this.id}${sufijo}`;
   }
 
-  cargar() {
+  async cargar() {
     this.loading.set(true);
     this.http.get<CreditoUsuario>(this.api()).subscribe({
       next: (data) => {
@@ -114,12 +116,13 @@ export class CreditosVerificacionesDetalle implements OnInit {
     }
   }
 
-  aprobar() {
-    if (!confirm('¿Aprobar la verificación de esta cuenta?')) return;
+  async aprobar() {
+    const ok = await this.notifications.confirm({ titulo: 'Confirmar acción', mensaje: '¿Aprobar la verificación de esta cuenta?', tipo: 'warning', confirmarTexto: 'Confirmar' });
+    if (!ok) return;
     this.procesando.set(true);
     this.http.post(this.api('/verificacion/aprobar'), {}).subscribe({
       next: () => { this.procesando.set(false); this.cargar(); },
-      error: (err) => { this.procesando.set(false); alert(err.error?.error || 'Error al aprobar'); },
+      error: (err) => { this.procesando.set(false); this.notifications.fromHttpError(err, 'Error al aprobar'); },
     });
   }
 
@@ -131,7 +134,7 @@ export class CreditosVerificacionesDetalle implements OnInit {
     this.procesando.set(true);
     this.http.post(this.api('/verificacion/rechazar'), { motivo: this.motivoRechazo() }).subscribe({
       next: () => { this.procesando.set(false); this.mostrarRechazo.set(false); this.motivoRechazo.set(''); this.cargar(); },
-      error: (err) => { this.procesando.set(false); alert(err.error?.error || 'Error al rechazar'); },
+      error: (err) => { this.procesando.set(false); this.notifications.fromHttpError(err, 'Error al rechazar'); },
     });
   }
 
@@ -142,7 +145,7 @@ export class CreditosVerificacionesDetalle implements OnInit {
     this.procesando.set(true);
     this.http.post<CreditoUsuario>(this.api('/nivel'), { nivel: nuevo }).subscribe({
       next: (data) => { this.usuario.set(data); this.procesando.set(false); },
-      error: (err) => { this.procesando.set(false); alert(err.error?.error || 'Error al cambiar el nivel'); },
+      error: (err) => { this.procesando.set(false); this.notifications.fromHttpError(err, 'Error al cambiar el nivel'); },
     });
   }
 

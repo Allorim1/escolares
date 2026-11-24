@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
 import { io, Socket } from 'socket.io-client';
 
 type Estado = 'abierto' | 'en_proceso' | 'cerrado';
@@ -35,7 +36,7 @@ const PESTANAS: { value: Estado | 'todos'; label: string }[] = [
 @Component({
   selector: 'app-creditos-tickets',
   standalone: true,
-  imports: [CommonModule, EmptyStateComponent, SkeletonComponent],
+  imports: [CommonModule, EmptyStateComponent, SkeletonComponent, StatusBadgeComponent],
   templateUrl: './creditos-tickets.html',
   styleUrl: './creditos-tickets.css',
 })
@@ -49,6 +50,8 @@ export class CreditosTickets implements OnInit, OnDestroy {
   pestanaActiva = signal<Estado | 'todos'>('abierto');
   tickets = signal<Ticket[]>([]);
   loading = signal(false);
+  paginaActual = signal(1);
+  readonly pageSize = 10;
   private socket: Socket | null = null;
 
   ngOnInit() {
@@ -66,6 +69,7 @@ export class CreditosTickets implements OnInit, OnDestroy {
 
   cambiarPestana(valor: Estado | 'todos') {
     this.pestanaActiva.set(valor);
+    this.paginaActual.set(1);
     this.cargar();
   }
 
@@ -80,13 +84,17 @@ export class CreditosTickets implements OnInit, OnDestroy {
     });
   }
 
-  etiqueta(estado: Estado): { texto: string; clase: string } {
+  etiqueta(estado: Estado): { texto: string; clase: string; tone: 'success'|'warning'|'danger'|'info'|'neutral' } {
     switch (estado) {
-      case 'abierto': return { texto: 'Abierto', clase: 'badge-warning' };
-      case 'en_proceso': return { texto: 'En proceso', clase: 'badge-primary' };
-      case 'cerrado': return { texto: 'Cerrado', clase: 'badge-medium' };
+      case 'abierto': return { texto: 'Abierto', clase: 'badge-warning', tone: 'warning' };
+      case 'en_proceso': return { texto: 'En proceso', clase: 'badge-primary', tone: 'info' };
+      case 'cerrado': return { texto: 'Cerrado', clase: 'badge-medium', tone: 'neutral' };
     }
   }
+
+  get totalPaginas(): number { return Math.max(1, Math.ceil(this.tickets().length / this.pageSize)); }
+  get ticketsPaginados(): Ticket[] { const s=(this.paginaActual()-1)*this.pageSize; return this.tickets().slice(s,s+this.pageSize); }
+  irPagina(p:number){ if(p<1||p>this.totalPaginas) return; this.paginaActual.set(p); }
 
   ultimoMensaje(t: Ticket): string {
     return t.mensajes[t.mensajes.length - 1]?.texto ?? '';

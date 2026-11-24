@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+﻿import { Component, inject, signal, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -67,10 +67,10 @@ export class AdminManuales implements OnInit {
 
   categorias = [
     { value: 'general', label: 'General' },
-    { value: 'productos', label: 'Gestión de Productos' },
-    { value: 'usuarios', label: 'Gestión de Usuarios' },
-    { value: 'pedidos', label: 'Gestión de Pedidos' },
-    { value: 'configuracion', label: 'Configuración' },
+    { value: 'productos', label: 'GestiÃ³n de Productos' },
+    { value: 'usuarios', label: 'GestiÃ³n de Usuarios' },
+    { value: 'pedidos', label: 'GestiÃ³n de Pedidos' },
+    { value: 'configuracion', label: 'ConfiguraciÃ³n' },
   ];
 
   ngOnInit() {
@@ -186,7 +186,7 @@ export class AdminManuales implements OnInit {
 
     const maxSize = 5 * 1024 * 1024; // 5MB limit for images
     if (file.size > maxSize) {
-      this.notificationModal.error('La imagen no puede pesar más de 5MB');
+      this.notificationModal.error('La imagen no puede pesar mÃ¡s de 5MB');
       return;
     }
 
@@ -215,7 +215,7 @@ export class AdminManuales implements OnInit {
 
     const maxSize = 30 * 1024 * 1024; // 30MB limit for videos
     if (file.size > maxSize) {
-      this.notificationModal.error('El video no puede pesar más de 30MB');
+      this.notificationModal.error('El video no puede pesar mÃ¡s de 30MB');
       return;
     }
 
@@ -226,7 +226,7 @@ export class AdminManuales implements OnInit {
     video.onloadedmetadata = async () => {
       const duration = video.duration;
       if (duration > 60) {
-        this.notificationModal.error('El video no puede durar más de 1 minuto');
+        this.notificationModal.error('El video no puede durar mÃ¡s de 1 minuto');
         URL.revokeObjectURL(video.src);
         return;
       }
@@ -273,7 +273,7 @@ export class AdminManuales implements OnInit {
   updateVideoFromUrl(pasoIndex: number) {
     const url = this.formPasos[pasoIndex].videoUrl;
     if (url && !this.isValidVideoUrl(url)) {
-      this.notificationModal.error('URL de video no válida. Soportamos YouTube y Vimeo.');
+      this.notificationModal.error('URL de video no vÃ¡lida. Soportamos YouTube y Vimeo.');
       return;
     }
   }
@@ -317,7 +317,7 @@ export class AdminManuales implements OnInit {
 
   guardarManual() {
     if (!this.formTitulo.trim()) {
-      this.notificationModal.error('El título es requerido');
+      this.notificationModal.error('El tÃ­tulo es requerido');
       return;
     }
 
@@ -329,11 +329,11 @@ export class AdminManuales implements OnInit {
     // Validate steps
     for (let i = 0; i < this.formPasos.length; i++) {
       if (!this.formPasos[i].titulo.trim()) {
-        this.notificationModal.error(`El paso ${i + 1} debe tener un título`);
+        this.notificationModal.error(`El paso ${i + 1} debe tener un tÃ­tulo`);
         return;
       }
       if (!this.formPasos[i].descripcion.trim()) {
-        this.notificationModal.error(`El paso ${i + 1} debe tener una descripción`);
+        this.notificationModal.error(`El paso ${i + 1} debe tener una descripciÃ³n`);
         return;
       }
     }
@@ -388,8 +388,9 @@ export class AdminManuales implements OnInit {
     });
   }
 
-  eliminarManual(manual: Manual) {
-    if (!confirm(`¿Estás seguro de eliminar "${manual.titulo}"?`)) {
+  async eliminarManual(manual: Manual) {
+    const ok = await this.notificationModal.confirm({ titulo: 'Confirmar eliminaciÃ³n', mensaje: `Â¿EstÃ¡s seguro de eliminar "${manual.titulo}"?`, tipo: 'danger', confirmarTexto: 'Eliminar' });
+    if (!ok) {
       return;
     }
 
@@ -422,3 +423,4 @@ export class AdminManuales implements OnInit {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 }
+

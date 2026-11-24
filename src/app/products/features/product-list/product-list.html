@@ -2,8 +2,12 @@
   <app-loading message="Cargando productos..."></app-loading>
 } @else {
   <div class="products-layout">
+    <button type="button" class="filters-toggle-btn" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="products-filters">
+      {{ filtersOpen() ? 'Ocultar filtros' : 'Mostrar filtros' }}
+      @if (activeFilterChips().length > 0) { <span>({{ activeFilterChips().length }})</span> }
+    </button>
     <!-- Sidebar with category filters -->
-    <aside class="products-sidebar">
+    <aside id="products-filters" class="products-sidebar" [class.collapsed-mobile]="!filtersOpen()">
       <div class="sidebar-section">
 <h3 class="sidebar-title">Categorías</h3>
         <ul class="category-list">
@@ -144,13 +148,27 @@
             </button>
           }
         </div>
+        @if (activeFilterChips().length > 0) {
+          <div class="filter-chips" aria-label="Filtros activos">
+            @for (chip of activeFilterChips(); track chip.key) {
+              <span class="filter-chip">
+                {{ chip.label }}
+                <button type="button" (click)="chip.clear()" [attr.aria-label]="'Quitar filtro ' + chip.label">&times;</button>
+              </span>
+            }
+          </div>
+        }
       </div>
 
       @if (filteredProducts().length === 0) {
         <div class="empty-state">
+          <div style="font-size:2.5rem; margin-bottom:.5rem;" aria-hidden="true">🔎</div>
           <h3>No se encontraron productos</h3>
-          <p>Intenta ajustar la búsqueda o los filtros para ver más resultados.</p>
-          <button type="button" class="clear-filters-btn" (click)="clearFilters()">Limpiar filtros</button>
+          <p>Prueba quitar algún filtro o buscar con otro término.</p>
+          <div style="display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap;">
+            <button type="button" class="clear-filters-btn" (click)="clearFilters()">Limpiar filtros</button>
+            <a routerLink="/products" class="clear-filters-btn" style="text-decoration:none; display:inline-flex; align-items:center;" (click)="clearFilters()">Ver todo el catálogo</a>
+          </div>
         </div>
       } @else {
       <div class="product-cards">
@@ -160,7 +178,7 @@
               <div class="oferta-badge">OFERTA -{{ getDescuento(product) }}%</div>
             }
             <a class="card-link" [routerLink]="[product.id]" [attr.aria-label]="'Ver detalle de ' + product.title">
-              <img [src]="product.image" loading="lazy" [alt]="product.title" class="card-img" style="width:100%; height:190px; object-fit:contain; background:#f8f8f8; padding:.75rem" />
+              <div class="card-img-wrap"><img [src]="product.image" loading="lazy" [alt]="product.title" class="card-img" style="width:100%; height:190px; object-fit:contain; background:#f8f8f8; padding:.75rem; display:block;" /></div>
               <div class="card-body" style="padding:.85rem; display:flex; flex-direction:column; flex:1;">
                 <h3 class="card-title" style="font-size:.9rem; font-weight:600; margin:0 0 .35rem; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:capitalize;">{{ product.title }}</h3>
                 <p class="card-text" style="font-size:.78rem; color:#666; margin:0 0 .5rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.4em;">{{ product.description }}</p>
@@ -190,7 +208,7 @@
                     <button type="button" class="qty-btn" style="width:34px; height:34px; border:1px solid #ddd; background:#f8f8f8; border-radius:8px; font-size:1.1rem; cursor:pointer;" (click)="increaseCardQuantity(product)" aria-label="Aumentar cantidad">+</button>
                   </div>
                 } @else {
-                  <button type="button" class="btn btn-primary" style="background:#1d63c1; color:#fff; border:none; border-radius:8px; padding:.55rem .5rem; font-size:.78rem; font-weight:600; cursor:pointer; transition:background .2s; flex:1; height:38px;" (click)="addToCardFromCard(product)">Agregar</button>
+                  <button type="button" class="btn-primary-cta" (click)="addToCardFromCard(product)">Agregar</button>
                 }
               } @else {
                 <a [routerLink]="[product.id]" class="btn btn-primary" style="background:#1d63c1; color:#fff; border:none; border-radius:8px; padding:.55rem .5rem; font-size:.78rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; flex:1; height:38px;">Ver detalle</a>
@@ -215,7 +233,7 @@
 }
 
 @if (selectedProduct(); as product) {
-  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && closeModal()">
+  <div class="modal-overlay" [class.modal-closing]="modalClosing()" (click)="($event.target === $event.currentTarget) && closeModal()">
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="quick-view-title">
       <button class="modal-close" type="button" (click)="closeModal()" aria-label="Cerrar vista rápida">&times;</button>
       <div class="modal-product-card">

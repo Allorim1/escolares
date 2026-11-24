@@ -204,18 +204,14 @@ import { NotificationService } from '../../../shared/data-access/notification.se
       background: #e0e0e0;
     }
     .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      padding: 1rem;
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000; padding: 1rem;
+      backdrop-filter: blur(2px);
+      animation: pl-fade-in .18s ease-out;
     }
+    .modal-overlay.modal-closing { animation: pl-fade-out .18s ease-in forwards; }
     .modal-content {
       background: white;
       border-radius: 16px;
@@ -380,14 +376,19 @@ import { NotificationService } from '../../../shared/data-access/notification.se
     .card-link:focus-visible { outline: 3px solid rgba(29,99,193,.3); outline-offset: -3px; border-radius: 12px; }
     .quick-view-btn { background: #f3f6fa; color: #425a75; border: 1px solid #dbe5f0; border-radius: 8px; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; flex-shrink: 0; }
     .quick-view-btn:hover { background: #e8f1fb; color: #1d63c1; border-color: #bfd4ec; }
-    .quick-view-btn:focus-visible, .btn-fav:focus-visible, .qty-btn:focus-visible, .modal-close:focus-visible, .modal-add-to-cart-btn:focus-visible, .clear-filters-btn:focus-visible, .currency-toggle-btn:focus-visible, .pagination button:focus-visible, .category-item:focus-visible, .filter-group input:focus-visible, .filter-group select:focus-visible { outline: 3px solid rgba(29,99,193,.28); outline-offset: 2px; }
-    .modal-overlay { backdrop-filter: blur(2px); }
+    .quick-view-btn:focus-visible, .btn-fav:focus-visible, .qty-btn:focus-visible, .modal-close:focus-visible, .modal-add-to-cart-btn:focus-visible, .clear-filters-btn:focus-visible, .currency-toggle-btn:focus-visible, .pagination button:focus-visible, .category-item:focus-visible, .filter-group input:focus-visible, .filter-group select:focus-visible, .filter-chip button:focus-visible, .btn-primary-cta:focus-visible, .filters-toggle-btn:focus-visible { outline: 3px solid rgba(29,99,193,.28); outline-offset: 2px; }
+    .qty-btn { transition: background .2s, transform .15s ease; }
+    .qty-btn:active { transform: scale(.96); }
+    .btn-fav { transition: transform .15s ease, filter .2s ease; }
+    .btn-fav:active { transform: scale(.96); }
     @media (max-width: 1400px) { .product-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
     @media (max-width: 1100px) { .product-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 820px) { .product-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 600px) {
       .products-layout { flex-direction: column; }
       .products-sidebar { width: 100%; max-width: 100%; box-sizing: border-box; position: static; }
+      .products-sidebar.collapsed-mobile { display: none; }
+      .filters-toggle-btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; }
       .products-main { min-width: 0; max-width: 100%; }
       .modal-product-card { grid-template-columns: 1fr; }
       .modal-image-col { padding: 1rem; }
@@ -457,11 +458,13 @@ export default class ProductList implements OnInit {
   private notificationService = inject(NotificationService);
 
   selectedProduct = signal<Product | null>(null);
+  modalClosing = signal(false);
   modalQuantity = signal(1);
   modalImage = signal<string>('');
   mouseX = signal(50);
   mouseY = signal(50);
   sortOption = signal<'relevance' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'>('relevance');
+  filtersOpen = signal(false);
   private lastFocused: HTMLElement | null = null;
 
   onMouseMove(event: MouseEvent, isHovering: boolean) {
@@ -516,16 +519,25 @@ export default class ProductList implements OnInit {
 
   openModal(product: Product, trigger?: EventTarget | null) {
     this.lastFocused = (trigger instanceof HTMLElement ? trigger : (document.activeElement instanceof HTMLElement ? document.activeElement : null));
+    this.modalClosing.set(false);
     this.selectedProduct.set(product);
     this.modalQuantity.set(1);
     this.modalImage.set(product.image);
   }
 
   closeModal() {
-    this.selectedProduct.set(null);
-    const el = this.lastFocused;
-    this.lastFocused = null;
-    setTimeout(() => el?.focus(), 0);
+    if (!this.selectedProduct() || this.modalClosing()) return;
+    const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finish = () => {
+      this.selectedProduct.set(null);
+      this.modalClosing.set(false);
+      const el = this.lastFocused;
+      this.lastFocused = null;
+      setTimeout(() => el?.focus(), 0);
+    };
+    if (prefersReduced) { finish(); return; }
+    this.modalClosing.set(true);
+    setTimeout(finish, 180);
   }
 
   setModalImage(img: string) {
@@ -767,6 +779,27 @@ export default class ProductList implements OnInit {
     this.sortOption.set('relevance');
     this.productsState.reset();
   }
+
+  toggleFilters() { this.filtersOpen.set(!this.filtersOpen()); }
+
+  activeFilterChips = computed(() => {
+    const chips: Array<{ key: string; label: string; clear: () => void }> = [];
+    const text = this.filterText().trim();
+    const cat = this.filterCategory().trim();
+    const brand = this.filterBrand().trim();
+    const min = this.filterPriceMin();
+    const max = this.filterPriceMax();
+    const minBs = this.filterPriceMinBs();
+    const maxBs = this.filterPriceMaxBs();
+    if (text) chips.push({ key: 'text', label: `Búsqueda: ${text}`, clear: () => { this.filterText.set(''); this.productsState.reset(); } });
+    if (cat) chips.push({ key: 'cat', label: `Categoría: ${cat}`, clear: () => { this.filterCategory.set(''); this.productsState.reset(); } });
+    if (brand) chips.push({ key: 'brand', label: `Marca: ${brand}`, clear: () => { this.filterBrand.set(''); this.productsState.reset(); } });
+    if (min !== null) chips.push({ key: 'min', label: `Min USD: $${min}`, clear: () => { this.filterPriceMin.set(null); this.productsState.reset(); } });
+    if (max !== null) chips.push({ key: 'max', label: `Max USD: $${max}`, clear: () => { this.filterPriceMax.set(null); this.productsState.reset(); } });
+    if (minBs !== null) chips.push({ key: 'minbs', label: `Min Bs: ${minBs}`, clear: () => { this.filterPriceMinBs.set(null); this.productsState.reset(); } });
+    if (maxBs !== null) chips.push({ key: 'maxbs', label: `Max Bs: ${maxBs}`, clear: () => { this.filterPriceMaxBs.set(null); this.productsState.reset(); } });
+    return chips;
+  });
 
   changePage(delta: number) {
     this.productsState.changePage(delta);

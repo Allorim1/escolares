@@ -12,6 +12,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { GoogleMapsService } from '../../shared/services/google-maps.service';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 
 interface UbicacionCliente {
   usuarioId: string;
@@ -54,7 +56,7 @@ function distanciaKm(a: { lat: number; lng: number }, b: { lat: number; lng: num
 @Component({
   selector: 'app-creditos-ubicaciones',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SkeletonComponent, EmptyStateComponent],
   templateUrl: './creditos-ubicaciones.html',
   styleUrl: './creditos-ubicaciones.css',
 })

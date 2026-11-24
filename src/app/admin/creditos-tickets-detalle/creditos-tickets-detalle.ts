@@ -6,6 +6,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { io, Socket } from 'socket.io-client';
 
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 type Estado = 'abierto' | 'en_proceso' | 'cerrado';
 
 interface Mensaje {
@@ -29,7 +32,7 @@ interface Ticket {
 @Component({
   selector: 'app-creditos-tickets-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, StatusBadgeComponent, SkeletonComponent, EmptyStateComponent],
   templateUrl: './creditos-tickets-detalle.html',
   styleUrl: './creditos-tickets-detalle.css',
 })
@@ -80,11 +83,11 @@ export class CreditosTicketsDetalle implements OnInit, OnDestroy {
     });
   }
 
-  etiqueta(estado: Estado): { texto: string; clase: string } {
+  etiqueta(estado: Estado): { texto: string; tone: 'success'|'warning'|'danger'|'info'|'neutral' } {
     switch (estado) {
-      case 'abierto': return { texto: 'Abierto', clase: 'badge-warning' };
-      case 'en_proceso': return { texto: 'En proceso', clase: 'badge-primary' };
-      case 'cerrado': return { texto: 'Cerrado', clase: 'badge-medium' };
+      case 'abierto': return { texto: 'Abierto', tone: 'warning' };
+      case 'en_proceso': return { texto: 'En proceso', tone: 'info' };
+      case 'cerrado': return { texto: 'Cerrado', tone: 'neutral' };
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
 import { FormsModule } from '@angular/forms';
@@ -20,6 +20,7 @@ export class AdminRegistro implements OnInit {
   filtroBusqueda = '';
   mostrarModal = false;
   registroSeleccionado: Registro | null = null;
+  private lastFocused: HTMLElement | null = null;
 
   fechaDesde = '';
   fechaHasta = '';
@@ -91,6 +92,7 @@ export class AdminRegistro implements OnInit {
   }
 
   async verDetalle(registro: Registro) {
+    this.lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.registroSeleccionado = registro;
     this.mostrarModal = true;
   }
@@ -98,6 +100,7 @@ export class AdminRegistro implements OnInit {
   async cerrarModal() {
     this.mostrarModal = false;
     this.registroSeleccionado = null;
+    const el=this.lastFocused; this.lastFocused=null; setTimeout(()=>el?.focus(),0);
   }
 
   async limpiarRegistros() {
@@ -207,4 +210,7 @@ export class AdminRegistro implements OnInit {
     doc.save(`registros_${modulo}_${new Date().toISOString().split('T')[0]}.pdf`);
     target.value = '';
   }
+
+  @HostListener('document:keydown.escape')
+  onEscape() { if (this.mostrarModal) this.cerrarModal(); }
 }

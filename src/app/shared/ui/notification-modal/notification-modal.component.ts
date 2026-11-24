@@ -1,4 +1,4 @@
-import { Component, HostListener, inject } from '@angular/core';
+﻿import { Component, ElementRef, HostListener, effect, inject } from '@angular/core';
 
 import { NotificationModalService } from './notification-modal.service';
 
@@ -9,9 +9,9 @@ import { NotificationModalService } from './notification-modal.service';
   template: `
     @if (notification.mostrar()) {
       @if (notification.modo() === 'confirm') {
-        <div class="confirm-overlay" role="dialog" aria-modal="true">
-          <div class="confirm-modal" [class.danger]="notification.tipo() === 'error'" [class.warning]="notification.tipo() === 'warning'" [class.info]="notification.tipo() === 'info'">
-            <h4 class="confirm-title">{{ notification.titulo() }}</h4>
+        <div class="confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="notif-confirm-title" (click)="onOverlayClick($event)">
+          <div class="confirm-modal" [class.danger]="notification.tipo() === 'error'" [class.warning]="notification.tipo() === 'warning'" [class.info]="notification.tipo() === 'info'" (click)="$event.stopPropagation()">
+            <h4 id="notif-confirm-title" class="confirm-title">{{ notification.titulo() }}</h4>
             <p class="confirm-message">{{ notification.mensaje() }}</p>
             @if (notification.detalles().length) {
               <ul class="confirm-details">@for (d of notification.detalles(); track d) { <li>{{ d }}</li> }</ul>
@@ -32,7 +32,7 @@ import { NotificationModalService } from './notification-modal.service';
                 <p class="notification-message">{{ notification.mensaje() }}</p>
                 @if (notification.detalles().length) { <ul class="notification-details">@for (d of notification.detalles(); track d) { <li>{{ d }}</li> }</ul> }
               </div>
-              <button type="button" class="notification-close" (click)="notification.cerrar()" aria-label="Cerrar notificación">×</button>
+              <button type="button" class="notification-close" (click)="notification.cerrar()" aria-label="Cerrar notificaciÃ³n">Ã—</button>
             </div>
           </div>
         </div>
@@ -68,9 +68,60 @@ import { NotificationModalService } from './notification-modal.service';
 })
 export class NotificationModalComponent {
   notification = inject(NotificationModalService);
+  private el = inject(ElementRef<HTMLElement>);
+  private lastFocused: HTMLElement | null = null;
+
+  constructor() {
+    effect(() => {
+      const visible = this.notification.mostrar();
+      const mode = this.notification.modo();
+      if (visible && mode === 'confirm') {
+        this.lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        setTimeout(() => this.focusFirst(), 0);
+      }
+      if (!visible && this.lastFocused) {
+        const target = this.lastFocused;
+        this.lastFocused = null;
+        setTimeout(() => target.focus?.(), 0);
+      }
+    });
+  }
 
   @HostListener('document:keydown.escape')
   onEscape() {
     if (this.notification.mostrar()) this.notification.cerrar();
   }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent) {
+    if (!this.notification.mostrar() || this.notification.modo() !== 'confirm' || event.key !== 'Tab') return;
+    const focusables = this.getFocusables();
+    if (!focusables.length) { event.preventDefault(); return; }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && active === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+  }
+
+  onOverlayClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) this.notification.cancelar();
+  }
+
+  private focusFirst() {
+    const [first] = this.getFocusables();
+    first?.focus();
+  }
+
+  private getFocusables(): HTMLElement[] {
+    const nodes = this.el.nativeElement.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    return Array.from(nodes).filter((el): el is HTMLElement => el instanceof HTMLElement && (el.offsetParent !== null || getComputedStyle(el).position === 'fixed'));
+  }
 }
+
+
+
+
+

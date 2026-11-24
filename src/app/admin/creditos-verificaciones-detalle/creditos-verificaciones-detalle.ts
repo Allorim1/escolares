@@ -1,10 +1,13 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { NotificationModalService } from '../../shared/ui/notification-modal/notification-modal.service';
+import { StatusBadgeComponent } from '../../shared/ui/status-badge/status-badge';
+import { SkeletonComponent } from '../../shared/ui/skeleton/skeleton';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state';
 type Estado = 'sin_verificar' | 'en_revision' | 'verificado' | 'rechazado';
 
 interface DocumentoArchivo {
@@ -53,7 +56,7 @@ const DOCUMENTOS: { campo: string; titulo: string }[] = [
 @Component({
   selector: 'app-creditos-verificaciones-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, StatusBadgeComponent, SkeletonComponent, EmptyStateComponent],
   templateUrl: './creditos-verificaciones-detalle.html',
   styleUrl: './creditos-verificaciones-detalle.css',
 })
@@ -72,6 +75,7 @@ export class CreditosVerificacionesDetalle implements OnInit {
   nivelMaximo = signal(5);
   motivoRechazo = signal('');
   mostrarRechazo = signal(false);
+  private lastFocused: HTMLElement | null = null;
 
   async ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id') || '';
@@ -107,12 +111,12 @@ export class CreditosVerificacionesDetalle implements OnInit {
     return this.usuario()?.verificacion?.documentos?.[campo]?.mimetype === 'application/pdf';
   }
 
-  etiqueta(status: Estado): { texto: string; clase: string } {
+  etiqueta(status: Estado): { texto: string; tone: 'success'|'warning'|'danger'|'info'|'neutral' } {
     switch (status) {
-      case 'verificado': return { texto: 'Verificada', clase: 'badge-success' };
-      case 'en_revision': return { texto: 'En revisión', clase: 'badge-warning' };
-      case 'rechazado': return { texto: 'Rechazada', clase: 'badge-danger' };
-      default: return { texto: 'Sin verificar', clase: 'badge-medium' };
+      case 'verificado': return { texto: 'Verificada', tone: 'success' };
+      case 'en_revision': return { texto: 'En revisión', tone: 'warning' };
+      case 'rechazado': return { texto: 'Rechazada', tone: 'danger' };
+      default: return { texto: 'Sin verificar', tone: 'neutral' };
     }
   }
 
@@ -127,13 +131,19 @@ export class CreditosVerificacionesDetalle implements OnInit {
   }
 
   abrirRechazo() {
+    this.lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.mostrarRechazo.set(true);
+  }
+
+  cerrarRechazo() {
+    this.mostrarRechazo.set(false);
+    const el=this.lastFocused; this.lastFocused=null; setTimeout(()=>el?.focus(),0);
   }
 
   confirmarRechazo() {
     this.procesando.set(true);
     this.http.post(this.api('/verificacion/rechazar'), { motivo: this.motivoRechazo() }).subscribe({
-      next: () => { this.procesando.set(false); this.mostrarRechazo.set(false); this.motivoRechazo.set(''); this.cargar(); },
+      next: () => { this.procesando.set(false); this.mostrarRechazo.set(false); this.motivoRechazo.set(''); this.cargar(); const el=this.lastFocused; this.lastFocused=null; setTimeout(()=>el?.focus(),0); },
       error: (err) => { this.procesando.set(false); this.notifications.fromHttpError(err, 'Error al rechazar'); },
     });
   }
@@ -152,4 +162,7 @@ export class CreditosVerificacionesDetalle implements OnInit {
   volver() {
     this.router.navigate(['/admin/creditos-verificaciones']);
   }
+
+  @HostListener('document:keydown.escape')
+  onEscape() { if (this.mostrarRechazo()) this.cerrarRechazo(); }
 }

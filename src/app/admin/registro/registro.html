@@ -115,10 +115,10 @@
 </div>
 
 @if (mostrarModal && registroSeleccionado) {
-  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (cerrarModal())" tabindex="0" (keydown.enter)="cerrarModal()" (keydown.space)="cerrarModal(); $event.preventDefault()">
-    <div class="modal">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && cerrarModal()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="registro-modal-title">
       <div class="modal-header">
-        <h3>Detalles del Registro</h3>
+        <h3 id="registro-modal-title">Detalles del Registro</h3>
         <button class="btn-cerrar" (click)="cerrarModal()">×</button>
       </div>
       <div class="modal-body">

@@ -47,8 +47,8 @@
 </div>
 
 @if (showModal() && editando) {
-  <div class="modal-overlay">
-    <div class="modal">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && cerrarModal()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="credito-producto-modal-title">
       <div class="modal-header">
         <h2>{{ editando.id ? 'Editar' : 'Nuevo' }} producto</h2>
         <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>

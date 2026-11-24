@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject, computed } from '@angular/core';
+import { Component, HostListener, signal, OnInit, inject, computed } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -38,6 +38,7 @@ export class Clientes implements OnInit {
   nuevaPlanta = signal('');
   saving = signal(false);
   private router = inject(Router);
+  private lastFocused: HTMLElement | null = null;
 
   async ngOnInit() {
     this.loadClientes();
@@ -58,6 +59,7 @@ export class Clientes implements OnInit {
   }
 
   async abrirModal(cliente?: Cliente) {
+    this.lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     if (cliente) {
       this.editingCliente = { ...cliente, plantas: [...cliente.plantas] };
     } else {
@@ -70,6 +72,7 @@ export class Clientes implements OnInit {
     this.showModal.set(false);
     this.editingCliente = null;
     this.nuevaPlanta.set('');
+    const el=this.lastFocused; this.lastFocused=null; setTimeout(()=>el?.focus(),0);
   }
 
   async verDetalle(cliente: Cliente) {
@@ -139,4 +142,7 @@ export class Clientes implements OnInit {
     });
   }
 
+
+  @HostListener('document:keydown.escape')
+  onEscape() { if (this.showModal()) this.cerrarModal(); }
 }

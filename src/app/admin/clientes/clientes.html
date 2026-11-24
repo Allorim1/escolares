@@ -47,10 +47,10 @@
 </div>
 
 @if (showModal()) {
-  <div class="modal-overlay">
-    <div class="modal">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && cerrarModal()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cliente-modal-title">
       <div class="modal-header">
-        <h2>{{ editingCliente?._id ? 'Editar' : 'Nuevo' }} Cliente</h2>
+        <h2 id="cliente-modal-title">{{ editingCliente?._id ? 'Editar' : 'Nuevo' }} Cliente</h2>
         <button type="button" class="btn-cerrar" (click)="cerrarModal()">✕</button>
       </div>
       <form (ngSubmit)="guardarCliente()">

@@ -4,9 +4,9 @@
     <div class="ub-controles">
       <label>
         Radio (km)
-        <input type="number" min="1" step="1" [(ngModel)]="radioKm" (ngModelChange)="recalcular()">
+        <input type="number" min="1" step="1" class="ui-input" style="width:100px;" [(ngModel)]="radioKm" (ngModelChange)="recalcular()" aria-label="Radio en kilómetros">
       </label>
-      <button class="btn-primary" [disabled]="cargando()" (click)="actualizar()">
+      <button type="button" class="ui-btn ui-btn-primary" [disabled]="cargando()" (click)="actualizar()">
         {{ cargando() ? 'Actualizando...' : 'Actualizar' }}
       </button>
     </div>
@@ -15,7 +15,7 @@
   @if (errorMapa()) {
     <div class="ub-error">
       <p>{{ errorMapa() }}</p>
-      <button class="btn-primary" [disabled]="cargando()" (click)="iniciar()">
+      <button type="button" class="ui-btn ui-btn-primary" [disabled]="cargando()" (click)="iniciar()">
         {{ cargando() ? 'Reintentando...' : 'Reintentar' }}
       </button>
     </div>
@@ -30,7 +30,7 @@
     <div class="ub-layout">
       <div class="ub-mapa-wrap">
         @if (cargando()) {
-          <div class="ub-cargando">Cargando ubicaciones...</div>
+          <div class="ub-cargando"><app-skeleton height="100%"></app-skeleton></div>
         }
         <div class="ub-mapa" #mapContainer></div>
       </div>

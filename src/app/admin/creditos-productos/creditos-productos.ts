@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -39,6 +39,7 @@ export class CreditosProductos implements OnInit {
   editando: Producto | null = null;
   paginaActual = signal(1);
   readonly pageSize = 10;
+  private lastFocused: HTMLElement | null = null;
 
   async ngOnInit() {
     this.cargar();
@@ -60,6 +61,7 @@ export class CreditosProductos implements OnInit {
   }
 
   async abrirModal(producto?: Producto) {
+    this.lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.editando = producto
       ? { ...producto }
       : {
@@ -77,6 +79,7 @@ export class CreditosProductos implements OnInit {
   async cerrarModal() {
     this.showModal.set(false);
     this.editando = null;
+    const el=this.lastFocused; this.lastFocused=null; setTimeout(()=>el?.focus(),0);
   }
 
   get totalPaginas(): number { return Math.max(1, Math.ceil(this.productos().length / this.pageSize)); }
@@ -128,4 +131,7 @@ export class CreditosProductos implements OnInit {
       error: (err) => this.notifications.fromHttpError(err, 'Error al eliminar producto'),
     });
   }
+
+  @HostListener('document:keydown.escape')
+  onEscape() { if (this.showModal()) this.cerrarModal(); }
 }

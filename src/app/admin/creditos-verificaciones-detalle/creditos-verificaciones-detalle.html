@@ -2,7 +2,7 @@
   <button class="btn-volver" (click)="volver()">← Volver</button>
 
   @if (loading()) {
-    <div class="loading">Cargando...</div>
+    <app-skeleton height="120px"></app-skeleton>
   } @else if (usuario(); as u) {
     <div class="cabecera">
       <div>
@@ -10,7 +10,7 @@
         <p class="muted">{{ u.telefono }} @if (u.email) { · {{ u.email }} }</p>
       </div>
       <div class="cabecera-derecha">
-        <span class="badge" [class]="etiqueta(u.status).clase">{{ etiqueta(u.status).texto }}</span>
+        <app-status-badge [label]="etiqueta(u.status).texto" [tone]="etiqueta(u.status).tone"></app-status-badge>
         <div class="nivel-control">
           <span>Nivel {{ u.nivel }} de {{ nivelMaximo() }}</span>
           <button (click)="cambiarNivel(-1)" [disabled]="procesando() || u.nivel <= 1">−</button>
@@ -73,7 +73,7 @@
       @if (u.status === 'en_revision') {
         <div class="acciones">
           <button class="btn-aprobar" [disabled]="procesando()" (click)="aprobar()">Aprobar verificación</button>
-          <button class="btn-rechazar" [disabled]="procesando()" (click)="abrirRechazo()">Rechazar</button>
+          <button type="button" class="ui-btn ui-btn-danger" [disabled]="procesando()" (click)="abrirRechazo()">Rechazar</button>
         </div>
       }
     }
@@ -81,19 +81,19 @@
 </div>
 
 @if (mostrarRechazo()) {
-  <div class="modal-overlay">
-    <div class="modal">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && cerrarRechazo()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rechazo-verif-title">
       <div class="modal-header">
         <h2>Rechazar verificación</h2>
         <button type="button" class="btn-cerrar" (click)="mostrarRechazo.set(false)">✕</button>
       </div>
       <div class="form-group">
         <label for="motivo">Motivo (lo verá el usuario)</label>
-        <textarea id="motivo" rows="3" [ngModel]="motivoRechazo()" (ngModelChange)="motivoRechazo.set($event)"></textarea>
+        <textarea id="motivo" class="ui-input" rows="3" [ngModel]="motivoRechazo()" (ngModelChange)="motivoRechazo.set($event)"></textarea>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn-cancel" (click)="mostrarRechazo.set(false)">Cancelar</button>
-        <button type="button" class="btn-delete" [disabled]="procesando()" (click)="confirmarRechazo()">Rechazar</button>
+        <button type="button" class="ui-btn ui-btn-secondary" (click)="cerrarRechazo()">Cancelar</button>
+        <button type="button" class="ui-btn ui-btn-danger" [disabled]="procesando()" (click)="confirmarRechazo()">Rechazar</button>
       </div>
     </div>
   </div>

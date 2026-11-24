@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, HostListener, inject, signal, computed, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -12,6 +12,7 @@ import { OfertasService } from '../../../shared/data-access/ofertas.service';
 import { OfertasBackend } from '../../../backend/data-access/ofertas.backend';
 import { FavoritesService } from '../../../shared/data-access/favorites.service';
 import { Product } from '../../../shared/interfaces/product.interface';
+import { NotificationService } from '../../../shared/data-access/notification.service';
 
 @Component({
   selector: 'app-product-list',
@@ -370,9 +371,20 @@ import { Product } from '../../../shared/interfaces/product.interface';
     .modal-add-to-cart-btn:hover {
       background: #1565c0;
     }
-    @media (max-width: 1400px) { .product-cards { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
-    @media (max-width: 1100px) { .product-cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
-    @media (max-width: 820px) { .product-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+    .product-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.25rem; padding: .5rem 0; }
+    .empty-state { padding: 3rem 1.5rem; text-align: center; background: #f8fafc; border: 1px dashed #d5e1ef; border-radius: 16px; color: #5f7185; }
+    .empty-state h3 { margin: 0 0 .5rem; color: #17365f; font-size: 1.2rem; }
+    .empty-state p { margin: 0 0 1rem; }
+    .empty-state .clear-filters-btn { margin-top: .25rem; }
+    .card-link { text-decoration: none; color: inherit; display: flex; flex-direction: column; flex: 1; }
+    .card-link:focus-visible { outline: 3px solid rgba(29,99,193,.3); outline-offset: -3px; border-radius: 12px; }
+    .quick-view-btn { background: #f3f6fa; color: #425a75; border: 1px solid #dbe5f0; border-radius: 8px; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .quick-view-btn:hover { background: #e8f1fb; color: #1d63c1; border-color: #bfd4ec; }
+    .quick-view-btn:focus-visible, .btn-fav:focus-visible, .qty-btn:focus-visible, .modal-close:focus-visible, .modal-add-to-cart-btn:focus-visible, .clear-filters-btn:focus-visible, .currency-toggle-btn:focus-visible, .pagination button:focus-visible, .category-item:focus-visible, .filter-group input:focus-visible, .filter-group select:focus-visible { outline: 3px solid rgba(29,99,193,.28); outline-offset: 2px; }
+    .modal-overlay { backdrop-filter: blur(2px); }
+    @media (max-width: 1400px) { .product-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    @media (max-width: 1100px) { .product-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 820px) { .product-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 600px) {
       .products-layout { flex-direction: column; }
       .products-sidebar { width: 100%; max-width: 100%; box-sizing: border-box; position: static; }
@@ -381,7 +393,7 @@ import { Product } from '../../../shared/interfaces/product.interface';
       .modal-image-col { padding: 1rem; }
       .modal-info-col { padding-left: 1.5rem; padding-bottom: 1.5rem; }
     }
-    @media (max-width: 420px) { .product-cards { grid-template-columns: 1fr !important; } }
+    @media (max-width: 420px) { .product-cards { grid-template-columns: 1fr; } }
     .card-hover:hover {
       transform: translateY(-8px);
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
@@ -442,11 +454,15 @@ export default class ProductList implements OnInit {
   private ofertasService = inject(OfertasService);
   private ofertasBackend = inject(OfertasBackend);
   favoritesService = inject(FavoritesService);
+  private notificationService = inject(NotificationService);
 
   selectedProduct = signal<Product | null>(null);
   modalQuantity = signal(1);
+  modalImage = signal<string>('');
   mouseX = signal(50);
   mouseY = signal(50);
+  sortOption = signal<'relevance' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'>('relevance');
+  private lastFocused: HTMLElement | null = null;
 
   onMouseMove(event: MouseEvent, isHovering: boolean) {
     if (!isHovering) return;
@@ -480,6 +496,7 @@ export default class ProductList implements OnInit {
 
   addToCardFromCard(product: Product) {
     this.cartState.add({ product, quantity: 1 });
+    this.notificationService.success('Carrito', `${product.title} agregado al carrito`);
   }
 
   increaseCardQuantity(product: Product) {
@@ -497,13 +514,43 @@ export default class ProductList implements OnInit {
     }
   }
 
-  openModal(product: Product) {
+  openModal(product: Product, trigger?: EventTarget | null) {
+    this.lastFocused = (trigger instanceof HTMLElement ? trigger : (document.activeElement instanceof HTMLElement ? document.activeElement : null));
     this.selectedProduct.set(product);
     this.modalQuantity.set(1);
+    this.modalImage.set(product.image);
   }
 
   closeModal() {
     this.selectedProduct.set(null);
+    const el = this.lastFocused;
+    this.lastFocused = null;
+    setTimeout(() => el?.focus(), 0);
+  }
+
+  setModalImage(img: string) {
+    this.modalImage.set(img);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    if (this.selectedProduct()) this.closeModal();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onModalKeydown(event: KeyboardEvent) {
+    if (!this.selectedProduct() || event.key !== 'Tab') return;
+    const modal = document.querySelector<HTMLElement>('.modal-content');
+    if (!modal) return;
+    const focusables = Array.from(modal.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter((el) => el.offsetParent !== null || getComputedStyle(el).position === 'fixed');
+    if (!focusables.length) { event.preventDefault(); return; }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && active === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
   }
 
   navigateToProduct(product: Product) {
@@ -528,6 +575,7 @@ export default class ProductList implements OnInit {
       product,
       quantity: this.modalQuantity(),
     });
+    this.notificationService.success('Carrito', `${product.title} agregado al carrito`);
     this.closeModal();
   }
 
@@ -666,7 +714,7 @@ export default class ProductList implements OnInit {
     const maxPriceBs = this.filterPriceMaxBs();
     const tasa = this.currencyService.currentTasa() || 1;
 
-    return list.filter((p) => {
+    const filtered = list.filter((p) => {
       const title = (p.title || '').toString().toLowerCase();
       const description = (p.description || '').toString().toLowerCase();
       const categoryValue = (p.category || '').toString().toLowerCase();
@@ -674,43 +722,38 @@ export default class ProductList implements OnInit {
       const priceUsd = typeof p.price === 'number' ? p.price : Number(p.price || 0);
       const priceBs = priceUsd * tasa;
 
-      // text filter
-      if (text && !title.includes(text) && !description.includes(text)) {
-        return false;
-      }
-      // category filter
-      if (category && categoryValue !== category.toLowerCase()) {
-        return false;
-      }
-      // brand filter
-      if (brand && brandValue !== brand.toLowerCase()) {
-        return false;
-      }
-      // price range filter in USD
-      if (minPriceUsd !== null && priceUsd < minPriceUsd) {
-        return false;
-      }
-      if (maxPriceUsd !== null && priceUsd > maxPriceUsd) {
-        return false;
-      }
-      // price range filter in Bs
-      if (minPriceBs !== null && priceBs < minPriceBs) {
-        return false;
-      }
-      if (maxPriceBs !== null && priceBs > maxPriceBs) {
-        return false;
-      }
+      if (text && !title.includes(text) && !description.includes(text)) return false;
+      if (category && categoryValue !== category.toLowerCase()) return false;
+      if (brand && brandValue !== brand.toLowerCase()) return false;
+      if (minPriceUsd !== null && priceUsd < minPriceUsd) return false;
+      if (maxPriceUsd !== null && priceUsd > maxPriceUsd) return false;
+      if (minPriceBs !== null && priceBs < minPriceBs) return false;
+      if (maxPriceBs !== null && priceBs > maxPriceBs) return false;
       return true;
     });
+
+    const sort = this.sortOption();
+    const effectivePrice = (p: Product) => this.getOfertaPrice(p) ?? p.price;
+    if (sort === 'price-asc') filtered.sort((a, b) => effectivePrice(a) - effectivePrice(b));
+    else if (sort === 'price-desc') filtered.sort((a, b) => effectivePrice(b) - effectivePrice(a));
+    else if (sort === 'name-asc') filtered.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'es'));
+    else if (sort === 'name-desc') filtered.sort((a, b) => (b.title || '').localeCompare(a.title || '', 'es'));
+    return filtered;
+  });
+
+  readonly pageSize = 25;
+
+  totalPages = computed(() => {
+    const total = this.filteredProducts().length;
+    return Math.max(1, Math.ceil(total / this.pageSize));
   });
 
   // paginated filtered products - pagination happens client-side on filtered results
   paginatedProducts = computed(() => {
     const page = this.productsState.state.page();
-    const pageSize = 25;
-    const start = (page - 1) * pageSize;
+    const start = (page - 1) * this.pageSize;
     const filtered = this.filteredProducts() || [];
-    return filtered.slice(start, start + pageSize);
+    return filtered.slice(start, start + this.pageSize);
   });
 
   clearFilters() {
@@ -721,6 +764,7 @@ export default class ProductList implements OnInit {
     this.filterPriceMax.set(null);
     this.filterPriceMinBs.set(null);
     this.filterPriceMaxBs.set(null);
+    this.sortOption.set('relevance');
     this.productsState.reset();
   }
 

@@ -49,7 +49,7 @@ import { Product } from '../shared/interfaces/product.interface';
           transition: none !important;
           animation: none !important;
         }
-        .carousel-track, .product-card, .marca-logo-wrap, .noticia-card, .feature-card, .hero-btn, .newsletter-form button, .whatsapp-float {
+        .carousel-track, .product-card, .product-image, .marca-logo-wrap, .noticia-card, .feature-card, .hero-btn, .newsletter-form button, .whatsapp-float {
           transition: none !important;
           animation: none !important;
         }
@@ -481,14 +481,17 @@ import { Product } from '../shared/interfaces/product.interface';
         font-weight: 700;
         letter-spacing: .01em;
       }
-      .product-image-wrap { background: #f7faff; padding: 1rem; }
+      .product-image-wrap { background: #f7faff; padding: 1rem; overflow: hidden; }
       .product-image {
         width: 100%;
         aspect-ratio: 1 / 1;
         object-fit: contain;
         display: block;
         mix-blend-mode: multiply;
+        transition: transform .4s ease;
       }
+      .product-card:hover .product-image,
+      .product-card:focus-visible .product-image { transform: scale(1.05); }
       .product-info {
         display: flex;
         flex-direction: column;

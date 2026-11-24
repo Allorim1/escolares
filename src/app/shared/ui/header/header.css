@@ -635,7 +635,11 @@ header.app-header {
   padding: 0 5px;
   border: 2px solid #1d63c1;
   box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  transition: transform .18s ease;
 }
+.cart-count-pop { animation: cart-pop .18s ease; }
+@keyframes cart-pop { 0%{transform:scale(1)} 50%{transform:scale(1.2)} 100%{transform:scale(1)} }
+@media (prefers-reduced-motion: reduce) { .cart-count-pop { animation: none; } .cart-count { transition: none; } }
 
 .cart-preview-dropdown {
    position: absolute;

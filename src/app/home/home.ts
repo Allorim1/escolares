@@ -615,7 +615,10 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private autoScrollInterval: ReturnType<typeof setInterval> | null = null;
   private revealObserver: IntersectionObserver | null = null;
+  private brandObserver: IntersectionObserver | null = null;
+  private brandsVisible = true;
   private prefersReducedMotion = false;
+  private visibilityHandler = () => this.syncBrandAutoplay();
 
   get duplicatedMarcas() {
     const marcasValue = this.marcas();
@@ -635,12 +638,12 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (!this.prefersReducedMotion) {
-        this.autoScrollInterval = setInterval(() => this.next(), 3000);
-      }
       this.setupRevealObserver();
-      this.revealElements?.changes?.subscribe(() => this.observeRevealElements());
+      this.revealElements?.changes?.subscribe(() => { this.observeRevealElements(); this.setupBrandObserver(); });
       this.observeRevealElements();
+      this.setupBrandObserver();
+      document.addEventListener('visibilitychange', this.visibilityHandler);
+      this.syncBrandAutoplay();
     }
   }
 
@@ -649,6 +652,8 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       clearInterval(this.autoScrollInterval);
     }
     this.revealObserver?.disconnect();
+    this.brandObserver?.disconnect();
+    if (isPlatformBrowser(this.platformId)) document.removeEventListener('visibilitychange', this.visibilityHandler);
   }
 
   ngOnInit(): void {
@@ -782,9 +787,29 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   resumeAutoScroll() {
-    if (!this.autoScrollInterval && isPlatformBrowser(this.platformId) && !this.prefersReducedMotion) {
+    this.syncBrandAutoplay();
+  }
+
+  private syncBrandAutoplay() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const shouldRun = !this.prefersReducedMotion && this.brandsVisible && document.visibilityState === 'visible';
+    if (shouldRun && !this.autoScrollInterval) {
       this.autoScrollInterval = setInterval(() => this.next(), 3000);
+    } else if (!shouldRun && this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
+      this.autoScrollInterval = null;
     }
+  }
+
+  private setupBrandObserver() {
+    if (this.brandObserver || !isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+    const section = document.querySelector('.home-brands-section');
+    if (!section) return;
+    this.brandObserver = new IntersectionObserver((entries) => {
+      this.brandsVisible = !!entries[0]?.isIntersecting;
+      this.syncBrandAutoplay();
+    }, { threshold: 0.15 });
+    this.brandObserver.observe(section);
   }
 
   get productosDestacados() {

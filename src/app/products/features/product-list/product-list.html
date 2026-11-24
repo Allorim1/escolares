@@ -1,5 +1,15 @@
 @if (productsState.state.status() === 'loading') {
-  <app-loading message="Cargando productos..."></app-loading>
+  <div class="products-layout">
+    <aside class="products-sidebar" aria-hidden="true"><div class="sidebar-section"><div class="sk-line w60"></div><div class="sk-line"></div><div class="sk-line w80"></div><div class="sk-line"></div></div></aside>
+    <main class="products-main">
+      <div class="filter-section"><div class="sk-line w40"></div></div>
+      <div class="skeleton-grid" aria-hidden="true">
+        @for (i of [1,2,3,4,5,6,7,8,9,10]; track i) {
+          <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line w80"></div><div class="sk-line"></div><div class="sk-line w40"></div></div></div>
+        }
+      </div>
+    </main>
+  </div>
 } @else {
   <div class="products-layout">
     <button type="button" class="filters-toggle-btn" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="products-filters">
@@ -208,7 +218,7 @@
                     <button type="button" class="qty-btn" style="width:34px; height:34px; border:1px solid #ddd; background:#f8f8f8; border-radius:8px; font-size:1.1rem; cursor:pointer;" (click)="increaseCardQuantity(product)" aria-label="Aumentar cantidad">+</button>
                   </div>
                 } @else {
-                  <button type="button" class="btn-primary-cta" (click)="addToCardFromCard(product)">Agregar</button>
+                  <button type="button" class="btn-primary-cta" [class.added]="isJustAdded(product.id)" (click)="addToCardFromCard(product)">{{ isJustAdded(product.id) ? "Agregado ✓" : "Agregar" }}</button>
                 }
               } @else {
                 <a [routerLink]="[product.id]" class="btn btn-primary" style="flex:1; height:38px; padding:.55rem .5rem; font-size:.78rem;">Ver detalle</a>
@@ -246,13 +256,13 @@
           <img 
             [src]="modalImage() || product.image" 
             [alt]="product.title" 
-            class="modal-product-image" 
+            class="modal-product-image" [class.modal-img-fade]="modalImgFade()" 
             [style]="getZoomStyle()"
           />
           @if (product.images && product.images.length > 0) {
             <div class="modal-thumbnails" style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
               @for (img of product.images; track img) {
-                <button type="button" class="modal-thumbnail-btn" (click)="setModalImage(img)" [attr.aria-label]="'Ver imagen de ' + product.title" style="padding:0;border:2px solid transparent;border-radius:4px;background:none;cursor:pointer;">
+                <button type="button" class="modal-thumbnail-btn" (click)="setModalImage(img)" [attr.aria-label]="'Ver imagen de ' + product.title" [style.border-color]="(modalImage() || product.image) === img ? '#1d63c1' : 'transparent'" [style.opacity]="(modalImage() || product.image) === img ? '1' : '.72'" style="padding:0;border:2px solid transparent;border-radius:4px;background:none;cursor:pointer;transition:opacity .15s ease,border-color .15s ease;">
                   <img [src]="img" [alt]="product.title" class="modal-thumbnail" style="width:50px; height:50px; object-fit:cover; border-radius:4px; display:block;" />
                 </button>
               }

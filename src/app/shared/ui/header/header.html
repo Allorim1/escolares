@@ -237,7 +237,7 @@
               <path d="M3 4h2l2.2 10.5a2 2 0 0 0 2 1.5h7.9a2 2 0 0 0 2-1.6L20 7H6" />
             </svg>
             @if (cartCount() > 0) {
-              <span class="cart-count">{{ cartCount() }}</span>
+              <span class="cart-count" [class.cart-count-pop]="cartPop()">{{ cartCount() }}</span>
             }
           </a>
 

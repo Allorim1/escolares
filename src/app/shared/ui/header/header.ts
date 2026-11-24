@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy, effect } from '@angular/core';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, Direccion } from '../../data-access/auth.service';
@@ -25,6 +25,8 @@ export class Header implements OnInit, OnDestroy {
   cartPreviewOpen = signal(false);
   addressPopoverOpen = signal(false);
   selectedAddressId = signal<string | null>(null);
+  cartPop = signal(false);
+  private lastCartCount = -1;
 
   unreadCount = computed(() => this.noticiasService.userNotificaciones().filter(n => !n.leido).length);
   isAdminRoute = signal(false);
@@ -61,6 +63,15 @@ export class Header implements OnInit, OnDestroy {
     });
     this.initDarkMode();
     this.loadNotificationCount();
+    effect(() => {
+      const count = this.cartCount();
+      if (this.lastCartCount === -1) { this.lastCartCount = count; return; }
+      if (count !== this.lastCartCount) {
+        this.lastCartCount = count;
+        this.cartPop.set(true);
+        setTimeout(() => this.cartPop.set(false), 180);
+      }
+    });
   }
 
   ngOnInit() {

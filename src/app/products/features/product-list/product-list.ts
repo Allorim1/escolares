@@ -3,7 +3,6 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { ProductsStateService } from '../../data-access/products-state.service';
-import { LoadingComponent } from '../../../shared/ui/loading/loading';
 import { CurrencyService } from '../../../shared/data-access/currency.service';
 import { AuthService } from '../../../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../../../shared/data-access/api-key-status.service';
@@ -16,7 +15,7 @@ import { NotificationService } from '../../../shared/data-access/notification.se
 
 @Component({
   selector: 'app-product-list',
-  imports: [RouterLink, FormsModule, LoadingComponent],
+  imports: [RouterLink, FormsModule],
   templateUrl: './product-list.html',
   styles: `
     .products-layout {
@@ -393,6 +392,20 @@ import { NotificationService } from '../../../shared/data-access/notification.se
     .btn-primary-cta { display:inline-flex; align-items:center; justify-content:center; background:#1d63c1; color:#fff; border:none; border-radius:8px; padding:.55rem .5rem; font-size:.78rem; font-weight:600; cursor:pointer; transition: background .2s, transform .15s ease, box-shadow .2s; flex:1; height:38px; box-shadow:0 2px 8px rgba(29,99,193,.18); }
     .btn-primary-cta:hover { background:#155a9e; }
     .btn-primary-cta:active { transform: scale(.98); }
+    .btn-primary-cta.added { background:#1f7a45; box-shadow:0 2px 8px rgba(31,122,69,.18); }
+    .modal-product-image { transition: opacity .15s ease; }
+    .modal-product-image.modal-img-fade { opacity: .25; }
+    .skeleton-grid { display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap:1.25rem; padding:.5rem 0; }
+    .skeleton-card { background:#fff; border:1px solid #e6edf5; border-radius:12px; overflow:hidden; }
+    .sk-img { height:190px; background:linear-gradient(90deg,#eef3f8 25%,#f7faff 37%,#eef3f8 63%); background-size:400% 100%; animation: pl-shimmer 1.3s ease-in-out infinite; }
+    .sk-body { padding:.85rem; }
+    .sk-line { height:12px; border-radius:6px; margin-bottom:.6rem; background:linear-gradient(90deg,#eef3f8 25%,#f7faff 37%,#eef3f8 63%); background-size:400% 100%; animation: pl-shimmer 1.3s ease-in-out infinite; }
+    .sk-line.w60{width:60%} .sk-line.w80{width:80%} .sk-line.w40{width:40%; height:16px; margin-top:.8rem}
+    @keyframes pl-shimmer { 0%{background-position:100% 0} 100%{background-position:0 0} }
+    @media (max-width: 1400px) { .skeleton-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+    @media (max-width: 1100px) { .skeleton-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    @media (max-width: 820px) { .skeleton-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 420px) { .skeleton-grid { grid-template-columns: 1fr; } }
     .qty-btn { transition: background .2s, transform .15s ease; }
     .qty-btn:active { transform: scale(.96); }
     .btn-fav { transition: transform .15s ease, filter .2s ease; }
@@ -477,6 +490,8 @@ export default class ProductList implements OnInit {
   modalClosing = signal(false);
   modalQuantity = signal(1);
   modalImage = signal<string>('');
+  modalImgFade = signal(false);
+  addedProductIds = signal<Set<string | number>>(new Set());
   mouseX = signal(50);
   mouseY = signal(50);
   sortOption = signal<'relevance' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'>('relevance');
@@ -516,6 +531,14 @@ export default class ProductList implements OnInit {
   addToCardFromCard(product: Product) {
     this.cartState.add({ product, quantity: 1 });
     this.notificationService.success('Carrito', `${product.title} agregado al carrito`);
+    const next = new Set(this.addedProductIds());
+    next.add(product.id);
+    this.addedProductIds.set(next);
+    setTimeout(() => {
+      const n = new Set(this.addedProductIds());
+      n.delete(product.id);
+      this.addedProductIds.set(n);
+    }, 900);
   }
 
   increaseCardQuantity(product: Product) {
@@ -557,7 +580,11 @@ export default class ProductList implements OnInit {
   }
 
   setModalImage(img: string) {
-    this.modalImage.set(img);
+    if (this.modalImage() === img) return;
+    const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) { this.modalImage.set(img); return; }
+    this.modalImgFade.set(true);
+    setTimeout(() => { this.modalImage.set(img); this.modalImgFade.set(false); }, 120);
   }
 
   @HostListener('document:keydown.escape')
@@ -797,6 +824,7 @@ export default class ProductList implements OnInit {
   }
 
   toggleFilters() { this.filtersOpen.set(!this.filtersOpen()); }
+  isJustAdded(id: string | number) { return this.addedProductIds().has(id); }
 
   activeFilterChips = computed(() => {
     const chips: Array<{ key: string; label: string; clear: () => void }> = [];

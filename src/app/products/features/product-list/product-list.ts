@@ -390,6 +390,9 @@ import { NotificationService } from '../../../shared/data-access/notification.se
     .clear-filters-btn:hover { background:#f8fbff; color:#1d63c1; border-color:#bfd4ec; }
     .currency-toggle-btn { display:inline-flex; align-items:center; justify-content:center; min-width:52px; height:40px; padding:0 .9rem; border-radius:10px; border:1px solid #d6e2f0; background:#fff; color:#1d63c1; font-weight:700; cursor:pointer; transition: all .2s; }
     .currency-toggle-btn:hover { background:#f3f8fd; border-color:#bfd4ec; }
+    .btn-primary-cta { display:inline-flex; align-items:center; justify-content:center; background:#1d63c1; color:#fff; border:none; border-radius:8px; padding:.55rem .5rem; font-size:.78rem; font-weight:600; cursor:pointer; transition: background .2s, transform .15s ease, box-shadow .2s; flex:1; height:38px; box-shadow:0 2px 8px rgba(29,99,193,.18); }
+    .btn-primary-cta:hover { background:#155a9e; }
+    .btn-primary-cta:active { transform: scale(.98); }
     .qty-btn { transition: background .2s, transform .15s ease; }
     .qty-btn:active { transform: scale(.96); }
     .btn-fav { transition: transform .15s ease, filter .2s ease; }

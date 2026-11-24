@@ -370,31 +370,18 @@ import { Product } from '../../../shared/interfaces/product.interface';
     .modal-add-to-cart-btn:hover {
       background: #1565c0;
     }
+    @media (max-width: 1400px) { .product-cards { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
+    @media (max-width: 1100px) { .product-cards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+    @media (max-width: 820px) { .product-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
     @media (max-width: 600px) {
-      .products-layout {
-        flex-direction: column;
-      }
-      .products-sidebar {
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        position: static;
-      }
-      .products-main {
-        min-width: 0;
-        max-width: 100%;
-      }
-      .modal-product-card {
-        grid-template-columns: 1fr;
-      }
-      .modal-image-col {
-        padding: 1rem;
-      }
-      .modal-info-col {
-        padding-left: 1.5rem;
-        padding-bottom: 1.5rem;
-      }
+      .products-layout { flex-direction: column; }
+      .products-sidebar { width: 100%; max-width: 100%; box-sizing: border-box; position: static; }
+      .products-main { min-width: 0; max-width: 100%; }
+      .modal-product-card { grid-template-columns: 1fr; }
+      .modal-image-col { padding: 1rem; }
+      .modal-info-col { padding-left: 1.5rem; padding-bottom: 1.5rem; }
     }
+    @media (max-width: 420px) { .product-cards { grid-template-columns: 1fr !important; } }
     .card-hover:hover {
       transform: translateY(-8px);
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
@@ -720,7 +707,7 @@ export default class ProductList implements OnInit {
   // paginated filtered products - pagination happens client-side on filtered results
   paginatedProducts = computed(() => {
     const page = this.productsState.state.page();
-    const pageSize = 28;
+    const pageSize = 25;
     const start = (page - 1) * pageSize;
     const filtered = this.filteredProducts() || [];
     return filtered.slice(start, start + pageSize);

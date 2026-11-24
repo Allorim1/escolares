@@ -116,7 +116,7 @@
     <div class="newsletter-content">
       <p class="section-eyebrow">Novedades</p>
       <h2 id="newsletter-title">Recibe ofertas y novedades</h2>
-      <p class="newsletter-copy">Suscríbete para enterarte de nuevos productos, promociones y colecciones antes que nadie.</p>
+      <p class="newsletter-copy">Déjanos tu correo y te avisaremos cuando activemos novedades y promociones por email.</p>
       <form class="newsletter-form" (ngSubmit)="suscribirse()">
         <label class="visually-hidden" for="newsletter-email">Correo electrónico</label>
         <input
@@ -132,7 +132,7 @@
         <button type="submit">Suscribirme</button>
       </form>
       @if (mensajeSuscrito()) {
-        <p class="newsletter-message" [class.success]="mensajeSuscrito().includes('Gracias')" role="status" aria-live="polite">
+        <p class="newsletter-message" [class.success]="mensajeSuscrito().includes('suscripci')" [class.info]="mensajeSuscrito().includes('interés') || mensajeSuscrito().includes('habilitaremos')" role="status" aria-live="polite">
           {{ mensajeSuscrito() }}
         </p>
       }
@@ -209,14 +209,7 @@
     </div>
   </div>
   </section>
-  <!--
-  <h1>Escolares</h1>
-
-  <div class="home-buttons">
-    <button class="btn-products" routerLink="/products">Productos</button>
-  </div>
--->
-  <a href="https://wa.me/584241234567" target="_blank" class="whatsapp-float">
+  <a href="https://wa.me/584241234567" target="_blank" rel="noopener noreferrer" class="whatsapp-float" aria-label="Contactar por WhatsApp">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
   </a>
   </div>
@@ -224,7 +217,7 @@
   <main class="mobile-home-view">
     <section class="mobile-home-intro" aria-labelledby="mobile-home-title">
       <p class="mobile-eyebrow">Escolares</p>
-      <h1 id="mobile-home-title">Encuentra lo que necesitas</h1>
+      <h2 id="mobile-home-title">Encuentra lo que necesitas</h2>
       <p>Busca tus productos y explora el catálogo en pocos pasos.</p>
 
       <form class="mobile-search-form" (ngSubmit)="searchMobileProducts()">

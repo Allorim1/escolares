@@ -32,8 +32,8 @@ import { Product } from '../shared/interfaces/product.interface';
     `
       .reveal-init {
         opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s ease-out;
+        transform: translateY(24px);
+        transition: opacity .6s ease-out, transform .6s ease-out;
       }
 
       .reveal-active,
@@ -42,14 +42,16 @@ import { Product } from '../shared/interfaces/product.interface';
         transform: translateY(0);
       }
 
-      .reveal-init:not(.reveal-active) {
-        animation: reveal-safety 0.01s 1.8s forwards;
-      }
-
-      @keyframes reveal-safety {
-        to {
-          opacity: 1;
-          transform: translateY(0);
+      @media (prefers-reduced-motion: reduce) {
+        .reveal-init, .reveal-active, .reveal-init.reveal-fallback {
+          opacity: 1 !important;
+          transform: none !important;
+          transition: none !important;
+          animation: none !important;
+        }
+        .carousel-track, .product-card, .marca-logo-wrap, .noticia-card, .feature-card, .hero-btn, .newsletter-form button, .whatsapp-float {
+          transition: none !important;
+          animation: none !important;
         }
       }
 
@@ -323,6 +325,7 @@ import { Product } from '../shared/interfaces/product.interface';
         background: rgba(255,255,255,.14); color: #fff; font-size: .9rem; font-weight: 600;
       }
       .newsletter-message.success { background: rgba(220,252,231,.18); color: #dcfce7; }
+      .newsletter-message.info { background: rgba(254,243,199,.18); color: #fef3c7; }
       .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
       @media (max-width: 640px) {
         .newsletter-section { padding: 0 .75rem; margin-bottom: 2.75rem; }
@@ -608,6 +611,8 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   mensajeSuscrito = signal('');
 
   private autoScrollInterval: ReturnType<typeof setInterval> | null = null;
+  private revealObserver: IntersectionObserver | null = null;
+  private prefersReducedMotion = false;
 
   get duplicatedMarcas() {
     const marcasValue = this.marcas();
@@ -626,14 +631,13 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.autoScrollInterval = setInterval(() => {
-        this.next();
-      }, 3000);
-
-      this.revealElements?.changes?.subscribe(() => {
-        this.revealAll();
-      });
-      this.revealAll();
+      this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!this.prefersReducedMotion) {
+        this.autoScrollInterval = setInterval(() => this.next(), 3000);
+      }
+      this.setupRevealObserver();
+      this.revealElements?.changes?.subscribe(() => this.observeRevealElements());
+      this.observeRevealElements();
     }
   }
 
@@ -641,6 +645,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.autoScrollInterval) {
       clearInterval(this.autoScrollInterval);
     }
+    this.revealObserver?.disconnect();
   }
 
   ngOnInit(): void {
@@ -666,7 +671,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       const products = this.productsState.allProducts();
       if ((Array.isArray(products) && products.length > 0) || this.noticiasLoaded()) {
         this.cdr.detectChanges();
-        this.revealAll();
+        this.observeRevealElements();
         return true;
       }
       attempts++;
@@ -674,7 +679,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         setTimeout(checkData, 100);
       } else {
         this.cdr.detectChanges();
-        this.revealAll();
+        this.observeRevealElements();
       }
       return false;
     };
@@ -688,13 +693,13 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.noticias.set(this.noticiasService.activeNoticias());
         this.noticiasLoaded.set(true);
         this.cdr.detectChanges();
-        this.revealAll();
+        this.observeRevealElements();
       },
       error: (err) => {
         console.error('Error loading noticias:', err);
         this.noticiasLoaded.set(true);
         this.cdr.detectChanges();
-        this.revealAll();
+        this.observeRevealElements();
       },
     });
   }
@@ -708,26 +713,34 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private revealAll() {
-    setTimeout(() => {
-      if (!this.revealElements?.length) {
-        // Fallback: si ViewChildren no está listo, revela por selector
-        document.querySelectorAll('.reveal-init:not(.reveal-active)').forEach((el) => {
-          el.classList.add('reveal-active');
-        });
-        return;
-      }
-      this.revealElements.forEach((el) => {
-        if (el?.nativeElement) {
-          el.nativeElement.classList.add('reveal-active');
+  private setupRevealObserver() {
+    if (this.revealObserver || this.prefersReducedMotion) return;
+    this.revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-active');
+          this.revealObserver?.unobserve(entry.target);
         }
       });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }
+
+  private observeRevealElements() {
+    setTimeout(() => {
+      const elements = this.revealElements?.length
+        ? this.revealElements.map((el) => el.nativeElement)
+        : Array.from(document.querySelectorAll('.reveal-init:not(.reveal-active)'));
+      if (this.prefersReducedMotion || !this.revealObserver) {
+        elements.forEach((el) => el?.classList.add('reveal-active'));
+        return;
+      }
+      elements.forEach((el) => { if (el && !el.classList.contains('reveal-active')) this.revealObserver!.observe(el); });
     }, 50);
   }
 
   suscribirse() {
     if (this.emailSuscrito && this.emailSuscrito.includes('@')) {
-      this.mensajeSuscrito.set('¡Gracias por suscribirte!');
+      this.mensajeSuscrito.set('Gracias por tu interés. Pronto habilitaremos esta suscripción.');
       this.emailSuscrito = '';
       setTimeout(() => this.mensajeSuscrito.set(''), 3000);
     } else {
@@ -766,10 +779,8 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   resumeAutoScroll() {
-    if (!this.autoScrollInterval && isPlatformBrowser(this.platformId)) {
-      this.autoScrollInterval = setInterval(() => {
-        this.next();
-      }, 3000);
+    if (!this.autoScrollInterval && isPlatformBrowser(this.platformId) && !this.prefersReducedMotion) {
+      this.autoScrollInterval = setInterval(() => this.next(), 3000);
     }
   }
 

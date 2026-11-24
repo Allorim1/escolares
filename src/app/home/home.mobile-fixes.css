@@ -31,7 +31,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-  .mobile-home-intro h1 {
+  .mobile-home-intro h2 {
     margin: 0;
     color: #17365f;
     font-size: clamp(1.6rem, 7vw, 2rem);

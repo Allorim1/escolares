@@ -1,14 +1,18 @@
 <section>
   <div class="desktop-home-view">
   <div class="hero-container reveal-init" #revealElement>
-    <div class="banner-carousel">
-      <button class="banner-btn prev" (click)="prevBanner()">‹</button>
-      <div class="banner-slide active">
-        <img src="/banner principal.png" alt="Banner principal" class="main-banner" />
+    <div class="hero-banner">
+      <img src="/banner principal.png" alt="Escolares - útiles y productos escolares" class="main-banner" />
+      <div class="hero-overlay">
+        <p class="hero-eyebrow">Escolares</p>
+        <h1 class="hero-title">Todo lo que necesitas para el día a día</h1>
+        <p class="hero-subtitle">Útiles, papelería y productos de calidad para estudio, oficina y hogar.</p>
+        <div class="hero-actions">
+          <a routerLink="/products" class="hero-btn hero-btn-primary">Ver catálogo</a>
+          <a routerLink="/products" class="hero-btn hero-btn-secondary">Explorar productos</a>
+        </div>
       </div>
-      <button class="banner-btn next" (click)="nextBanner()">›</button>
     </div>
-
   </div>
 
 @if (duplicatedMarcas.length > 0) {
@@ -33,90 +37,97 @@
    }
 
 @if (productosDestacados().length > 0) {
-       <section class="productos-carousel-section reveal-init" #revealElement>
-         <h2 class="carousel-title">Productos Destacados</h2>
-         <div class="productos-carousel" (mouseenter)="pauseProductosDestacadosScroll()" (mouseleave)="resumeProductosDestacadosScroll()">
-           <button class="carousel-btn prev" (click)="prevProductosDestacados()">‹</button>
-           <div class="productos-carousel-viewport">
-             <div class="productos-carousel-track" [style.transform]="'translateX(-' + productosDestacadosIndex * 216 + 'px)'">
-               @for (product of productosDestacadosDuplicados; track product.id + '-destacado-' + $index) {
-                 <div class="producto-slide" [routerLink]="['/products', product.id]">
-                   <img [src]="product.image" [alt]="product.title" class="producto-image" loading="lazy" onerror="this.src='/placeholder.png'" />
-                   <div class="producto-info">
-                     <h3 class="producto-title">{{ product.title }}</h3>
-                     @if (product.enOferta) {
-                       <div class="producto-price oferta">
-                         <span class="precio-original" [innerHTML]="formatPrice(product.price)"></span>
-                         <span class="precio-oferta" [innerHTML]="formatPrice(product.ofertaPrecio!)"></span>
-                       </div>
-                     } @else {
-                       <p class="producto-price" [innerHTML]="formatPrice(product.price)"></p>
-                     }
-                   </div>
-                 </div>
-               }
-             </div>
-           </div>
-           <button class="carousel-btn next" (click)="nextProductosDestacados()">›</button>
-         </div>
-       </section>
-     }
+      <section class="home-products-section reveal-init" #revealElement>
+        <div class="section-heading">
+          <div>
+            <p class="section-eyebrow">Selección popular</p>
+            <h2 class="section-title">Productos destacados</h2>
+          </div>
+          <a routerLink="/products" class="section-link">Ver todo</a>
+        </div>
+        <div class="products-grid">
+          @for (product of productosDestacados().slice(0, 8); track product.id) {
+            <a class="product-card" [routerLink]="['/products', product.id]">
+              @if (product.enOferta) { <span class="product-badge">Oferta</span> }
+              <div class="product-image-wrap">
+                <img [src]="product.image" [alt]="product.title" class="product-image" loading="lazy" onerror="this.src='/placeholder.png'" />
+              </div>
+              <div class="product-info">
+                <h3 class="product-title">{{ product.title }}</h3>
+                @if (product.enOferta) {
+                  <div class="product-price oferta">
+                    <span class="precio-oferta" [innerHTML]="formatPrice(product.ofertaPrecio!)"></span>
+                    <span class="precio-original" [innerHTML]="formatPrice(product.price)"></span>
+                  </div>
+                } @else {
+                  <p class="product-price" [innerHTML]="formatPrice(product.price)"></p>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      </section>
+    }
 
-     @if (productosRecomendados().length > 0) {
-       <section class="productos-carousel-section reveal-init" #revealElement>
-         <h2 class="carousel-title">Productos Recomendados</h2>
-         <div class="productos-carousel" (mouseenter)="pauseProductosRecomendadosScroll()" (mouseleave)="resumeProductosRecomendadosScroll()">
-           <button class="carousel-btn prev" (click)="prevProductosRecomendados()">‹</button>
-           <div class="productos-carousel-viewport">
-             <div class="productos-carousel-track" [style.transform]="'translateX(-' + productosRecomendadosIndex * 216 + 'px)'">
-               @for (product of productosRecomendadosDuplicados; track product.id + '-recomendado-' + $index) {
-                 <div class="producto-slide" [routerLink]="['/products', product.id]">
-                   <img [src]="product.image" [alt]="product.title" class="producto-image" loading="lazy" onerror="this.src='/placeholder.png'" />
-                   <div class="producto-info">
-                     <h3 class="producto-title">{{ product.title }}</h3>
-                     @if (product.enOferta) {
-                       <div class="producto-price oferta">
-                         <span class="precio-original" [innerHTML]="formatPrice(product.price)"></span>
-                         <span class="precio-oferta" [innerHTML]="formatPrice(product.ofertaPrecio!)"></span>
-                       </div>
-                     } @else {
-                       <p class="producto-price" [innerHTML]="formatPrice(product.price)"></p>
-                     }
-                   </div>
-                 </div>
-               }
-             </div>
-           </div>
-           <button class="carousel-btn next" (click)="nextProductosRecomendados()">›</button>
-         </div>
-       </section>
-     }
+    @if (productosRecomendados().length > 0) {
+      <section class="home-products-section reveal-init" #revealElement>
+        <div class="section-heading">
+          <div>
+            <p class="section-eyebrow">Para ti</p>
+            <h2 class="section-title">Productos recomendados</h2>
+          </div>
+          <a routerLink="/products" class="section-link">Explorar catálogo</a>
+        </div>
+        <div class="products-grid">
+          @for (product of productosRecomendados().slice(0, 8); track product.id) {
+            <a class="product-card" [routerLink]="['/products', product.id]">
+              @if (product.enOferta) { <span class="product-badge">Oferta</span> }
+              <div class="product-image-wrap">
+                <img [src]="product.image" [alt]="product.title" class="product-image" loading="lazy" onerror="this.src='/placeholder.png'" />
+              </div>
+              <div class="product-info">
+                <h3 class="product-title">{{ product.title }}</h3>
+                @if (product.enOferta) {
+                  <div class="product-price oferta">
+                    <span class="precio-oferta" [innerHTML]="formatPrice(product.ofertaPrecio!)"></span>
+                    <span class="precio-original" [innerHTML]="formatPrice(product.price)"></span>
+                  </div>
+                } @else {
+                  <p class="product-price" [innerHTML]="formatPrice(product.price)"></p>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      </section>
+    }
 
-   <div class="newsletter-section reveal-init" #revealElement>
+     <section class="newsletter-section reveal-init" #revealElement aria-labelledby="newsletter-title">
     <div class="newsletter-content">
-      <h2>Suscribirse a nuestros correos electrónicos</h2>
-      <p>Conoce las nuevas colecciones y ofertas exclusivas antes que nadie.</p>
+      <p class="section-eyebrow">Novedades</p>
+      <h2 id="newsletter-title">Recibe ofertas y novedades</h2>
+      <p class="newsletter-copy">Suscríbete para enterarte de nuevos productos, promociones y colecciones antes que nadie.</p>
       <form class="newsletter-form" (ngSubmit)="suscribirse()">
+        <label class="visually-hidden" for="newsletter-email">Correo electrónico</label>
         <input
+          id="newsletter-email"
           type="email"
           [(ngModel)]="emailSuscrito"
           name="email"
-          placeholder="Ingresa tu correo electrónico"
+          placeholder="tu@correo.com"
           class="custom-input"
+          autocomplete="email"
           required
         />
-        <button type="submit">Suscribirse</button>
+        <button type="submit">Suscribirme</button>
       </form>
       @if (mensajeSuscrito()) {
-        <p
-          class="newsletter-message"
-          [class.success]="mensajeSuscrito() === '¡Gracias por suscribirte!'"
-        >
+        <p class="newsletter-message" [class.success]="mensajeSuscrito().includes('Gracias')" role="status" aria-live="polite">
           {{ mensajeSuscrito() }}
         </p>
       }
     </div>
-  </div>
+  </section></div>
 
 @if (noticias().length > 0) {
      <section class="noticias-section reveal-init" #revealElement>
@@ -139,25 +150,33 @@
    }
 
   <div class="features-section reveal-init" #revealElement>
-    <div class="feature-card" style="transition-delay: 0ms">
-      <div class="feature-icon">🚚</div>
-      <h3>Envíos a Domicilio</h3>
-      <p>Entrega en Valencia y toda Venezuela</p>
+    <div class="feature-card">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <h3>Envíos a domicilio</h3>
+      <p>Entrega en Valencia y envíos a nivel nacional.</p>
     </div>
-    <div class="feature-card" style="transition-delay: 150ms">
-      <div class="feature-icon">🏪</div>
-      <h3>Solo los Mejores Productos</h3>
-      <p>La mejor calidad del mercado</p>
+    <div class="feature-card">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6 6.6.9-4.8 4.5 1.2 6.6-5.9-3.2-5.9 3.2 1.2-6.6L2.5 8.9 9.1 8z"/></svg>
+      </div>
+      <h3>Calidad garantizada</h3>
+      <p>Seleccionamos productos confiables para tu día a día.</p>
     </div>
-    <div class="feature-card" style="transition-delay: 300ms">
-      <div class="feature-icon">💳</div>
-      <h3>Pagos Seguros</h3>
-      <p>Zelle, efectivo y transferencias</p>
+    <div class="feature-card">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1.5"/></svg>
+      </div>
+      <h3>Pagos seguros</h3>
+      <p>Paga con Zelle, efectivo o transferencia.</p>
     </div>
-    <div class="feature-card" style="transition-delay: 450ms">
-      <div class="feature-icon">📞</div>
-      <h3>Atención Personalizada</h3>
-      <p>Te asesoramos en lo que necesites</p>
+    <div class="feature-card">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><path d="M8 10h8M8 14h5"/></svg>
+      </div>
+      <h3>Atención cercana</h3>
+      <p>Te asesoramos para encontrar lo que necesitas.</p>
     </div>
   </div>
   <!--
@@ -170,7 +189,6 @@
   <a href="https://wa.me/584241234567" target="_blank" class="whatsapp-float">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
   </a>
-  </div>
 
   <main class="mobile-home-view">
     <section class="mobile-home-intro" aria-labelledby="mobile-home-title">

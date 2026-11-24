@@ -79,9 +79,8 @@ import { Product } from '../shared/interfaces/product.interface';
         transition: transform 0.3s;
       }
 
-      .whatsapp-float:hover {
-        transform: scale(1.1);
-      }
+      .whatsapp-float:hover { transform: scale(1.1); }
+      .whatsapp-float:focus-visible { outline: 3px solid rgba(37,211,102,.45); outline-offset: 3px; }
 
       .whatsapp-float img {
         width: 35px;
@@ -241,81 +240,51 @@ import { Product } from '../shared/interfaces/product.interface';
       }
 
       .marcas-carousel {
-        width: 100%;
-        max-width: 100%;
-        margin-top: 2rem;
-        padding: 2rem 40px;
-        display: flex;
-        align-items: center;
-        position: relative;
-        box-sizing: border-box;
+        width: 100%; padding: .5rem 56px; display: flex; align-items: center; position: relative; box-sizing: border-box;
       }
-
-      .marcas-title {
-        font-size: 2rem;
-        color: #333;
-        margin-bottom: 1.5rem;
-      }
-
-      .carousel-viewport {
-        overflow: hidden;
-        flex: 1;
-        width: calc(200px * 4 + 24px * 3);
-        margin: 0 auto;
-      }
-
-      .carousel-track {
-        display: flex;
-        gap: 1.5rem;
-        transition: transform 0.5s ease-in-out;
-      }
-
+      .carousel-viewport { overflow: hidden; flex: 1; width: 100%; margin: 0 auto; }
+      .carousel-track { display: flex; gap: 1rem; transition: transform .5s ease-in-out; }
       .marca-slide {
-        flex: 0 0 200px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        cursor: pointer;
+        flex: 0 0 200px; display: flex; flex-direction: column; align-items: center; gap: .75rem;
+        text-decoration: none; cursor: pointer; padding: .25rem;
       }
-
-      .marca-slide:hover .marca-image {
-        transform: scale(1.05);
+      .marca-logo-wrap {
+        width: 100%; height: 132px; display: flex; align-items: center; justify-content: center;
+        background: #fff; border: 1px solid #e7edf4; border-radius: 16px; padding: 1.25rem; box-sizing: border-box;
+        box-shadow: 0 2px 8px rgba(23,54,95,.04); transition: transform .2s, box-shadow .2s, border-color .2s;
       }
-
-      .marca-image {
-        width: 150px;
-        height: 150px;
-        object-fit: contain;
-        border-radius: 12px;
-        background: #ffffff;
-        padding: 1rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transition: transform 0.2s;
-      }
-
+      .marca-slide:hover .marca-logo-wrap, .marca-slide:focus-visible .marca-logo-wrap { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(23,54,95,.08); border-color: #d4e2f2; }
+      .marca-slide:focus-visible { outline: none; }
+      .marca-slide:focus-visible .marca-logo-wrap { outline: 3px solid rgba(29,99,193,.25); outline-offset: 2px; }
+      .marca-image { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; }
       .marca-placeholder {
-        width: 150px;
-        height: 150px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #1d63c1 0%, #4aace7 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        font-weight: 700;
-        color: white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        width: 72px; height: 72px; border-radius: 16px; background: linear-gradient(135deg, #1d63c1 0%, #4aace7 100%);
+        display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; color: white;
+      }
+      .marca-name { font-size: .9rem; color: #425a75; font-weight: 600; text-align: center; line-height: 1.3; }
+      .carousel-btn {
+        width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #17365f; border: 1px solid #dbe6f2;
+        cursor: pointer; font-size: 1.4rem; line-height: 1; display: flex; align-items: center; justify-content: center;
+        transition: all .2s; z-index: 10; position: absolute; box-shadow: 0 4px 12px rgba(23,54,95,.08);
+      }
+      .carousel-btn:hover { background: #1d63c1; color: #fff; border-color: #1d63c1; }
+      .carousel-btn:focus-visible { outline: 3px solid rgba(29,99,193,.25); outline-offset: 2px; }
+      .carousel-btn.prev { left: 0; }
+      .carousel-btn.next { right: 0; }
+      @media (max-width: 768px) {
+        .marcas-carousel { padding: .5rem 44px; }
+        .marca-slide { flex: 0 0 180px; }
+        .marca-logo-wrap { height: 112px; padding: 1rem; }
+      }
+      @media (max-width: 480px) {
+        .marcas-carousel { padding: .5rem 38px; }
+        .carousel-track { gap: .75rem; }
+        .marca-slide { flex: 0 0 160px; gap: .5rem; }
+        .marca-logo-wrap { height: 96px; padding: .85rem; border-radius: 14px; }
+        .marca-name { font-size: .8rem; }
+        .carousel-btn { width: 34px; height: 34px; font-size: 1.2rem; }
       }
 
-      .marca-name {
-        font-size: 1rem;
-        color: #333;
-        font-weight: 500;
-        text-align: center;
-      }
 
       .newsletter-section {
         width: 100%;
@@ -393,121 +362,41 @@ import { Product } from '../shared/interfaces/product.interface';
 
       @media (max-width: 768px) {
         :host { width: 100%; min-height: auto; padding: 0; align-items: stretch; justify-content: flex-start; box-sizing: border-box; text-align: left; }
-        .marcas-carousel { padding: 1rem 35px; margin-top: 1rem; }
-        .carousel-viewport { width: calc(150px * 2 + 12px); }
-        .marca-slide { flex: 0 0 150px; }
-        .marca-image, .marca-placeholder { width: 100px; height: 100px; }
-        .marca-name { font-size: 0.85rem; }
         .whatsapp-float { width: 50px; height: 50px; bottom: 1rem; right: 1rem; }
         .whatsapp-float img { width: 28px; height: 28px; }
       }
+
       @media (max-width: 480px) {
-        .marcas-carousel { padding: 0.75rem 30px; }
-        .carousel-viewport { width: calc(120px * 2 + 8px); }
-        .marca-slide { flex: 0 0 120px; }
-        .marca-image, .marca-placeholder { width: 80px; height: 80px; padding: 0.5rem; }
-        .marca-placeholder { font-size: 2rem; }
-        .marca-name { font-size: 0.75rem; }
-        .carousel-btn { width: 28px; height: 28px; font-size: 1rem; }
         .whatsapp-float { width: 44px; height: 44px; bottom: 0.75rem; right: 0.75rem; }
         .whatsapp-float img { width: 24px; height: 24px; }
       }
 
       .noticias-section {
-        width: 100%;
-        max-width: 1200px;
-        margin: 3rem auto;
-        padding: 2rem;
-        text-align: center;
+        width: 100%; max-width: 1240px; margin: 0 auto 3.5rem; padding: 0 1rem; box-sizing: border-box;
       }
-
-      .noticias-section h2 {
-        font-size: 2rem;
-        color: #1d63c1;
-        margin-bottom: 1.5rem;
-      }
-
-      .noticias-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.5rem;
-      }
-
+      .noticias-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
       .noticia-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        text-align: left;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s;
+        background: #fff; padding: 1.5rem; border-radius: 18px; text-align: left; border: 1px solid #e7edf4;
+        box-shadow: 0 2px 8px rgba(23,54,95,.04); transition: transform .2s, box-shadow .2s, border-color .2s;
       }
-
-      .noticia-card:hover {
-        transform: translateY(-5px);
-      }
-
-      .noticia-card.importante {
-        border-left: 4px solid #007bff;
-      }
-
-      .noticia-card h3 {
-        font-size: 1.2rem;
-        color: #333;
-        margin: 0 0 0.5rem;
-      }
-
-      .noticia-fecha {
-        font-size: 0.85rem;
-        color: #666;
-        margin-bottom: 0.75rem;
-      }
-
+      .noticia-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(23,54,95,.08); border-color: #d4e2f2; }
+      .noticia-card.importante { border-color: #cfe0f5; background: linear-gradient(180deg,#f8fbff 0%,#fff 100%); }
+      .noticia-meta { display: flex; align-items: center; gap: .6rem; margin-bottom: .75rem; flex-wrap: wrap; }
+      .noticia-badge { display: inline-flex; padding: .22rem .6rem; border-radius: 999px; background: #e8f2ff; color: #1d63c1; font-size: .72rem; font-weight: 700; }
+      .noticia-fecha { font-size: .82rem; color: #6b7f95; margin: 0; }
+      .noticia-card h3 { font-size: 1.1rem; color: #17365f; margin: 0 0 .65rem; line-height: 1.35; font-weight: 700; }
       .noticia-contenido {
-        font-size: 0.95rem;
-        color: #555;
-        line-height: 1.6;
+        font-size: .93rem; color: #5f7185; line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
       }
-
-      .noticia-contenido ::ng-deep p {
-        margin: 0.5rem 0;
+      .noticia-contenido ::ng-deep p { margin: 0; }
+      .noticia-contenido ::ng-deep h1, .noticia-contenido ::ng-deep h2, .noticia-contenido ::ng-deep h3,
+      .noticia-contenido ::ng-deep ul, .noticia-contenido ::ng-deep ol, .noticia-contenido ::ng-deep img { display: none; }
+      .noticias-empty {
+        padding: 2rem; border: 1px dashed #d5e1ef; border-radius: 18px; background: #f9fbfe; text-align: center;
       }
-
-      .noticia-contenido ::ng-deep h1,
-      .noticia-contenido ::ng-deep h2,
-      .noticia-contenido ::ng-deep h3 {
-        margin: 1rem 0 0.5rem;
-      }
-
-      .btn-ver-mas {
-        display: inline-block;
-        margin-top: 1.5rem;
-        padding: 0.75rem 1.5rem;
-        background: #1d63c1;
-        color: white;
-        text-decoration: none;
-        border-radius: 6px;
-        font-weight: 500;
-        transition: background 0.3s;
-      }
-
-      .btn-ver-mas:hover {
-        background: #1557b0;
-      }
-
-      .no-noticias {
-        color: #666;
-        font-style: italic;
-      }
-
-      @media (max-width: 768px) {
-        .noticias-section {
-          padding: 1rem;
-        }
-
-        .noticias-grid {
-          grid-template-columns: 1fr;
-        }
-      }
+      .noticias-empty .section-title { margin-bottom: .5rem; }
+      .no-noticias { color: #6b7f95; margin: 0; font-size: .95rem; }
+      @media (max-width: 768px) { .noticias-section { padding: 0 .75rem; margin-bottom: 2.75rem; } .noticias-grid { grid-template-columns: 1fr; } }
 
       /* Product sections */
       .home-products-section {
@@ -551,6 +440,10 @@ import { Product } from '../shared/interfaces/product.interface';
       }
       .section-link:hover { color: #124a94; background: #eef5ff; }
       .section-link:focus-visible { outline: 3px solid rgba(29,99,193,.25); outline-offset: 2px; }
+      .section-heading--center { justify-content: center; text-align: center; }
+      .section-heading--center .section-eyebrow, .section-heading--center .section-title { text-align: center; }
+      .home-brands-section, .features-section-wrap { width: 100%; max-width: 1240px; margin: 0 auto 3.5rem; padding: 0 1rem; box-sizing: border-box; }
+      @media (max-width: 768px) { .home-brands-section, .features-section-wrap { margin-bottom: 2.75rem; padding: 0 .75rem; } }
       .products-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -702,6 +595,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   noticiasLoaded = signal(false);
   currentIndex = 0;
   visibleCount = 4;
+  marcaStep = 216;
   private readonly RECOMENDADOS_STORAGE_KEY = 'productosRecomendados';
   private readonly RECOMENDADOS_TIMESTAMP_KEY = 'productosRecomendadosTimestamp';
   private readonly RECOMENDADOS_REFRESH_INTERVAL = 2 * 60 * 60 * 1000;
@@ -723,6 +617,11 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get totalMarcas() {
     return this.duplicatedMarcas.length;
+  }
+
+  getMarcasTransform(): string {
+    const step = typeof window !== 'undefined' && window.innerWidth <= 480 ? 172 : typeof window !== 'undefined' && window.innerWidth <= 768 ? 196 : 216;
+    return `translateX(-${this.currentIndex * step}px)`;
   }
 
   ngAfterViewInit(): void {

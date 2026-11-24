@@ -16,25 +16,35 @@
   </div>
 
 @if (duplicatedMarcas.length > 0) {
-     <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">
-       <button class="carousel-btn prev" (click)="prev()">‹</button>
-       <div class="carousel-viewport">
-         <div class="carousel-track" [style.transform]="'translateX(-' + currentIndex * 216 + 'px)'">
-           @for (marca of duplicatedMarcas; track marca.id + '-' + $index) {
+    <section class="home-brands-section reveal-init" #revealElement>
+      <div class="section-heading section-heading--center">
+        <div>
+          <p class="section-eyebrow">Nuestras marcas</p>
+          <h2 class="section-title">Marcas que nos acompañan</h2>
+        </div>
+      </div>
+      <div class="marcas-carousel" (mouseenter)="pauseAutoScroll()" (mouseleave)="resumeAutoScroll()">
+        <button class="carousel-btn prev" (click)="prev()" aria-label="Marcas anteriores">&#8249;</button>
+        <div class="carousel-viewport">
+          <div class="carousel-track" [style.transform]="getMarcasTransform()">
+            @for (marca of duplicatedMarcas; track marca.id + '-' + $index) {
               <a [routerLink]="['/products/collection', marca.name]" class="marca-slide">
-                @if (marca.image) {
-                  <img [src]="marca.image" [alt]="marca.name" class="marca-image" />
-                } @else {
-                  <div class="marca-placeholder">{{ marca.name.charAt(0) }}</div>
-                }
+                <span class="marca-logo-wrap">
+                  @if (marca.image) {
+                    <img [src]="marca.image" [alt]="marca.name" class="marca-image" loading="lazy" />
+                  } @else {
+                    <span class="marca-placeholder">{{ marca.name.charAt(0) }}</span>
+                  }
+                </span>
                 <span class="marca-name">{{ marca.name }}</span>
               </a>
             }
-         </div>
-       </div>
-       <button class="carousel-btn next" (click)="next()">›</button>
-     </div>
-   }
+          </div>
+        </div>
+        <button class="carousel-btn next" (click)="next()" aria-label="Marcas siguientes">&#8250;</button>
+      </div>
+    </section>
+  }
 
 @if (productosDestacados().length > 0) {
       <section class="home-products-section reveal-init" #revealElement>
@@ -127,29 +137,48 @@
         </p>
       }
     </div>
-  </section></div>
+  </section>
 
 @if (noticias().length > 0) {
-     <section class="noticias-section reveal-init" #revealElement>
-       <h2>Últimas Noticias</h2>
-       <div class="noticias-grid">
-         @for (noticia of noticias(); track noticia.id) {
-           <article class="noticia-card" [attr.id]="noticia.id" [class.importante]="noticia.importante">
-             <h3>{{ noticia.titulo }}</h3>
-             <p class="noticia-fecha">{{ formattedFecha(noticia.fecha) }}</p>
-             <div class="noticia-contenido" [innerHTML]="noticia.contenido | markdown"></div>
-           </article>
-         }
-       </div>
-       <a class="btn-ver-mas" routerLink="/noticias">Ver más noticias</a>
-     </section>
-   } @else if (noticiasLoaded()) {
-     <section class="noticias-section">
-       <p class="no-noticias">No hay noticias disponibles en este momento.</p>
-     </section>
-   }
+    <section class="noticias-section reveal-init" #revealElement>
+      <div class="section-heading">
+        <div>
+          <p class="section-eyebrow">Actualidad</p>
+          <h2 class="section-title">Últimas noticias</h2>
+        </div>
+        <a class="section-link" routerLink="/noticias">Ver todas</a>
+      </div>
+      <div class="noticias-grid">
+        @for (noticia of noticias(); track noticia.id) {
+          <article class="noticia-card" [attr.id]="noticia.id" [class.importante]="noticia.importante">
+            <div class="noticia-meta">
+              @if (noticia.importante) { <span class="noticia-badge">Importante</span> }
+              <p class="noticia-fecha">{{ formattedFecha(noticia.fecha) }}</p>
+            </div>
+            <h3>{{ noticia.titulo }}</h3>
+            <div class="noticia-contenido" [innerHTML]="noticia.contenido | markdown"></div>
+          </article>
+        }
+      </div>
+    </section>
+  } @else if (noticiasLoaded()) {
+    <section class="noticias-section noticias-section--empty reveal-init" #revealElement>
+      <div class="noticias-empty">
+        <p class="section-eyebrow">Actualidad</p>
+        <h2 class="section-title">Noticias</h2>
+        <p class="no-noticias">No hay noticias disponibles en este momento.</p>
+      </div>
+    </section>
+  }
 
-  <div class="features-section reveal-init" #revealElement>
+  <section class="features-section-wrap reveal-init" #revealElement>
+    <div class="section-heading section-heading--center">
+      <div>
+        <p class="section-eyebrow">Por qué elegirnos</p>
+        <h2 class="section-title">Compra con confianza</h2>
+      </div>
+    </div>
+    <div class="features-section">
     <div class="feature-card">
       <div class="feature-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
@@ -179,6 +208,7 @@
       <p>Te asesoramos para encontrar lo que necesitas.</p>
     </div>
   </div>
+  </section>
   <!--
   <h1>Escolares</h1>
 
@@ -189,6 +219,7 @@
   <a href="https://wa.me/584241234567" target="_blank" class="whatsapp-float">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
   </a>
+  </div>
 
   <main class="mobile-home-view">
     <section class="mobile-home-intro" aria-labelledby="mobile-home-title">

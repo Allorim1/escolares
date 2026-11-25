@@ -153,8 +153,11 @@
 </div>
       @if (authService.isLoggedIn()) {
         <div class="user-dropdown" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
-          <button class="user-btn" type="button" (click)="toggleUserDropdown()">
-            <img src="/usuario.png" alt="Usuario" />
+          <button class="user-btn user-btn--logged" type="button" (click)="toggleUserDropdown()" aria-label="Menú de usuario">
+            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
             <span class="user-greeting">Hola, {{ authService.user()?.nombreCompleto || authService.user()?.username || 'Usuario' }}</span>
           </button>
           <div class="dropdown-menu" [class.open]="userDropdownOpen()" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">

@@ -11,41 +11,38 @@ export interface OrderItem {
   image: string;
 }
 
+export interface OrderIncident {
+  type: 'cliente_ausente' | 'direccion_incorrecta' | 'rechazo' | 'danado' | 'otro';
+  reason: string;
+  note?: string;
+  photo?: string;
+  reportedBy?: string;
+  reportedAt: Date;
+  resolution?: 'reprogramar' | 'devolver' | 'cancelar';
+}
+
 export interface Order {
   id: string;
   userId: string;
   items: OrderItem[];
+  subtotal?: number; iva?: number; shippingRef?: number; shippingLabel?: string;
   total: number;
-  nombre: string;
-  cedula: string;
-  telefono: string;
-  direccion: string;
-  latitud?: number;
-  longitud?: number;
-  metodoPago: string;
-  referencia: string;
-  fotoComprobante?: string;
-  facturaImage?: string;
-  bancoEmisor?: string;
-  cedulaTitular?: string;
-  correo?: string;
+  nombre: string; cedula: string; telefono: string; direccion: string;
+  latitud?: number; longitud?: number; direccionCompleta?: string; placeId?: string;
+  metodoPago: string; paymentStatus?: 'pendiente'|'pagado'|'contra_entrega'|'fallido';
+  paidAt?: Date; amountCollected?: number; changeGiven?: number;
+  referencia: string; fotoComprobante?: string; facturaImage?: string; productImage?: string;
+  bancoEmisor?: string; cedulaTitular?: string; correo?: string;
   status: OrderStatus;
   historial: OrderHistorial[];
-  autorizadoPor?: string;
-  autorizadoNombre?: string;
-  deliveryPersonId?: string;
-  deliveryPersonName?: string;
-  repartidorUbicacion?: {
-    lat: number;
-    lng: number;
-    timestamp: Date;
-  };
-  stockRestored?: boolean;
-  stockRestoredAt?: Date;
-  idempotencyKey?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  mensajes?: OrderMessage[];
+  autorizadoPor?: string; autorizadoNombre?: string;
+  deliveryPersonId?: string; deliveryPersonName?: string;
+  repartidorUbicacion?: { lat: number; lng: number; timestamp: Date };
+  stockRestored?: boolean; stockRestoredAt?: Date; idempotencyKey?: string;
+  deliveryType?: 'express'|'programado'; scheduledFor?: string;
+  confirmedAt?: Date; assignedAt?: Date; acceptedAt?: Date; dispatchedAt?: Date; deliveredAt?: Date; cancelledAt?: Date;
+  cancelReason?: string; incident?: OrderIncident;
+  createdAt: Date; updatedAt: Date; mensajes?: OrderMessage[];
 }
 
 export interface OrderMessage {
@@ -66,7 +63,8 @@ export type OrderStatus =
   | 'procesado'
   | 'enviado'
   | 'entregado'
-  | 'cancelado';
+  | 'cancelado'
+  | 'incidencia';
 
 export interface OrderHistorial {
   status: OrderStatus;
@@ -82,6 +80,7 @@ export interface CreateOrderData {
   telefono: string;
   direccion: string;
   metodoPago: string;
+  paymentStatus?: 'pendiente'|'pagado'|'contra_entrega'|'fallido';
   referencia: string;
   fotoComprobante?: string;
   bancoEmisor?: string;
@@ -124,8 +123,12 @@ export class OrdersBackend {
     return this.http.post<Order>(this.API_URL, orderData);
   }
 
-  updateOrderStatus(id: string, status: OrderStatus, observaciones?: string): Observable<Order> {
-    return this.http.put<Order>(`${this.API_URL}/${id}/status`, { status, observaciones });
+  updateOrderStatus(id: string, status: OrderStatus, observaciones?: string, extra?: any): Observable<Order> {
+    return this.http.put<Order>(`${this.API_URL}/${id}/status`, { status, observaciones, ...(extra || {}) });
+  }
+
+  reportIncident(id: string, data: { type: string; reason: string; note?: string; photo?: string; resolution?: string }): Observable<Order> {
+    return this.http.put<Order>(`${this.API_URL}/${id}/incident`, data);
   }
 
   deleteOrder(id: string): Observable<void> {

@@ -2,7 +2,6 @@ import { Component, inject, signal, OnDestroy, computed } from '@angular/core';
 import { CartItem } from './ui/cart-item/cart-item';
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { ProductItemCart } from '../shared/interfaces/product.interface';
-import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -10,12 +9,13 @@ import { AuthService } from '../shared/data-access/auth.service';
 import { User, Direccion, MetodoPago } from '../backend/models';
 import { OrdersBackend, OrderItem, OrderStatus } from '../backend/data-access/orders.backend';
 import { NotificationService } from '../shared/data-access/notification.service';
+import { NotificationModalService } from '../shared/ui/notification-modal/notification-modal.service';
 import { CurrencyService } from '../shared/data-access/currency.service';
 import { StoreSettingsService } from '../shared/data-access/store-settings.service';
 import { ProductsStateService } from '../products/data-access/products-state.service';
 import { Subscription } from 'rxjs';
 
-const CART_IMPORTS = [CartItem, RouterLink, FormsModule, DatePipe];
+const CART_IMPORTS = [CartItem, RouterLink, FormsModule];
 
 interface PaymentData {
   nombre: string;
@@ -68,6 +68,7 @@ export default class CartComponent implements OnDestroy {
    authService = inject(AuthService);
    private ordersBackend = inject(OrdersBackend);
    private notificationService = inject(NotificationService);
+   private notificationModal = inject(NotificationModalService);
    private http = inject(HttpClient);
    currencyService = inject(CurrencyService);
    storeSettings = inject(StoreSettingsService);
@@ -152,6 +153,7 @@ constructor() {
 showCheckoutModal = signal(false);
    showRecommendationsModal = signal(false);
    checkoutStep = signal(1);
+   submitting = signal(false);
   shippingError = signal('');
   paymentError = signal('');
   selectedAddressId = signal<string>('');
@@ -175,21 +177,11 @@ showCheckoutModal = signal(false);
     correo: '',
   });
   orderPlaced = signal(false);
-  currentOrderId = signal<string>('');
 
   showCamera = signal(false);
   videoElement: HTMLVideoElement | null = null;
   cameraStream: MediaStream | null = null;
   whatsappNumber = '584244077616';
-
-  showQRModal = signal(false);
-  qrCodeData = signal('');
-  qrExpiracion = signal('');
-  qrLoading = signal(false);
-  qrFotoRecibida = signal(false);
-  qrPollingInterval: ReturnType<typeof setInterval> | null = null;
-  qrPollingSubscription: Subscription | null = null;
-  qrToken = signal('');
 
   showAddressModal = signal(false);
   showAddAddressModal = signal(false);
@@ -201,101 +193,6 @@ showCheckoutModal = signal(false);
 
   getTransferenciaInfo() {
     return TRANSFERENCIA_INFO;
-  }
-
-
-  abrirQRModal() {
-    this.qrLoading.set(true);
-    this.showQRModal.set(true);
-    this.qrCodeData.set('');
-    this.qrExpiracion.set('');
-    this.qrToken.set('');
-    
-    const subscription = this.http.post<{ qrCode: string; expiresAt: string; uploadUrl: string }>(
-      '/api/pago/generate-qr',
-      {},
-    ).subscribe({
-      next: (res) => {
-        this.qrCodeData.set(res.qrCode);
-        this.qrExpiracion.set(res.expiresAt);
-        this.qrLoading.set(false);
-        
-        const tokenMatch = res.uploadUrl.match(/upload-pago\/([a-f0-9]+)/);
-        
-        if (tokenMatch) {
-          const token = tokenMatch[1];
-          this.qrToken.set(token);
-          this.iniciarPollingQR();
-        }
-      },
-      error: (err) => {
-        if (err.name !== 'AbortError') {
-          console.error('Error generating QR:', err);
-          this.qrLoading.set(false);
-          if (this.showQRModal()) {
-            alert('Error al generar código QR. Asegúrate de que el servidor esté actualizado.');
-            this.showQRModal.set(false);
-          }
-        }
-      }
-    });
-    
-    this.qrPollingSubscription = subscription;
-  }
-
-  iniciarPollingQR() {
-    const token = this.qrToken();
-    if (!token) return;
-    
-    this.qrPollingInterval = setInterval(() => {
-      if (!this.showQRModal()) {
-        this.detenerPollingQR();
-        return;
-      }
-      
-      const subscription = this.http.get<{ success: boolean; imagen?: string }>(
-        `/api/pago/check/${token}`,
-      ).subscribe({
-        next: (res) => {
-          const imagen = res.imagen;
-          if (res.success && imagen) {
-            this.paymentData.update(p => ({ ...p, fotoComprobante: imagen }));
-            this.qrFotoRecibida.set(true);
-            this.detenerPollingQR();
-            setTimeout(() => {
-              this.cerrarQRModal();
-            }, 3000);
-          }
-        },
-        error: (err) => {
-          if (err.name !== 'AbortError') {
-            console.error('Error polling QR:', err);
-          }
-        }
-      });
-      
-      this.qrPollingSubscription = subscription;
-    }, 2000);
-  }
-
-  detenerPollingQR() {
-    if (this.qrPollingInterval) {
-      clearInterval(this.qrPollingInterval);
-      this.qrPollingInterval = null;
-    }
-    if (this.qrPollingSubscription) {
-      this.qrPollingSubscription.unsubscribe();
-      this.qrPollingSubscription = null;
-    }
-  }
-
-  cerrarQRModal() {
-    this.detenerPollingQR();
-    this.showQRModal.set(false);
-    this.qrCodeData.set('');
-    this.qrExpiracion.set('');
-    this.qrFotoRecibida.set(false);
-    this.qrToken.set('');
   }
 
   get user(): User | null {
@@ -480,7 +377,7 @@ price = () => {
 
   openCheckout() {
     if (this.storeSettings.comprasDeshabilitadas()) {
-      alert('Las compras están temporalmente deshabilitadas. Por favor intenta más tarde.');
+      this.notificationModal.warning('Las compras están temporalmente deshabilitadas. Por favor intenta más tarde.', 'Compras deshabilitadas');
       return;
     }
 
@@ -506,11 +403,12 @@ price = () => {
     }
   }
 
+  private checkoutAttemptId = signal('');
+
   private startCheckout() {
     const currentUser = this.authService.user();
     const addresses = currentUser?.direcciones || [];
     const defaultAddress = addresses.length > 0 ? addresses[0] : null;
-    
     const paymentMethods = currentUser?.metodosPago || [];
     const defaultPaymentMethod = paymentMethods.find((m) => m.principal) || paymentMethods[0];
 
@@ -535,16 +433,20 @@ price = () => {
     this.showCheckoutModal.set(true);
     this.checkoutStep.set(1);
     this.shippingError.set('');
+    this.paymentError.set('');
     this.selectedShippingRateId.set('rate-0');
     this.deliveryType.set('express');
     this.scheduledFor.set('');
-    this.currentOrderId.set('');
+    this.orderPlaced.set(false);
+    this.submitting.set(false);
+    this.checkoutAttemptId.set(crypto.randomUUID());
+    this.loadCheckoutDraft();
+    setTimeout(() => (document.querySelector('.checkout-modal') as HTMLElement | null)?.focus(), 0);
   }
 
   onAddressChange(addressId: string) {
     this.selectedAddressId.set(addressId);
-    const addresses = this.userAddresses;
-    const selected = addresses.find(a => a.id === addressId);
+    const selected = this.userAddresses.find(a => a.id === addressId);
     if (selected) {
       this.paymentData.update(p => ({
         ...p,
@@ -560,52 +462,42 @@ price = () => {
   onSavedPaymentChange(paymentId: string) {
     this.selectedSavedPaymentId.set(paymentId);
     const selected = this.userPaymentMethods.find((m) => m.id === paymentId);
-    if (!selected) return;
-
-    this.paymentData.update((p) => ({
-      ...p,
-      metodoPago: selected.tipo,
-      referencia: selected.referencia || p.referencia,
-    }));
-    this.paymentError.set('');
+    if (selected) {
+      this.paymentData.update(p => ({
+        ...p,
+        metodoPago: selected.tipo,
+        referencia: selected.referencia || p.referencia
+      }));
+    }
   }
 
   guardarMetodoPagoActual() {
     if (!this.authService.isLoggedIn()) {
-      alert('Debes iniciar sesión para guardar métodos de pago.');
+      this.notificationModal.warning('Debes iniciar sesión para guardar métodos de pago.', 'Inicio de sesión requerido');
       return;
     }
-
     const data = this.paymentData();
     const tipo = data.metodoPago as MetodoPago['tipo'];
     if (tipo === 'pago_movil' || tipo === 'transferencia') {
-      alert('Para guardar Pago Móvil o Transferencia, usa "Mis métodos de pago" y completa banco/teléfono/titular.');
-      return;
-    }
-    if (tipo === 'zelle' && !data.referencia.trim()) {
-      alert('Para guardar Zelle debes indicar una referencia.');
+      this.notificationModal.info('Para guardar Pago Móvil o Transferencia, usa "Mis métodos de pago" y completa banco/teléfono/número de cuenta.', 'Usa Mis métodos de pago');
       return;
     }
     const existing = this.userPaymentMethods;
-    const alias = `Método ${existing.length + 1}`;
     const nuevoMetodo: MetodoPago = {
-      id: Date.now().toString(),
-      alias,
+      id: crypto.randomUUID(),
+      alias: tipo === 'zelle' ? 'Zelle' : 'Efectivo',
       tipo: data.metodoPago as MetodoPago['tipo'],
-      referencia: data.referencia || '',
+      referencia: data.referencia,
       principal: existing.length === 0,
     };
-
     this.authService.updateProfile({
       metodosPago: [...existing, nuevoMetodo],
     })?.subscribe({
       next: () => {
         this.selectedSavedPaymentId.set(nuevoMetodo.id);
-        alert('Método de pago guardado.');
+        this.notificationService.success('Método guardado', 'Método de pago guardado correctamente.');
       },
-      error: () => {
-        alert('No se pudo guardar el método de pago.');
-      },
+      error: (err) => this.notificationModal.fromHttpError(err, 'No se pudo guardar el método de pago.'),
     });
   }
 
@@ -615,360 +507,219 @@ price = () => {
     this.newAddressDireccion = '';
   }
 
-  addNewAddress() {
+  async addNewAddress() {
     if (!this.newAddressNombre || !this.newAddressDireccion) {
-      alert('Por favor completa todos los campos');
+      this.notificationModal.warning('Por favor completa todos los campos de la dirección.', 'Datos incompletos');
       return;
     }
-    
     if (!this.authService.isLoggedIn()) {
-      alert('Debes iniciar sesión para guardar una dirección');
+      this.notificationModal.warning('Debes iniciar sesión para guardar una dirección.', 'Inicio de sesión requerido');
       return;
     }
-    
     const newDir: Direccion = {
       id: Date.now().toString(),
       nombre: this.newAddressNombre,
       direccion: this.newAddressDireccion,
     };
-    
     const currentUser = this.authService.user();
     const currentAddresses = currentUser?.direcciones || [];
-    
-    this.authService.updateProfile({
-      direcciones: [...currentAddresses, newDir]
-    })?.subscribe({
+    this.authService.updateProfile({ direcciones: [...currentAddresses, newDir] })?.subscribe({
       next: () => {
         this.selectedAddressId.set(newDir.id);
-        this.paymentData.update(p => ({ ...p, direccion: newDir.direccion }));
+        this.paymentData.update(p => ({ ...p, direccion: newDir.direccion, direccionCompleta: newDir.direccion }));
         this.showAddAddressModal.set(false);
         this.showAddressSavedModal.set(true);
         this.newAddressNombre = '';
         this.newAddressDireccion = '';
       },
-      error: (err) => {
-        console.error('Error guardando dirección:', err);
-        alert('Error al guardar la dirección. Intenta de nuevo.');
-      }
+      error: (err) => this.notificationModal.fromHttpError(err, 'No se pudo guardar la dirección.'),
     });
   }
 
-   closeCheckout() {
+  closeCheckout() {
+    if (this.submitting()) return;
+    this.saveCheckoutDraft();
     this.showCheckoutModal.set(false);
     this.showAddAddress.set(false);
     this.selectedAddressId.set('');
     this.newAddressNombre = '';
     this.newAddressDireccion = '';
     this.checkoutStep.set(1);
-    this.currentOrderId.set('');
-    this.cerrarQRModal();
+    this.paymentError.set('');
+    this.shippingError.set('');
     if (this.orderPlaced()) {
       this.orderPlaced.set(false);
-      this.paymentData.set({
-        nombre: '',
-        cedula: '',
-        telefono: '',
-        direccion: '',
-        metodoPago: 'pago_movil',
-        referencia: '',
-        fotoComprobante: '',
-        bancoEmisor: '',
-        cedulaTitular: '',
-        correo: '',
-      });
+      this.paymentData.set({ nombre: '', cedula: '', telefono: '', direccion: '', metodoPago: 'pago_movil', referencia: '', fotoComprobante: '', bancoEmisor: '', cedulaTitular: '', correo: '' });
     }
   }
 
   nextStep() {
-    if (this.checkoutStep() === 2 && !this.validateShippingStep()) {
-      return;
-    }
-
-    if (this.checkoutStep() < 3) {
-      this.checkoutStep.update(s => s + 1);
-      if (this.checkoutStep() === 3) {
-        this.currentOrderId.set('temp');
+    if (this.checkoutStep() === 1) {
+      if (!this.authService.isLoggedIn()) {
+        this.notificationModal.warning('Debes iniciar sesión para continuar con la compra.', 'Inicio de sesión requerido');
+        this.router.navigate(['/login']);
+        return;
+      }
+      const data = this.paymentData();
+      if (!data.nombre?.trim() || !data.cedula?.trim() || !data.telefono?.trim()) {
+        this.notificationModal.warning('Completa tus datos de cliente antes de continuar.', 'Datos incompletos');
+        return;
       }
     }
+    if (this.checkoutStep() === 2) {
+      if (!this.validateShippingStep()) return;
+      if (!this.paymentData().direccion?.trim()) {
+        this.shippingError.set('Debes seleccionar o agregar una dirección de envío.');
+        return;
+      }
+    }
+    if (this.checkoutStep() < 3) this.checkoutStep.update(s => s + 1);
+    this.saveCheckoutDraft();
   }
+
+  private checkoutDraftKey = 'checkout_draft_v1';
+
+  private saveCheckoutDraft() {
+    try {
+      sessionStorage.setItem(this.checkoutDraftKey, JSON.stringify({
+        paymentData: this.paymentData(), selectedAddressId: this.selectedAddressId(), selectedSavedPaymentId: this.selectedSavedPaymentId(),
+        deliveryType: this.deliveryType(), scheduledFor: this.scheduledFor(), shippingRateId: this.selectedShippingRateId(), step: this.checkoutStep(),
+      }));
+    } catch {}
+  }
+  private loadCheckoutDraft() {
+    try {
+      const raw = sessionStorage.getItem(this.checkoutDraftKey);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d?.paymentData) this.paymentData.set({ ...this.paymentData(), ...d.paymentData });
+      if (d?.selectedAddressId) this.selectedAddressId.set(d.selectedAddressId);
+      if (d?.selectedSavedPaymentId) this.selectedSavedPaymentId.set(d.selectedSavedPaymentId);
+      if (d?.deliveryType) this.deliveryType.set(d.deliveryType);
+      if (d?.scheduledFor) this.scheduledFor.set(d.scheduledFor);
+      if (d?.shippingRateId) this.selectedShippingRateId.set(d.shippingRateId);
+      if (d?.step) this.checkoutStep.set(Math.min(3, Math.max(1, Number(d.step) || 1)));
+    } catch {}
+  }
+  private clearCheckoutDraft() { try { sessionStorage.removeItem(this.checkoutDraftKey); } catch {} }
 
   private validarPagoCheckout(): boolean {
     const data = this.paymentData();
     const metodo = data.metodoPago;
-    const referencia = data.referencia.trim();
+    const referencia = (data.referencia || '').trim();
     const tieneComprobante = !!data.fotoComprobante;
+    const fail = (msg: string) => { this.paymentError.set(msg); this.notificationModal.warning(msg, 'Datos de pago incompletos'); return false; };
 
     if (metodo === 'efectivo') {
-      // Para efectivo, la foto del comprobante es obligatoria
-      if (!data.fotoComprobante) {
-        this.paymentError.set('Para pago en efectivo debes adjuntar una foto del comprobante.');
-        return false;
-      }
-      this.paymentError.set('');
-      return true;
+      if (!tieneComprobante) return fail('Para pago en efectivo debes adjuntar una foto del comprobante.');
+      this.paymentError.set(''); return true;
     }
-
     if (metodo === 'zelle') {
-      if (!referencia) {
-        this.paymentError.set('Para Zelle debes ingresar número de referencia.');
-        return false;
-      }
-      if (!data.correo?.trim()) {
-        this.paymentError.set('Para Zelle debes ingresar el correo electrónico asociado.');
-        return false;
-      }
-      this.paymentError.set('');
-      return true;
+      if (!referencia) return fail('Para Zelle debes ingresar número de referencia.');
+      if (!data.correo?.trim()) return fail('Para Zelle debes ingresar el correo electrónico asociado.');
+      this.paymentError.set(''); return true;
     }
-
     if (metodo === 'pago_movil') {
-      // Validar datos del titular
-      if (!data.bancoEmisor?.trim()) {
-        this.paymentError.set('Para Pago Móvil debes indicar el banco emisor.');
-        return false;
-      }
-      if (!data.telefono?.trim()) {
-        this.paymentError.set('Para Pago Móvil debes indicar el número de teléfono del titular.');
-        return false;
-      }
-      if (!data.cedulaTitular?.trim()) {
-        this.paymentError.set('Para Pago Móvil debes indicar la cédula del titular.');
-        return false;
-      }
-      // Validar referencia O foto (al menos uno)
-      if (!referencia && !tieneComprobante) {
-        this.paymentError.set('Para Pago Móvil debes ingresar número de referencia o adjuntar el comprobante de pago.');
-        return false;
-      }
-      this.paymentError.set('');
-      return true;
+      if (!data.bancoEmisor?.trim()) return fail('Para Pago Móvil debes indicar el banco emisor.');
+      if (!data.telefono?.trim()) return fail('Para Pago Móvil debes indicar el número de teléfono del titular.');
+      if (!data.cedulaTitular?.trim()) return fail('Para Pago Móvil debes indicar la cédula del titular.');
+      if (!referencia && !tieneComprobante) return fail('Para Pago Móvil debes ingresar número de referencia o adjuntar el comprobante.');
+      this.paymentError.set(''); return true;
     }
-
     if (metodo === 'transferencia') {
-      // Validar datos del titular
-      if (!data.bancoEmisor?.trim()) {
-        this.paymentError.set('Para Transferencia debes indicar el banco emisor.');
-        return false;
-      }
-      if (!data.cedulaTitular?.trim()) {
-        this.paymentError.set('Para Transferencia debes indicar la cédula del titular.');
-        return false;
-      }
-      // Validar referencia O foto (al menos uno)
-      if (!referencia && !tieneComprobante) {
-        this.paymentError.set('Para Transferencia debes ingresar número de referencia o adjuntar el comprobante de pago.');
-        return false;
-      }
-      this.paymentError.set('');
-      return true;
+      if (!data.bancoEmisor?.trim()) return fail('Para Transferencia debes indicar el banco emisor.');
+      if (!data.cedulaTitular?.trim()) return fail('Para Transferencia debes indicar la cédula del titular.');
+      if (!referencia && !tieneComprobante) return fail('Para Transferencia debes ingresar número de referencia o adjuntar el comprobante.');
+      this.paymentError.set(''); return true;
     }
-
-    if (metodo === 'punto_venta') {
-      // Punto de Venta no requiere foto ni referencia, solo procesa el pedido
-      this.paymentError.set('');
-      return true;
-    }
-
     this.paymentError.set('');
     return true;
   }
 
-guardarOrdenTemporal() {
-     if (!this.authService.isLoggedIn()) {
-       alert('Debes iniciar sesión para continuar');
-       return;
-     }
-
-     const products = this.state().products || [];
-     const items: OrderItem[] = products.map(item => ({
-       productId: item.product.id,
-       title: item.product.title,
-       price: item.product.price,
-       quantity: item.quantity,
-       image: item.product.image,
-     }));
-
-     const orderData = {
-       items,
-       total: this.totalWithShipping(),
-       nombre: this.paymentData().nombre,
-       cedula: this.paymentData().cedula,
-       telefono: this.paymentData().telefono,
-       direccion: this.paymentData().direccion,
-       direccionCompleta: this.paymentData().direccionCompleta || this.paymentData().direccion,
-       placeId: this.paymentData().placeId || '',
-       latitud: this.paymentData().latitud,
-       longitud: this.paymentData().longitud,
-       metodoPago: this.paymentData().metodoPago,
-       referencia: this.paymentData().referencia,
-       fotoComprobante: this.paymentData().fotoComprobante,
-       bancoEmisor: this.paymentData().bancoEmisor,
-       cedulaTitular: this.paymentData().cedulaTitular,
-       correo: this.paymentData().correo,
-       status: 'confirmar' as OrderStatus,
-       deliveryType: this.deliveryType(),
-       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
-       shippingRef: this.shippingCost(),
-       shippingLabel: this.getSelectedShippingRate().label,
-     };
-
-    this.ordersBackend.createOrder(orderData).subscribe({
-      next: (order) => {
-        this.currentOrderId.set(order.id);
-        this.notificationService.success(
-          'Pedido Creado',
-          'Tu pedido ha sido creado exitosamente. N\u00FAmero: #' + order.id.slice(-8)
-        );
-      },
-      error: (err) => {
-        console.error('Error guardando orden:', err);
-      }
-    });
-  }
-
-confirmarPedido() {
-     if (!this.currentOrderId()) return;
-     if (!this.validarPagoCheckout()) return;
-
-     const products = this.state().products || [];
-     const items: OrderItem[] = products.map(item => ({
-       productId: item.product.id,
-       title: item.product.title,
-       price: item.product.price,
-       quantity: item.quantity,
-       image: item.product.image,
-     }));
-
-     const orderData = {
-       items,
-       total: this.totalWithShipping(),
-       nombre: this.paymentData().nombre,
-       cedula: this.paymentData().cedula,
-       telefono: this.paymentData().telefono,
-       direccion: this.paymentData().direccion,
-       direccionCompleta: this.paymentData().direccionCompleta || this.paymentData().direccion,
-       placeId: this.paymentData().placeId || '',
-       latitud: this.paymentData().latitud,
-       longitud: this.paymentData().longitud,
-       metodoPago: this.paymentData().metodoPago,
-       referencia: this.paymentData().referencia,
-       fotoComprobante: this.paymentData().fotoComprobante,
-       bancoEmisor: this.paymentData().bancoEmisor,
-       cedulaTitular: this.paymentData().cedulaTitular,
-       correo: this.paymentData().correo,
-       status: 'pendiente' as OrderStatus,
-       deliveryType: this.deliveryType(),
-       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
-       shippingRef: this.shippingCost(),
-       shippingLabel: this.getSelectedShippingRate().label,
-     };
-
-this.ordersBackend.createOrder(orderData).subscribe({
-       next: (order) => {
-         const products = this.state().products || [];
-         products.forEach(item => {
-           this.state.remove(item.product.id);
-         });
-         this.orderPlaced.set(true);
-         this.notificationService.success(
-           'Pedido Confirmado',
-           'Tu pedido ha sido confirmado y est\u00E1 pendiente de procesamiento'
-         );
-         this.currentOrderId.set('');
-         // Redirigir a la página de pedidos con el ID del pedido recién creado
-         this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
-       },
-      error: (err) => {
-        console.error('Error confirmando pedido:', err);
-        alert('Error al confirmar el pedido.');
-      }
-    });
-  }
-
-  tieneComprobantePago(): boolean {
+  private buildOrderData(status: OrderStatus) {
+    const products = this.state().products || [];
     const data = this.paymentData();
-    return !!(data.referencia || data.fotoComprobante);
-  }
-
-  cancelarPedido() {
-    if (!this.currentOrderId()) return;
-
-    if (this.tieneComprobantePago()) {
-      alert('Este pedido ya tiene un comprobante de pago. No puedes cancelarlo. Contacta al administrador.');
-      return;
-    }
-
-    if (confirm('¿Estás seguro de cancelar este pedido?')) {
-      this.ordersBackend.deleteOrder(this.currentOrderId()).subscribe({
-        next: () => {
-          this.currentOrderId.set('');
-          this.closeCheckout();
-        },
-        error: (err) => {
-          console.error('Error cancelando pedido:', err);
-          alert('Error al cancelar el pedido.');
-        }
-      });
-      this.currentOrderId.set('');
-    }
-  }
-
-  prevStep() {
-    if (this.checkoutStep() > 1) {
-      this.checkoutStep.update(s => s - 1);
-    }
-  }
-
-placeOrder() {
-     if (!this.validarPagoCheckout()) return;
-     const products = this.state().products || [];
-     const items: OrderItem[] = products.map(item => ({
-       productId: item.product.id,
-       title: item.product.title,
-       price: item.product.price,
-       quantity: item.quantity,
-       image: item.product.image,
-     }));
-
-    const orderData = {
+    const items: OrderItem[] = products.map(item => ({
+      productId: item.product.id,
+      title: item.product.title,
+      price: item.product.price,
+      quantity: item.quantity,
+      image: item.product.image,
+    }));
+    return {
       items,
       total: this.totalWithShipping(),
-      nombre: this.paymentData().nombre,
-      cedula: this.paymentData().cedula,
-      telefono: this.paymentData().telefono,
-      direccion: this.paymentData().direccion,
-      metodoPago: this.paymentData().metodoPago,
-      referencia: this.paymentData().referencia,
-      fotoComprobante: this.paymentData().fotoComprobante,
-      bancoEmisor: this.paymentData().bancoEmisor,
-      cedulaTitular: this.paymentData().cedulaTitular,
-      correo: this.paymentData().correo,
+      nombre: data.nombre,
+      cedula: data.cedula,
+      telefono: data.telefono,
+      direccion: data.direccion,
+      direccionCompleta: data.direccionCompleta || data.direccion,
+      placeId: data.placeId || '',
+      latitud: data.latitud,
+      longitud: data.longitud,
+      metodoPago: data.metodoPago,
+      referencia: data.referencia,
+      fotoComprobante: data.fotoComprobante,
+      bancoEmisor: data.bancoEmisor,
+      cedulaTitular: data.cedulaTitular,
+      correo: data.correo,
+      status,
       deliveryType: this.deliveryType(),
       scheduledFor: this.deliveryType() === 'programado' ? this.scheduledFor() : '',
       shippingRef: this.shippingCost(),
       shippingLabel: this.getSelectedShippingRate().label,
+      idempotencyKey: this.checkoutAttemptId(),
     };
+  }
 
-this.ordersBackend.createOrder(orderData).subscribe({
-       next: (order) => {
-         console.log('Order created:', order);
-         this.notificationService.success(
-           'Pedido Creado',
-           'Tu pedido ha sido creado exitosamente. N\u00FAmero: #' + order.id.slice(-8)
-         );
-         const products = this.state().products || [];
-         products.forEach(item => {
-           this.state.remove(item.product.id);
-         });
-         this.orderPlaced.set(true);
-         // Redirigir a la página de pedidos con el ID del pedido recién creado
-         this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
-       },
+  async confirmarPedido() {
+    if (this.submitting()) return;
+    if (!this.authService.isLoggedIn()) {
+      this.notificationModal.warning('Debes iniciar sesión para confirmar tu pedido.', 'Inicio de sesión requerido');
+      this.router.navigate(['/login']);
+      return;
+    }
+    const products = this.state().products || [];
+    if (products.length === 0) {
+      this.notificationModal.warning('Tu carrito está vacío.', 'Carrito vacío');
+      return;
+    }
+    if (!this.validateShippingStep()) { this.checkoutStep.set(2); return; }
+    if (!this.validarPagoCheckout()) return;
+
+    const ok = await this.notificationModal.confirm({
+      titulo: 'Confirmar pedido',
+      mensaje: '¿Deseas confirmar este pedido? Verifica que los datos de envío y pago sean correctos.',
+      confirmarTexto: 'Confirmar pedido',
+      cancelarTexto: 'Revisar',
+      tipo: 'info',
+    });
+    if (!ok) return;
+
+    this.submitting.set(true);
+    const orderData = this.buildOrderData('pendiente');
+    this.ordersBackend.createOrder(orderData).subscribe({
+      next: (order) => {
+        this.submitting.set(false);
+        this.state.clear();
+        this.clearCheckoutDraft();
+        this.orderPlaced.set(true);
+        this.notificationService.success('Pedido confirmado', `Tu pedido #${order.id.slice(-8)} fue creado correctamente.`);
+        this.showCheckoutModal.set(false);
+        this.router.navigate(['/panel/pedidos'], { queryParams: { orderId: order.id } });
+      },
       error: (err) => {
-        console.error('Error creating order:', err);
-        alert('Error al crear el pedido. Por favor intenta de nuevo.');
+        this.submitting.set(false);
+        const details = Array.isArray(err?.error?.details) ? err.error.details.map((d: any) => d?.message || d?.title || JSON.stringify(d)) : [];
+        const msg = err?.error?.error || 'No se pudo confirmar el pedido. Intenta de nuevo.';
+        this.notificationModal.error(msg, 'No se pudo confirmar el pedido', details);
       }
     });
+  }
+
+  prevStep() {
+    if (this.submitting()) return;
+    if (this.checkoutStep() > 1) this.checkoutStep.update(s => s - 1);
   }
 
   abrirCamera() {
@@ -987,7 +738,7 @@ this.ordersBackend.createOrder(orderData).subscribe({
       }
     } catch (err) {
       console.error('Error accessing camera:', err);
-      alert('No se pudo acceder a la cámara');
+      this.notificationModal.error('No se pudo acceder a la cámara.', 'Cámara no disponible');
     }
   }
 
@@ -1097,10 +848,6 @@ this.ordersBackend.createOrder(orderData).subscribe({
   }
 
   ngOnDestroy() {
-    this.detenerPollingQR();
     this.cerrarCamera();
-    if (this.showQRModal()) {
-      this.showQRModal.set(false);
-    }
   }
 }

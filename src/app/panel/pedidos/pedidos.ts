@@ -69,7 +69,8 @@ export default class Pedidos implements OnInit, OnDestroy {
   statusSteps: { status: OrderStatus; label: string; icon: string }[] = [
     { status: 'pendiente', label: 'Pedido recibido', icon: '📋' },
     { status: 'procesando', label: 'En proceso', icon: '⚙️' },
-    { status: 'enviado', label: 'Enviado', icon: '🚚' },
+    { status: 'procesado', label: 'Aceptado por repartidor', icon: '🧾' },
+    { status: 'enviado', label: 'En camino', icon: '🚚' },
     { status: 'entregado', label: 'Entregado', icon: '✅' },
   ];
 
@@ -205,13 +206,28 @@ export default class Pedidos implements OnInit, OnDestroy {
   }
 
   getStatusLabel(status: OrderStatus): string {
+    if (status === 'cancelado') return 'Cancelado';
+    if (status === 'confirmar') return 'Por confirmar';
     const step = this.statusSteps.find(s => s.status === status);
     return step?.label || status;
   }
 
   getStatusIcon(status: OrderStatus): string {
+    if (status === 'cancelado') return '❌';
+    if (status === 'confirmar') return '⏳';
     const step = this.statusSteps.find(s => s.status === status);
     return step?.icon || '📦';
+  }
+
+  isCancelled(order: Order | null): boolean { return order?.status === 'cancelado'; }
+  getCurrentStepIndex(order: Order | null): number {
+    if (!order) return -1;
+    if (order.status === 'cancelado') {
+      const last = [...(order.historial || [])].reverse().find(h => h.status !== 'cancelado');
+      return this.getStatusIndex((last?.status as OrderStatus) || 'pendiente');
+    }
+    if (order.status === 'confirmar') return -1;
+    return this.getStatusIndex(order.status);
   }
 
   openDeliveryPersonModal(deliveryPersonId: string) {

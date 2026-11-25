@@ -126,6 +126,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
     { value: 'confirmar', label: 'Por confirmar' },
     { value: 'pendiente', label: 'Pendiente' },
     { value: 'procesando', label: 'Procesando' },
+    { value: 'procesado', label: 'Aceptado repartidor' },
     { value: 'enviado', label: 'Enviado' },
     { value: 'entregado', label: 'Entregado' },
     { value: 'cancelado', label: 'Cancelado' },
@@ -135,6 +136,7 @@ export class AdminPedidos implements OnInit, OnDestroy {
     confirmar: '#ffc107',
     pendiente: '#17a2b8',
     procesando: '#6f42c1',
+    procesado: '#0ea5e9',
     enviado: '#007bff',
     entregado: '#28a745',
     cancelado: '#dc3545',
@@ -432,6 +434,7 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
       case 'entregado': return 'success';
       case 'cancelado': return 'danger';
       case 'procesando':
+      case 'procesado':
       case 'enviado': return 'info';
       case 'confirmar':
       case 'pendiente': return 'warning';
@@ -458,29 +461,17 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
    updateStatus(orderId: string, newStatus: string) {
       const order = this.selectedOrder();
       const wasConfirmed = order && order.status === 'confirmar';
-      const isPendiente = newStatus === 'pendiente';
-      this.http.put<Order>(`/api/orders/${orderId}/status`, {
-        status: newStatus,
-        observaciones: ''
-      }).subscribe({
+      this.ordersBackend.updateOrderStatus(orderId, newStatus as any, '').subscribe({
         next: (updatedOrder) => {
           this.loadOrders();
-          // Show notification if order changed to pendiente
-          if (wasConfirmed && isPendiente) {
-            this.notificationService.success(
-              'Pedido Confirmado',
-              'El pedido #' + orderId.slice(-8) + ' ha sido confirmado y está pendiente de procesamiento'
-            );
+          if (wasConfirmed && newStatus === 'pendiente') {
+            this.notificationService.success('Pedido confirmado', 'El pedido #' + orderId.slice(-8) + ' fue confirmado.');
+          } else {
+            this.notificationService.success('Pedidos', 'Estado actualizado');
           }
-          if (this.selectedOrder()?.id === orderId) {
-            this.selectedOrder.set(updatedOrder);
-          }
-          this.notificationService.success('Pedidos','Estado actualizado');
+          if (this.selectedOrder()?.id === orderId) this.selectedOrder.set(updatedOrder);
         },
-        error: (err) => {
-          console.error('Error updating status:', err);
-          this.notificationModal.error('Error al actualizar estado');
-        }
+        error: (err) => this.notificationModal.fromHttpError(err, 'Error al actualizar estado'),
       });
     }
 
@@ -521,15 +512,23 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
 		    return orders.filter(o => o.status === status).length;
 		  }
 
-	  isStatusDisabled(statusValue: string): boolean {
-	    const currentStatus = this.selectedOrder()?.status;
-	    if (!currentStatus) return true;
-    if (currentStatus === 'entregado' || currentStatus === 'cancelado') {
-      return true;
-    }
-    if (statusValue === 'entregado' && !this.selectedOrder()?.facturaImage) {
-      return true;
-    }
+  private readonly orderTransitions: Record<string, string[]> = {
+    confirmar: ['pendiente', 'cancelado'],
+    pendiente: ['procesando', 'cancelado'],
+    procesando: ['procesado', 'enviado', 'cancelado'],
+    procesado: ['enviado', 'procesando', 'cancelado'],
+    enviado: ['entregado', 'cancelado'],
+    entregado: [],
+    cancelado: [],
+  };
+
+  isStatusDisabled(statusValue: string): boolean {
+    const currentStatus = this.selectedOrder()?.status;
+    if (!currentStatus || statusValue === 'todos') return true;
+    if (currentStatus === statusValue) return true;
+    const allowed = this.orderTransitions[currentStatus] || [];
+    if (!allowed.includes(statusValue)) return true;
+    if (statusValue === 'entregado' && !this.selectedOrder()?.facturaImage) return true;
     return false;
   }
 
@@ -579,32 +578,18 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
       const order = this.selectedOrder();
       const motivo = this.cancelReason().trim();
       const clave = this.supervisorKey().trim();
-
-      if (!motivo) {
-        this.cancelError.set('Por favor ingresa un motivo de cancelación');
-        return;
-      }
-      if (!clave) {
-        this.cancelError.set('Por favor ingresa la clave de supervisor');
-        return;
-      }
+      if (!motivo) { this.cancelError.set('Por favor ingresa un motivo de cancelación'); return; }
+      if (!clave) { this.cancelError.set('Por favor ingresa la clave de supervisor'); return; }
       if (!order) return;
-
       this.isCancelling.set(true);
       this.cancelError.set('');
-
-      this.http.put<Order>(`/api/orders/${order.id}/cancel-authorize`, {
-        motivo,
-        claveSupervisor: clave
-      }).subscribe({
+      this.ordersBackend.cancelOrderAuthorized(order.id, motivo, clave).subscribe({
         next: (updatedOrder) => {
           this.isCancelling.set(false);
           this.closeCancelModal();
           this.loadOrders();
-          if (this.selectedOrder()?.id === order.id) {
-            this.selectedOrder.set(updatedOrder);
-          }
-          this.notificationService.success('Pedidos','Pedido cancelado correctamente');
+          if (this.selectedOrder()?.id === order.id) this.selectedOrder.set(updatedOrder);
+          this.notificationService.success('Pedidos', 'Pedido cancelado correctamente');
         },
         error: (err: HttpErrorResponse) => {
           this.isCancelling.set(false);
@@ -687,37 +672,46 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
     reader.readAsDataURL(file);
   }
 
-   uploadFactura() {
+    uploadFactura() {
+
       const order = this.selectedOrder();
-      const file = this.facturaFile();
+
       const preview = this.facturaPreview();
 
-      if (!file || !preview) {
-        this.facturaError.set('Selecciona una imagen para subir');
-        return;
-      }
+      if (!preview) { this.facturaError.set('Selecciona una imagen para subir'); return; }
+
       if (!order) return;
 
       this.isUploadingFactura.set(true);
+
       this.facturaError.set('');
 
-      this.http.put<Order>(`/api/orders/${order.id}/factura`, {
-        facturaImage: preview
-      }).subscribe({
+      this.ordersBackend.uploadFactura(order.id, preview).subscribe({
+
         next: (updatedOrder) => {
+
           this.isUploadingFactura.set(false);
+
           this.closeFacturaModal();
+
           this.loadOrders();
-          if (this.selectedOrder()?.id === order.id) {
-            this.selectedOrder.set(updatedOrder);
-          }
-          this.notificationService.success('Pedidos','Factura subida correctamente');
+
+          if (this.selectedOrder()?.id === order.id) this.selectedOrder.set(updatedOrder);
+
+          this.notificationService.success('Pedidos', 'Factura subida correctamente');
+
         },
+
         error: (err: HttpErrorResponse) => {
+
           this.isUploadingFactura.set(false);
+
           this.facturaError.set(err.error?.error || 'Error al subir factura');
+
         }
+
       });
+
     }
 
   // --- Asignar repartidor ---
@@ -794,33 +788,20 @@ private async updateMapWithNewLocation(lat: number, lng: number) {
   assignDeliveryPerson() {
     const order = this.selectedOrder();
     const selectedId = this.selectedDeliveryPersonId();
-    if (!selectedId) {
-      this.assignDeliveryError.set('Por favor selecciona un repartidor');
-      return;
-    }
+    if (!selectedId) { this.assignDeliveryError.set('Por favor selecciona un repartidor'); return; }
     if (!order) return;
-
     const selectedPerson = this.getAvailableDeliveryPersons().find(p => p.id === selectedId);
-    if (!selectedPerson) {
-      this.assignDeliveryError.set('Repartidor no encontrado');
-      return;
-    }
+    if (!selectedPerson) { this.assignDeliveryError.set('Repartidor no encontrado'); return; }
 
     this.isAssigningDelivery.set(true);
     this.assignDeliveryError.set('');
-
-    this.http.put<Order>(`/api/orders/${order.id}/assign-delivery`, {
-      deliveryPersonId: selectedPerson.id,
-      deliveryPersonName: selectedPerson.nombre
-    }).subscribe({
+    this.ordersBackend.assignDelivery(order.id, selectedPerson.id, selectedPerson.nombre).subscribe({
       next: (updatedOrder) => {
         this.isAssigningDelivery.set(false);
         this.closeAssignDeliveryModal();
         this.loadOrders();
-        if (this.selectedOrder()?.id === order.id) {
-          this.selectedOrder.set(updatedOrder);
-        }
-        this.notificationService.success('Pedidos','Repartidor asignado correctamente');
+        if (this.selectedOrder()?.id === order.id) this.selectedOrder.set(updatedOrder);
+        this.notificationService.success('Pedidos', 'Repartidor asignado correctamente');
       },
       error: (err: HttpErrorResponse) => {
         this.isAssigningDelivery.set(false);

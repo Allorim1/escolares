@@ -23,17 +23,21 @@
             </div>
           </div>
 
-          <div class="order-status-tracker">
-            @for (step of statusSteps; track step.status; let i = $index) {
-              <div class="tracker-step" [class.completed]="getStatusIndex(order.status) > i" [class.active]="order.status === step.status">
-                <div class="step-icon">{{ step.icon }}</div>
-                <div class="step-label">{{ step.label }}</div>
-              </div>
-              @if (i < statusSteps.length - 1) {
-                <div class="tracker-line" [class.completed]="getStatusIndex(order.status) > i"></div>
+          @if (isCancelled(order)) {
+            <div class="order-status-cancelled">❌ Pedido cancelado</div>
+          } @else {
+            <div class="order-status-tracker">
+              @for (step of statusSteps; track step.status; let i = $index) {
+                <div class="tracker-step" [class.completed]="getCurrentStepIndex(order) > i" [class.active]="getCurrentStepIndex(order) === i">
+                  <div class="step-icon">{{ step.icon }}</div>
+                  <div class="step-label">{{ step.label }}</div>
+                </div>
+                @if (i < statusSteps.length - 1) {
+                  <div class="tracker-line" [class.completed]="getCurrentStepIndex(order) > i"></div>
+                }
               }
-            }
-          </div>
+            </div>
+          }
 
           <div class="order-summary">
             <div class="order-items">
@@ -64,24 +68,23 @@
       </div>
 
       <div class="modal-body">
-        <div class="detail-status-tracker">
-          @for (step of statusSteps; track step.status; let i = $index) {
-            <div class="detail-step" [class.completed]="getStatusIndex(selectedOrder()!.status) > i" [class.active]="selectedOrder()!.status === step.status">
-              <div class="detail-step-icon">{{ step.icon }}</div>
-              <div class="detail-step-info">
-                <div class="detail-step-label">{{ step.label }}</div>
-                @if (selectedOrder()!.status === step.status) {
-                  <div class="detail-step-date">
-                    {{ selectedOrder()!.historial[getStatusIndex(selectedOrder()!.status)]?.fecha | date:'dd/MM/yyyy HH:mm' }}
-                  </div>
-                }
+        @if (isCancelled(selectedOrder()!)) {
+          <div class="order-status-cancelled detail">❌ Este pedido fue cancelado.</div>
+        } @else {
+          <div class="detail-status-tracker">
+            @for (step of statusSteps; track step.status; let i = $index) {
+              <div class="detail-step" [class.completed]="getCurrentStepIndex(selectedOrder()!) > i" [class.active]="getCurrentStepIndex(selectedOrder()!) === i">
+                <div class="detail-step-icon">{{ step.icon }}</div>
+                <div class="detail-step-info">
+                  <div class="detail-step-label">{{ step.label }}</div>
+                </div>
               </div>
-            </div>
-            @if (i < statusSteps.length - 1) {
-              <div class="detail-step-line" [class.completed]="getStatusIndex(selectedOrder()!.status) > i"></div>
+              @if (i < statusSteps.length - 1) {
+                <div class="detail-step-line" [class.completed]="getCurrentStepIndex(selectedOrder()!) > i"></div>
+              }
             }
-          }
-        </div>
+          </div>
+        }
 
         <div class="detail-section">
           <h4>Productos</h4>

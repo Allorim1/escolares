@@ -85,8 +85,8 @@
       }
 
       @if (showCheckoutModal()) {
-  <div class="modal-overlay">
-    <div class="checkout-modal">
+  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && !submitting() && closeCheckout()" (keydown.escape)="!submitting() && closeCheckout()" tabindex="-1">
+    <div class="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-modal-title" tabindex="-1">
       @if (orderPlaced()) {
         <div class="order-success">
           <div class="success-icon">✓</div>
@@ -97,8 +97,8 @@
         </div>
       } @else {
         <div class="modal-header">
-          <h3>Finalizar Compra</h3>
-          <button class="close-btn" (click)="closeCheckout()">&times;</button>
+          <h3 id="checkout-modal-title">Finalizar Compra</h3>
+          <button class="close-btn" (click)="closeCheckout()" [disabled]="submitting()" aria-label="Cerrar checkout">&times;</button>
         </div>
 
         <div class="checkout-steps">
@@ -147,7 +147,7 @@
             </div>
           </div>
 
-          <form class="payment-form" (ngSubmit)="placeOrder()">
+          <form class="payment-form" (ngSubmit)="$event.preventDefault()">
             @if (checkoutStep() === 1) {
               <div class="step-content">
                 <h4>Datos del Cliente</h4>
@@ -252,7 +252,7 @@
                 }
 
                 @if (shippingError()) {
-                  <div class="error-message">{{ shippingError() }}</div>
+                  <div class="error-message" role="alert">{{ shippingError() }}</div>
                 }
 
                 <div class="step-actions">
@@ -356,7 +356,7 @@
                 </div>
 
                 @if (paymentError()) {
-                  <div class="error-message">{{ paymentError() }}</div>
+                  <div class="error-message" role="alert" id="payment-error-msg">{{ paymentError() }}</div>
                 }
 
                 @if (paymentData().metodoPago === 'pago_movil' || paymentData().metodoPago === 'transferencia' || paymentData().metodoPago === 'efectivo') {
@@ -392,27 +392,15 @@
                    </div>
                  }
 
-                @if (currentOrderId()) {
-                  <div class="confirm-order-section">
-                    @if (tieneComprobantePago()) {
-                      <p class="confirm-text-paid">✅ Pago registrado - Esperando confirmación</p>
-                      <div class="confirm-actions">
-                        <button type="button" class="btn-confirmar" (click)="confirmarPedido()">Confirmar Pedido</button>
-                      </div>
-                    } @else {
-                      <p class="confirm-text">Tu pedido está listo. ¿Deseas confirmarlo?</p>
-                      <div class="confirm-actions">
-                        <button type="button" class="btn-cancelar" (click)="cancelarPedido()">Cancelar</button>
-                        <button type="button" class="btn-confirmar" (click)="confirmarPedido()">Confirmar Pedido</button>
-                      </div>
-                    }
+                <div class="confirm-order-section">
+                  <p class="confirm-text">Revisa tu información y confirma el pedido.</p>
+                  <div class="step-actions confirm-actions">
+                    <button type="button" class="btn-secondary" (click)="prevStep()" [disabled]="submitting()">Atrás</button>
+                    <button type="button" class="btn-confirmar" (click)="confirmarPedido()" [disabled]="submitting()">
+                      {{ submitting() ? 'Confirmando pedido...' : 'Confirmar pedido' }}
+                    </button>
                   </div>
-                } @else {
-                  <div class="step-actions">
-                    <button type="button" class="btn-secondary" (click)="prevStep()">Atrás</button>
-                    <button type="button" class="btn-primary" disabled>Cargando...</button>
-                  </div>
-                }
+                </div>
               </div>
             }
           </form>
@@ -421,6 +409,7 @@
     </div>
   </div>
 }
+  }
 
 @if (showCamera()) {
   <div class="camera-modal" (click)="($event.target === $event.currentTarget) && (cerrarCamera())" tabindex="0" (keydown.enter)="cerrarCamera()" (keydown.space)="cerrarCamera(); $event.preventDefault()">
@@ -439,149 +428,3 @@
     </div>
   </div>
 }
-
-@if (showQRModal()) {
-  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (cerrarQRModal())" tabindex="0" (keydown.enter)="cerrarQRModal()" (keydown.space)="cerrarQRModal(); $event.preventDefault()">
-    <div class="qr-modal">
-      <div class="qr-modal-header">
-        <h3>📱 Escanear desde Celular</h3>
-        <button class="close-btn" (click)="cerrarQRModal()">✕</button>
-      </div>
-      <div class="qr-modal-body">
-        <p class="qr-instructions">Escanea este código QR con tu celular para subir una foto del comprobante de pago</p>
-        
-        @if (qrLoading()) {
-          <div class="qr-loading">Generando código QR...</div>
-        }
-        
-        @if (qrFotoRecibida()) {
-          <div class="qr-success">
-            <div class="qr-success-icon">✓</div>
-            <p>¡Foto recibida!</p>
-            <img [src]="paymentData().fotoComprobante" alt="Comprobante" class="qr-preview-image">
-          </div>
-        } @else {
-          @if (qrCodeData()) {
-            <img [src]="qrCodeData()" alt="QR Code" class="qr-code-image">
-            <p class="qr-expire">Expira: {{ qrExpiracion() | date:'HH:mm:ss' }}</p>
-            <p class="qr-polling">⏳ Esperando foto del celular...</p>
-          }
-        }
-        
-        <button class="btn-secondary" (click)="cerrarQRModal()">Cerrar</button>
-      </div>
-    </div>
-  </div>
-}
-
-@if (showAddAddressModal()) {
-  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (showAddAddressModal.set(false))" tabindex="0" (keydown.enter)="showAddAddressModal.set(false)" (keydown.space)="showAddAddressModal.set(false); $event.preventDefault()">
-    <div class="checkout-modal">
-      <div class="modal-header">
-        <h3>Agregar Dirección</h3>
-        <button class="close-btn" (click)="showAddAddressModal.set(false)">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="lint-associated-field-13">Nombre de esta dirección (ej: Casa, Oficina)</label>
-          <input type="text" [(ngModel)]="newAddressNombre" placeholder="Ej: Casa"  id="lint-associated-field-13"/>
-        </div>
-        <div class="form-group">
-          <label for="lint-associated-field-14">Dirección completa</label>
-          <input type="text" [(ngModel)]="newAddressDireccion" placeholder="Calle, ciudad, estado..."  id="lint-associated-field-14"/>
-        </div>
-        <div class="step-actions">
-          <button type="button" class="btn-secondary" (click)="showAddAddressModal.set(false)">Cancelar</button>
-          <button type="button" class="btn-primary" (click)="addNewAddress()">Guardar dirección</button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-@if (showAddressSavedModal()) {
-  <div class="modal-overlay" (click)="($event.target === $event.currentTarget) && (showAddressSavedModal.set(false))" tabindex="0" (keydown.enter)="showAddressSavedModal.set(false)" (keydown.space)="showAddressSavedModal.set(false); $event.preventDefault()">
-    <div class="checkout-modal">
-      <div class="modal-header">
-        <h3>Dirección Guardada</h3>
-        <button class="close-btn" (click)="showAddressSavedModal.set(false)">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="order-success">
-          <div class="success-icon">✓</div>
-          <h3>¡Dirección guardada correctamente!</h3>
-          <p>La dirección ha sido agregada a tu perfil.</p>
-          <button class="btn-primary" (click)="showAddressSavedModal.set(false)">Aceptar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-} @else {
-       <div class="empty-cart">
-         <div class="empty-icon">🛒</div>
-         <h3>Tu carrito está vacío</h3>
-         <p>¡Explora nuestros productos y encuentra lo que necesitas!</p>
-         <a routerLink="/products" class="shop-btn">Ver Productos</a>
-       </div>
-     }
-    </div>
-
-    @if (savedForLater().length > 0) {
-      <div class="saved-for-later-section">
-        <h3>Guardados para más tarde</h3>
-        <div class="saved-items-grid">
-          @for (product of savedForLater(); track product.id) {
-            <div class="saved-item-card">
-              <img [src]="product.image" [alt]="product.title" class="saved-item-image" />
-              <div class="saved-item-info">
-                <span class="saved-item-title">{{ product.title }}</span>
-                <span class="saved-item-price" [innerHTML]="formatPrice(product.price)"></span>
-              </div>
-              <div class="saved-item-actions">
-                <button class="btn-move-cart" (click)="moveToCart(product)" title="Mover al carrito">
-                  🛒
-                </button>
-                <button class="btn-remove-saved" (click)="removeFromSaved(product.id)" title="Eliminar">
-                  ✕
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
-
-    @if (state().products.length > 0) {
-     <div class="floating-summary">
-       <div class="floating-summary-content">
-         <div class="floating-address-header">
-           <button class="floating-address-btn" (click)="showAddressModal.set(true)">
-             <span class="address-icon">📍</span>
-             <span class="address-label">Dirección</span>
-           </button>
-         </div>
-         <h4>Resumen del Pedido</h4>
-         <div class="floating-summary-row">
-           <span>Subtotal:</span>
-           <span [innerHTML]="formatPrice(price())"></span>
-         </div>
-         <div class="floating-summary-row">
-           <span>Envío ({{ getSelectedShippingRate().label }}):</span>
-           <span [innerHTML]="formatPrice(shippingCost())"></span>
-         </div>
-         <div class="floating-summary-row">
-           <span>IVA:</span>
-           <span [innerHTML]="formatPrice(ivaTotal())"></span>
-         </div>
-         <div class="floating-summary-row total">
-           <span>Total:</span>
-           <span [innerHTML]="formatPrice(totalWithShipping())"></span>
-         </div>
-         <button class="floating-checkout-btn" (click)="openCheckout()">Finalizar Compra</button>
-         <button class="floating-clear-btn" (click)="clearCart()">Vaciar Carrito</button>
-       </div>
-     </div>
-   }
-</section>

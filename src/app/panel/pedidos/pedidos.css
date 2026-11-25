@@ -784,3 +784,15 @@
     opacity: 0.7;
   }
 }
+
+
+.order-status-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  margin: 0.5rem 0 1rem;
+}
+.order-status-cancelled.detail { margin-bottom: 1rem; }

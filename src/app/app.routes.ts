@@ -14,11 +14,6 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    // Formulario público de pago móvil abierto desde el QR de la caja.
-    path: 'pago/:token',
-    loadComponent: () => import('./pago-qr/pago-qr').then((m) => m.PagoQr),
-  },
-  {
     path: '',
     component: HomeComponent,
   },

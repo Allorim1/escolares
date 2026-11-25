@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrderTrackingMapComponent } from './order-tracking-map/order-tracking-map';
 import { AuthService } from '../shared/data-access/auth.service';
+import { NotificationModalService } from '../shared/ui/notification-modal/notification-modal.service';
 
 interface DeliveryPerson {
   id: string;
@@ -66,6 +67,7 @@ interface Order {
    deliveryPersonId: string | null = null;
 
    private authService = inject(AuthService);
+  private notificationModal = inject(NotificationModalService);
    private http = inject(HttpClient);
 
    ngOnInit() {
@@ -166,7 +168,7 @@ updateOrderStatus(order: Order, newStatus: Order['status']) {
      this.currentOrder.set(order);
    }
 
-   acceptOrder(order: Order) {
+   async acceptOrder(order: Order) {
      if (!confirm(`¿Aceptar el pedido #${order.id}?`)) return;
 
      const token = localStorage.getItem('accessToken');
@@ -183,7 +185,7 @@ updateOrderStatus(order: Order, newStatus: Order['status']) {
      });
    }
 
-   rejectOrder(order: Order) {
+   async rejectOrder(order: Order) {
      const motivo = prompt('¿Cuál es el motivo del rechazo? (Opcional)');
      if (!confirm(`¿Rechazar el pedido #${order.id}?${motivo ? `\nMotivo: ${motivo}` : ''}`)) return;
 

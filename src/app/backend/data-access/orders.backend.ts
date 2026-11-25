@@ -40,6 +40,9 @@ export interface Order {
     lng: number;
     timestamp: Date;
   };
+  stockRestored?: boolean;
+  stockRestoredAt?: Date;
+  idempotencyKey?: string;
   createdAt: Date;
   updatedAt: Date;
   mensajes?: OrderMessage[];
@@ -60,6 +63,7 @@ export type OrderStatus =
   | 'confirmar'
   | 'pendiente'
   | 'procesando'
+  | 'procesado'
   | 'enviado'
   | 'entregado'
   | 'cancelado';
@@ -92,6 +96,7 @@ export interface CreateOrderData {
   placeId?: string;
   latitud?: number;
   longitud?: number;
+  idempotencyKey?: string;
 }
 
 @Injectable({
@@ -125,5 +130,34 @@ export class OrdersBackend {
 
   deleteOrder(id: string): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
+  }
+
+  cancelOrderAuthorized(id: string, motivo: string, claveSupervisor: string): Observable<Order> {
+    return this.http.put<Order>(`${this.API_URL}/${id}/cancel-authorize`, { motivo, claveSupervisor });
+  }
+
+  assignDelivery(id: string, deliveryPersonId: string, deliveryPersonName: string): Observable<Order> {
+    return this.http.put<Order>(`${this.API_URL}/${id}/assign-delivery`, { deliveryPersonId, deliveryPersonName });
+  }
+
+  uploadFactura(id: string, facturaImage: string): Observable<Order> {
+    return this.http.put<Order>(`${this.API_URL}/${id}/factura`, { facturaImage });
+  }
+
+  acceptOrder(id: string): Observable<Order> {
+    return this.http.put<Order>(`${this.API_URL}/${id}/accept`, {});
+  }
+
+  rejectOrder(id: string, motivo?: string): Observable<Order> {
+    return this.http.put<Order>(`${this.API_URL}/${id}/reject`, { motivo: motivo || '' });
+  }
+
+  getAssignedDeliveryOrders(status?: string): Observable<Order[]> {
+    const q = status ? `?status=${encodeURIComponent(status)}` : '';
+    return this.http.get<Order[]>(`${this.API_URL}/delivery/assigned${q}`);
+  }
+
+  getAvailableDeliveryOrders(): Observable<Order[]> {
+    return this.http.get<Order[]>(`${this.API_URL}/delivery/available`);
   }
 }

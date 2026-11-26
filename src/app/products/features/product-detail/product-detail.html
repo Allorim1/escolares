@@ -5,7 +5,7 @@
     @if (product; as product) {
       <div class="product-detail-card">
         <div class="product-image-col">
-          <div class="image-wrapper">
+          <div class="image-wrapper" (mousemove)="onImageTilt($event)" (mouseleave)="resetImageTilt($event)">
             @if (product.estado === 'agotado') {
               <div class="agotado-badge">Temporalmente agotado</div>
             }

@@ -37,6 +37,7 @@ export default class ProductDetail implements AfterViewInit {
   userRating = signal(0);
   private prefersReducedMotion = false;
   private lastAnimatedProductId: string | number | null = null;
+  private tiltRaf = 0;
 
   shouldShowPrice(): boolean {
     if (this.authService.isLoggedIn()) return true;
@@ -228,6 +229,38 @@ export default class ProductDetail implements AfterViewInit {
         },
       });
     } catch { clone.remove(); }
+  }
+
+  onImageTilt(event: MouseEvent) {
+    if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    const wrapper = event.currentTarget as HTMLElement;
+    const img = wrapper.querySelector('.product-detail-image') as HTMLElement | null;
+    if (!img) return;
+    if (this.tiltRaf) cancelAnimationFrame(this.tiltRaf);
+    this.tiltRaf = requestAnimationFrame(() => {
+      const rect = wrapper.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      const rotateY = x * 10;
+      const rotateX = -y * 10;
+      img.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`;
+      img.style.transition = 'transform 60ms linear';
+    });
+  }
+
+  resetImageTilt(event: MouseEvent) {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const wrapper = event.currentTarget as HTMLElement;
+    const img = wrapper.querySelector('.product-detail-image') as HTMLElement | null;
+    if (!img) return;
+    if (this.tiltRaf) { cancelAnimationFrame(this.tiltRaf); this.tiltRaf = 0; }
+    try {
+      animate(img, { rotateX: 0, rotateY: 0, scale: 1, duration: 420, ease: 'out(3)' });
+    } catch {
+      img.style.transform = '';
+    }
+    img.style.transition = '';
   }
 
   increaseQuantity() {

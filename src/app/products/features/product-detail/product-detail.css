@@ -49,6 +49,7 @@
   justify-content: center;
   min-height: 400px;
   position: relative;
+  perspective: 900px;
 }
 
 .agotado-badge {
@@ -68,10 +69,12 @@
   max-height: 400px;
   object-fit: contain;
   transition: transform 0.3s;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
-.image-wrapper:hover .product-detail-image {
-  transform: scale(1.02);
+@media (pointer: coarse) {
+  .image-wrapper:hover .product-detail-image { transform: scale(1.02); }
 }
 
 .product-info-col {

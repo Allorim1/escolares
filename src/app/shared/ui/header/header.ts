@@ -8,6 +8,7 @@ import { CurrencyService } from '../../data-access/currency.service';
 import { Product, ProductItemCart } from '../../../shared/interfaces/product.interface';
 import { NoticiasService } from '../../data-access/noticias.service';
 import { Subscription } from 'rxjs';
+import { animate } from 'animejs';
 
 @Component({
   selector: 'app-header',
@@ -67,9 +68,20 @@ export class Header implements OnInit, OnDestroy {
       const count = this.cartCount();
       if (this.lastCartCount === -1) { this.lastCartCount = count; return; }
       if (count !== this.lastCartCount) {
+        const increased = count > this.lastCartCount;
         this.lastCartCount = count;
         this.cartPop.set(true);
-        setTimeout(() => this.cartPop.set(false), 180);
+        setTimeout(() => this.cartPop.set(false), 320);
+        if (increased && typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          requestAnimationFrame(() => {
+            const btn = document.querySelector('.cart-btn') as HTMLElement | null;
+            const badge = document.querySelector('.cart-count') as HTMLElement | null;
+            try {
+              if (btn) animate(btn, { scale: [1, 1.14, 1], duration: 320, ease: 'out(2)' });
+              if (badge) animate(badge, { scale: [1, 1.5, 1], duration: 360, ease: 'out(3)' });
+            } catch {}
+          });
+        }
       }
     });
   }

@@ -1,4 +1,6 @@
-import { Component, inject, signal, OnDestroy, computed } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, PLATFORM_ID, effect, inject, signal, OnDestroy, computed } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { animate, stagger } from 'animejs';
 import { CartItem } from './ui/cart-item/cart-item';
 import { CartStateService } from '../shared/data-access/cart-state.service';
 import { ProductItemCart } from '../shared/interfaces/product.interface';
@@ -63,7 +65,7 @@ const TRANSFERENCIA_INFO = {
   templateUrl: './cart.html',
   styleUrl: './cart.css',
 })
-export default class CartComponent implements OnDestroy {
+export default class CartComponent implements AfterViewInit, OnDestroy {
    state = inject(CartStateService).state;
    authService = inject(AuthService);
    private ordersBackend = inject(OrdersBackend);
@@ -74,6 +76,10 @@ export default class CartComponent implements OnDestroy {
    storeSettings = inject(StoreSettingsService);
    private router = inject(Router);
    private productsState = inject(ProductsStateService);
+   private el = inject(ElementRef<HTMLElement>);
+   private platformId = inject(PLATFORM_ID);
+   private prefersReducedMotion = false;
+   private lastCartAnimKey = '';
 
    // Saved for later products
    savedForLater = signal<ProductItemCart['product'][]>(this.loadSavedForLater());
@@ -132,6 +138,43 @@ export default class CartComponent implements OnDestroy {
 constructor() {
      // Trigger product loading for recommendations
      this.productsState.loadProducts();
+     effect(() => {
+       const ids = (this.state().products || []).map((p) => `${p.product.id}:${p.quantity}`).join('|');
+       if (!ids || ids === this.lastCartAnimKey) return;
+       this.lastCartAnimKey = ids;
+       this.scheduleCartAnimation();
+     });
+   }
+
+   ngAfterViewInit() {
+     if (isPlatformBrowser(this.platformId)) {
+       this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+       this.scheduleCartAnimation();
+     }
+   }
+
+   private scheduleCartAnimation() {
+     if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+     requestAnimationFrame(() => this.animateCart());
+   }
+
+   private animateCart() {
+     if (this.prefersReducedMotion) return;
+     const root = this.el.nativeElement;
+     const items = Array.from(root.querySelectorAll('.cart-items > *')) as HTMLElement[];
+     const summary = root.querySelector('.cart-summary') as HTMLElement | null;
+     const actions = root.querySelector('.cart-actions') as HTMLElement | null;
+     try {
+       if (items.length) {
+         items.forEach((i) => { i.style.opacity = '0'; });
+         animate(items, { opacity: [0, 1], translateY: [14, 0], delay: stagger(55), duration: 380, ease: 'out(2)' });
+       }
+       [summary, actions].filter(Boolean).forEach((el, idx) => {
+         const node = el as HTMLElement;
+         node.style.opacity = '0';
+         animate(node, { opacity: [0, 1], translateY: [10, 0], delay: 120 + idx * 60, duration: 340, ease: 'out(2)' });
+       });
+     } catch {}
    }
 
 // Recommended products for last-minute addition (excludes products already in cart)

@@ -26,25 +26,33 @@ import { NotificationService } from '../../../shared/data-access/notification.se
       align-items: flex-start;
     }
     .products-sidebar {
-      width: 250px;
+      width: 260px;
       flex-shrink: 0;
-      background: #f8f9fa;
-      padding: 1.5rem;
-      border-radius: 12px;
+      background: #fff;
+      padding: 1.25rem;
+      border-radius: 14px;
+      border: 1px solid #e6edf5;
       position: sticky;
       top: 1rem;
+      box-shadow: 0 2px 10px rgba(15,23,42,.03);
     }
-    .sidebar-section {
-      margin-bottom: 1.5rem;
-    }
-    .sidebar-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #333;
-      margin: 0 0 1rem 0;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid #1976d2;
-    }
+    .sidebar-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; padding-bottom:.75rem; border-bottom:1px solid #e8eef5; }
+    .sidebar-main-title { margin:0; font-size:1rem; font-weight:700; color:#17365f; }
+    .sidebar-clear-link { background:none; border:none; color:#1d63c1; font-size:.8rem; font-weight:600; cursor:pointer; padding:.2rem .35rem; border-radius:6px; }
+    .sidebar-clear-link:hover { background:#eef5ff; }
+    .sidebar-section { margin-bottom: 1.25rem; padding-bottom: 1.1rem; border-bottom: 1px solid #eef3f8; }
+    .sidebar-section:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+    .sidebar-title { font-size: .78rem; font-weight: 700; color: #5f7185; margin: 0 0 .7rem 0; text-transform: uppercase; letter-spacing: .05em; }
+    .sidebar-brand { background:#f7fbff; border:1px solid #dceaf8; border-radius:10px; padding:.75rem; }
+    .sidebar-brand-label { font-size:.72rem; font-weight:700; color:#5f7185; text-transform:uppercase; letter-spacing:.04em; }
+    .sidebar-brand-row { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-top:.25rem; }
+    .sidebar-brand-clear { font-size:.78rem; color:#1d63c1; text-decoration:none; font-weight:600; }
+    .price-hint { font-size:.75rem; color:#7a8fa6; margin:0 0 .6rem; }
+    .price-inputs-row { display:grid; grid-template-columns:1fr auto 1fr; gap:.45rem; align-items:end; }
+    .price-sep { color:#9fb1c5; font-size:.85rem; padding-bottom:.55rem; }
+    .filter-group.compact { gap:.25rem; }
+    .filter-group.compact label { font-size:.72rem; color:#6b8098; font-weight:600; }
+    .filter-group.compact input { min-width:0; width:100%; padding:.45rem .55rem; font-size:.85rem; border-radius:8px; }
     .category-list {
       list-style: none;
       padding: 0;
@@ -55,25 +63,18 @@ import { NotificationService } from '../../../shared/data-access/notification.se
     }
     .category-item {
       width: 100%;
-      padding: 0.625rem 1rem;
+      padding: 0.55rem 0.75rem;
       background: transparent;
       border: 1px solid transparent;
       border-radius: 8px;
       text-align: left;
       cursor: pointer;
-      font-size: 0.9rem;
-      color: #555;
-      transition: all 0.2s;
+      font-size: 0.875rem;
+      color: #425a75;
+      transition: all 0.18s;
     }
-    .category-item:hover {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-    .category-item.active {
-      background: #1976d2;
-      color: white;
-      border-color: #1976d2;
-    }
+    .category-item:hover { background: #f3f8fd; color: #1d63c1; }
+    .category-item.active { background: #e8f1fb; color: #1d63c1; font-weight: 600; border-color: #d3e5f7; }
     .current-brand {
       font-size: 0.95rem;
       color: #333;
@@ -377,7 +378,7 @@ import { NotificationService } from '../../../shared/data-access/notification.se
     .card-link:focus-visible { outline: 3px solid rgba(29,99,193,.3); outline-offset: -3px; border-radius: 12px; }
     .quick-view-btn { background: #f3f6fa; color: #425a75; border: 1px solid #dbe5f0; border-radius: 8px; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; flex-shrink: 0; }
     .quick-view-btn:hover { background: #e8f1fb; color: #1d63c1; border-color: #bfd4ec; }
-    .quick-view-btn:focus-visible, .btn-fav:focus-visible, .qty-btn:focus-visible, .modal-close:focus-visible, .modal-add-to-cart-btn:focus-visible, .clear-filters-btn:focus-visible, .currency-toggle-btn:focus-visible, .pagination button:focus-visible, .category-item:focus-visible, .filter-group input:focus-visible, .filter-group select:focus-visible, .filter-chip button:focus-visible, .btn-primary-cta:focus-visible, .filters-toggle-btn:focus-visible, .btn:focus-visible { outline: 3px solid rgba(29,99,193,.28); outline-offset: 2px; }
+    .quick-view-btn:focus-visible, .btn-fav:focus-visible, .qty-btn:focus-visible, .modal-close:focus-visible, .modal-add-to-cart-btn:focus-visible, .clear-filters-btn:focus-visible, .currency-toggle-btn:focus-visible, .pagination button:focus-visible, .category-item:focus-visible, .filter-group input:focus-visible, .filter-group select:focus-visible, .filter-chip button:focus-visible, .btn-primary-cta:focus-visible, .btn:focus-visible { outline: 3px solid rgba(29,99,193,.28); outline-offset: 2px; }
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.65rem 1rem; border-radius:10px; font-size:.875rem; font-weight:600; cursor:pointer; border:1px solid transparent; transition: background .2s, color .2s, border-color .2s, transform .15s ease, box-shadow .2s; text-decoration:none; line-height:1.2; }
     .btn:active { transform: scale(.98); }
     .btn:disabled { opacity:.55; cursor:not-allowed; transform:none; }
@@ -385,8 +386,7 @@ import { NotificationService } from '../../../shared/data-access/notification.se
     .btn-primary:hover:not(:disabled) { background:#155a9e; border-color:#155a9e; }
     .btn-secondary { background:#fff; color:#334e68; border-color:#d6e2f0; }
     .btn-secondary:hover:not(:disabled) { background:#f3f8fd; border-color:#bfd4ec; color:#1d63c1; }
-    .filters-toggle-btn { background:#fff; color:#1d63c1; border:1px solid #d6e2f0; box-shadow:0 1px 3px rgba(15,23,42,.04); }
-    .filters-toggle-btn:hover { background:#f3f8fd; border-color:#bfd4ec; }
+
     .clear-filters-btn { display:inline-flex; align-items:center; justify-content:center; padding:.65rem 1rem; border-radius:10px; border:1px solid #d6e2f0; background:#fff; color:#425a75; font-size:.85rem; font-weight:600; cursor:pointer; transition: all .2s; }
     .clear-filters-btn:hover { background:#f8fbff; color:#1d63c1; border-color:#bfd4ec; }
     .currency-toggle-btn { display:inline-flex; align-items:center; justify-content:center; min-width:52px; height:40px; padding:0 .9rem; border-radius:10px; border:1px solid #d6e2f0; background:#fff; color:#1d63c1; font-weight:700; cursor:pointer; transition: all .2s; }
@@ -418,9 +418,7 @@ import { NotificationService } from '../../../shared/data-access/notification.se
     @media (max-width: 600px) {
       .products-layout { flex-direction: column; }
       .products-sidebar { width: 100%; max-width: 100%; box-sizing: border-box; position: static; }
-      .products-sidebar.collapsed-mobile { display: none; }
-      .filters-toggle-btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; }
-      .products-main { min-width: 0; max-width: 100%; }
+          .products-main { min-width: 0; max-width: 100%; }
       .modal-product-card { grid-template-columns: 1fr; }
       .modal-image-col { padding: 1rem; }
       .modal-info-col { padding-left: 1.5rem; padding-bottom: 1.5rem; }
@@ -499,7 +497,6 @@ export default class ProductList implements OnInit, AfterViewInit, OnDestroy {
   mouseX = signal(50);
   mouseY = signal(50);
   sortOption = signal<'relevance' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'>('relevance');
-  filtersOpen = signal(false);
   private lastFocused: HTMLElement | null = null;
   private prefersReducedMotion = false;
   private lastAnimatedPageKey = '';
@@ -1036,7 +1033,6 @@ export default class ProductList implements OnInit, AfterViewInit, OnDestroy {
     this.productsState.reset();
   }
 
-  toggleFilters() { this.filtersOpen.set(!this.filtersOpen()); }
   isJustAdded(id: string | number) { return this.addedProductIds().has(id); }
 
   activeFilterChips = computed(() => {

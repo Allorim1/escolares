@@ -12,109 +12,54 @@
   </div>
 } @else {
   <div class="products-layout">
-    <button type="button" class="filters-toggle-btn" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()" aria-controls="products-filters">
-      {{ filtersOpen() ? 'Ocultar filtros' : 'Mostrar filtros' }}
-      @if (activeFilterChips().length > 0) { <span>({{ activeFilterChips().length }})</span> }
-    </button>
     <!-- Sidebar with category filters -->
-    <aside id="products-filters" class="products-sidebar" [class.collapsed-mobile]="!filtersOpen()">
+    <aside id="products-filters" class="products-sidebar">
+      <div class="sidebar-head">
+        <h3 class="sidebar-main-title">Filtros</h3>
+        @if (activeFilterChips().length > 0) {
+          <button type="button" class="sidebar-clear-link" (click)="clearFilters()">Limpiar</button>
+        }
+      </div>
+
+      @if (currentBrand()) {
+        <div class="sidebar-section sidebar-brand">
+          <span class="sidebar-brand-label">Marca</span>
+          <div class="sidebar-brand-row">
+            <span class="current-brand">{{ currentBrand() }}</span>
+            <a routerLink="/products" class="sidebar-brand-clear" (click)="filterBrand.set(''); currentBrand.set('')">Quitar</a>
+          </div>
+        </div>
+      }
+
       <div class="sidebar-section">
-<h3 class="sidebar-title">Categorías</h3>
+        <h4 class="sidebar-title">Categoría</h4>
         <ul class="category-list">
-          <li>
-            <button
-              class="category-item"
-              [class.active]="!filterCategory()"
-              (click)="filterCategory.set('')"
-            >
-              Todas las categorías
-            </button>
-          </li>
+          <li><button class="category-item" [class.active]="!filterCategory()" (click)="filterCategory.set(''); productsState.reset()">Todas</button></li>
           @for (cat of categories(); track cat) {
-            <li>
-              <button
-                class="category-item"
-                [class.active]="filterCategory() === cat"
-                (click)="filterCategory.set(cat)"
-              >
-                {{ cat }}
-              </button>
-            </li>
+            <li><button class="category-item" [class.active]="filterCategory() === cat" (click)="filterCategory.set(cat); productsState.reset()">{{ cat }}</button></li>
           }
         </ul>
       </div>
 
       <div class="sidebar-section">
-        <h3 class="sidebar-title">Filtrar por Precio</h3>
-        <div class="price-filter">
-          <p style="font-size: 0.8rem; color: #666; margin: 0 0 0.5rem 0;">Rango disponible: ${{ priceRange().min }} - ${{ priceRange().max }} USD</p>
-          <p style="font-size: 0.8rem; color: #666; margin: 0 0 0.75rem 0;">Rango en Bs: Bs. {{ priceRangeBs().min }} - Bs. {{ priceRangeBs().max }}</p>
-          <div class="filter-group" style="margin-bottom: 0.75rem;">
-            <label for="priceMinUsd" style="font-size: 0.85rem;">Precio mínimo (USD)</label>
-            <input
-              type="number"
-              id="priceMinUsd"
-              [ngModel]="filterPriceMin()"
-              (ngModelChange)="filterPriceMin.set($event ? $event : null)"
-              [min]="priceRange().min"
-              [max]="priceRange().max"
-              placeholder="Min USD"
-              style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 100px;"
-            />
-          </div>
-          <div class="filter-group" style="margin-bottom: 0.75rem;">
-            <label for="priceMaxUsd" style="font-size: 0.85rem;">Precio máximo (USD)</label>
-            <input
-              type="number"
-              id="priceMaxUsd"
-              [ngModel]="filterPriceMax()"
-              (ngModelChange)="filterPriceMax.set($event ? $event : null)"
-              [min]="priceRange().min"
-              [max]="priceRange().max"
-              placeholder="Max USD"
-              style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 100px;"
-            />
-          </div>
-          <div class="filter-group" style="margin-bottom: 0.75rem;">
-            <label for="priceMinBs" style="font-size: 0.85rem;">Precio mínimo (Bs)</label>
-            <input
-              type="number"
-              id="priceMinBs"
-              [ngModel]="filterPriceMinBs()"
-              (ngModelChange)="filterPriceMinBs.set($event ? $event : null)"
-              [min]="priceRangeBs().min"
-              [max]="maxPriceBs()"
-              placeholder="Min Bs"
-              style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 100px;"
-            />
-          </div>
-          <div class="filter-group" style="margin-bottom: 0.75rem;">
-            <label for="priceMaxBs" style="font-size: 0.85rem;">Precio máximo (Bs)</label>
-            <input
-              type="number"
-              id="priceMaxBs"
-              [ngModel]="filterPriceMaxBs()"
-              (ngModelChange)="filterPriceMaxBs.set($event ? $event : null)"
-              [min]="priceRangeBs().min"
-              [max]="maxPriceBs()"
-              placeholder="Max Bs"
-              style="padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 100px;"
-            />
-          </div>
+        <h4 class="sidebar-title">Precio (USD)</h4>
+        <p class="price-hint">${{ priceRange().min }} – ${{ priceRange().max }}</p>
+        <div class="price-inputs-row">
+          <div class="filter-group compact"><label for="priceMinUsd">Mín</label><input type="number" id="priceMinUsd" [ngModel]="filterPriceMin()" (ngModelChange)="filterPriceMin.set($event ? $event : null); productsState.reset()" [min]="priceRange().min" [max]="priceRange().max" placeholder="Min" /></div>
+          <span class="price-sep">—</span>
+          <div class="filter-group compact"><label for="priceMaxUsd">Máx</label><input type="number" id="priceMaxUsd" [ngModel]="filterPriceMax()" (ngModelChange)="filterPriceMax.set($event ? $event : null); productsState.reset()" [min]="priceRange().min" [max]="priceRange().max" placeholder="Max" /></div>
         </div>
       </div>
 
-      @if (currentBrand()) {
-        <div class="sidebar-section">
-          <a
-            routerLink="/marcas"
-            class="back-link"
-          >
-            ← Volver a Marcas
-          </a>
-          <p class="current-brand">{{ currentBrand() }}</p>
+      <div class="sidebar-section">
+        <h4 class="sidebar-title">Precio (Bs)</h4>
+        <p class="price-hint">Bs. {{ priceRangeBs().min }} – Bs. {{ priceRangeBs().max }}</p>
+        <div class="price-inputs-row">
+          <div class="filter-group compact"><label for="priceMinBs">Mín</label><input type="number" id="priceMinBs" [ngModel]="filterPriceMinBs()" (ngModelChange)="filterPriceMinBs.set($event ? $event : null); productsState.reset()" [min]="priceRangeBs().min" [max]="maxPriceBs()" placeholder="Min" /></div>
+          <span class="price-sep">—</span>
+          <div class="filter-group compact"><label for="priceMaxBs">Máx</label><input type="number" id="priceMaxBs" [ngModel]="filterPriceMaxBs()" (ngModelChange)="filterPriceMaxBs.set($event ? $event : null); productsState.reset()" [min]="priceRangeBs().min" [max]="maxPriceBs()" placeholder="Max" /></div>
         </div>
-      }
+      </div>
     </aside>
 
     <!-- Main content -->

@@ -41,22 +41,25 @@ export class Login {
   }
 
   onSubmit() {
+    if (this.authService.loginLoading()) return;
     this.authService.loginError.set(null);
 
-    const user = this.username();
+    const user = this.username().trim();
     const pass = this.password();
+    const token = this.turnstileToken();
 
     if (!user || !pass) {
       this.authService.loginError.set('Por favor ingresa usuario y contraseña');
       return;
     }
 
-    if (!this.turnstileToken()) {
+    if (!token) {
       this.authService.loginError.set('Por favor completa la verificación de seguridad');
       return;
     }
 
-    this.authService.login(user, pass, this.turnstileToken());
+    this.turnstileToken.set('');
+    this.authService.login(user, pass, token);
     this.turnstile?.reset();
   }
 
@@ -80,8 +83,6 @@ export class Login {
     const mode = this.recoveryMode();
     const identifier = this.recoveryEmail();
 
-    console.log('sendRecovery called with identifier:', identifier, 'mode:', mode);
-
     if (!identifier) {
       this.recoveryError.set('Por favor ingresa tu email o usuario');
       return;
@@ -90,7 +91,6 @@ export class Login {
     this.recoveryLoading.set(true);
     this.recoveryError.set(null);
     this.recoveryIdentifier.set(identifier); // Store the identifier for later use
-    console.log('Stored recoveryIdentifier:', this.recoveryIdentifier());
 
     if (mode === 'username') {
       this.http
@@ -112,10 +112,7 @@ export class Login {
         });
     } else {
       this.http
-        .post<{
-          message: string;
-          email: string;
-        }>('/api/auth/send-otp', { usernameOrEmail: identifier })
+        .post<{ message: string }>('/api/auth/send-otp', { usernameOrEmail: identifier })
         .subscribe({
           next: () => {
             this.recoveryStep.set('otp');
@@ -134,13 +131,6 @@ export class Login {
     const otpValue = this.otp();
     const newPass = this.newPassword();
     const confirmPass = this.confirmPassword();
-
-    console.log('verifyOtp called with:', {
-      identifier,
-      otpValue,
-      hasNewPass: !!newPass,
-      hasConfirmPass: !!confirmPass,
-    });
 
     if (!identifier) {
       this.recoveryError.set(
@@ -174,19 +164,12 @@ export class Login {
         { withCredentials: true },
       )
       .subscribe({
-        next: (res) => {
-          console.log('Password reset success:', res);
+        next: () => {
           this.recoveryStep.set('success');
+          this.recoverySuccess.set('Contraseña actualizada correctamente. Ya puedes iniciar sesión.');
+          this.recoveryLoading.set(false);
         },
         error: (err) => {
-          console.error('verifyOtp error:', err);
-          const errorMsg = err.error?.error || err.message || 'Error al verificar OTP';
-          console.error('Full error response:', {
-            status: err.status,
-            error: err.error,
-            message: err.message,
-          });
-          this.recoveryError.set(errorMsg);
           this.recoveryLoading.set(false);
         },
       });

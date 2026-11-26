@@ -129,13 +129,9 @@ export class AuthBackend {
             response.rol === 'repartidor',
         );
         this.saveToStorage(response);
-        if (response.accessToken) {
-          this.saveToken(response.accessToken);
-          if (response.refreshToken) {
-            localStorage.setItem('refreshToken', response.refreshToken);
-          }
-        }
-        // Start token renewal service after successful login
+        // Web login uses httpOnly cookies. Do not persist tokens in localStorage.
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         this.tokenRenewalService.start();
         this.loginLoading.set(false);
         if (response.rol === 'repartidor') {

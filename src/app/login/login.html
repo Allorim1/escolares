@@ -1,221 +1,201 @@
 <div class="login-container">
-  <div class="login-card">
-    <h2>Iniciar Sesión</h2>
-    <p class="subtitle">Acceso administrativo</p>
+  <div class="login-bg" aria-hidden="true">
+    <span class="blob blob-a"></span>
+    <span class="blob blob-b"></span>
+    <span class="grid"></span>
+  </div>
 
-    <form (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="username">Usuario o Email</label>
-        <input
-          id="username"
-          type="text"
-          [ngModel]="username()"
-          name="username"
-          (ngModelChange)="username.set($event)"
-          placeholder="Ingresa tu usuario o email"
-          required
-        />
-      </div>
-
-      <div class="form-group password-group">
-        <label for="password">Contraseña</label>
-        <div class="password-input-wrapper">
-          <input
-            id="password"
-            [type]="showPassword() ? 'text' : 'password'"
-            [ngModel]="password()"
-            name="password"
-            (ngModelChange)="password.set($event)"
-            placeholder="Ingresa tu contraseña"
-            required
-          />
-          <button
-            type="button"
-            class="toggle-password"
-            (click)="showPassword.set(!showPassword())"
-            tabindex="-1"
-            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-          >
-            @if (!showPassword()) {
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#666"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            }
-            @if (showPassword()) {
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#666"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"
-                ></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
-            }
-          </button>
+  <div class="login-shell">
+    <section class="login-card" aria-labelledby="login-title">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            <path d="M8 7h8M8 11h6"></path>
+          </svg>
+        </div>
+        <div>
+          <p class="brand-name">Escolares</p>
+          <p class="brand-tag">Plataforma educativa</p>
         </div>
       </div>
 
-      <div class="form-group turnstile-group">
-        <app-turnstile (tokenChange)="turnstileToken.set($event)"></app-turnstile>
+      <header class="login-header">
+        <h1 id="login-title">Iniciar sesión</h1>
+        <p class="subtitle">Accede a tu cuenta para continuar.</p>
+      </header>
+
+      <form (ngSubmit)="onSubmit()" class="login-form" novalidate>
+        <div class="form-group">
+          <label for="username">Usuario o correo</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <input
+              id="username"
+              type="text"
+              [ngModel]="username()"
+              name="username"
+              autocomplete="username"
+              [disabled]="authService.loginLoading()"
+              (ngModelChange)="username.set($event)"
+              placeholder="Ingresa tu usuario o correo"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              [ngModel]="password()"
+              name="password"
+              autocomplete="current-password"
+              [disabled]="authService.loginLoading()"
+              (ngModelChange)="password.set($event)"
+              placeholder="Ingresa tu contraseña"
+              required
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [disabled]="authService.loginLoading()"
+            >
+              @if (!showPassword()) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              }
+            </button>
+          </div>
+        </div>
+
+        <div class="turnstile-wrap">
+          <app-turnstile (tokenChange)="turnstileToken.set($event)"></app-turnstile>
+        </div>
+
+        @if (error()) {
+          <div class="feedback error" role="alert" aria-live="polite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>{{ error() }}</span>
+          </div>
+        }
+
+        <button type="submit" class="login-btn" [disabled]="authService.loginLoading() || !turnstileToken()">
+          @if (authService.loginLoading()) {
+            <span class="btn-loading"><span class="spinner" aria-hidden="true"></span>Ingresando...</span>
+          } @else {
+            <span>Iniciar sesión</span>
+          }
+        </button>
+      </form>
+
+      <div class="recovery-links">
+        <button type="button" class="link-btn" (click)="openRecovery('username')">¿Olvidaste tu usuario?</button>
+        <button type="button" class="link-btn" (click)="openRecovery('password')">¿Olvidaste tu contraseña?</button>
       </div>
 
-      @if (error()) {
-        <div class="error-message">{{ error() }}</div>
-      }
-
-      <button
-        type="submit"
-        class="login-btn"
-        [disabled]="authService.loginLoading() || !turnstileToken()"
-      >
-        @if (authService.loginLoading()) {
-          <span>Cargando...</span>
-        } @else {
-          <span>Iniciar sesión</span>
-        }
-      </button>
-    </form>
-
-    <div class="recovery-links">
-      <button type="button" class="recovery-btn" (click)="openRecovery('username')">
-        ¿Olvidaste tu usuario?
-      </button>
-      <button type="button" class="recovery-btn" (click)="openRecovery('password')">
-        ¿Olvidaste tu contraseña?
-      </button>
-    </div>
-
-    <a class="back-link" routerLink="/">Volver al inicio</a>
-    <a class="register-link" routerLink="/register">Crear cuenta</a>
+      <div class="login-footer">
+        <a class="footer-link muted" routerLink="/">Volver al inicio</a>
+        <span class="dot" aria-hidden="true">·</span>
+        <a class="footer-link primary" routerLink="/register">Crear cuenta</a>
+      </div>
+    </section>
   </div>
 
   @if (recoveryMode()) {
-    <div class="recovery-overlay">
-      <div class="recovery-modal">
-        <h3>
-          @if (recoveryMode() === 'username') {
-            Recuperar Usuario
-          } @else {
-            Recuperar Contraseña
-          }
-        </h3>
+    <div class="recovery-overlay" (click)="closeRecovery()">
+      <div class="recovery-modal" role="dialog" aria-modal="true" aria-labelledby="recovery-title" (click)="$event.stopPropagation()">
+        <button type="button" class="modal-close" (click)="closeRecovery()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+
+        <div class="modal-head">
+          <p class="modal-eyebrow">Recuperación de acceso</p>
+          <h3 id="recovery-title">{{ recoveryMode() === 'username' ? 'Recuperar usuario' : 'Recuperar contraseña' }}</h3>
+          <p class="modal-desc">
+            @if (recoveryStep() === 'success') {
+              Proceso completado.
+            } @else if (recoveryMode() === 'username') {
+              Te enviaremos instrucciones si la cuenta existe.
+            } @else if (recoveryStep() === 'email') {
+              Ingresa tu cuenta para recibir un código de verificación.
+            } @else {
+              Verifica el código y define tu nueva contraseña.
+            }
+          </p>
+        </div>
+
+        @if (recoveryMode() === 'password' && recoveryStep() !== 'success') {
+          <div class="steps" aria-hidden="true">
+            <span class="step" [class.active]="recoveryStep() === 'email'" [class.done]="recoveryStep() === 'otp'"><i>1</i><span>Cuenta</span></span>
+            <span class="step-line"></span>
+            <span class="step" [class.active]="recoveryStep() === 'otp'"><i>2</i><span>Código</span></span>
+          </div>
+        }
 
         @if (recoveryStep() === 'email') {
           <div class="form-group">
-            <label for="recoveryEmail">
-              @if (recoveryMode() === 'username') {
-                Email o Usuario
-              } @else {
-                Email o Usuario registrado
-              }
-            </label>
-            <input
-              id="recoveryEmail"
-              type="text"
-              [ngModel]="recoveryEmail()"
-              name="recoveryEmail"
-              (ngModelChange)="recoveryEmail.set($event)"
-              placeholder="Ingresa tu email o usuario"
-              required
-            />
+            <label for="recoveryEmail">{{ recoveryMode() === 'username' ? 'Usuario o correo' : 'Usuario o correo registrado' }}</label>
+            <input id="recoveryEmail" type="text" [ngModel]="recoveryEmail()" name="recoveryEmail" (ngModelChange)="recoveryEmail.set($event)" placeholder="Ingresa tu usuario o correo" [disabled]="recoveryLoading()" />
           </div>
         }
 
         @if (recoveryStep() === 'otp') {
           <div class="form-group">
-            <label for="otp">Código OTP</label>
-            <input
-              id="otp"
-              type="text"
-              [ngModel]="otp()"
-              name="otp"
-              (ngModelChange)="otp.set($event)"
-              placeholder="Ingresa el código de 6 dígitos"
-              maxlength="6"
-            />
+            <label for="otp">Código de verificación</label>
+            <input id="otp" type="text" [ngModel]="otp()" name="otp" (ngModelChange)="otp.set($event)" placeholder="Código de 6 dígitos" maxlength="6" [disabled]="recoveryLoading()" />
           </div>
-
           <div class="form-group">
-            <label for="newPassword">Nueva Contraseña</label>
-            <input
-              id="newPassword"
-              type="password"
-              [ngModel]="newPassword()"
-              name="newPassword"
-              (ngModelChange)="newPassword.set($event)"
-              placeholder="Ingresa nueva contraseña"
-            />
+            <label for="newPassword">Nueva contraseña</label>
+            <input id="newPassword" type="password" [ngModel]="newPassword()" name="newPassword" (ngModelChange)="newPassword.set($event)" placeholder="Nueva contraseña" [disabled]="recoveryLoading()" />
           </div>
-
           <div class="form-group">
-            <label for="confirmPassword">Confirmar Contraseña</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              [ngModel]="confirmPassword()"
-              name="confirmPassword"
-              (ngModelChange)="confirmPassword.set($event)"
-              placeholder="Confirma nueva contraseña"
-            />
+            <label for="confirmPassword">Confirmar contraseña</label>
+            <input id="confirmPassword" type="password" [ngModel]="confirmPassword()" name="confirmPassword" (ngModelChange)="confirmPassword.set($event)" placeholder="Confirma la contraseña" [disabled]="recoveryLoading()" />
+          </div>
+        }
+
+        @if (recoveryStep() === 'success') {
+          <div class="success-state">
+            <div class="success-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <p>{{ recoverySuccess() || 'Listo. Ya puedes continuar.' }}</p>
           </div>
         }
 
         @if (recoveryError()) {
-          <div class="error-message">{{ recoveryError() }}</div>
+          <div class="feedback error" role="alert" aria-live="polite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>{{ recoveryError() }}</span>
+          </div>
         }
-
-        @if (recoverySuccess()) {
-          <div class="success-message">{{ recoverySuccess() }}</div>
+        @if (recoverySuccess() && recoveryStep() !== 'success') {
+          <div class="feedback success" role="status" aria-live="polite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span>{{ recoverySuccess() }}</span>
+          </div>
         }
 
         <div class="modal-buttons">
-          <button type="button" class="cancel-btn" (click)="closeRecovery()">Cancelar</button>
-
+          <button type="button" class="btn-secondary" (click)="closeRecovery()">{{ recoveryStep() === 'success' ? 'Cerrar' : 'Cancelar' }}</button>
           @if (recoveryStep() === 'email') {
-            <button
-              type="button"
-              class="save-btn"
-              (click)="sendRecovery()"
-              [disabled]="recoveryLoading()"
-            >
-              @if (recoveryLoading()) {
-                Enviando...
-              } @else {
-                Enviar
-              }
-            </button>
+            <button type="button" class="btn-primary" (click)="sendRecovery()" [disabled]="recoveryLoading()">{{ recoveryLoading() ? 'Enviando...' : 'Continuar' }}</button>
           }
-
           @if (recoveryStep() === 'otp') {
-            <button
-              type="button"
-              class="save-btn"
-              (click)="verifyOtp()"
-              [disabled]="recoveryLoading()"
-            >
-              @if (recoveryLoading()) {
-                Verificando...
-              } @else {
-                Cambiar Contraseña
-              }
-            </button>
+            <button type="button" class="btn-primary" (click)="verifyOtp()" [disabled]="recoveryLoading()">{{ recoveryLoading() ? 'Verificando...' : 'Cambiar contraseña' }}</button>
+          }
+          @if (recoveryStep() === 'success') {
+            <button type="button" class="btn-primary" (click)="closeRecovery()">Volver a iniciar sesión</button>
           }
         </div>
       </div>

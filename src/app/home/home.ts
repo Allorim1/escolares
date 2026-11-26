@@ -12,6 +12,7 @@ import {
   computed,
   ChangeDetectorRef,
 } from '@angular/core';
+import { animate, stagger, createTimeline } from 'animejs';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MarcasService } from '../shared/data-access/marcas.service';
@@ -619,6 +620,8 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private brandsVisible = true;
   private prefersReducedMotion = false;
   private visibilityHandler = () => this.syncBrandAutoplay();
+  private heroAnimated = false;
+  private animatedSections = new WeakSet<Element>();
 
   get duplicatedMarcas() {
     const marcasValue = this.marcas();
@@ -642,6 +645,7 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.revealElements?.changes?.subscribe(() => { this.observeRevealElements(); this.setupBrandObserver(); });
       this.observeRevealElements();
       this.setupBrandObserver();
+      this.animateHero();
       document.addEventListener('visibilitychange', this.visibilityHandler);
       this.syncBrandAutoplay();
     }
@@ -722,13 +726,14 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setupRevealObserver() {
-    if (this.revealObserver || this.prefersReducedMotion) return;
+    if (this.revealObserver) return;
     this.revealObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('reveal-active');
-          this.revealObserver?.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        const el = entry.target as HTMLElement;
+        el.classList.add('reveal-active');
+        this.animateSection(el);
+        this.revealObserver?.unobserve(el);
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
   }
@@ -736,14 +741,81 @@ export default class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private observeRevealElements() {
     setTimeout(() => {
       const elements = this.revealElements?.length
-        ? this.revealElements.map((el) => el.nativeElement)
-        : Array.from(document.querySelectorAll('.reveal-init:not(.reveal-active)'));
-      if (this.prefersReducedMotion || !this.revealObserver) {
+        ? this.revealElements.map((el) => el.nativeElement as HTMLElement)
+        : Array.from(document.querySelectorAll('.reveal-init:not(.reveal-active)')) as HTMLElement[];
+      if (!this.revealObserver) {
         elements.forEach((el) => el?.classList.add('reveal-active'));
         return;
       }
       elements.forEach((el) => { if (el && !el.classList.contains('reveal-active')) this.revealObserver!.observe(el); });
     }, 50);
+  }
+
+  private animateHero() {
+    if (this.heroAnimated || this.prefersReducedMotion || !isPlatformBrowser(this.platformId)) return;
+    const hero = document.querySelector('.hero-container') as HTMLElement | null;
+    if (!hero) return;
+    this.heroAnimated = true;
+    hero.style.opacity = '1';
+    hero.style.transform = 'none';
+
+    const eyebrow = hero.querySelector('.hero-eyebrow');
+    const title = hero.querySelector('.hero-title');
+    const subtitle = hero.querySelector('.hero-subtitle');
+    const actions = hero.querySelectorAll('.hero-btn');
+    const banner = hero.querySelector('.main-banner');
+
+    try {
+      [eyebrow, title, subtitle, ...Array.from(actions)].forEach((el) => {
+        if (el instanceof HTMLElement) { el.style.opacity = '0'; }
+      });
+      if (banner instanceof HTMLElement) {
+        animate(banner, { scale: [1.04, 1], opacity: [0.85, 1], duration: 1100, ease: 'out(3)' });
+      }
+      const tl = createTimeline({ defaults: { duration: 650, ease: 'out(3)' } });
+      if (eyebrow) tl.add(eyebrow, { opacity: [0, 1], translateY: [14, 0] }, 0);
+      if (title) tl.add(title, { opacity: [0, 1], translateY: [22, 0] }, 100);
+      if (subtitle) tl.add(subtitle, { opacity: [0, 1], translateY: [18, 0] }, 220);
+      if (actions.length) tl.add(actions, { opacity: [0, 1], translateY: [14, 0], delay: stagger(90) }, 320);
+    } catch {
+      // animation lib unavailable; CSS reveal fallback remains
+    }
+  }
+
+  private animateSection(section: HTMLElement) {
+    if (this.prefersReducedMotion || this.animatedSections.has(section)) return;
+    this.animatedSections.add(section);
+
+    if (section.classList.contains('hero-container')) {
+      this.animateHero();
+      return;
+    }
+
+    const groups: Array<{ sel: string; staggerMs: number; y: number }> = [
+      { sel: '.section-heading > *', staggerMs: 80, y: 16 },
+      { sel: '.marca-slide', staggerMs: 45, y: 18 },
+      { sel: '.product-card', staggerMs: 65, y: 24 },
+      { sel: '.mobile-product-card', staggerMs: 65, y: 20 },
+      { sel: '.feature-card', staggerMs: 80, y: 22 },
+      { sel: '.noticia-card', staggerMs: 90, y: 20 },
+      { sel: '.newsletter-content > *', staggerMs: 70, y: 14 },
+    ];
+
+    try {
+      groups.forEach(({ sel, staggerMs, y }) => {
+        const items = Array.from(section.querySelectorAll(sel)).filter((n) => n instanceof HTMLElement) as HTMLElement[];
+        if (!items.length) return;
+        animate(items, {
+          opacity: [0, 1],
+          translateY: [y, 0],
+          delay: stagger(staggerMs),
+          duration: 560,
+          ease: 'out(2)',
+        });
+      });
+    } catch {
+      // no-op
+    }
   }
 
   suscribirse() {

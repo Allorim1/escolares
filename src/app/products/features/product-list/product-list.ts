@@ -1,6 +1,8 @@
-import { Component, HostListener, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, HostListener, inject, signal, computed, OnInit, AfterViewInit, OnDestroy, ElementRef, PLATFORM_ID, effect } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { isPlatformBrowser } from '@angular/common';
+import { animate, stagger } from 'animejs';
 
 import { ProductsStateService } from '../../data-access/products-state.service';
 import { CurrencyService } from '../../../shared/data-access/currency.service';
@@ -473,7 +475,7 @@ import { NotificationService } from '../../../shared/data-access/notification.se
   `,
   providers: [ProductsStateService],
 })
-export default class ProductList implements OnInit {
+export default class ProductList implements OnInit, AfterViewInit, OnDestroy {
   productsState = inject(ProductsStateService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -485,6 +487,8 @@ export default class ProductList implements OnInit {
   private ofertasBackend = inject(OfertasBackend);
   favoritesService = inject(FavoritesService);
   private notificationService = inject(NotificationService);
+  private el = inject(ElementRef<HTMLElement>);
+  private platformId = inject(PLATFORM_ID);
 
   selectedProduct = signal<Product | null>(null);
   modalClosing = signal(false);
@@ -497,6 +501,21 @@ export default class ProductList implements OnInit {
   sortOption = signal<'relevance' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'>('relevance');
   filtersOpen = signal(false);
   private lastFocused: HTMLElement | null = null;
+  private prefersReducedMotion = false;
+  private lastAnimatedPageKey = '';
+
+  constructor() {
+    effect(() => {
+      const status = this.productsState.state.status();
+      const page = this.productsState.state.page();
+      const ids = this.paginatedProducts().map((p) => p.id).join(',');
+      if (status !== 'success' || !ids) return;
+      const key = `${page}|${ids}`;
+      if (key === this.lastAnimatedPageKey) return;
+      this.lastAnimatedPageKey = key;
+      this.scheduleCardsAnimation();
+    });
+  }
 
   onMouseMove(event: MouseEvent, isHovering: boolean) {
     if (!isHovering) return;
@@ -528,7 +547,8 @@ export default class ProductList implements OnInit {
     return map;
   });
 
-  addToCardFromCard(product: Product) {
+  addToCardFromCard(product: Product, sourceEl?: EventTarget | null) {
+    this.flyToCart(sourceEl, product.image);
     this.cartState.add({ product, quantity: 1 });
     this.notificationService.success('Carrito', `${product.title} agregado al carrito`);
     const next = new Set(this.addedProductIds());
@@ -539,6 +559,72 @@ export default class ProductList implements OnInit {
       n.delete(product.id);
       this.addedProductIds.set(n);
     }, 900);
+  }
+
+  private flyToCart(sourceEl: EventTarget | null | undefined, fallbackImage?: string) {
+    if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+    const cart = document.querySelector('.cart-btn') as HTMLElement | null;
+    if (!cart) return;
+
+    let origin: HTMLElement | null = null;
+    if (sourceEl instanceof HTMLElement) {
+      origin = sourceEl.closest('.card')?.querySelector('.card-img') as HTMLElement | null
+        || sourceEl.closest('.modal-content')?.querySelector('.modal-product-image') as HTMLElement | null;
+    }
+    if (!origin && fallbackImage) {
+      origin = this.el.nativeElement.querySelector(`img[src="${CSS.escape(fallbackImage)}"]`) as HTMLElement | null;
+    }
+    if (!origin) return;
+
+    const from = origin.getBoundingClientRect();
+    const to = cart.getBoundingClientRect();
+    if (!from.width || !from.height || !to.width) return;
+
+    const clone = origin.cloneNode(true) as HTMLElement;
+    Object.assign(clone.style, {
+      position: 'fixed',
+      left: `${from.left}px`,
+      top: `${from.top}px`,
+      width: `${from.width}px`,
+      height: `${from.height}px`,
+      objectFit: 'contain',
+      borderRadius: '12px',
+      zIndex: '4000',
+      pointerEvents: 'none',
+      margin: '0',
+      padding: '0',
+      boxShadow: '0 12px 30px rgba(29,99,193,.28)',
+      background: '#fff',
+    } as Partial<CSSStyleDeclaration>);
+    document.body.appendChild(clone);
+
+    const destX = to.left + to.width / 2 - (from.left + from.width / 2);
+    const destY = to.top + to.height / 2 - (from.top + from.height / 2);
+
+    try {
+      animate(clone, {
+        translateX: destX,
+        translateY: destY,
+        scale: [1, 0.2],
+        opacity: [0.95, 0.25],
+        duration: 750,
+        ease: 'in(3)',
+        onComplete: () => {
+          clone.remove();
+          this.pulseCartIcon(cart);
+        },
+      });
+    } catch {
+      clone.remove();
+    }
+  }
+
+  private pulseCartIcon(cart: HTMLElement) {
+    try {
+      animate(cart, { scale: [1, 1.18, 1], duration: 320, ease: 'out(2)' });
+      const badge = cart.querySelector('.cart-count, .badge, [class*="count"]') as HTMLElement | null;
+      if (badge) animate(badge, { scale: [1, 1.35, 1], duration: 320, ease: 'out(2)' });
+    } catch {}
   }
 
   increaseCardQuantity(product: Product) {
@@ -562,11 +648,26 @@ export default class ProductList implements OnInit {
     this.selectedProduct.set(product);
     this.modalQuantity.set(1);
     this.modalImage.set(product.image);
+    this.animateModalIn();
+  }
+
+  private animateModalIn() {
+    if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+    requestAnimationFrame(() => {
+      const overlay = this.el.nativeElement.querySelector('.modal-overlay') as HTMLElement | null;
+      const content = this.el.nativeElement.querySelector('.modal-content') as HTMLElement | null;
+      if (!overlay || !content) return;
+      try {
+        animate(overlay, { opacity: [0, 1], duration: 220, ease: 'out(2)' });
+        animate(content, { opacity: [0, 1], translateY: [16, 0], scale: [0.98, 1], duration: 320, ease: 'out(3)' });
+      } catch {}
+    });
   }
 
   closeModal() {
     if (!this.selectedProduct() || this.modalClosing()) return;
-    const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const overlay = this.el.nativeElement.querySelector('.modal-overlay') as HTMLElement | null;
+    const content = this.el.nativeElement.querySelector('.modal-content') as HTMLElement | null;
     const finish = () => {
       this.selectedProduct.set(null);
       this.modalClosing.set(false);
@@ -574,8 +675,12 @@ export default class ProductList implements OnInit {
       this.lastFocused = null;
       setTimeout(() => el?.focus(), 0);
     };
-    if (prefersReduced) { finish(); return; }
+    if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion || !overlay || !content) { finish(); return; }
     this.modalClosing.set(true);
+    try {
+      animate(overlay, { opacity: [1, 0], duration: 180, ease: 'in(2)' });
+      animate(content, { opacity: [1, 0], translateY: [0, 10], scale: [1, 0.985], duration: 180, ease: 'in(2)' });
+    } catch {}
     setTimeout(finish, 180);
   }
 
@@ -626,6 +731,8 @@ export default class ProductList implements OnInit {
     const product = this.selectedProduct();
     if (!product) return;
 
+    const modalImg = this.el.nativeElement.querySelector('.modal-product-image');
+    this.flyToCart(modalImg, product.image);
     this.cartState.add({
       product,
       quantity: this.modalQuantity(),
@@ -679,8 +786,78 @@ export default class ProductList implements OnInit {
     return Math.round(descuento);
   }
 
-  toggleFavorito(product: Product) {
+  toggleFavorito(product: Product, sourceEl?: EventTarget | null) {
+    const wasFav = this.isFavorito(product.id);
     this.favoritesService.toggleFavorito(product.id);
+    if (sourceEl instanceof HTMLElement) {
+      this.animateFavorite(sourceEl, !wasFav);
+    }
+  }
+
+  private animateFavorite(btn: HTMLElement, added: boolean) {
+    if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+    const icon = btn.querySelector('svg') as HTMLElement | null;
+    try {
+      if (icon) animate(icon, { scale: [1, added ? 1.45 : 0.75, 1], duration: 320, ease: 'out(2)' });
+      animate(btn, { scale: [1, 1.08, 1], duration: 260, ease: 'out(2)' });
+    } catch {}
+
+    if (!added) return;
+
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const container = document.createElement('div');
+    Object.assign(container.style, {
+      position: 'fixed', left: `${cx}px`, top: `${cy}px`, width: '0', height: '0',
+      pointerEvents: 'none', zIndex: '4500', overflow: 'visible',
+    } as Partial<CSSStyleDeclaration>);
+
+    const ring = document.createElement('span');
+    Object.assign(ring.style, {
+      position: 'absolute', left: '-18px', top: '-18px', width: '36px', height: '36px',
+      borderRadius: '50%', border: '2px solid #e53935', boxSizing: 'border-box', opacity: '0.9',
+    } as Partial<CSSStyleDeclaration>);
+    container.appendChild(ring);
+
+    const colors = ['#e53935', '#ff6b6b', '#ff8a80', '#1d63c1', '#ffc107', '#ff7043'];
+    const particleCount = 8;
+    const particles: HTMLElement[] = [];
+    for (let i = 0; i < particleCount; i++) {
+      const p = document.createElement('span');
+      const size = 4 + Math.round(Math.random() * 4);
+      const angle = (i / particleCount) * Math.PI * 2;
+      const dist = 18 + Math.random() * 16;
+      Object.assign(p.style, {
+        position: 'absolute', left: `${-size / 2}px`, top: `${-size / 2}px`,
+        width: `${size}px`, height: `${size}px`, borderRadius: '50%',
+        background: colors[i % colors.length],
+      } as Partial<CSSStyleDeclaration>);
+      p.dataset['x'] = String(Math.cos(angle) * dist);
+      p.dataset['y'] = String(Math.sin(angle) * dist);
+      container.appendChild(p);
+      particles.push(p);
+    }
+
+    document.body.appendChild(container);
+    try {
+      animate(ring, { scale: [0.3, 1.9], opacity: [0.9, 0], duration: 480, ease: 'out(3)' });
+      particles.forEach((p, i) => {
+        const x = parseFloat(p.dataset['x'] || '0');
+        const y = parseFloat(p.dataset['y'] || '0');
+        animate(p, {
+          translateX: [0, x],
+          translateY: [0, y],
+          scale: [1, 0.2],
+          opacity: [1, 0],
+          duration: 480 + i * 15,
+          ease: 'out(3)',
+        });
+      });
+      setTimeout(() => container.remove(), 750);
+    } catch {
+      container.remove();
+    }
   }
 
   isFavorito(productId: number | string): boolean {
@@ -715,6 +892,42 @@ export default class ProductList implements OnInit {
       this.filterCategory.set(queryParams.get('category') || '');
       this.productsState.reset();
     });
+  }
+
+  ngAfterViewInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.scheduleCardsAnimation();
+    }
+  }
+
+  ngOnDestroy() {
+    // no persistent observers/timers to clean here
+  }
+
+  private scheduleCardsAnimation() {
+    if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+    requestAnimationFrame(() => this.animateCards());
+  }
+
+  private animateCards() {
+    if (this.prefersReducedMotion) return;
+    const root = this.el.nativeElement;
+    const cards = Array.from(root.querySelectorAll('.product-cards .card')) as HTMLElement[];
+    if (!cards.length) return;
+    try {
+      cards.forEach((c) => { c.style.opacity = '0'; });
+      animate(cards, {
+        opacity: [0, 1],
+        translateY: [18, 0],
+        scale: [0.985, 1],
+        delay: stagger(35, { start: 40 }),
+        duration: 420,
+        ease: 'out(2)',
+      });
+    } catch {
+      cards.forEach((c) => { c.style.opacity = ''; c.style.transform = ''; });
+    }
   }
 
   // compute unique categories from products

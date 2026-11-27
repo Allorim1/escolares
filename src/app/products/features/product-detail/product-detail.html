@@ -23,16 +23,22 @@
       </div>
     } @else if (product; as p) {
 
-      <nav class="breadcrumbs" aria-label="Breadcrumb">
-        @for (crumb of breadcrumbs(); track crumb.label; let last = $last) {
-          @if (!last && crumb.link) {
-            <a [routerLink]="crumb.link" [queryParams]="crumb.query || null">{{ crumb.label }}</a>
-            <span class="bc-sep">/</span>
-          } @else {
-            <span class="bc-current">{{ crumb.label }}</span>
+      <div class="detail-topbar">
+        <a routerLink="/products" class="back-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          Volver a productos
+        </a>
+        <nav class="breadcrumbs" aria-label="Breadcrumb">
+          @for (crumb of breadcrumbs(); track crumb.label; let last = $last) {
+            @if (!last && crumb.link) {
+              <a [routerLink]="crumb.link" [queryParams]="crumb.query || null">{{ crumb.label }}</a>
+              <span class="bc-sep">/</span>
+            } @else {
+              <span class="bc-current">{{ crumb.label }}</span>
+            }
           }
-        }
-      </nav>
+        </nav>
+      </div>
 
       <div class="product-detail-card">
         <div class="product-image-col">
@@ -174,12 +180,11 @@
                   @if (p.category) { <div class="ficha-row"><span class="ficha-label">Categoría</span><span class="ficha-value">{{ p.category }}</span></div> }
                   @if (p.marca) { <div class="ficha-row"><span class="ficha-label">Marca</span><span class="ficha-value">{{ p.marca }}</span></div> }
                   @if (p.linea || getLineaName()) { <div class="ficha-row"><span class="ficha-label">Línea</span><span class="ficha-value">{{ p.linea || getLineaName() }}</span></div> }
-                  @if (p.codigo) { <div class="ficha-row"><span class="ficha-label">Código</span><span class="ficha-value">{{ p.codigo }}</span></div> }
                   @if (p.unidades !== undefined) { <div class="ficha-row"><span class="ficha-label">Unidades</span><span class="ficha-value">{{ p.unidades }}</span></div> }
                   @for (key of getFichaTecnicaKeys(); track key) {
                     <div class="ficha-row"><span class="ficha-label">{{ key }}</span><span class="ficha-value">{{ getFichaTecnicaValue(key) }}</span></div>
                   }
-                  @if (!p.category && !p.marca && !p.linea && !getLineaName() && !p.codigo && p.unidades === undefined && getFichaTecnicaKeys().length === 0) {
+                  @if (!p.category && !p.marca && !p.linea && !getLineaName() && p.unidades === undefined && getFichaTecnicaKeys().length === 0) {
                     <p class="tab-text muted">No hay ficha técnica disponible para este producto.</p>
                   }
                 </div>

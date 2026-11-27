@@ -3,8 +3,11 @@
 .product-detail-section { min-height: 80vh; background: linear-gradient(180deg,#f6f9fc 0%,#f8f9fa 100%); padding: 1.5rem 1rem 4rem; }
 .detail-container { max-width: 1200px; margin: 0 auto; }
 
-/* Breadcrumbs */
-.breadcrumbs { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; font-size:.82rem; color:#6b8098; margin-bottom:1rem; }
+/* Topbar / back */
+.detail-topbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
+.back-link { display:inline-flex; align-items:center; gap:.4rem; color:#1d63c1; text-decoration:none; font-weight:600; font-size:.9rem; padding:.45rem .7rem; border-radius:8px; transition:background .2s, color .2s; }
+.back-link:hover { background:#eaf3fd; color:#155a9e; }
+.breadcrumbs { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; font-size:.82rem; color:#6b8098; }
 .breadcrumbs a { color:#1d63c1; text-decoration:none; font-weight:500; }
 .breadcrumbs a:hover { text-decoration:underline; }
 .bc-sep { color:#9fb1c5; }

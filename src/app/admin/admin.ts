@@ -1,10 +1,10 @@
-import { Component, inject, signal, OnInit, HostListener } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { filter, Subscription } from 'rxjs';
 import { AuthService } from '../shared/data-access/auth.service';
 import { ApiKeyStatusService } from '../shared/data-access/api-key-status.service';
 import { RolesBackend } from '../backend/data-access/roles.backend';
-import { NotificationModalService } from '../shared/ui/notification-modal/notification-modal.service';
 import { TasaResponse } from '../shared/data-access/currency.service';
 
 interface MenuItem {
@@ -23,24 +23,31 @@ interface QuickItem {
 
 interface MenuCategory {
   name: string;
+  icon: string;
   items: MenuItem[];
 }
 
+interface SearchResult {
+  label: string;
+  route: string;
+  category: string;
+}
+
 const QUICK_ITEMS: QuickItem[] = [
-  { label: 'Pedidos', route: 'pedidos', icon: '📦', permiso: 'pedidos_ver' },
-  { label: 'Registro', route: 'registro', icon: '📝', permiso: 'facturas_registrar' },
-  { label: 'Chat', route: 'chat', icon: '💬', permiso: 'chat_ver' },
-  { label: 'Productos', route: 'productos', icon: '🛍️', permiso: 'productos_gestionar' },
-  { label: 'Usuarios', route: 'usuarios', icon: '👤', permiso: 'usuarios_gestionar' },
-  { label: 'Roles', route: 'roles', icon: '🔑', permiso: 'roles_gestionar' },
-  { label: 'Cotizaciones', route: 'cotizaciones', icon: '📄', permiso: 'cotizaciones_gestionar' },
-  { label: 'Sesiones', route: 'sesiones', icon: '🖥️', permiso: 'sesiones_gestionar' },
-  { label: 'WhatsApp', route: 'whatsapp', icon: '📱', permiso: 'whatsapp_gestionar' },
+  { label: 'Pedidos', route: 'pedidos', icon: 'orders', permiso: 'pedidos_ver' },
+  { label: 'Registro', route: 'registro', icon: 'registro', permiso: 'facturas_registrar' },
+  { label: 'Chat', route: 'chat', icon: 'chat', permiso: 'chat_ver' },
+  { label: 'Productos', route: 'productos', icon: 'products', permiso: 'productos_gestionar' },
+  { label: 'Usuarios', route: 'usuarios', icon: 'users', permiso: 'usuarios_gestionar' },
+  { label: 'Cotizaciones', route: 'cotizaciones', icon: 'quotes', permiso: 'cotizaciones_gestionar' },
+  { label: 'Créditos', route: 'creditos-verificaciones', icon: 'credits', permiso: 'creditos_gestionar' },
+  { label: 'WhatsApp', route: 'whatsapp', icon: 'whatsapp', permiso: 'whatsapp_gestionar' },
 ];
 
 const DEFAULT_CATEGORIAS: MenuCategory[] = [
   {
     name: 'Panel Admin',
+    icon: 'admin',
     items: [
       { label: 'Pedidos', route: 'pedidos', permiso: 'pedidos_ver' },
       { label: 'Registro', route: 'registro', permiso: 'facturas_registrar' },
@@ -52,6 +59,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
   },
   {
     name: 'Panel Web',
+    icon: 'web',
     items: [
       { label: 'Inicio', route: 'inicio-gestion', permiso: 'inicio_gestionar' },
       { label: 'Productos', route: 'productos', permiso: 'productos_gestionar' },
@@ -66,10 +74,12 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
   },
   {
     name: 'Repartidor',
+    icon: 'delivery',
     items: [{ label: 'Mis Pedidos', route: 'repartidor' }],
   },
   {
     name: 'Seguridad',
+    icon: 'security',
     items: [
       { label: 'Usuarios', route: 'usuarios', permiso: 'usuarios_gestionar' },
       { label: 'Roles', route: 'roles', permiso: 'roles_gestionar' },
@@ -79,6 +89,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
   },
   {
     name: 'Empresas',
+    icon: 'business',
     items: [
       { label: 'Clientes', route: 'clientes' },
       { label: 'Lista Negra', route: 'lista-negra' },
@@ -87,6 +98,7 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
   },
   {
     name: 'Créditos Escolares',
+    icon: 'credits',
     items: [
       { label: 'Verificaciones', route: 'creditos-verificaciones', permiso: 'creditos_gestionar' },
       { label: 'Reportes', route: 'creditos-reportes', permiso: 'creditos_gestionar' },
@@ -108,16 +120,16 @@ const DEFAULT_CATEGORIAS: MenuCategory[] = [
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [RouterLink, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './admin.html',
   styleUrl: './admin.css',
 })
-export class Admin implements OnInit {
+export class Admin implements OnInit, OnDestroy {
   authService = inject(AuthService);
   private http = inject(HttpClient);
+  private router = inject(Router);
   apiKeyStatusService = inject(ApiKeyStatusService);
   private rolesBackend = inject(RolesBackend);
-  private notificationModal = inject(NotificationModalService);
 
   userPermissions = signal<string[]>([]);
   apiKeyStatusLoaded = signal(false);
@@ -125,101 +137,143 @@ export class Admin implements OnInit {
   quickItems = signal<QuickItem[]>([]);
   quickAccessOpen = signal(false);
   categoriaExpandida = signal<string | null>(null);
+  mobileNavOpen = signal(false);
+  searchQuery = signal('');
+  currentUrl = signal(this.router.url);
+
+  private navSub?: Subscription;
+
+  readonly visibleCategorias = computed(() => {
+    return this.categorias()
+      .map((cat) => ({ ...cat, items: this.getVisibleItems(cat.items) }))
+      .filter((cat) => cat.items.length > 0);
+  });
+
+  readonly searchResults = computed<SearchResult[]>(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return [];
+    const results: SearchResult[] = [];
+    for (const cat of this.visibleCategorias()) {
+      for (const item of cat.items) {
+        const haystack = `${item.label} ${cat.name}`.toLowerCase();
+        if (haystack.includes(q)) results.push({ label: item.label, route: item.route, category: cat.name });
+      }
+    }
+    return results.slice(0, 12);
+  });
+
+  readonly activeCategory = computed(() => {
+    const url = this.currentUrl();
+    for (const cat of this.visibleCategorias()) {
+      if (cat.items.some((item) => url.startsWith(`/admin/${item.route}`))) return cat.name;
+    }
+    return null;
+  });
+
+  readonly expandedCategory = computed(() => {
+    const name = this.categoriaExpandida();
+    if (!name) return null;
+    return this.visibleCategorias().find((c) => c.name === name) || null;
+  });
 
   ngOnInit() {
     this.checkApiKeyStatus();
     this.loadUserPermissions();
+    this.navSub = this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
+      this.currentUrl.set(e.urlAfterRedirects);
+      this.closePanels();
+    });
+  }
+
+  ngOnDestroy() {
+    this.navSub?.unsubscribe();
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement | null;
-    const categoriaSideboard = target?.closest('.categoria-sideboard-menu');
-    const categoriaHeader = target?.closest('.categoria-header');
-    if (!categoriaSideboard && !categoriaHeader && this.categoriaExpandida()) {
-      this.closeCategoriaSideboard();
+    const insideSideboard = target?.closest('.sideboard-panel');
+    const insideTrigger = target?.closest('[data-sideboard-trigger]');
+    const insideSidebar = target?.closest('.admin-sidebar');
+    if (!insideSideboard && !insideTrigger && !insideSidebar && (this.categoriaExpandida() || this.quickAccessOpen())) {
+      this.closePanels();
     }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    if (this.searchQuery()) { this.searchQuery.set(''); return; }
+    if (this.quickAccessOpen() || this.categoriaExpandida() || this.mobileNavOpen()) this.closePanels();
   }
 
   setQuickItems() {
     const user = this.authService.user();
     const isRoot = user?.rol === 'root' || user?.rol === 'admin';
     const permissions = this.userPermissions();
-
-    const items = QUICK_ITEMS.filter((item) => {
-      if (!item.permiso) return true;
-      if (isRoot) return true;
-      return permissions.includes(item.permiso);
-    });
-    this.quickItems.set(items);
+    this.quickItems.set(
+      QUICK_ITEMS.filter((item) => {
+        if (!item.permiso) return true;
+        if (isRoot) return true;
+        return permissions.includes(item.permiso);
+      }),
+    );
   }
 
   loadUserPermissions() {
     const user = this.authService.user();
-    if (!user) {
-      this.setCategoriesWithExpanded();
-      this.setQuickItems();
-      return;
-    }
+    if (!user) { this.setCategories(); this.setQuickItems(); return; }
 
-    if (user.rol === 'root' || user?.rol === 'admin') {
+    if (user.rol === 'root' || user.rol === 'admin') {
       this.rolesBackend.getPermisos().subscribe({
-        next: (permisos) => {
-          this.userPermissions.set(permisos.map((p) => p.id));
-          this.setCategoriesWithExpanded();
-          this.setQuickItems();
-        },
-        error: (err) => {
-          console.error('Error cargando permisos (root):', err);
-          this.userPermissions.set([]);
-          this.setCategoriesWithExpanded();
-          this.setQuickItems();
-        },
+        next: (permisos) => { this.userPermissions.set(permisos.map((p) => p.id)); this.setCategories(); this.setQuickItems(); },
+        error: () => { this.userPermissions.set([]); this.setCategories(); this.setQuickItems(); },
       });
     } else if (user.rolId) {
       this.rolesBackend.getRol(user.rolId).subscribe({
-        next: (rol) => {
-          this.userPermissions.set(rol.permisos || []);
-          this.setCategoriesWithExpanded();
-          this.setQuickItems();
-        },
-        error: (err) => {
-          console.error('Error cargando rol:', err);
-          this.userPermissions.set([]);
-          this.setCategoriesWithExpanded();
-          this.setQuickItems();
-        },
+        next: (rol) => { this.userPermissions.set(rol.permisos || []); this.setCategories(); this.setQuickItems(); },
+        error: () => { this.userPermissions.set([]); this.setCategories(); this.setQuickItems(); },
       });
     } else {
-      this.setCategoriesWithExpanded();
+      this.setCategories();
       this.setQuickItems();
     }
   }
 
-  setCategoriesWithExpanded() {
+  setCategories() {
     const user = this.authService.user();
     const isRepartidor = user?.rol === 'repartidor';
-
-    const categories = DEFAULT_CATEGORIAS
-      .filter((cat) => !isRepartidor || cat.name === 'Repartidor')
-      .map((cat) => ({ ...cat }));
-    this.categorias.set(categories);
+    this.categorias.set(DEFAULT_CATEGORIAS.filter((cat) => !isRepartidor || cat.name === 'Repartidor').map((cat) => ({ ...cat })));
   }
 
   toggleQuickAccess() {
-    this.quickAccessOpen.update((v) => !v);
-  }
-
-  closeQuickAccess() {
-    this.quickAccessOpen.set(false);
+    const next = !this.quickAccessOpen();
+    this.closeCategoriaSideboard();
+    this.quickAccessOpen.set(next);
   }
 
   toggleCategoria(nombre: string) {
-    this.categoriaExpandida.update((v) => (v === nombre ? null : nombre));
+    const next = this.categoriaExpandida() === nombre ? null : nombre;
+    this.quickAccessOpen.set(false);
+    this.categoriaExpandida.set(next);
   }
 
-  closeCategoriaSideboard() {
-    this.categoriaExpandida.set(null);
+  closeQuickAccess() { this.quickAccessOpen.set(false); }
+  closeCategoriaSideboard() { this.categoriaExpandida.set(null); }
+  closePanels() { this.quickAccessOpen.set(false); this.categoriaExpandida.set(null); this.mobileNavOpen.set(false); }
+
+  toggleMobileNav() { this.mobileNavOpen.update((v) => !v); if (!this.mobileNavOpen()) this.closePanels(); }
+
+  onSearchInput(value: string) {
+    this.searchQuery.set(value);
+    if (value.trim()) { this.quickAccessOpen.set(false); this.categoriaExpandida.set(null); }
+  }
+
+  clearSearch() { this.searchQuery.set(''); }
+
+  navigateFromSearch(route: string) {
+    this.clearSearch();
+    this.closePanels();
+    this.router.navigate(['/admin', route]);
   }
 
   hasPermission(permiso?: string): boolean {
@@ -232,25 +286,12 @@ export class Admin implements OnInit {
 
   checkApiKeyStatus() {
     this.http.get<TasaResponse>('/api/tasas').subscribe({
-      next: (data) => {
-        if (data.apiKeyExpired) {
-          this.apiKeyStatusService.setApiKeyExpired(true);
-        }
-        this.apiKeyStatusLoaded.set(true);
-      },
-      error: (err) => {
-        console.error('Error checking API key status:', err);
-        if (err.error?.apiKeyExpired) {
-          this.apiKeyStatusService.setApiKeyExpired(true);
-        }
-        this.apiKeyStatusLoaded.set(true);
-      },
+      next: (data) => { if (data.apiKeyExpired) this.apiKeyStatusService.setApiKeyExpired(true); this.apiKeyStatusLoaded.set(true); },
+      error: (err) => { if (err.error?.apiKeyExpired) this.apiKeyStatusService.setApiKeyExpired(true); this.apiKeyStatusLoaded.set(true); },
     });
   }
 
-  isRoot(): boolean {
-    return this.authService.user()?.rol === 'root';
-  }
+  isRoot(): boolean { return this.authService.user()?.rol === 'root'; }
 
   getVisibleItems(items: MenuItem[]): MenuItem[] {
     const isRoot = this.isRoot();
@@ -261,7 +302,9 @@ export class Admin implements OnInit {
     });
   }
 
-  logout() {
-    this.authService.logout();
+  isRouteActive(route: string): boolean {
+    return this.currentUrl().startsWith(`/admin/${route}`);
   }
+
+  logout() { this.authService.logout(); }
 }

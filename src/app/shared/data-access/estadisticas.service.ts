@@ -9,6 +9,8 @@ export interface ProductoRanking {
   price: number;
   views: number;
   purchases: number;
+  estado?: string;
+  unidades?: number;
 }
 
 export interface EstadisticasResumen {
@@ -23,9 +25,53 @@ export interface EstadisticasResumen {
   topByPurchases: ProductoRanking[];
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+export interface DashboardKpis {
+  totalProducts: number;
+  totalUsers: number;
+  totalOrders: number;
+  pendingOrders: number;
+  processingOrders: number;
+  deliveredOrders: number;
+  incidentOrders: number;
+  unassignedOrders: number;
+  deliveredToday: number;
+  ordersLast7Days: number;
+  outOfStock: number;
+  lowStock: number;
+  totalViews: number;
+  totalPurchases: number;
+  conversionRate: number;
+}
+
+export interface DashboardAttention {
+  type: string;
+  severity: 'high' | 'medium' | 'low';
+  label: string;
+  count: number;
+  route: string;
+  description: string;
+}
+
+export interface DashboardRecentOrder {
+  id: string;
+  nombre: string;
+  total: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  deliveryPersonName?: string;
+  itemsCount: number;
+}
+
+export interface AdminDashboardData {
+  generatedAt: string;
+  kpis: DashboardKpis;
+  attention: DashboardAttention[];
+  recentOrders: DashboardRecentOrder[];
+  topByPurchases: ProductoRanking[];
+}
+
+@Injectable({ providedIn: 'root' })
 export class EstadisticasService {
   private readonly API = '/api/estadisticas';
   private http = inject(HttpClient);
@@ -44,6 +90,15 @@ export class EstadisticasService {
       catchError((err) => {
         console.error('Error cargando top productos:', err);
         return of([]);
+      }),
+    );
+  }
+
+  getDashboard() {
+    return this.http.get<AdminDashboardData>(`${this.API}/dashboard`).pipe(
+      catchError((err) => {
+        console.error('Error cargando dashboard:', err);
+        return of(null);
       }),
     );
   }

@@ -1,203 +1,212 @@
 <div class="inicio-container">
-  <div class="inicio-header">
-    <h1>Hola, bienvenido <span>{{ userName }}</span></h1>
-    <p>Panel de administración — resumen y accesos rápidos</p>
-  </div>
-
-  @if (isRoot) {
-    <div class="api-key-section">
-      <div class="api-key-card">
-        <div class="api-key-content">
-          <div class="api-key-icon">🔑</div>
-          <div class="api-key-info">
-            <h3>API Key Costos-Tasas</h3>
-            <p class="api-key-status">
-              @if (apiKeyStatusService.hasApiKey()) {
-                @if (countdown()) {
-                  <span class="countdown-badge">⏱️ Renovar en: {{ countdown() }}</span>
-                } @else {
-                  <span class="status-badge status-inactive">Sin API key configurada</span>
-                }
-              }
-            </p>
-          </div>
-        </div>
-        <button class="api-key-btn" (click)="openApiKeyModal()">
-          🔧 Renovar API Key
-        </button>
-      </div>
+  <div class="inicio-header anim-in">
+    <div>
+      <p class="greeting">{{ greeting }},</p>
+      <h1>{{ userName }}</h1>
+      <p class="subtitle">Resumen operativo y accesos rápidos del panel.</p>
     </div>
-
-    @if (showApiKeyModal) {
-      <div class="popup-overlay" (click)="($event.target === $event.currentTarget) && (closeApiKeyModal())" tabindex="0" (keydown.enter)="closeApiKeyModal()" (keydown.space)="closeApiKeyModal(); $event.preventDefault()">
-        <div class="popup-content popup-small">
-          <h3>API Key de DolarVzla</h3>
-          <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
-            Ingresa tu API key de <a href="https://www.dolarvzla.com/settings/api/" target="_blank">dolarvzla.com</a>
-          </p>
-          <div class="form-group">
-            <input 
-              type="text" 
-              [(ngModel)]="dolarApiKey" 
-              placeholder="API Key"
-              class="input-api-key-modal"
-              (keydown.enter)="!savingApiKey && guardarApiKey()"
-            />
-          </div>
-          <div class="popup-buttons">
-            <button class="cancel-btn" (click)="closeApiKeyModal()" [disabled]="savingApiKey">❌</button>
-            <button class="save-btn" (click)="guardarApiKey()" [disabled]="savingApiKey">
-              @if (savingApiKey) { ⏳ } @else { 💾 }
-            </button>
-          </div>
-        </div>
-      </div>
-    }
-
-    <div class="store-control-card">
-      <div class="store-control-content">
-        <div class="store-control-icon">🛒</div>
-        <div class="store-control-info">
-          <h3>Control de Tienda</h3>
-          <p class="store-status">
-            @if (storeSettings.comprasDeshabilitadas()) {
-              <span class="status-badge status-disabled">🛇 Compras Deshabilitadas</span>
-            } @else {
-              <span class="status-badge status-active">✅ Compras Activas</span>
-            }
-          </p>
-        </div>
-      </div>
-      <button 
-        class="toggle-compras-btn"
-        [class.btn-danger]="!storeSettings.comprasDeshabilitadas()"
-        [class.btn-success]="storeSettings.comprasDeshabilitadas()"
-        (click)="toggleCompras()"
-      >
-        @if (storeSettings.comprasDeshabilitadas()) {
-          <span>🔓 Habilitar Compras</span>
-        } @else {
-          <span>🔒 Deshabilitar Compras</span>
-        }
+    <div class="header-actions">
+      @if (lastUpdated()) {
+        <span class="last-updated">Actualizado: {{ formatDate(lastUpdated()) }}</span>
+      }
+      <button type="button" class="refresh-btn" (click)="loadDashboard()" [disabled]="loading()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+        {{ loading() ? 'Cargando...' : 'Actualizar' }}
       </button>
     </div>
+  </div>
 
-    <div class="store-control-card">
-      <div class="store-control-content">
-        <div class="store-control-icon">🔧</div>
-        <div class="store-control-info">
-          <h3>Modo Mantenimiento</h3>
-          <p class="store-status">
-            @if (storeSettings.mantenimiento()) {
-              <span class="status-badge status-warning">⚠️ Página en Mantenimiento</span>
-              @if (storeSettings.mantenimientoTipo() === 'absoluto') {
-                <span class="tipo-badge">🔒 Absoluto</span>
-              } @else {
-                <span class="tipo-badge">🔓 Parcial</span>
-              }
-            } @else {
-              <span class="status-badge status-active">✅ Sitio Activo</span>
-            }
+  @if (isRoot && (apiKeyStatusService.hasApiKey() || countdown())) {
+    <div class="system-alert anim-in" [class.expired]="countdown() === 'EXPIRADA'">
+      <div class="system-alert-info">
+        <span class="system-alert-icon">🔑</span>
+        <div>
+          <strong>API Key de tasas</strong>
+          <p>
+            @if (countdown()) { Renovar en: <span class="countdown-badge">{{ countdown() }}</span> }
+            @else { Sin API key configurada. }
           </p>
         </div>
       </div>
-      <div class="mantenimiento-controls">
-        <select 
-          class="tipo-select"
-          [value]="storeSettings.mantenimientoTipo()"
-          (change)="setMantenimientoTipo($any($event.target).value)"
-        >
-          <option value="parcial">Parcial (solo modal)</option>
-          <option value="absoluto">Absoluto (bloquea sitio)</option>
-        </select>
-        <button 
-          class="toggle-compras-btn"
-          [class.btn-warning]="!storeSettings.mantenimiento()"
-          [class.btn-success]="storeSettings.mantenimiento()"
-          (click)="toggleMantenimiento()"
-        >
-          @if (storeSettings.mantenimiento()) {
-            <span>🔓 Deshabilitar Mantenimiento</span>
-          } @else {
-            <span>🔒 Habilitar Mantenimiento</span>
-          }
-        </button>
+      <button class="api-key-btn" (click)="openApiKeyModal()">Renovar API Key</button>
+    </div>
+  }
+
+  @if (showApiKeyModal) {
+    <div class="popup-overlay" (click)="($event.target === $event.currentTarget) && closeApiKeyModal()" tabindex="0" (keydown.escape)="closeApiKeyModal()">
+      <div class="popup-modal" role="dialog" aria-modal="true" aria-label="Actualizar API Key">
+        <div class="popup-header">
+          <h3>Actualizar API Key</h3>
+          <button class="popup-close" (click)="closeApiKeyModal()" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="popup-body">
+          <p>Ingresa la nueva API Key de costos-tasas:</p>
+          <input type="text" class="api-key-input" [(ngModel)]="newApiKey" placeholder="Nueva API Key" [disabled]="isUpdating" />
+        </div>
+        <div class="popup-footer">
+          <button class="btn-cancel" (click)="closeApiKeyModal()" [disabled]="isUpdating">Cancelar</button>
+          <button class="btn-confirm" (click)="updateApiKey()" [disabled]="isUpdating || !newApiKey.trim()">{{ isUpdating ? 'Actualizando...' : 'Actualizar' }}</button>
+        </div>
       </div>
     </div>
   }
 
   @if (loading()) {
-    <div class="loading">Cargando estadísticas...</div>
-  } @else {
-    <div class="stats-grid">
+    <div class="kpi-grid">
+      @for (i of [1,2,3,4,5,6]; track i) { <div class="skeleton-card"></div> }
+    </div>
+    <div class="dashboard-body">
+      <div class="skeleton-panel"></div>
+      <div class="skeleton-panel"></div>
+    </div>
+  } @else if (error() && !dashboard()) {
+    <div class="error-state anim-in">
+      <h3>No se pudo cargar el inicio</h3>
+      <p>{{ error() }}</p>
+      <button type="button" class="refresh-btn" (click)="loadDashboard()">Reintentar</button>
+    </div>
+  } @else if (dashboard(); as d) {
+
+    <div class="kpi-grid">
+      <a routerLink="/admin/pedidos" class="kpi-card anim-in">
+        <div class="kpi-top"><span class="kpi-label">Pedidos pendientes</span><span class="kpi-icon warn">⏳</span></div>
+        <div class="kpi-value">{{ d.kpis.pendingOrders }}</div>
+        <div class="kpi-meta">Por confirmar / pendiente</div>
+      </a>
+      <a routerLink="/admin/pedidos" class="kpi-card anim-in">
+        <div class="kpi-top"><span class="kpi-label">En proceso</span><span class="kpi-icon info">🚚</span></div>
+        <div class="kpi-value">{{ d.kpis.processingOrders }}</div>
+        <div class="kpi-meta">{{ d.kpis.unassignedOrders }} sin repartidor</div>
+      </a>
+      <a routerLink="/admin/pedidos" class="kpi-card anim-in">
+        <div class="kpi-top"><span class="kpi-label">Entregados hoy</span><span class="kpi-icon ok">✓</span></div>
+        <div class="kpi-value">{{ d.kpis.deliveredToday }}</div>
+        <div class="kpi-meta">{{ d.kpis.deliveredOrders }} entregados en total</div>
+      </a>
+      <a routerLink="/admin/productos" class="kpi-card anim-in">
+        <div class="kpi-top"><span class="kpi-label">Productos</span><span class="kpi-icon">📦</span></div>
+        <div class="kpi-value">{{ d.kpis.totalProducts }}</div>
+        <div class="kpi-meta">{{ d.kpis.outOfStock }} agotados · {{ d.kpis.lowStock }} bajo stock</div>
+      </a>
+      <a routerLink="/admin/usuarios" class="kpi-card anim-in">
+        <div class="kpi-top"><span class="kpi-label">Usuarios</span><span class="kpi-icon">👥</span></div>
+        <div class="kpi-value">{{ d.kpis.totalUsers }}</div>
+        <div class="kpi-meta">Usuarios registrados</div>
+      </a>
+      <a routerLink="/admin/estadisticas" class="kpi-card anim-in">
+        <div class="kpi-top"><span class="kpi-label">Conversión</span><span class="kpi-icon">📈</span></div>
+        <div class="kpi-value">{{ d.kpis.conversionRate }}%</div>
+        <div class="kpi-meta">{{ d.kpis.totalViews }} vistas · {{ d.kpis.totalPurchases }} compras</div>
+      </a>
     </div>
 
     <div class="dashboard-body">
-      <div class="left-col">
-        <div class="quick-actions">
-      <h2>Accesos Rápidos</h2>
-      <div class="actions-grid">
-        <a href="/admin/productos" class="action-card">
-          <span class="action-icon">📦</span>
-          <span class="action-label">Productos</span>
-        </a>
-        <a href="/admin/registro" class="action-card">
-          <span class="action-icon">📝</span>
-          <span class="action-label">Registro</span>
-        </a>
-      </div>
-        </div>
-
-        <div class="recent-activity">
-          <h3>Actividad reciente</h3>
-          @if (recentActivities().length > 0) {
-            <ul>
-              @for (act of recentActivities(); track $index; let i = $index) {
-                <li>{{ act }}</li>
-              }
-            </ul>
+      <div class="main-col">
+        <section class="panel anim-in">
+          <div class="panel-head">
+            <div>
+              <h2>Requiere atención</h2>
+              <p>Elementos operativos que conviene revisar.</p>
+            </div>
+          </div>
+          @if (d.attention.length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">✓</div>
+              <p>No hay alertas operativas por ahora.</p>
+            </div>
           } @else {
-            <p class="muted">Sin actividad reciente.</p>
-          }
-        </div>
-      </div>
-
-      <aside class="right-col">
-        <div class="card small">
-          <h3>Acciones</h3>
-          <div class="actions-list">
-            <button class="action-btn" (click)="goTo('/admin/productos')">➕ Nuevo producto</button>
-            <button class="action-btn" (click)="goTo('/admin/producto-categorias')">📂 Categorías</button>
-            <button class="action-btn" (click)="goTo('/admin/usuarios')">👥 Usuarios</button>
-          </div>
-        </div>
-        <div class="card small">
-          <h3>Información</h3>
-          <p class="muted">Última actualización: ahora</p>
-          @if (isRoot) {
-            <p class="muted">Countdown API: {{ countdown() }}</p>
-          }
-        </div>
-          <div class="card small">
-            <h3>Clave Supervisor</h3>
-            <p class="muted">Usa esta clave para autorizar acciones restringidas.</p>
-            <div class="supervisor-key-row">
-              @if (authService.user()?.supervisorKey) {
-                @if (mostrarSupervisorKey()) {
-                  <code class="supervisor-key">{{ authService.user()?.supervisorKey }}</code>
-                } @else {
-                  <p class="muted">Clave oculta</p>
-                }
-              } @else {
-                <p class="muted">No configurada</p>
+            <div class="attention-list">
+              @for (item of d.attention; track item.type) {
+                <a [routerLink]="item.route" class="attention-item" [class]="severityClass(item.severity)">
+                  <div class="attention-main">
+                    <span class="attention-count">{{ item.count }}</span>
+                    <div>
+                      <strong>{{ item.label }}</strong>
+                      <p>{{ item.description }}</p>
+                    </div>
+                  </div>
+                  <span class="attention-cta">Ver</span>
+                </a>
               }
             </div>
-            <div class="card-actions">
-              <button class="btn-secondary" (click)="toggleMostrarSupervisorKey()">@if (mostrarSupervisorKey()) { Ocultar } @else { Ver }</button>
-              <button class="btn-primary" (click)="generarClaveSupervisor()">@if (generandoClave()) { Generando... } @else { Generar/Reemplazar }</button>
+          }
+        </section>
+
+        <section class="panel anim-in">
+          <div class="panel-head">
+            <div>
+              <h2>Pedidos recientes</h2>
+              <p>Últimos pedidos registrados en la tienda.</p>
             </div>
+            <a routerLink="/admin/pedidos" class="panel-link">Ver todos</a>
           </div>
-      </aside>
+          @if (d.recentOrders.length === 0) {
+            <div class="empty-state"><p>No hay pedidos recientes.</p></div>
+          } @else {
+            <div class="recent-list">
+              @for (order of d.recentOrders; track trackById($index, order)) {
+                <div class="recent-item">
+                  <div class="recent-main">
+                    <div class="recent-title-row">
+                      <strong>#{{ order.id.slice(-8) }}</strong>
+                      <span class="status-pill" [class]="statusClass(order.status)">{{ statusLabel(order.status) }}</span>
+                    </div>
+                    <p>{{ order.nombre }} · {{ order.itemsCount }} ítem{{ order.itemsCount === 1 ? '' : 's' }} · {{ formatMoney(order.total) }}</p>
+                    <span class="recent-time">{{ formatDate(order.createdAt) }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </div>
+
+      <div class="side-col">
+        <section class="panel anim-in">
+          <div class="panel-head">
+            <div><h2>Accesos rápidos</h2><p>Acciones frecuentes.</p></div>
+          </div>
+          <div class="quick-actions">
+            <a routerLink="/admin/pedidos" class="quick-action"><span class="qa-icon">🧾</span><span>Pedidos</span></a>
+            <a routerLink="/admin/productos" class="quick-action"><span class="qa-icon">📦</span><span>Productos</span></a>
+            <a routerLink="/admin/registro" class="quick-action"><span class="qa-icon">📝</span><span>Registro</span></a>
+            <a routerLink="/admin/estadisticas" class="quick-action"><span class="qa-icon">📊</span><span>Estadísticas</span></a>
+            <a routerLink="/admin/creditos-verificaciones" class="quick-action"><span class="qa-icon">✅</span><span>Créditos</span></a>
+            <a routerLink="/admin/usuarios" class="quick-action"><span class="qa-icon">👥</span><span>Usuarios</span></a>
+          </div>
+        </section>
+
+        <section class="panel anim-in">
+          <div class="panel-head">
+            <div><h2>Top productos</h2><p>Más comprados.</p></div>
+          </div>
+          @if (d.topByPurchases.length === 0) {
+            <div class="empty-state"><p>Aún no hay datos de compras.</p></div>
+          } @else {
+            <div class="top-products">
+              @for (p of d.topByPurchases; track trackById($index, p)) {
+                <a [routerLink]="['/admin/productos']" class="top-product">
+                  <img [src]="p.image" [alt]="p.title" loading="lazy" />
+                  <div class="top-product-info">
+                    <strong>{{ p.title }}</strong>
+                    <span>{{ p.purchases }} compras · {{ p.views }} vistas</span>
+                  </div>
+                </a>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="panel anim-in">
+          <div class="panel-head"><div><h2>Resumen</h2><p>Últimos 7 días / general.</p></div></div>
+          <div class="summary-list">
+            <div class="summary-row"><span>Pedidos últimos 7 días</span><strong>{{ d.kpis.ordersLast7Days }}</strong></div>
+            <div class="summary-row"><span>Pedidos totales</span><strong>{{ d.kpis.totalOrders }}</strong></div>
+            <div class="summary-row"><span>Incidencias</span><strong class="{{ d.kpis.incidentOrders > 0 ? 'danger' : '' }}">{{ d.kpis.incidentOrders }}</strong></div>
+            <div class="summary-row"><span>Stock bajo</span><strong>{{ d.kpis.lowStock }}</strong></div>
+          </div>
+        </section>
+      </div>
     </div>
   }
 </div>

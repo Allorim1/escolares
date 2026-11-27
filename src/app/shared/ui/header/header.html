@@ -1,100 +1,88 @@
-
   <div class="announcement-bar">
-    <p>Hacemos envíos al nivel nacional</p>
+    <p>Hacemos envíos a nivel nacional</p>
   </div>
 
 <header class="app-header" role="banner" [class.admin-route]="isAdminRoute()" [class.home-route]="isHomeRoute()">
   <div class="header-top">
-<a class="brand" routerLink="/">
-        <img src="/ESCOLARES RR PNG BLANCO.png" alt="Escolares logo" class="brand-logo" />
-      </a>
+    <a class="brand" routerLink="/">
+      <img src="/ESCOLARES RR PNG BLANCO.png" alt="Escolares logo" class="brand-logo" />
+    </a>
 
-<div class="header-search" (mouseenter)="onSearchEnter()" (mouseleave)="onSearchLeave()">
-        <form (ngSubmit)="search()" class="search-form">
-          <div class="search-input-container">
-            <button 
-                type="button" 
-                class="category-btn"
-                (click)="toggleCategoryDropdown()"
-                [class.active]="selectedCategory()"
-                title="Filtrar por categoría"
-              >
-                {{ selectedCategory() || 'Todas' }}
-              </button>
-            <input
-                type="text"
-                [(ngModel)]="searchQuery"
-                name="search"
-                placeholder="Buscar productos..."
-                class="search-input"
-                (input)="onSearchInput()"
-                (focus)="onSearchInput()"
-              />
-          </div>
-          <button type="submit" class="search-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.3-4.3"></path>
-            </svg>
+    <div class="header-search" (mouseenter)="onSearchEnter()" (mouseleave)="onSearchLeave()">
+      <form (ngSubmit)="search()" class="search-form" role="search">
+        <div class="search-input-container">
+          <button
+            type="button"
+            class="category-btn hdr-btn hdr-btn--input"
+            (click)="toggleCategoryDropdown()"
+            [class.active]="!!selectedCategory()"
+            [attr.aria-expanded]="showDropdown() && dropdownAnchor() === 'category'"
+            aria-haspopup="menu"
+            aria-label="Filtrar por categoría"
+          >
+            <span class="category-btn-label">{{ selectedCategory() || 'Todas' }}</span>
+            <svg class="category-btn-caret" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-        </form>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            name="search"
+            placeholder="Buscar productos..."
+            class="search-input"
+            (input)="onSearchInput()"
+            (focus)="onSearchInput()"
+            aria-label="Buscar productos"
+          />
+        </div>
+        <button type="submit" class="search-btn hdr-btn hdr-btn--icon-solid" aria-label="Buscar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        </button>
+      </form>
 
-        <div class="search-dropdown" [class.open]="showDropdown()" (mouseenter)="onSearchEnter()" (mouseleave)="onSearchLeave()">
-          @if (dropdownAnchor() === 'category') {
-            <div class="category-filter-section">
-              <div class="category-filter-label">Filtrar por categoría:</div>
-              <div class="category-filter-options">
-                @for (cat of categories(); track cat) {
-                  <button type="button" class="category-filter-btn" (mousedown)="selectCategory(cat)">
-                    {{ cat }}
-                  </button>
-                }
-              </div>
+      <div class="search-dropdown" [class.open]="showDropdown()" (mouseenter)="onSearchEnter()" (mouseleave)="onSearchLeave()" role="region" aria-label="Resultados de búsqueda">
+        @if (dropdownAnchor() === 'category') {
+          <div class="category-filter-section">
+            <div class="category-filter-label">Filtrar por categoría</div>
+            <div class="category-filter-options">
+              <button type="button" class="category-filter-btn" [class.active]="!selectedCategory()" (mousedown)="clearCategory(); $event.preventDefault()">Todas</button>
+              @for (cat of categories(); track cat) {
+                <button type="button" class="category-filter-btn" [class.active]="selectedCategory() === cat" (mousedown)="selectCategory(cat); $event.preventDefault()">{{ cat }}</button>
+              }
             </div>
-          }
-          @if (dropdownAnchor() === 'search') {
-            @if (searchHistory().length > 0 && suggestions().length === 0 && searchQuery.length === 0) {
-              <div class="search-history-section">
-                <div class="search-history-header">
-                  <span>Búsquedas recientes</span>
-                  <button type="button" class="clear-history-btn" (mousedown)="clearSearchHistory()" title="Limpiar historial">
-                    Limpiar
+          </div>
+        }
+        @if (dropdownAnchor() === 'search') {
+          @if (searchHistory().length > 0 && suggestions().length === 0 && searchQuery.length === 0) {
+            <div class="search-history-section">
+              <div class="search-history-header">
+                <span>Búsquedas recientes</span>
+                <button type="button" class="clear-history-btn" (mousedown)="clearSearchHistory(); $event.preventDefault()">Limpiar</button>
+              </div>
+              @for (item of searchHistory(); track item) {
+                <div class="search-history-item">
+                  <button type="button" class="history-text" (mousedown)="selectFromHistory(item); $event.preventDefault()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>{{ item }}</span>
+                  </button>
+                  <button type="button" class="remove-history-btn" (mousedown)="removeFromHistory(item); $event.preventDefault()" [attr.aria-label]="'Eliminar ' + item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </div>
-                @for (item of searchHistory(); track item) {
-                  <div class="search-history-item">
-                    <button type="button" class="history-text" (mousedown)="selectFromHistory(item)">
-                      {{ item }}
-                    </button>
-                    <button type="button" class="remove-history-btn" (mousedown)="removeFromHistory(item)" title="Eliminar">
-                      ×
-                    </button>
-                  </div>
-                }
-              </div>
-            }
+              }
+            </div>
           }
-          @for (product of suggestions(); track product.id) {
-            <a class="search-dropdown-item" (mousedown)="selectProduct(product)">
-              <img [src]="product.image" [alt]="product.title" />
-              <div class="item-info">
-                <div class="item-title">{{ product.title }}</div>
-                <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
-              </div>
-            </a>
-          }
-        </div>
+        }
+        @for (product of suggestions(); track product.id) {
+          <a class="search-dropdown-item" (mousedown)="selectProduct(product); $event.preventDefault()">
+            <img [src]="product.image" [alt]="product.title" />
+            <div class="item-info">
+              <div class="item-title">{{ product.title }}</div>
+              <div class="item-price" [innerHTML]="formatPrice(product.price)"></div>
+            </div>
+          </a>
+        }
       </div>
+    </div>
 
     <button
       type="button"
@@ -113,143 +101,112 @@
       </svg>
     </button>
 
-<div class="header-icons">
+    <div class="header-icons">
       <div class="address-selector-container">
-  <button class="nav-address-btn" (click)="toggleAddressPopover($event)">
-    <span class="address-icon">📍</span>
-    <span class="address-text">{{ displayAddress() }}</span>
-    <span class="arrow-icon">▼</span>
-  </button>
-  @if (addressPopoverOpen()) {
-    <div class="address-popover">
-      <div class="popover-arrow"></div>
-      <div class="popover-header">
-        <h3>¿A dónde quieres pedir?</h3>
-      </div>
-      <div class="popover-body">
-        @if (userAddresses().length > 0) {
-          @for (address of userAddresses(); track address.id) {
-            <button type="button" class="address-item"
-               [class.active]="address.id === selectedAddressId()"
-               (click)="selectAddress(address)">
-              <span class="address-alias">{{ address.alias || address.nombre || 'Dirección' }}</span>
-              <span class="address-details">{{ address.direccion }}</span>
-            </button>
-          }
-        } @else {
-          <div class="address-empty">
-            <p>No tienes direcciones registradas</p>
-            <button class="add-address-btn" (click)="goToAddresses()">Agregar dirección</button>
+        <button type="button" class="nav-address-btn hdr-btn hdr-btn--label" (click)="toggleAddressPopover($event)" [attr.aria-expanded]="addressPopoverOpen()" aria-haspopup="dialog" aria-controls="address-popover">
+          <svg class="hdr-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="address-text">{{ displayAddress() }}</span>
+          <svg class="hdr-caret" [class.open]="addressPopoverOpen()" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        @if (addressPopoverOpen()) {
+          <div id="address-popover" class="address-popover" role="dialog" aria-label="Seleccionar dirección">
+            <div class="popover-arrow"></div>
+            <div class="popover-header"><h3>¿A dónde quieres pedir?</h3></div>
+            <div class="popover-body">
+              @if (userAddresses().length > 0) {
+                @for (address of userAddresses(); track address.id) {
+                  <button type="button" class="address-item" [class.active]="address.id === selectedAddressId()" (click)="selectAddress(address)">
+                    <span class="address-item-copy">
+                      <span class="address-alias">{{ address.alias || address.nombre || 'Dirección' }}</span>
+                      <span class="address-details">{{ address.direccion }}</span>
+                    </span>
+                    @if (address.id === selectedAddressId()) {
+                      <svg class="address-check" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    }
+                  </button>
+                }
+              } @else {
+                <div class="address-empty">
+                  <p>No tienes direcciones registradas</p>
+                  <button type="button" class="add-address-btn" (click)="goToAddresses()">Agregar dirección</button>
+                </div>
+              }
+            </div>
+            @if (hasAddresses()) {
+              <div class="popover-footer"><button type="button" class="add-address-btn" (click)="goToAddresses()">Gestionar direcciones</button></div>
+            }
           </div>
         }
       </div>
-      @if (hasAddresses()) {
-        <div class="popover-footer">
-          <button class="add-address-btn" (click)="goToAddresses()">Agregar dirección</button>
-        </div>
-      }
-    </div>
-  }
-</div>
+
       @if (authService.isLoggedIn()) {
-        <div class="user-dropdown" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
-          <button class="user-btn user-btn--logged" type="button" (click)="toggleUserDropdown()" aria-label="Menú de usuario">
-            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="8" r="3.5" />
-              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-            </svg>
+        <div class="user-dropdown">
+          <button class="user-btn user-btn--logged hdr-btn hdr-btn--label" type="button" (click)="toggleUserDropdown()" [attr.aria-expanded]="userDropdownOpen()" aria-haspopup="menu" [attr.aria-label]="'Cuenta de ' + (authService.user()?.nombreCompleto || authService.user()?.username || 'usuario')">
+            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
             <span class="user-greeting">Hola, {{ authService.user()?.nombreCompleto || authService.user()?.username || 'Usuario' }}</span>
+            <svg class="hdr-caret" [class.open]="userDropdownOpen()" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div class="dropdown-menu" [class.open]="userDropdownOpen()" (mouseenter)="onUserDropdownEnter()" (mouseleave)="onUserDropdownLeave()">
-            <a routerLink="/panel/perfil" (click)="closeUserDropdown()">Perfil</a>
-            <a routerLink="/panel/ajustes" (click)="closeUserDropdown()">Ajustes</a>
-            <a routerLink="/panel/pedidos" (click)="closeUserDropdown()">Mis pedidos</a>
-            <a routerLink="/panel/direcciones" (click)="closeUserDropdown()">Mis direcciones</a>
-            <a routerLink="/panel/metodos-pago" (click)="closeUserDropdown()">Mis métodos de pago</a>
-            <a routerLink="/panel/favoritos" (click)="closeUserDropdown()">Mis favoritos</a>
-            <a routerLink="/panel/historico-compra" (click)="closeUserDropdown()">Histórico de compra</a>
-            @if (authService.isAdmin()) {
-              <a routerLink="/admin/inicio" (click)="closeUserDropdown()">Panel Admin</a>
-            }
-            @if (authService.user()?.rol === 'repartidor') {
-              <a routerLink="/repartidor" (click)="closeUserDropdown()">Panel Repartidor</a>
-            }
-            <button (click)="logout()">Cerrar sesión</button>
+          <div class="dropdown-menu" [class.open]="userDropdownOpen()" role="menu">
+            <a routerLink="/panel/perfil" role="menuitem" (click)="closeUserDropdown()">Perfil</a>
+            <a routerLink="/panel/ajustes" role="menuitem" (click)="closeUserDropdown()">Ajustes</a>
+            <a routerLink="/panel/pedidos" role="menuitem" (click)="closeUserDropdown()">Mis pedidos</a>
+            <a routerLink="/panel/direcciones" role="menuitem" (click)="closeUserDropdown()">Mis direcciones</a>
+            <a routerLink="/panel/metodos-pago" role="menuitem" (click)="closeUserDropdown()">Mis métodos de pago</a>
+            <a routerLink="/panel/favoritos" role="menuitem" (click)="closeUserDropdown()">Mis favoritos</a>
+            <a routerLink="/panel/historico-compra" role="menuitem" (click)="closeUserDropdown()">Histórico de compra</a>
+            @if (authService.isAdmin()) { <a routerLink="/admin/inicio" role="menuitem" (click)="closeUserDropdown()">Panel Admin</a> }
+            @if (authService.user()?.rol === 'repartidor') { <a routerLink="/repartidor" role="menuitem" (click)="closeUserDropdown()">Panel Repartidor</a> }
+            <button type="button" class="dropdown-logout" role="menuitem" (click)="logout()">Cerrar sesión</button>
           </div>
         </div>
       } @else {
-        <button class="user-btn" type="button" (click)="openLogin()" aria-label="Iniciar sesión">
-          <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="8" r="3.5" />
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-          </svg>
+        <button class="user-btn hdr-btn hdr-btn--label" type="button" (click)="openLogin()" aria-label="Iniciar sesión">
+          <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
           <span class="user-greeting">Iniciar sesión</span>
         </button>
       }
-<button class="notification-btn" type="button" aria-label="Notificaciones" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
-        <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
-          <path d="M9 17a3 3 0 0 0 6 0" />
-        </svg>
-        @if (unreadCount() > 0) {
-          <span class="notification-badge">{{ unreadCount() }}</span>
-        }
-      </button>
 
-<div class="notifications-container" (mouseenter)="onNotificationsEnter()" (mouseleave)="onNotificationsLeave()">
-        <div class="notifications-dropdown" [class.open]="notificationsOpen()">
+      <div class="notifications-container">
+        <button class="notification-btn hdr-btn hdr-btn--icon" type="button" [attr.aria-label]="unreadCount() > 0 ? unreadCount() + ' notificaciones sin leer' : 'Notificaciones'" [attr.aria-expanded]="notificationsOpen()" aria-haspopup="dialog" aria-controls="notifications-dropdown" (click)="toggleNotifications($event)">
+          <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" /><path d="M9 17a3 3 0 0 0 6 0" /></svg>
+          @if (unreadCount() > 0) { <span class="notification-badge" aria-hidden="true">{{ unreadCount() }}</span> }
+        </button>
+        <div id="notifications-dropdown" class="notifications-dropdown" [class.open]="notificationsOpen()" role="dialog" aria-label="Notificaciones">
           <div class="notifications-header">
             <span>Notificaciones</span>
-            @if (unreadCount() > 0) {
-              <span class="notifications-count">{{ unreadCount() }} sin leer</span>
-            }
+            @if (unreadCount() > 0) { <span class="notifications-count-label">{{ unreadCount() }} sin leer</span> }
           </div>
           @if (hasNotifications()) {
             <div class="notifications-list">
               @for (notificacion of notifications(); track notificacion.id) {
-                <div class="notification-item clickable" tabindex="0" (click)="navigateToNoticia(notificacion.noticiaId)" (keyup.enter)="navigateToNoticia(notificacion.noticiaId)" (keyup.space)="navigateToNoticia(notificacion.noticiaId)">
-                  <div class="notification-item-icon">📰</div>
-                  <div class="notification-item-content">
-                    <div class="notification-item-title">{{ notificacion.noticia?.titulo }}</div>
-                    <div class="notification-item-message">{{ truncateContent(notificacion.noticia?.contenido || '') }}</div>
-                    @if (notificacion.noticia?.importante) {
-                      <span class="notification-importante-badge">Importante</span>
-                    }
-                    @if (notificacion.leido) {
-                      <span class="notification-leido-badge">Leído</span>
-                    }
-                  </div>
-                </div>
+                <button type="button" class="notification-item clickable" (click)="navigateToNoticia(notificacion.noticiaId)">
+                  <span class="notification-item-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                  <span class="notification-item-content">
+                    <span class="notification-item-title">{{ notificacion.noticia?.titulo }}</span>
+                    <span class="notification-item-message">{{ truncateContent(notificacion.noticia?.contenido || '') }}</span>
+                    <span class="notification-item-meta">
+                      @if (notificacion.noticia?.importante) { <span class="notification-importante-badge">Importante</span> }
+                      @if (notificacion.leido) { <span class="notification-leido-badge">Leído</span> }
+                    </span>
+                  </span>
+                </button>
               }
             </div>
           } @else {
-            <div class="notifications-empty">
-              No hay notificaciones nuevas
-            </div>
+            <div class="notifications-empty">No hay notificaciones nuevas</div>
           }
           <a class="notifications-footer" routerLink="/noticias" (click)="closeNotifications($event)">Ver todas las noticias</a>
         </div>
       </div>
 
-@if (!isAdminRoute()) {
+      @if (!isAdminRoute()) {
         <div class="cart-hover-container" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
-          <a class="cart-btn" routerLink="/cart" aria-label="Carrito">
-            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="9" cy="20" r="1.5" />
-              <circle cx="17" cy="20" r="1.5" />
-              <path d="M3 4h2l2.2 10.5a2 2 0 0 0 2 1.5h7.9a2 2 0 0 0 2-1.6L20 7H6" />
-            </svg>
-            @if (cartCount() > 0) {
-              <span class="cart-count" [class.cart-count-pop]="cartPop()">{{ cartCount() }}</span>
-            }
+          <a class="cart-btn hdr-btn hdr-btn--icon" routerLink="/cart" aria-label="Carrito">
+            <svg class="header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5" /><circle cx="17" cy="20" r="1.5" /><path d="M3 4h2l2.2 10.5a2 2 0 0 0 2 1.5h7.9a2 2 0 0 0 2-1.6L20 7H6" /></svg>
+            @if (cartCount() > 0) { <span class="cart-count" [class.cart-count-pop]="cartPop()" aria-hidden="true">{{ cartCount() }}</span> }
           </a>
-
-<div class="cart-preview-dropdown" [class.open]="cartPreviewOpen()" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
-            <div class="cart-preview-header">
-              <span>Mi carrito</span>
-              <span>{{ cartCount() }} producto(s)</span>
-            </div>
-
+          <div class="cart-preview-dropdown" [class.open]="cartPreviewOpen()" (mouseenter)="onCartPreviewEnter()" (mouseleave)="onCartPreviewLeave()">
+            <div class="cart-preview-header"><span>Mi carrito</span><span>{{ cartCount() }} producto(s)</span></div>
             @if (cartPreviewItems().length > 0) {
               <div class="cart-preview-items">
                 @for (item of cartPreviewItems(); track item.product.id) {
@@ -257,30 +214,19 @@
                     <img [src]="item.product.image" [alt]="item.product.title" />
                     <div class="preview-item-info">
                       <div class="preview-item-title">{{ item.product.title }}</div>
-                      <div class="preview-item-meta">
-                        {{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span>
-                      </div>
+                      <div class="preview-item-meta">{{ item.quantity }} x <span [innerHTML]="formatPrice(item.product.price)"></span></div>
                     </div>
                     <div class="preview-item-total" [innerHTML]="formatPrice(getCartItemTotal(item))"></div>
                   </a>
                 }
               </div>
-
-              @if (hasMoreCartItems()) {
-                <div class="cart-preview-more">Y más productos en tu carrito...</div>
-              }
-
+              @if (hasMoreCartItems()) { <div class="cart-preview-more">Y más productos en tu carrito...</div> }
               <div class="cart-preview-footer">
-                <div class="cart-preview-total">
-                  <span>Total:</span>
-                  <strong [innerHTML]="formatPrice(cartPreviewTotal())"></strong>
-                </div>
+                <div class="cart-preview-total"><span>Total:</span><strong [innerHTML]="formatPrice(cartPreviewTotal())"></strong></div>
                 <a class="cart-preview-action" routerLink="/cart">Ver carrito</a>
               </div>
             } @else {
-              <div class="cart-preview-empty">
-                Tu carrito está vacío.
-              </div>
+              <div class="cart-preview-empty">Tu carrito está vacío.</div>
             }
           </div>
         </div>
@@ -289,78 +235,27 @@
   </div>
 
   <div class="header-bottom">
-<nav class="controls" role="navigation" aria-label="Principal">
-        <a class="nav-btn primary liquid" routerLink="/">Inicio</a>
-        <a class="nav-btn liquid" routerLink="/products">Productos</a>
-        <a class="nav-btn liquid" routerLink="/lineas">Líneas</a>
-        <a class="nav-btn liquid" routerLink="/marcas">Marcas</a>
-        <a class="nav-btn liquid" routerLink="/about-me">¿Quiénes somos?</a>
-        <a class="nav-btn liquid" routerLink="/how-buy">¿Cómo comprar?</a>
-        <a class="nav-btn liquid" routerLink="/offers">Ofertas</a>
-        <a class="nav-btn liquid" routerLink="/feedback">Contáctanos</a>
-      </nav>
+    <nav class="controls" role="navigation" aria-label="Principal">
+      <a class="nav-btn liquid" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+      <a class="nav-btn liquid" routerLink="/products" routerLinkActive="active">Productos</a>
+      <a class="nav-btn liquid" routerLink="/lineas" routerLinkActive="active">Líneas</a>
+      <a class="nav-btn liquid" routerLink="/marcas" routerLinkActive="active">Marcas</a>
+      <a class="nav-btn liquid" routerLink="/about-me" routerLinkActive="active">¿Quiénes somos?</a>
+      <a class="nav-btn liquid" routerLink="/how-buy" routerLinkActive="active">¿Cómo comprar?</a>
+      <a class="nav-btn liquid" routerLink="/offers" routerLinkActive="active">Ofertas</a>
+      <a class="nav-btn liquid" routerLink="/feedback" routerLinkActive="active">Contáctanos</a>
+    </nav>
   </div>
 
-  <nav
-    id="mobile-primary-nav"
-    class="mobile-nav"
-    aria-label="Navegación principal"
-    [class.open]="mobileMenuOpen() && !isAdminRoute()"
-  >
-    <div class="mobile-nav-heading">
-      <div>
-        <p>ESCOLARES</p>
-        <h2>Explora la tienda</h2>
-      </div>
-      <span>Accesos rápidos</span>
-    </div>
-    <a class="mobile-nav-link" routerLink="/" (click)="closeMobileMenu()">
-      <span class="mobile-nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>
-      </span>
-      <span>Inicio</span>
-    </a>
-    <a class="mobile-nav-link" routerLink="/products" (click)="closeMobileMenu()">
-      <span class="mobile-nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>
-      </span>
-      <span>Productos</span>
-    </a>
-    <a class="mobile-nav-link" routerLink="/lineas" (click)="closeMobileMenu()">
-      <span class="mobile-nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path><path d="M8 6v0M8 12v0M8 18v0"></path></svg>
-      </span>
-      <span>Líneas</span>
-    </a>
-    <a class="mobile-nav-link" routerLink="/marcas" (click)="closeMobileMenu()">
-      <span class="mobile-nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="m20 13-7 7-10-10V3h7z"></path><circle cx="7.5" cy="7.5" r="1"></circle></svg>
-      </span>
-      <span>Marcas</span>
-    </a>
-    <a class="mobile-nav-link" routerLink="/about-me" (click)="closeMobileMenu()">
-      <span class="mobile-nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1h-3"></path></svg>
-      </span>
-      <span>¿Quiénes somos?</span>
-    </a>
-    <a class="mobile-nav-link" routerLink="/how-buy" (click)="closeMobileMenu()">
-      <span class="mobile-nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21 8H6"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle></svg>
-      </span>
-      <span>¿Cómo comprar?</span>
-    </a>
-    <a class="mobile-nav-link" routerLink="/offers" (click)="closeMobileMenu()">
-      <span class="mobile-nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M19 5 5 19"></path><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg>
-      </span>
-      <span>Ofertas</span>
-    </a>
-    <a class="mobile-nav-link" routerLink="/feedback" (click)="closeMobileMenu()">
-      <span class="mobile-nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.5 8.5 0 0 1-3.5-.7L4 20l1.2-3.4A7.2 7.2 0 0 1 4 12c0-4.1 3.6-7.5 8-7.5s8 3.1 8 7z"></path><path d="M8 12h8"></path></svg>
-      </span>
-      <span>Contáctanos</span>
-    </a>
+  <nav id="mobile-primary-nav" class="mobile-nav" aria-label="Navegación principal" [class.open]="mobileMenuOpen() && !isAdminRoute()">
+    <div class="mobile-nav-heading"><div><p>ESCOLARES</p><h2>Explora la tienda</h2></div><span>Accesos rápidos</span></div>
+    <a class="mobile-nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMobileMenu()"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg></span><span>Inicio</span></a>
+    <a class="mobile-nav-link" routerLink="/products" routerLinkActive="active" (click)="closeMobileMenu()"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg></span><span>Productos</span></a>
+    <a class="mobile-nav-link" routerLink="/lineas" routerLinkActive="active" (click)="closeMobileMenu()"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></span><span>Líneas</span></a>
+    <a class="mobile-nav-link" routerLink="/marcas" routerLinkActive="active" (click)="closeMobileMenu()"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m20 13-7 7-10-10V3h7z"></path><circle cx="7.5" cy="7.5" r="1"></circle></svg></span><span>Marcas</span></a>
+    <a class="mobile-nav-link" routerLink="/about-me" routerLinkActive="active" (click)="closeMobileMenu()"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-1a6 6 0 0 1 12 0v1z"></path></svg></span><span>¿Quiénes somos?</span></a>
+    <a class="mobile-nav-link" routerLink="/how-buy" routerLinkActive="active" (click)="closeMobileMenu()"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21 8H6"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle></svg></span><span>¿Cómo comprar?</span></a>
+    <a class="mobile-nav-link" routerLink="/offers" routerLinkActive="active" (click)="closeMobileMenu()"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 5 5 19"></path><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg></span><span>Ofertas</span></a>
+    <a class="mobile-nav-link" routerLink="/feedback" routerLinkActive="active" (click)="closeMobileMenu()"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.5 8.5 0 0 1-3.5-.7L4 20l1.2-3.4A7.2 7.2 0 0 1 4 12c0-4.1 3.6-7.5 8-7.5s8 3.1 8 7z"></path></svg></span><span>Contáctanos</span></a>
   </nav>
 </header>

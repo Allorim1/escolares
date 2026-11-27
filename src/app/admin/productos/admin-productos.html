@@ -3,7 +3,7 @@
   <div class="header">
     <h2>Gestión de Productos</h2>
     <div class="header-actions">
-      <button class="add-btn" (click)="showAddForm()">+ Agregar Producto</button>
+      <button type="button" class="add-btn" (click)="showAddForm()">+ Agregar producto</button>
     </div>
   </div>
 
@@ -47,8 +47,8 @@
             <p class="product-category">{{ product.category }}</p>
           </div>
           <div class="product-actions">
-            <button class="btn-edit" (click)="showEditForm(product)">✏️ Editar</button>
-            <button class="btn-delete" (click)="deleteProduct(product.id)">🗑️ Eliminar</button>
+            <button type="button" class="btn-edit" (click)="showEditForm(product)">Editar</button>
+            <button type="button" class="btn-delete" (click)="deleteProduct(product.id)">Eliminar</button>
           </div>
         </div>
       }
@@ -93,7 +93,7 @@
       <div class="modal-content modal-product-form">
         <div class="modal-header">
           <h3>{{ editingProduct() ? 'Editar Producto' : 'Agregar Nuevo Producto' }}</h3>
-          <button class="close-btn" (click)="cancelEdit()">&times;</button>
+          <button type="button" class="close-btn" (click)="cancelEdit()" aria-label="Cerrar">&times;</button>
         </div>
         <div class="modal-body">
           <div class="modal-body-split">
@@ -493,7 +493,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3>Gestionar Categorías</h3>
-          <button class="close-btn" (click)="closeCategoryModal()">&times;</button>
+          <button type="button" class="close-btn" (click)="closeCategoryModal()" aria-label="Cerrar">&times;</button>
         </div>
         <div class="modal-body">
           <div class="add-category-form">
@@ -504,7 +504,7 @@
             @for (cat of categorias; track cat.id) {
               <div class="category-item">
                 <span>{{ cat.nombre }}</span>
-                <button class="btn-delete" (click)="deleteCategory(cat)">&times;</button>
+                <button type="button" class="btn-delete ui-btn-icon" (click)="deleteCategory(cat)" aria-label="Eliminar categoría">&times;</button>
               </div>
             }
           </div>

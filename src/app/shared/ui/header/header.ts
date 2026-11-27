@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, HostListener, OnInit, OnDestroy, effect } from '@angular/core';
-import { Router, RouterLink, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, Direccion } from '../../data-access/auth.service';
 import { ProductsService } from '../../../products/data-access/products.service';
@@ -12,7 +12,7 @@ import { animate } from 'animejs';
 
 @Component({
   selector: 'app-header',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './header.html',
   styleUrls: ['./header.css', './mobile-header-fixes.css'],
 })
@@ -404,18 +404,31 @@ onSearchInput() {
     this.mobileMenuOpen.set(false);
   }
 
+  toggleNotifications(event: Event) {
+    event.stopPropagation();
+    const next = !this.notificationsOpen();
+    this.closeUserDropdown();
+    this.addressPopoverOpen.set(false);
+    this.notificationsOpen.set(next);
+  }
+
   onNotificationsEnter() {
-    if (this.notificationsTimer) {
-      clearTimeout(this.notificationsTimer);
-      this.notificationsTimer = null;
-    }
+    if (this.notificationsTimer) { clearTimeout(this.notificationsTimer); this.notificationsTimer = null; }
     this.notificationsOpen.set(true);
   }
 
   onNotificationsLeave() {
-    this.notificationsTimer = setTimeout(() => {
-      this.notificationsOpen.set(false);
-    }, 500);
+    this.notificationsTimer = setTimeout(() => { this.notificationsOpen.set(false); }, 500);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey() {
+    this.notificationsOpen.set(false);
+    this.userDropdownOpen.set(false);
+    this.addressPopoverOpen.set(false);
+    this.cartPreviewOpen.set(false);
+    this.showDropdown.set(false);
+    this.mobileMenuOpen.set(false);
   }
 
   onQuickAccessEnter() {
